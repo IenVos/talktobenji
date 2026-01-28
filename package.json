@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
-    "@ducanh2912/next-pwa": "^6.4.4",
+    "@ducanh2912/next-pwa": "^10.2.9",
     "clsx": "^2.1.1",
     "convex": "^1.31.5",
     "lucide-react": "^0.562.0",
