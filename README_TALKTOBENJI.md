@@ -18,13 +18,13 @@ Dit project is een kopie van **vibe-chatbot** met branding aangepast naar **Talk
 3. **Convex voor TalkToBenji**
    - Maak een **nieuw** Convex-project op [convex.dev](https://convex.dev) voor TalkToBenji (of koppel een bestaand project).
    - Maak `.env.local` met o.a.:
-     - `CONVEX_DEPLOY_KEY` of `NEXT_PUBLIC_CONVEX_URL`
-     - Overige keys (bijv. Anthropic) indien je die gebruikt.
-   - Run: `npx convex dev` om schema en functions te deployen.
+     - `NEXT_PUBLIC_CONVEX_URL` en `CONVEX_DEPLOY_KEY` (van Convex Dashboard)
+     - Overige keys (bijv. Anthropic, ADMIN_PASSWORD) indien je die gebruikt.
+   - **Lokaal:** run `npx convex dev` om schema en functions te deployen.
+   - **Productie (Vercel):** run **`npx convex deploy`** zodat je live site de Convex-functies heeft. Zonder dit krijg je "Could not find public function for 'settings:get'" op Vercel.
 
 4. **Logo (optioneel)**  
-   Er wordt nog het oude logo gebruikt: `public/talktobenji-logo.png`.  
-   Vervang dit bestand door je eigen logo (bijv. `talktobenji-logo.png`) en pas in de app de `src` van de `<Image>`-componenten aan naar het nieuwe bestand.
+   De app gebruikt nu een icoon; de PWA-manifest gebruikt `public/vibetracker-logo.png`. Vervang dat bestand door je eigen logo indien gewenst.
 
 5. **Development starten**
    ```bash

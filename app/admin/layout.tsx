@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, Home, Menu, X, BookOpen } from "lucide-react";
-import Image from "next/image";
+import { Settings, LogOut, Home, Menu, X, BookOpen, MessageCircle } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -59,7 +58,7 @@ export default function AdminLayout({
       <header className="lg:hidden bg-primary-900 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center border border-primary-700">
-            <Image src="/talktobenji-logo.png" alt="TalkToBenji Logo" width={16} height={16} />
+            <MessageCircle className="text-white" size={16} strokeWidth={2} />
           </div>
           <div>
             <h1 className="text-lg font-bold text-white">TalkToBenji</h1>
@@ -146,7 +145,7 @@ export default function AdminLayout({
           <div className="p-6 border-b border-primary-700">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-primary-700">
-                <Image src="/talktobenji-logo.png" alt="TalkToBenji Logo" width={20} height={20} />
+                <MessageCircle className="text-white" size={20} strokeWidth={2} />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white">TalkToBenji</h1>

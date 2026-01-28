@@ -12,13 +12,13 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: "portrait-primary",
     icons: [
       {
-        src: "/talktobenji-logo.png",
+        src: "/vibetracker-logo.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/talktobenji-logo.png",
+        src: "/vibetracker-logo.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",

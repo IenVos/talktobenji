@@ -25,13 +25,17 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
         body: JSON.stringify({ password }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (res.ok) {
         onLogin();
+      } else if (res.status === 500 && data.error?.includes("not configured")) {
+        setError("Admin-wachtwoord niet geconfigureerd. Zet ADMIN_PASSWORD in .env.local (lokaal) of in Vercel Environment Variables.");
       } else {
-        setError("Onjuist wachtwoord");
+        setError(data.error || "Onjuist wachtwoord");
       }
     } catch {
-      setError("Er ging iets mis");
+      setError("Er ging iets mis. Controleer je internetverbinding.");
     } finally {
       setLoading(false);
     }
