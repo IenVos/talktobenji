@@ -1,0 +1,24 @@
+# Vercel ignore file - tells Vercel what NOT to upload during deployment
+# This prevents Vercel from uploading the .next directory
+
+.next
+.next/
+.next/**
+**/.next
+**/.next/**
+node_modules
+node_modules/**
+.env*.local
+.env.local
+.DS_Store
+*.log
+coverage
+.vercel
+dist
+build
+out
+*.tsbuildinfo
+.cache
+.next/cache
+.next/static
+.next/server

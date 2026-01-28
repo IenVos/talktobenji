@@ -1,0 +1,482 @@
+/**
+ * CHAT FUNCTIES
+ *
+ * Dit bestand bevat alle functies voor chat sessies en berichten.
+ * - Sessies starten en beheren
+ * - Berichten versturen en ophalen
+ * - Feedback registreren
+ */
+
+import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+
+// ============================================================================
+// QUERIES (Data ophalen)
+// ============================================================================
+
+/**
+ * Haal een specifieke chat sessie op
+ */
+export const getSession = query({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.sessionId);
+  },
+});
+
+/**
+ * Haal alle berichten van een sessie op
+ */
+export const getMessages = query({
+  args: {
+    sessionId: v.id("chatSessions"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    let query = ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) =>
+        q.eq("sessionId", args.sessionId)
+      )
+      .order("asc"); // Oudste eerst (chronologische volgorde)
+
+    const messages = await query.collect();
+
+    // Limiteer als opgegeven
+    if (args.limit) {
+      return messages.slice(-args.limit); // Laatste N berichten
+    }
+
+    return messages;
+  },
+});
+
+/**
+ * Haal alle sessies van een gebruiker op
+ */
+export const getUserSessions = query({
+  args: {
+    userId: v.optional(v.string()),
+    userEmail: v.optional(v.string()),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Fetch all sessions and filter in memory
+    let sessions = await ctx.db.query("chatSessions").collect();
+
+    // Filter op userId
+    if (args.userId) {
+      sessions = sessions.filter((s) => s.userId === args.userId);
+    }
+
+    // Extra filter op email als opgegeven
+    let filtered = sessions;
+    if (args.userEmail) {
+      filtered = sessions.filter((s) => s.userEmail === args.userEmail);
+    }
+
+    // Sorteer op lastActivityAt (nieuwste eerst)
+    const sorted = filtered.sort((a, b) => b.lastActivityAt - a.lastActivityAt);
+
+    // Limiteer als opgegeven
+    return args.limit ? sorted.slice(0, args.limit) : sorted;
+  },
+});
+
+/**
+ * Haal recente actieve sessies op
+ * Handig voor admin dashboard
+ */
+export const getActiveSessions = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const sessions = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_status", (q) => q.eq("status", "active"))
+      .collect();
+
+    // Sorteer op lastActivityAt (nieuwste eerst)
+    const sorted = sessions.sort((a, b) => b.lastActivityAt - a.lastActivityAt);
+
+    const limit = args.limit || 50;
+    return sorted.slice(0, limit);
+  },
+});
+
+/**
+ * Tel aantal berichten in een sessie
+ */
+export const getMessageCount = query({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    const messages = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+
+    return {
+      total: messages.length,
+      user: messages.filter((m) => m.role === "user").length,
+      bot: messages.filter((m) => m.role === "bot").length,
+    };
+  },
+});
+
+// ============================================================================
+// MUTATIONS (Data wijzigen)
+// ============================================================================
+
+/**
+ * Start een nieuwe chat sessie
+ */
+export const startSession = mutation({
+  args: {
+    userId: v.optional(v.string()),
+    userEmail: v.optional(v.string()),
+    userName: v.optional(v.string()),
+    metadata: v.optional(
+      v.object({
+        browser: v.optional(v.string()),
+        device: v.optional(v.string()),
+        referrer: v.optional(v.string()),
+        language: v.optional(v.string()),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const sessionId = await ctx.db.insert("chatSessions", {
+      userId: args.userId,
+      userEmail: args.userEmail,
+      userName: args.userName,
+      status: "active",
+      wasResolved: false,
+      metadata: args.metadata,
+      startedAt: now,
+      lastActivityAt: now,
+    });
+
+    return sessionId;
+  },
+});
+
+/**
+ * Voeg een gebruikersbericht toe aan de sessie
+ */
+export const sendUserMessage = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+    content: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Validatie
+    if (args.content.trim().length === 0) {
+      throw new Error("Bericht mag niet leeg zijn");
+    }
+
+    // Check of sessie bestaat en actief is
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error("Sessie niet gevonden");
+    }
+    if (session.status !== "active") {
+      throw new Error("Deze sessie is niet meer actief");
+    }
+
+    const now = Date.now();
+
+    // Voeg bericht toe
+    const messageId = await ctx.db.insert("chatMessages", {
+      sessionId: args.sessionId,
+      role: "user",
+      content: args.content.trim(),
+      isAiGenerated: false,
+      createdAt: now,
+    });
+
+    // Update lastActivityAt van sessie
+    await ctx.db.patch(args.sessionId, {
+      lastActivityAt: now,
+    });
+
+    return messageId;
+  },
+});
+
+/**
+ * Voeg een bot antwoord toe aan de sessie
+ */
+export const sendBotMessage = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+    content: v.string(),
+    knowledgeBaseId: v.optional(v.id("knowledgeBase")),
+    confidenceScore: v.optional(v.number()),
+    isAiGenerated: v.boolean(),
+    generationMetadata: v.optional(
+      v.object({
+        model: v.optional(v.string()),
+        tokensUsed: v.optional(v.number()),
+        responseTime: v.optional(v.number()),
+        error: v.optional(v.string()),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Voeg bot bericht toe
+    const messageId = await ctx.db.insert("chatMessages", {
+      sessionId: args.sessionId,
+      role: "bot",
+      content: args.content,
+      knowledgeBaseId: args.knowledgeBaseId,
+      confidenceScore: args.confidenceScore,
+      isAiGenerated: args.isAiGenerated,
+      generationMetadata: args.generationMetadata,
+      createdAt: now,
+    });
+
+    // Update lastActivityAt van sessie
+    await ctx.db.patch(args.sessionId, {
+      lastActivityAt: now,
+    });
+
+    // Als er een knowledge base item gebruikt is, verhoog de usage count
+    if (args.knowledgeBaseId) {
+      const kb = await ctx.db.get(args.knowledgeBaseId);
+      if (kb) {
+        await ctx.db.patch(args.knowledgeBaseId, {
+          usageCount: (kb.usageCount || 0) + 1,
+          updatedAt: now,
+        });
+      }
+    }
+
+    return messageId;
+  },
+});
+
+/**
+ * Geef feedback op een specifiek bericht
+ */
+export const submitMessageFeedback = mutation({
+  args: {
+    messageId: v.id("chatMessages"),
+    feedback: v.union(v.literal("helpful"), v.literal("not_helpful")),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.messageId, {
+      feedback: args.feedback,
+    });
+
+    return args.messageId;
+  },
+});
+
+/**
+ * Update sessie status
+ */
+export const updateSessionStatus = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+    status: v.union(
+      v.literal("active"),
+      v.literal("resolved"),
+      v.literal("escalated"),
+      v.literal("abandoned")
+    ),
+    wasResolved: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const updates: any = {
+      status: args.status,
+      lastActivityAt: Date.now(),
+    };
+
+    // Als sessie beëindigd wordt, zet endedAt
+    if (args.status !== "active") {
+      updates.endedAt = Date.now();
+    }
+
+    // Update wasResolved als opgegeven
+    if (args.wasResolved !== undefined) {
+      updates.wasResolved = args.wasResolved;
+    }
+
+    await ctx.db.patch(args.sessionId, updates);
+
+    return args.sessionId;
+  },
+});
+
+/**
+ * Beëindig een sessie met feedback
+ */
+export const endSession = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+    status: v.union(
+      v.literal("resolved"),
+      v.literal("escalated"),
+      v.literal("abandoned")
+    ),
+    rating: v.optional(v.number()),
+    feedbackComment: v.optional(v.string()),
+    wasResolved: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Bereken sessieduur en genereer samenvatting
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error("Sessie niet gevonden");
+    }
+
+    // Haal alle berichten op voor samenvatting
+    const messages = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+
+    // Genereer korte samenvatting (eerste gebruikersvraag)
+    const firstUserMessage = messages.find((m) => m.role === "user");
+    const summary = firstUserMessage
+      ? firstUserMessage.content.substring(0, 100) + "..."
+      : "Geen berichten gevonden";
+
+    // Update sessie
+    await ctx.db.patch(args.sessionId, {
+      status: args.status,
+      wasResolved: args.wasResolved,
+      rating: args.rating,
+      feedbackComment: args.feedbackComment,
+      summary,
+      endedAt: now,
+      lastActivityAt: now,
+    });
+
+    return args.sessionId;
+  },
+});
+
+/**
+ * Markeer een sessie als abandoned (verlaten)
+ * Wordt automatisch aangeroepen voor sessies die >30 min inactief zijn
+ */
+export const markSessionsAsAbandoned = mutation({
+  args: {
+    inactiveThresholdMinutes: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const threshold = args.inactiveThresholdMinutes || 30;
+    const cutoffTime = Date.now() - threshold * 60 * 1000;
+
+    // Vind alle actieve sessies die langer dan threshold inactief zijn
+    const activeSessions = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_status", (q) => q.eq("status", "active"))
+      .collect();
+
+    const abandoned = activeSessions.filter(
+      (s) => s.lastActivityAt < cutoffTime
+    );
+
+    // Update ze naar abandoned
+    for (const session of abandoned) {
+      await ctx.db.patch(session._id, {
+        status: "abandoned",
+        wasResolved: false,
+        endedAt: Date.now(),
+      });
+    }
+
+    return {
+      count: abandoned.length,
+      sessionIds: abandoned.map((s) => s._id),
+    };
+  },
+});
+
+/**
+ * Voeg algemene feedback toe
+ */
+export const submitGeneralFeedback = mutation({
+  args: {
+    sessionId: v.optional(v.id("chatSessions")),
+    feedbackType: v.union(
+      v.literal("bug"),
+      v.literal("suggestion"),
+      v.literal("compliment"),
+      v.literal("complaint"),
+      v.literal("feature_request")
+    ),
+    comment: v.string(),
+    rating: v.optional(v.number()),
+    userEmail: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Validatie
+    if (args.comment.trim().length === 0) {
+      throw new Error("Feedback mag niet leeg zijn");
+    }
+
+    const feedbackId = await ctx.db.insert("userFeedback", {
+      sessionId: args.sessionId,
+      feedbackType: args.feedbackType,
+      comment: args.comment.trim(),
+      rating: args.rating,
+      userEmail: args.userEmail,
+      status: "new",
+      createdAt: Date.now(),
+    });
+
+    return feedbackId;
+  },
+});
+
+/**
+ * Haal chat geschiedenis op voor export
+ */
+export const exportChatHistory = query({
+  args: {
+    sessionId: v.id("chatSessions"),
+  },
+  handler: async (ctx, args) => {
+    // Haal sessie op
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error("Sessie niet gevonden");
+    }
+
+    // Haal alle berichten op
+    const messages = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .order("asc")
+      .collect();
+
+    // Format voor export
+    return {
+      session: {
+        id: session._id,
+        startedAt: session.startedAt,
+        endedAt: session.endedAt,
+        status: session.status,
+        rating: session.rating,
+        wasResolved: session.wasResolved,
+      },
+      messages: messages.map((m) => ({
+        timestamp: m.createdAt,
+        role: m.role,
+        content: m.content,
+        feedback: m.feedback,
+      })),
+      messageCount: messages.length,
+    };
+  },
+});
