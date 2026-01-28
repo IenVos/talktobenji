@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Rustige gesprekspartner bij rouw en verlies",
     start_url: "/",
     display: "standalone",
-    background_color: "#fbfaf8",
-    theme_color: "#f4b975",
+    background_color: "#f8feff",
+    theme_color: "#51808f",
     orientation: "portrait-primary",
     icons: [
       {
