@@ -4,8 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { Send, User, Mic, Square, Loader2 } from "lucide-react";
-import Image from "next/image";
+import { Send, User, Mic, Square, Loader2, MessageCircle, AlertCircle, X } from "lucide-react";
 
 export default function ChatPage() {
   const [sessionId, setSessionId] = useState<Id<"chatSessions"> | null>(null);
@@ -35,6 +34,7 @@ export default function ChatPage() {
   );
 
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const startSession = useMutation(api.chat.startSession);
@@ -133,15 +133,53 @@ export default function ChatPage() {
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
       {/* Header */}
       <header className="bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Image src="/talktobenji-logo.png" alt="TalkToBenji Logo" width={22} height={22} />
-          </div>
-          <div className="min-w-0">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
+              <MessageCircle className="text-white" size={22} strokeWidth={2} />
+            </div>
             <h1 className="font-semibold text-white text-sm sm:text-base truncate">TalkToBenji Chat</h1>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowDisclaimer(true)}
+            className="p-2 rounded-full text-white/90 hover:bg-primary-700 hover:text-white transition-colors flex-shrink-0"
+            title="Over Benji"
+            aria-label="Over Benji"
+          >
+            <AlertCircle size={22} strokeWidth={2} />
+          </button>
         </div>
       </header>
+
+      {/* Disclaimer modal */}
+      {showDisclaimer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowDisclaimer(false)}>
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-5 sm:p-6 relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setShowDisclaimer(false)}
+              className="absolute top-3 right-3 p-1 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="Sluiten"
+            >
+              <X size={20} />
+            </button>
+            <div className="flex gap-3 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="text-primary-600" size={22} />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Over Benji</h3>
+                <p className="text-xs text-gray-500">Geen professionele hulp</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              Ik ben Benji, een AI-chatbot. Ik denk graag met je mee en sta voor je klaar, maar ik bied geen professionele hulp. 
+              Bij grote vragen of problemen raad ik altijd aan om professionele hulp te zoeken.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <main className="flex-1 overflow-y-auto bg-gray-50">
@@ -150,21 +188,13 @@ export default function ChatPage() {
           {!sessionId && (
             <div className="text-center py-8 sm:py-16 px-4">
               <div className="w-12 h-12 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-primary-700 rounded-xl flex items-center justify-center">
-                <Image src="/talktobenji-logo.png" alt="TalkToBenji Logo" width={40} height={40} />
+                <MessageCircle className="text-white" size={40} strokeWidth={1.5} />
               </div>
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                 Welkom bij TalkToBenji
               </h2>
               <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto">
-                Ik ben Benji, je rustige gesprekspartner. <br/> Schrijf of spreek wat je wilt delen.
-              </p>
-              {speechSupported && (
-                <p className="text-xs text-gray-500 mt-4">
-                  Tip: Je kunt ook inspreken met de microfoon
-                </p>
-              )}
-              <p className="text-xs text-gray-500 mt-4">
-                Typ hieronder; bij een paar letters verschijnen eventueel suggesties.
+                Ik ben Benji, je rustige gesprekspartner. <br /> Schrijf of spreek wat je wilt delen.
               </p>
             </div>
           )}
@@ -180,7 +210,7 @@ export default function ChatPage() {
               >
                 {msg.role === "bot" && (
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-900 flex items-center justify-center flex-shrink-0">
-                    <Image src="/talktobenji-logo.png" alt="Benji" width={16} height={16} />
+                    <MessageCircle className="text-white" size={16} strokeWidth={2} />
                   </div>
                 )}
                 <div

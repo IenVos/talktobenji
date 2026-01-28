@@ -9,7 +9,7 @@
 
   body {
     @apply text-gray-900 antialiased;
-    background-color: #faf6f4;
+    background-color: #fbfaf8;
   }
 }
 
@@ -38,7 +38,7 @@
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #749e9d transparent;
+    scrollbar-color: #f4b975 transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -50,7 +50,7 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #749e9d;
+    background-color: #f4b975;
     border-radius: 3px;
   }
 }

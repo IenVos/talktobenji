@@ -6,10 +6,6 @@ export const metadata: Metadata = {
   title: "TalkToBenji - Benji",
   description: "Rustige gesprekspartner bij rouw en verlies",
   manifest: "/manifest.webmanifest",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#749e9d" },
-    { media: "(prefers-color-scheme: dark)", color: "#749e9d" },
-  ],
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -23,6 +19,10 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4b975" },
+    { media: "(prefers-color-scheme: dark)", color: "#f4b975" },
+  ],
 };
 
 export default function RootLayout({
