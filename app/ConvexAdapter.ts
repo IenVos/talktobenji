@@ -221,12 +221,11 @@ export const ConvexAdapter: Adapter = {
   async unlinkAccount({
     provider,
     providerAccountId,
-  }: Pick<AdapterAccount, "provider" | "providerAccountId">) {
-    const result = await callMutation(api.authAdapter.unlinkAccount, {
+  }: Pick<AdapterAccount, "provider" | "providerAccountId">): Promise<void> {
+    await callMutation(api.authAdapter.unlinkAccount, {
       provider,
       providerAccountId,
     });
-    return result ?? undefined;
   },
 
   async updateAuthenticatorCounter(credentialID: string, newCounter: number) {
