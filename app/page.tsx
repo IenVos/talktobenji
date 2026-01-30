@@ -217,11 +217,24 @@ function ChatPageContent() {
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
       {/* Header */}
       <header className="bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
-        <div className="max-w-3xl mx-auto flex items-center gap-3 min-w-0 pr-12 sm:pr-14">
-          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
-            <MessageCircle className="text-white" size={22} strokeWidth={2} />
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 min-w-0 pr-12 sm:pr-14">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
+              <MessageCircle className="text-white" size={22} strokeWidth={2} />
+            </div>
+            <h1 className="font-semibold text-white text-sm sm:text-base truncate">Benji</h1>
           </div>
-          <h1 className="font-semibold text-white text-sm sm:text-base truncate">Benji</h1>
+          {!isLoggedIn && (
+            <button
+              type="button"
+              onClick={() => setShowAuthModal(true)}
+              title="Account aanmaken of inloggen"
+              className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-primary-200 hover:bg-white/10 hover:text-white text-xs sm:text-sm font-medium transition-colors"
+            >
+              <LogIn size={16} />
+              <span className="hidden sm:inline">Account / Inloggen</span>
+            </button>
+          )}
         </div>
       </header>
 
