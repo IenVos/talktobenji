@@ -1,0 +1,107 @@
+/**
+ * NextAuth config: e-mail/wachtwoord (Credentials) + JWT voor Convex.
+ */
+import { SignJWT, importPKCS8 } from "jose";
+import NextAuth, { type AuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import { compare } from "bcryptjs";
+
+// Convex verwacht issuer = CONVEX_SITE_URL (bijv. https://xxx.convex.site)
+const CONVEX_SITE_URL = (process.env.NEXT_PUBLIC_CONVEX_URL ?? "").replace(
+  /\.cloud$/,
+  ".site"
+);
+
+const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
+
+export const authOptions: AuthOptions = {
+  providers: [
+    CredentialsProvider({
+      id: "credentials",
+      name: "E-mail en wachtwoord",
+      credentials: {
+        email: { label: "E-mail", type: "email" },
+        password: { label: "Wachtwoord", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password || !adapterSecret) {
+          return null;
+        }
+        const cred = await fetchQuery(api.credentials.getCredentialsByEmail, {
+          secret: adapterSecret,
+          email: credentials.email.trim(),
+        });
+        if (!cred || !cred.hashedPassword) {
+          return null;
+        }
+        const valid = await compare(credentials.password, cred.hashedPassword);
+        if (!valid) {
+          return null;
+        }
+        return {
+          id: cred.userId as string,
+          email: cred.email,
+          name: cred.name ?? null,
+        };
+      },
+    }),
+  ],
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 dagen
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user?.id) {
+        token.userId = user.id;
+        token.email = user.email;
+        token.name = user.name;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      const userId = token.userId as string | undefined;
+      if (userId) {
+        (session as SessionWithUserId).userId = userId;
+      }
+      const privateKeyPem = process.env.CONVEX_AUTH_PRIVATE_KEY;
+      if (!privateKeyPem || !userId) {
+        return { ...session, convexToken: null };
+      }
+      const privateKey = await importPKCS8(privateKeyPem, "RS256");
+      const convexToken = await new SignJWT({ sub: userId })
+        .setProtectedHeader({ alg: "RS256" })
+        .setIssuedAt()
+        .setIssuer(CONVEX_SITE_URL)
+        .setAudience("convex")
+        .setExpirationTime("1h")
+        .sign(privateKey);
+      return { ...session, convexToken };
+    },
+  },
+  pages: {
+    signIn: "/",
+  },
+};
+
+export type SessionWithUserId = { userId?: string; convexToken?: string | null };
+
+declare module "next-auth" {
+  interface Session extends SessionWithUserId {
+    convexToken?: string | null;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    userId?: string;
+  }
+}
+
+export async function auth() {
+  const { getServerSession } = await import("next-auth/next");
+  return getServerSession(authOptions);
+}

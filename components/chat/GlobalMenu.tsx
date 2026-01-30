@@ -2,8 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { Info, MessageCircle, Heart, PawPrint, LogIn } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
 import { useAuthModal } from "@/lib/AuthModalContext";
@@ -11,21 +9,15 @@ import { useAuthModal } from "@/lib/AuthModalContext";
 const MENU_ICON_COLOR = "#5a8a8a";
 
 type GlobalMenuProps = {
-  isLoggedIn?: boolean;
   lastConversationDate?: string | null;
 };
 
-export function GlobalMenu({
-  isLoggedIn = false,
-  lastConversationDate = null,
-}: GlobalMenuProps) {
+export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { setShowAbout } = useAboutModal();
   const { setShowAuthModal } = useAuthModal();
-  const userId = useQuery(api.user.getCurrentUserId);
-  const isLoggedIn = userId !== undefined && userId !== null;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -49,15 +41,21 @@ export function GlobalMenu({
       },
     },
     {
-      label: isLoggedIn
-        ? lastConversationDate
-          ? `Mijn gesprekken · ${lastConversationDate}`
-          : "Mijn gesprekken"
-        : "Account aanmaken / Inloggen",
-      icon: isLoggedIn ? MessageCircle : LogIn,
+      label: "Account aanmaken / Inloggen",
+      icon: LogIn,
       onClick: () => {
         setOpen(false);
-        if (!isLoggedIn) setShowAuthModal(true);
+        setShowAuthModal(true);
+      },
+    },
+    {
+      label: lastConversationDate
+        ? `Mijn gesprekken · ${lastConversationDate}`
+        : "Mijn gesprekken",
+      icon: MessageCircle,
+      onClick: () => {
+        setOpen(false);
+        // Gesprekken bekijken komt later; nu gewoon menu sluiten
       },
     },
     {

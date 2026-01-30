@@ -2,25 +2,34 @@
 
 import { Suspense, useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { Send, User, Mic, Square, Loader2, MessageCircle } from "lucide-react";
+import { Send, User, Mic, Square, Loader2, MessageCircle, LogIn, X } from "lucide-react";
 import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
 import type { TopicId } from "@/components/chat/TopicButtons";
+import { useAuthModal } from "@/lib/AuthModalContext";
+
+/** Na dit aantal gebruikersberichten tonen we de optie om een account aan te maken. (Tijdelijk 2 voor testen; zet later bijv. op 6.) */
+const MESSAGES_BEFORE_ACCOUNT_PROMPT = 2;
 
 function ChatPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
+  const { setShowAuthModal } = useAuthModal();
   const [sessionId, setSessionId] = useState<Id<"chatSessions"> | null>(null);
   const [showTopicButtons, setShowTopicButtons] = useState(true);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [accountPromptDismissed, setAccountPromptDismissed] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const topicFromUrlHandled = useRef<string | null>(null);
+  const linkedSessionRef = useRef<Id<"chatSessions"> | null>(null);
 
   const messages = useQuery(
     api.chat.getMessages,
@@ -46,6 +55,36 @@ function ChatPageContent() {
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
   const handleUserMessage = useAction(api.ai.handleUserMessage);
+  const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
+
+  const userMessageCount = messages?.filter((m) => m.role === "user").length ?? 0;
+  const isLoggedIn = status === "authenticated" && session !== null;
+  const showAccountPrompt =
+    sessionId &&
+    userMessageCount >= MESSAGES_BEFORE_ACCOUNT_PROMPT &&
+    !isLoggedIn &&
+    !accountPromptDismissed;
+
+  // Bij inloggen: huidige anonieme sessie koppelen aan het account
+  useEffect(() => {
+    if (
+      status !== "authenticated" ||
+      !session?.userId ||
+      !sessionId ||
+      linkedSessionRef.current === sessionId
+    ) {
+      return;
+    }
+    const s = session as { userId?: string; user?: { email?: string; name?: string } };
+    linkSessionToUser({
+      sessionId,
+      userId: s.userId!,
+      userEmail: s.user?.email,
+      userName: s.user?.name,
+    }).then(() => {
+      linkedSessionRef.current = sessionId;
+    });
+  }, [status, session, sessionId, linkSessionToUser]);
 
   // Check for speech recognition support
   useEffect(() => {
@@ -244,6 +283,38 @@ function ChatPageContent() {
 
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Prompt om account aan te maken na een aantal berichten */}
+          {showAccountPrompt && (
+            <div className="mt-4 p-4 bg-[#e8eded] border border-[#5a8a8a]/30 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-gray-800">
+                  Wil je je gesprek bewaren?
+                </p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Maak een gratis account aan en je gesprekken blijven bewaard.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAuthModal(true)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#5a8a8a] text-white text-sm font-medium hover:bg-[#4a7a7a] transition-colors"
+                >
+                  <LogIn size={16} />
+                  Account aanmaken
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAccountPromptDismissed(true)}
+                  className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-200/80 transition-colors"
+                  aria-label="Later"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
@@ -302,6 +373,7 @@ function ChatPageContent() {
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                 placeholder={isRecording ? "Luisteren..." : "Typ je vraag..."}
+                suppressHydrationWarning
                 className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${
                   isRecording ? "border-red-500 bg-red-50" : "border-gray-300"
                 }`}

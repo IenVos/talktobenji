@@ -203,6 +203,34 @@ export const startSession = mutation({
 });
 
 /**
+ * Koppel een anonieme chat-sessie aan een gebruiker (na inloggen).
+ * Zo blijven eerdere gesprekken behouden op het account.
+ */
+export const linkSessionToUser = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+    userId: v.string(),
+    userEmail: v.optional(v.string()),
+    userName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error("Sessie niet gevonden");
+    }
+    // Alleen anonieme sessies koppelen (geen overschrijven van bestaande gebruiker)
+    if (session.userId) {
+      return;
+    }
+    await ctx.db.patch(args.sessionId, {
+      userId: args.userId,
+      userEmail: args.userEmail ?? undefined,
+      userName: args.userName ?? undefined,
+    });
+  },
+});
+
+/**
  * Voeg opener-bericht toe aan sessie (na onderwerp-klik) en log voor A/B test.
  * Geen user-bericht; Benji opent direct met 1 van 3 varianten (random).
  */

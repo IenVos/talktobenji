@@ -10,8 +10,10 @@
 
 import type * as admin from "../admin.js";
 import type * as ai from "../ai.js";
-import type * as auth from "../auth.js";
+import type * as authAdapter from "../authAdapter.js";
+import type * as authSchema from "../authSchema.js";
 import type * as chat from "../chat.js";
+import type * as credentials from "../credentials.js";
 import type * as exampleData from "../exampleData.js";
 import type * as http from "../http.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
@@ -28,8 +30,10 @@ import type {
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   ai: typeof ai;
-  auth: typeof auth;
+  authAdapter: typeof authAdapter;
+  authSchema: typeof authSchema;
   chat: typeof chat;
+  credentials: typeof credentials;
   exampleData: typeof exampleData;
   http: typeof http;
   knowledgeBase: typeof knowledgeBase;

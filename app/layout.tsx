@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { auth } from "@/auth";
 import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
 import { AboutModalProvider } from "@/lib/AboutModalContext";
 import { AuthModalProvider } from "@/lib/AuthModalContext";
@@ -32,15 +33,16 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
   return (
     <html lang="nl">
       <body>
-        <ConvexClientProvider>
+        <ConvexClientProvider session={session}>
           <AboutModalProvider>
             <AuthModalProvider>
               <ProfessionalHelpProvider>

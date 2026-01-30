@@ -1,9 +1,17 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { authTables } from "@convex-dev/auth/server";
+import { authTables } from "./authSchema";
 
 export default defineSchema({
   ...authTables,
+
+  // E-mail/wachtwoord voor in-app inloggen (gekoppeld aan users)
+  credentials: defineTable({
+    userId: v.id("users"),
+    email: v.string(),
+    hashedPassword: v.string(),
+  }).index("email", ["email"]),
+
   // Bot instellingen (knowledge + rules)
   botSettings: defineTable({
     knowledge: v.string(),
