@@ -9,7 +9,9 @@
     "lint": "next lint",
     "convex": "convex dev",
     "deploy:convex": "dotenv -e .env.local -- npx convex deploy",
-    "generate-pwa-icons": "node scripts/generate-pwa-icons.js"
+    "generate-pwa-icons": "node scripts/generate-pwa-icons.js",
+    "open:env": "open -a Cursor .env.local",
+    "open:project": "open -a Cursor ."
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

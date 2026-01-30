@@ -15,16 +15,31 @@ export async function POST(request: Request) {
     const trimmedName = typeof name === "string" ? name.trim() : "";
     const secret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
 
-    if (!trimmedEmail || !password || !secret) {
+    if (!secret) {
+      console.error("[register] CONVEX_AUTH_ADAPTER_SECRET ontbreekt op de server.");
       return NextResponse.json(
-        { error: "E-mail en wachtwoord zijn verplicht." },
+        { error: "Registreren is tijdelijk niet mogelijk. Probeer het later of neem contact op." },
+        { status: 503 }
+      );
+    }
+
+    if (!trimmedEmail) {
+      return NextResponse.json(
+        { error: "Vul je e-mailadres in." },
         { status: 400 }
       );
     }
 
     if (!trimmedName) {
       return NextResponse.json(
-        { error: "Naam is verplicht." },
+        { error: "Vul je naam in." },
+        { status: 400 }
+      );
+    }
+
+    if (!password || typeof password !== "string") {
+      return NextResponse.json(
+        { error: "Vul een wachtwoord in." },
         { status: 400 }
       );
     }
