@@ -15,6 +15,7 @@ export default defineSchema({
     userId: v.optional(v.string()),
     userEmail: v.optional(v.string()),
     userName: v.optional(v.string()),
+    topic: v.optional(v.string()),
     status: v.union(
       v.literal("active"),
       v.literal("resolved"),
@@ -144,6 +145,22 @@ export default defineSchema({
   })
     .index("by_type", ["feedbackType"])
     .index("by_status", ["status"]),
+
+  // A/B test: welke opener leidt tot doorpraten
+  openerTests: defineTable({
+    conversationId: v.id("chatSessions"),
+    topic: v.union(
+      v.literal("verlies"),
+      v.literal("verdriet"),
+      v.literal("huisdier"),
+      v.literal("hulp")
+    ),
+    openerVariant: v.union(v.literal(1), v.literal(2), v.literal(3)),
+    userContinued: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_topic", ["topic"]),
 
   // Analytics
   analytics: defineTable({

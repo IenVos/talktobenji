@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
+import { AboutModalProvider } from "@/lib/AboutModalContext";
+import { ProfessionalHelpProvider } from "@/lib/ProfessionalHelpContext";
+import { GlobalMenu } from "@/components/chat/GlobalMenu";
 
 export const metadata: Metadata = {
   title: "TalkToBenji - Benji",
@@ -36,7 +39,14 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <body>
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+        <ConvexClientProvider>
+          <AboutModalProvider>
+            <ProfessionalHelpProvider>
+              <GlobalMenu />
+              {children}
+            </ProfessionalHelpProvider>
+          </AboutModalProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

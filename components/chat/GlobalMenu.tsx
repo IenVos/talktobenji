@@ -1,0 +1,122 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Info, MessageCircle, Heart, PawPrint, LogIn } from "lucide-react";
+import { useAboutModal } from "@/lib/AboutModalContext";
+
+const MENU_ICON_COLOR = "#5a8a8a";
+
+type GlobalMenuProps = {
+  isLoggedIn?: boolean;
+  lastConversationDate?: string | null;
+};
+
+export function GlobalMenu({
+  isLoggedIn = false,
+  lastConversationDate = null,
+}: GlobalMenuProps) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { setShowAbout } = useAboutModal();
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    if (open) {
+      document.addEventListener("click", handleClickOutside);
+    }
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [open]);
+
+  const menuItems = [
+    {
+      label: "Over Benji",
+      icon: Info,
+      onClick: () => {
+        setOpen(false);
+        setShowAbout(true);
+      },
+    },
+    {
+      label: isLoggedIn
+        ? lastConversationDate
+          ? `Mijn gesprekken · ${lastConversationDate}`
+          : "Mijn gesprekken"
+        : "Inloggen",
+      icon: isLoggedIn ? MessageCircle : LogIn,
+      onClick: () => setOpen(false),
+    },
+    {
+      label: "Ik heb iemand verloren",
+      icon: Heart,
+      onClick: () => {
+        setOpen(false);
+        router.push("/?topic=verlies-dierbare");
+      },
+    },
+    {
+      label: "Ik zit met verdriet",
+      icon: Heart,
+      onClick: () => {
+        setOpen(false);
+        router.push("/?topic=omgaan-verdriet");
+      },
+    },
+    {
+      label: "Ik mis mijn huisdier",
+      icon: PawPrint,
+      onClick: () => {
+        setOpen(false);
+        router.push("/?topic=afscheid-huisdier");
+      },
+    },
+  ];
+
+  return (
+    <div className="fixed top-0 right-0 z-50 p-3 sm:p-4" ref={menuRef}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="p-2 rounded-full text-white/90 hover:bg-white/10 hover:text-white transition-colors"
+        title="Menu"
+        aria-label="Menu openen"
+        aria-expanded={open}
+      >
+        <Info size={22} strokeWidth={2} />
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-lg border border-gray-100 py-1"
+          role="menu"
+        >
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={item.onClick}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-100 first:rounded-t-xl last:rounded-b-xl transition-all duration-200"
+                role="menuitem"
+              >
+                <Icon
+                  size={18}
+                  strokeWidth={2}
+                  className="flex-shrink-0"
+                  style={{ color: MENU_ICON_COLOR }}
+                />
+                <span className="truncate">{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

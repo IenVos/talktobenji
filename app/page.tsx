@@ -1,19 +1,26 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { Send, User, Mic, Square, Loader2, MessageCircle, AlertCircle, X } from "lucide-react";
+import { Send, User, Mic, Square, Loader2, MessageCircle } from "lucide-react";
+import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
+import type { TopicId } from "@/components/chat/TopicButtons";
 
 export default function ChatPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [sessionId, setSessionId] = useState<Id<"chatSessions"> | null>(null);
+  const [showTopicButtons, setShowTopicButtons] = useState(true);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const topicFromUrlHandled = useRef<string | null>(null);
 
   const messages = useQuery(
     api.chat.getMessages,
@@ -34,10 +41,10 @@ export default function ChatPage() {
   );
 
   const [showSuggestions, setShowSuggestions] = useState(true);
-  const [showDisclaimer, setShowDisclaimer] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const startSession = useMutation(api.chat.startSession);
+  const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
   const handleUserMessage = useAction(api.ai.handleUserMessage);
 
   // Check for speech recognition support
@@ -93,6 +100,7 @@ export default function ChatPage() {
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
+    setShowTopicButtons(false);
     setInput("");
     setShowSuggestions(false);
     setIsLoading(true);
@@ -114,6 +122,43 @@ export default function ChatPage() {
     }
   };
 
+  const handleTopicSelect = async (topicId: TopicId, _label: string) => {
+    setShowTopicButtons(false);
+    setIsLoading(true);
+    try {
+      const newSessionId = await startSession({ topic: topicId });
+      await addOpenerToSession({ sessionId: newSessionId, topicId });
+      setSessionId(newSessionId);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Topic from menu (URL ?topic=...)
+  useEffect(() => {
+    const topicFromUrl = searchParams.get("topic") as TopicId | null;
+    if (!topicFromUrl || topicFromUrlHandled.current === topicFromUrl || isLoading) return;
+    topicFromUrlHandled.current = topicFromUrl;
+    setShowTopicButtons(false);
+    setIsLoading(true);
+    (async () => {
+      try {
+        const newSessionId = await startSession({ topic: topicFromUrl });
+        await addOpenerToSession({ sessionId: newSessionId, topicId: topicFromUrl });
+        setSessionId(newSessionId);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+        router.replace("/");
+        topicFromUrlHandled.current = null;
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams.get("topic")]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -133,70 +178,23 @@ export default function ChatPage() {
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
       {/* Header */}
       <header className="bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
-              <MessageCircle className="text-white" size={22} strokeWidth={2} />
-            </div>
-            <h1 className="font-semibold text-white text-sm sm:text-base truncate">TalkToBenji Chat</h1>
+        <div className="max-w-3xl mx-auto flex items-center gap-3 min-w-0 pr-12 sm:pr-14">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
+            <MessageCircle className="text-white" size={22} strokeWidth={2} />
           </div>
-          <button
-            type="button"
-            onClick={() => setShowDisclaimer(true)}
-            className="p-2 rounded-full text-white/90 hover:bg-primary-700 hover:text-white transition-colors flex-shrink-0"
-            title="Over Benji"
-            aria-label="Over Benji"
-          >
-            <AlertCircle size={22} strokeWidth={2} />
-          </button>
+          <h1 className="font-semibold text-white text-sm sm:text-base truncate">Benji</h1>
         </div>
       </header>
-
-      {/* Disclaimer modal */}
-      {showDisclaimer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={() => setShowDisclaimer(false)}>
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-5 sm:p-6 relative" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setShowDisclaimer(false)}
-              className="absolute top-3 right-3 p-1 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-              aria-label="Sluiten"
-            >
-              <X size={20} />
-            </button>
-            <div className="flex gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-                <AlertCircle className="text-primary-600" size={22} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Over Benji</h3>
-                <p className="text-xs text-gray-500">Geen professionele hulp</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              Ik ben Benji, een AI-chatbot. Ik denk graag met je mee en sta voor je klaar, maar ik bied geen professionele hulp. 
-              Bij grote vragen of problemen raad ik altijd aan om professionele hulp te zoeken.
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Messages */}
       <main className="flex-1 overflow-y-auto bg-gray-50">
         <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
           {/* Welcome message when no session */}
           {!sessionId && (
-            <div className="text-center py-8 sm:py-16 px-4">
-              <div className="w-12 h-12 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-primary-700 rounded-xl flex items-center justify-center">
-                <MessageCircle className="text-white" size={40} strokeWidth={1.5} />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                Welkom bij TalkToBenji
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto">
-                Ik ben Benji, je rustige gesprekspartner. <br /> Schrijf of spreek wat je wilt delen.
-              </p>
-            </div>
+            <WelcomeScreen
+              showTopicButtons={showTopicButtons}
+              onTopicSelect={handleTopicSelect}
+            />
           )}
 
           {/* Chat messages */}

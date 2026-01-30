@@ -10,6 +10,43 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+// Openers per categorie (A/B test: variant 1, 2 of 3)
+const OPENERS: Record<
+  "verlies" | "verdriet" | "huisdier" | "hulp",
+  [string, string, string]
+> = {
+  verlies: [
+    "Iemand verliezen laat een leegte achter die moeilijk te beschrijven is. Neem de tijd. Ik luister.",
+    "Het gemis van iemand die er niet meer is, kan overweldigend zijn. Je hoeft hier niets uit te leggen begin waar je wilt.",
+    "Verlies doet pijn, op manieren die anderen niet altijd zien. Vertel me wat je kwijt wilt.",
+  ],
+  verdriet: [
+    "Verdriet heeft geen handleiding. Wat je ook voelt, het is oké. Wat houdt je op dit moment het meest bezig?",
+    "Soms weet je niet eens waar te beginnen. Dat hoeft ook niet. Deel gewoon wat er nu is.",
+    "Het is zwaar om verdriet mee te dragen. Ik ben hier, zonder oordeel. Wat speelt er?",
+  ],
+  huisdier: [
+    "Een huisdier is geen 'maar een dier'. Het is liefde, gezelschap, een stukje thuis. Vertel me over hem of haar.",
+    "Dat gemis is echt, ook al begrijpt niet iedereen dat. Wil je me vertellen wie je mist?",
+    "Afscheid nemen van een trouwe vriend doet pijn. Ik luister. Hoe heette je huisdier?",
+  ],
+  hulp: [
+    "Dat je hulp overweegt is dapper. Wil je dat we samen kijken wat er is, of zoek je concrete opties?",
+    "Soms heb je iemand nodig die getraind is om te helpen. Zal ik je laten zien welke mogelijkheden er zijn?",
+    "De stap zetten om hulp te zoeken is niet makkelijk. Wat zou je het meest helpen op dit moment?",
+  ],
+};
+
+const TOPIC_ID_TO_OPENER_KEY: Record<
+  string,
+  "verlies" | "verdriet" | "huisdier" | "hulp"
+> = {
+  "verlies-dierbare": "verlies",
+  "omgaan-verdriet": "verdriet",
+  "afscheid-huisdier": "huisdier",
+  "professionele-hulp": "hulp",
+};
+
 // ============================================================================
 // QUERIES (Data ophalen)
 // ============================================================================
@@ -136,6 +173,7 @@ export const startSession = mutation({
     userId: v.optional(v.string()),
     userEmail: v.optional(v.string()),
     userName: v.optional(v.string()),
+    topic: v.optional(v.string()),
     metadata: v.optional(
       v.object({
         browser: v.optional(v.string()),
@@ -152,6 +190,7 @@ export const startSession = mutation({
       userId: args.userId,
       userEmail: args.userEmail,
       userName: args.userName,
+      topic: args.topic,
       status: "active",
       wasResolved: false,
       metadata: args.metadata,
@@ -160,6 +199,49 @@ export const startSession = mutation({
     });
 
     return sessionId;
+  },
+});
+
+/**
+ * Voeg opener-bericht toe aan sessie (na onderwerp-klik) en log voor A/B test.
+ * Geen user-bericht; Benji opent direct met 1 van 3 varianten (random).
+ */
+export const addOpenerToSession = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+    topicId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const key = TOPIC_ID_TO_OPENER_KEY[args.topicId];
+    if (!key || !OPENERS[key]) {
+      throw new Error("Ongeldig onderwerp");
+    }
+    const variants = OPENERS[key];
+    const variant = (Math.floor(Math.random() * 3) + 1) as 1 | 2 | 3;
+    const openerText = variants[variant - 1];
+    const now = Date.now();
+
+    await ctx.db.insert("chatMessages", {
+      sessionId: args.sessionId,
+      role: "bot",
+      content: openerText,
+      isAiGenerated: false,
+      createdAt: now,
+    });
+
+    await ctx.db.insert("openerTests", {
+      conversationId: args.sessionId,
+      topic: key,
+      openerVariant: variant,
+      userContinued: false,
+      createdAt: now,
+    });
+
+    await ctx.db.patch(args.sessionId, {
+      lastActivityAt: now,
+    });
+
+    return { sessionId: args.sessionId, openerVariant: variant };
   },
 });
 
@@ -201,6 +283,17 @@ export const sendUserMessage = mutation({
     await ctx.db.patch(args.sessionId, {
       lastActivityAt: now,
     });
+
+    // A/B test: markeer dat gebruiker doorpraatte na opener
+    const openerTest = await ctx.db
+      .query("openerTests")
+      .withIndex("by_conversation", (q) =>
+        q.eq("conversationId", args.sessionId)
+      )
+      .first();
+    if (openerTest && !openerTest.userContinued) {
+      await ctx.db.patch(openerTest._id, { userContinued: true });
+    }
 
     return messageId;
   },
