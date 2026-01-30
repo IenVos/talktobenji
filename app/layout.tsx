@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
 import { AboutModalProvider } from "@/lib/AboutModalContext";
+import { AuthModalProvider } from "@/lib/AuthModalContext";
 import { ProfessionalHelpProvider } from "@/lib/ProfessionalHelpContext";
 import { GlobalMenu } from "@/components/chat/GlobalMenu";
 
@@ -41,10 +42,12 @@ export default function RootLayout({
       <body>
         <ConvexClientProvider>
           <AboutModalProvider>
-            <ProfessionalHelpProvider>
-              <GlobalMenu />
-              {children}
-            </ProfessionalHelpProvider>
+            <AuthModalProvider>
+              <ProfessionalHelpProvider>
+                <GlobalMenu />
+                {children}
+              </ProfessionalHelpProvider>
+            </AuthModalProvider>
           </AboutModalProvider>
         </ConvexClientProvider>
       </body>

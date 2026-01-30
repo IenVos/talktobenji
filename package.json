@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
+    "@auth/core": "^0.37.0",
+    "@convex-dev/auth": "^0.0.90",
     "@ducanh2912/next-pwa": "^10.2.9",
     "clsx": "^2.1.1",
     "convex": "^1.31.5",

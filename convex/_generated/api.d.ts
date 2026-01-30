@@ -10,11 +10,14 @@
 
 import type * as admin from "../admin.js";
 import type * as ai from "../ai.js";
+import type * as auth from "../auth.js";
 import type * as chat from "../chat.js";
 import type * as exampleData from "../exampleData.js";
+import type * as http from "../http.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
 import type * as seedData from "../seedData.js";
 import type * as settings from "../settings.js";
+import type * as user from "../user.js";
 
 import type {
   ApiFromModules,
@@ -25,11 +28,14 @@ import type {
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
   ai: typeof ai;
+  auth: typeof auth;
   chat: typeof chat;
   exampleData: typeof exampleData;
+  http: typeof http;
   knowledgeBase: typeof knowledgeBase;
   seedData: typeof seedData;
   settings: typeof settings;
+  user: typeof user;
 }>;
 
 /**

@@ -2,8 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Info, MessageCircle, Heart, PawPrint, LogIn } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
+import { useAuthModal } from "@/lib/AuthModalContext";
 
 const MENU_ICON_COLOR = "#5a8a8a";
 
@@ -20,6 +23,9 @@ export function GlobalMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { setShowAbout } = useAboutModal();
+  const { setShowAuthModal } = useAuthModal();
+  const userId = useQuery(api.user.getCurrentUserId);
+  const isLoggedIn = userId !== undefined && userId !== null;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -47,9 +53,12 @@ export function GlobalMenu({
         ? lastConversationDate
           ? `Mijn gesprekken · ${lastConversationDate}`
           : "Mijn gesprekken"
-        : "Inloggen",
+        : "Account aanmaken / Inloggen",
       icon: isLoggedIn ? MessageCircle : LogIn,
-      onClick: () => setOpen(false),
+      onClick: () => {
+        setOpen(false);
+        if (!isLoggedIn) setShowAuthModal(true);
+      },
     },
     {
       label: "Ik heb iemand verloren",
