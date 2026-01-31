@@ -14,6 +14,9 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 const nextConfig = {
   reactStrictMode: true,
   distDir: ".next",
+  async redirects() {
+    return [{ source: "/favicon.ico", destination: "/icon-192.png", permanent: false }];
+  },
 };
 
 module.exports = withPWA(nextConfig);

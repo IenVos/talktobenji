@@ -10,7 +10,11 @@ import { GlobalMenu } from "@/components/chat/GlobalMenu";
 export const metadata: Metadata = {
   title: "TalkToBenji - Benji",
   description: "Rustige gesprekspartner bij rouw en verlies",
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest",
+  icons: {
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

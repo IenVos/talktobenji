@@ -13,11 +13,12 @@ const secret = randomBytes(32).toString("base64").replace(/[/+=]/g, (c) =>
 );
 
 console.log("");
-console.log("--- Plak in .env.local (vervang de oude regel CONVEX_AUTH_ADAPTER_SECRET) ---");
+console.log("1) Plak onderstaande regel in .env.local (vervang de oude CONVEX_AUTH_ADAPTER_SECRET):");
 console.log("");
 console.log(`CONVEX_AUTH_ADAPTER_SECRET=${secret}`);
 console.log("");
-console.log("--- Daarna in Convex zetten: voer deze command uit in de projectmap ---");
+console.log("2) Zet in Convex via de terminal (kopieer en plak de HELE regel hieronder):");
+console.log("   Niet handmatig in het Convex-dashboard plakken – dan kan de waarde anders worden.");
 console.log("");
 console.log(`npx convex env set CONVEX_AUTH_ADAPTER_SECRET "${secret}"`);
 console.log("");

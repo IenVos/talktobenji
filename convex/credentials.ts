@@ -10,12 +10,21 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
 function checkSecret(secret: string) {
-  if (process.env.CONVEX_AUTH_ADAPTER_SECRET === undefined) {
+  const envSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
+  if (envSecret === undefined || envSecret.trim() === "") {
     throw new Error(
       "Missing CONVEX_AUTH_ADAPTER_SECRET Convex environment variable"
     );
   }
-  if (secret !== process.env.CONVEX_AUTH_ADAPTER_SECRET) {
+  const a = secret.trim();
+  const b = envSecret.trim();
+  if (a !== b) {
+    console.error(
+      "[Convex credentials] Secret mismatch: received length",
+      a.length,
+      ", env length",
+      b.length
+    );
     throw new Error("Credentials API called without correct secret value");
   }
 }
