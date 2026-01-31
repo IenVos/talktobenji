@@ -15,7 +15,10 @@ const nextConfig = {
   reactStrictMode: true,
   distDir: ".next",
   async redirects() {
-    return [{ source: "/favicon.ico", destination: "/icon-192.png", permanent: false }];
+    return [
+      { source: "/favicon.ico", destination: "/icon-192.png", permanent: false },
+      { source: "/manifest.webmanifest", destination: "/manifest", permanent: false },
+    ];
   },
 };
 
