@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Lock } from "lucide-react";
-import { SpiralIcon } from "@/components/ui/SpiralIcon";
+import Image from "next/image";
 
 interface AdminLoginProps {
   onLogin: () => void;
@@ -45,11 +44,11 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
     <div className="min-h-screen min-h-[100dvh] bg-primary-900 flex items-center justify-center p-4">
       <div className="bg-primary-800/50 backdrop-blur-sm rounded-xl border border-primary-700 p-6 sm:p-8 w-full max-w-md">
         <div className="text-center mb-6 sm:mb-8">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 bg-primary-800 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-primary-700">
-            <SpiralIcon size={32} className="text-white" />
+          <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 flex items-center justify-center overflow-hidden">
+            <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={64} height={64} className="object-contain h-full w-auto" />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">Admin Panel</h1>
-          <p className="text-sm sm:text-base text-primary-300 mt-2">Voer je wachtwoord in om door te gaan</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Talk To Benji</h1>
+          <p className="text-sm sm:text-base text-primary-300 mt-2">Admin Panel – voer je wachtwoord in</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

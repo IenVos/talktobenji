@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, Home, Menu, X, BookOpen, MessageCircle } from "lucide-react";
+import { Settings, LogOut, Home, Menu, X, BookOpen } from "lucide-react";
+
+const ADMIN_LOGO = "/images/benji-logo-2.png";
 
 export default function AdminLayout({
   children,
@@ -36,7 +39,7 @@ export default function AdminLayout({
   // Loading state
   if (isAuthenticated === null) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-primary-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
       </div>
     );
@@ -57,11 +60,11 @@ export default function AdminLayout({
       {/* Mobile header */}
       <header className="lg:hidden bg-primary-900 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center border border-primary-700">
-            <MessageCircle className="text-white" size={16} strokeWidth={2} />
+          <div className="h-9 w-9 flex-shrink-0 flex items-center justify-center overflow-hidden">
+            <Image src={ADMIN_LOGO} alt="Talk To Benji" width={36} height={36} className="object-contain h-full w-auto" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white">TalkToBenji</h1>
+            <h1 className="text-lg font-bold text-white">Talk To Benji</h1>
             <p className="text-xs text-gray-300">Admin Panel</p>
           </div>
         </div>
@@ -140,15 +143,15 @@ export default function AdminLayout({
       </div>
 
       <div className="flex">
-        {/* Desktop Sidebar - PAARS */}
+        {/* Desktop Sidebar */}
         <aside className="hidden lg:flex w-64 bg-primary-900 flex-col fixed h-screen">
           <div className="p-6 border-b border-primary-700">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-primary-700">
-                <MessageCircle className="text-white" size={20} strokeWidth={2} />
+              <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                <Image src={ADMIN_LOGO} alt="Talk To Benji" width={40} height={40} className="object-contain h-full w-auto" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">TalkToBenji</h1>
+                <h1 className="text-xl font-bold text-white">Talk To Benji</h1>
                 <p className="text-sm text-gray-300">Admin Panel</p>
               </div>
             </div>
@@ -196,8 +199,8 @@ export default function AdminLayout({
           </div>
         </aside>
 
-        {/* Main content - WIT */}
-        <main className="flex-1 lg:ml-64 min-h-screen bg-gray-50">
+        {/* Main content - egale achtergrond, geen foto */}
+        <main className="flex-1 lg:ml-64 min-h-screen bg-primary-50">
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
       </div>

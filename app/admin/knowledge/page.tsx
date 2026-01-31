@@ -291,7 +291,7 @@ export default function KnowledgeBasePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Knowledge Base</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary-900">Knowledge Base</h1>
           <p className="text-sm sm:text-base text-gray-600 mt-1">
             Beheer je Q&As voor de chatbot - Alles wordt opgeslagen in Convex database
           </p>
@@ -299,7 +299,7 @@ export default function KnowledgeBasePage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowBulkImport(!showBulkImport)}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors shadow-sm"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 font-medium rounded-lg hover:bg-primary-200 transition-colors shadow-sm"
           >
             <Upload size={18} />
             Bulk Import
@@ -319,11 +319,11 @@ export default function KnowledgeBasePage() {
 
       {/* Bulk Import */}
       {showBulkImport && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="bg-white rounded-xl border border-primary-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Bulk Import Q&As</h2>
-              <p className="text-sm text-gray-600 mt-1">
+              <h2 className="text-lg font-semibold text-primary-900">Bulk Import Q&As</h2>
+              <p className="text-sm text-primary-700 mt-1">
                 Importeer meerdere Q&As tegelijk via JSON
               </p>
             </div>
@@ -332,7 +332,7 @@ export default function KnowledgeBasePage() {
                 setShowBulkImport(false);
                 setBulkImportText("");
               }}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              className="p-2 text-primary-500 hover:text-primary-700 rounded-lg hover:bg-primary-50"
             >
               <X size={20} />
             </button>
@@ -348,17 +348,17 @@ export default function KnowledgeBasePage() {
                 onChange={(e) => setBulkImportText(e.target.value)}
                 placeholder={`[\n  {\n    "question": "Hoe maak ik een account aan?",\n    "answer": "Ga naar de registratie pagina...",\n    "category": "Account",\n    "tags": ["account", "registratie"],\n    "alternativeQuestions": ["Hoe registreer ik me?"],\n    "priority": 8\n  },\n  {\n    "question": "Hoe reset ik mijn wachtwoord?",\n    "answer": "Klik op 'Wachtwoord vergeten'...",\n    "category": "Account",\n    "tags": ["account", "wachtwoord"],\n    "priority": 7\n  }\n]`}
                 rows={12}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none font-mono text-xs"
+                className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none font-mono text-xs"
               />
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs text-blue-900">
+            <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
+              <p className="text-xs text-primary-900">
                 <strong>Tip:</strong> Je kunt Q&As exporteren vanuit Excel/Google Sheets naar JSON,
                 of handmatig deze structuur gebruiken. Elke Q&A moet minimaal{" "}
-                <code className="bg-blue-100 px-1 rounded">question</code>,{" "}
-                <code className="bg-blue-100 px-1 rounded">answer</code> en{" "}
-                <code className="bg-blue-100 px-1 rounded">category</code> hebben.
+                <code className="bg-primary-100 px-1 rounded">question</code>,{" "}
+                <code className="bg-primary-100 px-1 rounded">answer</code> en{" "}
+                <code className="bg-primary-100 px-1 rounded">category</code> hebben.
               </p>
             </div>
 
@@ -391,7 +391,7 @@ export default function KnowledgeBasePage() {
   }
 ]`);
                 }}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors text-sm"
+                className="px-4 py-2 text-primary-700 hover:bg-primary-50 rounded-lg transition-colors text-sm"
               >
                 Laad voorbeeld
               </button>
@@ -401,7 +401,7 @@ export default function KnowledgeBasePage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+      <div className="bg-white rounded-xl border border-primary-200 p-4 shadow-sm">
         <div className="flex flex-col sm:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
@@ -411,7 +411,7 @@ export default function KnowledgeBasePage() {
               placeholder="Zoek in vragen, antwoorden of tags..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+              className="w-full pl-10 pr-4 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none bg-white"
             />
           </div>
 
@@ -421,7 +421,7 @@ export default function KnowledgeBasePage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="pl-10 pr-8 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none appearance-none bg-white"
+              className="pl-10 pr-8 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none appearance-none bg-white"
             >
               <option value="all">Alle categorieën</option>
               {categories?.map((cat) => (
@@ -433,28 +433,28 @@ export default function KnowledgeBasePage() {
           </div>
 
           {/* Active filter */}
-          <label className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+          <label className="flex items-center gap-2 px-4 py-2 border border-primary-200 rounded-lg cursor-pointer hover:bg-primary-50">
             <input
               type="checkbox"
               checked={showActiveOnly}
               onChange={(e) => setShowActiveOnly(e.target.checked)}
               className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
             />
-            <span className="text-sm text-gray-700">Alleen actief</span>
+            <span className="text-sm text-primary-700">Alleen actief</span>
           </label>
         </div>
       </div>
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+        <div className="bg-white rounded-xl border border-primary-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-primary-900">
               {editingId ? "Q&A Bewerken" : "Nieuwe Q&A Toevoegen"}
             </h2>
             <button
               onClick={resetForm}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+              className="p-2 text-primary-500 hover:text-primary-700 rounded-lg hover:bg-primary-50"
             >
               <X size={20} />
             </button>
@@ -463,7 +463,7 @@ export default function KnowledgeBasePage() {
           <div className="space-y-4">
             {/* Nederlandse velden */}
             <div className="border-b border-gray-200 pb-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-primary-900 mb-3 flex items-center gap-2">
                 🇳🇱 Nederlands (verplicht)
               </h3>
               <div className="space-y-4">
@@ -476,7 +476,7 @@ export default function KnowledgeBasePage() {
                     value={formData.question}
                     onChange={(e) => setFormData({ ...formData, question: e.target.value })}
                     placeholder="Bijvoorbeeld: Hoe maak ik een account aan?"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   />
                 </div>
 
@@ -489,7 +489,7 @@ export default function KnowledgeBasePage() {
                     onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
                     placeholder="Het antwoord op de vraag..."
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
                   />
                 </div>
 
@@ -504,7 +504,7 @@ export default function KnowledgeBasePage() {
                     }
                     placeholder="Hoe registreer ik me?&#10;Account aanmaken&#10;Nieuwe gebruiker worden"
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
                   />
                 </div>
               </div>
@@ -512,7 +512,7 @@ export default function KnowledgeBasePage() {
 
             {/* Engelse velden */}
             <div className="border-b border-gray-200 pb-4">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-primary-900 mb-3 flex items-center gap-2">
                 🇬🇧 English (optional - for multilingual support)
               </h3>
               <div className="space-y-4">
@@ -525,7 +525,7 @@ export default function KnowledgeBasePage() {
                     value={formData.questionEn}
                     onChange={(e) => setFormData({ ...formData, questionEn: e.target.value })}
                     placeholder="Example: How do I create an account?"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                   />
                 </div>
 
@@ -538,7 +538,7 @@ export default function KnowledgeBasePage() {
                     onChange={(e) => setFormData({ ...formData, answerEn: e.target.value })}
                     placeholder="The answer to the question..."
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
                   />
                 </div>
 
@@ -553,7 +553,7 @@ export default function KnowledgeBasePage() {
                     }
                     placeholder="How do I register?&#10;Create account&#10;Become a new user"
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
                   />
                 </div>
               </div>
@@ -570,7 +570,7 @@ export default function KnowledgeBasePage() {
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   placeholder="Bijvoorbeeld: Account, Billing, Support"
                   list="categories"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 />
                 <datalist id="categories">
                   {categories?.map((cat) => <option key={cat} value={cat} />)}
@@ -589,7 +589,7 @@ export default function KnowledgeBasePage() {
                   onChange={(e) =>
                     setFormData({ ...formData, priority: parseInt(e.target.value) || 5 })
                   }
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
                 />
               </div>
             </div>
@@ -603,7 +603,7 @@ export default function KnowledgeBasePage() {
                 value={formData.tags}
                 onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
                 placeholder="account, registratie, aanmaken"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
               />
             </div>
 
@@ -635,8 +635,8 @@ export default function KnowledgeBasePage() {
       )}
 
       {/* Questions List */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
+      <div className="bg-white rounded-xl border border-primary-200 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-primary-200">
           <div className="flex items-center gap-2">
             <BookOpen className="text-primary-600" size={20} />
             <h2 className="text-lg font-semibold text-gray-900">
@@ -648,18 +648,18 @@ export default function KnowledgeBasePage() {
         {filteredQuestions.length === 0 ? (
           <div className="p-8 text-center">
             <AlertCircle className="mx-auto text-gray-400 mb-2" size={32} />
-            <p className="text-gray-600">
+            <p className="text-primary-700">
               {searchTerm || selectedCategory !== "all" || showActiveOnly
                 ? "Geen Q&As gevonden met deze filters"
                 : "Nog geen Q&As toegevoegd. Klik op 'Nieuwe Q&A' om te beginnen."}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-primary-200">
             {filteredQuestions.map((item) => (
               <div
                 key={item._id}
-                className={`p-4 hover:bg-gray-50 transition-colors ${
+                className={`p-4 hover:bg-primary-50 transition-colors ${
                   !item.isActive ? "opacity-60" : ""
                 }`}
               >
@@ -667,11 +667,11 @@ export default function KnowledgeBasePage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-3 mb-2">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-1">{item.question}</h3>
-                        <p className="text-sm text-gray-600 line-clamp-2">{item.answer}</p>
+                        <h3 className="font-semibold text-primary-900 mb-1">{item.question}</h3>
+                        <p className="text-sm text-primary-700 line-clamp-2">{item.answer}</p>
                       </div>
                       {!item.isActive && (
-                        <span className="px-2 py-1 text-xs font-medium text-gray-500 bg-gray-100 rounded">
+                        <span className="px-2 py-1 text-xs font-medium text-primary-600 bg-primary-100 rounded">
                           Inactief
                         </span>
                       )}
@@ -684,7 +684,7 @@ export default function KnowledgeBasePage() {
                       {item.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 bg-gray-100 rounded"
+                          className="flex items-center gap-1 px-2 py-1 text-xs text-primary-700 bg-primary-100 rounded"
                         >
                           <Tag size={12} />
                           {tag}
@@ -695,13 +695,13 @@ export default function KnowledgeBasePage() {
                           Prioriteit: {item.priority}
                         </span>
                       )}
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-primary-600">
                         Gebruikt: {item.usageCount}x
                       </span>
                     </div>
 
                     {item.alternativeQuestions && item.alternativeQuestions.length > 0 && (
-                      <div className="mt-2 text-xs text-gray-500">
+                      <div className="mt-2 text-xs text-primary-600">
                         <span className="font-medium">Alternatieven:</span>{" "}
                         {item.alternativeQuestions.join(", ")}
                       </div>

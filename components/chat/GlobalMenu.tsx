@@ -114,7 +114,7 @@ export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
                 role="menuitem"
               >
                 {iconSrc ? (
-                  <span className="w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center bg-transparent">
+                  <span className="w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center">
                     <Image src={iconSrc} alt="" width={18} height={18} className="object-contain mix-blend-multiply" />
                   </span>
                 ) : Icon ? (

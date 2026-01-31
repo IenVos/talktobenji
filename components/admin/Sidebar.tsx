@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -10,7 +11,6 @@ import {
   BarChart3,
   Home,
   Settings,
-  MessageCircle,
 } from "lucide-react";
 
 const navItems = [
@@ -29,10 +29,10 @@ export function Sidebar() {
       {/* Logo */}
       <div className="px-6 py-4 border-b border-gray-100">
         <Link href="/admin" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-            <MessageCircle className="text-white" size={18} />
+          <div className="h-8 w-8 flex-shrink-0 flex items-center justify-center overflow-hidden">
+            <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={32} height={32} className="object-contain h-full w-auto" />
           </div>
-          <span className="font-bold text-gray-900">TalkToBenji</span>
+          <span className="font-bold text-gray-900">Talk To Benji</span>
         </Link>
       </div>
 

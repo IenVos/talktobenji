@@ -99,15 +99,20 @@ export default function ChatPageClient({
     finally { setIsLoading(false); }
   };
 
+  const [isAddingOpener, setIsAddingOpener] = useState(false);
   const handleTopicSelect = async (topicId: TopicId, _label: string) => {
     setShowTopicButtons(false);
     setIsLoading(true);
+    setIsAddingOpener(true);
     try {
       const newSessionId = await startSession({ topic: topicId });
       await addOpenerToSession({ sessionId: newSessionId, topicId });
       setSessionId(newSessionId);
     } catch (e) { console.error(e); }
-    finally { setIsLoading(false); }
+    finally {
+      setIsLoading(false);
+      setIsAddingOpener(false);
+    }
   };
 
   useEffect(() => {
@@ -116,6 +121,7 @@ export default function ChatPageClient({
     topicFromUrlHandled.current = topicFromUrl;
     setShowTopicButtons(false);
     setIsLoading(true);
+    setIsAddingOpener(true);
     (async () => {
       try {
         const newSessionId = await startSession({ topic: topicFromUrl });
@@ -124,6 +130,7 @@ export default function ChatPageClient({
       } catch (e) { console.error(e); }
       finally {
         setIsLoading(false);
+        setIsAddingOpener(false);
         router.replace("/");
         topicFromUrlHandled.current = null;
       }
@@ -193,7 +200,7 @@ export default function ChatPageClient({
               <div className="flex justify-start">
                 <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm flex items-center gap-2">
                   <Loader2 className="text-primary-600 animate-spin flex-shrink-0" size={18} />
-                  <span className="text-sm text-gray-600">Aan het denken...</span>
+                  <span className="text-sm text-gray-600">{isAddingOpener ? "Benji opent het gesprek..." : "Aan het denken..."}</span>
                 </div>
               </div>
             )}

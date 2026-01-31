@@ -231,8 +231,9 @@ export const linkSessionToUser = mutation({
 });
 
 /**
- * Voeg opener-bericht toe aan sessie (na onderwerp-klik) en log voor A/B test.
- * Geen user-bericht; Benji opent direct met 1 van 3 varianten (random).
+ * Voeg opener-bericht toe aan sessie (na onderwerp-klik).
+ * Toont een van de openingszinnen die bij het gekozen onderwerp horen.
+ * Bij onbekend onderwerp: generieke opener.
  */
 export const addOpenerToSession = mutation({
   args: {
@@ -241,12 +242,9 @@ export const addOpenerToSession = mutation({
   },
   handler: async (ctx, args) => {
     const key = TOPIC_ID_TO_OPENER_KEY[args.topicId];
-    if (!key || !OPENERS[key]) {
-      throw new Error("Ongeldig onderwerp");
-    }
-    const variants = OPENERS[key];
-    const variant = (Math.floor(Math.random() * 3) + 1) as 1 | 2 | 3;
-    const openerText = variants[variant - 1];
+    const variants = key && OPENERS[key] ? OPENERS[key] : OPENERS.verdriet;
+    const variant = (Math.floor(Math.random() * variants.length) + 1) as 1 | 2 | 3;
+    const openerText = variants[Math.min(variant - 1, variants.length - 1)];
     const now = Date.now();
 
     await ctx.db.insert("chatMessages", {
@@ -257,13 +255,15 @@ export const addOpenerToSession = mutation({
       createdAt: now,
     });
 
-    await ctx.db.insert("openerTests", {
-      conversationId: args.sessionId,
-      topic: key,
-      openerVariant: variant,
-      userContinued: false,
-      createdAt: now,
-    });
+    if (key) {
+      await ctx.db.insert("openerTests", {
+        conversationId: args.sessionId,
+        topic: key,
+        openerVariant: variant,
+        userContinued: false,
+        createdAt: now,
+      });
+    }
 
     await ctx.db.patch(args.sessionId, {
       lastActivityAt: now,
