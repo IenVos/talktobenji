@@ -29,7 +29,7 @@ export function ProfessionalHelpModal({ open, onClose }: ProfessionalHelpModalPr
         </button>
         <div className="flex gap-3 mb-4">
           <div className="w-10 h-10 rounded-lg bg-[#e8eded] flex items-center justify-center flex-shrink-0">
-            <UserCircle className="text-[#5a8a8a]" size={22} />
+            <UserCircle className="text-primary-500" size={22} />
           </div>
           <div>
             <h3 className="font-semibold text-gray-900">Professionele hulp zoeken</h3>

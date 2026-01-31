@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "engines": {
-    "node": "18.x"
+    "node": ">=18"
   },
   "scripts": {
     "dev": "next dev",
@@ -13,23 +13,18 @@
     "convex": "convex dev",
     "deploy:convex": "dotenv -e .env.local -- npx convex deploy",
     "generate-pwa-icons": "node scripts/generate-pwa-icons.js",
+    "generate-favicon": "node scripts/generate-favicon.js",
     "open:env": "open -a Cursor .env.local",
     "open:project": "open -a Cursor ."
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
-    "@auth/core": "^0.37.0",
-    "@convex-dev/auth": "^0.0.90",
     "@ducanh2912/next-pwa": "^10.2.9",
-    "@types/bcryptjs": "^2.4.6",
-    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "convex": "^1.31.5",
     "convex-helpers": "^0.1.111",
-    "jose": "^6.1.3",
     "lucide-react": "^0.562.0",
     "next": "^14.2.35",
-    "next-auth": "^4.24.13",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

@@ -1,6 +1,5 @@
 "use client";
 
-import { MessageCircle } from "lucide-react";
 import { TopicButtons, type TopicId } from "./TopicButtons";
 
 type WelcomeScreenProps = {
@@ -13,19 +12,28 @@ export function WelcomeScreen({
   onTopicSelect,
 }: WelcomeScreenProps) {
   return (
-    <div className="text-center py-8 sm:py-16 px-4">
-      <div className="w-12 h-12 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 bg-primary-700 rounded-xl flex items-center justify-center">
-        <MessageCircle className="text-white" size={40} strokeWidth={1.5} />
-      </div>
-      <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto mb-3">
-        Soms wil je het gewoon even kwijt. Dat kan hier.
+    <div className="text-center pt-2 sm:pt-4 pb-4 sm:pb-8 px-4">
+      {/* Eerste 2 zinnen dicht bij elkaar */}
+      <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto mb-0.5">
+        Als praten je helpt, luister ik graag.
       </p>
-      <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto">
-        Ik ben Benji, en ik luister.
+      <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto mb-4">
+        Ik ben Benji, je steun in stilte en in woorden.
+      </p>
+      {/* Tweede 2 zinnen dicht bij elkaar */}
+      <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto mb-0.5">
+        Woorden hebben kracht, dus deel wat je bezighoudt.
+      </p>
+      <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto mb-4">
+        Ik luister zonder oordeel, met aandacht en begrip.
+      </p>
+      {/* Derde 2 zinnen dicht bij elkaar */}
+      <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto mb-0.5">
+        Soms is het delen van je gevoel al een belangrijke stap.
       </p>
       {showTopicButtons && (
         <>
-          <p className="text-sm sm:text-base text-gray-700 font-medium mt-4">
+          <p className="text-sm sm:text-base text-gray-600 mb-4">
             Waar wil je over praten?
           </p>
           <TopicButtons onSelect={onTopicSelect} />

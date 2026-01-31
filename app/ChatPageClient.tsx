@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { Send, User, Mic, Square, Loader2, MessageCircle, LogIn, X, LogOut } from "lucide-react";
+import { Send, Mic, Square, Loader2, MessageCircle } from "lucide-react";
 import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
 import type { TopicId } from "@/components/chat/TopicButtons";
-import { useAuthModal } from "@/lib/AuthModalContext";
-
-const MESSAGES_BEFORE_ACCOUNT_PROMPT = 2;
 
 export type SearchParamsProp = { topic?: string | string[] };
+
+// Logo in header: wissel naar "/images/benji-logo-1.png" om het andere logo te proberen
+const HEADER_LOGO = "/images/benji-logo-2.png";
 
 export default function ChatPageClient({
   searchParams = {},
@@ -22,21 +22,15 @@ export default function ChatPageClient({
 }) {
   const router = useRouter();
   const topicParam = Array.isArray(searchParams?.topic) ? searchParams.topic[0] : searchParams?.topic;
-  const { data: session, status } = useSession();
-  const { setShowAuthModal } = useAuthModal();
   const [sessionId, setSessionId] = useState<Id<"chatSessions"> | null>(null);
   const [showTopicButtons, setShowTopicButtons] = useState(true);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
-  const [accountPromptDismissed, setAccountPromptDismissed] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const userMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const topicFromUrlHandled = useRef<string | null>(null);
-  const linkedSessionRef = useRef<Id<"chatSessions"> | null>(null);
 
   const messages = useQuery(
     api.chat.getMessages,
@@ -62,42 +56,6 @@ export default function ChatPageClient({
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
   const handleUserMessage = useAction(api.ai.handleUserMessage);
-  const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
-
-  const userMessageCount = messages?.filter((m) => m.role === "user").length ?? 0;
-  const isLoggedIn = status === "authenticated" && session !== null;
-  const showAccountPrompt =
-    sessionId &&
-    userMessageCount >= MESSAGES_BEFORE_ACCOUNT_PROMPT &&
-    !isLoggedIn &&
-    !accountPromptDismissed;
-
-  useEffect(() => {
-    if (!userMenuOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
-        setUserMenuOpen(false);
-      }
-    };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [userMenuOpen]);
-
-  useEffect(() => {
-    if (
-      status !== "authenticated" ||
-      !session?.userId ||
-      !sessionId ||
-      linkedSessionRef.current === sessionId
-    ) return;
-    const s = session as { userId?: string; user?: { email?: string; name?: string } };
-    linkSessionToUser({
-      sessionId,
-      userId: s.userId!,
-      userEmail: s.user?.email,
-      userName: s.user?.name,
-    }).then(() => { linkedSessionRef.current = sessionId; });
-  }, [status, session, sessionId, linkSessionToUser]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -186,97 +144,61 @@ export default function ChatPageClient({
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
-      <header className="bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 min-w-0 pr-12 sm:pr-14">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
-              <MessageCircle className="text-white" size={22} strokeWidth={2} />
+      <header className="relative z-20 bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
+        <div className="max-w-3xl mx-auto flex items-center gap-3 min-w-0 pr-12 sm:pr-14">
+          <a
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.href = "/";
+            }}
+            className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none"
+            aria-label="Naar hoofdpagina"
+          >
+            <div className="h-10 sm:h-12 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <Image src={HEADER_LOGO} alt="" width={56} height={48} className="object-contain h-full w-auto" />
             </div>
-            <h1 className="font-semibold text-white text-sm sm:text-base truncate">Benji</h1>
-          </div>
-          {isLoggedIn ? (
-            <div className="relative flex-shrink-0" ref={userMenuRef}>
-              <button
-                type="button"
-                onClick={() => setUserMenuOpen((o) => !o)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-primary-100 hover:bg-white/10 hover:text-white text-xs sm:text-sm font-medium transition-colors"
-              >
-                <User size={16} className="flex-shrink-0" />
-                <span className="truncate max-w-[120px] sm:max-w-[180px]" title={`Hi ${(session as { user?: { name?: string } })?.user?.name ?? "daar"}, welkom terug`}>
-                  Hi {(session as { user?: { name?: string } })?.user?.name ?? "daar"}
-                  <span className="hidden sm:inline">, welkom terug</span>
-                </span>
-              </button>
-              {userMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-48 py-1 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
-                  <button
-                    type="button"
-                    onClick={() => { setUserMenuOpen(false); signOut(); }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-100 transition-colors first:rounded-t-xl last:rounded-b-xl"
-                  >
-                    <LogOut size={18} className="flex-shrink-0 text-[#5a8a8a]" />
-                    Uitloggen
-                  </button>
-                </div>
-              )}
+            <div className="flex flex-col items-start min-w-0">
+              <span className="font-semibold text-primary-500 text-sm sm:text-base leading-tight group-hover:text-primary-400">Talk To Benji</span>
+              <span className="text-xs sm:text-sm text-primary-500 leading-tight opacity-90">Je luisterend oor in moeilijke tijden</span>
             </div>
-          ) : null}
+          </a>
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto bg-gray-50">
-        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <main className="flex-1 overflow-y-auto relative">
+        {/* Achtergrondafbeelding */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url(/images/achtergrond.png)" }}
+          aria-hidden
+        />
+        {/* Waas ~70% zodat de chat goed leesbaar blijft */}
+        <div className="absolute inset-0 bg-white/70" aria-hidden />
+        {/* Chat-inhoud bovenop */}
+        <div className="relative z-10 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
           {!sessionId && (
             <WelcomeScreen showTopicButtons={showTopicButtons} onTopicSelect={handleTopicSelect} />
           )}
 
           <div className="space-y-3 sm:space-y-4">
             {messages?.map((msg: Doc<"chatMessages">) => (
-              <div key={msg._id} className={`flex gap-2 sm:gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                {msg.role === "bot" && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-900 flex items-center justify-center flex-shrink-0">
-                    <MessageCircle className="text-white" size={16} strokeWidth={2} />
-                  </div>
-                )}
+              <div key={msg._id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "bg-primary-900 text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
                   <p className="whitespace-pre-wrap text-sm sm:text-base">{msg.content}</p>
                 </div>
-                {msg.role === "user" && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-900 flex items-center justify-center flex-shrink-0">
-                    <User className="text-white" size={16} />
-                  </div>
-                )}
               </div>
             ))}
             {isLoading && (
-              <div className="flex gap-2 sm:gap-3 justify-start">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-900 flex items-center justify-center flex-shrink-0">
-                  <Loader2 className="text-white animate-spin" size={16} />
-                </div>
-                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+              <div className="flex justify-start">
+                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm flex items-center gap-2">
+                  <Loader2 className="text-primary-600 animate-spin flex-shrink-0" size={18} />
                   <span className="text-sm text-gray-600">Aan het denken...</span>
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
-
-          {showAccountPrompt && (
-            <div className="mt-4 p-4 bg-[#e8eded] border border-[#5a8a8a]/30 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-gray-800">Wil je je gesprek bewaren?</p>
-                <p className="text-xs text-gray-600 mt-0.5">Maak een gratis account aan en je gesprekken blijven bewaard.</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={() => setShowAuthModal(true)} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#5a8a8a] text-white text-sm font-medium hover:bg-[#4a7a7a] transition-colors">
-                  <LogIn size={16} /> Account aanmaken
-                </button>
-                <button type="button" onClick={() => setAccountPromptDismissed(true)} className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-200/80 transition-colors" aria-label="Later">
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </main>
 

@@ -1,10 +1,7 @@
-// PWA tijdelijk uit: Terser "Unexpected early exit" tijdens build (Next + @ducanh2912/next-pwa).
-// Zet PWA_ENABLED=1 om PWA-build te proberen (kan op Vercel wel lukken).
-const pwaEnabled = process.env.PWA_ENABLED === "1";
-
+// PWA aan in production; uit in development (snellere dev).
 const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
-  disable: process.env.NODE_ENV === "development" || !pwaEnabled,
+  disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
   cacheOnFrontendNav: true,
@@ -16,7 +13,7 @@ const nextConfig = {
   distDir: ".next",
   async redirects() {
     return [
-      { source: "/favicon.ico", destination: "/icon-192.png", permanent: false },
+      { source: "/favicon.ico", destination: "/favicon.png", permanent: false },
       { source: "/manifest.webmanifest", destination: "/manifest", permanent: false },
     ];
   },

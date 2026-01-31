@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { auth } from "@/auth";
 import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
 import { AboutModalProvider } from "@/lib/AboutModalContext";
-import { AuthModalProvider } from "@/lib/AuthModalContext";
 import { ProfessionalHelpProvider } from "@/lib/ProfessionalHelpContext";
 import { GlobalMenu } from "@/components/chat/GlobalMenu";
 
@@ -12,8 +10,8 @@ export const metadata: Metadata = {
   description: "Rustige gesprekspartner bij rouw en verlies",
   manifest: "/manifest",
   icons: {
-    icon: "/icon-192.png",
-    apple: "/icon-192.png",
+    icon: "/favicon.png",
+    apple: "/favicon.png",
   },
   appleWebApp: {
     capable: true,
@@ -32,28 +30,25 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#51808f" },
-    { media: "(prefers-color-scheme: dark)", color: "#51808f" },
+    { media: "(prefers-color-scheme: light)", color: "#859abd" },
+    { media: "(prefers-color-scheme: dark)", color: "#859abd" },
   ],
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
   return (
     <html lang="nl">
       <body>
-        <ConvexClientProvider session={session}>
+        <ConvexClientProvider>
           <AboutModalProvider>
-            <AuthModalProvider>
-              <ProfessionalHelpProvider>
-                <GlobalMenu />
-                {children}
-              </ProfessionalHelpProvider>
-            </AuthModalProvider>
+            <ProfessionalHelpProvider>
+              <GlobalMenu />
+              {children}
+            </ProfessionalHelpProvider>
           </AboutModalProvider>
         </ConvexClientProvider>
       </body>

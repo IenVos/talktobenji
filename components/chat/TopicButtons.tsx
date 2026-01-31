@@ -1,9 +1,12 @@
 "use client";
 
+import { Heart, PawPrint } from "lucide-react";
+import Image from "next/image";
+
 const TOPICS = [
-  { id: "verlies-dierbare", label: "Ik heb iemand verloren" },
-  { id: "omgaan-verdriet", label: "Ik zit met verdriet" },
-  { id: "afscheid-huisdier", label: "Ik mis mijn huisdier" },
+  { id: "verlies-dierbare", label: "Ik heb iemand verloren", icon: "heart" },
+  { id: "omgaan-verdriet", label: "Ik zit met verdriet", icon: "verdriet" },
+  { id: "afscheid-huisdier", label: "Ik mis mijn huisdier", icon: "paw" },
 ] as const;
 
 export type TopicId = (typeof TOPICS)[number]["id"];
@@ -14,15 +17,22 @@ type TopicButtonsProps = {
 
 export function TopicButtons({ onSelect }: TopicButtonsProps) {
   return (
-    <div className="flex flex-col gap-2 sm:gap-3 items-stretch max-w-xs mx-auto mt-6">
-      {TOPICS.map(({ id, label }) => (
+    <div className="flex flex-col gap-2 sm:gap-3 items-stretch max-w-xs mx-auto mt-4">
+      {TOPICS.map(({ id, label, icon }) => (
         <button
           key={id}
           type="button"
           onClick={() => onSelect(id, label)}
-          className="px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 bg-[#e8eded] text-[#5a8a8a] hover:bg-[#d8e0e0] hover:border-[#c8d4d4] border border-transparent hover:shadow-sm active:scale-[0.98]"
+          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 bg-primary-50 text-primary-700 border border-primary-400 hover:bg-primary-100 hover:border-primary-500 hover:shadow-sm active:scale-[0.98] text-left"
         >
-          {label}
+          {icon === "heart" && <Heart size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
+          {icon === "verdriet" && (
+            <span className="w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center bg-transparent">
+              <Image src="/images/verdriet-icon.png" alt="" width={18} height={18} className="object-contain mix-blend-multiply" />
+            </span>
+          )}
+          {icon === "paw" && <PawPrint size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
+          <span>{label}</span>
         </button>
       ))}
     </div>
