@@ -2,6 +2,9 @@
   "name": "talktobenji",
   "version": "1.0.0",
   "private": true,
+  "overrides": {
+    "terser": "^5.24.0"
+  },
   "engines": {
     "node": ">=18"
   },
