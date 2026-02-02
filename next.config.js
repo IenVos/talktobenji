@@ -1,7 +1,7 @@
-// PWA aan in production; uit in development (snellere dev).
+// PWA tijdelijk uit – Vercel build crasht met terser. Later weer aanzetten.
 const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
-  disable: process.env.NODE_ENV === "development",
+  disable: true,
   register: true,
   skipWaiting: true,
   cacheOnFrontendNav: true,
