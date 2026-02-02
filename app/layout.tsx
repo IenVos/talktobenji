@@ -8,7 +8,7 @@ import { GlobalMenu } from "@/components/chat/GlobalMenu";
 export const metadata: Metadata = {
   title: "TalkToBenji - Benji",
   description: "Rustige gesprekspartner bij rouw en verlies",
-  manifest: "/manifest",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/icon.svg",
     apple: "/icon.svg",
