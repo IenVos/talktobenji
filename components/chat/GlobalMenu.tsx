@@ -19,15 +19,23 @@ export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
   const { setShowAbout } = useAboutModal();
 
   useEffect(() => {
+    if (!open) return;
+    
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };
-    if (open) {
-      document.addEventListener("click", handleClickOutside);
-    }
-    return () => document.removeEventListener("click", handleClickOutside);
+    
+    // Gebruik een kleine delay zodat de click op de knop niet direct het menu sluit
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [open]);
 
   const menuItems = [
@@ -88,7 +96,11 @@ export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
     <div className="fixed top-0 right-0 z-50 w-fit p-3 sm:p-4" ref={menuRef}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
         className="p-2 rounded-full text-white/90 hover:bg-white/10 hover:text-white transition-colors"
         title="Menu"
         aria-label="Menu openen"
@@ -99,8 +111,9 @@ export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-lg border border-gray-100 py-1"
+          className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-[100]"
           role="menu"
+          onClick={(e) => e.stopPropagation()}
         >
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -109,7 +122,10 @@ export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
               <button
                 key={item.label}
                 type="button"
-                onClick={item.onClick}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  item.onClick();
+                }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-100 first:rounded-t-xl last:rounded-b-xl transition-all duration-200"
                 role="menuitem"
               >

@@ -13,7 +13,7 @@ const nextConfig = {
   distDir: ".next",
   async redirects() {
     return [
-      { source: "/favicon.ico", destination: "/favicon.png", permanent: false },
+      { source: "/favicon.ico", destination: "/icon.svg", permanent: false },
       { source: "/manifest.webmanifest", destination: "/manifest", permanent: false },
     ];
   },

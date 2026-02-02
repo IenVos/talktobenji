@@ -26,6 +26,8 @@ export default function ChatPageClient({
   const [showTopicButtons, setShowTopicButtons] = useState(true);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isAddingOpener, setIsAddingOpener] = useState(false);
+  const lastMessageCountRef = useRef<number>(0);
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -36,22 +38,6 @@ export default function ChatPageClient({
     api.chat.getMessages,
     sessionId ? { sessionId } : "skip"
   );
-
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(input.trim()), 300);
-    return () => clearTimeout(t);
-  }, [input]);
-
-  const searchSuggestions = useQuery(
-    api.knowledgeBase.searchQuestions,
-    debouncedSearch.length >= 2 && !isLoading
-      ? { searchTerm: debouncedSearch, limit: 5 }
-      : "skip"
-  );
-
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
@@ -76,6 +62,22 @@ export default function ChatPageClient({
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
+  // Zet isLoading uit zodra er een nieuw bot bericht is
+  useEffect(() => {
+    if (messages && messages.length > lastMessageCountRef.current) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === "bot") {
+        // Zet loading direct uit zodra bot bericht binnenkomt
+        setIsLoading(false);
+        setIsAddingOpener(false);
+        lastMessageCountRef.current = messages.length;
+      } else if (lastMessage.role === "user") {
+        // Update de count voor user messages ook
+        lastMessageCountRef.current = messages.length;
+      }
+    }
+  }, [messages]);
+
   const toggleRecording = () => {
     if (!recognitionRef.current) return;
     if (isRecording) { recognitionRef.current.stop(); setIsRecording(false); }
@@ -85,29 +87,56 @@ export default function ChatPageClient({
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
     setShowTopicButtons(false);
+    const messageText = text.trim();
     setInput("");
-    setShowSuggestions(false);
-    setIsLoading(true);
+    const startTime = Date.now();
     try {
       let activeSessionId = sessionId;
       if (!activeSessionId) {
         activeSessionId = await startSession({});
         setSessionId(activeSessionId);
       }
-      await handleUserMessage({ sessionId: activeSessionId, userMessage: text.trim() });
+      
+      // Verstuur bericht en genereer antwoord
+      const messagePromise = handleUserMessage({ sessionId: activeSessionId, userMessage: messageText });
+      
+      // Wacht even zodat het gebruikersbericht zichtbaar is
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Zet loading aan - bolletjes verschijnen nu TERWIJL we wachten op antwoord
+      setIsLoading(true);
+      
+      // Wacht op antwoord
+      await messagePromise;
+      
+      // Minimum 3 seconden wachten voor rust in het gesprek
+      const elapsed = Date.now() - startTime;
+      const minDelay = 3000;
+      if (elapsed < minDelay) {
+        await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
+      }
     } catch (e) { console.error(e); }
     finally { setIsLoading(false); }
   };
 
-  const [isAddingOpener, setIsAddingOpener] = useState(false);
   const handleTopicSelect = async (topicId: TopicId, _label: string) => {
     setShowTopicButtons(false);
-    setIsLoading(true);
-    setIsAddingOpener(true);
+    const startTime = Date.now();
     try {
+      // Zet loading pas aan wanneer we daadwerkelijk wachten op antwoord
+      setIsLoading(true);
+      setIsAddingOpener(true);
+      
       const newSessionId = await startSession({ topic: topicId });
       await addOpenerToSession({ sessionId: newSessionId, topicId });
       setSessionId(newSessionId);
+      
+      // Minimum 3 seconden wachten voor rust in het gesprek
+      const elapsed = Date.now() - startTime;
+      const minDelay = 3000;
+      if (elapsed < minDelay) {
+        await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
+      }
     } catch (e) { console.error(e); }
     finally {
       setIsLoading(false);
@@ -144,15 +173,10 @@ export default function ChatPageClient({
     await sendMessage(input.trim());
   };
 
-  const handleSuggestionClick = (questionText: string) => {
-    setShowSuggestions(false);
-    sendMessage(questionText);
-  };
-
   return (
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
-      <header className="relative z-20 bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
-        <div className="max-w-3xl mx-auto flex items-center gap-3 min-w-0 pr-12 sm:pr-14">
+      <header className="sticky top-0 z-20 bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0" style={{ paddingTop: 'max(1rem, calc(0.75rem + env(safe-area-inset-top)))', paddingBottom: 'max(0.75rem, calc(0.5rem + env(safe-area-inset-top) * 0.1))' }}>
+        <div className="max-w-3xl mx-auto flex items-center gap-3 min-w-0">
           <a
             href="/"
             onClick={(e) => {
@@ -181,10 +205,10 @@ export default function ChatPageClient({
           aria-hidden
         />
         {/* Waas ~70% zodat de chat goed leesbaar blijft */}
-        <div className="absolute inset-0 bg-white/70" aria-hidden />
+        <div className="absolute inset-0 bg-white/70 pointer-events-none" aria-hidden />
         {/* Chat-inhoud bovenop */}
         <div className="relative z-10 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
-          {!sessionId && (
+          {!sessionId && !isAddingOpener && (
             <WelcomeScreen showTopicButtons={showTopicButtons} onTopicSelect={handleTopicSelect} />
           )}
 
@@ -196,11 +220,14 @@ export default function ChatPageClient({
                 </div>
               </div>
             ))}
-            {isLoading && (
+            {(isLoading || isAddingOpener) && (
               <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm flex items-center gap-2">
-                  <Loader2 className="text-primary-600 animate-spin flex-shrink-0" size={18} />
-                  <span className="text-sm text-gray-600">{isAddingOpener ? "Benji opent het gesprek..." : "Aan het denken..."}</span>
+                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+                  <div className="flex gap-1 items-center">
+                    <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '2s' }}></div>
+                    <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0.3s', animationDuration: '2s' }}></div>
+                    <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0.6s', animationDuration: '2s' }}></div>
+                  </div>
                 </div>
               </div>
             )}
@@ -209,7 +236,7 @@ export default function ChatPageClient({
         </div>
       </main>
 
-      <footer className="bg-primary-900 px-3 sm:px-4 py-3 sm:py-4 flex-shrink-0 overflow-visible">
+      <footer className="bg-primary-900 px-3 sm:px-4 py-3 sm:py-4 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, calc(0.5rem + env(safe-area-inset-bottom) * 0.1))', paddingBottom: 'max(1rem, calc(0.75rem + env(safe-area-inset-bottom)))' }}>
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">
           <div className="flex gap-2 sm:gap-3 overflow-visible">
             {speechSupported && (
@@ -218,17 +245,7 @@ export default function ChatPageClient({
               </button>
             )}
             <div className="flex-1 relative overflow-visible">
-              {searchSuggestions && searchSuggestions.length > 0 && debouncedSearch.length >= 2 && showSuggestions && !isLoading && (
-                <div ref={suggestionsRef} className="absolute left-0 right-0 bottom-full mb-1 z-30 bg-white border border-gray-200 rounded-xl shadow-lg py-1 max-h-48 overflow-y-auto">
-                  <p className="px-3 py-1.5 text-xs text-gray-500 border-b border-gray-100">Kies een vraag of typ verder</p>
-                  {searchSuggestions.map((q) => (
-                    <button key={q._id} type="button" onClick={() => handleSuggestionClick(q.question)} onMouseDown={(e) => e.preventDefault()} className="w-full px-3 py-2.5 text-left text-sm text-gray-800 hover:bg-primary-50 first:rounded-t-lg">
-                      {q.question}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onFocus={() => setShowSuggestions(true)} onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} placeholder={isRecording ? "Luisteren..." : "Typ je vraag..."} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
+              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je vraag..."} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
               {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
             </div>
             <button type="submit" disabled={!input.trim() || isLoading} className="p-2.5 sm:p-3 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">

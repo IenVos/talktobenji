@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   description: "Rustige gesprekspartner bij rouw en verlies",
   manifest: "/manifest",
   icons: {
-    icon: "/favicon.png",
-    apple: "/favicon.png",
+    icon: "/icon.svg",
+    apple: "/icon.svg",
   },
   appleWebApp: {
     capable: true,
@@ -30,8 +30,8 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#859abd" },
-    { media: "(prefers-color-scheme: dark)", color: "#859abd" },
+    { media: "(prefers-color-scheme: light)", color: "#38465e" },
+    { media: "(prefers-color-scheme: dark)", color: "#38465e" },
   ],
 };
 
