@@ -49,24 +49,7 @@ export function CookieConsentBanner() {
 
   const handleSaveSettings = () => saveAndClose({ necessary: true, analytics });
 
-  const reopenBanner = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem(COOKIE_CONSENT_KEY);
-      setShow(true);
-    }
-  };
-
-  if (!show) {
-    return (
-      <button
-        type="button"
-        onClick={reopenBanner}
-        className="fixed bottom-4 right-4 z-[9997] px-3 py-1.5 text-xs text-primary-500 hover:text-primary-600 bg-white/90 hover:bg-white border border-primary-200 rounded-lg shadow-sm transition-colors"
-      >
-        Cookie-instellingen
-      </button>
-    );
-  }
+  if (!show) return null;
 
   return (
     <div

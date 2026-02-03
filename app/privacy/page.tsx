@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CookieSettingsLink } from "@/components/chat/CookieSettingsLink";
 
 export const metadata: Metadata = {
   title: "Privacy - Talk To Benji",
@@ -23,6 +24,9 @@ export default function PrivacyPage() {
         </p>
         <p>
           <strong>Cookies:</strong> We gebruiken alleen noodzakelijke cookies om de site te laten werken en anonieme statistieken te verzamelen. We plaatsen geen advertentiecookies.
+        </p>
+        <p>
+          <CookieSettingsLink />
         </p>
         <p>
           Voor vragen over privacy kun je contact opnemen via{" "}

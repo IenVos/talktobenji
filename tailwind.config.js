@@ -25,6 +25,13 @@ module.exports = {
         'bounce-slow': 'bounce 2s infinite',
         'pulse-slow': 'pulse 3s infinite',
         'spin-slow': 'spin 3s linear infinite',
+        'fade-in': 'fadeIn 0.35s ease-out forwards',
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
       },
     },
   },

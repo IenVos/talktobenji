@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { Send, Mic, Square } from "lucide-react";
 import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
+import { TypingText } from "@/components/chat/TypingText";
 import type { TopicId } from "@/components/chat/TopicButtons";
 
 export type SearchParamsProp = { topic?: string | string[] };
@@ -43,6 +44,8 @@ export default function ChatPageClient({
   };
   const [showTopicButtons, setShowTopicButtons] = useState(true);
   const [input, setInput] = useState("");
+  const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
+  const [chatError, setChatError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAddingOpener, setIsAddingOpener] = useState(false);
   const lastMessageCountRef = useRef<number>(0);
@@ -91,6 +94,12 @@ export default function ChatPageClient({
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
+  // Test: toon foutmelding via ?testError=1 in de URL
+  useEffect(() => {
+    const testError = Array.isArray(searchParams?.testError) ? searchParams.testError[0] : searchParams?.testError;
+    if (testError === "1") setChatError("Er ging iets mis. Probeer het opnieuw of start een nieuw gesprek via het menu.");
+  }, [searchParams?.testError]);
+
   // Zet isLoading uit zodra er een nieuw bot bericht is
   useEffect(() => {
     if (messages && messages.length > lastMessageCountRef.current) {
@@ -106,6 +115,13 @@ export default function ChatPageClient({
       }
     }
   }, [messages]);
+
+  // Verwijder pending bericht zodra het van de server binnenkomt
+  useEffect(() => {
+    if (!pendingUserMessage || !messages) return;
+    const hasOurMessage = messages.some((m) => m.role === "user" && m.content === pendingUserMessage);
+    if (hasOurMessage) setPendingUserMessage(null);
+  }, [messages, pendingUserMessage]);
 
   const toggleRecording = () => {
     if (!recognitionRef.current) return;
@@ -127,14 +143,9 @@ export default function ChatPageClient({
         if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
       }
       
-      // Verstuur bericht en genereer antwoord
-      const messagePromise = handleUserMessage({ sessionId: activeSessionId, userMessage: messageText });
-      
-      // Wacht even zodat het gebruikersbericht zichtbaar is
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      // Zet loading aan - bolletjes verschijnen nu TERWIJL we wachten op antwoord
+      // Verstuur bericht en genereer antwoord (gebruikersbericht staat al via pendingUserMessage)
       setIsLoading(true);
+      const messagePromise = handleUserMessage({ sessionId: activeSessionId, userMessage: messageText });
       
       // Wacht op antwoord
       await messagePromise;
@@ -145,12 +156,19 @@ export default function ChatPageClient({
       if (elapsed < minDelay) {
         await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
       }
-    } catch (e) { console.error(e); }
-    finally { setIsLoading(false); }
+    } catch (e) {
+      console.error(e);
+      setChatError("Er ging iets mis. Probeer het opnieuw of start een nieuw gesprek via het menu.");
+    }
+    finally {
+      setIsLoading(false);
+      setPendingUserMessage(null);
+    }
   };
 
   const handleTopicSelect = async (topicId: TopicId, _label: string) => {
     setShowTopicButtons(false);
+    setChatError(null);
     const startTime = Date.now();
     try {
       // Zet loading pas aan wanneer we daadwerkelijk wachten op antwoord
@@ -168,7 +186,10 @@ export default function ChatPageClient({
       if (elapsed < minDelay) {
         await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
       }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error(e);
+      setChatError("Er ging iets mis bij het starten. Probeer het opnieuw.");
+    }
     finally {
       setIsLoading(false);
       setIsAddingOpener(false);
@@ -249,13 +270,29 @@ export default function ChatPageClient({
           )}
 
           <div className="space-y-3 sm:space-y-4">
-            {messages?.map((msg: Doc<"chatMessages">) => (
-              <div key={msg._id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "bg-primary-900 text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
-                  <p className="whitespace-pre-wrap text-sm sm:text-base">{msg.content}</p>
+            {messages?.map((msg: Doc<"chatMessages">, index: number) => {
+              const isLastBotMessage = msg.role === "bot" && index === (messages?.length ?? 0) - 1 && !pendingUserMessage;
+              return (
+                <div key={msg._id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "bg-primary-900 text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
+                    {isLastBotMessage ? (
+                      <p className="whitespace-pre-wrap text-sm sm:text-base">
+                        <TypingText content={msg.content} />
+                      </p>
+                    ) : (
+                      <p className="whitespace-pre-wrap text-sm sm:text-base">{msg.content}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {pendingUserMessage && (
+              <div className="flex justify-end">
+                <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
+                  <p className="whitespace-pre-wrap text-sm sm:text-base">{pendingUserMessage}</p>
                 </div>
               </div>
-            ))}
+            )}
             {(isLoading || isAddingOpener) && (
               <div className="flex justify-start">
                 <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
@@ -272,23 +309,37 @@ export default function ChatPageClient({
         </div>
       </main>
 
-      <footer className="bg-primary-900 px-3 sm:px-4 py-3 sm:py-4 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-bottom) * 0.15)', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom) * 0.4)', pointerEvents: 'auto' }}>
+      {chatError && (
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3 bg-amber-50 border-t border-amber-200 text-amber-800 text-sm">
+          <span>{chatError}</span>
+          <button
+            type="button"
+            onClick={() => setChatError(null)}
+            className="flex-shrink-0 px-2 py-1 rounded hover:bg-amber-100 transition-colors"
+            aria-label="Melding sluiten"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      <footer className="bg-primary-900 px-3 sm:px-4 py-4 sm:py-5 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">
           <div className="flex gap-2 sm:gap-3 overflow-visible">
             <button
               type="button"
               onClick={toggleRecording}
               disabled={isLoading || !speechSupported}
-              className={`p-2.5 sm:p-3 rounded-xl transition-colors flex-shrink-0 ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
+              className={`p-3 sm:p-3.5 rounded-xl transition-colors flex-shrink-0 ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
               title={!speechSupported ? "Spraak niet beschikbaar in deze browser" : isRecording ? "Stop opname" : "Start spraakopname"}
             >
               {isRecording ? <Square size={20} /> : <Mic size={20} />}
             </button>
             <div className="flex-1 relative overflow-visible">
-              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je vraag om te beginnen"} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
+              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je vraag om te beginnen"} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
               {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
             </div>
-            <button type="submit" disabled={!input.trim() || isLoading} className="p-2.5 sm:p-3 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
+            <button type="submit" disabled={!input.trim() || isLoading} className="p-3 sm:p-3.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
               <Send size={20} />
             </button>
           </div>

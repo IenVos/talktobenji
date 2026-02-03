@@ -61,7 +61,7 @@ export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
       },
     },
     {
-      label: "Registreren",
+      label: "Aanmelden",
       icon: UserPlus,
       onClick: () => handleAccountItem("Binnenkort beschikbaar"),
     },

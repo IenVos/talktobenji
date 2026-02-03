@@ -7,7 +7,7 @@ const TOPICS = [
   { id: "verlies-dierbare", label: "Ik heb iemand verloren", icon: "heart" },
   { id: "omgaan-verdriet", label: "Ik zit met verdriet", icon: "verdriet" },
   { id: "afscheid-huisdier", label: "Ik mis mijn huisdier", icon: "paw" },
-  { id: "gewoon-praten", label: "Gewoon praten", icon: "message" },
+  { id: "gewoon-praten", label: "Deel je gevoel. Soms is dat al genoeg.", icon: "message" },
 ] as const;
 
 export type TopicId = (typeof TOPICS)[number]["id"];
