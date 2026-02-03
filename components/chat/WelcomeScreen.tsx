@@ -37,6 +37,10 @@ export function WelcomeScreen({
             Waar wil je over praten?
           </p>
           <TopicButtons onSelect={onTopicSelect} />
+          <p className="text-xs text-gray-500 mt-6 max-w-sm mx-auto space-y-1">
+            <span className="block">🔒 Je gesprekken zijn privé en versleuteld</span>
+            <span className="block">⚠️ Benji is steun, geen vervanging voor professionele therapie</span>
+          </p>
         </>
       )}
     </div>

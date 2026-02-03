@@ -191,7 +191,7 @@ export default function ChatPageClient({
             </div>
             <div className="flex flex-col items-start min-w-0">
               <span className="font-semibold text-primary-500 text-sm sm:text-base leading-tight group-hover:text-primary-400">Talk To Benji</span>
-              <span className="text-xs sm:text-sm text-primary-500 leading-tight opacity-90">Je luisterend oor in moeilijke tijden</span>
+              <span className="text-xs sm:text-sm text-primary-500 leading-snug opacity-90">Benji is er altijd om naar je te luisteren, zonder te oordelen.<br />Je kunt op elk moment van de dag of nacht chatten!</span>
             </div>
           </a>
         </div>
@@ -236,7 +236,7 @@ export default function ChatPageClient({
         </div>
       </main>
 
-      <footer className="bg-primary-900 px-3 sm:px-4 py-3 sm:py-4 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, calc(0.5rem + env(safe-area-inset-bottom) * 0.1))', paddingBottom: 'max(1rem, calc(0.75rem + env(safe-area-inset-bottom)))' }}>
+      <footer className="bg-primary-900 px-3 sm:px-4 py-3 sm:py-4 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-bottom) * 0.15)', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom) * 0.4)' }}>
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">
           <div className="flex gap-2 sm:gap-3 overflow-visible">
             {speechSupported && (

@@ -1,4 +1,4 @@
-// PWA tijdelijk uit – Vercel build crasht met terser. Later weer aanzetten.
+// PWA uit – terser crash op Vercel. Manifest werkt wel (Add to Home Screen).
 const withPWA = require("@ducanh2912/next-pwa").default({
   dest: "public",
   disable: true,

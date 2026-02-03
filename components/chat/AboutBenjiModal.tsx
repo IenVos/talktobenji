@@ -1,11 +1,20 @@
 "use client";
 
-import { AlertCircle, X } from "lucide-react";
+import { X, CircleCheck, CircleX, ArrowRight } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 type AboutBenjiModalProps = {
   open: boolean;
   onClose: () => void;
 };
+
+const SoftCheck = () => (
+  <CircleCheck size={18} strokeWidth={1.5} className="text-primary-600 flex-shrink-0 mt-0.5" />
+);
+const SoftX = () => (
+  <CircleX size={18} strokeWidth={1.5} className="text-orange-400 flex-shrink-0 mt-0.5" />
+);
 
 export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
   if (!open) return null;
@@ -16,31 +25,120 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-xl max-w-md w-full p-5 sm:p-6 relative"
+        className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-3 right-3 p-1 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          aria-label="Sluiten"
-        >
-          <X size={20} />
-        </button>
-        <div className="flex gap-3 mb-3">
-          <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-            <AlertCircle className="text-primary-600" size={22} />
+        <div className="p-5 sm:p-6 flex-shrink-0 relative">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 p-1 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Sluiten"
+          >
+            <X size={20} />
+          </button>
+          <div className="flex items-center gap-3 min-w-0 pr-8">
+            <div className="h-10 sm:h-12 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <Image src="/images/benji-logo-2.png" alt="" width={56} height={48} className="object-contain h-full w-auto" />
+            </div>
+            <div className="flex flex-col items-start min-w-0">
+              <h2 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">Over Talk To Benji</h2>
+              <p className="text-xs sm:text-sm text-primary-600 leading-snug">Een luisterend oor, wanneer je het nodig hebt</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">Over Benji</h3>
-            <p className="text-xs text-gray-500">Geen professionele hulp</p>
-          </div>
+          <div className="absolute bottom-0 left-5 right-5 sm:left-6 sm:right-6 border-b border-primary-200" aria-hidden />
         </div>
-        <p className="text-sm text-gray-700 leading-relaxed">
-          Ik ben Benji, een AI-chatbot. Ik denk graag met je mee en sta voor je
-          klaar, maar ik bied geen professionele hulp. Bij grote vragen of
-          problemen raad ik altijd aan om professionele hulp te zoeken.
-        </p>
+
+        <div className="overflow-y-auto flex-1 p-5 sm:p-6 space-y-5 text-sm text-gray-700 leading-relaxed">
+          <p>
+            Verdriet is zwaar. Soms wil je praten, maar voelt het te moeilijk om vrienden of familie nóg een keer te belasten. Of missen de juiste woorden. Of is het midden in de nacht, wanneer iedereen slaapt.
+          </p>
+          <p className="font-medium text-gray-900">Daarom bestaat Benji.</p>
+
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-2">Wat is Benji?</h3>
+            <p>
+              Benji is een AI-chatbot speciaal ontwikkeld voor mensen die met verlies en verdriet omgaan. Niet als vervanging van menselijk contact of professionele hulp, maar als aanvulling. Een plek waar je altijd terecht kunt, zonder oordeel, zonder tijdslimiet, zonder uit te hoeven leggen waarom je nú even moet praten.
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-2">Hoe werkt het?</h3>
+            <p>
+              Benji luistert. Je kunt schrijven wat je voelt, wat je mist, waar je mee zit. Benji reageert met empathie en begrip, gebaseerd op duizenden gesprekken over verlies en rouw. Geen standaard antwoorden, maar aandacht voor jouw specifieke verhaal.
+            </p>
+            <p>Je gesprekken zijn volledig privé. Niemand leest mee. Het is jouw ruimte.</p>
+          </section>
+
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-2">Waar Benji wél en niet voor bedoeld is</h3>
+            <div className="space-y-2 mb-3">
+              <div className="flex gap-2">
+                <SoftCheck />
+                <span>Momenten waarop je wilt praten maar niet kunt of durft</span>
+              </div>
+              <div className="flex gap-2">
+                <SoftCheck />
+                <span>&apos;s Nachts, als verdriet het hardst toeslaat</span>
+              </div>
+              <div className="flex gap-2">
+                <SoftCheck />
+                <span>Wanneer je bang bent anderen te belasten</span>
+              </div>
+              <div className="flex gap-2">
+                <SoftCheck />
+                <span>Als je woorden zoekt voor wat je voelt</span>
+              </div>
+            </div>
+            <div className="space-y-2 mt-4">
+              <p className="text-gray-900 text-sm font-semibold">Benji vervangt niet:</p>
+              <div className="flex gap-2">
+                <SoftX />
+                <span>Therapie of professionele rouwbegeleiding</span>
+              </div>
+              <div className="flex gap-2">
+                <SoftX />
+                <span>Menselijk contact met naasten</span>
+              </div>
+              <div className="flex gap-2">
+                <SoftX />
+                <span>Je kunt dag en nacht met iemand praten via de SOS telefoon van 113 (0800-0113)</span>
+              </div>
+            </div>
+            <p className="mt-3 text-gray-600">
+              Als we merken dat je situatie om gespecialiseerde hulp vraagt, wijzen we je daar altijd op. Op onze informatiepagina vind je een overzicht van professionele instanties.
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-2">Waarom Benji bestaat</h3>
+            <p>
+              Benji is ontstaan uit persoonlijke ervaring. Uit het besef dat verdriet niet altijd past in kantooruren of afspraken. Dat soms een gesprek op dat ene moment het verschil maakt. Dat je je schuldig kunt voelen over hoeveel ruimte je verdriet inneemt bij anderen.
+            </p>
+            <p className="mt-3">
+              Algemene chatbots boden niet de zachtheid en het begrip die nodig zijn. Dus maakten we Benji: een plek waar je verhaal er altijd toe doet.
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-2">Privacy en veiligheid</h3>
+            <p>
+              Je gesprekken zijn versleuteld en privé. We slaan je data veilig op volgens AVG-richtlijnen. Benji leert van gesprekken om beter te worden, maar jouw persoonlijke informatie wordt nooit gedeeld of verkocht.
+            </p>
+          </section>
+
+          <p className="font-medium text-gray-900">Benji is er. Wanneer jij dat nodig hebt.</p>
+
+          <Link
+            href="/"
+            onClick={onClose}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium text-sm"
+          >
+            Start je eerste gesprek
+            <ArrowRight size={16} strokeWidth={2} />
+          </Link>
+
+        </div>
       </div>
     </div>
   );
