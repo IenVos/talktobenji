@@ -17,7 +17,7 @@ type TopicButtonsProps = {
 
 export function TopicButtons({ onSelect }: TopicButtonsProps) {
   return (
-    <div className="flex flex-col gap-2 sm:gap-3 items-stretch max-w-xs mx-auto mt-4">
+    <div className="flex flex-col gap-2 sm:gap-3 items-stretch w-full max-w-xs sm:max-w-sm mx-auto mt-4">
       {TOPICS.map(({ id, label, icon }) => (
         <button
           key={id}

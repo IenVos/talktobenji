@@ -206,7 +206,7 @@ export default function ChatPageClient({
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
-      <header className="sticky top-0 z-20 bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0" style={{ paddingTop: 'max(1rem, calc(0.75rem + env(safe-area-inset-top)))', paddingBottom: 'max(0.75rem, calc(0.5rem + env(safe-area-inset-top) * 0.1))' }}>
+      <header className="sticky top-0 z-20 bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0" style={{ paddingTop: 'max(1rem, calc(0.75rem + env(safe-area-inset-top)))', paddingBottom: 'max(0.75rem, calc(0.5rem + env(safe-area-inset-top) * 0.1))', pointerEvents: 'auto' }}>
         <div className="max-w-3xl mx-auto flex items-center gap-3 min-w-0">
           <a
             href="/"
@@ -235,10 +235,10 @@ export default function ChatPageClient({
           style={{ backgroundImage: "url(/images/achtergrond.png)" }}
           aria-hidden
         />
-        {/* Waas ~70% - z-0 en pointer-events-none zodat kliks doorkomen */}
-        <div className="absolute inset-0 z-0 bg-white/70 pointer-events-none" aria-hidden />
-        {/* Chat-inhoud bovenop - z-10 zodat klikbaar */}
-        <div className="relative z-10 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full">
+        {/* Waas ~70% - pointer-events: none inline om zeker te zijn dat kliks doorkomen */}
+        <div className="absolute inset-0 z-0 bg-white/70" style={{ pointerEvents: "none" }} aria-hidden />
+        {/* Chat-inhoud bovenop - z-10, pointer-events auto expliciet */}
+        <div className="relative z-10 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full" style={{ pointerEvents: "auto" }}>
           {!sessionId && !isAddingOpener && (
             <WelcomeScreen showTopicButtons={showTopicButtons} onTopicSelect={handleTopicSelect} />
           )}
@@ -267,7 +267,7 @@ export default function ChatPageClient({
         </div>
       </main>
 
-      <footer className="bg-primary-900 px-3 sm:px-4 py-3 sm:py-4 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-bottom) * 0.15)', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom) * 0.4)' }}>
+      <footer className="bg-primary-900 px-3 sm:px-4 py-3 sm:py-4 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-bottom) * 0.15)', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom) * 0.4)', pointerEvents: 'auto' }}>
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">
           <div className="flex gap-2 sm:gap-3 overflow-visible">
             <button

@@ -89,6 +89,7 @@ export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
       style={{
         top: "max(1.25rem, calc(env(safe-area-inset-top) + 1rem))",
         right: "max(0.75rem, env(safe-area-inset-right))",
+        pointerEvents: "auto",
       }}
       ref={menuRef}
     >

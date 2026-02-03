@@ -10,6 +10,7 @@
   body {
     @apply text-gray-900 antialiased;
     background-color: #f2f5f9;
+    pointer-events: auto;
   }
 }
 
