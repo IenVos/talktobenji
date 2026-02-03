@@ -199,10 +199,12 @@ export const handleUserMessage = action({
 
       const dutchLanguageRule = isEnglish
         ? ""
-        : `TAALKWALITEIT: Gebruik altijd correct, natuurlijk Nederlands. Vermijd ongrammaticale of onnatuurlijke zinnen.
+        : `TAALKWALITEIT: Gebruik altijd correct, natuurlijk Nederlands.
+- Elke zin moet grammaticaal kloppen.
 - FOUT: "dat durft iets zeggen" (ongrammaticaal)
 - GOED: "dat zegt iets" of "en dat is al iets" of "dat getuigt van moed"
-Controleer dat elke zin grammaticaal klopt voordat je antwoordt.`;
+- Schrijf zoals een native speaker zou spreken.
+- Lees je antwoord mentaal door voordat je het verstuurt.`;
 
       const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule].filter(Boolean).join("\n\n");
 

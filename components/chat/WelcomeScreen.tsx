@@ -8,6 +8,7 @@ import { useAboutModal } from "@/lib/AboutModalContext";
 type WelcomeScreenProps = {
   showTopicButtons: boolean;
   onTopicSelect: (topicId: TopicId, label: string) => void;
+  showInfoBlock?: boolean;
 };
 
 function IconWithTooltip({
@@ -37,6 +38,10 @@ function IconWithTooltip({
       className="relative inline-flex group"
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
+      onClick={(e) => {
+        e.stopPropagation();
+        setShow((s) => !s);
+      }}
     >
       <Icon
         size={18}
@@ -60,6 +65,7 @@ function IconWithTooltip({
 export function WelcomeScreen({
   showTopicButtons,
   onTopicSelect,
+  showInfoBlock = true,
 }: WelcomeScreenProps) {
   const { setShowAbout } = useAboutModal();
 
@@ -83,20 +89,22 @@ om te luisteren, zonder te oordelen, dag en nacht.`}
           <TopicButtons onSelect={onTopicSelect} />
         </div>
       )}
-      {/* Iconen vóór de zin - custom tooltip met pointer-events-none (blokkeert nooit kliks) */}
-      <button
-        type="button"
-        onClick={() => setShowAbout(true)}
-        className="mt-6 flex flex-row items-center justify-center gap-2 text-xs text-gray-500 hover:text-primary-600 transition-colors py-2 px-3 cursor-pointer touch-manipulation relative z-10"
-      >
-        <IconWithTooltip icon={Lock} tooltip="Gesprekken zijn privé en versleuteld" />
-        <IconWithTooltip
-          icon={AlertTriangle}
-          tooltip="Benji is steun, geen vervanging voor professionele therapie"
-          tooltipPrefix={<span className="text-orange-500 font-bold">! </span>}
-        />
-        <span>Meer info over Benji, privacy en hoe het werkt</span>
-      </button>
+      {/* Info-block: alleen bij eerste bezoek (vóór eerste chatbericht) */}
+      {showInfoBlock && (
+        <button
+          type="button"
+          onClick={() => setShowAbout(true)}
+          className="mt-6 flex flex-row items-center justify-center gap-2 text-xs text-gray-500 hover:text-primary-600 transition-colors py-2 px-3 cursor-pointer touch-manipulation relative z-10"
+        >
+          <IconWithTooltip icon={Lock} tooltip="Gesprekken zijn privé en versleuteld" />
+          <IconWithTooltip
+            icon={AlertTriangle}
+            tooltip="Benji is steun, geen vervanging voor professionele therapie"
+            tooltipPrefix={<span className="text-orange-500 font-bold">! </span>}
+          />
+          <span>Meer info over Benji, privacy en hoe het werkt</span>
+        </button>
+      )}
     </div>
   );
 }

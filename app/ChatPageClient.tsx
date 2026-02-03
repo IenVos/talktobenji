@@ -15,6 +15,7 @@ export type SearchParamsProp = { topic?: string | string[] };
 // Logo in header: wissel naar "/images/benji-logo-1.png" om het andere logo te proberen
 const HEADER_LOGO = "/images/benji-logo-2.png";
 const STORAGE_KEY = "benji_session_id";
+const HAS_CHATTED_KEY = "benji_has_chatted";
 
 export default function ChatPageClient({
   searchParams = {},
@@ -50,6 +51,13 @@ export default function ChatPageClient({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const topicFromUrlHandled = useRef<string | null>(null);
+
+  const [hasChattedBefore, setHasChattedBefore] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setHasChattedBefore(!!localStorage.getItem(HAS_CHATTED_KEY));
+    }
+  }, []);
 
   const messages = useQuery(
     api.chat.getMessages,
@@ -123,7 +131,7 @@ export default function ChatPageClient({
       if (!activeSessionId) {
         activeSessionId = await startSession({});
         setSessionId(activeSessionId);
-        if (typeof window !== "undefined") localStorage.setItem("benji_has_chatted", "1");
+        if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
       }
       
       // Verstuur bericht en genereer antwoord
@@ -186,7 +194,7 @@ export default function ChatPageClient({
         const newSessionId = await startSession({ topic: topicFromUrl });
         await addOpenerToSession({ sessionId: newSessionId, topicId: topicFromUrl });
         setSessionId(newSessionId);
-        if (typeof window !== "undefined") localStorage.setItem("benji_has_chatted", "1");
+        if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
       } catch (e) { console.error(e); }
       finally {
         setIsLoading(false);
@@ -240,7 +248,11 @@ export default function ChatPageClient({
         {/* Chat-inhoud bovenop - z-10, pointer-events auto expliciet */}
         <div className="relative z-10 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full" style={{ pointerEvents: "auto" }}>
           {!sessionId && !isAddingOpener && (
-            <WelcomeScreen showTopicButtons={showTopicButtons} onTopicSelect={handleTopicSelect} />
+            <WelcomeScreen
+              showTopicButtons={showTopicButtons}
+              onTopicSelect={handleTopicSelect}
+              showInfoBlock={!hasChattedBefore}
+            />
           )}
 
           <div className="space-y-3 sm:space-y-4">
