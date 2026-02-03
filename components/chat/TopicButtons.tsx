@@ -23,16 +23,19 @@ export function TopicButtons({ onSelect }: TopicButtonsProps) {
           key={id}
           type="button"
           onClick={() => onSelect(id, label)}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 bg-primary-50 text-primary-700 border border-primary-400 hover:bg-primary-100 hover:border-primary-500 hover:shadow-sm active:scale-[0.98] text-left"
+          className="group flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 bg-primary-50 text-primary-700 border border-primary-400 hover:bg-primary-100 hover:border-primary-500 hover:shadow-sm active:scale-[0.98] text-left"
         >
-          {icon === "heart" && <Heart size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
-          {icon === "verdriet" && (
-            <span className="w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center">
-              <Image src="/images/verdriet-icon.png" alt="" width={18} height={18} className="object-contain mix-blend-multiply" />
-            </span>
-          )}
-          {icon === "paw" && <PawPrint size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
-          <span>{label}</span>
+          <span className="flex items-center gap-3 min-w-0">
+            {icon === "heart" && <Heart size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
+            {icon === "verdriet" && (
+              <span className="w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center">
+                <Image src="/images/verdriet-icon.png" alt="" width={18} height={18} className="object-contain mix-blend-multiply" />
+              </span>
+            )}
+            {icon === "paw" && <PawPrint size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
+            <span className="break-words">{label}</span>
+          </span>
+          <span className="inline-flex flex-shrink-0 text-primary-600 group-hover:translate-x-0.5 transition-transform duration-200" aria-hidden>→</span>
         </button>
       ))}
     </div>

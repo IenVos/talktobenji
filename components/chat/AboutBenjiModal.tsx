@@ -21,7 +21,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+      className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/50"
       onClick={onClose}
     >
       <div
@@ -121,6 +121,37 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
           </section>
 
           <section>
+            <h3 className="font-semibold text-gray-900 mb-2">Wat kost het?</h3>
+            <p>
+              Momenteel kun je Benji kosteloos gebruiken. We werken aan een duurzaam model zodat Benji beschikbaar blijft. Je hoeft nu niets te betalen om te starten.
+            </p>
+          </section>
+
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-2">Veelgestelde vragen</h3>
+            <p className="font-medium text-gray-900 mb-1">Voor wie is Benji?</p>
+            <p className="mb-3">
+              Voor iedereen met verlies en verdriet. Of je nu iemand bent verloren, rouwt om een huisdier, of gewoon behoefte hebt aan een luisterend oor – Benji is er voor je.
+            </p>
+            <p className="font-medium text-gray-900 mb-1">Waarom Benji in plaats van vrienden of een forum?</p>
+            <p className="mb-3">
+              Benji is altijd beschikbaar, dag en nacht. Geen oordeel, geen wachttijd. Een aanvulling op menselijk contact, niet een vervanging. Soms wil je praten op een moment dat vrienden slapen of het te zwaar voelt om ze opnieuw te belasten.
+            </p>
+            <p className="font-medium text-gray-900 mb-1">Waarom bestaat Benji?</p>
+            <p className="mb-3">
+              Benji is er voor mensen die met verlies en verdriet omgaan. Soms wil je praten maar voelt het te zwaar om vrienden of familie te belasten. Benji luistert, altijd.
+            </p>
+            <p className="font-medium text-gray-900 mb-1">Is Benji veilig?</p>
+            <p className="mb-3">
+              Ja. Je gesprekken zijn privé en versleuteld. We slaan je data veilig op volgens AVG-richtlijnen. Benji vervangt geen professionele hulp – bij crisissituaties wijzen we altijd op 113 (0800-0113).
+            </p>
+            <p className="font-medium text-gray-900 mb-1">Waarom Benji en niet een andere chatbot?</p>
+            <p>
+              Benji is specifiek ontwikkeld voor rouw en verlies. De antwoorden zijn afgestemd op dit thema, met empathie en begrip. Geen generieke antwoorden, maar aandacht voor jouw verhaal.
+            </p>
+          </section>
+
+          <section>
             <h3 className="font-semibold text-gray-900 mb-2">Privacy en veiligheid</h3>
             <p>
               Je gesprekken zijn versleuteld en privé. We slaan je data veilig op volgens AVG-richtlijnen. Benji leert van gesprekken om beter te worden, maar jouw persoonlijke informatie wordt nooit gedeeld of verkocht.
@@ -128,6 +159,18 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
           </section>
 
           <p className="font-medium text-gray-900">Benji is er. Wanneer jij dat nodig hebt.</p>
+
+          <div className="flex flex-wrap gap-3 text-sm">
+            <Link href="/privacy" onClick={onClose} className="text-primary-600 hover:text-primary-700 underline">
+              Privacy
+            </Link>
+            <Link href="/algemene-voorwaarden" onClick={onClose} className="text-primary-600 hover:text-primary-700 underline">
+              Algemene voorwaarden
+            </Link>
+            <a href="mailto:contact@talktobenji.nl" className="text-primary-600 hover:text-primary-700 underline">
+              Contact
+            </a>
+          </div>
 
           <Link
             href="/"

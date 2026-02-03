@@ -197,7 +197,14 @@ export const handleUserMessage = action({
         ? "IMPORTANT: You may only use the knowledge base below to answer. If the answer is not in the knowledge base, say clearly that you cannot answer from the available information and suggest adding the topic to the knowledge base."
         : "BELANGRIJK: Je mag alleen de onderstaande knowledge base gebruiken om te antwoorden. Als het antwoord niet in de knowledge base staat, zeg dan duidelijk dat je het niet kunt beantwoorden op basis van de beschikbare informatie en stel voor het onderwerp toe te voegen aan de knowledge base.";
 
-      const rules = [settings?.rules || "", onlyFromKbRule].filter(Boolean).join("\n\n");
+      const dutchLanguageRule = isEnglish
+        ? ""
+        : `TAALKWALITEIT: Gebruik altijd correct, natuurlijk Nederlands. Vermijd ongrammaticale of onnatuurlijke zinnen.
+- FOUT: "dat durft iets zeggen" (ongrammaticaal)
+- GOED: "dat zegt iets" of "en dat is al iets" of "dat getuigt van moed"
+Controleer dat elke zin grammaticaal klopt voordat je antwoordt.`;
+
+      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response
       const aiResponse = await callClaudeAPI(

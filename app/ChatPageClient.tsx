@@ -14,6 +14,7 @@ export type SearchParamsProp = { topic?: string | string[] };
 
 // Logo in header: wissel naar "/images/benji-logo-1.png" om het andere logo te proberen
 const HEADER_LOGO = "/images/benji-logo-2.png";
+const STORAGE_KEY = "benji_session_id";
 
 export default function ChatPageClient({
   searchParams = {},
@@ -22,7 +23,23 @@ export default function ChatPageClient({
 }) {
   const router = useRouter();
   const topicParam = Array.isArray(searchParams?.topic) ? searchParams.topic[0] : searchParams?.topic;
-  const [sessionId, setSessionId] = useState<Id<"chatSessions"> | null>(null);
+  const [sessionIdState, setSessionIdState] = useState<Id<"chatSessions"> | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? (stored as Id<"chatSessions">) : null;
+    } catch {
+      return null;
+    }
+  });
+  const sessionId = sessionIdState;
+  const setSessionId = (id: Id<"chatSessions"> | null) => {
+    setSessionIdState(id);
+    if (typeof window !== "undefined") {
+      if (id) localStorage.setItem(STORAGE_KEY, id);
+      else localStorage.removeItem(STORAGE_KEY);
+    }
+  };
   const [showTopicButtons, setShowTopicButtons] = useState(true);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -38,6 +55,17 @@ export default function ChatPageClient({
     api.chat.getMessages,
     sessionId ? { sessionId } : "skip"
   );
+  const storedSession = useQuery(
+    api.chat.getSession,
+    sessionIdState ? { sessionId: sessionIdState } : "skip"
+  );
+
+  useEffect(() => {
+    if (sessionIdState && storedSession === null) {
+      setSessionIdState(null);
+      if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
+    }
+  }, [sessionIdState, storedSession]);
 
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
@@ -95,6 +123,7 @@ export default function ChatPageClient({
       if (!activeSessionId) {
         activeSessionId = await startSession({});
         setSessionId(activeSessionId);
+        if (typeof window !== "undefined") localStorage.setItem("benji_has_chatted", "1");
       }
       
       // Verstuur bericht en genereer antwoord
@@ -130,7 +159,8 @@ export default function ChatPageClient({
       const newSessionId = await startSession({ topic: topicId });
       await addOpenerToSession({ sessionId: newSessionId, topicId });
       setSessionId(newSessionId);
-      
+      if (typeof window !== "undefined") localStorage.setItem("benji_has_chatted", "1");
+
       // Minimum 3 seconden wachten voor rust in het gesprek
       const elapsed = Date.now() - startTime;
       const minDelay = 3000;
@@ -156,6 +186,7 @@ export default function ChatPageClient({
         const newSessionId = await startSession({ topic: topicFromUrl });
         await addOpenerToSession({ sessionId: newSessionId, topicId: topicFromUrl });
         setSessionId(newSessionId);
+        if (typeof window !== "undefined") localStorage.setItem("benji_has_chatted", "1");
       } catch (e) { console.error(e); }
       finally {
         setIsLoading(false);
@@ -181,7 +212,8 @@ export default function ChatPageClient({
             href="/"
             onClick={(e) => {
               e.preventDefault();
-              window.location.href = "/";
+              setSessionId(null);
+              setShowTopicButtons(true);
             }}
             className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none"
             aria-label="Naar hoofdpagina"
@@ -191,7 +223,6 @@ export default function ChatPageClient({
             </div>
             <div className="flex flex-col items-start min-w-0">
               <span className="font-semibold text-primary-500 text-sm sm:text-base leading-tight group-hover:text-primary-400">Talk To Benji</span>
-              <span className="text-xs sm:text-sm text-primary-500 leading-snug opacity-90">Benji is er altijd om naar je te luisteren, zonder te oordelen.<br />Je kunt op elk moment van de dag of nacht chatten!</span>
             </div>
           </a>
         </div>
@@ -200,14 +231,14 @@ export default function ChatPageClient({
       <main className="flex-1 overflow-y-auto relative">
         {/* Achtergrondafbeelding */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: "url(/images/achtergrond.png)" }}
           aria-hidden
         />
-        {/* Waas ~70% zodat de chat goed leesbaar blijft */}
-        <div className="absolute inset-0 bg-white/70 pointer-events-none" aria-hidden />
-        {/* Chat-inhoud bovenop */}
-        <div className="relative z-10 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        {/* Waas ~70% - z-0 en pointer-events-none zodat kliks doorkomen */}
+        <div className="absolute inset-0 z-0 bg-white/70 pointer-events-none" aria-hidden />
+        {/* Chat-inhoud bovenop - z-10 zodat klikbaar */}
+        <div className="relative z-10 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full">
           {!sessionId && !isAddingOpener && (
             <WelcomeScreen showTopicButtons={showTopicButtons} onTopicSelect={handleTopicSelect} />
           )}
@@ -239,13 +270,17 @@ export default function ChatPageClient({
       <footer className="bg-primary-900 px-3 sm:px-4 py-3 sm:py-4 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-bottom) * 0.15)', paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom) * 0.4)' }}>
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">
           <div className="flex gap-2 sm:gap-3 overflow-visible">
-            {speechSupported && (
-              <button type="button" onClick={toggleRecording} disabled={isLoading} className={`p-2.5 sm:p-3 rounded-xl transition-colors flex-shrink-0 ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`} title={isRecording ? "Stop opname" : "Start spraakopname"}>
-                {isRecording ? <Square size={20} /> : <Mic size={20} />}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={toggleRecording}
+              disabled={isLoading || !speechSupported}
+              className={`p-2.5 sm:p-3 rounded-xl transition-colors flex-shrink-0 ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
+              title={!speechSupported ? "Spraak niet beschikbaar in deze browser" : isRecording ? "Stop opname" : "Start spraakopname"}
+            >
+              {isRecording ? <Square size={20} /> : <Mic size={20} />}
+            </button>
             <div className="flex-1 relative overflow-visible">
-              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je vraag..."} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
+              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je vraag om te beginnen"} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
               {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
             </div>
             <button type="submit" disabled={!input.trim() || isLoading} className="p-2.5 sm:p-3 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
