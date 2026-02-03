@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { Send, Mic, Square, Loader2, MessageCircle } from "lucide-react";
+import { Send, Mic, Square } from "lucide-react";
 import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
 import type { TopicId } from "@/components/chat/TopicButtons";
 
