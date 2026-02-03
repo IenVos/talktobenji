@@ -4,6 +4,7 @@ import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
 import { AboutModalProvider } from "@/lib/AboutModalContext";
 import { ProfessionalHelpProvider } from "@/lib/ProfessionalHelpContext";
 import { GlobalMenu } from "@/components/chat/GlobalMenu";
+import { CookieConsentBanner } from "@/components/chat/CookieConsentBanner";
 
 export const metadata: Metadata = {
   title: "TalkToBenji - Benji",
@@ -48,6 +49,7 @@ export default function RootLayout({
             <ProfessionalHelpProvider>
               <GlobalMenu />
               {children}
+              <CookieConsentBanner />
             </ProfessionalHelpProvider>
           </AboutModalProvider>
         </ConvexClientProvider>

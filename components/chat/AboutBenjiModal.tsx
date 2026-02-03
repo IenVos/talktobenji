@@ -160,7 +160,20 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
 
           <p className="font-medium text-gray-900">Benji is er. Wanneer jij dat nodig hebt.</p>
 
-          <div className="flex flex-wrap gap-3 text-sm">
+          <Link
+            href="/"
+            onClick={onClose}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium text-sm"
+          >
+            Start je eerste gesprek
+            <ArrowRight size={16} strokeWidth={2} />
+          </Link>
+
+          {/* Lijn onder Start button */}
+          <div className="border-t border-primary-200 pt-4" aria-hidden />
+
+          {/* Links naast elkaar eronder */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
             <Link href="/privacy" onClick={onClose} className="text-primary-600 hover:text-primary-700 underline">
               Privacy
             </Link>
@@ -171,15 +184,6 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
               Contact
             </a>
           </div>
-
-          <Link
-            href="/"
-            onClick={onClose}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-colors font-medium text-sm"
-          >
-            Start je eerste gesprek
-            <ArrowRight size={16} strokeWidth={2} />
-          </Link>
 
         </div>
       </div>

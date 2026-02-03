@@ -22,6 +22,9 @@ export default function PrivacyPage() {
           Talk To Benji neemt je privacy serieus. Je gesprekken zijn versleuteld en worden veilig opgeslagen. We delen je gegevens niet met derden en verkopen geen persoonlijke informatie.
         </p>
         <p>
+          <strong>Cookies:</strong> We gebruiken alleen noodzakelijke cookies om de site te laten werken en anonieme statistieken te verzamelen. We plaatsen geen advertentiecookies.
+        </p>
+        <p>
           Voor vragen over privacy kun je contact opnemen via{" "}
           <a href="mailto:contact@talktobenji.nl" className="text-primary-600 hover:underline">
             contact@talktobenji.nl
