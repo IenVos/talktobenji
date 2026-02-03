@@ -8,10 +8,9 @@ import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { Send, Mic, Square } from "lucide-react";
 import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
-import { TypingText } from "@/components/chat/TypingText";
 import type { TopicId } from "@/components/chat/TopicButtons";
 
-export type SearchParamsProp = { topic?: string | string[] };
+export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[] };
 
 // Logo in header: wissel naar "/images/benji-logo-1.png" om het andere logo te proberen
 const HEADER_LOGO = "/images/benji-logo-2.png";
@@ -134,6 +133,7 @@ export default function ChatPageClient({
     setShowTopicButtons(false);
     const messageText = text.trim();
     setInput("");
+    setPendingUserMessage(messageText); // Direct tonen: 1. jouw bericht, 2. bolletjes, 3. Benji
     const startTime = Date.now();
     try {
       let activeSessionId = sessionId;
@@ -150,9 +150,9 @@ export default function ChatPageClient({
       // Wacht op antwoord
       await messagePromise;
       
-      // Minimum 3 seconden wachten voor rust in het gesprek
+      // Minimum 5 seconden: bolletjes langer zichtbaar, rustiger tempo als een echt gesprek
       const elapsed = Date.now() - startTime;
-      const minDelay = 3000;
+      const minDelay = 5000;
       if (elapsed < minDelay) {
         await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
       }
@@ -180,9 +180,9 @@ export default function ChatPageClient({
       setSessionId(newSessionId);
       if (typeof window !== "undefined") localStorage.setItem("benji_has_chatted", "1");
 
-      // Minimum 3 seconden wachten voor rust in het gesprek
+      // Minimum 5 seconden: bolletjes langer zichtbaar, rustiger tempo
       const elapsed = Date.now() - startTime;
-      const minDelay = 3000;
+      const minDelay = 5000;
       if (elapsed < minDelay) {
         await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
       }
@@ -270,22 +270,13 @@ export default function ChatPageClient({
           )}
 
           <div className="space-y-3 sm:space-y-4">
-            {messages?.map((msg: Doc<"chatMessages">, index: number) => {
-              const isLastBotMessage = msg.role === "bot" && index === (messages?.length ?? 0) - 1 && !pendingUserMessage;
-              return (
-                <div key={msg._id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "bg-primary-900 text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
-                    {isLastBotMessage ? (
-                      <p className="whitespace-pre-wrap text-sm sm:text-base">
-                        <TypingText content={msg.content} />
-                      </p>
-                    ) : (
-                      <p className="whitespace-pre-wrap text-sm sm:text-base">{msg.content}</p>
-                    )}
-                  </div>
+            {messages?.map((msg: Doc<"chatMessages">) => (
+              <div key={msg._id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "bg-primary-900 text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
+                  <p className="whitespace-pre-wrap text-sm sm:text-base">{msg.content}</p>
                 </div>
-              );
-            })}
+              </div>
+            ))}
             {pendingUserMessage && (
               <div className="flex justify-end">
                 <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
