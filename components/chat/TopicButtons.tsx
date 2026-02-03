@@ -18,7 +18,7 @@ type TopicButtonsProps = {
 
 export function TopicButtons({ onSelect }: TopicButtonsProps) {
   return (
-    <div className="flex flex-col gap-2 sm:gap-3 items-stretch w-full max-w-xs sm:max-w-sm mx-auto mt-4">
+    <div className="flex flex-col gap-2 sm:gap-3 items-stretch w-full mt-4">
       {TOPICS.map(({ id, label, icon }) => (
         <button
           key={id}
@@ -35,7 +35,7 @@ export function TopicButtons({ onSelect }: TopicButtonsProps) {
               </span>
             )}
             {icon === "paw" && <PawPrint size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
-            <span className="break-words">{label}</span>
+            <span className="break-words text-pretty">{label}</span>
           </span>
           <span className="inline-flex flex-shrink-0 text-primary-600 group-hover:translate-x-0.5 transition-transform duration-200" aria-hidden>→</span>
         </button>

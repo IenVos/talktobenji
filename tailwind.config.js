@@ -35,6 +35,12 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        ".text-pretty": { "text-wrap": "pretty" },
+      });
+    },
+  ],
 }
 

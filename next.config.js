@@ -11,7 +11,6 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 const nextConfig = {
   reactStrictMode: true,
   distDir: ".next",
-  devIndicators: { buildActivity: false }, // Geen rode "1 error" box in dev
   async redirects() {
     return [
       { source: "/favicon.ico", destination: "/icon.svg", permanent: false },
