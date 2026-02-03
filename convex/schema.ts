@@ -163,7 +163,8 @@ export default defineSchema({
       v.literal("verlies"),
       v.literal("verdriet"),
       v.literal("huisdier"),
-      v.literal("hulp")
+      v.literal("hulp"),
+      v.literal("gewoon")
     ),
     openerVariant: v.union(v.literal(1), v.literal(2), v.literal(3)),
     userContinued: v.boolean(),

@@ -15,6 +15,7 @@
     "lint": "next lint",
     "convex": "convex dev",
     "deploy:convex": "dotenv -e .env.local -- npx convex deploy",
+    "deploy": "node scripts/deploy-all.mjs",
     "generate-pwa-icons": "node scripts/generate-pwa-icons.js",
     "generate-favicon": "node scripts/generate-favicon.js",
     "open:env": "open -a Cursor .env.local",

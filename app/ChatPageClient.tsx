@@ -52,13 +52,6 @@ export default function ChatPageClient({
   const recognitionRef = useRef<any>(null);
   const topicFromUrlHandled = useRef<string | null>(null);
 
-  const [hasChattedBefore, setHasChattedBefore] = useState(false);
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setHasChattedBefore(!!localStorage.getItem(HAS_CHATTED_KEY));
-    }
-  }, []);
-
   const messages = useQuery(
     api.chat.getMessages,
     sessionId ? { sessionId } : "skip"
@@ -251,7 +244,7 @@ export default function ChatPageClient({
             <WelcomeScreen
               showTopicButtons={showTopicButtons}
               onTopicSelect={handleTopicSelect}
-              showInfoBlock={!hasChattedBefore}
+              showInfoBlock={true}
             />
           )}
 

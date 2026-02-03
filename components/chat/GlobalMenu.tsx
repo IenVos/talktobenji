@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Info, MessageCircle, MessagesSquare, UserPlus, LogIn } from "lucide-react";
+import { MoreVertical, Info, MessageCirclePlus, MessagesSquare, UserPlus, LogIn } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
 
 type GlobalMenuProps = {
@@ -49,7 +49,7 @@ export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
     },
     {
       label: "Nieuw gesprek",
-      icon: MessageCircle,
+      icon: MessageCirclePlus,
       onClick: () => {
         setOpen(false);
         if (typeof window !== "undefined") {

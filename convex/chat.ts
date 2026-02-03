@@ -12,9 +12,14 @@ import { mutation, query } from "./_generated/server";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
-  "verlies" | "verdriet" | "huisdier" | "hulp",
+  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon",
   [string, string, string]
 > = {
+  gewoon: [
+    "Gewoon praten kan ook. Waar wil je over beginnen?",
+    "Soms wil je gewoon even kwijt. Ik luister. Wat wil je delen?",
+    "Vertel me wat je bezighoudt. Er is geen goed of fout begin.",
+  ],
   verlies: [
     "Iemand verliezen laat een leegte achter die moeilijk te beschrijven is. Neem de tijd. Ik luister.",
     "Het gemis van iemand die er niet meer is, kan overweldigend zijn. Je hoeft hier niets uit te leggen begin waar je wilt.",
@@ -39,12 +44,13 @@ const OPENERS: Record<
 
 const TOPIC_ID_TO_OPENER_KEY: Record<
   string,
-  "verlies" | "verdriet" | "huisdier" | "hulp"
+  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon"
 > = {
   "verlies-dierbare": "verlies",
   "omgaan-verdriet": "verdriet",
   "afscheid-huisdier": "huisdier",
   "professionele-hulp": "hulp",
+  "gewoon-praten": "gewoon",
 };
 
 // ============================================================================
