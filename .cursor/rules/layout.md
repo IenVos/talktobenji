@@ -14,9 +14,8 @@ Layout- en centeringproblemen komen vaak terug. Dit bestand documenteert de afge
 - **Buttons**: `text-left` binnen de knop (icon + tekst links), maar container is gecentreerd
 
 ## GlobalMenu
-- **Positie**: `fixed`, rechts in de header
-- **Style**: `right: max(0.75rem, env(safe-area-inset-right))`
-- **Verticaal**: `top: max(1.25rem, calc(env(safe-area-inset-top) + 1rem))` - in het midden van de header
+- **Chatpagina**: In de sticky header, rechts, verticaal gecentreerd (`embedded` prop). Beweegt mee met de header.
+- **Overige pagina's** (privacy, algemene voorwaarden): `fixed` rechtsboven via LayoutMenu
 
 ## ChatPageClient content
 - **Main content**: `max-w-3xl mx-auto` - gecentreerd op de pagina

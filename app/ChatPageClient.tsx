@@ -1,19 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { Send, Mic, Square } from "lucide-react";
 import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
+import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
 
 export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[] };
 
-// Logo in header: wissel naar "/images/benji-logo-1.png" om het andere logo te proberen
-const HEADER_LOGO = "/images/benji-logo-2.png";
 const STORAGE_KEY = "benji_session_id";
 const HAS_CHATTED_KEY = "benji_has_chatted";
 
@@ -228,27 +226,7 @@ export default function ChatPageClient({
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
-      <header className="sticky top-0 z-20 bg-primary-900 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0" style={{ paddingTop: 'max(1rem, calc(0.75rem + env(safe-area-inset-top)))', paddingBottom: 'max(0.75rem, calc(0.5rem + env(safe-area-inset-top) * 0.1))', pointerEvents: 'auto' }}>
-        <div className="max-w-3xl mx-auto flex items-center gap-3 min-w-0">
-          <a
-            href="/"
-            onClick={(e) => {
-              e.preventDefault();
-              setSessionId(null);
-              setShowTopicButtons(true);
-            }}
-            className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none"
-            aria-label="Naar hoofdpagina"
-          >
-            <div className="h-10 sm:h-12 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <Image src={HEADER_LOGO} alt="" width={56} height={48} className="object-contain h-full w-auto" />
-            </div>
-            <div className="flex flex-col items-start min-w-0">
-              <span className="font-semibold text-primary-500 text-sm sm:text-base leading-tight group-hover:text-primary-400">Talk To Benji</span>
-            </div>
-          </a>
-        </div>
-      </header>
+      <HeaderBar onLogoClick={() => { setSessionId(null); setShowTopicButtons(true); }} />
 
       <main className="flex-1 overflow-y-auto relative">
         {/* Achtergrondafbeelding */}

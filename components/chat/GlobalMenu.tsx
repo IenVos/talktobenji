@@ -7,9 +7,11 @@ import { useAboutModal } from "@/lib/AboutModalContext";
 
 type GlobalMenuProps = {
   lastConversationDate?: string | null;
+  /** In de header: vast in de sticky header, verticaal gecentreerd. Anders: fixed rechtsboven. */
+  embedded?: boolean;
 };
 
-export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
+export function GlobalMenu({ lastConversationDate = null, embedded = false }: GlobalMenuProps) {
   const [open, setOpen] = useState(false);
   const [binnenkortMsg, setBinnenkortMsg] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -85,12 +87,16 @@ export function GlobalMenu({ lastConversationDate = null }: GlobalMenuProps) {
 
   return (
     <div
-      className="fixed right-0 z-[9999] w-fit flex items-center"
-      style={{
-        top: "max(1.25rem, calc(env(safe-area-inset-top) + 1rem))",
-        right: "max(0.75rem, env(safe-area-inset-right))",
-        pointerEvents: "auto",
-      }}
+      className={`w-fit flex items-center ${embedded ? "relative" : "fixed right-0 z-[9999]"}`}
+      style={
+        embedded
+          ? { pointerEvents: "auto" }
+          : {
+              top: "max(1.25rem, calc(env(safe-area-inset-top) + 1rem))",
+              right: "max(0.75rem, env(safe-area-inset-right))",
+              pointerEvents: "auto",
+            }
+      }
       ref={menuRef}
     >
       <button

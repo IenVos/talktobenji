@@ -3,7 +3,7 @@ import "./globals.css";
 import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
 import { AboutModalProvider } from "@/lib/AboutModalContext";
 import { ProfessionalHelpProvider } from "@/lib/ProfessionalHelpContext";
-import { GlobalMenu } from "@/components/chat/GlobalMenu";
+import { LayoutMenu } from "@/components/chat/LayoutMenu";
 import { CookieConsentBanner } from "@/components/chat/CookieConsentBanner";
 
 export const metadata: Metadata = {
@@ -47,7 +47,7 @@ export default function RootLayout({
         <ConvexClientProvider>
           <AboutModalProvider>
             <ProfessionalHelpProvider>
-              <GlobalMenu />
+              <LayoutMenu />
               {children}
               <CookieConsentBanner />
             </ProfessionalHelpProvider>
