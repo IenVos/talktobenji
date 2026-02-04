@@ -8,7 +8,6 @@ import { useAboutModal } from "@/lib/AboutModalContext";
 type WelcomeScreenProps = {
   showTopicButtons: boolean;
   onTopicSelect: (topicId: TopicId, label: string) => void;
-  showInfoBlock?: boolean;
 };
 
 function IconWithTooltip({
@@ -35,13 +34,10 @@ function IconWithTooltip({
 
   return (
     <span
-      className="relative inline-flex group"
+      className="relative inline-flex"
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
-      onClick={(e) => {
-        e.stopPropagation();
-        setShow((s) => !s);
-      }}
+      onClick={() => setShow((s) => !s)}
     >
       <Icon
         size={18}
@@ -50,7 +46,7 @@ function IconWithTooltip({
       />
       {show && (
         <span
-          className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 px-3 py-1.5 bg-primary-50 text-primary-700 text-xs font-medium rounded-lg border border-primary-400 whitespace-nowrap z-10 shadow-md"
+          className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 px-3 py-2 bg-white text-primary-800 text-xs font-medium rounded-lg border-2 border-primary-400 max-w-[260px] text-left whitespace-normal z-[100] shadow-xl"
           style={{ pointerEvents: "none" }}
           role="tooltip"
         >
@@ -62,10 +58,20 @@ function IconWithTooltip({
   );
 }
 
+const DISCLAIMER = "Gesprekken zijn privé en beveiligd. Benji is steun, geen vervanging voor professionele therapie.";
+
+export function WelcomeScreenInfoIcons() {
+  return (
+    <div className="mt-4 mb-16 sm:mb-20 flex flex-row items-center justify-center gap-3 w-full max-w-sm mx-auto">
+      <IconWithTooltip icon={Lock} tooltip={DISCLAIMER} />
+      <IconWithTooltip icon={AlertTriangle} tooltip={DISCLAIMER} tooltipPrefix={<span className="text-orange-500 font-bold">! </span>} />
+    </div>
+  );
+}
+
 export function WelcomeScreen({
   showTopicButtons,
   onTopicSelect,
-  showInfoBlock = true,
 }: WelcomeScreenProps) {
   const { setShowAbout } = useAboutModal();
 
@@ -128,21 +134,6 @@ dag en nacht.`}
           </div>
         )}
       </div>
-      {/* Info-block: alleen bij eerste bezoek (vóór eerste chatbericht) */}
-      {showInfoBlock && (
-        <button
-          type="button"
-          onClick={() => setShowAbout(true)}
-          className="mt-6 flex flex-row items-center justify-center gap-3 py-2 px-3 cursor-pointer touch-manipulation relative z-10 w-full"
-        >
-          <IconWithTooltip icon={Lock} tooltip="Gesprekken zijn privé en beveiligd (encryptie in transit en bij opslag)" />
-          <IconWithTooltip
-            icon={AlertTriangle}
-            tooltip="Benji is steun, geen vervanging voor professionele therapie"
-            tooltipPrefix={<span className="text-orange-500 font-bold">! </span>}
-          />
-        </button>
-      )}
     </div>
   );
 }

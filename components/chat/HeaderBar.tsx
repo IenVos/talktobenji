@@ -39,7 +39,7 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
 
   return (
     <header
-      className="sticky top-0 z-20 bg-primary-900 px-4 sm:px-6 flex-shrink-0 flex items-center"
+      className="sticky top-0 z-[60] bg-primary-900 px-4 sm:px-6 flex-shrink-0 flex items-center"
       style={{ ...headerStyle, pointerEvents: "auto" }}
     >
       <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 min-w-0 min-h-[2.5rem] sm:min-h-[3rem] w-full">

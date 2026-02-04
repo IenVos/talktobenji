@@ -6,7 +6,7 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { Send, Mic, Square } from "lucide-react";
-import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
+import { WelcomeScreen, WelcomeScreenInfoIcons } from "@/components/chat/WelcomeScreen";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
 
@@ -235,16 +235,53 @@ export default function ChatPageClient({
           style={{ backgroundImage: "url(/images/achtergrond.png)" }}
           aria-hidden
         />
-        {/* Waas ~70% - pointer-events: none inline om zeker te zijn dat kliks doorkomen */}
+        {/* Waas ~70% - pointer-events: none zodat alle kliks doorkomen */}
         <div className="absolute inset-0 z-0 bg-white/70" style={{ pointerEvents: "none" }} aria-hidden />
-        {/* Chat-inhoud bovenop - z-10, pointer-events auto expliciet */}
-        <div className="relative z-10 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full" style={{ pointerEvents: "auto" }}>
+        {/* Chat-inhoud bovenop - hoge z-index, pointer-events auto */}
+        <div className="relative z-50 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full" style={{ pointerEvents: "auto" }}>
           {!sessionId && !isAddingOpener && (
-            <WelcomeScreen
-              showTopicButtons={showTopicButtons}
-              onTopicSelect={handleTopicSelect}
-              showInfoBlock={true}
-            />
+            <>
+              <WelcomeScreen
+                showTopicButtons={showTopicButtons}
+                onTopicSelect={handleTopicSelect}
+              />
+              <div className="w-full max-w-sm mx-auto mt-4">
+                <form onSubmit={handleSubmit} className="w-full rounded-xl bg-primary-900 px-3 py-2.5 sm:py-3">
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={toggleRecording}
+                      disabled={isLoading || !speechSupported}
+                      className={`p-2 sm:p-2.5 rounded-lg flex-shrink-0 transition-colors ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
+                      title={!speechSupported ? "Spraak niet beschikbaar" : isRecording ? "Stop opname" : "Start spraakopname"}
+                    >
+                      {isRecording ? <Square size={18} /> : <Mic size={18} />}
+                    </button>
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        placeholder={isRecording ? "Luisteren..." : "Typ je vraag om te beginnen"}
+                        suppressHydrationWarning
+                        className={`w-full px-3 py-2 sm:py-2.5 rounded-lg text-sm bg-white border focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`}
+                        disabled={isLoading}
+                      />
+                      {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={!input.trim() || isLoading}
+                      className="p-2 sm:p-2.5 rounded-lg flex-shrink-0 bg-primary-700 text-white hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Send size={18} />
+                    </button>
+                  </div>
+                  {isRecording && <p className="text-xs text-red-300 mt-1.5 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
+                </form>
+              </div>
+              <WelcomeScreenInfoIcons />
+            </>
           )}
 
           <div className="space-y-3 sm:space-y-4">
@@ -292,28 +329,34 @@ export default function ChatPageClient({
         </div>
       )}
 
-      <footer className="bg-primary-900 px-3 sm:px-4 py-4 sm:py-5 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
-        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">
-          <div className="flex gap-2 sm:gap-3 overflow-visible">
-            <button
-              type="button"
-              onClick={toggleRecording}
-              disabled={isLoading || !speechSupported}
-              className={`p-3 sm:p-3.5 rounded-xl transition-colors flex-shrink-0 ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
-              title={!speechSupported ? "Spraak niet beschikbaar in deze browser" : isRecording ? "Stop opname" : "Start spraakopname"}
-            >
-              {isRecording ? <Square size={20} /> : <Mic size={20} />}
-            </button>
-            <div className="flex-1 relative overflow-visible">
-              <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je vraag om te beginnen"} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
-              {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
-            </div>
-            <button type="submit" disabled={!input.trim() || isLoading} className="p-3 sm:p-3.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
-              <Send size={20} />
-            </button>
+      <footer className="bg-primary-900 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
+        {!sessionId && !isAddingOpener ? (
+          <div className="w-full h-8 sm:h-10 shrink-0" aria-hidden />
+        ) : (
+          <div className="px-3 sm:px-4 py-4 sm:py-5">
+            <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">
+              <div className="flex gap-2 sm:gap-3 overflow-visible">
+                <button
+                  type="button"
+                  onClick={toggleRecording}
+                  disabled={isLoading || !speechSupported}
+                  className={`p-3 sm:p-3.5 rounded-xl transition-colors flex-shrink-0 ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
+                  title={!speechSupported ? "Spraak niet beschikbaar" : isRecording ? "Stop opname" : "Start spraakopname"}
+                >
+                  {isRecording ? <Square size={20} /> : <Mic size={20} />}
+                </button>
+                <div className="flex-1 relative overflow-visible">
+                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je vraag om te beginnen"} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
+                  {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
+                </div>
+                <button type="submit" disabled={!input.trim() || isLoading} className="p-3 sm:p-3.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
+                  <Send size={20} />
+                </button>
+              </div>
+              {isRecording && <p className="text-xs text-red-300 mt-2 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
+            </form>
           </div>
-          {isRecording && <p className="text-xs text-red-300 mt-2 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
-        </form>
+        )}
       </footer>
     </div>
   );

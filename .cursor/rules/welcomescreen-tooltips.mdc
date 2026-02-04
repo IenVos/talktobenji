@@ -1,0 +1,13 @@
+---
+description: WelcomeScreen slotje/driehoek – tooltip moet onderaan (onder iconen) verschijnen
+globs: components/chat/WelcomeScreen.tsx
+alwaysApply: false
+---
+
+# WelcomeScreen: slotje en driehoek
+
+De twee iconen (slotje + waarschuwingsdriehoek) onder de chatbalk:
+
+- **Tooltip verschijnt ONDERAAN** (onder de iconen), niet bovenaan.
+- Gebruik `tooltipAbove: false` (standaard) – `top-full mt-1.5` = tooltip onder het icoon.
+- Zorg voor voldoende `mb-16` of meer onder de iconen zodat de tooltip niet afgekapt wordt door overflow.

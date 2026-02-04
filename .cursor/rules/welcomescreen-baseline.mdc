@@ -1,0 +1,26 @@
+# Welcome screen – uitgangspunt
+
+Dit is het vastgelegde uitgangspunt voor het welkomstscherm. Wijzigingen moeten deze layout en functionaliteit behouden.
+
+## Layout (zoals op de afbeelding)
+- Introtekst
+- Kenmerken-box (24/7, Privé, Voor jou, Zeg wat je voelt, Meer over Benji)
+- Topicbuttons ("Waar wil je over praten?")
+- **Chatbalk in het midden** (donkerblauw, mic + input + send)
+- **Slotje + driehoek** direct onder de chatbalk
+- Blauwe balk onderaan
+
+## Functionaliteit (moet altijd werken)
+- **Menu** (drie puntjes): opent menu met opties
+- **Topicbuttons**: klik start gesprek met dat onderwerp
+- **Chat**: typen + Enter of klik verzenden verstuurt bericht
+- **Tooltips**: hover over slotje/driehoek toont disclaimerzin
+
+## Bestanden
+- `app/ChatPageClient.tsx`: form in main op welcome, footer conditioneel
+- `components/chat/WelcomeScreen.tsx`: WelcomeScreen + WelcomeScreenInfoIcons
+
+## Let op
+- Geen preventDefault/stopPropagation op iconen die andere clicks kunnen blokkeren
+- formRef wordt gedeeld tussen welcome-form en chat-form (nooit tegelijk in DOM)
+- Tooltip: alleen hover, geen onClick die andere elementen kan beïnvloeden
