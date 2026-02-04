@@ -106,7 +106,7 @@ dag en nacht.`}
               Zeg wat je voelt
             </span>
           </div>
-          <span className="mt-2.5 flex items-center gap-2 text-xs text-primary-400 group-hover:text-primary-200 transition-colors border border-primary-400/60 group-hover:border-primary-300 rounded-lg px-3 py-1.5">
+          <span className="mt-2.5 flex items-center gap-2 text-xs text-primary-600 group-hover:text-primary-200 transition-colors border border-primary-400/60 group-hover:border-primary-300 rounded-lg px-3 py-1.5">
             Meer over Benji
             <span aria-hidden>→</span>
           </span>
@@ -133,15 +133,14 @@ dag en nacht.`}
         <button
           type="button"
           onClick={() => setShowAbout(true)}
-          className="mt-6 flex flex-row items-center justify-center gap-2 text-xs text-gray-500 hover:text-primary-600 transition-colors py-2 px-3 cursor-pointer touch-manipulation relative z-10 w-full max-w-sm mx-auto"
+          className="mt-6 flex flex-row items-center justify-center gap-3 py-2 px-3 cursor-pointer touch-manipulation relative z-10 w-full"
         >
-          <IconWithTooltip icon={Lock} tooltip="Gesprekken zijn privé en versleuteld" />
+          <IconWithTooltip icon={Lock} tooltip="Gesprekken zijn privé en beveiligd (encryptie in transit en bij opslag)" />
           <IconWithTooltip
             icon={AlertTriangle}
             tooltip="Benji is steun, geen vervanging voor professionele therapie"
             tooltipPrefix={<span className="text-orange-500 font-bold">! </span>}
           />
-          <span className="text-pretty">Meer info over Benji, privacy en hoe het werkt</span>
         </button>
       )}
     </div>

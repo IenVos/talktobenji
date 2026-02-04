@@ -141,7 +141,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
             </p>
             <p className="font-medium text-gray-900 mb-1">Is Benji veilig?</p>
             <p className="mb-3">
-              Ja. Je gesprekken zijn privé en versleuteld. We slaan je data veilig op volgens AVG-richtlijnen. Benji vervangt geen professionele hulp – bij crisissituaties wijzen we altijd op 113 (0800-0113).
+              Ja. Je gesprekken zijn privé. We gebruiken encryptie tijdens transport (HTTPS) en bij opslag op servers in de EU. Benji vervangt geen professionele hulp – bij crisissituaties wijzen we altijd op 113 (0800-0113).
             </p>
             <p className="font-medium text-gray-900 mb-1">Waarom Benji en niet een andere chatbot?</p>
             <p>
@@ -152,7 +152,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
           <section>
             <h3 className="font-semibold text-gray-900 mb-2">Privacy en veiligheid</h3>
             <p>
-              Je gesprekken zijn versleuteld en privé. We slaan je data veilig op volgens AVG-richtlijnen. Benji leert van gesprekken om beter te worden, maar jouw persoonlijke informatie wordt nooit gedeeld of verkocht.
+              Je gesprekken zijn privé en beveiligd. We gebruiken encryptie tijdens transport en bij opslag volgens AVG-richtlijnen. Benji leert van gesprekken om beter te worden, maar jouw persoonlijke informatie wordt nooit gedeeld of verkocht.
             </p>
           </section>
 

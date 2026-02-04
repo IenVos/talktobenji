@@ -121,7 +121,7 @@ export default function FaqPage() {
           <FaqItem question="Zijn mijn gesprekken echt privé?">
             <p>Ja, absoluut. Jouw gesprekken met Benji zijn:</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>End-to-end versleuteld</li>
+              <li>Versleuteld tijdens transport (HTTPS) en bij opslag</li>
               <li>Niet zichtbaar voor andere gebruikers</li>
               <li>Niet gedeeld met derden</li>
               <li>Niet gebruikt voor marketing of commerciële doeleinden</li>
