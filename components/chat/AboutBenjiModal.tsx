@@ -3,6 +3,7 @@
 import { X, CircleCheck, CircleX, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { FounderLink } from "./FounderLink";
 
 type AboutBenjiModalProps = {
   open: boolean;
@@ -54,6 +55,13 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
             Verdriet is zwaar. Soms wil je praten, maar voelt het te moeilijk om vrienden of familie nóg een keer te belasten. Of missen de juiste woorden. Of is het midden in de nacht, wanneer iedereen slaapt.
           </p>
           <p className="font-medium text-gray-900">Daarom bestaat Benji.</p>
+
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-2">Wie heeft Benji gemaakt en waarom?</h3>
+            <p>
+              Benji is ontwikkeld door <FounderLink label="Ien" />, uit persoonlijke ervaring met verlies en het besef dat verdriet niet altijd past in kantooruren of beschikbaarheid van vrienden en familie. We merkten dat algemene chatbots niet de zachtheid en het begrip boden die nodig zijn bij rouw, daarom maakten we Benji: een plek waar je verhaal er altijd toe doet.
+            </p>
+          </section>
 
           <section>
             <h3 className="font-semibold text-gray-900 mb-2">Wat is Benji?</h3>
@@ -111,16 +119,6 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
           </section>
 
           <section>
-            <h3 className="font-semibold text-gray-900 mb-2">Waarom Benji bestaat</h3>
-            <p>
-              Benji is ontstaan uit persoonlijke ervaring. Uit het besef dat verdriet niet altijd past in kantooruren of afspraken. Dat soms een gesprek op dat ene moment het verschil maakt. Dat je je schuldig kunt voelen over hoeveel ruimte je verdriet inneemt bij anderen.
-            </p>
-            <p className="mt-3">
-              Algemene chatbots boden niet de zachtheid en het begrip die nodig zijn. Dus maakten we Benji: een plek waar je verhaal er altijd toe doet.
-            </p>
-          </section>
-
-          <section>
             <h3 className="font-semibold text-gray-900 mb-2">Wat kost het?</h3>
             <p>
               Momenteel kun je Benji kosteloos gebruiken. We werken aan een duurzaam model zodat Benji beschikbaar blijft. Je hoeft nu niets te betalen om te starten.
@@ -174,6 +172,9 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
 
           {/* Links naast elkaar eronder */}
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <Link href="/faq" onClick={onClose} className="text-primary-600 hover:text-primary-700 underline">
+              Veelgestelde vragen
+            </Link>
             <Link href="/privacy" onClick={onClose} className="text-primary-600 hover:text-primary-700 underline">
               Privacy
             </Link>
