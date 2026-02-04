@@ -71,55 +71,53 @@ export function WelcomeScreen({
 
   return (
     <div className="w-full flex flex-col items-center justify-center text-center pt-2 sm:pt-4 pb-4 sm:pb-8 px-4 sm:px-6">
-      {/* Waarom Benji – gecentreerd, onder elkaar, met icoontjes */}
+      {/* Introtekst */}
+      <p className="text-sm sm:text-base text-gray-600 break-words leading-relaxed text-center whitespace-pre-line text-pretty mb-4">
+        {`Ik ben Benji, je luisterend oor,
+een AI die er altijd voor je is
+om te luisteren, zonder te oordelen,
+dag en nacht.`}
+      </p>
+
+      {/* Kenmerken-box:zelfde breedte als buttons, licht standaard, donkerblauw bij hover */}
       <div className="w-full max-w-sm mx-auto mb-4 sm:mb-5">
         <button
           type="button"
           onClick={() => setShowAbout(true)}
-          className="w-full flex flex-col items-center rounded-xl bg-primary-800/85 backdrop-blur-sm px-4 py-3.5 shadow-md hover:bg-primary-800/95 transition-colors border border-primary-700/50 group"
+          className="w-full flex flex-col items-center rounded-xl px-4 py-3 border border-primary-400 bg-white/60 backdrop-blur-sm transition-all duration-200 group hover:bg-primary-800 hover:border-primary-700"
         >
-          <p className="text-sm font-semibold text-primary-200 mb-3">Waarom Benji</p>
-          <ul className="flex flex-col items-center gap-2.5 text-sm text-primary-100">
-            <li className="flex items-center gap-3 w-[11rem]">
-              <span className="w-6 flex justify-center flex-shrink-0">
-                <Moon size={16} strokeWidth={2} className="text-primary-400" />
+          <div className="flex flex-col items-center gap-2 text-sm text-gray-600 transition-colors group-hover:text-primary-100">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+              <span className="flex items-center gap-1.5">
+                <Moon size={16} strokeWidth={2} className="text-primary-500 flex-shrink-0 group-hover:text-primary-300 transition-colors" />
+                24/7
               </span>
-              <span className="text-left">Altijd beschikbaar</span>
-            </li>
-            <li className="flex items-center gap-3 w-[11rem]">
-              <span className="w-6 flex justify-center flex-shrink-0">
-                <Lock size={16} strokeWidth={2} className="text-primary-400" />
+              <span className="flex items-center gap-1.5">
+                <Lock size={16} strokeWidth={2} className="text-primary-500 flex-shrink-0 group-hover:text-primary-300 transition-colors" />
+                Privé
               </span>
-              <span className="text-left">Volledig privé</span>
-            </li>
-            <li className="flex items-center gap-3 w-[11rem]">
-              <span className="w-6 flex justify-center flex-shrink-0">
-                <MessageCircle size={16} strokeWidth={2} className="text-primary-400" />
+              <span className="flex items-center gap-1.5">
+                <Heart size={16} strokeWidth={2} className="text-primary-500 flex-shrink-0 group-hover:text-primary-300 transition-colors" />
+                Voor jou
               </span>
-              <span className="text-left">Zonder oordeel</span>
-            </li>
-            <li className="flex items-center gap-3 w-[11rem]">
-              <span className="w-6 flex justify-center flex-shrink-0">
-                <Heart size={16} strokeWidth={2} className="text-primary-400" />
-              </span>
-              <span className="text-left">Gericht op jou</span>
-            </li>
-          </ul>
-          <p className="mt-3 text-xs text-primary-400 group-hover:text-primary-200 transition-colors">Meer weten →</p>
+            </div>
+            <span className="flex items-center gap-1.5">
+              <MessageCircle size={16} strokeWidth={2} className="text-primary-500 flex-shrink-0 group-hover:text-primary-300 transition-colors" />
+              Zeg wat je voelt
+            </span>
+          </div>
+          <span className="mt-2.5 flex items-center gap-2 text-xs text-primary-400 group-hover:text-primary-200 transition-colors border border-primary-400/60 group-hover:border-primary-300 rounded-lg px-3 py-1.5">
+            Meer over Benji
+            <span aria-hidden>→</span>
+          </span>
         </button>
       </div>
 
-      {/* Introtekst en topic-sectie: zelfde breedte als Waarom Benji-blok */}
+      {/* Vraag en topic-sectie */}
       <div className="w-full max-w-sm mx-auto">
         <div className="space-y-4 sm:space-y-5 mb-4 sm:mb-6">
-          <p className="text-sm sm:text-base text-gray-600 break-words leading-relaxed text-center whitespace-pre-line text-pretty">
-            {`Ik ben Benji, je luisterend oor,
-een AI die er altijd voor je is
-om te luisteren, zonder te oordelen,
-dag en nacht.`}
-          </p>
           {showTopicButtons && (
-            <p className="text-sm sm:text-base text-gray-600 break-words text-center text-pretty mt-4">
+            <p className="text-sm sm:text-base text-gray-600 break-words text-center text-pretty">
               Waar wil je over praten?
             </p>
           )}
