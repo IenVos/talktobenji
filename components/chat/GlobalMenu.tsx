@@ -60,14 +60,10 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: "Nieuw gesprek",
       icon: MessageSquare,
-      onClick: () => {
+      href: "/chat",
+      onBeforeNavigate: () => {
         setOpen(false);
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("benji_session_id");
-          window.location.href = "/";
-        } else {
-          router.push("/");
-        }
+        localStorage.removeItem("benji_session_id");
       },
     },
     {
@@ -124,8 +120,9 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-[100]"
+          className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-[99999]"
           role="menu"
+          style={{ pointerEvents: "auto" }}
           onClick={(e) => e.stopPropagation()}
         >
           {binnenkortMsg && (
@@ -133,22 +130,48 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
               {binnenkortMsg}
             </div>
           )}
-          {menuItems.map((item) => {
+          {menuItems.map((item, index) => {
             const Icon = item.icon;
+            const showDividerBefore = index === 3; // Lichte streep vóór "Aanmelden"
+            const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-100 transition-all duration-200 ${index === 0 ? "rounded-t-xl" : ""} ${index === menuItems.length - 1 ? "rounded-b-xl" : ""}`;
+            if ("href" in item && item.href) {
+              return (
+                <div key={item.label}>
+                  {showDividerBefore && (
+                    <div className="my-1 mx-4 border-t border-gray-200" aria-hidden />
+                  )}
+                  <a
+                    href={item.href}
+                    onClick={(e) => {
+                      item.onBeforeNavigate?.();
+                    }}
+                    className={`block ${itemClass}`}
+                    role="menuitem"
+                  >
+                    <Icon size={18} strokeWidth={2} className="flex-shrink-0 text-primary-600" />
+                    <span className="truncate">{item.label}</span>
+                  </a>
+                </div>
+              );
+            }
             return (
-              <button
-                key={item.label}
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  item.onClick();
-                }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-100 first:rounded-t-xl last:rounded-b-xl transition-all duration-200"
-                role="menuitem"
-              >
-                <Icon size={18} strokeWidth={2} className="flex-shrink-0 text-primary-600" />
-                <span className="truncate">{item.label}</span>
-              </button>
+              <div key={item.label}>
+                {showDividerBefore && (
+                  <div className="my-1 mx-4 border-t border-gray-200" aria-hidden />
+                )}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    item.onClick?.();
+                  }}
+                  className={itemClass}
+                  role="menuitem"
+                >
+                  <Icon size={18} strokeWidth={2} className="flex-shrink-0 text-primary-600" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              </div>
             );
           })}
         </div>

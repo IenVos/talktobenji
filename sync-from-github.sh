@@ -46,7 +46,6 @@ component_files=(
   "components/chat/GlobalMenu.tsx"
   "components/chat/AboutBenjiModal.tsx"
   "components/chat/ProfessionalHelpModal.tsx"
-  "components/chat/AboutModal.tsx"
 )
 
 for file in "${component_files[@]}"; do
