@@ -302,6 +302,32 @@ async function callClaudeAPI(
      userMessage.toLowerCase().includes('do') ||
      userMessage.toLowerCase().includes('does'));
 
+  // Dynamische variabelen: datum en tijd voor context in antwoorden
+  const now = new Date();
+  const dateStr = now.toLocaleDateString("nl-NL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const timeStr = now.toLocaleTimeString("nl-NL", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const hour = now.getHours();
+  const isLateNight = hour >= 23 || hour <= 5;
+  const timeContextRule = isEnglish
+    ? isLateNight
+      ? " Use the time: when someone writes late at night or very early in the morning, acknowledge it gently (e.g. that they are still up, perhaps couldn't sleep, or woke up). Show you notice and care."
+      : ""
+    : isLateNight
+      ? " Gebruik de tijd: als iemand laat in de nacht of heel vroeg in de ochtend schrijft, erken dat zacht (bijv. dat ze nog op zijn, misschien niet kunnen slapen, of wakker geworden zijn). Laat merken dat je het opvalt en dat het je kan schelen."
+      : "";
+
+  const dynamicContext = isEnglish
+    ? `## Current context (use when relevant):\nToday: ${dateStr}. Current time: ${timeStr}.${timeContextRule}`
+    : `## Huidige context (gebruik wanneer relevant):\nVandaag: ${dateStr}. Huidige tijd: ${timeStr}.${timeContextRule}`;
+
   // Bouw het systeem bericht met knowledge en rules
   const languageInstruction = isEnglish 
     ? "IMPORTANT: The user is asking in English. Respond in English using the same language as the question."
@@ -315,6 +341,8 @@ async function callClaudeAPI(
     systemPrompt = isEnglish
       ? `You are a helpful assistant for a company.
 
+${dynamicContext}
+
 ${rules ? `## Rules for how you should respond:\n${rules}\n\n` : ""}
 ${knowledge ? `## Knowledge you should use:\n${knowledge}` : ""}
 
@@ -323,6 +351,8 @@ ${languageInstruction}
 Answer questions based on the above knowledge and rules. If you don't know the answer based on the given knowledge, be honest about it.`
       : `Je bent een behulpzame assistent voor een bedrijf.
 
+${dynamicContext}
+
 ${rules ? `## Regels voor hoe je moet reageren:\n${rules}\n\n` : ""}
 ${knowledge ? `## Kennis die je moet gebruiken:\n${knowledge}` : ""}
 
@@ -330,7 +360,7 @@ ${languageInstruction}
 
 Beantwoord vragen op basis van bovenstaande kennis en regels. Als je het antwoord niet weet op basis van de gegeven kennis, geef dat eerlijk aan.`;
   } else {
-    systemPrompt += `\n\n${languageInstruction}`;
+    systemPrompt += `\n\n${dynamicContext}\n\n${languageInstruction}`;
   }
 
   // Bouw de berichten array

@@ -60,12 +60,9 @@ export default function KnowledgeBasePage() {
   const [formData, setFormData] = useState({
     question: "",
     answer: "",
-    questionEn: "",
-    answerEn: "",
     category: "",
     tags: "",
     alternativeQuestions: "",
-    alternativeQuestionsEn: "",
     priority: 5,
   });
 
@@ -74,12 +71,9 @@ export default function KnowledgeBasePage() {
     setFormData({
       question: "",
       answer: "",
-      questionEn: "",
-      answerEn: "",
       category: "",
       tags: "",
       alternativeQuestions: "",
-      alternativeQuestionsEn: "",
       priority: 5,
     });
     setEditingId(null);
@@ -91,12 +85,9 @@ export default function KnowledgeBasePage() {
     setFormData({
       question: item.question,
       answer: item.answer,
-      questionEn: (item as any).questionEn || "",
-      answerEn: (item as any).answerEn || "",
       category: item.category,
       tags: item.tags.join(", "),
       alternativeQuestions: item.alternativeQuestions?.join("\n") || "",
-      alternativeQuestionsEn: (item as any).alternativeQuestionsEn?.join("\n") || "",
       priority: item.priority || 5,
     });
     setEditingId(item._id);
@@ -124,23 +115,15 @@ export default function KnowledgeBasePage() {
         .map((q) => q.trim())
         .filter((q) => q.length > 0);
 
-      const altQuestionsEnArray = formData.alternativeQuestionsEn
-        .split("\n")
-        .map((q) => q.trim())
-        .filter((q) => q.length > 0);
-
       if (editingId) {
         // Update existing
         await updateQuestion({
           id: editingId,
           question: formData.question.trim(),
           answer: formData.answer.trim(),
-          questionEn: formData.questionEn.trim() || undefined,
-          answerEn: formData.answerEn.trim() || undefined,
           category: formData.category.trim(),
           tags: tagsArray,
           alternativeQuestions: altQuestionsArray.length > 0 ? altQuestionsArray : undefined,
-          alternativeQuestionsEn: altQuestionsEnArray.length > 0 ? altQuestionsEnArray : undefined,
           priority: formData.priority,
         });
       } else {
@@ -148,12 +131,9 @@ export default function KnowledgeBasePage() {
         await addQuestion({
           question: formData.question.trim(),
           answer: formData.answer.trim(),
-          questionEn: formData.questionEn.trim() || undefined,
-          answerEn: formData.answerEn.trim() || undefined,
           category: formData.category.trim(),
           tags: tagsArray,
           alternativeQuestions: altQuestionsArray.length > 0 ? altQuestionsArray : undefined,
-          alternativeQuestionsEn: altQuestionsEnArray.length > 0 ? altQuestionsEnArray : undefined,
           priority: formData.priority,
         });
       }
@@ -263,22 +243,17 @@ export default function KnowledgeBasePage() {
       return false;
     }
 
-      // Search filter (both languages)
+      // Search filter
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         const matchesQuestion = q.question.toLowerCase().includes(searchLower);
         const matchesAnswer = q.answer.toLowerCase().includes(searchLower);
-        const matchesQuestionEn = (q as any).questionEn?.toLowerCase().includes(searchLower);
-        const matchesAnswerEn = (q as any).answerEn?.toLowerCase().includes(searchLower);
         const matchesTags = q.tags.some((tag) => tag.toLowerCase().includes(searchLower));
         const matchesAlt = q.alternativeQuestions?.some((alt) =>
           alt.toLowerCase().includes(searchLower)
         );
-        const matchesAltEn = (q as any).alternativeQuestionsEn?.some((alt: string) =>
-          alt.toLowerCase().includes(searchLower)
-        );
 
-        if (!matchesQuestion && !matchesAnswer && !matchesQuestionEn && !matchesAnswerEn && !matchesTags && !matchesAlt && !matchesAltEn) {
+        if (!matchesQuestion && !matchesAnswer && !matchesTags && !matchesAlt) {
           return false;
         }
       }
@@ -461,11 +436,8 @@ export default function KnowledgeBasePage() {
           </div>
 
           <div className="space-y-4">
-            {/* Nederlandse velden */}
+            {/* Vraag en antwoord */}
             <div className="border-b border-gray-200 pb-4">
-              <h3 className="text-sm font-semibold text-primary-900 mb-3 flex items-center gap-2">
-                🇳🇱 Nederlands (verplicht)
-              </h3>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -503,55 +475,6 @@ export default function KnowledgeBasePage() {
                       setFormData({ ...formData, alternativeQuestions: e.target.value })
                     }
                     placeholder="Hoe registreer ik me?&#10;Account aanmaken&#10;Nieuwe gebruiker worden"
-                    rows={3}
-                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Engelse velden */}
-            <div className="border-b border-gray-200 pb-4">
-              <h3 className="text-sm font-semibold text-primary-900 mb-3 flex items-center gap-2">
-                🇬🇧 English (optional - for multilingual support)
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Question (English)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.questionEn}
-                    onChange={(e) => setFormData({ ...formData, questionEn: e.target.value })}
-                    placeholder="Example: How do I create an account?"
-                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Answer (English)
-                  </label>
-                  <textarea
-                    value={formData.answerEn}
-                    onChange={(e) => setFormData({ ...formData, answerEn: e.target.value })}
-                    placeholder="The answer to the question..."
-                    rows={4}
-                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Alternative questions (one per line)
-                  </label>
-                  <textarea
-                    value={formData.alternativeQuestionsEn}
-                    onChange={(e) =>
-                      setFormData({ ...formData, alternativeQuestionsEn: e.target.value })
-                    }
-                    placeholder="How do I register?&#10;Create account&#10;Become a new user"
                     rows={3}
                     className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
                   />
