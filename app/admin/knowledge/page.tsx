@@ -48,10 +48,12 @@ export default function KnowledgeBasePage() {
   const bulkImportQuestions = useMutation(api.knowledgeBase.bulkImportQuestions);
   const generateAlternativeQuestions = useAction(api.ai.generateAlternativeQuestions);
   const generateAlternativeAnswers = useAction(api.ai.generateAlternativeAnswers);
+  const generateTags = useAction(api.ai.generateTags);
 
   const [showForm, setShowForm] = useState(false);
   const [generatingAlt, setGeneratingAlt] = useState(false);
   const [generatingAltAnswers, setGeneratingAltAnswers] = useState(false);
+  const [generatingTags, setGeneratingTags] = useState(false);
   const [editingId, setEditingId] = useState<Id<"knowledgeBase"> | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -224,6 +226,32 @@ export default function KnowledgeBasePage() {
       alert("Fout bij genereren: " + (err as Error).message);
     } finally {
       setGeneratingAltAnswers(false);
+    }
+  };
+
+  // Genereer tags via AI
+  const handleGenerateTags = async () => {
+    if (!formData.question.trim() || !formData.answer.trim()) {
+      alert("Vul eerst vraag en antwoord in om tags te genereren.");
+      return;
+    }
+    setGeneratingTags(true);
+    try {
+      const tags = await generateTags({
+        question: formData.question.trim(),
+        answer: formData.answer.trim(),
+        category: formData.category.trim() || undefined,
+      });
+      const existing = formData.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      const combined = Array.from(new Set([...existing, ...tags]));
+      setFormData({ ...formData, tags: combined.join(", ") });
+    } catch (err) {
+      alert("Fout bij genereren: " + (err as Error).message);
+    } finally {
+      setGeneratingTags(false);
     }
   };
 
@@ -640,9 +668,20 @@ export default function KnowledgeBasePage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tags (gescheiden door komma's)
-              </label>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Tags (gescheiden door komma&apos;s)
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGenerateTags}
+                  disabled={generatingTags || !formData.question.trim() || !formData.answer.trim()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Sparkles size={16} />
+                  {generatingTags ? "Bezig..." : "Genereer tags"}
+                </button>
+              </div>
               <input
                 type="text"
                 value={formData.tags}

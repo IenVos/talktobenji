@@ -224,9 +224,12 @@ export const handleUserMessage = action({
       const dutchLanguageRule = isEnglish
         ? ""
         : `TAALKWALITEIT: Gebruik altijd correct, natuurlijk Nederlands.
-- Elke zin moet grammaticaal kloppen.
+- Elke zin moet grammaticaal kloppen en klinken als gesproken taal.
 - FOUT: "dat durft iets zeggen" (ongrammaticaal)
 - GOED: "dat zegt iets" of "en dat is al iets" of "dat getuigt van moed"
+- FOUT: "Dat hoeft niet foutloos" (onnatuurlijk; "foutloos" past niet in troostende context)
+- GOED bij "ik weet niet wat ik moet zeggen": "Dat hoeft ook niet" of "Je hoeft niets te zeggen" of "Soms zijn woorden niet nodig" of "Dat is oké"
+- Vermijd "foutloos", "foutloosheid" in troostende antwoorden. Gebruik: "perfect", "de juiste woorden", "iets goeds zeggen".
 - Schrijf zoals een native speaker zou spreken.
 - Lees je antwoord mentaal door voordat je het verstuurt.
 - GEBRUIK NOOIT streepjes ( - ) tussen woorden of zinsdelen. Gebruik altijd een punt, komma of herformuleer: FOUT "weg - ze zitten", GOED "weg. Ze zitten" of "weg, ze zitten".
@@ -438,6 +441,79 @@ Regels:
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       throw new Error(`Genereren mislukt: ${msg}`);
+    }
+  },
+});
+
+/**
+ * Genereer 5-10 relevante tags voor een Q&A.
+ * Tags zijn zoekwoorden voor betere matching.
+ */
+export const generateTags = action({
+  args: {
+    question: v.string(),
+    answer: v.string(),
+    category: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<string[]> => {
+    try {
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey || apiKey === "your-api-key-here") {
+        throw new Error("ANTHROPIC_API_KEY niet geconfigureerd. Ga naar Convex Dashboard → Settings → Environment Variables.");
+      }
+
+      const catHint = args.category ? `\nCategorie: ${args.category}` : "";
+
+      const prompt = `Geef 5 tot 10 korte zoekwoorden (tags) voor deze Q&A. Gebruik dezelfde taal als de vraag.
+Gebruik alleen kleine letters, geen spaties in een tag (gebruik koppelteken indien nodig).
+${catHint}
+
+Vraag: ${args.question}
+Antwoord: ${args.answer}
+
+Regels:
+- Alleen tags, gescheiden door komma's
+- Geen nummering of uitleg
+- Korte woorden: 1-3 woorden per tag
+- Relevante zoektermen waar gebruikers op kunnen zoeken
+- Geen herhaling van de vraag`;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 256,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+
+      const text = await response.text();
+      if (!response.ok) {
+        throw new Error(`Claude API: ${response.status} - ${text.slice(0, 200)}`);
+      }
+
+      let data: ClaudeAPIResponse;
+      try {
+        data = JSON.parse(text) as ClaudeAPIResponse;
+      } catch {
+        throw new Error("Ongeldige API-respons. Probeer het opnieuw.");
+      }
+
+      const raw = (data.content?.[0] as { text?: string } | undefined)?.text?.trim() ?? "";
+      const tags = raw
+        .split(/[,;\n]+/)
+        .map((t) => t.trim().toLowerCase().replace(/\s+/g, "-"))
+        .filter((t) => t.length > 1 && t.length < 30);
+
+      return Array.from(new Set(tags)).slice(0, 10);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Tags genereren mislukt: ${msg}`);
     }
   },
 });
