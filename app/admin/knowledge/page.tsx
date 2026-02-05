@@ -172,7 +172,7 @@ export default function KnowledgeBasePage() {
     const fromKb = (allQuestions || [])
       .filter((q) => !editingId || q._id !== editingId)
       .flatMap((q) => [q.question, ...(q.alternativeQuestions || [])]);
-    const all = [...new Set([...fromForm, ...fromKb].map((q) => q.trim()).filter(Boolean))];
+    const all = Array.from(new Set([...fromForm, ...fromKb].map((q) => q.trim()).filter(Boolean)));
     return all.slice(0, 30);
   };
 
@@ -193,7 +193,7 @@ export default function KnowledgeBasePage() {
         .split("\n")
         .map((q) => q.trim())
         .filter(Boolean);
-      const combined = [...new Set([...existing, ...alternatives])];
+      const combined = Array.from(new Set([...existing, ...alternatives]));
       setFormData({ ...formData, alternativeQuestions: combined.join("\n") });
     } catch (err) {
       alert("Fout bij genereren: " + (err as Error).message);
@@ -218,7 +218,7 @@ export default function KnowledgeBasePage() {
         .split("\n")
         .map((a) => a.trim())
         .filter(Boolean);
-      const combined = [...new Set([...existing, ...alternatives])];
+      const combined = Array.from(new Set([...existing, ...alternatives]));
       setFormData({ ...formData, alternativeAnswers: combined.join("\n") });
     } catch (err) {
       alert("Fout bij genereren: " + (err as Error).message);

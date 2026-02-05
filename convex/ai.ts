@@ -365,7 +365,7 @@ Regels:
         .map((l) => l.replace(/^[-*•]\s*/, "").replace(/^\d+\.\s*/, "").trim())
         .filter((l) => l.length > 5 && !avoidSet.has(l.toLowerCase()));
 
-      return [...new Set(lines)].slice(0, 10);
+      return Array.from(new Set(lines)).slice(0, 10);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       throw new Error(`Genereren mislukt: ${msg}`);
@@ -434,7 +434,7 @@ Regels:
         .map((l) => l.replace(/^[-*•]\s*/, "").replace(/^\d+\.\s*/, "").trim())
         .filter((l) => l.length > 15 && l.toLowerCase() !== origLower);
 
-      return [...new Set(lines)].slice(0, 6);
+      return Array.from(new Set(lines)).slice(0, 6);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       throw new Error(`Genereren mislukt: ${msg}`);
