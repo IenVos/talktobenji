@@ -20,6 +20,8 @@ import {
   Upload,
   Download,
   Sparkles,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 // Voorgestelde categorieën – sluiten aan op Benji's thema's (rouw, verdriet, hulp)
@@ -81,6 +83,17 @@ export default function KnowledgeBasePage() {
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [bulkImportText, setBulkImportText] = useState("");
   const [importing, setImporting] = useState(false);
+  const [quickQ, setQuickQ] = useState("");
+  const [quickA, setQuickA] = useState("");
+  const [quickCat, setQuickCat] = useState(SUGGESTED_CATEGORIES[0]);
+  const [quickTags, setQuickTags] = useState("");
+  const [quickAltQ, setQuickAltQ] = useState("");
+  const [quickAltA, setQuickAltA] = useState("");
+  const [quickExpanded, setQuickExpanded] = useState(false);
+  const [quickSaving, setQuickSaving] = useState(false);
+  const [quickGenerating, setQuickGenerating] = useState(false);
+  const [expandedIds, setExpandedIds] = useState<Set<Id<"knowledgeBase">>>(new Set());
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   // Form state
   const [formData, setFormData] = useState({
@@ -195,6 +208,9 @@ export default function KnowledgeBasePage() {
 
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
+      if (!editingId && formData.category.trim()) {
+        setExpandedCategories((prev) => new Set(prev).add(formData.category.trim()));
+      }
       if (closeAfterSave) {
         resetForm();
       } else {
@@ -207,6 +223,58 @@ export default function KnowledgeBasePage() {
       setSaving(false);
     }
   }, [formData, editingId, updateQuestion, addQuestion]);
+
+  const handleQuickAdd = async () => {
+    if (!quickQ.trim() || !quickA.trim()) {
+      alert("Vul vraag en antwoord in");
+      return;
+    }
+    setQuickSaving(true);
+    try {
+      const tags = quickTags.split(",").map((t) => t.trim()).filter(Boolean);
+      const altQ = quickAltQ.split("\n").map((q) => q.trim()).filter(Boolean);
+      const altA = quickAltA.split("\n").map((a) => a.trim()).filter(Boolean);
+      await addQuestion({
+        question: quickQ.trim(),
+        answer: quickA.trim(),
+        category: quickCat,
+        tags,
+        alternativeQuestions: altQ.length > 0 ? altQ : undefined,
+        alternativeAnswers: altA.length > 0 ? altA : undefined,
+      });
+      setQuickQ("");
+      setQuickA("");
+      setQuickTags("");
+      setQuickAltQ("");
+      setQuickAltA("");
+      setExpandedCategories((prev) => new Set(prev).add(quickCat));
+    } catch (err) {
+      alert("Fout: " + (err as Error).message);
+    } finally {
+      setQuickSaving(false);
+    }
+  };
+
+  const handleQuickGenerate = async () => {
+    if (!quickQ.trim() || !quickA.trim()) return;
+    setQuickGenerating(true);
+    try {
+      const existing = (allQuestions || []).flatMap((q) => [q.question, ...(q.alternativeQuestions || [])]);
+      const [altQ, altA, tags] = await Promise.all([
+        generateAlternativeQuestions({ question: quickQ, answer: quickA, existingToAvoid: existing }),
+        generateAlternativeAnswers({ question: quickQ, answer: quickA }),
+        generateTags({ question: quickQ, answer: quickA, category: quickCat }),
+      ]);
+      setQuickAltQ(altQ.join("\n"));
+      setQuickAltA(altA.join("\n"));
+      setQuickTags(tags.join(", "));
+      setQuickExpanded(true);
+    } catch (err) {
+      alert("Genereren mislukt: " + (err as Error).message);
+    } finally {
+      setQuickGenerating(false);
+    }
+  };
 
   // Verzamel bestaande vragen voor duplicate-check (max 30 om payload klein te houden)
   const getAllExistingQuestions = () => {
@@ -473,6 +541,95 @@ export default function KnowledgeBasePage() {
             Nieuwe Q&A
           </button>
         </div>
+      </div>
+
+      {/* Snelle toevoeging */}
+      <div className="bg-white rounded-xl border border-primary-200 p-4 shadow-sm">
+        <h2 className="text-sm font-semibold text-primary-900 mb-3">Snelle toevoeging</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <input
+            type="text"
+            value={quickQ}
+            onChange={(e) => setQuickQ(e.target.value)}
+            placeholder="Vraag"
+            className="sm:col-span-4 px-3 py-2 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+          />
+          <textarea
+            value={quickA}
+            onChange={(e) => setQuickA(e.target.value)}
+            placeholder="Antwoord"
+            rows={2}
+            className="sm:col-span-4 px-3 py-2 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+          />
+          <select
+            value={quickCat}
+            onChange={(e) => setQuickCat(e.target.value)}
+            className="sm:col-span-2 px-3 py-2 border border-primary-200 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 bg-white"
+          >
+            {SUGGESTED_CATEGORIES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <div className="sm:col-span-2 flex gap-2">
+            <button
+              onClick={handleQuickAdd}
+              disabled={quickSaving || !quickQ.trim() || !quickA.trim()}
+              className="flex-1 px-4 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors text-sm"
+            >
+              {quickSaving ? "..." : "Toevoegen"}
+            </button>
+            <button
+              type="button"
+              onClick={handleQuickGenerate}
+              disabled={quickGenerating || !quickQ.trim() || !quickA.trim()}
+              title="Genereer alternatieve vragen, antwoorden en tags met AI"
+              className="px-3 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 disabled:opacity-50 transition-colors"
+            >
+              <Sparkles size={18} />
+            </button>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setQuickExpanded(!quickExpanded)}
+          className="mt-2 text-xs text-primary-600 hover:text-primary-700"
+        >
+          {quickExpanded ? "− Verberg" : "+ Tags, alternatieve vragen & antwoorden"}
+        </button>
+        {quickExpanded && (
+          <div className="mt-3 pt-3 border-t border-primary-100 space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Tags (komma&#39;s)</label>
+              <input
+                type="text"
+                value={quickTags}
+                onChange={(e) => setQuickTags(e.target.value)}
+                placeholder="rouw, verdriet, spullen"
+                className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Alternatieve vragen (één per regel)</label>
+              <textarea
+                value={quickAltQ}
+                onChange={(e) => setQuickAltQ(e.target.value)}
+                placeholder="Hoe ga ik om met spullen?&#10;Wanneer moet ik opruimen?"
+                rows={2}
+                className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Alternatieve antwoorden (één per regel)</label>
+              <textarea
+                value={quickAltA}
+                onChange={(e) => setQuickAltA(e.target.value)}
+                placeholder="Andere formuleringen van het antwoord"
+                rows={2}
+                className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm resize-none"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bulk Import */}
@@ -833,8 +990,62 @@ export default function KnowledgeBasePage() {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-primary-200">
-            {filteredQuestions.map((item) => (
+          <div className="p-4">
+            {(() => {
+              const byCategory: Record<string, typeof filteredQuestions> = {};
+              for (const item of filteredQuestions) {
+                const cat = item.category || "Overig";
+                if (!byCategory[cat]) byCategory[cat] = [];
+                byCategory[cat].push(item);
+              }
+              const catOrder = [...SUGGESTED_CATEGORIES, ...Object.keys(byCategory).filter((c) => !SUGGESTED_CATEGORIES.includes(c))];
+              const orderedCats = [...new Set(catOrder)].filter((c) => byCategory[c]?.length);
+              return (
+                <>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {orderedCats.map((category) => {
+                      const count = byCategory[category].length;
+                      const isExpanded = expandedCategories.has(category);
+                      return (
+                        <button
+                          key={category}
+                          type="button"
+                          onClick={() =>
+                            setExpandedCategories((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(category)) next.delete(category);
+                              else next.add(category);
+                              return next;
+                            })
+                          }
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
+                            isExpanded
+                              ? "bg-primary-600 text-white"
+                              : "bg-primary-100 text-primary-700 hover:bg-primary-200"
+                          }`}
+                        >
+                          {category} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {expandedCategories.size === 0 && (
+                    <p className="text-sm text-primary-600 py-4 text-center">
+                      Klik op een categorie om de Q&A&apos;s te bekijken
+                    </p>
+                  )}
+                  <div className="space-y-4">
+                    {orderedCats
+                      .filter((category) => expandedCategories.has(category))
+                      .map((category) => (
+                <div key={category} className="border border-primary-200 rounded-lg overflow-hidden">
+                  <div className="px-4 py-2 bg-primary-50 border-b border-primary-200">
+                    <h3 className="font-semibold text-primary-900 text-sm">
+                      {category} — {byCategory[category].length} Q&A&apos;s
+                    </h3>
+                  </div>
+                  <div className="divide-y divide-primary-100">
+                    {byCategory[category].map((item) => (
               <div
                 key={item._id}
                 className={`p-4 transition-colors ${
@@ -966,57 +1177,75 @@ export default function KnowledgeBasePage() {
                 ) : (
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start gap-3 mb-2">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-primary-900 mb-1">{item.question}</h3>
-                        <p className="text-sm text-primary-700 line-clamp-2">{item.answer}</p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedIds((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(item._id)) next.delete(item._id);
+                          else next.add(item._id);
+                          return next;
+                        })
+                      }
+                      className="flex items-start gap-2 w-full text-left group"
+                    >
+                      {expandedIds.has(item._id) ? (
+                        <ChevronDown size={18} className="text-primary-500 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <ChevronRight size={18} className="text-primary-500 flex-shrink-0 mt-0.5" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-primary-900 group-hover:text-primary-700">{item.question}</h3>
+                        {expandedIds.has(item._id) && (
+                          <>
+                            <p className="text-sm text-primary-700 mt-2">{item.answer}</p>
+                            <div className="flex flex-wrap items-center gap-2 mt-3">
+                              <span className="px-2 py-1 text-xs font-medium text-primary-700 bg-primary-50 rounded">
+                                {item.category}
+                              </span>
+                              {item.tags.map((tag, idx) => (
+                                <span
+                                  key={idx}
+                                  className="flex items-center gap-1 px-2 py-1 text-xs text-primary-700 bg-primary-100 rounded"
+                                >
+                                  <Tag size={12} />
+                                  {tag}
+                                </span>
+                              ))}
+                              {item.priority && item.priority > 5 && (
+                                <span className="px-2 py-1 text-xs font-medium text-orange-700 bg-orange-50 rounded">
+                                  Prioriteit: {item.priority}
+                                </span>
+                              )}
+                              <span className="text-xs text-primary-600">
+                                Gebruikt: {item.usageCount}x
+                              </span>
+                            </div>
+                            {(item.alternativeQuestions?.length || item.alternativeAnswers?.length) ? (
+                              <div className="mt-2 text-xs text-primary-600 space-y-1">
+                                {item.alternativeQuestions && item.alternativeQuestions.length > 0 && (
+                                  <div>
+                                    <span className="font-medium">Alt. vragen:</span>{" "}
+                                    {item.alternativeQuestions.join(", ")}
+                                  </div>
+                                )}
+                                {item.alternativeAnswers && item.alternativeAnswers.length > 0 && (
+                                  <div>
+                                    <span className="font-medium">Alt. antwoorden:</span>{" "}
+                                    {item.alternativeAnswers.length} varianten
+                                  </div>
+                                )}
+                              </div>
+                            ) : null}
+                          </>
+                        )}
                       </div>
                       {!item.isActive && (
-                        <span className="px-2 py-1 text-xs font-medium text-primary-600 bg-primary-100 rounded">
+                        <span className="px-2 py-1 text-xs font-medium text-primary-600 bg-primary-100 rounded flex-shrink-0">
                           Inactief
                         </span>
                       )}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 mt-3">
-                      <span className="px-2 py-1 text-xs font-medium text-primary-700 bg-primary-50 rounded">
-                        {item.category}
-                      </span>
-                      {item.tags.map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="flex items-center gap-1 px-2 py-1 text-xs text-primary-700 bg-primary-100 rounded"
-                        >
-                          <Tag size={12} />
-                          {tag}
-                        </span>
-                      ))}
-                      {item.priority && item.priority > 5 && (
-                        <span className="px-2 py-1 text-xs font-medium text-orange-700 bg-orange-50 rounded">
-                          Prioriteit: {item.priority}
-                        </span>
-                      )}
-                      <span className="text-xs text-primary-600">
-                        Gebruikt: {item.usageCount}x
-                      </span>
-                    </div>
-
-                    {(item.alternativeQuestions?.length || item.alternativeAnswers?.length) ? (
-                      <div className="mt-2 text-xs text-primary-600 space-y-1">
-                        {item.alternativeQuestions && item.alternativeQuestions.length > 0 && (
-                          <div>
-                            <span className="font-medium">Alt. vragen:</span>{" "}
-                            {item.alternativeQuestions.join(", ")}
-                          </div>
-                        )}
-                        {item.alternativeAnswers && item.alternativeAnswers.length > 0 && (
-                          <div>
-                            <span className="font-medium">Alt. antwoorden:</span>{" "}
-                            {item.alternativeAnswers.length} varianten
-                          </div>
-                        )}
-                      </div>
-                    ) : null}
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
@@ -1050,6 +1279,13 @@ export default function KnowledgeBasePage() {
                 )}
               </div>
             ))}
+                  </div>
+                </div>
+              ))}
+                  </div>
+                </>
+              );
+            })()}
           </div>
         )}
       </div>
