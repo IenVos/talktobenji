@@ -235,22 +235,16 @@ export default function ChatPageClient({
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
       <HeaderBar onLogoClick={() => { setSessionId(null); setShowTopicButtons(true); }} />
 
-      <main className="flex-1 min-h-0 relative flex flex-col">
-        {/* Achtergrondafbeelding */}
+      <main ref={mainRef} className="flex-1 overflow-y-auto relative">
+        {/* Achtergrond en waas - absolute, pointer-events: none, z-0 (onder content) */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: "url(/images/achtergrond.png)", pointerEvents: "none" }}
           aria-hidden
         />
-        {/* Waas ~70% - pointer-events: none zodat alle kliks doorkomen */}
         <div className="absolute inset-0 z-0 bg-white/70" style={{ pointerEvents: "none" }} aria-hidden />
-        {/* Scrollbare contentlaag - bedekt main volledig, ontvangt alle kliks */}
-        <div
-          ref={mainRef}
-          className="absolute inset-0 z-50 overflow-y-auto"
-          style={{ pointerEvents: "auto", touchAction: "manipulation" }}
-        >
-          <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full">
+        {/* Chat-inhoud - z-50 zodat bovenop, pointer-events: auto voor klikken */}
+        <div className={`relative z-50 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full ${!sessionId && !isAddingOpener ? "pb-40" : ""}`} style={{ pointerEvents: "auto", touchAction: "manipulation" }}>
           {!sessionId && !isAddingOpener && (
             <>
               <WelcomeScreen
@@ -322,7 +316,6 @@ export default function ChatPageClient({
               </div>
             )}
             <div ref={messagesEndRef} />
-          </div>
           </div>
         </div>
       </main>

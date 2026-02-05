@@ -15,18 +15,14 @@ export function WelcomeScreenInfoIcons({ variant = "dark" }: { variant?: "light"
   const textClass = isDark ? "text-primary-200" : "text-primary-600";
 
   return (
-    <div className={`flex flex-col items-center gap-2 w-full max-w-sm mx-auto px-2 py-3 sm:py-4`}>
-      <div className="flex gap-2 w-full max-w-[320px]">
-        <div className="w-[22px] flex-shrink-0 flex justify-center">
-          <Lock size={18} strokeWidth={2} className={iconClass} />
-        </div>
-        <span className={`${textClass} text-xs pt-0.5`}>Gesprekken zijn privé en beveiligd.</span>
+    <div className="flex flex-col items-center gap-1.5 sm:gap-2 w-full max-w-sm sm:max-w-md mx-auto px-3 sm:px-4 py-3 sm:py-4 text-center">
+      <div className="flex gap-2 justify-center items-center flex-wrap">
+        <Lock size={18} strokeWidth={2} className={`${iconClass} flex-shrink-0`} />
+        <span className={`${textClass} text-[10px] sm:text-xs leading-snug text-center`}>Gesprekken zijn privé en beveiligd.</span>
       </div>
-      <div className="flex gap-2 w-full max-w-[320px]">
-        <div className="w-[22px] flex-shrink-0 flex justify-center">
-          <AlertTriangle size={18} strokeWidth={2} className={iconClass} />
-        </div>
-        <span className={`${textClass} text-xs pt-0.5 whitespace-nowrap`}>Benji is steun, geen vervanging voor professionele therapie.</span>
+      <div className="flex gap-2 justify-center items-center flex-wrap">
+        <AlertTriangle size={18} strokeWidth={2} className={`${iconClass} flex-shrink-0`} />
+        <span className={`${textClass} text-[10px] sm:text-xs leading-snug break-words text-center`}>Benji is geen vervanging van professionele hulp.</span>
       </div>
     </div>
   );
