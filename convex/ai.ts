@@ -218,8 +218,8 @@ export const handleUserMessage = action({
       }
 
       const onlyFromKbRule = isEnglish
-        ? "IMPORTANT: Use the knowledge base below first to answer. If the answer is not in the knowledge base, you may use the additional sources (PDFs, URLs) to distill an answer. If neither contains the answer, say clearly that you cannot answer and suggest adding the topic."
-        : "BELANGRIJK: Gebruik eerst de knowledge base hieronder om te antwoorden. Als het antwoord niet in de knowledge base staat, mag je de aanvullende bronnen (PDF's, websites) gebruiken om een antwoord te destilleren. Als geen van beide het antwoord bevat, zeg dan duidelijk dat je het niet kunt beantwoorden en stel voor het onderwerp toe te voegen.";
+        ? "IMPORTANT: Use the knowledge base below first to answer. If the answer is not in the knowledge base, you may use the additional sources (PDFs, URLs) to distill an answer. If neither contains the answer, say clearly that you cannot answer and suggest adding the topic. In that case only, end your response with exactly [UNANSWERED] (nothing else after it) so we can track these questions."
+        : "BELANGRIJK: Gebruik eerst de knowledge base hieronder om te antwoorden. Als het antwoord niet in de knowledge base staat, mag je de aanvullende bronnen (PDF's, websites) gebruiken om een antwoord te destilleren. Als geen van beide het antwoord bevat, zeg dan duidelijk dat je het niet kunt beantwoorden en stel voor het onderwerp toe te voegen. In dat geval alleen: eindig je antwoord met exact [UNANSWERED] (niets anders erna) zodat we deze vragen kunnen bijhouden.";
 
       const dutchLanguageRule = isEnglish
         ? ""
@@ -239,12 +239,23 @@ ZINFORMATIE (per bericht, niet over de hele chat): In elk antwoord dat je geeft:
       const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response
-      const aiResponse = await callClaudeAPI(
+      let aiResponse = await callClaudeAPI(
         args.userMessage,
         knowledgeCombined,
         rules,
         conversationHistory
       );
+
+      // Detecteer onbeantwoorde vragen: AI plaatst [UNANSWERED] aan het einde
+      const unansweredMarker = "[UNANSWERED]";
+      const wasUnanswered = aiResponse.includes(unansweredMarker);
+      if (wasUnanswered) {
+        aiResponse = aiResponse.replace(new RegExp(unansweredMarker + "\\s*$", "i"), "").trim();
+        await ctx.runMutation(api.analytics.recordUnansweredQuestion, {
+          userQuestion: args.userMessage,
+          sessionId: args.sessionId,
+        });
+      }
 
       const responseTime = Date.now() - startTime;
 

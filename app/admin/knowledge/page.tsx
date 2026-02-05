@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -21,6 +22,20 @@ import {
   Sparkles,
 } from "lucide-react";
 
+// Voorgestelde categorieën – sluiten aan op Benji's thema's (rouw, verdriet, hulp)
+const SUGGESTED_CATEGORIES = [
+  "Rouw en verlies",
+  "Verdriet",
+  "Huisdier",
+  "Professionele hulp",
+  "Emoties",
+  "Eenzaamheid",
+  "Herinneringen",
+  "Dagelijks leven",
+  "Boosheid",
+  "Feestdagen",
+];
+
 type KnowledgeBaseItem = {
   _id: Id<"knowledgeBase">;
   question: string;
@@ -38,8 +53,11 @@ type KnowledgeBaseItem = {
 };
 
 export default function KnowledgeBasePage() {
+  const searchParams = useSearchParams();
   const allQuestions = useQuery(api.knowledgeBase.getAllQuestions, {});
-  const categories = useQuery(api.knowledgeBase.getCategories);
+  const dbCategories = useQuery(api.knowledgeBase.getCategories);
+  const allCats = [...SUGGESTED_CATEGORIES, ...(dbCategories || [])];
+  const categories = allCats.filter((c, i) => allCats.indexOf(c) === i).sort();
   const addQuestion = useMutation(api.knowledgeBase.addQuestion);
   const updateQuestion = useMutation(api.knowledgeBase.updateQuestion);
   const deleteQuestion = useMutation(api.knowledgeBase.deleteQuestion);
@@ -90,7 +108,18 @@ export default function KnowledgeBasePage() {
     setShowForm(false);
   };
 
-  // Load question for editing
+  const editFormRef = useRef<HTMLDivElement>(null);
+
+  // Pre-fill form vanuit Analytics (onbeantwoorde vragen)
+  useEffect(() => {
+    const q = searchParams.get("question");
+    if (q && typeof q === "string") {
+      setFormData((prev) => ({ ...prev, question: decodeURIComponent(q) }));
+      setShowForm(true);
+    }
+  }, [searchParams]);
+
+  // Load question for editing (opent inline op die plek)
   const handleEdit = (item: KnowledgeBaseItem) => {
     setFormData({
       question: item.question,
@@ -102,11 +131,21 @@ export default function KnowledgeBasePage() {
       priority: item.priority || 5,
     });
     setEditingId(item._id);
-    setShowForm(true);
+    setShowForm(false);
+    setTimeout(() => editFormRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
   };
 
-  // Handle save
-  const handleSave = async () => {
+  // Klaar: sla op en sluit het bewerkformulier
+  const handleCloseEdit = async () => {
+    if (formData.question.trim() && formData.answer.trim() && formData.category.trim()) {
+      await handleSave(false);
+    } else {
+      setEditingId(null);
+    }
+  };
+
+  // Handle save (voor zowel nieuwe als bewerken)
+  const handleSave = useCallback(async (closeAfterSave = true) => {
     if (!formData.question.trim() || !formData.answer.trim() || !formData.category.trim()) {
       alert("Vul minimaal vraag, antwoord en categorie in");
       return;
@@ -156,14 +195,18 @@ export default function KnowledgeBasePage() {
 
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-      resetForm();
+      if (closeAfterSave) {
+        resetForm();
+      } else {
+        setEditingId(null);
+      }
     } catch (error) {
       console.error("Error saving question:", error);
       alert("Fout bij opslaan: " + (error as Error).message);
     } finally {
       setSaving(false);
     }
-  };
+  }, [formData, editingId, updateQuestion, addQuestion]);
 
   // Verzamel bestaande vragen voor duplicate-check (max 30 om payload klein te houden)
   const getAllExistingQuestions = () => {
@@ -174,7 +217,8 @@ export default function KnowledgeBasePage() {
     const fromKb = (allQuestions || [])
       .filter((q) => !editingId || q._id !== editingId)
       .flatMap((q) => [q.question, ...(q.alternativeQuestions || [])]);
-    const all = Array.from(new Set([...fromForm, ...fromKb].map((q) => q.trim()).filter(Boolean)));
+    const combined = [...fromForm, ...fromKb].map((q) => q.trim()).filter(Boolean);
+    const all = combined.filter((q, i) => combined.indexOf(q) === i);
     return all.slice(0, 30);
   };
 
@@ -195,7 +239,8 @@ export default function KnowledgeBasePage() {
         .split("\n")
         .map((q) => q.trim())
         .filter(Boolean);
-      const combined = Array.from(new Set([...existing, ...alternatives]));
+      const merged = [...existing, ...alternatives];
+      const combined = merged.filter((q, i) => merged.indexOf(q) === i);
       setFormData({ ...formData, alternativeQuestions: combined.join("\n") });
     } catch (err) {
       alert("Fout bij genereren: " + (err as Error).message);
@@ -220,7 +265,8 @@ export default function KnowledgeBasePage() {
         .split("\n")
         .map((a) => a.trim())
         .filter(Boolean);
-      const combined = Array.from(new Set([...existing, ...alternatives]));
+      const merged = [...existing, ...alternatives];
+      const combined = merged.filter((a, i) => merged.indexOf(a) === i);
       setFormData({ ...formData, alternativeAnswers: combined.join("\n") });
     } catch (err) {
       alert("Fout bij genereren: " + (err as Error).message);
@@ -246,7 +292,8 @@ export default function KnowledgeBasePage() {
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean);
-      const combined = Array.from(new Set([...existing, ...tags]));
+      const merged = [...existing, ...tags];
+      const combined = merged.filter((t, i) => merged.indexOf(t) === i);
       setFormData({ ...formData, tags: combined.join(", ") });
     } catch (err) {
       alert("Fout bij genereren: " + (err as Error).message);
@@ -527,8 +574,8 @@ export default function KnowledgeBasePage() {
         </div>
       </div>
 
-      {/* Add/Edit Form */}
-      {showForm && (
+      {/* Add Form (alleen voor nieuwe Q&A) */}
+      {showForm && !editingId && (
         <div className="bg-white rounded-xl border border-primary-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-primary-900">
@@ -637,14 +684,32 @@ export default function KnowledgeBasePage() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Categorie <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="Bijvoorbeeld: Account, Billing, Support"
-                  list="categories"
-                  className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
-                />
+                <div>
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {SUGGESTED_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, category: cat })}
+                        className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
+                          formData.category === cat
+                            ? "bg-primary-600 text-white"
+                            : "bg-primary-100 text-primary-700 hover:bg-primary-200"
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    placeholder="Of typ een eigen categorie"
+                    list="categories"
+                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none"
+                  />
+                </div>
                 <datalist id="categories">
                   {categories?.map((cat) => <option key={cat} value={cat} />)}
                 </datalist>
@@ -743,10 +808,133 @@ export default function KnowledgeBasePage() {
             {filteredQuestions.map((item) => (
               <div
                 key={item._id}
-                className={`p-4 hover:bg-primary-50 transition-colors ${
+                className={`p-4 transition-colors ${
                   !item.isActive ? "opacity-60" : ""
-                }`}
+                } ${editingId === item._id ? "bg-primary-50 ring-2 ring-primary-200 rounded-lg" : "hover:bg-primary-50"}`}
               >
+                {editingId === item._id ? (
+                  /* Inline edit form op deze plek */
+                  <div ref={editFormRef} className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-primary-700">Bewerken</span>
+                      <button
+                        onClick={handleCloseEdit}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 bg-white border border-primary-200 rounded-lg hover:bg-primary-50"
+                      >
+                        <CheckCircle size={16} />
+                        Klaar (opslaan)
+                      </button>
+                    </div>
+                    <div className="grid gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Vraag</label>
+                        <input
+                          type="text"
+                          value={formData.question}
+                          onChange={(e) => setFormData({ ...formData, question: e.target.value })}
+                          className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Antwoord</label>
+                        <textarea
+                          value={formData.answer}
+                          onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm resize-none"
+                        />
+                      </div>
+                      <div className="flex gap-3 flex-wrap">
+                        <div className="flex-1 min-w-[120px]">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Categorie</label>
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            {SUGGESTED_CATEGORIES.slice(0, 6).map((cat) => (
+                              <button
+                                key={cat}
+                                type="button"
+                                onClick={() => setFormData({ ...formData, category: cat })}
+                                className={`px-2 py-0.5 text-xs rounded ${
+                                  formData.category === cat ? "bg-primary-600 text-white" : "bg-primary-100 text-primary-700"
+                                }`}
+                              >
+                                {cat}
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            value={formData.category}
+                            onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                            list="categories"
+                            className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
+                          />
+                        </div>
+                        <div className="w-24">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Prioriteit</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={formData.priority}
+                            onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 5 })}
+                            className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Tags</label>
+                        <input
+                          type="text"
+                          value={formData.tags}
+                          onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                          placeholder="tag1, tag2"
+                          className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Alternatieve vragen (één per regel)</label>
+                        <textarea
+                          value={formData.alternativeQuestions}
+                          onChange={(e) => setFormData({ ...formData, alternativeQuestions: e.target.value })}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm resize-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Alternatieve antwoorden (één per regel)</label>
+                        <textarea
+                          value={formData.alternativeAnswers}
+                          onChange={(e) => setFormData({ ...formData, alternativeAnswers: e.target.value })}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm resize-none"
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSave(false)}
+                          disabled={saving}
+                          className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                        >
+                          {saving ? "Opslaan..." : "Opslaan"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(null)}
+                          className="px-4 py-2 text-gray-600 hover:bg-gray-100 text-sm rounded-lg"
+                        >
+                          Annuleren
+                        </button>
+                        {saved && (
+                          <span className="flex items-center gap-1 text-green-600 text-sm">
+                            <CheckCircle size={16} />
+                            Opgeslagen!
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-3 mb-2">
@@ -830,6 +1018,7 @@ export default function KnowledgeBasePage() {
                     </button>
                   </div>
                 </div>
+                )}
               </div>
             ))}
           </div>

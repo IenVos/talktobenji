@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, Home, Menu, X, BookOpen, MessageCircle, FileStack } from "lucide-react";
+import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3 } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -47,6 +48,7 @@ export default function AdminLayout({
 
   const navItems = [
     { href: "/admin", label: "Instellingen", icon: Settings },
+    { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen },
     { href: "/admin/bronnen", label: "Bronnen", icon: FileStack },
   ];
@@ -56,8 +58,8 @@ export default function AdminLayout({
       {/* Mobile header */}
       <header className="lg:hidden bg-primary-900 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center border border-primary-700">
-            <MessageCircle className="text-white" size={16} strokeWidth={2} />
+          <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-lg">
+            <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={32} height={32} className="object-contain h-full w-auto" />
           </div>
           <div>
             <h1 className="text-lg font-bold text-white">Talk To Benji</h1>
@@ -138,8 +140,8 @@ export default function AdminLayout({
         <aside className="hidden lg:flex w-64 bg-primary-900 flex-col fixed h-screen">
           <div className="p-6 border-b border-primary-700">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center border border-primary-700">
-                <MessageCircle className="text-white" size={20} strokeWidth={2} />
+              <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-lg">
+                <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={40} height={40} className="object-contain h-full w-auto" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white">Talk To Benji</h1>

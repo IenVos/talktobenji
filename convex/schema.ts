@@ -188,6 +188,14 @@ export default defineSchema({
     .index("by_active", ["isActive"])
     .index("by_type", ["type"]),
 
+  // Vragen waar de AI geen antwoord op had (voor Knowledge Base-aanvulling)
+  unansweredQuestions: defineTable({
+    userQuestion: v.string(),
+    sessionId: v.id("chatSessions"),
+    createdAt: v.number(),
+  })
+    .index("by_created", ["createdAt"]),
+
   // Analytics
   analytics: defineTable({
     date: v.number(),
