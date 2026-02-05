@@ -181,10 +181,18 @@ export const handleUserMessage = action({
           (q: {
             question: string;
             answer: string;
+            alternativeQuestions?: string[];
+            alternativeAnswers?: string[];
             questionEn?: string;
             answerEn?: string;
           }) => {
-            const nl = `Vraag: ${q.question}\nAntwoord: ${q.answer}`;
+            const altQ = q.alternativeQuestions?.length
+              ? `\nAndere manieren om te vragen: ${q.alternativeQuestions.join(" | ")}`
+              : "";
+            const altA = q.alternativeAnswers?.length
+              ? `\nAlternatieve antwoorden: ${q.alternativeAnswers.join(" | ")}`
+              : "";
+            const nl = `Vraag: ${q.question}${altQ}\nAntwoord: ${q.answer}${altA}`;
             const en =
               q.questionEn && q.answerEn
                 ? `\n(EN) Question: ${q.questionEn}\nAnswer: ${q.answerEn}`
@@ -288,58 +296,149 @@ ZINFORMATIE (per bericht, niet over de hele chat): In elk antwoord dat je geeft:
 
 /**
  * Genereer 5-10 alternatieve manieren om een vraag te stellen.
- * Voor gebruik in de Knowledge Base admin (Nieuwe Q&A formulier).
+ * Vermijdt duplicaten op basis van bestaande vragen.
  */
 export const generateAlternativeQuestions = action({
   args: {
     question: v.string(),
     answer: v.string(),
+    existingToAvoid: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args): Promise<string[]> => {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey || apiKey === "your-api-key-here") {
-      throw new Error("ANTHROPIC_API_KEY niet geconfigureerd in Convex Dashboard.");
-    }
+    try {
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey || apiKey === "your-api-key-here") {
+        throw new Error("ANTHROPIC_API_KEY niet geconfigureerd. Ga naar Convex Dashboard → Settings → Environment Variables.");
+      }
 
-    const prompt = `Geef 5 tot 10 alternatieve manieren waarop gebruikers dezelfde vraag kunnen stellen. Gebruik dezelfde taal als de vraag.
+      const avoid = (args.existingToAvoid || []).slice(0, 30);
+      const avoidList = avoid.length
+        ? `\nVermijd deze vragen (bestaan al):\n${avoid.join("\n")}`
+        : "";
+
+      const prompt = `Geef 5 tot 10 alternatieve manieren waarop gebruikers dezelfde vraag kunnen stellen. Gebruik dezelfde taal als de vraag.
 
 Vraag: ${args.question}
 Antwoord: ${args.answer}
+${avoidList}
 
 Regels:
 - Elke alternatieve vraag op een aparte regel
 - Geen nummering of bullets
 - Geen uitleg, alleen de vragen
 - Variatie: formele/informele formuleringen, korte/lange vragen, synoniemen
-- Geen herhaling van de originele vraag`;
+- Geen herhaling van de originele vraag
+- Voeg GEEN vragen toe die al in de "Vermijd" lijst staan`;
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 512,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 512,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
 
-    const text = await response.text();
-    if (!response.ok) {
-      throw new Error(`Claude API error: ${response.status} ${text.slice(0, 150)}`);
+      const text = await response.text();
+      if (!response.ok) {
+        throw new Error(`Claude API: ${response.status} - ${text.slice(0, 200)}`);
+      }
+
+      let data: ClaudeAPIResponse;
+      try {
+        data = JSON.parse(text) as ClaudeAPIResponse;
+      } catch {
+        throw new Error("Ongeldige API-respons. Probeer het opnieuw.");
+      }
+
+      const raw = data.content?.[0]?.text?.trim() ?? "";
+      const avoidSet = new Set(
+        (args.existingToAvoid || []).map((q) => q.toLowerCase().trim())
+      );
+      const lines = raw
+        .split("\n")
+        .map((l) => l.replace(/^[-*•]\s*/, "").replace(/^\d+\.\s*/, "").trim())
+        .filter((l) => l.length > 5 && !avoidSet.has(l.toLowerCase()));
+
+      return [...new Set(lines)].slice(0, 10);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Genereren mislukt: ${msg}`);
     }
+  },
+});
 
-    const data = JSON.parse(text) as ClaudeAPIResponse;
-    const raw = data.content?.[0]?.text?.trim() ?? "";
-    const lines = raw
-      .split("\n")
-      .map((l) => l.replace(/^[-*•]\s*/, "").replace(/^\d+\.\s*/, "").trim())
-      .filter((l) => l.length > 5);
+/**
+ * Genereer 3-6 alternatieve formuleringen van het antwoord.
+ * De AI kan deze gebruiken voor meer variatie in antwoorden.
+ */
+export const generateAlternativeAnswers = action({
+  args: {
+    question: v.string(),
+    answer: v.string(),
+  },
+  handler: async (ctx, args): Promise<string[]> => {
+    try {
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (!apiKey || apiKey === "your-api-key-here") {
+        throw new Error("ANTHROPIC_API_KEY niet geconfigureerd. Ga naar Convex Dashboard → Settings → Environment Variables.");
+      }
 
-    return lines.slice(0, 10);
+      const prompt = `Geef 3 tot 6 alternatieve formuleringen van het antwoord. Zelfde inhoud, andere woorden/zinsbouw. Gebruik dezelfde taal.
+
+Vraag: ${args.question}
+Origineel antwoord: ${args.answer}
+
+Regels:
+- Elke alternatieve antwoord op een aparte regel
+- Geen nummering of bullets
+- Geen uitleg
+- Behoud dezelfde informatie, formuleer anders (korter/langer, formeler/informeler)
+- Geen herhaling van het originele antwoord`;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 1024,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+
+      const text = await response.text();
+      if (!response.ok) {
+        throw new Error(`Claude API: ${response.status} - ${text.slice(0, 200)}`);
+      }
+
+      let data: ClaudeAPIResponse;
+      try {
+        data = JSON.parse(text) as ClaudeAPIResponse;
+      } catch {
+        throw new Error("Ongeldige API-respons. Probeer het opnieuw.");
+      }
+
+      const raw = data.content?.[0]?.text?.trim() ?? "";
+      const origLower = args.answer.toLowerCase().trim();
+      const lines = raw
+        .split("\n")
+        .map((l) => l.replace(/^[-*•]\s*/, "").replace(/^\d+\.\s*/, "").trim())
+        .filter((l) => l.length > 15 && l.toLowerCase() !== origLower);
+
+      return [...new Set(lines)].slice(0, 6);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Genereren mislukt: ${msg}`);
+    }
   },
 });
 

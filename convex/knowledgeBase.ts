@@ -272,6 +272,7 @@ export const addQuestion = mutation({
     question: v.string(),
     answer: v.string(),
     alternativeQuestions: v.optional(v.array(v.string())),
+    alternativeAnswers: v.optional(v.array(v.string())),
     // Engelse velden (optioneel)
     questionEn: v.optional(v.string()),
     answerEn: v.optional(v.string()),
@@ -297,6 +298,7 @@ export const addQuestion = mutation({
       question: args.question.trim(),
       answer: args.answer.trim(),
       alternativeQuestions: args.alternativeQuestions || [],
+      alternativeAnswers: args.alternativeAnswers || [],
       questionEn: args.questionEn?.trim() || undefined,
       answerEn: args.answerEn?.trim() || undefined,
       alternativeQuestionsEn: args.alternativeQuestionsEn || undefined,
@@ -324,6 +326,7 @@ export const updateQuestion = mutation({
     question: v.optional(v.string()),
     answer: v.optional(v.string()),
     alternativeQuestions: v.optional(v.array(v.string())),
+    alternativeAnswers: v.optional(v.array(v.string())),
     // Engelse velden
     questionEn: v.optional(v.string()),
     answerEn: v.optional(v.string()),
@@ -455,6 +458,7 @@ export const bulkImportQuestions = mutation({
         question: v.string(),
         answer: v.string(),
         alternativeQuestions: v.optional(v.array(v.string())),
+        alternativeAnswers: v.optional(v.array(v.string())),
         // Engelse velden (optioneel)
         questionEn: v.optional(v.string()),
         answerEn: v.optional(v.string()),
@@ -476,6 +480,7 @@ export const bulkImportQuestions = mutation({
         question: q.question.trim(),
         answer: q.answer.trim(),
         alternativeQuestions: q.alternativeQuestions || [],
+        alternativeAnswers: q.alternativeAnswers || [],
         questionEn: q.questionEn?.trim() || undefined,
         answerEn: q.answerEn?.trim() || undefined,
         alternativeQuestionsEn: q.alternativeQuestionsEn || undefined,

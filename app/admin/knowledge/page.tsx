@@ -28,6 +28,7 @@ type KnowledgeBaseItem = {
   category: string;
   tags: string[];
   alternativeQuestions?: string[];
+  alternativeAnswers?: string[];
   priority?: number;
   isActive: boolean;
   usageCount: number;
@@ -46,9 +47,11 @@ export default function KnowledgeBasePage() {
   const deactivateQuestion = useMutation(api.knowledgeBase.deactivateQuestion);
   const bulkImportQuestions = useMutation(api.knowledgeBase.bulkImportQuestions);
   const generateAlternativeQuestions = useAction(api.ai.generateAlternativeQuestions);
+  const generateAlternativeAnswers = useAction(api.ai.generateAlternativeAnswers);
 
   const [showForm, setShowForm] = useState(false);
   const [generatingAlt, setGeneratingAlt] = useState(false);
+  const [generatingAltAnswers, setGeneratingAltAnswers] = useState(false);
   const [editingId, setEditingId] = useState<Id<"knowledgeBase"> | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -66,6 +69,7 @@ export default function KnowledgeBasePage() {
     category: "",
     tags: "",
     alternativeQuestions: "",
+    alternativeAnswers: "",
     priority: 5,
   });
 
@@ -77,6 +81,7 @@ export default function KnowledgeBasePage() {
       category: "",
       tags: "",
       alternativeQuestions: "",
+      alternativeAnswers: "",
       priority: 5,
     });
     setEditingId(null);
@@ -91,6 +96,7 @@ export default function KnowledgeBasePage() {
       category: item.category,
       tags: item.tags.join(", "),
       alternativeQuestions: item.alternativeQuestions?.join("\n") || "",
+      alternativeAnswers: item.alternativeAnswers?.join("\n") || "",
       priority: item.priority || 5,
     });
     setEditingId(item._id);
@@ -118,8 +124,12 @@ export default function KnowledgeBasePage() {
         .map((q) => q.trim())
         .filter((q) => q.length > 0);
 
+      const altAnswersArray = formData.alternativeAnswers
+        .split("\n")
+        .map((a) => a.trim())
+        .filter((a) => a.length > 0);
+
       if (editingId) {
-        // Update existing
         await updateQuestion({
           id: editingId,
           question: formData.question.trim(),
@@ -127,16 +137,17 @@ export default function KnowledgeBasePage() {
           category: formData.category.trim(),
           tags: tagsArray,
           alternativeQuestions: altQuestionsArray.length > 0 ? altQuestionsArray : undefined,
+          alternativeAnswers: altAnswersArray.length > 0 ? altAnswersArray : undefined,
           priority: formData.priority,
         });
       } else {
-        // Add new
         await addQuestion({
           question: formData.question.trim(),
           answer: formData.answer.trim(),
           category: formData.category.trim(),
           tags: tagsArray,
           alternativeQuestions: altQuestionsArray.length > 0 ? altQuestionsArray : undefined,
+          alternativeAnswers: altAnswersArray.length > 0 ? altAnswersArray : undefined,
           priority: formData.priority,
         });
       }
@@ -152,7 +163,20 @@ export default function KnowledgeBasePage() {
     }
   };
 
-  // Genereer alternatieve vragen via AI
+  // Verzamel bestaande vragen voor duplicate-check (max 30 om payload klein te houden)
+  const getAllExistingQuestions = () => {
+    const fromForm = [
+      formData.question.trim(),
+      ...formData.alternativeQuestions.split("\n").map((q) => q.trim()).filter(Boolean),
+    ];
+    const fromKb = (allQuestions || [])
+      .filter((q) => !editingId || q._id !== editingId)
+      .flatMap((q) => [q.question, ...(q.alternativeQuestions || [])]);
+    const all = [...new Set([...fromForm, ...fromKb].map((q) => q.trim()).filter(Boolean))];
+    return all.slice(0, 30);
+  };
+
+  // Genereer alternatieve vragen via AI (met duplicate-check)
   const handleGenerateAlternatives = async () => {
     if (!formData.question.trim() || !formData.answer.trim()) {
       alert("Vul eerst vraag en antwoord in om alternatieven te genereren.");
@@ -163,6 +187,7 @@ export default function KnowledgeBasePage() {
       const alternatives = await generateAlternativeQuestions({
         question: formData.question.trim(),
         answer: formData.answer.trim(),
+        existingToAvoid: getAllExistingQuestions(),
       });
       const existing = formData.alternativeQuestions
         .split("\n")
@@ -174,6 +199,31 @@ export default function KnowledgeBasePage() {
       alert("Fout bij genereren: " + (err as Error).message);
     } finally {
       setGeneratingAlt(false);
+    }
+  };
+
+  // Genereer alternatieve antwoorden via AI
+  const handleGenerateAltAnswers = async () => {
+    if (!formData.question.trim() || !formData.answer.trim()) {
+      alert("Vul eerst vraag en antwoord in om alternatieven te genereren.");
+      return;
+    }
+    setGeneratingAltAnswers(true);
+    try {
+      const alternatives = await generateAlternativeAnswers({
+        question: formData.question.trim(),
+        answer: formData.answer.trim(),
+      });
+      const existing = formData.alternativeAnswers
+        .split("\n")
+        .map((a) => a.trim())
+        .filter(Boolean);
+      const combined = [...new Set([...existing, ...alternatives])];
+      setFormData({ ...formData, alternativeAnswers: combined.join("\n") });
+    } catch (err) {
+      alert("Fout bij genereren: " + (err as Error).message);
+    } finally {
+      setGeneratingAltAnswers(false);
     }
   };
 
@@ -217,6 +267,7 @@ export default function KnowledgeBasePage() {
           category: q.category,
           tags: q.tags || [],
           alternativeQuestions: q.alternativeQuestions || [],
+          alternativeAnswers: q.alternativeAnswers || [],
           priority: q.priority || 5,
         })),
       });
@@ -517,6 +568,38 @@ export default function KnowledgeBasePage() {
                     rows={3}
                     className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Andere manieren om dezelfde vraag te stellen. Dubbele vragen worden vermeden.
+                  </p>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Alternatieve antwoorden (één per regel)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleGenerateAltAnswers}
+                      disabled={generatingAltAnswers || !formData.question.trim() || !formData.answer.trim()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Sparkles size={16} />
+                      {generatingAltAnswers ? "Bezig..." : "Genereer alternatieve antwoorden"}
+                    </button>
+                  </div>
+                  <textarea
+                    value={formData.alternativeAnswers}
+                    onChange={(e) =>
+                      setFormData({ ...formData, alternativeAnswers: e.target.value })
+                    }
+                    placeholder="Andere formuleringen van het antwoord..."
+                    rows={2}
+                    className="w-full px-3 py-2 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Andere manieren om het antwoord te formuleren. De AI gebruikt deze voor meer variatie.
+                  </p>
                 </div>
               </div>
             </div>
@@ -662,12 +745,22 @@ export default function KnowledgeBasePage() {
                       </span>
                     </div>
 
-                    {item.alternativeQuestions && item.alternativeQuestions.length > 0 && (
-                      <div className="mt-2 text-xs text-primary-600">
-                        <span className="font-medium">Alternatieven:</span>{" "}
-                        {item.alternativeQuestions.join(", ")}
+                    {(item.alternativeQuestions?.length || item.alternativeAnswers?.length) ? (
+                      <div className="mt-2 text-xs text-primary-600 space-y-1">
+                        {item.alternativeQuestions && item.alternativeQuestions.length > 0 && (
+                          <div>
+                            <span className="font-medium">Alt. vragen:</span>{" "}
+                            {item.alternativeQuestions.join(", ")}
+                          </div>
+                        )}
+                        {item.alternativeAnswers && item.alternativeAnswers.length > 0 && (
+                          <div>
+                            <span className="font-medium">Alt. antwoorden:</span>{" "}
+                            {item.alternativeAnswers.length} varianten
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">

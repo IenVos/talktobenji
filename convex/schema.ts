@@ -79,6 +79,7 @@ export default defineSchema({
     question: v.string(),
     answer: v.string(),
     alternativeQuestions: v.optional(v.array(v.string())),
+    alternativeAnswers: v.optional(v.array(v.string())),
     // Engelse velden (optioneel - voor meertalige support)
     questionEn: v.optional(v.string()),
     answerEn: v.optional(v.string()),
