@@ -1,33 +1,27 @@
 # Klikfunctie en layout – uitleg
 
-## Mogelijke oorzaken als klikken niet werken
+## ROOT CAUSE: wijzigingen die klikken breken
 
-**Let op:** De cookiebanner is NIET de oorzaak als je die niet ziet (bijv. op localhost na eerder accepteren). De banner verschijnt alleen als je nog geen cookies hebt geaccepteerd.
+**Het patroon:** Elke keer als we iets wijzigen, werken klikken niet meer. De oorzaak zit in WAT we toevoegen/aanpassen.
 
-### 1. **Achtergrond/overlay blokkeert**
-De achtergrond en witte waas hebben `pointer-events: none`. Als een browser dat niet goed toepast, kunnen ze alsnog klikken blokkeren. Test: tijdelijk de overlay uitschakelen om te zien of klikken dan werken.
+### Wat we NIET moeten doen bij wijzigingen
 
-### 2. **Z-index / stacking**
-De content heeft `z-50`, de overlay `z-0`. De content hoort bovenop te liggen. Als dat niet zo is, kan er een stacking-context probleem zijn.
+1. **Geen extra wrapper-div** tussen main en content – extra lagen kunnen stacking/pointer-events breken
+2. **Geen aparte overlay-div** – achtergrond en waas zijn gecombineerd in één div (linear-gradient)
+3. **Geen `absolute inset-0` op content** – content moet `relative` blijven (in flow) voor correcte footer-positie
+4. **Geen `pointer-events` inline** op content tenzij nodig – default auto werkt
 
-### 3. **Mobiel / touch / PWA**
-- `touch-action: manipulation` is toegevoegd tegen 300ms vertraging
-- Sommige PWA’s of browsers gedragen zich anders met touch
-- Test in een andere browser of incognito
-
-### 4. **Convex / loading**
-Als Convex nog laadt, kan de app in een vreemde staat zitten. Controleer de console op errors.
-
-### 5. **Footer vs. content**
-De footer staat in de flow onder de main. De content gebruikt `relative` zodat de footer niet over de content heen komt.
-
-## Layout-structuur
+### Huidige structuur (niet wijzigen)
 
 ```
-[HeaderBar - sticky z-9999]
-[Main - flex-1, overflow-y-auto]
-  ├─ Achtergrond (absolute z-0, pointer-events: none)
-  ├─ Overlay/waas (absolute z-0, pointer-events: none)
-  └─ Content (relative z-50, pointer-events: auto)
+[Main - flex-1 overflow-y-auto relative]
+  ├─ Achtergrond (absolute inset-0 z-0) – beeld + waas in linear-gradient, pointer-events: none
+  └─ Content (relative z-50) – direct child van main, geen wrappers
 [Footer - flex-shrink-0]
 ```
+
+### Als klikken toch niet werken
+
+- Cookiebanner: niet de oorzaak als die niet zichtbaar is
+- Test: tijdelijk de achtergrond-div uitschakelen
+- Controleer: geen nieuwe div met overflow/pointer-events toegevoegd?

@@ -205,7 +205,9 @@ export const handleUserMessage = action({
 - GOED: "dat zegt iets" of "en dat is al iets" of "dat getuigt van moed"
 - Schrijf zoals een native speaker zou spreken.
 - Lees je antwoord mentaal door voordat je het verstuurt.
-- GEBRUIK NOOIT streepjes ( - ) tussen woorden of zinsdelen. Gebruik altijd een punt, komma of herformuleer: FOUT "weg - ze zitten", GOED "weg. Ze zitten" of "weg, ze zitten".`;
+- GEBRUIK NOOIT streepjes ( - ) tussen woorden of zinsdelen. Gebruik altijd een punt, komma of herformuleer: FOUT "weg - ze zitten", GOED "weg. Ze zitten" of "weg, ze zitten".
+
+ZINFORMATIE: Maximaal 4 zinnen aan elkaar. Als je meer dan 4 zinnen schrijft, voeg dan een lege regel (dubbele newline) toe als kleine spatie tussen de groepen van max 4 zinnen. Voorbeeld: "Zin 1. Zin 2. Zin 3. Zin 4.\n\nZin 5. Zin 6."`;
 
       const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule].filter(Boolean).join("\n\n");
 

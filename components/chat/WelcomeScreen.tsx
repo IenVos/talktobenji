@@ -36,13 +36,12 @@ export function WelcomeScreen({
 
   return (
     <div className="w-full flex flex-col items-center justify-center text-center pt-2 sm:pt-4 pb-4 sm:pb-8 px-4 sm:px-6">
-      {/* Introtekst */}
-      <p className="text-sm sm:text-base text-gray-600 break-words leading-relaxed text-center whitespace-pre-line text-pretty mb-4">
-        {`Ik ben Benji, je luisterend oor,
-een AI die er altijd voor je is
-om te luisteren, zonder te oordelen,
-dag en nacht.`}
-      </p>
+      {/* Introtekst –zelfde breedte als buttonblok, tekst loopt door en verdeelt netjes */}
+      <div className="w-full max-w-sm mx-auto mb-4">
+        <p className="text-sm sm:text-base text-gray-600 break-words leading-relaxed text-center text-pretty">
+          Ik ben Benji, je luisterend oor, een AI die er altijd voor je is om te luisteren. Dag en nacht.
+        </p>
+      </div>
 
       {/* Kenmerken-box:zelfde breedte als buttons, licht standaard, donkerblauw bij hover */}
       <div className="w-full max-w-sm mx-auto mb-4 sm:mb-5">

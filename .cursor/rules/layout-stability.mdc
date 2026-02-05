@@ -7,6 +7,8 @@ alwaysApply: true
 
 **Bij wijzigingen aan HeaderBar, CookieConsentBanner, ChatPageClient, WelcomeScreen of scroll-gedrag:**
 
-1. Lees eerst `.cursor/rules/layout.md` – sectie "KRITIEK – NIET WIJZIGEN"
-2. Behoud de z-index en pointer-events waarden exact zoals gedocumenteerd
-3. Test na wijzigingen: menu klikbaar, topic-knoppen klikbaar, chat-input klikbaar, pagina start bovenaan
+1. Lees eerst `.cursor/rules/layout.md` en `.cursor/rules/klik-en-layout-uitleg.md`
+2. **Geen extra wrapper-div** tussen main en content – dit breekt klikken
+3. **Geen aparte overlay-div** – achtergrond + waas zijn gecombineerd in één div
+4. Behoud z-index en pointer-events exact zoals gedocumenteerd
+5. Test na wijzigingen: menu, topic-knoppen, chat-input allemaal klikbaar

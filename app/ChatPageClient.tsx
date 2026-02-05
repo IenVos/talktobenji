@@ -69,6 +69,11 @@ export default function ChatPageClient({
     }
   }, [sessionIdState, storedSession]);
 
+  // Reset lastMessageCountRef bij sessiewissel – anders herkent useEffect het opener-bericht niet
+  useEffect(() => {
+    lastMessageCountRef.current = 0;
+  }, [sessionId]);
+
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
   const handleUserMessage = useAction(api.ai.handleUserMessage);
@@ -236,15 +241,17 @@ export default function ChatPageClient({
       <HeaderBar onLogoClick={() => { setSessionId(null); setShowTopicButtons(true); }} />
 
       <main ref={mainRef} className="flex-1 overflow-y-auto relative">
-        {/* Achtergrond en waas - absolute, pointer-events: none, z-0 (onder content) */}
+        {/* Eén achtergrondlaag: beeld + waas gecombineerd, pointer-events: none, z-0 */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url(/images/achtergrond.png)", pointerEvents: "none" }}
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(/images/achtergrond.png)",
+            pointerEvents: "none",
+          }}
           aria-hidden
         />
-        <div className="absolute inset-0 z-0 bg-white/70" style={{ pointerEvents: "none" }} aria-hidden />
-        {/* Chat-inhoud - z-50 zodat bovenop, pointer-events: auto voor klikken */}
-        <div className={`relative z-50 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full ${!sessionId && !isAddingOpener ? "pb-40" : ""}`} style={{ pointerEvents: "auto", touchAction: "manipulation" }}>
+        {/* Chat-inhoud - relative in flow, z-50 bovenop. Geen pointer-events/touchAction override - defaults werken. */}
+        <div className="relative z-50 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full touch-manipulation">
           {!sessionId && !isAddingOpener && (
             <>
               <WelcomeScreen
@@ -292,8 +299,8 @@ export default function ChatPageClient({
           <div className="space-y-3 sm:space-y-4">
             {messages?.map((msg: Doc<"chatMessages">) => (
               <div key={msg._id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "bg-primary-900 text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
-                  <p className="whitespace-pre-wrap text-sm sm:text-base">{msg.content}</p>
+                <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "max-w-[85%] sm:max-w-[80%] bg-primary-900 text-white rounded-br-md" : "max-w-sm bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
+                  <p className="whitespace-pre-wrap text-sm sm:text-base break-words">{msg.content}</p>
                 </div>
               </div>
             ))}
@@ -306,7 +313,7 @@ export default function ChatPageClient({
             )}
             {(isLoading || isAddingOpener) && (
               <div className="flex justify-start">
-                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+                <div className="max-w-sm bg-white border border-gray-200 rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
                   <div className="flex gap-1 items-center">
                     <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '2s' }}></div>
                     <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0.3s', animationDuration: '2s' }}></div>

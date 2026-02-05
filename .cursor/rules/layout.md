@@ -6,8 +6,14 @@
 |-----------|--------|--------|
 | **HeaderBar** | `z-[9999]` | Moet boven cookiebanner, anders menu niet klikbaar |
 | **CookieConsentBanner** | `z-[100]` | Onder header, boven content |
-| **ChatPageClient achtergrond** | `pointerEvents: "none"` | Anders blokkeert de achtergrond alle kliks |
-| **Overlay (waas)** | `pointerEvents: "none"` | Staat al goed, niet aanpassen |
+| **ChatPageClient achtergrond** | Eén div met `pointerEvents: "none"` | Achtergrond + waas gecombineerd. Geen aparte overlay-div toevoegen. |
+| **ChatPageClient content** | `relative z-50`, GEEN `pointer-events` inline | Default auto is goed. Geen extra wrappers tussen main en content. |
+
+## ⚠️ BIJ WIJZIGINGEN – voorkom klikproblemen
+
+- **Geen extra div** tussen `<main>` en de content-div toevoegen tenzij die div GEEN pointer-events/overflow wijzigt
+- **Geen `absolute inset-0`** op de content – die moet `relative` blijven (in flow) zodat footer niet overlapt
+- **Achtergrond**: één div, `absolute inset-0 z-0`, `pointer-events: none`
 
 ## ⚠️ Scroll-gedrag – NIET WIJZIGEN
 
