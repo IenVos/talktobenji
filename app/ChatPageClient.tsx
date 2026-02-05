@@ -49,6 +49,7 @@ export default function ChatPageClient({
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const topicFromUrlHandled = useRef<string | null>(null);
 
@@ -89,7 +90,13 @@ export default function ChatPageClient({
     }
   }, []);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    if (!sessionId && !isAddingOpener) {
+      mainRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [sessionId, isAddingOpener, messages]);
 
   // Test: toon foutmelding via ?testError=1 in de URL
   useEffect(() => {
@@ -228,11 +235,11 @@ export default function ChatPageClient({
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
       <HeaderBar onLogoClick={() => { setSessionId(null); setShowTopicButtons(true); }} />
 
-      <main className="flex-1 overflow-y-auto relative">
+      <main ref={mainRef} className="flex-1 overflow-y-auto relative">
         {/* Achtergrondafbeelding */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url(/images/achtergrond.png)" }}
+          style={{ backgroundImage: "url(/images/achtergrond.png)", pointerEvents: "none" }}
           aria-hidden
         />
         {/* Waas ~70% - pointer-events: none zodat alle kliks doorkomen */}

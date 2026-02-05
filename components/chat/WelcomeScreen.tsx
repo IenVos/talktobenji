@@ -37,7 +37,10 @@ function IconWithTooltip({
       className="relative inline-flex"
       onMouseEnter={showTooltip}
       onMouseLeave={hideTooltip}
-      onClick={() => setShow((s) => !s)}
+      onClick={(e) => {
+        e.preventDefault();
+        setShow((s) => !s);
+      }}
     >
       <Icon
         size={18}

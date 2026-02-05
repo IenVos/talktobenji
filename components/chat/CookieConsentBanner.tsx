@@ -53,7 +53,7 @@ export function CookieConsentBanner() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-[9998] p-4 sm:p-5 bg-primary-800 border-t border-primary-700 shadow-[0_-4px_12px_rgba(0,0,0,0.2)]"
+      className="fixed bottom-0 left-0 right-0 z-[100] p-4 sm:p-5 bg-primary-800 border-t border-primary-700 shadow-[0_-4px_12px_rgba(0,0,0,0.2)]"
       style={{ paddingBottom: "max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))" }}
     >
       <div className="max-w-2xl mx-auto space-y-4">
