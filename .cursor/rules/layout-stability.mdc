@@ -1,0 +1,12 @@
+---
+description: Voorkom layout-breuk bij wijzigingen – lees layout.md voor kritieke waarden
+alwaysApply: true
+---
+
+# Layout-stabiliteit
+
+**Bij wijzigingen aan HeaderBar, CookieConsentBanner, ChatPageClient, WelcomeScreen of scroll-gedrag:**
+
+1. Lees eerst `.cursor/rules/layout.md` – sectie "KRITIEK – NIET WIJZIGEN"
+2. Behoud de z-index en pointer-events waarden exact zoals gedocumenteerd
+3. Test na wijzigingen: menu klikbaar, topic-knoppen klikbaar, chat-input klikbaar, pagina start bovenaan
