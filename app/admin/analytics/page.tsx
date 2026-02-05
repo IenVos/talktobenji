@@ -8,19 +8,70 @@ import { MessageCircle, BarChart3, Hash, Calendar, HelpCircle, Plus } from "luci
 
 function getDefaultMonths() {
   const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  const from = new Date(y, m - 2, 1); // 3 maanden terug
+  const y = Math.min(2028, Math.max(2026, now.getFullYear()));
+  const m = Math.min(11, Math.max(0, now.getMonth()));
+  const from = new Date(y, m - 2, 1);
+  const fromY = Math.min(2028, Math.max(2026, from.getFullYear()));
+  const fromM = from.getMonth() + 1;
   return {
-    fromMonth: `${from.getFullYear()}-${String(from.getMonth() + 1).padStart(2, "0")}`,
+    fromMonth: `${fromY}-${String(fromM).padStart(2, "0")}`,
     toMonth: `${y}-${String(m + 1).padStart(2, "0")}`,
   };
+}
+
+const MONTHS = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+
+function YearMonthSelect({
+  value,
+  onChange,
+  id,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  id: string;
+}) {
+  const [y, m] = value.split("-").map(Number);
+  const years = [2026, 2027, 2028];
+
+  return (
+    <div className="flex gap-1">
+      <select
+        id={`${id}-month`}
+        value={m}
+        onChange={(e) => onChange(`${y}-${String(Number(e.target.value)).padStart(2, "0")}`)}
+        className="px-2 py-2 border border-primary-200 rounded-lg text-sm text-primary-900 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+      >
+        {MONTHS.map((name, i) => (
+          <option key={i} value={i + 1}>{name}</option>
+        ))}
+      </select>
+      <select
+        id={`${id}-year`}
+        value={y}
+        onChange={(e) => onChange(`${e.target.value}-${String(m).padStart(2, "0")}`)}
+        className="px-2 py-2 border border-primary-200 rounded-lg text-sm text-primary-900 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+      >
+        {years.map((yr) => (
+          <option key={yr} value={yr}>{yr}</option>
+        ))}
+      </select>
+    </div>
+  );
 }
 
 export default function AdminAnalytics() {
   const defaults = getDefaultMonths();
   const [fromMonth, setFromMonth] = useState(defaults.fromMonth);
   const [toMonth, setToMonth] = useState(defaults.toMonth);
+
+  const handleFromChange = (v: string) => {
+    setFromMonth(v);
+    if (v > toMonth) setToMonth(v);
+  };
+  const handleToChange = (v: string) => {
+    setToMonth(v);
+    if (v < fromMonth) setFromMonth(v);
+  };
 
   const stats = useQuery(api.analytics.getDashboardStats, {
     fromMonth,
@@ -48,30 +99,20 @@ export default function AdminAnalytics() {
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-primary-600" />
-            <label htmlFor="fromMonth" className="text-sm text-primary-700 sr-only sm:not-sr-only">
-              Van
-            </label>
-            <input
-              id="fromMonth"
-              type="month"
+            <label className="text-sm text-primary-700">Van</label>
+            <YearMonthSelect
+              id="from"
               value={fromMonth}
-              onChange={(e) => setFromMonth(e.target.value)}
-              max={toMonth}
-              className="px-3 py-2 border border-primary-200 rounded-lg text-sm text-primary-900 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              onChange={handleFromChange}
             />
           </div>
           <span className="text-primary-600 text-sm">tot</span>
           <div className="flex items-center gap-2">
-            <label htmlFor="toMonth" className="text-sm text-primary-700 sr-only sm:not-sr-only">
-              Tot
-            </label>
-            <input
-              id="toMonth"
-              type="month"
+            <label className="text-sm text-primary-700">Tot</label>
+            <YearMonthSelect
+              id="to"
               value={toMonth}
-              onChange={(e) => setToMonth(e.target.value)}
-              min={fromMonth}
-              className="px-3 py-2 border border-primary-200 rounded-lg text-sm text-primary-900 bg-white focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              onChange={handleToChange}
             />
           </div>
         </div>
