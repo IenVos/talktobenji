@@ -3,11 +3,11 @@
 import { usePathname } from "next/navigation";
 import { GlobalMenu } from "./GlobalMenu";
 
-/** Toont GlobalMenu alleen op pagina's zonder eigen header met menu. Chat, privacy en AV hebben het menu in de header. */
-const PAGES_WITH_HEADER_MENU = ["/", "/privacy", "/algemene-voorwaarden", "/faq"];
+/** Toont GlobalMenu alleen op pagina's zonder eigen header/menu. Admin heeft eigen layout. */
+const PAGES_WITH_OWN_MENU = ["/", "/privacy", "/algemene-voorwaarden", "/faq"];
 
 export function LayoutMenu() {
   const pathname = usePathname();
-  if (PAGES_WITH_HEADER_MENU.includes(pathname)) return null;
+  if (PAGES_WITH_OWN_MENU.includes(pathname) || pathname.startsWith("/admin")) return null;
   return <GlobalMenu />;
 }

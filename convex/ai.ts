@@ -286,6 +286,63 @@ ZINFORMATIE (per bericht, niet over de hele chat): In elk antwoord dat je geeft:
   },
 });
 
+/**
+ * Genereer 5-10 alternatieve manieren om een vraag te stellen.
+ * Voor gebruik in de Knowledge Base admin (Nieuwe Q&A formulier).
+ */
+export const generateAlternativeQuestions = action({
+  args: {
+    question: v.string(),
+    answer: v.string(),
+  },
+  handler: async (ctx, args): Promise<string[]> => {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey || apiKey === "your-api-key-here") {
+      throw new Error("ANTHROPIC_API_KEY niet geconfigureerd in Convex Dashboard.");
+    }
+
+    const prompt = `Geef 5 tot 10 alternatieve manieren waarop gebruikers dezelfde vraag kunnen stellen. Gebruik dezelfde taal als de vraag.
+
+Vraag: ${args.question}
+Antwoord: ${args.answer}
+
+Regels:
+- Elke alternatieve vraag op een aparte regel
+- Geen nummering of bullets
+- Geen uitleg, alleen de vragen
+- Variatie: formele/informele formuleringen, korte/lange vragen, synoniemen
+- Geen herhaling van de originele vraag`;
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 512,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`Claude API error: ${response.status} ${text.slice(0, 150)}`);
+    }
+
+    const data = JSON.parse(text) as ClaudeAPIResponse;
+    const raw = data.content?.[0]?.text?.trim() ?? "";
+    const lines = raw
+      .split("\n")
+      .map((l) => l.replace(/^[-*•]\s*/, "").replace(/^\d+\.\s*/, "").trim())
+      .filter((l) => l.length > 5);
+
+    return lines.slice(0, 10);
+  },
+});
+
 // ============================================================================
 // CLAUDE API INTEGRATIE
 // ============================================================================

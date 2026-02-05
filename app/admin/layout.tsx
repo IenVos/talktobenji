@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -34,7 +33,6 @@ export default function AdminLayout({
     setIsAuthenticated(false);
   };
 
-  // Loading state
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-primary-50 flex items-center justify-center">
@@ -43,7 +41,6 @@ export default function AdminLayout({
     );
   }
 
-  // Show login if not authenticated
   if (!isAuthenticated) {
     return <AdminLogin onLogin={() => setIsAuthenticated(true)} />;
   }
@@ -75,7 +72,6 @@ export default function AdminLayout({
         </button>
       </header>
 
-      {/* Mobile menu overlay */}
       {mobileMenuOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/50 z-40"
@@ -83,7 +79,6 @@ export default function AdminLayout({
         />
       )}
 
-      {/* Mobile menu */}
       <div
         className={`lg:hidden fixed top-0 right-0 h-full w-64 bg-white z-50 transform transition-transform ${
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
@@ -109,9 +104,7 @@ export default function AdminLayout({
                     href={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive
-                        ? "bg-primary-50 text-primary-600"
-                        : "text-gray-600 hover:bg-gray-50"
+                      isActive ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     <Icon size={20} />
@@ -142,7 +135,6 @@ export default function AdminLayout({
       </div>
 
       <div className="flex">
-        {/* Desktop Sidebar */}
         <aside className="hidden lg:flex w-64 bg-primary-900 flex-col fixed h-screen">
           <div className="p-6 border-b border-primary-700">
             <div className="flex items-center gap-3">
@@ -198,7 +190,6 @@ export default function AdminLayout({
           </div>
         </aside>
 
-        {/* Main content - egale achtergrond, geen foto */}
         <main className="flex-1 lg:ml-64 min-h-screen bg-primary-50">
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>
         </main>

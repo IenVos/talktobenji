@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -18,6 +18,7 @@ import {
   BookOpen,
   Upload,
   Download,
+  Sparkles,
 } from "lucide-react";
 
 type KnowledgeBaseItem = {
@@ -44,8 +45,10 @@ export default function KnowledgeBasePage() {
   const activateQuestion = useMutation(api.knowledgeBase.activateQuestion);
   const deactivateQuestion = useMutation(api.knowledgeBase.deactivateQuestion);
   const bulkImportQuestions = useMutation(api.knowledgeBase.bulkImportQuestions);
+  const generateAlternativeQuestions = useAction(api.ai.generateAlternativeQuestions);
 
   const [showForm, setShowForm] = useState(false);
+  const [generatingAlt, setGeneratingAlt] = useState(false);
   const [editingId, setEditingId] = useState<Id<"knowledgeBase"> | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -146,6 +149,31 @@ export default function KnowledgeBasePage() {
       alert("Fout bij opslaan: " + (error as Error).message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Genereer alternatieve vragen via AI
+  const handleGenerateAlternatives = async () => {
+    if (!formData.question.trim() || !formData.answer.trim()) {
+      alert("Vul eerst vraag en antwoord in om alternatieven te genereren.");
+      return;
+    }
+    setGeneratingAlt(true);
+    try {
+      const alternatives = await generateAlternativeQuestions({
+        question: formData.question.trim(),
+        answer: formData.answer.trim(),
+      });
+      const existing = formData.alternativeQuestions
+        .split("\n")
+        .map((q) => q.trim())
+        .filter(Boolean);
+      const combined = [...new Set([...existing, ...alternatives])];
+      setFormData({ ...formData, alternativeQuestions: combined.join("\n") });
+    } catch (err) {
+      alert("Fout bij genereren: " + (err as Error).message);
+    } finally {
+      setGeneratingAlt(false);
     }
   };
 
@@ -466,9 +494,20 @@ export default function KnowledgeBasePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Alternatieve vragen (één per regel)
-                  </label>
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Alternatieve vragen (één per regel)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleGenerateAlternatives}
+                      disabled={generatingAlt || !formData.question.trim() || !formData.answer.trim()}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary-700 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Sparkles size={16} />
+                      {generatingAlt ? "Bezig..." : "Genereer alternatieve vragen"}
+                    </button>
+                  </div>
                   <textarea
                     value={formData.alternativeQuestions}
                     onChange={(e) =>
