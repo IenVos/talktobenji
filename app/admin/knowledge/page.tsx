@@ -422,7 +422,19 @@ export default function KnowledgeBasePage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-primary-900">Knowledge Base</h1>
           <p className="text-sm sm:text-base text-gray-600 mt-1">
-            Beheer je Q&As voor de chatbot - Alles wordt opgeslagen in Convex database
+            Beheer je Q&As voor de chatbot
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Opslag: Convex database (tabel <code className="bg-gray-100 px-1 rounded">knowledgeBase</code>).{" "}
+            <a
+              href="https://dashboard.convex.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 hover:underline"
+            >
+              Convex Dashboard
+            </a>
+            {" "}→ Data → knowledgeBase
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -432,6 +444,23 @@ export default function KnowledgeBasePage() {
           >
             <Upload size={18} />
             Bulk Import
+          </button>
+          <button
+            onClick={() => {
+              const data = JSON.stringify(allQuestions || [], null, 2);
+              const blob = new Blob([data], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `knowledge-base-export-${new Date().toISOString().slice(0, 10)}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 font-medium rounded-lg hover:bg-primary-200 transition-colors shadow-sm"
+            title="Download alle Q&As als JSON"
+          >
+            <Download size={18} />
+            Export
           </button>
           <button
             onClick={() => {

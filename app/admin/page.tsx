@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Save, BookOpen, ListChecks, AlertCircle, CheckCircle, Settings2, Key } from "lucide-react";
+import { Save, BookOpen, ListChecks, AlertCircle, CheckCircle, Settings2, Key, FileText, Loader2 } from "lucide-react";
+import { extractTextFromPdf } from "@/lib/extractPdfText";
 
 export default function AdminSettings() {
   const settings = useQuery(api.settings.get);
@@ -15,6 +16,9 @@ export default function AdminSettings() {
   const [rules, setRules] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState("");
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   // Load settings when they arrive from database
   useEffect(() => {
@@ -93,7 +97,7 @@ export default function AdminSettings() {
           <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0 border border-primary-200">
             <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <h2 className="text-base sm:text-lg font-semibold text-primary-900">Knowledge</h2>
             <p className="text-xs sm:text-sm text-primary-700">De kennis die de chatbot gebruikt om vragen te beantwoorden</p>
           </div>
@@ -107,8 +111,57 @@ Bijvoorbeeld voor TalkToBenji (rouw):
 - Benji is een chatbot voor steun bij rouw en verlies
 - Doel: luisteren, erkennen van gevoelens, geen advies opdringen
 - Taal: warm, rustig, Nederlands"
-          className="w-full h-48 sm:h-64 px-3 sm:px-4 py-2 sm:py-3 bg-primary-50 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-none font-mono text-xs sm:text-sm text-gray-900 placeholder-gray-500"
+          className="w-full min-h-[12rem] max-h-[32rem] h-64 px-3 sm:px-4 py-2 sm:py-3 bg-primary-50 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-y font-mono text-xs sm:text-sm text-gray-900 placeholder-gray-500"
         />
+        <div className="mt-3 pt-3 border-t border-primary-100">
+          <p className="text-xs font-medium text-primary-700 mb-2 flex items-center gap-1">
+            <FileText size={14} />
+            Of voeg kennis toe via PDF:
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <input
+              ref={pdfInputRef}
+              type="file"
+              accept=".pdf,application/pdf"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setPdfLoading(true);
+                setPdfError("");
+                try {
+                  const text = await extractTextFromPdf(file);
+                  if (text.length < 20) {
+                    throw new Error("Te weinig tekst in deze PDF. Werkt alleen met tekst-PDF's (geen gescande afbeeldingen).");
+                  }
+                  setKnowledge((prev) =>
+                    prev.trim() ? prev + "\n\n---\n\n" + text.slice(0, 150000) : text.slice(0, 150000)
+                  );
+                  if (pdfInputRef.current) pdfInputRef.current.value = "";
+                } catch (err) {
+                  setPdfError((err as Error).message);
+                } finally {
+                  setPdfLoading(false);
+                }
+              }}
+              className="text-sm text-primary-700 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-700 file:font-medium hover:file:bg-primary-200"
+            />
+            {pdfLoading && (
+              <span className="flex items-center gap-1 text-sm text-primary-600">
+                <Loader2 size={16} className="animate-spin" />
+                Bezig...
+              </span>
+            )}
+          </div>
+          {pdfError && (
+            <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+              <AlertCircle size={16} />
+              {pdfError}
+            </p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            Alleen tekst-PDF&apos;s. Gescande documenten werken niet. De tekst wordt aan je bestaande Knowledge toegevoegd.
+          </p>
+        </div>
       </div>
 
       {/* Rules Section */}
