@@ -759,7 +759,7 @@ export default function KnowledgeBasePage() {
 
             <div className="flex items-center gap-3 pt-2">
               <button
-                onClick={handleSave}
+                onClick={() => handleSave(true)}
                 disabled={saving}
                 className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
               >
