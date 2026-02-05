@@ -235,7 +235,7 @@ export default function ChatPageClient({
     <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
       <HeaderBar onLogoClick={() => { setSessionId(null); setShowTopicButtons(true); }} />
 
-      <main ref={mainRef} className="flex-1 overflow-y-auto relative">
+      <main className="flex-1 min-h-0 relative flex flex-col">
         {/* Achtergrondafbeelding */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -244,8 +244,13 @@ export default function ChatPageClient({
         />
         {/* Waas ~70% - pointer-events: none zodat alle kliks doorkomen */}
         <div className="absolute inset-0 z-0 bg-white/70" style={{ pointerEvents: "none" }} aria-hidden />
-        {/* Chat-inhoud bovenop - hoge z-index, pointer-events auto */}
-        <div className="relative z-50 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full" style={{ pointerEvents: "auto" }}>
+        {/* Scrollbare contentlaag - bedekt main volledig, ontvangt alle kliks */}
+        <div
+          ref={mainRef}
+          className="absolute inset-0 z-50 overflow-y-auto"
+          style={{ pointerEvents: "auto", touchAction: "manipulation" }}
+        >
+          <div className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full">
           {!sessionId && !isAddingOpener && (
             <>
               <WelcomeScreen
@@ -287,7 +292,6 @@ export default function ChatPageClient({
                   {isRecording && <p className="text-xs text-red-300 mt-1.5 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
                 </form>
               </div>
-              <WelcomeScreenInfoIcons />
             </>
           )}
 
@@ -319,6 +323,7 @@ export default function ChatPageClient({
             )}
             <div ref={messagesEndRef} />
           </div>
+          </div>
         </div>
       </main>
 
@@ -338,7 +343,7 @@ export default function ChatPageClient({
 
       <footer className="bg-primary-900 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
         {!sessionId && !isAddingOpener ? (
-          <div className="w-full h-8 sm:h-10 shrink-0" aria-hidden />
+          <WelcomeScreenInfoIcons variant="dark" />
         ) : (
           <div className="px-3 sm:px-4 py-4 sm:py-5">
             <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">

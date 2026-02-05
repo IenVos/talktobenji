@@ -13,7 +13,7 @@
 
 - **Homepage**: `mainRef.current?.scrollTo({ top: 0 })` bij `!sessionId && !isAddingOpener`
 - **Chat**: `messagesEndRef.current?.scrollIntoView()` alleen wanneer er een sessie is
-- **Tooltip-iconen**: `e.preventDefault()` op onClick – voorkomt verspringen bij klik
+- **Tooltip-iconen**: alleen hover, geen onClick (welcomescreen-baseline)
 
 ## Waarom dit bestand?
 Layout- en centeringproblemen komen vaak terug. Dit bestand documenteert de afgesproken patronen zodat wijzigingen consistent blijven.

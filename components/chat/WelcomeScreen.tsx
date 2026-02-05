@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useRef } from "react";
 import { Lock, AlertTriangle, Moon, MessageCircle, Heart } from "lucide-react";
 import { TopicButtons, type TopicId } from "./TopicButtons";
 import { useAboutModal } from "@/lib/AboutModalContext";
@@ -10,64 +9,25 @@ type WelcomeScreenProps = {
   onTopicSelect: (topicId: TopicId, label: string) => void;
 };
 
-function IconWithTooltip({
-  icon: Icon,
-  tooltip,
-  tooltipPrefix,
-}: {
-  icon: React.ElementType;
-  tooltip: string;
-  tooltipPrefix?: React.ReactNode;
-}) {
-  const [show, setShow] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const showTooltip = () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = null;
-    setShow(true);
-  };
-
-  const hideTooltip = () => {
-    timeoutRef.current = setTimeout(() => setShow(false), 1500);
-  };
+export function WelcomeScreenInfoIcons({ variant = "dark" }: { variant?: "light" | "dark" }) {
+  const isDark = variant === "dark";
+  const iconClass = isDark ? "text-primary-200" : "text-primary-500";
+  const textClass = isDark ? "text-primary-200" : "text-primary-600";
 
   return (
-    <span
-      className="relative inline-flex"
-      onMouseEnter={showTooltip}
-      onMouseLeave={hideTooltip}
-      onClick={(e) => {
-        e.preventDefault();
-        setShow((s) => !s);
-      }}
-    >
-      <Icon
-        size={18}
-        strokeWidth={2}
-        className="text-primary-600 group-hover:text-orange-500 transition-colors flex-shrink-0"
-      />
-      {show && (
-        <span
-          className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 px-3 py-2 bg-white text-primary-800 text-xs font-medium rounded-lg border-2 border-primary-400 max-w-[260px] text-left whitespace-normal z-[100] shadow-xl"
-          style={{ pointerEvents: "none" }}
-          role="tooltip"
-        >
-          {tooltipPrefix}
-          {tooltip}
-        </span>
-      )}
-    </span>
-  );
-}
-
-const DISCLAIMER = "Gesprekken zijn privé en beveiligd. Benji is steun, geen vervanging voor professionele therapie.";
-
-export function WelcomeScreenInfoIcons() {
-  return (
-    <div className="mt-4 mb-16 sm:mb-20 flex flex-row items-center justify-center gap-3 w-full max-w-sm mx-auto">
-      <IconWithTooltip icon={Lock} tooltip={DISCLAIMER} />
-      <IconWithTooltip icon={AlertTriangle} tooltip={DISCLAIMER} tooltipPrefix={<span className="text-orange-500 font-bold">! </span>} />
+    <div className={`flex flex-col items-center gap-2 w-full max-w-sm mx-auto px-2 py-3 sm:py-4`}>
+      <div className="flex gap-2 w-full max-w-[320px]">
+        <div className="w-[22px] flex-shrink-0 flex justify-center">
+          <Lock size={18} strokeWidth={2} className={iconClass} />
+        </div>
+        <span className={`${textClass} text-xs pt-0.5`}>Gesprekken zijn privé en beveiligd.</span>
+      </div>
+      <div className="flex gap-2 w-full max-w-[320px]">
+        <div className="w-[22px] flex-shrink-0 flex justify-center">
+          <AlertTriangle size={18} strokeWidth={2} className={iconClass} />
+        </div>
+        <span className={`${textClass} text-xs pt-0.5 whitespace-nowrap`}>Benji is steun, geen vervanging voor professionele therapie.</span>
+      </div>
     </div>
   );
 }
