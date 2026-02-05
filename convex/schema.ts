@@ -173,6 +173,20 @@ export default defineSchema({
     .index("by_conversation", ["conversationId"])
     .index("by_topic", ["topic"]),
 
+  // Bronnen (RAG): PDF's, URL's, handleidingen voor extra context
+  sources: defineTable({
+    title: v.string(),
+    type: v.union(v.literal("url"), v.literal("pdf")),
+    url: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
+    extractedText: v.string(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_active", ["isActive"])
+    .index("by_type", ["type"]),
+
   // Analytics
   analytics: defineTable({
     date: v.number(),

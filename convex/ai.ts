@@ -133,19 +133,20 @@ export const handleUserMessage = action({
         content: args.userMessage,
       });
 
-      // STAP 2: Haal bot settings op (rules) en knowledge base Q&As
+      // STAP 2: Haal bot settings op (rules), knowledge base Q&As en bronnen (RAG)
       const settings = await ctx.runQuery(api.settings.get);
       const knowledgeBaseQuestions = await ctx.runQuery(api.knowledgeBase.getAllQuestions, {
         isActive: true,
       });
+      const sources = await ctx.runQuery(api.sources.getActiveSources);
 
-      // Lege knowledge base → duidelijke melding, Claude niet aanroepen
       const isEnglish = /^[A-Za-z]/.test(args.userMessage.trim());
       const emptyKbMessage = isEnglish
         ? "There is no information in the knowledge base yet. Add Q&As via the admin panel (/admin/knowledge) to answer questions."
         : "Er is nog geen informatie in de knowledge base. Voeg Q&A's toe via het admin panel (/admin/knowledge) om vragen te kunnen beantwoorden.";
 
-      if (knowledgeBaseQuestions.length === 0) {
+      // Lege knowledge base én geen bronnen → duidelijke melding
+      if (knowledgeBaseQuestions.length === 0 && (!sources || sources.length === 0)) {
         const botMessageIdEmpty = await ctx.runMutation(api.chat.sendBotMessage, {
           sessionId: args.sessionId,
           content: emptyKbMessage,
@@ -174,7 +175,7 @@ export const handleUserMessage = action({
           content: m.content,
         }));
 
-      // STAP 4: Bouw kennis uit knowledge base (alleen deze bron mag Claude gebruiken)
+      // STAP 4: Bouw kennis uit knowledge base + bronnen (RAG)
       const knowledgeFromKb = knowledgeBaseQuestions
         .map(
           (q: {
@@ -193,9 +194,24 @@ export const handleUserMessage = action({
         )
         .join("\n\n---\n\n");
 
+      const knowledgeFromSources =
+        sources && sources.length > 0
+          ? sources
+              .map(
+                (s: { title: string; type: string; url?: string; extractedText: string }) =>
+                  `[Bron: ${s.title}${s.url ? ` (${s.url})` : ""}]\n${s.extractedText.slice(0, 15000)}`
+              )
+              .join("\n\n---\n\n")
+          : "";
+
+      let knowledgeCombined = knowledgeFromKb;
+      if (knowledgeFromSources) {
+        knowledgeCombined += (knowledgeFromKb ? "\n\n" : "") + "## Aanvullende bronnen (PDF's, websites)\n\n" + knowledgeFromSources;
+      }
+
       const onlyFromKbRule = isEnglish
-        ? "IMPORTANT: You may only use the knowledge base below to answer. If the answer is not in the knowledge base, say clearly that you cannot answer from the available information and suggest adding the topic to the knowledge base."
-        : "BELANGRIJK: Je mag alleen de onderstaande knowledge base gebruiken om te antwoorden. Als het antwoord niet in de knowledge base staat, zeg dan duidelijk dat je het niet kunt beantwoorden op basis van de beschikbare informatie en stel voor het onderwerp toe te voegen aan de knowledge base.";
+        ? "IMPORTANT: Use the knowledge base below first to answer. If the answer is not in the knowledge base, you may use the additional sources (PDFs, URLs) to distill an answer. If neither contains the answer, say clearly that you cannot answer and suggest adding the topic."
+        : "BELANGRIJK: Gebruik eerst de knowledge base hieronder om te antwoorden. Als het antwoord niet in de knowledge base staat, mag je de aanvullende bronnen (PDF's, websites) gebruiken om een antwoord te destilleren. Als geen van beide het antwoord bevat, zeg dan duidelijk dat je het niet kunt beantwoorden en stel voor het onderwerp toe te voegen.";
 
       const dutchLanguageRule = isEnglish
         ? ""
@@ -214,7 +230,7 @@ ZINFORMATIE (per bericht, niet over de hele chat): In elk antwoord dat je geeft:
       // STAP 5: Genereer AI response
       const aiResponse = await callClaudeAPI(
         args.userMessage,
-        knowledgeFromKb,
+        knowledgeCombined,
         rules,
         conversationHistory
       );

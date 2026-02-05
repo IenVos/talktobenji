@@ -19,7 +19,8 @@
     "generate-pwa-icons": "node scripts/generate-pwa-icons.js",
     "generate-favicon": "node scripts/generate-favicon.js",
     "open:env": "open -a Cursor .env.local",
-    "open:project": "open -a Cursor ."
+    "open:project": "open -a Cursor .",
+    "postinstall": "cp node_modules/pdfjs-dist/build/pdf.worker.min.mjs public/pdf.worker.min.mjs 2>/dev/null || true"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
@@ -29,8 +30,9 @@
     "convex-helpers": "^0.1.111",
     "jose": "^5.2.0",
     "lucide-react": "^0.562.0",
-    "next-auth": "^4.24.5",
     "next": "^14.2.35",
+    "next-auth": "^4.24.5",
+    "pdfjs-dist": "^5.4.624",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

@@ -5,6 +5,7 @@ import { AboutModalProvider } from "@/lib/AboutModalContext";
 import { ProfessionalHelpProvider } from "@/lib/ProfessionalHelpContext";
 import { LayoutMenu } from "@/components/chat/LayoutMenu";
 import { CookieConsentBanner } from "@/components/chat/CookieConsentBanner";
+import { ConnectionBanner } from "@/components/chat/ConnectionBanner";
 
 export const metadata: Metadata = {
   title: "TalkToBenji - Benji",
@@ -53,6 +54,7 @@ export default function RootLayout({
               <LayoutMenu />
               {children}
               <CookieConsentBanner />
+              <ConnectionBanner />
             </ProfessionalHelpProvider>
           </AboutModalProvider>
         </ConvexClientProvider>

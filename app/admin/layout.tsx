@@ -5,7 +5,7 @@ import Image from "next/image";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, Home, Menu, X, BookOpen, MessageCircle } from "lucide-react";
+import { Settings, LogOut, Home, Menu, X, BookOpen, MessageCircle, FileStack } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -51,6 +51,7 @@ export default function AdminLayout({
   const navItems = [
     { href: "/admin", label: "Instellingen", icon: Settings },
     { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen },
+    { href: "/admin/bronnen", label: "Bronnen", icon: FileStack },
   ];
 
   return (
