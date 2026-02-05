@@ -22,7 +22,6 @@
     "open:project": "open -a Cursor ."
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2",
     "@ducanh2912/next-pwa": "^10.2.9",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
