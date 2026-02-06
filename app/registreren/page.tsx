@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function RegistrerenPage() {
+function RegistrerenForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -187,5 +187,17 @@ export default function RegistrerenPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegistrerenPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen min-h-[100dvh] bg-primary-50 flex flex-col items-center justify-center p-4">
+        <div className="animate-pulse text-gray-500">Laden...</div>
+      </div>
+    }>
+      <RegistrerenForm />
+    </Suspense>
   );
 }

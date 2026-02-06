@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
 import { AboutModalProvider } from "@/lib/AboutModalContext";
@@ -51,14 +52,16 @@ export default function RootLayout({
       <body>
         <ConvexClientProvider>
           <SessionProvider>
-            <AboutModalProvider>
-              <ProfessionalHelpProvider>
-                <LayoutMenu />
-                {children}
-                <CookieConsentBanner />
-                <ConnectionBanner />
-              </ProfessionalHelpProvider>
-            </AboutModalProvider>
+            <Suspense fallback={<div className="min-h-screen" aria-hidden="true" />}>
+              <AboutModalProvider>
+                <ProfessionalHelpProvider>
+                  <LayoutMenu />
+                  {children}
+                  <CookieConsentBanner />
+                  <ConnectionBanner />
+                </ProfessionalHelpProvider>
+              </AboutModalProvider>
+            </Suspense>
           </SessionProvider>
         </ConvexClientProvider>
       </body>
