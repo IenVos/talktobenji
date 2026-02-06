@@ -107,6 +107,6 @@ Overweeg om deze te combineren of de ene te laten verwijzen naar de andere:
 4. **Let op:** Dit voegt NIEUWE Q&As toe. Bestaande worden niet automatisch verwijderd. Als je wilt vervangen, verwijder eerst de oude via de admin of via Convex Dashboard
 
 ## Aanbevelingen
-1. **Mindfulness Q&As:** Er zijn 5+ vragen over mindfulness die sterk overlappen ("Wat is mindfulness?", "Hoe kan mindfulness helpen bij rouw?", "Wat zijn de voordelen?", etc.). Overweeg deze te consolideren tot 2–3 Q&As.
+1. **Mindfulness Q&As:** ✅ Gedaan. De 7 overlappende mindfulness-vragen zijn geconsolideerd tot 1 Q&A. Zie `knowledge-base-opgeruimd.json`.
 2. **alternativeAnswers:** Veel Q&As hebben 4–5 alternatieve antwoorden die bijna hetzelfde zeggen. Overweeg dit terug te brengen naar 1–2 per Q&A voor kortere, duidelijkere antwoorden.
 3. **Verlies-specifieke vragen:** Vragen als "Hoe ga ik om met verlies van moeder/vader/huisdier/baby" hebben elk hun eigen context. Houd ze apart, maar controleer of de antwoorden niet te veel overlap hebben.
