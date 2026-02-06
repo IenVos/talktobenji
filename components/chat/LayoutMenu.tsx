@@ -4,7 +4,8 @@ import { usePathname } from "next/navigation";
 import { GlobalMenu } from "./GlobalMenu";
 
 /** Toont GlobalMenu alleen op pagina's zonder eigen header/menu. Admin heeft eigen layout. */
-const PAGES_WITH_OWN_MENU = ["/", "/privacy", "/algemene-voorwaarden", "/faq"];
+const PAGES_WITH_OWN_MENU = ["/", "/privacy", "/algemene-voorwaarden", "/faq", "/registreren", "/inloggen"];
+// mijn-gesprekken en gesprek/[id] krijgen wel GlobalMenu (niet in deze lijst)
 
 export function LayoutMenu() {
   const pathname = usePathname();

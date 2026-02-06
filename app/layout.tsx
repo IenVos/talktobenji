@@ -6,6 +6,7 @@ import { ProfessionalHelpProvider } from "@/lib/ProfessionalHelpContext";
 import { LayoutMenu } from "@/components/chat/LayoutMenu";
 import { CookieConsentBanner } from "@/components/chat/CookieConsentBanner";
 import { ConnectionBanner } from "@/components/chat/ConnectionBanner";
+import { SessionProvider } from "@/lib/SessionProvider";
 
 export const metadata: Metadata = {
   title: "TalkToBenji - Benji",
@@ -49,14 +50,16 @@ export default function RootLayout({
     <html lang="nl">
       <body>
         <ConvexClientProvider>
-          <AboutModalProvider>
-            <ProfessionalHelpProvider>
-              <LayoutMenu />
-              {children}
-              <CookieConsentBanner />
-              <ConnectionBanner />
-            </ProfessionalHelpProvider>
-          </AboutModalProvider>
+          <SessionProvider>
+            <AboutModalProvider>
+              <ProfessionalHelpProvider>
+                <LayoutMenu />
+                {children}
+                <CookieConsentBanner />
+                <ConnectionBanner />
+              </ProfessionalHelpProvider>
+            </AboutModalProvider>
+          </SessionProvider>
         </ConvexClientProvider>
       </body>
     </html>

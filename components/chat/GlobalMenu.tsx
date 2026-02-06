@@ -69,22 +69,25 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: "Aanmelden",
       icon: UserPlus,
-      onClick: () => handleAccountItem("Binnenkort beschikbaar"),
+      onClick: () => {
+        setOpen(false);
+        router.push("/registreren");
+      },
     },
     {
       label: "Inloggen",
       icon: LogIn,
-      onClick: () => handleAccountItem("Binnenkort beschikbaar"),
+      onClick: () => {
+        setOpen(false);
+        router.push("/inloggen");
+      },
     },
     {
       label: lastConversationDate ? `Mijn gesprekken · ${lastConversationDate}` : "Mijn gesprekken",
       icon: MessagesSquare,
       onClick: () => {
-        handleAccountItem(
-          lastConversationDate
-            ? "Mijn gesprekken is binnenkort beschikbaar. Je gesprekken worden lokaal opgeslagen."
-            : "Log in om je gesprekken te bekijken. Binnenkort beschikbaar."
-        );
+        setOpen(false);
+        router.push("/mijn-gesprekken");
       },
     },
   ];

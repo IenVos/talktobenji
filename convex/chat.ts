@@ -167,6 +167,20 @@ export const getMessageCount = query({
   },
 });
 
+/**
+ * Tel aantal anonieme gesprekken (voor limiet van 10)
+ */
+export const countAnonymousSessions = query({
+  args: { anonymousId: v.string() },
+  handler: async (ctx, args) => {
+    const sessions = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_anonymous", (q) => q.eq("anonymousId", args.anonymousId))
+      .collect();
+    return sessions.filter((s) => !s.userId).length;
+  },
+});
+
 // ============================================================================
 // MUTATIONS (Data wijzigen)
 // ============================================================================
@@ -179,6 +193,7 @@ export const startSession = mutation({
     userId: v.optional(v.string()),
     userEmail: v.optional(v.string()),
     userName: v.optional(v.string()),
+    anonymousId: v.optional(v.string()),
     topic: v.optional(v.string()),
     metadata: v.optional(
       v.object({
@@ -196,6 +211,7 @@ export const startSession = mutation({
       userId: args.userId,
       userEmail: args.userEmail,
       userName: args.userName,
+      anonymousId: args.anonymousId,
       topic: args.topic,
       status: "active",
       wasResolved: false,

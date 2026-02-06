@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
@@ -14,6 +15,21 @@ export type SearchParamsProp = { topic?: string | string[]; testError?: string |
 
 const STORAGE_KEY = "benji_session_id";
 const HAS_CHATTED_KEY = "benji_has_chatted";
+const ANONYMOUS_ID_KEY = "benji_anonymous_id";
+
+function getOrCreateAnonymousId(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    let id = localStorage.getItem(ANONYMOUS_ID_KEY);
+    if (!id) {
+      id = "anon_" + crypto.randomUUID();
+      localStorage.setItem(ANONYMOUS_ID_KEY, id);
+    }
+    return id;
+  } catch {
+    return "";
+  }
+}
 
 export default function ChatPageClient({
   searchParams = {},
@@ -21,6 +37,7 @@ export default function ChatPageClient({
   searchParams?: SearchParamsProp;
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
   const topicParam = Array.isArray(searchParams?.topic) ? searchParams.topic[0] : searchParams?.topic;
   const [sessionIdState, setSessionIdState] = useState<Id<"chatSessions"> | null>(() => {
     if (typeof window === "undefined") return null;
@@ -76,7 +93,20 @@ export default function ChatPageClient({
 
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
+  const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
   const handleUserMessage = useAction(api.ai.handleUserMessage);
+
+  // Koppel anonieme sessie aan gebruiker na inloggen
+  useEffect(() => {
+    if (!session?.userId || !sessionId || !storedSession) return;
+    if (storedSession.userId) return;
+    linkSessionToUser({
+      sessionId,
+      userId: session.userId,
+      userEmail: session.user?.email ?? undefined,
+      userName: session.user?.name ?? undefined,
+    }).catch(console.error);
+  }, [session?.userId, session?.user?.email, session?.user?.name, sessionId, storedSession, linkSessionToUser]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -148,7 +178,10 @@ export default function ChatPageClient({
     try {
       let activeSessionId = sessionId;
       if (!activeSessionId) {
-        activeSessionId = await startSession({});
+        const startArgs = session?.userId
+          ? { userId: session.userId, userEmail: session.user?.email ?? undefined, userName: session.user?.name ?? undefined }
+          : { anonymousId: getOrCreateAnonymousId() };
+        activeSessionId = await startSession(startArgs);
         setSessionId(activeSessionId);
         if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
       }
@@ -185,7 +218,10 @@ export default function ChatPageClient({
       setIsLoading(true);
       setIsAddingOpener(true);
       
-      const newSessionId = await startSession({ topic: topicId });
+      const startArgs = session?.userId
+        ? { topic: topicId, userId: session.userId, userEmail: session.user?.email ?? undefined, userName: session.user?.name ?? undefined }
+        : { topic: topicId, anonymousId: getOrCreateAnonymousId() };
+      const newSessionId = await startSession(startArgs);
       await addOpenerToSession({ sessionId: newSessionId, topicId });
       setSessionId(newSessionId);
       if (typeof window !== "undefined") localStorage.setItem("benji_has_chatted", "1");
@@ -215,7 +251,10 @@ export default function ChatPageClient({
     setIsAddingOpener(true);
     (async () => {
       try {
-        const newSessionId = await startSession({ topic: topicFromUrl });
+        const startArgs = session?.userId
+          ? { topic: topicFromUrl, userId: session.userId, userEmail: session.user?.email ?? undefined, userName: session.user?.name ?? undefined }
+          : { topic: topicFromUrl, anonymousId: getOrCreateAnonymousId() };
+        const newSessionId = await startSession(startArgs);
         await addOpenerToSession({ sessionId: newSessionId, topicId: topicFromUrl });
         setSessionId(newSessionId);
         if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
@@ -227,7 +266,7 @@ export default function ChatPageClient({
         topicFromUrlHandled.current = null;
       }
     })();
-  }, [topicParam, router]);
+  }, [topicParam, router, session?.userId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

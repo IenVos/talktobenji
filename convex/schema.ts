@@ -25,6 +25,7 @@ export default defineSchema({
     userId: v.optional(v.string()),
     userEmail: v.optional(v.string()),
     userName: v.optional(v.string()),
+    anonymousId: v.optional(v.string()),
     topic: v.optional(v.string()),
     status: v.union(
       v.literal("active"),
@@ -49,7 +50,8 @@ export default defineSchema({
     lastActivityAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_anonymous", ["anonymousId"]),
 
   // Chat berichten
   chatMessages: defineTable({

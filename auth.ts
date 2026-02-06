@@ -83,7 +83,8 @@ export const authOptions: AuthOptions = {
     },
   },
   pages: {
-    signIn: "/",
+    signIn: "/inloggen",
+    error: "/inloggen",
   },
 };
 
