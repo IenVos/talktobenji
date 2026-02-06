@@ -481,7 +481,7 @@ export default function FaqPage() {
             Staat je vraag er niet tussen? Stuur een email naar{" "}
             <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a> of gebruik het contactformulier. We helpen je graag verder.
           </p>
-          <p className="text-xs text-gray-500">Laatste update: Januari 2025</p>
+          <p className="text-xs text-gray-500">Laatste update: Januari 2026</p>
         </div>
 
         <div className="pt-6 border-t border-gray-200">
