@@ -4,10 +4,9 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 function RegistrerenForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/account/gesprekken";
 
@@ -62,11 +61,11 @@ function RegistrerenForm() {
       setLoading(false);
 
       if (signInResult?.error) {
-        router.push("/inloggen?registered=1");
+        window.location.href = "/inloggen?registered=1";
         return;
       }
 
-      router.push(callbackUrl);
+      window.location.href = callbackUrl;
     } catch {
       setError("Er ging iets mis. Probeer het opnieuw.");
       setLoading(false);

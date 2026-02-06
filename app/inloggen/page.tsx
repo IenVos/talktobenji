@@ -4,18 +4,20 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 function InloggenForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/account/gesprekken";
   const registered = searchParams.get("registered") === "1";
+  const errorParam = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const displayError = error || (errorParam === "CredentialsSignin" ? "Ongeldig e-mailadres of wachtwoord" : "");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,21 +25,18 @@ function InloggenForm() {
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
+      // NextAuth redirect: true = server-side redirect na login (cookie wordt correct meegestuurd)
+      await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
-        redirect: false,
+        callbackUrl,
+        redirect: true,
       });
-
-      if (result?.error) {
-        setError("Ongeldig e-mailadres of wachtwoord");
-        setLoading(false);
-        return;
-      }
-
-      router.push(callbackUrl);
+      // Als redirect: true faalt (geen redirect), toon dan fout
+      setError("Ongeldig e-mailadres of wachtwoord");
     } catch {
       setError("Er ging iets mis. Probeer het opnieuw.");
+    } finally {
       setLoading(false);
     }
   };
@@ -103,8 +102,8 @@ function InloggenForm() {
             />
           </div>
 
-          {error && (
-            <p className="text-red-600 text-sm">{error}</p>
+          {displayError && (
+            <p className="text-red-600 text-sm">{displayError}</p>
           )}
 
           <button
