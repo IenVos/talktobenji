@@ -113,6 +113,25 @@ Bijvoorbeeld voor TalkToBenji (rouw):
 - Taal: warm, rustig, Nederlands"
           className="w-full min-h-[12rem] max-h-[32rem] h-64 px-3 sm:px-4 py-2 sm:py-3 bg-primary-50 border border-primary-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none resize-y font-mono text-xs sm:text-sm text-gray-900 placeholder-gray-500"
         />
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              const cleaned = knowledge
+                .replace(/\s+-\s+/g, ", ")
+                .replace(/\n-{2,}\s*\n/g, "\n\n")
+                .replace(/^\s*-\s+/gm, "• ")
+                .replace(/\s{2,}/g, " ");
+              setKnowledge(cleaned.trim());
+            }}
+            className="px-3 py-1.5 text-xs font-medium text-primary-700 bg-primary-100 hover:bg-primary-200 rounded-lg transition-colors"
+          >
+            Streepjes verwijderen
+          </button>
+          <p className="text-xs text-gray-500 self-center">
+            Vervangt &quot; - &quot; door komma&apos;s, verwijdert --- scheidingslijnen
+          </p>
+        </div>
         <div className="mt-3 pt-3 border-t border-primary-100">
           <p className="text-xs font-medium text-primary-700 mb-2 flex items-center gap-1">
             <FileText size={14} />

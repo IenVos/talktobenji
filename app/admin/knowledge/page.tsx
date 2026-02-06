@@ -94,6 +94,15 @@ export default function KnowledgeBasePage() {
   const [quickGenerating, setQuickGenerating] = useState(false);
   const [expandedIds, setExpandedIds] = useState<Set<Id<"knowledgeBase">>>(new Set());
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [cleaningStreepjes, setCleaningStreepjes] = useState(false);
+
+  const cleanStreepjes = (text: string) =>
+    text
+      .replace(/\s+-\s+/g, ", ")
+      .replace(/\n-{2,}\s*\n/g, "\n\n")
+      .replace(/^\s*-\s+/gm, "• ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -440,6 +449,40 @@ export default function KnowledgeBasePage() {
     }
   };
 
+  const handleCleanStreepjesAll = async () => {
+    const questions = allQuestions || [];
+    const toUpdate = questions.filter(
+      (q) =>
+        /\s+-\s+/.test(q.question) ||
+        /\s+-\s+/.test(q.answer) ||
+        /\n-{2,}\s*\n/.test(q.answer)
+    );
+    if (toUpdate.length === 0) {
+      alert("Geen Q&A's met overbodige streepjes gevonden.");
+      return;
+    }
+    if (!confirm(`${toUpdate.length} Q&A's opschonen? " - " wordt vervangen door ", "`)) return;
+    setCleaningStreepjes(true);
+    try {
+      for (const q of toUpdate) {
+        const altQ = q.alternativeQuestions?.map(cleanStreepjes).filter(Boolean);
+        const altA = q.alternativeAnswers?.map(cleanStreepjes).filter(Boolean);
+        await updateQuestion({
+          id: q._id,
+          question: cleanStreepjes(q.question),
+          answer: cleanStreepjes(q.answer),
+          ...(altQ?.length ? { alternativeQuestions: altQ } : {}),
+          ...(altA?.length ? { alternativeAnswers: altA } : {}),
+        });
+      }
+      alert(`✅ ${toUpdate.length} Q&A's opgeschoond.`);
+    } catch (err) {
+      alert("Fout: " + (err as Error).message);
+    } finally {
+      setCleaningStreepjes(false);
+    }
+  };
+
   // Handle activate/deactivate
   const handleToggleActive = async (id: Id<"knowledgeBase">, isActive: boolean) => {
     try {
@@ -529,6 +572,14 @@ export default function KnowledgeBasePage() {
           >
             <Download size={18} />
             Export
+          </button>
+          <button
+            onClick={handleCleanStreepjesAll}
+            disabled={cleaningStreepjes || !allQuestions?.length}
+            title="Verwijder overbodige streepjes ( - ) uit alle Q&A's"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 font-medium rounded-lg hover:bg-primary-200 transition-colors shadow-sm disabled:opacity-50"
+          >
+            {cleaningStreepjes ? "Bezig..." : "Streepjes verwijderen"}
           </button>
           <button
             onClick={() => {

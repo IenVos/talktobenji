@@ -236,7 +236,11 @@ export const handleUserMessage = action({
 
 ZINFORMATIE (per bericht, niet over de hele chat): In elk antwoord dat je geeft: maximaal 4 zinnen aan elkaar. Als je meer dan 4 zinnen schrijft in dat ene bericht, voeg dan een lege regel (dubbele newline) toe als kleine spatie tussen de groepen van max 4 zinnen. Voorbeeld: "Zin 1. Zin 2. Zin 3. Zin 4.\n\nZin 5. Zin 6."`;
 
-      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule].filter(Boolean).join("\n\n");
+      const noJargonRule = isEnglish
+        ? "AVOID JARGON: Do not use terms like 'bodyscan', 'mindfulness', 'grounding' etc. without first asking what the person already knows or tries. Use simple, everyday language. Describe what you mean in plain words (e.g. 'focus on each body part and release tension' instead of 'bodyscan')."
+        : "GEEN JARGON: Gebruik geen termen als 'bodyscan', 'mindfulness', 'grounding' etc. zonder eerst te vragen wat de persoon al kent of probeert. Gebruik eenvoudige, alledaagse taal. Beschrijf wat je bedoelt in gewone woorden (bijv. 'richt je aandacht op elk lichaamsdeel en laat spanning los' in plaats van 'bodyscan').";
+
+      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response
       let aiResponse = await callClaudeAPI(

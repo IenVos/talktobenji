@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, AlertTriangle, Moon, MessageCircle, Heart } from "lucide-react";
+import { Lock, AlertTriangle } from "lucide-react";
 import { TopicButtons, type TopicId } from "./TopicButtons";
 import { useAboutModal } from "@/lib/AboutModalContext";
 
@@ -36,44 +36,22 @@ export function WelcomeScreen({
 
   return (
     <div className="w-full flex flex-col items-center justify-center text-center pt-2 sm:pt-4 pb-4 sm:pb-8 px-4 sm:px-6">
-      {/* Introtekst –zelfde breedte als buttonblok, tekst loopt door en verdeelt netjes */}
-      <div className="w-full max-w-sm mx-auto mb-4">
-        <p className="text-sm sm:text-base text-gray-600 break-words leading-relaxed text-center text-pretty">
-          Ik ben Benji, je luisterend oor, een AI die er altijd voor je is om te luisteren. Dag en nacht.
+      {/* Introtekst – max 2 regels */}
+      <div className="w-full max-w-sm mx-auto mb-4 flex justify-center">
+        <p className="text-xs sm:text-sm text-gray-600 break-words leading-relaxed text-center text-pretty line-clamp-2 max-w-xs sm:max-w-sm">
+          Ik ben Benji, jouw betrouwbare AI die altijd luistert, dag en nacht. Voel je welkom om je verhaal te vertellen.
         </p>
       </div>
 
-      {/* Kenmerken-box:zelfde breedte als buttons, licht standaard, donkerblauw bij hover */}
-      <div className="w-full max-w-sm mx-auto mb-4 sm:mb-5">
+      {/* Meer over Benji-knop – gecentreerd */}
+      <div className="w-full flex justify-center mb-4 sm:mb-5">
         <button
           type="button"
           onClick={() => setShowAbout(true)}
-          className="w-full flex flex-col items-center rounded-xl px-4 py-3 border border-primary-400 bg-white/60 backdrop-blur-sm transition-all duration-200 group hover:bg-primary-800 hover:border-primary-700"
+          className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 border border-primary-400 bg-white/60 backdrop-blur-sm transition-all duration-200 hover:bg-primary-600 hover:border-primary-600 hover:text-white text-primary-600"
         >
-          <div className="flex flex-col items-center gap-2 text-sm text-gray-600 transition-colors group-hover:text-primary-100">
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-              <span className="flex items-center gap-1.5">
-                <Moon size={16} strokeWidth={2} className="text-primary-500 flex-shrink-0 group-hover:text-primary-300 transition-colors" />
-                24/7
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Lock size={16} strokeWidth={2} className="text-primary-500 flex-shrink-0 group-hover:text-primary-300 transition-colors" />
-                Privé
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Heart size={16} strokeWidth={2} className="text-primary-500 flex-shrink-0 group-hover:text-primary-300 transition-colors" />
-                Voor jou
-              </span>
-            </div>
-            <span className="flex items-center gap-1.5">
-              <MessageCircle size={16} strokeWidth={2} className="text-primary-500 flex-shrink-0 group-hover:text-primary-300 transition-colors" />
-              Zeg wat je voelt
-            </span>
-          </div>
-          <span className="mt-2.5 flex items-center gap-2 text-xs text-primary-600 group-hover:text-primary-200 transition-colors border border-primary-400/60 group-hover:border-primary-300 rounded-lg px-3 py-1.5">
-            Meer over Benji
-            <span aria-hidden>→</span>
-          </span>
+          Meer over Benji
+          <span aria-hidden>→</span>
         </button>
       </div>
 
