@@ -98,7 +98,7 @@ export default function KnowledgeBasePage() {
 
   const cleanStreepjes = (text: string) =>
     text
-      .replace(/\s+-\s+/g, ", ")
+      .replace(/\s+[-\u2013\u2014]\s+/g, ", ") // - en – en —
       .replace(/\n-{2,}\s*\n/g, "\n\n")
       .replace(/^\s*-\s+/gm, "• ")
       .replace(/\s{2,}/g, " ")
@@ -453,8 +453,8 @@ export default function KnowledgeBasePage() {
     const questions = allQuestions || [];
     const toUpdate = questions.filter(
       (q) =>
-        /\s+-\s+/.test(q.question) ||
-        /\s+-\s+/.test(q.answer) ||
+        /\s+[-\u2013\u2014]\s+/.test(q.question) ||
+        /\s+[-\u2013\u2014]\s+/.test(q.answer) ||
         /\n-{2,}\s*\n/.test(q.answer)
     );
     if (toUpdate.length === 0) {

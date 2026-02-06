@@ -1,0 +1,402 @@
+[
+  {
+    "question": "Hoe ga ik om met het verlies van mijn broer of zus?",
+    "answer": "Het verlies van een broer of zus is vaak onderschat. Jullie deelden een geschiedenis, jeugd en ouders. Rouw mag er zijn, ook als anderen verwachten dat jij 'sterk' bent voor je ouders. Zoek ruimte voor je eigen verdriet: praat met een vriend, schrijf je gevoelens op, of zoek lotgenotencontact. Het kan helpen om herinneringen te verzamelen of iets te doen dat jullie samen bond.",
+    "category": "Rouw en verlies",
+    "tags": ["broer", "zus", "sibling", "verlies", "rouw", "gezin"],
+    "alternativeQuestions": ["Ik heb mijn broer verloren", "Verlies van zus verwerken", "Hoe rouw ik om mijn sibling?"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe steun ik iemand die een ouder heeft verloren?",
+    "answer": "Wees aanwezig zonder te oordelen. Vraag wat ze nodig hebben in plaats van aan te nemen. Praktische hulp kan enorm helpen: een maaltijd brengen, boodschappen doen, oppassen op kinderen. Blijf na de eerste weken nog contact houden, want dan ebt de aandacht vaak weg. Noem de naam van de overledene, dat helpt om de herinnering levend te houden.",
+    "category": "Rouw en verlies",
+    "tags": ["ouder", "verlies", "steun", "steunen", "nabijheid"],
+    "alternativeQuestions": ["Iemand steunen die ouder verloor", "Hoe help ik iemand met rouw om ouder?"],
+    "priority": 8
+  },
+  {
+    "question": "Is het normaal dat ik me verdoofd voel na een verlies?",
+    "answer": "Ja, gevoelloosheid en verdoving zijn veelvoorkomende reacties op verlies. Je brein beschermt je soms door emoties tijdelijk uit te schakelen. Het kan dagen, weken of maanden duren voordat het gevoel terugkomt. Er is geen verkeerde manier om te rouwen. Als de verdoving heel lang aanhoudt en je dagelijks functioneren belemmert, kan professionele hulp zinvol zijn.",
+    "category": "Emoties",
+    "tags": ["verdoofd", "verdoving", "numb", "emoties", "rouw"],
+    "alternativeQuestions": ["Ik voel me leeg na verlies", "Waarom voel ik niets?", "Emotioneel afgestompt"],
+    "priority": 7
+  },
+  {
+    "question": "Wat is anticipatoire rouw?",
+    "answer": "Anticipatoire rouw is verdriet dat je ervaart voordat iemand overlijdt, bijvoorbeeld bij een terminale ziekte of dementie. Je rouwt om wat komt en om wat al verloren gaat. Dit verdriet is net zo echt als rouw na een overlijden. Sta jezelf toe om dit te voelen, ook als de ander nog leeft. Het kan helpen om nu al herinneringen vast te leggen en belangrijke gesprekken te voeren.",
+    "category": "Rouw en verlies",
+    "tags": ["anticipatoire rouw", "ziekte", "terminal", "dementie", "verwacht verlies"],
+    "alternativeQuestions": ["Rouwen voordat iemand overlijdt", "Verdriet bij terminale ziekte", "Wat is rouw vooraf?"],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met het verlies van een vriend of vriendin?",
+    "answer": "Het verlies van een vriend wordt vaak onderschat. Vrienden kiezen we zelf, ze vormen onze identiteit. Sta jezelf toe te rouwen. Zoek andere vrienden om herinneringen mee te delen. Creëer een ritueel: iets doen dat jullie samen deden, een plek bezoeken die voor jullie belangrijk was. Het gemis blijft, maar wordt met tijd vaak draaglijker.",
+    "category": "Rouw en verlies",
+    "tags": ["vriend", "vriendschap", "verlies", "rouw"],
+    "alternativeQuestions": ["Ik heb mijn beste vriend verloren", "Rouwen om vriendschap", "Verlies van vriendin verwerken"],
+    "priority": 8
+  },
+  {
+    "question": "Waarom voel ik me boos na een verlies?",
+    "answer": "Boosheid is een normale en veelvoorkomende emotie bij rouw. Je kunt boos zijn op de overledene, op jezelf, op anderen, op het leven of op een hogere macht. Boosheid beschermt vaak onderliggende pijn. Sta jezelf toe om boos te zijn zonder er direct iets mee te doen. Sport, schrijven of praten kunnen helpen om de spanning te ontladen. Als de boosheid overweldigend wordt, zoek dan professionele ondersteuning.",
+    "category": "Emoties",
+    "tags": ["boosheid", "woede", "rouw", "emoties"],
+    "alternativeQuestions": ["Ik ben zo boos sinds het verlies", "Waarom voel ik woede bij rouw?", "Boos na overlijden"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe help ik een kind dat iemand heeft verloren?",
+    "answer": "Kinderen rouwen anders dan volwassenen, vaak in korte bursts. Wees eerlijk en gebruik duidelijke taal, vermijd eufemismen. Geef ruimte voor vragen en herhaal uitleg als dat nodig is. Houd routines zoveel mogelijk aan. Laat zien dat verdriet mag en normaal is. Zoek eventueel professionele jeugdhulp of een rouwgroep voor kinderen. Elk kind is anders, volg hun tempo.",
+    "category": "Rouw en verlies",
+    "tags": ["kind", "kinderen", "rouw", "verlies", "opvoeding"],
+    "alternativeQuestions": ["Kind helpen na verlies", "Hoe praat ik met mijn kind over dood?", "Rouw bij kinderen"],
+    "priority": 9
+  },
+  {
+    "question": "Hoe ga ik om met de verjaardag van iemand die is overleden?",
+    "answer": "De verjaardag van de overledene kan zwaar zijn. Plan iets dat bij je past: alleen zijn, met familie samenkomen, een kaars aansteken, iets doen wat ze leuk vonden. Er is geen goed of fout. Sommigen willen de dag vieren, anderen willen hem juist stil voorbij laten gaan. Geef jezelf toestemming om verdrietig te zijn, ook als de dag al jaren geleden is.",
+    "category": "Herinneringen",
+    "tags": ["verjaardag", "herdenking", "sterfdag", "ritueel"],
+    "alternativeQuestions": ["Eerste verjaardag zonder hem/haar", "Hoe herdenk ik iemands verjaardag?", "Verjaardag overledene"],
+    "priority": 8
+  },
+  {
+    "question": "Wat als ik me schuldig voel dat ik nog leef?",
+    "answer": "Overlevingsschuld komt vaak voor na verlies, vooral bij ongevallen of ziekte. Het is menselijk om te denken: waarom zij en niet ik? Deze gevoelens zijn begrijpelijk maar niet rationeel. Je bent niet verantwoordelijk voor wat er gebeurd is. Praat erover met iemand die je vertrouwt of een professional. Het helpt om te erkennen dat leven verdergaan geen verraad is, maar wat de overledene waarschijnlijk voor je gewild had.",
+    "category": "Emoties",
+    "tags": ["schuldgevoel", "overlevingsschuld", "rouw", "emoties"],
+    "alternativeQuestions": ["Waarom leef ik nog en zij niet?", "Schuldig dat ik nog leef", "Overlevingsschuld"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met rouw op mijn werk?",
+    "answer": "Rouw en werk combineren is zwaar. Geef je leidinggevende en naaste collega's een korte uitleg over wat je nodig hebt. Neem de tijd die je kunt. Sommigen vinden afleiding op werk juist helpend. Anderen hebben meer pauzes of kortere dagen nodig. Zet grenzen en bescherm je energie. Collega's weten vaak niet wat ze moeten zeggen, geef hen concrete suggesties als je dat wilt.",
+    "category": "Dagelijks leven",
+    "tags": ["werk", "baan", "rouw", "verlies", "functioneren"],
+    "alternativeQuestions": ["Terug naar werk na verlies", "Rouwen en werken", "Hoe combineer ik rouw met werk?"],
+    "priority": 7
+  },
+  {
+    "question": "Wat zijn rouwgolven?",
+    "answer": "Rouwgolven zijn momenten waarop verdriet plotseling en heftig terugkomt. Een geur, een liedje, een datum of een herinnering kan ze triggeren. Dit is normaal en hoort bij het rouwproces. De golven worden meestal met tijd minder frequent en intens, maar verdwijnen zelden helemaal. Het helpt om te accepteren dat ze er zijn en jezelf de ruimte te geven om ze te doorvoelen.",
+    "category": "Rouw en verlies",
+    "tags": ["rouwgolven", "golven", "verdriet", "triggers"],
+    "alternativeQuestions": ["Waarom komt het verdriet in golven?", "Plotseling verdriet", "Rouwgolven begrijpen"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met het verlies van een grootouder?",
+    "answer": "Het verlies van een opa of oma raakt vaak diep. Zij vertegenwoordigen vaak familiegeschiedenis, warmte en een gevoel van wortels. Sta jezelf toe te rouwen, ook als anderen zeggen dat ze 'oud' waren. Verzamel verhalen van familieleden. Maak een herinneringsdoos of boek. Het kan helpen om tradities voort te zetten die bij hen hoorden. Je rouw is geldig, ongeacht hun leeftijd.",
+    "category": "Rouw en verlies",
+    "tags": ["opa", "oma", "grootouder", "verlies", "familie"],
+    "alternativeQuestions": ["Mijn opa is overleden", "Verlies van oma verwerken", "Rouwen om grootouder"],
+    "priority": 8
+  },
+  {
+    "question": "Wanneer moet ik professionele hulp zoeken bij rouw?",
+    "answer": "Zoek professionele hulp als: het je dagelijks functioneren ernstig belemmert, je geen vooruitgang voelt na maanden, je gedachten aan zelfbeschadiging hebt, je compleet vastloopt, of als je behoefte hebt aan iemand die alleen naar jou luistert. Er is geen te vroeg of te laat. Een rouwtherapeut of psycholoog kan helpen om je verdriet te ordenen en te verwerken. Hulp zoeken is een teken van kracht, niet van zwakte.",
+    "category": "Professionele hulp",
+    "tags": ["therapeut", "hulp", "psycholoog", "wanneer", "professioneel"],
+    "alternativeQuestions": ["Wanneer naar therapeut bij rouw?", "Moet ik hulp zoeken?", "Wanneer professionele rouwbegeleiding?"],
+    "priority": 9
+  },
+  {
+    "question": "Hoe praat ik met iemand die niet over het verlies wil praten?",
+    "answer": "Respecteer hun grenzen. Niet iedereen wil praten, en dat is oké. Laat merken dat je er bent zonder te pushen. Kleine gebaren helpen: aanwezig zijn, iets praktisch doen, af en toe een berichtje. Sommigen verwerken meer door activiteit of stilte. Zeg dat de deur openstaat als ze ooit willen praten. Soms is stille nabijheid de beste steun.",
+    "category": "Rouw en verlies",
+    "tags": ["praten", "communicatie", "grenzen", "steun"],
+    "alternativeQuestions": ["Iemand wil niet praten over verlies", "Hoe help ik iemand die zwijgt?", "Respect voor rouw zonder woorden"],
+    "priority": 8
+  },
+  {
+    "question": "Wat is verlies na zelfdoding?",
+    "answer": "Verlies na zelfdoding is vaak complex. Naast verdriet kunnen schuld, schaamte, boosheid en onbegrip spelen. Er zijn geen eenvoudige antwoorden. Het is normaal om van alles te voelen. Zoek lotgenotencontact, bijvoorbeeld via 113 of specifieke rouwgroepen. Professionele begeleiding kan helpen om de intense emoties te verwerken. Je bent niet alleen.",
+    "category": "Rouw en verlies",
+    "tags": ["zelfdoding", "suicide", "complexe rouw", "113"],
+    "alternativeQuestions": ["Iemand verloren door zelfdoding", "Rouwen na suicide", "Verlies door zelfmoord verwerken"],
+    "priority": 9
+  },
+  {
+    "question": "Hoe ga ik om met de bezittingen van iemand die is overleden?",
+    "answer": "Het opruimen van spullen is emotioneel zwaar. Er is geen haast. Doe het in je eigen tempo. Bewaar wat betekenisvol is en geef weg wat je kunt missen. Sommige families verdelen samen, anderen doen het alleen. Een herinneringsdoos met een paar dierbare voorwerpen kan troost bieden. Het is oké om dingen te bewaren of juist weg te doen, wat bij jou past.",
+    "category": "Herinneringen",
+    "tags": ["spullen", "opruimen", "bezittingen", "nalatenschap"],
+    "alternativeQuestions": ["Spullen van overledene opruimen", "Wanneer moet ik zijn/haar spullen wegdoen?", "Bezittingen verwerken"],
+    "priority": 7
+  },
+  {
+    "question": "Waarom kan ik me niet concentreren sinds het verlies?",
+    "answer": "Concentratieproblemen zijn heel normaal bij rouw. Je brein verwerkt veel en heeft minder ruimte over. Geef jezelf geduld. Maak lijstjes, zet herinneringen, vraag anderen om te helpen. Vermijd grote beslissingen als dat kan. Het verbetert meestal met tijd. Als het erg lang duurt of je werk ernstig belemmert, kan het helpen om dit met een arts of therapeut te bespreken.",
+    "category": "Dagelijks leven",
+    "tags": ["concentratie", "brein", "mist", "rouw"],
+    "alternativeQuestions": ["Ik kan me niet concentreren", "Hersenen werken niet na verlies", "Rouw en concentratie"],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met Kerst na een verlies?",
+    "answer": "Feestdagen kunnen extra zwaar zijn. Beslis wat bij jou past: tradities voortzetten, aanpassen of overslaan. Er is geen verplichting om te vieren. Je mag verdrietig zijn. Sommigen vinden een plek aan tafel of een kaars voor de overledene fijn. Vertel anderen wat je nodig hebt. Het is oké om af te zeggen of eerder te vertrekken. Doe wat voor jou werkt.",
+    "category": "Feestdagen",
+    "tags": ["Kerst", "feestdagen", "verlies", "eerste kerst"],
+    "alternativeQuestions": ["Eerste Kerst zonder hem/haar", "Kerst vieren na verlies", "Feestdagen zonder dierbare"],
+    "priority": 8
+  },
+  {
+    "question": "Is het normaal dat ik droom over de overledene?",
+    "answer": "Ja, dromen over de overledene zijn heel normaal. Soms zijn ze troostend, soms verwarrend of pijnlijk. Je brein verwerkt het verlies ook in je slaap. Sommigen zien het als een manier van contact. Schrijf dromen op als je dat helpt. Er is geen goede of foute manier om ze te interpreteren. Als dromen je nachtrust ernstig verstoren, kan het helpen om dit te bespreken met een professional.",
+    "category": "Herinneringen",
+    "tags": ["dromen", "slaap", "overledene", "herinneringen"],
+    "alternativeQuestions": ["Ik droom over de overledene", "Dromen over iemand die dood is", "Betekenis van rouwdromen"],
+    "priority": 7
+  },
+  {
+    "question": "Hoe steun ik een collega die iemand heeft verloren?",
+    "answer": "Wees kort en oprecht. Zeg bijvoorbeeld: 'Het spijt me zo dat je dit moet doormaken.' Vraag wat je kunt doen. Praktische hulp werkt vaak beter dan vage aanbiedingen. Respecteer hun grenzen: niet iedereen wil op werk over privé praten. Blijf na een paar weken nog eens vragen hoe het gaat. Vermijd adviezen of vergelijkingen met je eigen ervaring tenzij ze ernaar vragen.",
+    "category": "Rouw en verlies",
+    "tags": ["collega", "werk", "steun", "condoleances"],
+    "alternativeQuestions": ["Collega steunen na verlies", "Wat zeg ik tegen rouwende collega?", "Condoleance op werk"],
+    "priority": 8
+  },
+  {
+    "question": "Wat als ik me opluchting voel na een overlijden?",
+    "answer": "Opluchting is een normale reactie, vooral na een lang ziekbed of als iemand veel heeft geleden. Het betekent niet dat je niet van ze hield. Mensen kunnen verdriet en opluchting tegelijk voelen. Schaamte is niet nodig. Het is menselijk om te wensen dat het lijden voorbij is. Praat erover als het je bezighoudt, bij voorkeur met iemand die niet oordeelt.",
+    "category": "Emoties",
+    "tags": ["opluchting", "schuldgevoel", "rouw", "emoties"],
+    "alternativeQuestions": ["Ik voel opluchting na overlijden", "Is het erg dat ik opgelucht ben?", "Gemengde gevoelens bij verlies"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met meerdere verliezen tegelijk?",
+    "answer": "Meerdere verliezen kort na elkaar zijn overweldigend. Je rouw voor verschillende mensen kan door elkaar lopen. Geef jezelf extra tijd en compassie. Het is oké als je niet alles tegelijk kunt verwerken. Zoek steun, professioneel of informeel. Sta jezelf toe om het rustig aan te doen. Er is geen tijdslimiet. Elk verlies mag zijn eigen ruimte krijgen, ook als ze samenvallen.",
+    "category": "Rouw en verlies",
+    "tags": ["meerdere verliezen", "opeenvolgend", "overweldigend"],
+    "alternativeQuestions": ["Meerdere mensen verloren", "Hoe verwerk ik opeenvolgende verliezen?", "Te veel verlies tegelijk"],
+    "priority": 8
+  },
+  {
+    "question": "Waarom slaap ik zo slecht sinds het verlies?",
+    "answer": "Slaapproblemen zijn veelvoorkomend bij rouw. Je hoofd zit vol, emoties zijn heftig. Probeer een vaste structuur: op dezelfde tijd naar bed, schermen vermijden, geen cafeïne laat. Schrijf voor het slapen zorgen of gedachten op. Rust en meditatie kunnen helpen. Als het lang aanhoudt, bespreek het met je huisarts. Slaapgebrek verergert rouw, dus het is belangrijk om hiermee aan de slag te gaan.",
+    "category": "Dagelijks leven",
+    "tags": ["slaap", "insomnie", "rouw", "rust"],
+    "alternativeQuestions": ["Ik kan niet slapen sinds het verlies", "Slaapproblemen door rouw", "Rusteloos na overlijden"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met het verlies van mijn partner?",
+    "answer": "Partnerverlies verandert je hele leven. Je verliest niet alleen een persoon, maar ook een dagelijkse aanwezigheid, toekomstplannen en rol. Rouw mag alle ruimte krijgen. Praktische zaken kunnen overweldigend zijn, vraag om hulp. Er is geen tijdlijn. Sommigen hebben jaren nodig. Zoek lotgenotencontact of professionele begeleiding als dat helpt. Kleine stappen zijn genoeg.",
+    "category": "Rouw en verlies",
+    "tags": ["partner", "echtgenoot", "weduwe", "weduwnaar", "verlies"],
+    "alternativeQuestions": ["Mijn partner is overleden", "Weduwe worden", "Verlies van echtgenoot verwerken"],
+    "priority": 9
+  },
+  {
+    "question": "Wat als mijn omgeving zegt dat ik moet loslaten?",
+    "answer": "Loslaten is geen verplichting. Iedereen rouwt anders en in eigen tempo. Die band blijft bestaan, ook na de dood. Wat anderen bedoelen is soms: we willen dat je weer functioneert. Leg uit dat rouw geen switch is die je omzet. Vraag om geduld. Zoek mensen die wel begrijpen. Jij bepaalt hoe en wanneer je verder gaat. Hun ongemak met jouw verdriet is hun probleem, niet het jouwe.",
+    "category": "Rouw en verlies",
+    "tags": ["loslaten", "omgeving", "verwachtingen", "grenzen"],
+    "alternativeQuestions": ["Ze zeggen dat ik moet loslaten", "Omgeving begrijpt me niet", "Druk om over verlies heen te komen"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe kan ik de naam van de overledene noemen zonder ongemak?",
+    "answer": "Het noemen van de naam van de overledene is vaak troostend voor rouwenden. Anderen vermijden de naam soms uit angst om pijn te doen, maar dat kan juist eenzaamheid vergroten. Als je iemand steunt: noem de naam gerust. Als jij rouwt: zeg tegen anderen dat je het fijn vindt als ze de naam noemen. 'Mijn moeder' of 'Jan' is geen taboe. Het houdt de herinnering levend.",
+    "category": "Rouw en verlies",
+    "tags": ["naam", "noemen", "herinnering", "communicatie"],
+    "alternativeQuestions": ["Mag ik de naam van de overledene noemen?", "Hoe praat ik over iemand die dood is?", "Naam noemen bij condoleance"],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met verjaardagen en feestdagen het eerste jaar?",
+    "answer": "Het eerste jaar is vaak het zwaarst: elke feestdag en verjaardag is een 'eerste keer zonder'. Plan vooruit en beslis wat bij je past. Je mag tradities aanpassen of overslaan. Vertel familie en vrienden wat je nodig hebt. Sommigen doen iets speciaals ter herdenking. Er is geen goede manier. Geef jezelf toestemming om het moeilijk te vinden. Het wordt meestal met de jaren iets makkelijker.",
+    "category": "Feestdagen",
+    "tags": ["eerste jaar", "feestdagen", "verjaardag", "mijlpalen"],
+    "alternativeQuestions": ["Eerste jaar na verlies", "Feestdagen eerste keer zonder", "Mijlpalen na overlijden"],
+    "priority": 8
+  },
+  {
+    "question": "Wat is de nieuwe normaal na een verlies?",
+    "answer": "De 'nieuwe normaal' betekent dat het leven nooit meer wordt zoals voorheen, maar dat je geleidelijk een manier vindt om verder te gaan mét het verlies. Het is geen vervanging, maar een integratie. Sommige dingen worden weer makkelijker, andere blijven moeilijk. Er is geen eindpunt. Het gaat om leren leven met het gemis. Dat kan betekenen dat je verdriet meedraagt, maar ook weer plezier kunt ervaren.",
+    "category": "Rouw en verlies",
+    "tags": ["nieuwe normaal", "verder gaan", "leven na verlies"],
+    "alternativeQuestions": ["Wat is leven na verlies?", "Hoe ziet de nieuwe normaal eruit?", "Verder gaan na overlijden"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe steun ik iemand die een kind heeft verloren?",
+    "answer": "Het verlies van een kind is een van de zwaarste verliezen. Er zijn geen woorden die het goedmaken. Wees aanwezig, luister, noem het kind bij naam. Vermijd adviezen over 'beter worden' of 'een volgend kind'. Praktische hulp is waardevol: eten, oppas, boodschappen. Blijf er op de lange termijn zijn. Verjaardagen en sterfdagen zijn extra zwaar. Vraag wat ze nodig hebben en herhaal dat regelmatig.",
+    "category": "Rouw en verlies",
+    "tags": ["kind", "ouder", "verlies kind", "steun"],
+    "alternativeQuestions": ["Ouders steunen die kind verloren", "Hoe help ik bij verlies van baby?", "Condoleance bij kinderverlies"],
+    "priority": 9
+  },
+  {
+    "question": "Waarom huil ik zo veel of juist helemaal niet?",
+    "answer": "Iedereen rouwt anders. Sommige mensen huilen veel, anderen bijna niet. Beide zijn normaal. Huilen is geen maatstaf voor hoe veel je van iemand hield. Verdoving, ontkenning of afstandelijkheid zijn ook valide reacties. Er is geen goede of foute manier. Als je merkt dat je emoties je blokkeren of overweldigen, kan het helpen om daar met iemand over te praten.",
+    "category": "Emoties",
+    "tags": ["huilen", "tranen", "emoties", "rouw"],
+    "alternativeQuestions": ["Waarom huil ik zoveel?", "Ik kan niet huilen", "Geen tranen bij rouw"],
+    "priority": 8
+  },
+  {
+    "question": "Wat als ik me eenzaam voel in mijn rouw?",
+    "answer": "Eenzaamheid in rouw komt vaak voor. Anderen kunnen niet voelen wat jij voelt. Zoek lotgenoten: rouwgroepen, online forums, of mensen die hetzelfde hebben meegemaakt. Soms helpt één begripvol persoon meer dan een hele kring. Benji is er om naar je te luisteren. Eenzaamheid vermindert vaak als je je verhaal deelt, op welke manier dan ook.",
+    "category": "Eenzaamheid",
+    "tags": ["eenzaam", "alleen", "rouw", "lotgenoten"],
+    "alternativeQuestions": ["Ik voel me zo alleen in mijn verdriet", "Niemand begrijpt mijn rouw", "Eenzaam na verlies"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe kan creativiteit helpen bij rouw?",
+    "answer": "Tekenen, schilderen, muziek maken, schrijven of andere creatieve uitingen kunnen helpen om emoties te verwerken die moeilijk in woorden te vangen zijn. Je hoeft niet goed te zijn, het gaat om het doen. Een dagboek, een lied, een herinneringsboek, of gewoon krabbelen kan troost bieden. Creativiteit geeft ruimte aan wat je vanbinnen voelt. Er is geen verkeerde manier.",
+    "category": "Herinneringen",
+    "tags": ["creativiteit", "schilderen", "muziek", "schrijven", "rouw"],
+    "alternativeQuestions": ["Kunst en rouw", "Schilderen na verlies", "Creatief rouwen"],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met het plotselinge verlies van iemand?",
+    "answer": "Plotseling verlies (ongeval, hartstilstand, etc.) kan extra shock en ongeloof veroorzaken. Er was geen tijd om afscheid te nemen of voor te bereiden. Geef je brein tijd om het te verwerken. Praat over wat er gebeurd is als dat helpt. Schok en ontkenning zijn normale eerste reacties. Zoek steun bij mensen die je vertrouwt. Professionele hulp kan zinvol zijn bij trauma of PTSS-achtige klachten.",
+    "category": "Rouw en verlies",
+    "tags": ["plotseling", "ongeluk", "schok", "trauma"],
+    "alternativeQuestions": ["Plotseling overlijden verwerken", "Geen afscheid kunnen nemen", "Verlies door ongeval"],
+    "priority": 9
+  },
+  {
+    "question": "Wat zijn secundaire verliezen?",
+    "answer": "Secundaire verliezen zijn verliezen die volgen op het primaire verlies. Bijvoorbeeld: je verliest een partner en daarmee ook je rol als echtgenoot, je financiële situatie, je sociale kring, of toekomstplannen. Deze verliezen maken rouw complexer. Het is normaal om ook hierover te rouwen. Benoem wat je bent kwijtgeraakt. Elk verlies mag erkend worden.",
+    "category": "Rouw en verlies",
+    "tags": ["secundaire verliezen", "verlies", "rol", "identiteit"],
+    "alternativeQuestions": ["Wat zijn nevenverliezen bij rouw?", "Alles kwijt na overlijden", "Secundaire rouw"],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met jaloezie naar anderen toe?",
+    "answer": "Jaloezie of ergernis naar mensen die nog wel hun dierbare hebben is begrijpelijk. Het is geen slechtheid, maar pijn. Je mist wat zij nog hebben. Sta jezelf toe om dit te voelen zonder er naar te handelen. Vergelijken met anderen helpt zelden. Focus op wat jij nodig hebt. Als de gevoelens overweldigend worden, kan het helpen om erover te praten.",
+    "category": "Emoties",
+    "tags": ["jaloezie", "vergelijk", "emoties", "rouw"],
+    "alternativeQuestions": ["Ik ben jaloers op anderen", "Waarom hebben zij hun ouders nog?", "Jaloezie na verlies"],
+    "priority": 7
+  },
+  {
+    "question": "Hoe kan beweging helpen bij rouw?",
+    "answer": "Bewegen kan helpen om spanning en overweldigende emoties te ontladen. Wandelen, fietsen, yoga of sporten brengen je uit je hoofd en in je lichaam. Je hoeft niet intens te trainen. Korte wandelingen zijn al waardevol. Frisse lucht en natuur versterken het effect. Beweging is geen vervanging voor rouwen, maar kan je ondersteunen in het proces.",
+    "category": "Dagelijks leven",
+    "tags": ["bewegen", "sport", "wandelen", "rouw", "lichaam"],
+    "alternativeQuestions": ["Sporten na verlies", "Wandelen en rouw", "Beweging bij verdriet"],
+    "priority": 7
+  },
+  {
+    "question": "Wat als ik me schuldig voel omdat ik weer lach?",
+    "answer": "Plezier of lachen na een verlies betekent niet dat je de overledene vergeet of niet meer van ze hield. Verdriet en vreugde kunnen naast elkaar bestaan. De meeste overledenen zouden willen dat je weer geluk vindt. Schuldgevoel is begrijpelijk maar niet nodig. Sta jezelf toe om momenten van lichtheid te ervaren. Rouwen hoeft niet 24/7 te zijn.",
+    "category": "Emoties",
+    "tags": ["schuldgevoel", "lachen", "plezier", "rouw"],
+    "alternativeQuestions": ["Mag ik weer lachen?", "Schuldig dat ik me goed voel", "Plezier na verlies"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met onverwerkte rouw uit het verleden?",
+    "answer": "Rouw die je vroeger niet kon of mocht voelen, kan later alsnog naar boven komen. Dat is normaal. Geef het de ruimte nu. Praten, schrijven of professionele begeleiding kunnen helpen. Er is geen te laat. Het feit dat het nu komt, betekent dat je er klaar voor bent. Behandel jezelf met geduld. Verwerken is geen race.",
+    "category": "Rouw en verlies",
+    "tags": ["uitgestelde rouw", "verleden", "onverwerkt", "trauma"],
+    "alternativeQuestions": ["Oude rouw komt terug", "Rouwen om verleden verlies", "Uitgesteld verdriet"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe kan ik een brief schrijven aan de overledene?",
+    "answer": "Een brief schrijven aan de overledene kan heel helend zijn. Je kunt zeggen wat je niet hebt kunnen zeggen, spijt uiten, dankbaarheid tonen, of gewoon vertellen hoe het nu met je gaat. Er is geen goed of fout. Je hoeft de brief niet te versturen of te bewaren. Het gaat om het proces. Sommigen lezen de brief hardop bij het graf of verbranden hem als ritueel. Doe wat bij je past.",
+    "category": "Herinneringen",
+    "tags": ["brief", "schrijven", "afscheid", "ritueel"],
+    "alternativeQuestions": ["Brief aan overledene schrijven", "Wat ik nog wilde zeggen", "Schrijven aan iemand die dood is"],
+    "priority": 8
+  },
+  {
+    "question": "Wat als mijn partner anders rouwt dan ik?",
+    "answer": "Partners rouwen vaak op verschillende manieren en in ander tempo. De een wil praten, de ander niet. De een wil herinneringen ophalen, de ander vermijdt het. Beide manieren zijn geldig. Communiceer over wat jullie nodig hebben. Geef elkaar ruimte. Probeer niet te oordelen. Soms helpt een gesprek met een relatietherapeut of rouwbegeleider om elkaars proces te begrijpen.",
+    "category": "Rouw en verlies",
+    "tags": ["partner", "relatie", "rouw", "verschillen"],
+    "alternativeQuestions": ["Partner rouwt anders", "Rouw en relatie", "Samen rouwen met partner"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe steun ik iemand op afstand die rouwt?",
+    "answer": "Ook op afstand kun je steun bieden. Stuur regelmatig een berichtje of kaart. Bel op vaste momenten. Vraag wat ze nodig hebben. Praktische hulp: bestel eten, regel een cadeau, stuur bloemen. Blijf in de weken en maanden erna contact houden. Juist als de eerste aandacht weg is, voelen mensen zich vaak het meest alleen. Kleine gebaren maken een groot verschil.",
+    "category": "Rouw en verlies",
+    "tags": ["afstand", "steun", "contact", "bereikbaar"],
+    "alternativeQuestions": ["Iemand steunen die ver weg woont", "Condoleance op afstand", "Contact houden bij rouw"],
+    "priority": 8
+  },
+  {
+    "question": "Wat als eten moeilijk is sinds het verlies?",
+    "answer": "Eetproblemen bij rouw komen vaak voor. Smaak verdwijnt soms, of je hebt geen trek. Probeer kleine, lichte maaltijden. Eet met anderen als dat helpt. Vermijd alcohol en cafeïne overdreven. Als het lang aanhoudt en je gewicht verliest, bespreek het met je huisarts. Goede voeding ondersteunt je lichaam en geest in een zware tijd.",
+    "category": "Dagelijks leven",
+    "tags": ["eten", "eetlust", "voeding", "rouw"],
+    "alternativeQuestions": ["Geen eetlust na verlies", "Ik kan niet eten", "Voeding en rouw"],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met verlies tijdens de zwangerschap?",
+    "answer": "Verlies tijdens zwangerschap (miskraam, stilgeboren kind) is intens en wordt vaak onderschat. Jouw verdriet is geldig, ongeacht hoe ver de zwangerschap was. Zoek steun bij je partner, familie of een professional. Lotgenotencontact kan helpen. Sta jezelf toe te rouwen. Er is geen tijdslimiet. Sommigen vinden troost in een ritueel of herdenking. Je bent niet alleen.",
+    "category": "Rouw en verlies",
+    "tags": ["zwangerschap", "miskraam", "stilgeboren", "verlies"],
+    "alternativeQuestions": ["Zwangerschapsverlies verwerken", "Stilgeboren kind", "Verlies tijdens zwanger zijn"],
+    "priority": 9
+  },
+  {
+    "question": "Waarom triggert een geur of liedje mij zo?",
+    "answer": "Geuren, muziek en andere zintuiglijke prikkels zijn krachtige triggers voor herinneringen. Ze roepen vaak direct emoties en beelden op. Dit is normaal en hoort bij rouw. Het kan even overweldigend zijn. Sta jezelf toe om het te voelen. Sommigen vermijden bepaalde triggers tijdelijk, anderen zoeken ze juist op. Beide zijn oké.",
+    "category": "Herinneringen",
+    "tags": ["triggers", "geur", "muziek", "herinneringen"],
+    "alternativeQuestions": ["Waarom raakt een liedje me zo?", "Geur herinnert aan overledene", "Triggers bij rouw"],
+    "priority": 7
+  },
+  {
+    "question": "Hoe kan ik mijn verdriet een plek geven?",
+    "answer": "Verdriet een plek geven betekent niet dat het weg moet. Het gaat om het integreren van het verlies in je leven. Rituelen kunnen helpen: een herinneringshoek, een vast moment om te denken aan de overledene, of iets doen dat voor hen betekenisvol was. Praat, schrijf, of creëer. Er is geen eindpunt. Het gaat om een manier vinden om mét het gemis te leven.",
+    "category": "Rouw en verlies",
+    "tags": ["plek geven", "verwerken", "integratie", "ritueel"],
+    "alternativeQuestions": ["Verdriet een plek geven", "Hoe verwerk ik het verlies?", "Leven met gemis"],
+    "priority": 8
+  },
+  {
+    "question": "Wat zijn rouwgroepen en hoe werken ze?",
+    "answer": "Rouwgroepen zijn bijeenkomsten met lotgenoten die een soortgelijk verlies hebben meegemaakt. Onder leiding van een begeleider deel je ervaringen. Het helpt om te merken dat je niet alleen bent. Groepen kunnen algemeen zijn of specifiek (bv. verlies kind, partner, ouders). Vraag je huisarts, uitvaartverzorger of zoek online. De eerste keer kan spannend zijn, maar velen vinden het waardevol.",
+    "category": "Professionele hulp",
+    "tags": ["rouwgroep", "lotgenoten", "steun", "samen"],
+    "alternativeQuestions": ["Wat is een rouwgroep?", "Lotgenotencontact bij rouw", "Rouwgroep zoeken"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met het verlies van een oma of opa die mij opvoedde?",
+    "answer": "Als een grootouder je primaire opvoeder was, is het verlies extra zwaar. Je verliest niet alleen een persoon, maar vaak ook een gevoel van thuis en geborgenheid. Je rouw is volledig geldig. Zoek steun bij anderen die dit begrijpen. Herinneringen verzamelen kan troost bieden. Professionele begeleiding kan helpen om dit complexe verlies te verwerken.",
+    "category": "Rouw en verlies",
+    "tags": ["opa", "oma", "grootouder", "opvoeding", "verlies"],
+    "alternativeQuestions": ["Mijn opa/oma die me opvoedde is dood", "Verlies van opvoeder", "Grootouder als ouder verloren"],
+    "priority": 8
+  },
+  {
+    "question": "Wat als ik het gevoel heb dat ik niet mag rouwen?",
+    "answer": "Sommige mensen voelen zich niet gerechtigd om te rouwen: omdat de band complex was, omdat ze niet 'dichtbij' genoeg stonden, of omdat anderen het verlies zwaarder vinden. Maar rouw kent geen regels. Jouw gevoelens zijn geldig. Iedere relatie is uniek. Sta jezelf toe om te voelen wat je voelt. Zoek iemand die je niet veroordeelt. Je verdient steun.",
+    "category": "Emoties",
+    "tags": ["recht op rouw", "mag ik rouwen", "gevoelens", "validatie"],
+    "alternativeQuestions": ["Mag ik rouwen?", "Ik heb geen recht op verdriet", "Complexe relatie en rouw"],
+    "priority": 8
+  },
+  {
+    "question": "Hoe kan ik praktische hulp bieden na een overlijden?",
+    "answer": "Praktische hulp is vaak het meest waardevol. Bied concreet aan: 'Ik breng morgen eten', 'Ik doe de boodschappen', 'Ik pas op de kinderen'. Vage aanbiedingen ('als je iets nodig hebt') worden vaak niet opgepakt. Doe wat je zegt. Houd rekening met wat de persoon zelf wil. Soms is stil aanwezig zijn en de afwas doen meer dan woorden.",
+    "category": "Rouw en verlies",
+    "tags": ["praktisch", "hulp", "steun", "concreet"],
+    "alternativeQuestions": ["Praktische hulp na overlijden", "Wat kan ik doen voor iemand die rouwt?", "Concrete steun bieden"],
+    "priority": 8
+  },
+  {
+    "question": "Wat is gecompliceerde rouw?",
+    "answer": "Gecompliceerde rouw is wanneer het rouwproces vastloopt. De pijn blijft overweldigend, je kunt niet functioneren, en het wordt niet beter met tijd. Het kan samenhangen met trauma, een complexe relatie, of eerdere verliezen. Professionele hulp is dan belangrijk. Een rouwtherapeut of psycholoog kan helpen om de blokkades te begrijpen en weer beweging te krijgen. Er is behandeling mogelijk.",
+    "category": "Professionele hulp",
+    "tags": ["gecompliceerde rouw", "vastlopen", "professionele hulp"],
+    "alternativeQuestions": ["Wanneer is rouw gecompliceerd?", "Rouw die niet overgaat", "Vastgelopen in verdriet"],
+    "priority": 9
+  }
+]

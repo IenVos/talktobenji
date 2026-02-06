@@ -4,7 +4,7 @@ import { HeaderBar } from "@/components/chat/HeaderBar";
 import { FounderLink } from "@/components/chat/FounderLink";
 
 export const metadata: Metadata = {
-  title: "Veelgestelde vragen - Talk To Benji",
+  title: "Veelgestelde vragen · Talk To Benji",
   description: "Antwoorden op veelgestelde vragen over Talk To Benji, Benji de AI-chatbot bij verlies en verdriet",
 };
 
@@ -61,14 +61,7 @@ export default function FaqPage() {
             </ul>
           </FaqItem>
           <FaqItem question="Voor wie is Benji NIET bedoeld?">
-            <p>Benji is niet geschikt als primaire hulp bij:</p>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>Acute crisis of zelfmoordgedachten (bel dan 113: 0800-0113)</li>
-              <li>Ernstige depressie of angststoornissen die professionele behandeling vereisen</li>
-              <li>Trauma&apos;s die gespecialiseerde therapie nodig hebben</li>
-              <li>Situaties waarbij medicatie of klinische zorg noodzakelijk is</li>
-            </ul>
-            <p>Benji kan wel een aanvulling zijn naast professionele hulp, maar vervangt deze nooit.</p>
+            <p>Benji is niet geschikt als primaire hulp bij acute crisis of zelfmoordgedachten (bel 113), ernstige depressie of angst, trauma dat therapie vereist, of situaties waarbij medicatie of klinische zorg nodig is. Benji kan wel een aanvulling zijn naast professionele hulp, maar vervangt deze nooit. Zie de snelle links voor hulp onderaan bij crisis.</p>
           </FaqItem>
         </FaqSection>
 
@@ -150,7 +143,7 @@ export default function FaqPage() {
           </FaqItem>
           <FaqItem question="Kan ik vertrouwen dat mijn verhaal veilig is?">
             <p>
-              Ja. We nemen privacy extreem serieus, juist omdat gesprekken over verlies en verdriet zo gevoelig zijn. We zijn AVG compliant, gebruiken encryptie, en onze servers staan in Europa. Je privacy is onze hoogste prioriteit.
+              Ja. Zie hierboven bij &quot;Zijn mijn gesprekken echt privé?&quot; en &quot;Wie kan mijn gesprekken lezen?&quot;. We nemen privacy extreem serieus, juist omdat gesprekken over verlies en verdriet zo gevoelig zijn.
             </p>
           </FaqItem>
           <FaqItem question="Wat als ik in crisis ben: belt Benji dan de hulpdiensten?">
@@ -363,7 +356,7 @@ export default function FaqPage() {
         <FaqSection title="Veiligheid & Noodsituaties">
           <FaqItem question="Wat als ik zelfmoordgedachten heb?">
             <p>
-              Bel direct 113 Zelfmoordpreventie: 0800-0113 (24/7 gratis). Benji kan luisteren, maar is geen crisis interventie. Bij acute gevaar voor jezelf of anderen moet je professionele hulp bellen. Benji zal je ook aanmoedigen dit te doen als je dit aangeeft in het gesprek.
+              Bel direct 113 Zelfmoordpreventie (0800-0113, 24/7 gratis). Benji kan luisteren maar is geen crisisinterventie. Zie ook &quot;Wat als ik in crisis ben&quot; en de snelle links voor hulp onderaan.
             </p>
           </FaqItem>
           <FaqItem question="Kan Benji voorkomen dat ik iets stoms doe?">
@@ -372,14 +365,10 @@ export default function FaqPage() {
             </p>
           </FaqItem>
           <FaqItem question="Wat als Benji iets zegt dat me slechter doet voelen?">
-            <p>Dat is nooit de bedoeling. Als Benji iets zegt dat niet helpt of pijn doet:</p>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>Zeg het in het gesprek: &quot;Dit helpt niet&quot; of &quot;Dit voelt niet goed&quot;</li>
-              <li>Stop het gesprek als het te veel wordt</li>
-              <li>Meld het via{" "}
-                <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a> zodat we het kunnen onderzoeken</li>
-            </ul>
-            <p>Je welzijn is belangrijker dan het gesprek voortzetten.</p>
+            <p>
+              Zie &quot;Wat als Benji iets zegt dat niet klopt of niet helpt?&quot; in de sectie Hoe het werkt. Hetzelfde geldt: geef het aan in het gesprek, stop als het te veel wordt, of meld het via{" "}
+              <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a>. Je welzijn is belangrijker dan het gesprek voortzetten.
+            </p>
           </FaqItem>
           <FaqItem question="Wordt er gemonitord op gevaarlijke situaties?">
             <p>
@@ -423,7 +412,7 @@ export default function FaqPage() {
                 <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a>
               </li>
               <li>Via het contactformulier op de website</li>
-              <li>We proberen binnen 24-48 uur te reageren</li>
+              <li>We proberen binnen 24 tot 48 uur te reageren</li>
             </ul>
           </FaqItem>
           <FaqItem question="Kan ik suggesties doen om Benji te verbeteren?">
@@ -509,7 +498,7 @@ export default function FaqPage() {
             <div>
               <p className="font-semibold text-gray-900 mb-1">Voor een luisterend oor:</p>
               <ul className="space-y-1 ml-0">
-                <li><strong>MIND Hulplijn</strong>: <a href="tel:09001450" className="text-primary-600 hover:underline">0900-1450</a> (ma-vr 9:00-21:00)</li>
+                <li><strong>MIND Hulplijn</strong>: <a href="tel:09001450" className="text-primary-600 hover:underline">0900-1450</a> (maandag tot vrijdag 9:00 tot 21:00)</li>
                 <li><strong>De Luisterlijn</strong>: <a href="tel:0880767000" className="text-primary-600 hover:underline">088-0767-000</a> (24/7)</li>
               </ul>
             </div>
@@ -517,7 +506,7 @@ export default function FaqPage() {
               <p className="font-semibold text-gray-900 mb-1">Voor specifieke hulp:</p>
               <ul className="space-y-1 ml-0">
                 <li><strong>Slachtofferhulp</strong>: <a href="tel:09000101" className="text-primary-600 hover:underline">0900-0101</a> (na misdrijf, ongeval)</li>
-                <li><strong>Kindertelefoon</strong>: <a href="tel:08000432" className="text-primary-600 hover:underline">0800-0432</a> (voor kinderen 8-18 jaar)</li>
+                <li><strong>Kindertelefoon</strong>: <a href="tel:08000432" className="text-primary-600 hover:underline">0800-0432</a> (voor kinderen 8 tot 18 jaar)</li>
               </ul>
             </div>
           </div>
