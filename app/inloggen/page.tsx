@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 function InloggenForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || "/account/gesprekken";
   const registered = searchParams.get("registered") === "1";
 
   const [email, setEmail] = useState("");

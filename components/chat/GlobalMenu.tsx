@@ -87,7 +87,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       icon: MessagesSquare,
       onClick: () => {
         setOpen(false);
-        router.push("/mijn-gesprekken");
+        router.push("/account/gesprekken");
       },
     },
   ];

@@ -421,6 +421,37 @@ export const submitMessageFeedback = mutation({
 });
 
 /**
+ * Verwijder een gesprek (alleen voor de eigenaar van de sessie)
+ */
+export const deleteUserSession = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) {
+      throw new Error("Gesprek niet gevonden");
+    }
+    if (session.userId !== args.userId) {
+      throw new Error("Je kunt alleen je eigen gesprekken verwijderen");
+    }
+
+    const messages = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+
+    for (const msg of messages) {
+      await ctx.db.delete(msg._id);
+    }
+    await ctx.db.delete(args.sessionId);
+
+    return { success: true };
+  },
+});
+
+/**
  * Update sessie status
  */
 export const updateSessionStatus = mutation({

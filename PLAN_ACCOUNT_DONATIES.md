@@ -67,6 +67,8 @@
 
 ## 4. Stripe donaties
 
+**Betaalmethode:** Stripe (gekozen). Uitwerking volgt later.
+
 - **Stripe Checkout** – Stripe-hosted checkout
 - **`/steun-benji`** – Pagina met korte uitleg + bedragen (bijv. €3, €5, €10, eigen bedrag)
 - Klik op bedrag → redirect naar Stripe Checkout

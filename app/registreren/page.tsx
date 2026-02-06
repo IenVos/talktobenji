@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 function RegistrerenForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl") || "/account/gesprekken";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

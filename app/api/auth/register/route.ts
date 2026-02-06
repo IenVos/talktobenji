@@ -45,12 +45,16 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hash(password, 12);
 
-    const userId = await fetchMutation(api.credentials.createUserWithPassword, {
-      secret: adapterSecret,
-      email: email.trim().toLowerCase(),
-      name: (name || "").trim() || email.trim().split("@")[0],
-      hashedPassword,
-    });
+    const userId = await fetchMutation(
+      api.credentials.createUserWithPassword,
+      {
+        secret: adapterSecret,
+        email: email.trim().toLowerCase(),
+        name: (name || "").trim() || email.trim().split("@")[0],
+        hashedPassword,
+      },
+      { url: convexUrl }
+    );
 
     return NextResponse.json({
       success: true,
@@ -58,8 +62,16 @@ export async function POST(request: NextRequest) {
       email: email.trim().toLowerCase(),
     });
   } catch (error: unknown) {
-    const err = error as { message?: string; data?: unknown };
+    const err = error as { message?: string; data?: unknown; stack?: string };
     const message = err?.message ?? "Onbekende fout";
+
+    if (process.env.NODE_ENV === "development") {
+      console.error("Register Convex error:", {
+        message,
+        data: err?.data,
+        fullError: String(error),
+      });
+    }
 
     if (message.includes("al in gebruik")) {
       return NextResponse.json(
@@ -72,13 +84,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Serverconfiguratie ontbreekt: CONVEX_AUTH_ADAPTER_SECRET moet in .env.local én in Convex Dashboard → Environment Variables staan (zelfde waarde).",
+            "CONVEX_AUTH_ADAPTER_SECRET klopt niet. Zet dezelfde waarde in .env.local én in Convex (npx convex env set CONVEX_AUTH_ADAPTER_SECRET \"waarde\").",
         },
         { status: 500 }
       );
     }
 
-    console.error("Register error:", error);
     return NextResponse.json(
       {
         error:

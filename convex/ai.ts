@@ -104,6 +104,21 @@ interface ClaudeAPIResponse {
   stop_reason: string;
 }
 
+/**
+ * Voeg een lege regel (paragraaf) toe na elke n zinnen.
+ * Zinnen eindigen op . ! ? of …
+ */
+function addParagraphBreaksEveryNSentences(text: string, n: number): string {
+  if (!text?.trim() || n < 1) return text;
+  const sentences = text.split(/(?<=[.!?…])\s+/).filter((s) => s.trim());
+  if (sentences.length <= n) return text.trim();
+  const groups: string[] = [];
+  for (let i = 0; i < sentences.length; i += n) {
+    groups.push(sentences.slice(i, i + n).join(" ").trim());
+  }
+  return groups.join("\n\n").trim();
+}
+
 // ============================================================================
 // HOOFD AI ACTION
 // ============================================================================
@@ -273,6 +288,13 @@ ZINFORMATIE (per bericht, niet over de hele chat): In elk antwoord dat je geeft:
         });
       }
 
+      // Max 4 zinnen per paragraaf: voeg spatie (lege regel) toe na elke 4 zinnen
+      try {
+        aiResponse = addParagraphBreaksEveryNSentences(aiResponse, 4);
+      } catch (_) {
+        // Bij fout in paragraaf-logica: origineel antwoord behouden
+      }
+
       const responseTime = Date.now() - startTime;
 
       // STAP 6: Sla bot antwoord op
@@ -299,20 +321,17 @@ ZINFORMATIE (per bericht, niet over de hele chat): In elk antwoord dat je geeft:
       console.error("Error in handleUserMessage:", errMsg);
       if (errStack) console.error(errStack);
 
-      // Detecteer taal voor error bericht
-      const isEnglishError = /^[A-Za-z]/.test(args.userMessage.trim());
-      const errorMessage = isEnglishError
-        ? "I'm sorry, something went wrong. Please try again or contact support."
-        : "Het spijt me, er is iets misgegaan. Probeer het opnieuw of neem contact op met support.";
+      // Error bericht in Nederlands (Talk To Benji is NL-app)
+      const errorMessage = "Het spijt me, er is iets misgegaan. Probeer het opnieuw of neem contact op met support.";
 
-      // Sla error antwoord op
+      // Sla error antwoord op (bewaar echte fout in metadata voor debugging)
       await ctx.runMutation(api.chat.sendBotMessage, {
         sessionId: args.sessionId,
         content: errorMessage,
         isAiGenerated: false,
         confidenceScore: 0,
         generationMetadata: {
-          error: error.message,
+          error: errMsg,
         },
       });
 
