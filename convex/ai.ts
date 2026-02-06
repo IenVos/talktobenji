@@ -142,11 +142,14 @@ export const handleUserMessage = action({
 
       const isEnglish = /^[A-Za-z]/.test(args.userMessage.trim());
       const emptyKbMessage = isEnglish
-        ? "There is no information in the knowledge base yet. Add Q&As via the admin panel (/admin/knowledge) to answer questions."
-        : "Er is nog geen informatie in de knowledge base. Voeg Q&A's toe via het admin panel (/admin/knowledge) om vragen te kunnen beantwoorden.";
+        ? "There is no information in the knowledge base yet. Add Knowledge and Q&As via the admin panel (/admin) to answer questions."
+        : "Er is nog geen kennis geconfigureerd. Voeg Knowledge en Q&A's toe via het admin panel (/admin) om vragen te kunnen beantwoorden.";
 
-      // Lege knowledge base én geen bronnen → duidelijke melding
-      if (knowledgeBaseQuestions.length === 0 && (!sources || sources.length === 0)) {
+      const hasKnowledge = (settings?.knowledge || "").trim().length > 0;
+      const hasSources = sources && sources.length > 0;
+
+      // Geen kennis: geen Admin Knowledge, geen Q&As, geen bronnen → duidelijke melding
+      if (!hasKnowledge && knowledgeBaseQuestions.length === 0 && !hasSources) {
         const botMessageIdEmpty = await ctx.runMutation(api.chat.sendBotMessage, {
           sessionId: args.sessionId,
           content: emptyKbMessage,
@@ -212,10 +215,19 @@ export const handleUserMessage = action({
               .join("\n\n---\n\n")
           : "";
 
-      let knowledgeCombined = knowledgeFromKb;
-      if (knowledgeFromSources) {
-        knowledgeCombined += (knowledgeFromKb ? "\n\n" : "") + "## Aanvullende bronnen (PDF's, websites)\n\n" + knowledgeFromSources;
+      // Combineer: 1) algemene kennis uit Admin, 2) Q&A knowledge base, 3) RAG-bronnen
+      const knowledgeFromSettings = (settings?.knowledge || "").trim();
+      const parts: string[] = [];
+      if (knowledgeFromSettings) {
+        parts.push("## Algemene kennis en context\n\n" + knowledgeFromSettings);
       }
+      if (knowledgeFromKb) {
+        parts.push((parts.length ? "\n\n" : "") + "## Knowledge base (Q&A's)\n\n" + knowledgeFromKb);
+      }
+      if (knowledgeFromSources) {
+        parts.push((parts.length ? "\n\n" : "") + "## Aanvullende bronnen (PDF's, websites)\n\n" + knowledgeFromSources);
+      }
+      const knowledgeCombined = parts.join("");
 
       const onlyFromKbRule = isEnglish
         ? "IMPORTANT: Use the knowledge base below first to answer. If the answer is not in the knowledge base, you may use the additional sources (PDFs, URLs) to distill an answer. If neither contains the answer, say clearly that you cannot answer and suggest adding the topic. In that case only, end your response with exactly [UNANSWERED] (nothing else after it) so we can track these questions."
