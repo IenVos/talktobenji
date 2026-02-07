@@ -179,10 +179,21 @@ export const handleUserMessage = action({
         };
       }
 
-      // STAP 3: Haal conversatie geschiedenis op (laatste 3 berichten - agressief verlaagd voor rate limits)
+      // STAP 3: Haal conversatie geschiedenis op (dynamisch op basis van gesprekslengte)
+      // Haal eerst alle berichten op om lengte te bepalen
+      const allMessagesForCount = await ctx.runQuery(api.chat.getMessages, {
+        sessionId: args.sessionId,
+        limit: 100, // Haal meer op om lengte te bepalen
+      });
+      const messageCount = (allMessagesForCount || []).length;
+      
+      // Dynamische limieten: bij langere gesprekken agressiever reduceren
+      const historyLimit = messageCount > 10 ? 2 : 3; // Bij >10 berichten: alleen laatste 2
+      const charLimit = messageCount > 10 ? 500 : 800; // Bij >10 berichten: kortere berichten
+      
       const messages = await ctx.runQuery(api.chat.getMessages, {
         sessionId: args.sessionId,
-        limit: 3, // Verlaagd naar 3 om tokens te besparen
+        limit: historyLimit + 1, // +1 omdat we het laatste bericht excluden
       });
 
       // Converteer naar Claude formaat en limiter lengte per bericht
@@ -190,13 +201,22 @@ export const handleUserMessage = action({
         .slice(0, -1) // Exclude het laatste bericht (dat is de nieuwe user message)
         .map((m: { role: string; content: string }) => ({
           role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
-          content: m.content.slice(0, 800), // Max 800 karakters per bericht (verlaagd voor rate limits)
+          content: m.content.slice(0, charLimit), // Dynamische karakter limiet
         }))
         .filter(m => m.content.trim().length > 0); // Verwijder lege berichten
 
       // STAP 4: Filter relevante knowledge base vragen - ALLEEN als er een goede match is
       const userMessageLower = args.userMessage.toLowerCase().trim();
       const userWords = userMessageLower.split(/\s+/).filter(w => w.length > 2);
+      
+      // Detecteer of gebruiker expliciet om een tip/advies vraagt
+      const isAskingForTip = userMessageLower.includes("tip") || 
+                             userMessageLower.includes("advies") || 
+                             userMessageLower.includes("suggestie") || 
+                             userMessageLower.includes("idee") ||
+                             userMessageLower.includes("wat kan helpen") ||
+                             userMessageLower.includes("wat zou kunnen helpen") ||
+                             userMessageLower.includes("kun je") && (userMessageLower.includes("geven") || userMessageLower.includes("helpen"));
       
       const scoredQuestions = allKnowledgeBaseQuestions.map((q: {
         question: string;
@@ -284,21 +304,27 @@ export const handleUserMessage = action({
       // STAP 6: Sources voorbereiden (worden alleen gebruikt als er geen excellent KB matches zijn)
 
       // NIEUWE STRATEGIE: Gebruik knowledge base ALLEEN als er een EXCELLENTE match is
-      // Anders: alleen algemene kennis (veel minder tokens)
+      // Bij langere gesprekken (>10 berichten): nog agressiever reduceren
       const knowledgeFromSettings = (settings?.knowledge || "").trim();
       const parts: string[] = [];
       
-      // Altijd: algemene kennis (max 4000 karakters - verlaagd voor rate limits)
+      // Dynamische limieten op basis van gesprekslengte
+      const settingsLimit = messageCount > 10 ? 2500 : 4000;
+      // Verlaag threshold als gebruiker expliciet om tip vraagt (meer kennis beschikbaar maken)
+      const baseKbThreshold = messageCount > 10 ? 25 : 20;
+      const kbThreshold = isAskingForTip ? Math.max(10, baseKbThreshold - 10) : baseKbThreshold; // Lagere threshold bij tip-verzoek
+      const kbMaxMatches = isAskingForTip ? (messageCount > 10 ? 3 : 5) : (messageCount > 10 ? 2 : 3); // Meer matches bij tip-verzoek
+      
+      // Altijd: algemene kennis (dynamische limiet)
       if (knowledgeFromSettings) {
-        const limitedSettings = knowledgeFromSettings.slice(0, 4000);
+        const limitedSettings = knowledgeFromSettings.slice(0, settingsLimit);
         parts.push("## Algemene kennis en context\n" + limitedSettings);
       }
       
-      // Knowledge base: ALLEEN als er een EXCELLENTE match is (score >= 20, niet 15)
-      // En max 3 Q&As (verlaagd van 5)
+      // Knowledge base: ALLEEN als er een EXCELLENTE match is (dynamische threshold)
       const excellentMatches = sortedQuestions
-        .filter(q => q.score >= 20) // Hogere threshold voor excellent matches
-        .slice(0, 3); // Max 3 excellent matches
+        .filter(q => q.score >= kbThreshold) // Dynamische threshold
+        .slice(0, kbMaxMatches); // Dynamisch aantal matches
       
       if (excellentMatches.length > 0) {
         // Bouw knowledge base alleen voor excellent matches
@@ -337,11 +363,12 @@ export const handleUserMessage = action({
         parts.push((parts.length ? "\n" : "") + "## Aanvullende bronnen (PDF's, websites)\n" + limitedSources);
       }
       
-      // Totale limiet: max 8000 karakters (verlaagd voor rate limits)
+      // Dynamische totale limiet: bij langere gesprekken nog agressiever
+      const totalKnowledgeLimit = messageCount > 10 ? 5000 : 8000;
       let knowledgeCombined = parts.join("");
-      if (knowledgeCombined.length > 8000) {
+      if (knowledgeCombined.length > totalKnowledgeLimit) {
         // Verkort proportioneel
-        const ratio = 8000 / knowledgeCombined.length;
+        const ratio = totalKnowledgeLimit / knowledgeCombined.length;
         knowledgeCombined = parts.map(p => {
           const targetLength = Math.floor(p.length * ratio);
           return p.slice(0, targetLength);
@@ -417,10 +444,17 @@ CONTROLE:
         : "GEEN HERHALING: Herhaal niet dezelfde woorden, zinnen of ideeën in opeenvolgende berichten. Varieer je taalgebruik. Als je al iets gevraagd of genoemd hebt, herhaal het dan niet op dezelfde manier. Gebruik synoniemen en verschillende formuleringen. Houd antwoorden fris en gevarieerd.";
 
       const conversationStyleRule = isEnglish
-        ? "CONVERSATION STYLE: Give empathetic, specific responses. Don't ask multiple vague questions in a row. When someone shares something difficult, acknowledge it first before asking questions. Be concrete and specific, not generic. If you ask a question, make it one clear, specific question that builds on what they just said. Avoid generic questions like 'What helps you?' or 'What gives you space?' - be more specific based on the context."
+        ? "CONVERSATION STYLE: Give empathetic, specific responses. Don't ask multiple vague questions in a row. When someone shares something difficult, acknowledge it first before asking questions. Be concrete and specific, not generic. If you ask a question, make it one clear, specific question that builds on what they just said. Avoid generic questions like 'What helps you?' or 'What gives you space?' - be more specific based on the context. IMPORTANT: When someone explicitly asks for a tip or suggestion (e.g., 'can you give a tip', 'what can help', 'do you have advice'), provide a concrete tip or suggestion based on the knowledge base or general knowledge. Do NOT respond by asking another question - give actual helpful advice."
         : `GESPREKSSTIJL: Geef empathische, specifieke antwoorden. Stel niet meerdere vage vragen achter elkaar.
 
 BELANGRIJKE REGELS:
+- Wanneer iemand expliciet om een tip vraagt, geef dan een concrete tip
+  FOUT: Gebruiker vraagt "kun jij een tip geven" → "Wat speelt er voor jou?" (opnieuw vragen)
+  GOED: Gebruiker vraagt "kun jij een tip geven" → "Soms helpt het om kleine momenten te creëren die je aandacht geven. Bijvoorbeeld: een korte wandeling, iemand bellen, of iets doen wat je vroeger plezier gaf. Wat past bij jou?" (concrete tip geven)
+  
+  Als je kennis hebt in de knowledge base over het onderwerp, gebruik die kennis om concrete tips te geven.
+  Als je geen specifieke kennis hebt, geef dan algemene, praktische suggesties gebaseerd op wat de persoon heeft gedeeld.
+
 - Erken eerst wat de ander zegt voordat je vragen stelt
   FOUT: "Wat helpt voor jou als je je zo voelt. Wat geeft je wat ruimte." (twee vage vragen achter elkaar)
   GOED: "Dat alleen-zijn voelt inderdaad zwaar. Soms helpt het om te bedenken wat je in het verleden heeft geholpen. Is er iets wat je vroeger deed toen je je zo voelde?" (erkenning + één specifieke vraag)
@@ -440,17 +474,56 @@ BELANGRIJKE REGELS:
 
 - Geef context en erkenning, niet alleen vragen
   FOUT: Direct vragen stellen zonder erkenning
-  GOED: Eerst erkennen wat ze zeiden, dan één specifieke vraag stellen`;
+  GOED: Eerst erkennen wat ze zeiden, dan één specifieke vraag stellen
+  
+- BELANGRIJK: Bij verzoeken om tips/advies, geef concrete suggesties
+  Als iemand vraagt om een tip, advies, of suggestie, geef dan concrete, praktische hulp gebaseerd op:
+  1. De knowledge base (als er relevante kennis is)
+  2. Algemene kennis over het onderwerp
+  3. Wat de persoon al heeft gedeeld in het gesprek
+  Vraag NIET opnieuw "Wat speelt er voor jou?" wanneer iemand al om hulp heeft gevraagd.`;
 
       const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, conversationStyleRule].filter(Boolean).join("\n\n");
 
-      // STAP 5: Genereer AI response
-      let aiResponse = await callClaudeAPI(
-        args.userMessage,
-        knowledgeCombined,
-        rules,
-        conversationHistory
-      );
+      // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
+      let aiResponse: string;
+      try {
+        aiResponse = await callClaudeAPI(
+          args.userMessage,
+          knowledgeCombined,
+          rules,
+          conversationHistory
+        );
+      } catch (error: any) {
+        // Fallback: bij 503 overflow of 400 errors, probeer opnieuw met minimale context
+        const errorMsg = error?.message || String(error);
+        if ((errorMsg.includes("503") && errorMsg.includes("overflow")) || 
+            (errorMsg.includes("400") && (errorMsg.includes("too large") || errorMsg.includes("token") || errorMsg.includes("context_length")))) {
+          console.log("503/400 error gedetecteerd, probeer opnieuw met minimale context...");
+          
+          // Probeer opnieuw met alleen minimale kennis (geen KB, geen sources, kortere history)
+          const minimalKnowledge = knowledgeFromSettings ? knowledgeFromSettings.slice(0, 2000) : "";
+          const minimalHistory = conversationHistory.slice(-1); // Alleen laatste bericht
+          const minimalRules = rules.slice(0, 1500); // Kortere rules
+          
+          try {
+            aiResponse = await callClaudeAPI(
+              args.userMessage,
+              minimalKnowledge,
+              minimalRules,
+              minimalHistory
+            );
+            console.log("Fallback succesvol - antwoord gegenereerd met minimale context");
+          } catch (fallbackError: any) {
+            // Als fallback ook faalt, gooi originele error
+            console.error("Fallback ook gefaald:", fallbackError);
+            throw error;
+          }
+        } else {
+          // Bij andere errors, gooi door
+          throw error;
+        }
+      }
 
       // Detecteer onbeantwoorde vragen: AI plaatst [UNANSWERED] aan het einde
       const unansweredMarker = "[UNANSWERED]";
@@ -513,6 +586,14 @@ BELANGRIJKE REGELS:
         // Corrigeer "als dat stilte er is" → "als die stilte er is" of "als het stil is"
         aiResponse = aiResponse.replace(/\bals dat stilte er is\b/gi, "als die stilte er is");
         aiResponse = aiResponse.replace(/\bals dat blijheid er is\b/gi, "als die blijheid er is");
+        
+        // "Wat merkt je" → "Wat merk je" (verkeerde werkwoordsvorm)
+        aiResponse = aiResponse.replace(/\bWat merkt je\b/gi, "Wat merk je");
+        aiResponse = aiResponse.replace(/\bwat merkt je\b/gi, "wat merk je");
+        
+        // "Dat alleen-zijn" → "Het alleen-zijn" (verkeerd lidwoord)
+        aiResponse = aiResponse.replace(/\bDat alleen-zijn\b/gi, "Het alleen-zijn");
+        aiResponse = aiResponse.replace(/\bdat alleen-zijn\b/gi, "het alleen-zijn");
         
         // Normaliseer dubbele spaties na verwijderingen
         aiResponse = aiResponse.replace(/\s+/g, " ").trim();
