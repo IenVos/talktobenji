@@ -27,12 +27,22 @@ export default function AccountLayout({
   // Dit kan gebeuren als redirect te snel gaat na login
   useEffect(() => {
     if (status === "unauthenticated" && pathname?.startsWith("/account")) {
-      // Probeer session te refreshen
-      const timer = setTimeout(async () => {
+      // Probeer session te refreshen - meerdere pogingen met toenemende delay
+      const attemptRefresh = async (attempt: number) => {
         await update(); // Refresh session
-        router.refresh(); // Refresh page
-      }, 300);
-      return () => clearTimeout(timer);
+        // Als we na 1 seconde nog steeds niet ingelogd zijn, refresh de pagina
+        if (attempt === 2) {
+          router.refresh(); // Refresh page
+        }
+      };
+      
+      const timer1 = setTimeout(() => attemptRefresh(1), 300);
+      const timer2 = setTimeout(() => attemptRefresh(2), 1000);
+      
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
   }, [status, pathname, router, update]);
 

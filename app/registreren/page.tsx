@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 function RegistrerenForm() {
@@ -55,6 +55,7 @@ function RegistrerenForm() {
       const signInResult = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
+        callbackUrl,
         redirect: false,
       });
 
@@ -65,7 +66,32 @@ function RegistrerenForm() {
         return;
       }
 
-      window.location.href = callbackUrl;
+      // Als login succesvol is, wacht even zodat session cookie wordt ingesteld
+      if (signInResult?.ok) {
+        // Wacht langer en refresh session meerdere keren om zeker te zijn dat cookie is ingesteld
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Probeer session meerdere keren op te halen
+        let session = null;
+        for (let i = 0; i < 3; i++) {
+          session = await getSession();
+          if (session) break;
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        
+        // Gebruik router.push in plaats van window.location voor betere Next.js integratie
+        if (session) {
+          window.location.href = callbackUrl;
+        } else {
+          // Als session nog niet beschikbaar is, wacht nog even en probeer opnieuw
+          await new Promise(resolve => setTimeout(resolve, 500));
+          window.location.href = callbackUrl;
+        }
+        return;
+      }
+
+      // Fallback: als result niet ok is, redirect naar login
+      window.location.href = "/inloggen?registered=1";
     } catch {
       setError("Er ging iets mis. Probeer het opnieuw.");
       setLoading(false);

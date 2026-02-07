@@ -41,12 +41,25 @@ function InloggenForm() {
       
       // Als login succesvol is, wacht even zodat session cookie wordt ingesteld
       if (result?.ok) {
-        // Wacht even en refresh session om zeker te zijn dat cookie is ingesteld
-        await new Promise(resolve => setTimeout(resolve, 200));
-        // Refresh session om zeker te zijn dat deze beschikbaar is
-        await getSession();
-        // Gebruik window.location.replace voor harde redirect (geen back button)
-        window.location.replace(callbackUrl);
+        // Wacht langer en refresh session meerdere keren om zeker te zijn dat cookie is ingesteld
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Probeer session meerdere keren op te halen
+        let session = null;
+        for (let i = 0; i < 3; i++) {
+          session = await getSession();
+          if (session) break;
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        
+        // Gebruik router.push in plaats van window.location voor betere Next.js integratie
+        if (session) {
+          window.location.href = callbackUrl;
+        } else {
+          // Als session nog niet beschikbaar is, wacht nog even en probeer opnieuw
+          await new Promise(resolve => setTimeout(resolve, 500));
+          window.location.href = callbackUrl;
+        }
         return;
       }
       

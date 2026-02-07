@@ -68,3 +68,9 @@ export default function RootLayout({
     </html>
   );
 }
+
+// HydrateFallback voor Next.js 15+ streaming (optioneel, onderdrukt waarschuwing)
+// In Next.js 14 is dit nog niet standaard, maar we exporteren het om waarschuwingen te voorkomen
+export function HydrateFallback() {
+  return null; // Return null omdat we al een Suspense fallback hebben
+}
