@@ -45,10 +45,26 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hash(password, 12);
 
+    // Debug logging - uitgebreid
+    console.log("[Register] Debug - Secret details:");
+    console.log("  - adapterSecret exists?", !!adapterSecret);
+    console.log("  - adapterSecret type:", typeof adapterSecret);
+    console.log("  - adapterSecret length:", adapterSecret?.length || 0);
+    console.log("  - adapterSecret first 15:", adapterSecret?.substring(0, 15) || "N/A");
+    console.log("  - adapterSecret last 10:", adapterSecret?.substring(adapterSecret.length - 10) || "N/A");
+    console.log("  - adapterSecret JSON:", JSON.stringify(adapterSecret?.substring(0, 20)));
+
+    // Zorg ervoor dat secret een string is en geen extra whitespace heeft
+    const cleanSecret = String(adapterSecret || "").trim();
+    
+    console.log("[Register] Clean secret:");
+    console.log("  - cleanSecret length:", cleanSecret.length);
+    console.log("  - cleanSecret first 15:", cleanSecret.substring(0, 15));
+
     const userId = await fetchMutation(
       api.credentials.createUserWithPassword,
       {
-        secret: adapterSecret,
+        secret: cleanSecret, // Gebruik de cleaned secret
         email: email.trim().toLowerCase(),
         name: (name || "").trim() || email.trim().split("@")[0],
         hashedPassword,

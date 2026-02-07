@@ -28,10 +28,34 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password || !adapterSecret) {
+          if (process.env.NODE_ENV === "development") {
+            console.log("[Auth] Missing credentials or adapterSecret:", {
+              hasEmail: !!credentials?.email,
+              hasPassword: !!credentials?.password,
+              hasAdapterSecret: !!adapterSecret,
+            });
+          }
           return null;
         }
+        
+        // Debug logging - uitgebreid
+        console.log("[Auth] Debug authorize - Secret details:");
+        console.log("  - adapterSecret exists?", !!adapterSecret);
+        console.log("  - adapterSecret type:", typeof adapterSecret);
+        console.log("  - adapterSecret length:", adapterSecret?.length || 0);
+        console.log("  - adapterSecret first 15:", adapterSecret?.substring(0, 15) || "N/A");
+        console.log("  - adapterSecret last 10:", adapterSecret?.substring(adapterSecret.length - 10) || "N/A");
+        console.log("  - adapterSecret JSON:", JSON.stringify(adapterSecret?.substring(0, 20)));
+
+        // Zorg ervoor dat secret een string is en geen extra whitespace heeft
+        const cleanSecret = String(adapterSecret || "").trim();
+        
+        console.log("[Auth] Clean secret:");
+        console.log("  - cleanSecret length:", cleanSecret.length);
+        console.log("  - cleanSecret first 15:", cleanSecret.substring(0, 15));
+        
         const cred = await fetchQuery(api.credentials.getCredentialsByEmail, {
-          secret: adapterSecret,
+          secret: cleanSecret, // Gebruik de cleaned secret
           email: credentials.email.trim(),
         });
         if (!cred || !cred.hashedPassword) {
@@ -80,6 +104,14 @@ export const authOptions: AuthOptions = {
         .setExpirationTime("1h")
         .sign(privateKey);
       return { ...session, convexToken };
+    },
+    async redirect({ url, baseUrl }) {
+      // Als er een callbackUrl is, gebruik die
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Als url al een volledige URL is en op hetzelfde domein, gebruik die
+      if (url.startsWith(baseUrl)) return url;
+      // Anders redirect naar account pagina
+      return `${baseUrl}/account/gesprekken`;
     },
   },
   pages: {

@@ -1,9 +1,10 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { MessageSquare, CreditCard, Calendar, Heart, LogIn } from "lucide-react";
 
 const SIDEBAR_ITEMS = [
@@ -18,8 +19,22 @@ export default function AccountLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
+  
+  // Refresh session als status "unauthenticated" is maar we op account pagina zijn
+  // Dit kan gebeuren als redirect te snel gaat na login
+  useEffect(() => {
+    if (status === "unauthenticated" && pathname?.startsWith("/account")) {
+      // Probeer session te refreshen
+      const timer = setTimeout(async () => {
+        await update(); // Refresh session
+        router.refresh(); // Refresh page
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [status, pathname, router, update]);
 
   if (status === "loading") {
     return (

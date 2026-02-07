@@ -35,6 +35,13 @@ export async function GET() {
     convexUrlSet,
     adapterSecretSet,
     convexUrlPreview: convexUrlSet ? `${convexUrl?.slice(0, 30)}...` : null,
+    adapterSecretPreview: adapterSecretSet ? `${adapterSecret?.substring(0, 10)}... (length: ${adapterSecret?.length})` : null,
     message,
+    // Debug info (alleen in development)
+    debug: process.env.NODE_ENV === "development" ? {
+      adapterSecretLength: adapterSecret?.length || 0,
+      adapterSecretFirstChars: adapterSecret?.substring(0, 15) || "N/A",
+      adapterSecretLastChars: adapterSecret?.substring(adapterSecret.length - 5) || "N/A",
+    } : undefined,
   });
 }

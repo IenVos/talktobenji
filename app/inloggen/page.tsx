@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 function InloggenForm() {
@@ -25,16 +25,35 @@ function InloggenForm() {
     setLoading(true);
 
     try {
-      // NextAuth redirect: true = server-side redirect na login (cookie wordt correct meegestuurd)
-      await signIn("credentials", {
+      // NextAuth signIn met redirect: false om zelf te kunnen redirecten
+      const result = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
         callbackUrl,
-        redirect: true,
+        redirect: false,
       });
-      // Als redirect: true faalt (geen redirect), toon dan fout
+      
+      if (result?.error) {
+        setError("Ongeldig e-mailadres of wachtwoord");
+        setLoading(false);
+        return;
+      }
+      
+      // Als login succesvol is, wacht even zodat session cookie wordt ingesteld
+      if (result?.ok) {
+        // Wacht even en refresh session om zeker te zijn dat cookie is ingesteld
+        await new Promise(resolve => setTimeout(resolve, 200));
+        // Refresh session om zeker te zijn dat deze beschikbaar is
+        await getSession();
+        // Gebruik window.location.replace voor harde redirect (geen back button)
+        window.location.replace(callbackUrl);
+        return;
+      }
+      
+      // Fallback: als result niet ok is, toon fout
       setError("Ongeldig e-mailadres of wachtwoord");
-    } catch {
+    } catch (err) {
+      console.error("Login error:", err);
       setError("Er ging iets mis. Probeer het opnieuw.");
     } finally {
       setLoading(false);
