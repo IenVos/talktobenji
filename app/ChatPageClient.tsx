@@ -125,11 +125,36 @@ export default function ChatPageClient({
     }
   }, []);
 
+  // Scroll alleen als gebruiker al onderaan was - voorkom verspringen
   useEffect(() => {
+    if (!mainRef.current) return;
+    
     if (!sessionId && !isAddingOpener) {
-      mainRef.current?.scrollTo({ top: 0, behavior: "auto" });
-    } else {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Reset naar boven bij nieuwe sessie
+      mainRef.current.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+    
+    // Check of gebruiker al onderaan was (binnen 200px van de bottom)
+    const main = mainRef.current;
+    const scrollHeight = main.scrollHeight;
+    const scrollTop = main.scrollTop;
+    const clientHeight = main.clientHeight;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    const isNearBottom = distanceFromBottom < 200;
+    
+    // Alleen scrollen als gebruiker al onderaan was
+    if (isNearBottom) {
+      // Gebruik requestAnimationFrame voor soepele scroll zonder verspringen
+      requestAnimationFrame(() => {
+        if (mainRef.current) {
+          // Scroll naar beneden met smooth behavior
+          mainRef.current.scrollTo({
+            top: mainRef.current.scrollHeight,
+            behavior: "smooth"
+          });
+        }
+      });
     }
   }, [sessionId, isAddingOpener, messages]);
 
@@ -173,6 +198,8 @@ export default function ChatPageClient({
     setShowTopicButtons(false);
     const messageText = text.trim();
     setInput("");
+    // Behoud scroll positie tijdens het versturen om verspringen te voorkomen
+    const currentScrollTop = mainRef.current?.scrollTop ?? 0;
     setPendingUserMessage(messageText); // Direct tonen: 1. jouw bericht, 2. bolletjes, 3. Benji
     const startTime = Date.now();
     try {
@@ -270,6 +297,7 @@ export default function ChatPageClient({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Voorkom dat form submit scroll-gedrag triggert
     if (!input.trim() || isLoading) return;
     if (isRecording && recognitionRef.current) { recognitionRef.current.stop(); setIsRecording(false); }
     await sendMessage(input.trim());
@@ -339,14 +367,14 @@ export default function ChatPageClient({
             {messages?.map((msg: Doc<"chatMessages">) => (
               <div key={msg._id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "max-w-[85%] sm:max-w-[80%] bg-primary-900 text-white rounded-br-md" : "max-w-sm bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
-                  <p className="whitespace-pre-wrap text-sm sm:text-base break-words">{msg.content}</p>
+                  <p className="text-sm sm:text-base break-words">{msg.content}</p>
                 </div>
               </div>
             ))}
             {pendingUserMessage && (
               <div className="flex justify-end">
                 <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
-                  <p className="whitespace-pre-wrap text-sm sm:text-base">{pendingUserMessage}</p>
+                  <p className="text-sm sm:text-base">{pendingUserMessage}</p>
                 </div>
               </div>
             )}

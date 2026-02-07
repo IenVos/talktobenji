@@ -30,8 +30,14 @@ export function TopicButtons({ onSelect }: TopicButtonsProps) {
             {icon === "message" && <MessageSquare size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
             {icon === "heart" && <Heart size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
             {icon === "verdriet" && (
-              <span className="w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center">
-                <Image src="/images/verdriet-icon.png" alt="" width={18} height={18} className="object-contain mix-blend-multiply" />
+              <span className="w-[18px] h-[18px] flex-shrink-0 flex items-center justify-center relative">
+                <Image 
+                  src="/images/verdriet-icon.png" 
+                  alt="" 
+                  fill
+                  className="object-contain mix-blend-multiply"
+                  sizes="18px"
+                />
               </span>
             )}
             {icon === "paw" && <PawPrint size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}

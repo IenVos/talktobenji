@@ -150,10 +150,10 @@ export const handleUserMessage = action({
 
       // STAP 2: Haal bot settings op (rules), knowledge base Q&As en bronnen (RAG)
       const settings = await ctx.runQuery(api.settings.get);
-      const knowledgeBaseQuestions = await ctx.runQuery(api.knowledgeBase.getAllQuestions, {
+      const allKnowledgeBaseQuestions = await ctx.runQuery(api.knowledgeBase.getAllQuestions, {
         isActive: true,
       });
-      const sources = await ctx.runQuery(api.sources.getActiveSources);
+      const allSources = await ctx.runQuery(api.sources.getActiveSources);
 
       const isEnglish = /^[A-Za-z]/.test(args.userMessage.trim());
       const emptyKbMessage = isEnglish
@@ -161,10 +161,10 @@ export const handleUserMessage = action({
         : "Er is nog geen kennis geconfigureerd. Voeg Knowledge en Q&A's toe via het admin panel (/admin) om vragen te kunnen beantwoorden.";
 
       const hasKnowledge = (settings?.knowledge || "").trim().length > 0;
-      const hasSources = sources && sources.length > 0;
+      const hasSources = allSources && allSources.length > 0;
 
       // Geen kennis: geen Admin Knowledge, geen Q&As, geen bronnen → duidelijke melding
-      if (!hasKnowledge && knowledgeBaseQuestions.length === 0 && !hasSources) {
+      if (!hasKnowledge && allKnowledgeBaseQuestions.length === 0 && !hasSources) {
         const botMessageIdEmpty = await ctx.runMutation(api.chat.sendBotMessage, {
           sessionId: args.sessionId,
           content: emptyKbMessage,
@@ -179,70 +179,174 @@ export const handleUserMessage = action({
         };
       }
 
-      // STAP 3: Haal conversatie geschiedenis op (laatste 10 berichten)
+      // STAP 3: Haal conversatie geschiedenis op (laatste 3 berichten - agressief verlaagd voor rate limits)
       const messages = await ctx.runQuery(api.chat.getMessages, {
         sessionId: args.sessionId,
-        limit: 10,
+        limit: 3, // Verlaagd naar 3 om tokens te besparen
       });
 
-      // Converteer naar Claude formaat
+      // Converteer naar Claude formaat en limiter lengte per bericht
       const conversationHistory: ClaudeMessage[] = messages
         .slice(0, -1) // Exclude het laatste bericht (dat is de nieuwe user message)
         .map((m: { role: string; content: string }) => ({
           role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
-          content: m.content,
+          content: m.content.slice(0, 800), // Max 800 karakters per bericht (verlaagd voor rate limits)
+        }))
+        .filter(m => m.content.trim().length > 0); // Verwijder lege berichten
+
+      // STAP 4: Filter relevante knowledge base vragen - ALLEEN als er een goede match is
+      const userMessageLower = args.userMessage.toLowerCase().trim();
+      const userWords = userMessageLower.split(/\s+/).filter(w => w.length > 2);
+      
+      const scoredQuestions = allKnowledgeBaseQuestions.map((q: {
+        question: string;
+        answer: string;
+        alternativeQuestions?: string[];
+        alternativeAnswers?: string[];
+        questionEn?: string;
+        answerEn?: string;
+        tags?: string[];
+        priority?: number;
+        usageCount?: number;
+      }) => {
+        // Start score met prioriteit (1-10) en usage count
+        let score = (q.priority || 1) * 2;
+        if (q.usageCount) {
+          score += Math.min(q.usageCount / 10, 5);
+        }
+        
+        // Combineer alle tekst voor matching
+        const questionText = (q.question + " " + (q.alternativeQuestions || []).join(" ") + " " + (q.tags || []).join(" ")).toLowerCase();
+        const answerText = q.answer.toLowerCase();
+        
+        // Exacte match in vraag = hoogste score
+        if (q.question.toLowerCase().includes(userMessageLower) || userMessageLower.includes(q.question.toLowerCase())) {
+          score += 20;
+        }
+        
+        // Match in alternatieve vragen
+        if (q.alternativeQuestions) {
+          for (const alt of q.alternativeQuestions) {
+            if (alt.toLowerCase().includes(userMessageLower) || userMessageLower.includes(alt.toLowerCase())) {
+              score += 15;
+              break;
+            }
+          }
+        }
+        
+        // Keyword matching: elke matching word geeft punten
+        let keywordMatches = 0;
+        for (const word of userWords) {
+          if (questionText.includes(word)) {
+            score += 3;
+            keywordMatches++;
+          }
+          if (answerText.includes(word)) {
+            score += 1;
+          }
+        }
+        
+        // Bonus als meerdere keywords matchen
+        if (keywordMatches >= 2) {
+          score += 5;
+        }
+        
+        // Tag matching
+        if (q.tags) {
+          for (const tag of q.tags) {
+            if (userMessageLower.includes(tag.toLowerCase())) {
+              score += 4;
+            }
+          }
+        }
+        
+        return { ...q, score };
+      });
+      
+      // Sorteer op score
+      const sortedQuestions = scoredQuestions.sort((a, b) => b.score - a.score);
+      
+      // BELANGRIJK: Alleen Q&As meesturen als er een goede match is (score >= 15 - verhoogd voor betere filtering)
+      // Dit voorkomt dat we onnodig veel tokens gebruiken
+      const minScoreThreshold = 15; // Minimum score om mee te sturen (verhoogd voor rate limits)
+      const knowledgeBaseQuestions = sortedQuestions
+        .filter(q => q.score >= minScoreThreshold)
+        .slice(0, 5); // Max 5 relevante Q&As (verlaagd van 10 voor rate limits)
+
+      // STAP 5: Filter en limiter sources (max 2 sources, max 4000 karakters per source - balans)
+      const sources = (allSources || [])
+        .slice(0, 2) // Max 2 sources
+        .map((s: { title: string; type: string; url?: string; extractedText: string }) => ({
+          ...s,
+          extractedText: s.extractedText.slice(0, 4000) // Max 4000 karakters per source (balans)
         }));
 
-      // STAP 4: Bouw kennis uit knowledge base + bronnen (RAG)
-      const knowledgeFromKb = knowledgeBaseQuestions
-        .map(
-          (q: {
+      // STAP 6: Sources voorbereiden (worden alleen gebruikt als er geen excellent KB matches zijn)
+
+      // NIEUWE STRATEGIE: Gebruik knowledge base ALLEEN als er een EXCELLENTE match is
+      // Anders: alleen algemene kennis (veel minder tokens)
+      const knowledgeFromSettings = (settings?.knowledge || "").trim();
+      const parts: string[] = [];
+      
+      // Altijd: algemene kennis (max 4000 karakters - verlaagd voor rate limits)
+      if (knowledgeFromSettings) {
+        const limitedSettings = knowledgeFromSettings.slice(0, 4000);
+        parts.push("## Algemene kennis en context\n" + limitedSettings);
+      }
+      
+      // Knowledge base: ALLEEN als er een EXCELLENTE match is (score >= 20, niet 15)
+      // En max 3 Q&As (verlaagd van 5)
+      const excellentMatches = sortedQuestions
+        .filter(q => q.score >= 20) // Hogere threshold voor excellent matches
+        .slice(0, 3); // Max 3 excellent matches
+      
+      if (excellentMatches.length > 0) {
+        // Bouw knowledge base alleen voor excellent matches
+        const excellentKb = excellentMatches
+          .map((q: {
             question: string;
             answer: string;
-            alternativeQuestions?: string[];
-            alternativeAnswers?: string[];
-            questionEn?: string;
-            answerEn?: string;
           }) => {
-            const altQ = q.alternativeQuestions?.length
-              ? `\nAndere manieren om te vragen: ${q.alternativeQuestions.join(" | ")}`
-              : "";
-            const altA = q.alternativeAnswers?.length
-              ? `\nAlternatieve antwoorden: ${q.alternativeAnswers.join(" | ")}`
-              : "";
-            const nl = `Vraag: ${q.question}${altQ}\nAntwoord: ${q.answer}${altA}`;
-            const en =
-              q.questionEn && q.answerEn
-                ? `\n(EN) Question: ${q.questionEn}\nAnswer: ${q.answerEn}`
-                : "";
-            return nl + en;
-          }
-        )
-        .join("\n\n---\n\n");
-
+            const shortAnswer = q.answer.length > 200 
+              ? q.answer.slice(0, 200) + "..."
+              : q.answer;
+            const shortQuestion = q.question.length > 80
+              ? q.question.slice(0, 80) + "..."
+              : q.question;
+            return `Vraag: ${shortQuestion}\nAntwoord: ${shortAnswer}`;
+          })
+          .join("\n\n---\n\n");
+        
+        const limitedKb = excellentKb.slice(0, 3000); // Max 3000 karakters
+        parts.push((parts.length ? "\n" : "") + "## Knowledge base (Q&A's)\n" + limitedKb);
+      }
+      
+      // Sources: ALLEEN als er geen knowledge base matches zijn (anders te veel tokens)
       const knowledgeFromSources =
-        sources && sources.length > 0
+        sources && sources.length > 0 && excellentMatches.length === 0
           ? sources
               .map(
                 (s: { title: string; type: string; url?: string; extractedText: string }) =>
-                  `[Bron: ${s.title}${s.url ? ` (${s.url})` : ""}]\n${s.extractedText.slice(0, 15000)}`
+                  `[Bron: ${s.title}${s.url ? ` (${s.url})` : ""}]\n${s.extractedText.slice(0, 2000)}`
               )
               .join("\n\n---\n\n")
           : "";
-
-      // Combineer: 1) algemene kennis uit Admin, 2) Q&A knowledge base, 3) RAG-bronnen
-      const knowledgeFromSettings = (settings?.knowledge || "").trim();
-      const parts: string[] = [];
-      if (knowledgeFromSettings) {
-        parts.push("## Algemene kennis en context\n\n" + knowledgeFromSettings);
-      }
-      if (knowledgeFromKb) {
-        parts.push((parts.length ? "\n\n" : "") + "## Knowledge base (Q&A's)\n\n" + knowledgeFromKb);
-      }
+      
       if (knowledgeFromSources) {
-        parts.push((parts.length ? "\n\n" : "") + "## Aanvullende bronnen (PDF's, websites)\n\n" + knowledgeFromSources);
+        const limitedSources = knowledgeFromSources.slice(0, 2000);
+        parts.push((parts.length ? "\n" : "") + "## Aanvullende bronnen (PDF's, websites)\n" + limitedSources);
       }
-      const knowledgeCombined = parts.join("");
+      
+      // Totale limiet: max 8000 karakters (verlaagd voor rate limits)
+      let knowledgeCombined = parts.join("");
+      if (knowledgeCombined.length > 8000) {
+        // Verkort proportioneel
+        const ratio = 8000 / knowledgeCombined.length;
+        knowledgeCombined = parts.map(p => {
+          const targetLength = Math.floor(p.length * ratio);
+          return p.slice(0, targetLength);
+        }).join("");
+      }
 
       const onlyFromKbRule = isEnglish
         ? "IMPORTANT: Use the knowledge base below first to answer. If the answer is not in the knowledge base, you may use the additional sources (PDFs, URLs) to distill an answer. If neither contains the answer, say clearly that you cannot answer and suggest adding the topic. In that case only, end your response with exactly [UNANSWERED] (nothing else after it) so we can track these questions."
@@ -250,24 +354,95 @@ export const handleUserMessage = action({
 
       const dutchLanguageRule = isEnglish
         ? ""
-        : `TAALKWALITEIT: Gebruik altijd correct, natuurlijk Nederlands.
-- Elke zin moet grammaticaal kloppen en klinken als gesproken taal.
-- FOUT: "dat durft iets zeggen" (ongrammaticaal)
-- GOED: "dat zegt iets" of "en dat is al iets" of "dat getuigt van moed"
-- FOUT: "Dat hoeft niet foutloos" (onnatuurlijk; "foutloos" past niet in troostende context)
-- GOED bij "ik weet niet wat ik moet zeggen": "Dat hoeft ook niet" of "Je hoeft niets te zeggen" of "Soms zijn woorden niet nodig" of "Dat is oké"
-- Vermijd "foutloos", "foutloosheid" in troostende antwoorden. Gebruik: "perfect", "de juiste woorden", "iets goeds zeggen".
-- Schrijf zoals een native speaker zou spreken.
-- Lees je antwoord mentaal door voordat je het verstuurt.
-- GEBRUIK NOOIT streepjes ( - ) tussen woorden of zinsdelen. Gebruik altijd een punt, komma of herformuleer: FOUT "weg - ze zitten", GOED "weg. Ze zitten" of "weg, ze zitten".
+        : `TAALKWALITEIT: Gebruik altijd correct, natuurlijk Nederlands. Elke zin moet grammaticaal perfect zijn.
 
-ZINFORMATIE (per bericht, niet over de hele chat): In elk antwoord dat je geeft: maximaal 4 zinnen aan elkaar. Als je meer dan 4 zinnen schrijft in dat ene bericht, voeg dan een lege regel (dubbele newline) toe als kleine spatie tussen de groepen van max 4 zinnen. Voorbeeld: "Zin 1. Zin 2. Zin 3. Zin 4.\n\nZin 5. Zin 6."`;
+BELANGRIJKE GRAMMATICALE REGELS:
+- Werkwoordvolgorde: scheidbare werkwoorden moeten correct gescheiden worden
+  FOUT: "Wat bezighoudt je?" of "Wat bezighoudt je op dit moment?"
+  GOED: "Wat houdt je bezig?" of "Waar ben je mee bezig?" of "Wat houdt je op dit moment bezig?"
+  
+  FOUT: "Dat durft iets zeggen"
+  GOED: "Dat zegt iets" of "Dat getuigt van moed" of "Dat is al iets"
+  
+  FOUT: "Hoe voelt het aan?"
+  GOED: "Hoe voelt het?" of "Hoe is het voor je?"
+
+- Vermijd onhandige constructies met "er"
+  FOUT: "er niet zoveel blijheid meer is" of "er is niet zoveel blijheid meer"
+  GOED: "de blijheid er niet meer is" of "er is weinig blijheid meer" of "de blijheid is er niet meer"
+  
+  FOUT: "er niet veel vreugde is"
+  GOED: "er weinig vreugde is" of "de vreugde er niet is" of "er geen vreugde meer is"
+
+- Gebruik natuurlijke woordvolgorde
+  FOUT: "Dat hoeft niet foutloos"
+  GOED: "Dat hoeft ook niet" of "Je hoeft niets te zeggen" of "Soms zijn woorden niet nodig"
+  
+- Vermijd onnatuurlijke constructies
+  FOUT: "ik ben verdrietig" → "Dat klinkt zwaar. Wat bezighoudt je?"
+  GOED: "Dat klinkt zwaar. Wat houdt je bezig?" of "Dat klinkt zwaar. Waar denk je aan?" of "Dat klinkt zwaar. Wat speelt er door je heen?"
+
+- GEBRUIK NOOIT streepjes ( - ) tussen woorden of zinsdelen
+  FOUT: "weg - ze zitten"
+  GOED: "weg. Ze zitten" of "weg, ze zitten"
+
+- Vermijd jargon in troostende context
+  FOUT: "foutloos", "foutloosheid"
+  GOED: "perfect", "de juiste woorden", "iets goeds zeggen"
+
+- Gebruik GEEN Engelse interjecties of geluiden
+  FOUT: "Mmm.", "Hmm.", "Uh-huh", "Okay", "Yeah"
+  GOED: "Ja.", "Aha.", "Ik begrijp het.", "Dat snap ik.", of gewoon direct beginnen met je antwoord
+  Als je begint met een bevestiging, gebruik Nederlandse woorden of begin direct met je zin
+
+- Gebruik correcte lidwoorden (de/het/die/dat)
+  FOUT: "Dat stilte" of "Dat blijheid"
+  GOED: "Die stilte" of "De stilte" of "Die blijheid" of "De blijheid"
+  FOUT: "Wat voel je als dat stilte er is"
+  GOED: "Wat voel je als die stilte er is" of "Wat voel je als het stil is"
+
+CONTROLE:
+- Lees elke zin mentaal door voordat je het verstuurt
+- Vraag je af: zou een Nederlandse native speaker dit zo zeggen?
+- Als je twijfelt, gebruik een eenvoudigere formulering
+- Schrijf zoals je zou spreken in een gesprek
+- BELANGRIJK: Schrijf ALLEEN doorlopende tekst zonder lege regels tussen zinnen. Gebruik GEEN dubbele newlines (\n\n) of paragraaf breaks. Alles moet in één doorlopende alinea staan.`;
 
       const noJargonRule = isEnglish
         ? "AVOID JARGON: Do not use terms like 'bodyscan', 'mindfulness', 'grounding' etc. without first asking what the person already knows or tries. Use simple, everyday language. Describe what you mean in plain words (e.g. 'focus on each body part and release tension' instead of 'bodyscan')."
         : "GEEN JARGON: Gebruik geen termen als 'bodyscan', 'mindfulness', 'grounding' etc. zonder eerst te vragen wat de persoon al kent of probeert. Gebruik eenvoudige, alledaagse taal. Beschrijf wat je bedoelt in gewone woorden (bijv. 'richt je aandacht op elk lichaamsdeel en laat spanning los' in plaats van 'bodyscan').";
 
-      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule].filter(Boolean).join("\n\n");
+      const noRepetitionRule = isEnglish
+        ? "AVOID REPETITION: Do not repeat the same words, phrases, or ideas in consecutive messages. Vary your language. If you already asked about something or mentioned it, don't repeat it in the same way. Use synonyms and different phrasings. Keep responses fresh and varied."
+        : "GEEN HERHALING: Herhaal niet dezelfde woorden, zinnen of ideeën in opeenvolgende berichten. Varieer je taalgebruik. Als je al iets gevraagd of genoemd hebt, herhaal het dan niet op dezelfde manier. Gebruik synoniemen en verschillende formuleringen. Houd antwoorden fris en gevarieerd.";
+
+      const conversationStyleRule = isEnglish
+        ? "CONVERSATION STYLE: Give empathetic, specific responses. Don't ask multiple vague questions in a row. When someone shares something difficult, acknowledge it first before asking questions. Be concrete and specific, not generic. If you ask a question, make it one clear, specific question that builds on what they just said. Avoid generic questions like 'What helps you?' or 'What gives you space?' - be more specific based on the context."
+        : `GESPREKSSTIJL: Geef empathische, specifieke antwoorden. Stel niet meerdere vage vragen achter elkaar.
+
+BELANGRIJKE REGELS:
+- Erken eerst wat de ander zegt voordat je vragen stelt
+  FOUT: "Wat helpt voor jou als je je zo voelt. Wat geeft je wat ruimte." (twee vage vragen achter elkaar)
+  GOED: "Dat alleen-zijn voelt inderdaad zwaar. Soms helpt het om te bedenken wat je in het verleden heeft geholpen. Is er iets wat je vroeger deed toen je je zo voelde?" (erkenning + één specifieke vraag)
+
+- Wees concreet en specifiek, niet vaag
+  FOUT: "Wat helpt voor jou?" of "Wat geeft je wat ruimte?"
+  GOED: "Is er iets wat je helpt om het lichter te maken? Bijvoorbeeld iemand bellen, naar buiten gaan, of iets anders?" (specifiek met voorbeelden)
+
+- Stel maximaal één vraag per bericht, en maak die vraag specifiek
+  FOUT: "Wat helpt voor jou als je je zo voelt. Wat geeft je wat ruimte." (twee vragen)
+  GOED: "Wat heeft je in het verleden geholpen als je je zo voelde?" (één specifieke vraag)
+
+- Bouw voort op wat de ander net zei
+  Als iemand zegt "het voelt zwaar", reageer daarop specifiek, niet met een generieke vraag
+  FOUT: "Wat helpt voor jou als je je zo voelt." (generiek)
+  GOED: "Dat zware gevoel, dat is moeilijk. Wat maakt het voor jou het zwaarst?" (specifiek op wat ze zeiden)
+
+- Geef context en erkenning, niet alleen vragen
+  FOUT: Direct vragen stellen zonder erkenning
+  GOED: Eerst erkennen wat ze zeiden, dan één specifieke vraag stellen`;
+
+      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, conversationStyleRule].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response
       let aiResponse = await callClaudeAPI(
@@ -288,12 +463,73 @@ ZINFORMATIE (per bericht, niet over de hele chat): In elk antwoord dat je geeft:
         });
       }
 
-      // Max 4 zinnen per paragraaf: voeg spatie (lege regel) toe na elke 4 zinnen
-      try {
-        aiResponse = addParagraphBreaksEveryNSentences(aiResponse, 4);
-      } catch (_) {
-        // Bij fout in paragraaf-logica: origineel antwoord behouden
+      // Corrigeer veelvoorkomende grammaticale fouten in Nederlands
+      if (!isEnglish) {
+        // "Wat bezighoudt je" → "Wat houdt je bezig"
+        aiResponse = aiResponse.replace(/\bWat bezighoudt je\b/gi, "Wat houdt je bezig");
+        aiResponse = aiResponse.replace(/\bWat bezighoudt je op dit moment\b/gi, "Wat houdt je op dit moment bezig");
+        aiResponse = aiResponse.replace(/\bWat bezighoudt je nu\b/gi, "Wat houdt je nu bezig");
+        
+        // "Hoe voelt het aan" → "Hoe voelt het"
+        aiResponse = aiResponse.replace(/\bHoe voelt het aan\b/gi, "Hoe voelt het");
+        
+        // "dat durft iets zeggen" → "dat zegt iets"
+        aiResponse = aiResponse.replace(/\bdat durft iets zeggen\b/gi, "dat zegt iets");
+        
+        // "er niet zoveel blijheid meer is" → "de blijheid er niet meer is" of "er is weinig blijheid meer"
+        aiResponse = aiResponse.replace(/\ber niet zoveel blijheid meer is\b/gi, "de blijheid er niet meer is");
+        aiResponse = aiResponse.replace(/\ber niet veel blijheid meer is\b/gi, "er weinig blijheid meer is");
+        aiResponse = aiResponse.replace(/\ber niet zoveel vreugde meer is\b/gi, "de vreugde er niet meer is");
+        aiResponse = aiResponse.replace(/\ber niet veel vreugde meer is\b/gi, "er weinig vreugde meer is");
+        
+        // "er niet zoveel X meer is" → "er weinig X meer is" (algemene regel)
+        aiResponse = aiResponse.replace(/\ber niet zoveel (\w+) meer is\b/gi, (match, word) => {
+          // Alleen voor abstracte woorden (gevoelens, emoties)
+          const abstractWords = ['blijheid', 'vreugde', 'geluk', 'hoop', 'energie', 'kracht', 'moed', 'rust', 'vrede'];
+          if (abstractWords.includes(word.toLowerCase())) {
+            return `er weinig ${word} meer is`;
+          }
+          return match;
+        });
+        
+        // Verwijder Engelse interjecties en vervang door Nederlandse alternatieven
+        aiResponse = aiResponse.replace(/^Mmm\.?\s*/gi, ""); // Verwijder "Mmm." aan het begin
+        aiResponse = aiResponse.replace(/^Hmm\.?\s*/gi, ""); // Verwijder "Hmm." aan het begin
+        aiResponse = aiResponse.replace(/\s*Mmm\.?\s*/g, " "); // Verwijder "Mmm." middenin
+        aiResponse = aiResponse.replace(/\s*Hmm\.?\s*/g, " "); // Verwijder "Hmm." middenin
+        aiResponse = aiResponse.replace(/\bMmm\b/gi, ""); // Verwijder losse "Mmm"
+        aiResponse = aiResponse.replace(/\bHmm\b/gi, ""); // Verwijder losse "Hmm"
+        
+        // Corrigeer verkeerde lidwoorden
+        aiResponse = aiResponse.replace(/\bDat stilte\b/gi, "Die stilte");
+        aiResponse = aiResponse.replace(/\bDat blijheid\b/gi, "Die blijheid");
+        aiResponse = aiResponse.replace(/\bDat vreugde\b/gi, "Die vreugde");
+        aiResponse = aiResponse.replace(/\bDat geluk\b/gi, "Het geluk");
+        aiResponse = aiResponse.replace(/\bDat verdriet\b/gi, "Het verdriet");
+        aiResponse = aiResponse.replace(/\bDat pijn\b/gi, "De pijn");
+        aiResponse = aiResponse.replace(/\bDat angst\b/gi, "De angst");
+        aiResponse = aiResponse.replace(/\bDat eenzaamheid\b/gi, "De eenzaamheid");
+        
+        // Corrigeer "als dat stilte er is" → "als die stilte er is" of "als het stil is"
+        aiResponse = aiResponse.replace(/\bals dat stilte er is\b/gi, "als die stilte er is");
+        aiResponse = aiResponse.replace(/\bals dat blijheid er is\b/gi, "als die blijheid er is");
+        
+        // Normaliseer dubbele spaties na verwijderingen
+        aiResponse = aiResponse.replace(/\s+/g, " ").trim();
       }
+
+      // VERWIJDER alle lege regels en newlines - vervang door enkele spaties
+      // Dit voorkomt dat de AI per ongeluk lege regels toevoegt
+      // Gebruik meerdere passes om zeker te zijn dat alles wordt verwijderd
+      aiResponse = aiResponse
+        .replace(/\r\n/g, " ") // Windows newlines
+        .replace(/\r/g, " ") // Mac newlines
+        .replace(/\n\n\n+/g, " ") // Drie of meer newlines
+        .replace(/\n\n/g, " ") // Dubbele newlines
+        .replace(/\n/g, " ") // Enkele newlines
+        .replace(/[ \t]+/g, " ") // Meerdere spaties of tabs
+        .replace(/\s+/g, " ") // Alle whitespace normaliseren
+        .trim();
 
       const responseTime = Date.now() - startTime;
 
@@ -622,6 +858,18 @@ async function callClaudeAPI(
     ? `## Current context (use when relevant):\nToday: ${dateStr}. Current time: ${timeStr}.${timeContextRule}`
     : `## Huidige context (gebruik wanneer relevant):\nVandaag: ${dateStr}. Huidige tijd: ${timeStr}.${timeContextRule}`;
 
+  // Limiter knowledge en rules lengte (max 10000 karakters totaal voor knowledge - verlaagd voor 503 overflow)
+  const maxKnowledgeLength = 10000;
+  const limitedKnowledge = knowledge && knowledge.length > maxKnowledgeLength 
+    ? knowledge.slice(0, maxKnowledgeLength) + " [Kennis ingekort...]"
+    : knowledge;
+  
+  // Limiter rules lengte (max 2000 karakters - verlaagd voor 503 overflow)
+  const maxRulesLength = 2000;
+  const limitedRules = rules && rules.length > maxRulesLength
+    ? rules.slice(0, maxRulesLength) + " [Regels ingekort...]"
+    : rules;
+
   // Bouw het systeem bericht met knowledge en rules
   const languageInstruction = isEnglish 
     ? "IMPORTANT: The user is asking in English. Respond in English using the same language as the question."
@@ -631,14 +879,14 @@ async function callClaudeAPI(
     ? "You are a helpful assistant."
     : "Je bent een behulpzame assistent.";
 
-  if (knowledge || rules) {
+  if (limitedKnowledge || limitedRules) {
     systemPrompt = isEnglish
       ? `You are a helpful assistant for a company.
 
 ${dynamicContext}
 
-${rules ? `## Rules for how you should respond:\n${rules}\n\n` : ""}
-${knowledge ? `## Knowledge you should use:\n${knowledge}` : ""}
+${limitedRules ? `## Rules for how you should respond:\n${limitedRules}\n\n` : ""}
+${limitedKnowledge ? `## Knowledge you should use:\n${limitedKnowledge}` : ""}
 
 ${languageInstruction}
 
@@ -647,8 +895,8 @@ Answer questions based on the above knowledge and rules. If you don't know the a
 
 ${dynamicContext}
 
-${rules ? `## Regels voor hoe je moet reageren:\n${rules}\n\n` : ""}
-${knowledge ? `## Kennis die je moet gebruiken:\n${knowledge}` : ""}
+${limitedRules ? `## Regels voor hoe je moet reageren:\n${limitedRules}\n\n` : ""}
+${limitedKnowledge ? `## Kennis die je moet gebruiken:\n${limitedKnowledge}` : ""}
 
 ${languageInstruction}
 
@@ -656,51 +904,102 @@ Beantwoord vragen op basis van bovenstaande kennis en regels. Als je het antwoor
   } else {
     systemPrompt += `\n\n${dynamicContext}\n\n${languageInstruction}`;
   }
+  
+  // Totale limiet voor system prompt: max 15000 karakters (verlaagd voor 503 overflow)
+  const maxSystemPromptLength = 15000;
+  if (systemPrompt.length > maxSystemPromptLength) {
+    systemPrompt = systemPrompt.slice(0, maxSystemPromptLength) + " [System prompt ingekort...]";
+  }
 
+  // Limiter user message lengte (max 1000 karakters - verlaagd voor rate limits)
+  const limitedUserMessage = userMessage.slice(0, 1000);
+  
   // Bouw de berichten array
   const messages: ClaudeMessage[] = [
     ...conversationHistory,
     {
       role: "user",
-      content: userMessage,
+      content: limitedUserMessage,
     },
   ];
 
-    try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 1024,
-          system: systemPrompt,
-          messages: messages,
-        }),
-      });
-
-      const responseText = await response.text();
-      if (!response.ok) {
-        console.error("Claude API error:", response.status, responseText);
-        if (response.status === 401) {
-          throw new Error(
-            "401 Unauthorized: API key ongeldig of afgewezen. Check ANTHROPIC_API_KEY in Convex Dashboard (Settings → Environment variables). Geen spaties, juiste key van console.anthropic.com. Response: " + responseText.slice(0, 150)
-          );
+    // Retry logic voor rate limits (429 errors)
+    const maxRetries = 3;
+    let lastError: Error | null = null;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        // Wacht bij retry (exponential backoff)
+        if (attempt > 0) {
+          const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Max 10 seconden
+          console.log(`Rate limit hit, wachten ${waitTime}ms voor retry ${attempt}/${maxRetries}...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
         }
-        throw new Error(`Claude API error ${response.status}: ${responseText.slice(0, 200)}`);
-      }
 
-      const data = JSON.parse(responseText) as ClaudeAPIResponse;
-      if (!data.content?.length || !data.content[0].text) {
-        console.error("Claude API: lege of onverwachte response", data);
-        throw new Error("Claude API gaf geen antwoord terug");
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+          },
+          body: JSON.stringify({
+            model: "claude-haiku-4-5-20251001",
+            max_tokens: 1024,
+            system: systemPrompt,
+            messages: messages,
+          }),
+        });
+
+        const responseText = await response.text();
+        if (!response.ok) {
+          // Log volledige error voor debugging
+          console.error("Claude API error:", response.status, responseText);
+          console.error("System prompt length:", systemPrompt.length);
+          console.error("Messages count:", messages.length);
+          console.error("Total message length:", messages.reduce((sum, m) => sum + m.content.length, 0));
+          
+          if (response.status === 401) {
+            throw new Error(
+              "401 Unauthorized: API key ongeldig of afgewezen. Check ANTHROPIC_API_KEY in Convex Dashboard (Settings → Environment variables). Geen spaties, juiste key van console.anthropic.com. Response: " + responseText.slice(0, 150)
+            );
+          }
+          if (response.status === 400) {
+            // 400 Bad Request kan betekenen dat de request te groot is
+            const errorData = responseText.slice(0, 500);
+            if (errorData.includes("token") || errorData.includes("length") || errorData.includes("too large") || errorData.includes("context_length")) {
+              throw new Error(`Request te groot (400): De input is te lang (${systemPrompt.length} karakters system prompt). Probeer kortere berichten of verminder knowledge base. Details: ${errorData}`);
+            }
+          }
+          if (response.status === 429) {
+            // Rate limit error - retry met backoff
+            if (attempt < maxRetries) {
+              lastError = new Error(`Rate limit (429): Te veel requests. Retry ${attempt + 1}/${maxRetries}...`);
+              continue; // Retry
+            } else {
+              throw new Error(`Rate limit (429): Te veel requests na ${maxRetries} pogingen. Wacht even en probeer het opnieuw. Details: ${responseText.slice(0, 300)}`);
+            }
+          }
+          throw new Error(`Claude API error ${response.status}: ${responseText.slice(0, 300)}`);
+        }
+
+        const data = JSON.parse(responseText) as ClaudeAPIResponse;
+        if (!data.content?.length || !data.content[0].text) {
+          console.error("Claude API: lege of onverwachte response", data);
+          throw new Error("Claude API gaf geen antwoord terug");
+        }
+        return data.content[0].text;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        // Alleen retry bij 429 errors
+        if (error instanceof Error && error.message.includes("429") && attempt < maxRetries) {
+          continue; // Retry
+        }
+        // Bij andere errors of laatste poging: gooi error
+        throw lastError;
       }
-      return data.content[0].text;
-    } catch (error) {
-      console.error("Error calling Claude API:", error);
-      throw error;
     }
+    
+    // Als we hier komen, zijn alle retries mislukt
+    throw lastError || new Error("Claude API call mislukt na meerdere pogingen");
   }
