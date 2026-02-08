@@ -20,6 +20,27 @@ export const listNotes = query({
   },
 });
 
+/** Notities met emotie voor die datum (voor eerdere reflecties) */
+export const listNotesWithEmotions = query({
+  args: { userId: v.string(), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const notes = await ctx.db
+      .query("notes")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(args.limit ?? 50);
+    const emotions = await ctx.db
+      .query("emotionEntries")
+      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
+      .collect();
+    const moodByDate = Object.fromEntries(emotions.map((e) => [e.date, e.mood]));
+    return notes.map((note) => {
+      const dateStr = new Date(note.updatedAt).toISOString().slice(0, 10);
+      return { ...note, mood: moodByDate[dateStr] };
+    });
+  },
+});
+
 export const createNote = mutation({
   args: { userId: v.string(), title: v.optional(v.string()), content: v.string() },
   handler: async (ctx, args) => {
@@ -250,5 +271,55 @@ export const setCheckInAnswer = mutation({
       answer: args.answer.trim(),
       createdAt: now,
     });
+  },
+});
+
+// ============ Check-in entries (meerdere per dag, datum + tijd) ============
+export const createCheckInEntry = mutation({
+  args: {
+    userId: v.string(),
+    hoe_voel: v.string(),
+    wat_hielp: v.string(),
+    waar_dankbaar: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    return await ctx.db.insert("checkInEntries", {
+      userId: args.userId,
+      hoe_voel: args.hoe_voel.trim(),
+      wat_hielp: args.wat_hielp.trim(),
+      waar_dankbaar: args.waar_dankbaar.trim(),
+      createdAt: now,
+    });
+  },
+});
+
+/** Lijst check-in entries – nieuwste eerst (emotie client-side via emotionHistory) */
+export const listCheckInEntries = query({
+  args: { userId: v.string(), limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    try {
+      const entries = await ctx.db
+        .query("checkInEntries")
+        .withIndex("by_user_created", (q) => q.eq("userId", args.userId))
+        .order("desc")
+        .take(args.limit ?? 50);
+      return entries.map((entry) => ({
+        ...entry,
+        dateStr: new Date(entry.createdAt).toISOString().slice(0, 10),
+      }));
+    } catch {
+      return [];
+    }
+  },
+});
+
+export const deleteCheckInEntry = mutation({
+  args: { id: v.id("checkInEntries"), userId: v.string() },
+  handler: async (ctx, args) => {
+    const entry = await ctx.db.get(args.id);
+    if (!entry || entry.userId !== args.userId) throw new Error("Check-in niet gevonden");
+    await ctx.db.delete(args.id);
+    return args.id;
   },
 });

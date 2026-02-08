@@ -8,7 +8,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { hexToLightTint } from "@/lib/utils";
+import { hexToLightTint, hexToDarker } from "@/lib/utils";
 import { MessageSquare, CreditCard, Calendar, Heart, LogIn, ChevronDown, ChevronRight, Settings, PencilLine, Sparkles, HandHelping } from "lucide-react";
 
 const ORIGINAL_ACCENT = "#6d84a8";
@@ -26,11 +26,19 @@ const SUBMENU_ITEMS = [
   { href: "/account/abonnement", label: "Abonnement", icon: Calendar },
 ];
 
+const REFLECTIES_SUBMENU = [
+  { href: "/account/reflecties", label: "Overzicht" },
+  { href: "/account/reflecties/eerdere-reflecties", label: "Eerdere reflecties" },
+  { href: "/account/reflecties/eerdere-checkins", label: "Eerdere check-ins" },
+];
+
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account": { title: "Account", subtitle: "Overzicht" },
   "/account/gesprekken": { title: "Mijn gesprekken", subtitle: "Je eerdere gesprekken met Benji" },
   "/account/steun": { title: "Steun Benji", subtitle: "Help Talk To Benji verder te groeien" },
   "/account/reflecties": { title: "Mijn reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
+  "/account/reflecties/eerdere-reflecties": { title: "Eerdere reflecties", subtitle: "Al je reflecties bekijken" },
+  "/account/reflecties/eerdere-checkins": { title: "Eerdere check-ins", subtitle: "Al je dagelijkse check-ins bekijken" },
   "/account/notities": { title: "Mijn reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/inspiratie": { title: "Inspiratie & troost", subtitle: "Gedichten, citaten en teksten die je kunnen steunen" },
   "/account/handreikingen": { title: "Handreikingen", subtitle: "Praktische tips en ideeën voor moeilijke momenten" },
@@ -126,7 +134,16 @@ export default function AccountLayout({
   const pageInfo = PAGE_TITLES[pathname || "/account"] ?? PAGE_TITLES["/account"];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: bgTint }} data-account-accent={accent}>
+    <div
+      className="min-h-screen account-theme"
+      style={
+        {
+          backgroundColor: bgTint,
+          "--account-accent": accent,
+          "--account-accent-hover": hexToDarker(accent, 12),
+        } as React.CSSProperties
+      }
+    >
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
         {/* Gedeelde header – boven beide kolommen voor consistente uitlijning */}
         <div className="flex items-center gap-3 mb-6">
@@ -150,7 +167,45 @@ export default function AccountLayout({
               <ul className="space-y-0.5">
                 {TOP_ITEMS.map((item) => {
                   const Icon = item.icon;
+                  const isReflecties = item.href === "/account/reflecties";
                   const isActive = pathname === item.href;
+                  const isReflectiesSection = pathname?.startsWith("/account/reflecties");
+                  if (isReflecties) {
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href="/account/reflecties"
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                            isReflectiesSection ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                          }`}
+                          style={isReflectiesSection ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+                        >
+                          <Icon size={18} className="flex-shrink-0" />
+                          {item.label}
+                        </Link>
+                        {isReflectiesSection && (
+                          <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
+                            {REFLECTIES_SUBMENU.filter((s) => s.href !== "/account/reflecties").map((sub) => {
+                              const subActive = pathname === sub.href;
+                              return (
+                                <li key={sub.href}>
+                                  <Link
+                                    href={sub.href}
+                                    className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors block ${
+                                      subActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                                    }`}
+                                    style={subActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+                                  >
+                                    {sub.label}
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        )}
+                      </li>
+                    );
+                  }
                   return (
                     <li key={item.href}>
                       <Link
@@ -172,9 +227,14 @@ export default function AccountLayout({
                     onClick={() => setSubmenuOpen(!submenuOpen)}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full ${
                       SUBMENU_ITEMS.some((i) => pathname === i.href)
-                        ? "bg-primary-100 text-primary-800"
-                        : "text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+                        ? "text-primary-800"
+                        : "text-gray-700 hover:text-primary-700"
                     }`}
+                    style={
+                      SUBMENU_ITEMS.some((i) => pathname === i.href)
+                        ? { backgroundColor: hexToLightTint(accent, 25) }
+                        : {}
+                    }
                   >
                     {submenuOpen ? (
                       <ChevronDown size={18} className="flex-shrink-0" />
@@ -193,10 +253,9 @@ export default function AccountLayout({
                             <Link
                               href={item.href}
                               className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                isActive
-                                  ? "bg-primary-100 text-primary-800"
-                                  : "text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+                                isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
                               }`}
+                              style={isActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
                             >
                               <Icon size={16} className="flex-shrink-0" />
                               {item.label}
@@ -212,9 +271,14 @@ export default function AccountLayout({
                     href="/account/steun"
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mt-2 border-t border-primary-100 pt-3 ${
                       pathname === "/account/steun"
-                        ? "bg-primary-100 text-primary-800"
-                        : "text-gray-700 hover:bg-primary-50 hover:text-primary-700"
+                        ? "text-primary-800"
+                        : "text-gray-700 hover:text-primary-700"
                     }`}
+                    style={
+                      pathname === "/account/steun"
+                        ? { backgroundColor: hexToLightTint(accent, 25) }
+                        : {}
+                    }
                   >
                     <Heart size={18} className="flex-shrink-0" />
                     Steun Benji

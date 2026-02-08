@@ -5,7 +5,7 @@ import Image from "next/image";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare } from "lucide-react";
+import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -52,6 +52,8 @@ export default function AdminLayout({
     { href: "/admin/chat-history", label: "Chat history", icon: MessageSquare },
     { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen },
     { href: "/admin/bronnen", label: "Bronnen", icon: FileStack },
+    { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
+    { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping },
   ];
 
   return (

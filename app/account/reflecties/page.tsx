@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import Link from "next/link";
 import {
   PencilLine,
   Plus,
@@ -75,13 +76,9 @@ export default function AccountReflectiesPage() {
     userId ? { userId, limit: 30 } : "skip"
   );
   const goals = useQuery(api.reflecties.listGoals, userId ? { userId } : "skip");
-  const checkIn = useQuery(
-    api.reflecties.getCheckInForDate,
-    userId ? { userId, date: dateStr } : "skip"
-  );
-  const checkInHistory = useQuery(
-    api.reflecties.listCheckInHistory,
-    userId ? { userId, limit: 30 } : "skip"
+  const checkInEntries = useQuery(
+    api.reflecties.listCheckInEntries,
+    userId ? { userId, limit: 50 } : "skip"
   );
 
   const createNote = useMutation(api.reflecties.createNote);
@@ -91,17 +88,17 @@ export default function AccountReflectiesPage() {
   const createGoal = useMutation(api.reflecties.createGoal);
   const toggleGoal = useMutation(api.reflecties.toggleGoal);
   const deleteGoal = useMutation(api.reflecties.deleteGoal);
-  const setCheckInAnswer = useMutation(api.reflecties.setCheckInAnswer);
+  const createCheckInEntry = useMutation(api.reflecties.createCheckInEntry);
+  const deleteCheckInEntry = useMutation(api.reflecties.deleteCheckInEntry);
 
   const [showNewNote, setShowNewNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<Id<"notes"> | null>(null);
   const [noteTitle, setNoteTitle] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [newGoal, setNewGoal] = useState("");
-  const [checkInAnswers, setCheckInAnswers] = useState<
-    Record<string, string>
-  >({});
-  const [expandedHistoryDate, setExpandedHistoryDate] = useState<string | null>(null);
+  const [checkInForm, setCheckInForm] = useState({ hoe_voel: "", wat_hielp: "", waar_dankbaar: "" });
+  const [checkInSaving, setCheckInSaving] = useState(false);
+  const [expandedCheckInId, setExpandedCheckInId] = useState<Id<"checkInEntries"> | null>(null);
 
   const handleCreateNote = async () => {
     if (!userId || !noteContent.trim()) return;
@@ -130,17 +127,27 @@ export default function AccountReflectiesPage() {
     setNewGoal("");
   };
 
-  const handleCheckInBlur = async (key: string, value: string) => {
-    if (!userId || !value.trim()) return;
-    await setCheckInAnswer({
-      userId,
-      date: dateStr,
-      questionKey: key as "hoe_voel" | "wat_hielp" | "waar_dankbaar",
-      answer: value.trim(),
-    });
+  const handleAddCheckIn = async () => {
+    const { hoe_voel, wat_hielp, waar_dankbaar } = checkInForm;
+    if (!userId || (!hoe_voel.trim() && !wat_hielp.trim() && !waar_dankbaar.trim())) return;
+    setCheckInSaving(true);
+    try {
+      await createCheckInEntry({
+        userId,
+        hoe_voel: hoe_voel.trim() || "-",
+        wat_hielp: wat_hielp.trim() || "-",
+        waar_dankbaar: waar_dankbaar.trim() || "-",
+      });
+      setCheckInForm({ hoe_voel: "", wat_hielp: "", waar_dankbaar: "" });
+    } finally {
+      setCheckInSaving(false);
+    }
   };
 
-  const displayCheckIn = checkIn?.answers ?? {};
+  const handleDeleteCheckIn = async (id: Id<"checkInEntries">) => {
+    if (!userId || !confirm("Check-in verwijderen?")) return;
+    await deleteCheckInEntry({ id, userId });
+  };
   const displayDate = new Date().toLocaleDateString("nl-NL", {
     weekday: "long",
     day: "numeric",
@@ -345,30 +352,51 @@ export default function AccountReflectiesPage() {
           Dagelijkse check-in
         </h2>
         <p className="text-sm text-gray-600 mb-4">
-          Korte vragen om je gedachten te ordenen.
+          Korte vragen om je gedachten te ordenen. Je kunt meerdere keren per dag inchecken.
         </p>
-        <div className="space-y-4">
-          {checkIn?.questions.map((q) => (
-            <div key={q.key}>
-              <label className="block text-sm font-medium text-primary-800 mb-2">
-                {q.label}
-              </label>
-              <textarea
-                defaultValue={displayCheckIn[q.key] ?? ""}
-                onBlur={(e) => {
-                  const v = e.target.value.trim();
-                  if (v) handleCheckInBlur(q.key, v);
-                }}
-                placeholder="Typ hier je antwoord…"
-                rows={2}
-                className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
-              />
-            </div>
-          ))}
+        <div className="space-y-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-primary-800 mb-2">Hoe voel ik me vandaag?</label>
+            <textarea
+              value={checkInForm.hoe_voel}
+              onChange={(e) => setCheckInForm((f) => ({ ...f, hoe_voel: e.target.value }))}
+              placeholder="Typ hier je antwoord…"
+              rows={2}
+              className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-primary-800 mb-2">Wat hielp me vandaag?</label>
+            <textarea
+              value={checkInForm.wat_hielp}
+              onChange={(e) => setCheckInForm((f) => ({ ...f, wat_hielp: e.target.value }))}
+              placeholder="Typ hier je antwoord…"
+              rows={2}
+              className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-primary-800 mb-2">Waar ben ik dankbaar voor?</label>
+            <textarea
+              value={checkInForm.waar_dankbaar}
+              onChange={(e) => setCheckInForm((f) => ({ ...f, waar_dankbaar: e.target.value }))}
+              placeholder="Typ hier je antwoord…"
+              rows={2}
+              className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
+            />
+          </div>
         </div>
+        <button
+          type="button"
+          onClick={handleAddCheckIn}
+          disabled={checkInSaving || (!checkInForm.hoe_voel.trim() && !checkInForm.wat_hielp.trim() && !checkInForm.waar_dankbaar.trim())}
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50"
+        >
+          {checkInSaving ? "Bezig…" : "Toevoegen"}
+        </button>
 
-        {/* Eerdere check-ins – terugkijken */}
-        {checkInHistory && checkInHistory.length > 0 && (
+        {/* Eerdere check-ins – max 3, rest via knop */}
+        {checkInEntries && checkInEntries.length > 0 && (
           <div className="mt-6 pt-6 border-t border-primary-100">
             <h3 className="flex items-center gap-2 text-base font-semibold text-primary-900 mb-3">
               <History size={18} className="text-primary-500" />
@@ -378,57 +406,75 @@ export default function AccountReflectiesPage() {
               Bekijk je vorige antwoorden om patronen te zien.
             </p>
             <div className="space-y-2">
-              {checkInHistory
-                .filter((item) => item.date !== dateStr)
-                .map((item) => {
-                  const isExpanded = expandedHistoryDate === item.date;
-                  return (
-                    <div
-                      key={item.date}
-                      className="rounded-lg border border-primary-200 overflow-hidden"
-                    >
+              {checkInEntries.slice(0, 3).map((entry) => {
+                const isExpanded = expandedCheckInId === entry._id;
+                const emotionEntry = emotionHistory?.find((e) => e.date === entry.dateStr);
+                const moodOpt = emotionEntry?.mood ? MOOD_OPTIONS.find((m) => m.value === emotionEntry.mood) : null;
+                return (
+                  <div
+                    key={entry._id}
+                    className="rounded-lg border border-primary-200 overflow-hidden"
+                  >
+                    <div className="flex items-center gap-2 px-4 py-3 bg-white">
                       <button
                         type="button"
-                        onClick={() =>
-                          setExpandedHistoryDate(isExpanded ? null : item.date)
-                        }
-                        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-primary-50/50 transition-colors"
+                        onClick={() => setExpandedCheckInId(isExpanded ? null : entry._id)}
+                        className="flex items-center gap-2 text-left hover:bg-primary-50/50 rounded transition-colors flex-1 min-w-0"
                       >
                         {isExpanded ? (
-                          <ChevronDown size={18} className="text-primary-600" />
+                          <ChevronDown size={18} className="text-primary-600 flex-shrink-0" />
                         ) : (
-                          <ChevronRight size={18} className="text-primary-600" />
+                          <ChevronRight size={18} className="text-primary-600 flex-shrink-0" />
                         )}
-                        <span className="font-medium text-primary-900">
-                          {formatDateStr(item.date)}
+                        {moodOpt && (
+                          <span className="text-xl flex-shrink-0" title={moodOpt.label}>{moodOpt.emoji}</span>
+                        )}
+                        <span className="font-medium text-primary-900 truncate">
+                          {formatDate(entry.createdAt)}
                         </span>
                       </button>
-                      {isExpanded && (
-                        <div className="px-4 pb-4 pt-0 space-y-2 bg-primary-50/30">
-                          {(["hoe_voel", "wat_hielp", "waar_dankbaar"] as const).map(
-                            (key) =>
-                              item.answers[key] && (
-                                <div key={key}>
-                                  <p className="text-xs font-medium text-primary-600 mb-0.5">
-                                    {CHECK_IN_LABELS[key]}
-                                  </p>
-                                  <p className="text-sm text-primary-900">
-                                    {item.answers[key]}
-                                  </p>
-                                </div>
-                              )
-                          )}
-                        </div>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCheckIn(entry._id)}
+                        className="p-2 text-gray-400 hover:text-red-600 rounded-lg flex-shrink-0"
+                        aria-label="Verwijderen"
+                      >
+                        <Trash2 size={18} />
+                      </button>
                     </div>
-                  );
-                })}
+                    {isExpanded && (
+                      <div className="px-4 pb-4 pt-0 space-y-2 bg-primary-50/30">
+                        {(["hoe_voel", "wat_hielp", "waar_dankbaar"] as const).map(
+                          (key) =>
+                            entry[key] && entry[key] !== "-" && (
+                              <div key={key}>
+                                <p className="text-xs font-medium text-primary-600 mb-0.5">
+                                  {CHECK_IN_LABELS[key]}
+                                </p>
+                                <p className="text-sm text-primary-900">
+                                  {entry[key]}
+                                </p>
+                              </div>
+                            )
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+            <Link
+              href="/account/reflecties/eerdere-checkins"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg text-sm font-medium transition-colors"
+            >
+              <History size={18} />
+              Bekijk alle eerdere check-ins
+            </Link>
           </div>
         )}
       </div>
 
-      {/* 5. Eerdere reflecties */}
+      {/* 5. Eerdere reflecties – max 3, rest via knop */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
         <h2 className="flex items-center gap-2 text-lg font-semibold text-primary-900 mb-4">
           <PencilLine size={20} className="text-primary-500" />
@@ -444,15 +490,27 @@ export default function AccountReflectiesPage() {
           <div className="space-y-3">
             {notes
               ?.filter((n) => n._id !== editingNoteId)
-              .map((note) => (
+              .slice(0, 3)
+              .map((note) => {
+                const noteDate = new Date(note.updatedAt).toISOString().slice(0, 10);
+                const emotionEntry = emotionHistory?.find((e) => e.date === noteDate);
+                const moodOpt = emotionEntry?.mood ? MOOD_OPTIONS.find((m) => m.value === emotionEntry.mood) : null;
+                return (
                 <div
                   key={note._id}
                   className="p-4 rounded-lg border border-primary-100"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      {note.title && (
-                        <h3 className="font-semibold text-primary-900 truncate">{note.title}</h3>
+                      {(moodOpt || note.title) && (
+                        <div className="flex items-center gap-2 mb-1">
+                          {moodOpt && (
+                            <span className="text-xl flex-shrink-0" title={moodOpt.label}>{moodOpt.emoji}</span>
+                          )}
+                          {note.title && (
+                            <h3 className="font-semibold text-primary-900 truncate">{note.title}</h3>
+                          )}
+                        </div>
                       )}
                       <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap line-clamp-2">
                         {note.content}
@@ -483,7 +541,15 @@ export default function AccountReflectiesPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              );})}
+
+            <Link
+              href="/account/reflecties/eerdere-reflecties"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg text-sm font-medium transition-colors"
+            >
+              <History size={18} />
+              Bekijk alle eerdere reflecties
+            </Link>
 
             {editingNoteId && (
               <div className="p-4 bg-primary-50/50 rounded-lg border border-primary-200">

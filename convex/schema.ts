@@ -233,7 +233,7 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
 
-  // Dagelijkse check-in antwoorden
+  // Dagelijkse check-in antwoorden (legacy, voor migratie)
   checkInAnswers: defineTable({
     userId: v.string(),
     date: v.string(), // YYYY-MM-DD
@@ -246,6 +246,15 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_user_date", ["userId", "date"]),
 
+  // Check-in entries – meerdere per dag, met datum en tijd
+  checkInEntries: defineTable({
+    userId: v.string(),
+    hoe_voel: v.string(),
+    wat_hielp: v.string(),
+    waar_dankbaar: v.string(),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]).index("by_user_created", ["userId", "createdAt"]),
+
   // Inspiratie & troost (admin beheerd, klant zichtbaar)
   inspiratieItems: defineTable({
     title: v.string(),
@@ -254,12 +263,20 @@ export default defineSchema({
       v.literal("gedicht"),
       v.literal("citaat"),
       v.literal("tekst"),
-      v.literal("overig")
+      v.literal("overig"),
+      v.literal("pdf")
     ),
     order: v.number(),
     isActive: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
+    // PDF/ebook: PDF-bestand + coverafbeelding
+    pdfStorageId: v.optional(v.id("_storage")),
+    imageStorageId: v.optional(v.id("_storage")),
+    // Drip: datum (ms) vanaf wanneer item zichtbaar wordt; null/afwezig = direct zichtbaar
+    publishFrom: v.optional(v.union(v.number(), v.null())),
+    // Prijs in centen; null/afwezig = geen Koop-knop
+    priceCents: v.optional(v.union(v.number(), v.null())),
   })
     .index("by_active_order", ["isActive", "order"]),
 
@@ -271,6 +288,13 @@ export default defineSchema({
     isActive: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
+    // PDF/ebook: PDF-bestand + coverafbeelding
+    pdfStorageId: v.optional(v.id("_storage")),
+    imageStorageId: v.optional(v.id("_storage")),
+    // Drip: datum (ms) vanaf wanneer item zichtbaar wordt; null/afwezig = direct zichtbaar
+    publishFrom: v.optional(v.union(v.number(), v.null())),
+    // Prijs in centen; null/afwezig = geen Koop-knop
+    priceCents: v.optional(v.union(v.number(), v.null())),
   })
     .index("by_active_order", ["isActive", "order"]),
 

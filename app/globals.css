@@ -36,6 +36,28 @@
   }
 }
 
+/* Account-thema: accentkleur toepassen in account-gebied */
+.account-theme [class*="bg-primary-600"],
+.account-theme [class*="bg-primary-500"] {
+  background-color: var(--account-accent) !important;
+}
+.account-theme [class*="hover:bg-primary-700"]:hover,
+.account-theme [class*="hover:bg-primary-600"]:hover {
+  background-color: var(--account-accent-hover) !important;
+}
+.account-theme [class*="border-primary-600"],
+.account-theme [class*="border-l-primary-600"],
+.account-theme [class*="ring-primary-500"] {
+  border-color: var(--account-accent) !important;
+}
+.account-theme [class*="ring-primary-500"] {
+  --tw-ring-color: var(--account-accent) !important;
+}
+.account-theme [class*="text-primary-500"],
+.account-theme [class*="text-primary-600"] {
+  color: var(--account-accent) !important;
+}
+
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;

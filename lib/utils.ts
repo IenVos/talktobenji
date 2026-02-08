@@ -12,6 +12,20 @@ export function hexToLightTint(hex: string, mixPercent = 12): string {
   return `#${nr.toString(16).padStart(2, "0")}${ng.toString(16).padStart(2, "0")}${nb.toString(16).padStart(2, "0")}`;
 }
 
+/** Maak een donkerdere variant (voor hover) */
+export function hexToDarker(hex: string, mixPercent = 15): string {
+  const h = hex.replace("#", "");
+  if (h.length !== 6) return hex;
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  const mix = (100 - mixPercent) / 100;
+  const nr = Math.round(r * mix);
+  const ng = Math.round(g * mix);
+  const nb = Math.round(b * mix);
+  return `#${nr.toString(16).padStart(2, "0")}${ng.toString(16).padStart(2, "0")}${nb.toString(16).padStart(2, "0")}`;
+}
+
 export function formatDate(timestamp: number): string {
   return new Date(timestamp).toLocaleDateString("nl-NL", {
     day: "numeric",
