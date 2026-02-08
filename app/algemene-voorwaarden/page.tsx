@@ -3,8 +3,8 @@ import Link from "next/link";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 
 export const metadata: Metadata = {
-  title: "Algemene voorwaarden - Talk To Benji",
-  description: "Algemene voorwaarden van Talk To Benji",
+  title: "Algemene voorwaarden - Praat met Benji",
+  description: "Algemene voorwaarden van Praat met Benji",
 };
 
 export default function AlgemeneVoorwaardenPage() {
@@ -15,7 +15,7 @@ export default function AlgemeneVoorwaardenPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Algemene voorwaarden</h1>
 
         <p>
-          Door Talk To Benji te gebruiken ga je akkoord met deze voorwaarden.
+          Door Praat met Benji te gebruiken ga je akkoord met deze voorwaarden.
         </p>
 
         <section className="space-y-4">
@@ -110,7 +110,7 @@ export default function AlgemeneVoorwaardenPage() {
         </section>
 
         <p className="text-xs text-gray-500 italic pt-4 border-t border-gray-200">
-          Talk To Benji is een initiatief om mensen te ondersteunen in moeilijke tijden. We geloven dat iedereen een luisterend oor verdient.
+          Praat met Benji is een initiatief om mensen te ondersteunen in moeilijke tijden. We geloven dat iedereen een luisterend oor verdient.
         </p>
 
         <div className="flex flex-wrap gap-4 pt-4">

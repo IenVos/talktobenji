@@ -4,8 +4,8 @@ import { HeaderBar } from "@/components/chat/HeaderBar";
 import { FounderLink } from "@/components/chat/FounderLink";
 
 export const metadata: Metadata = {
-  title: "Veelgestelde vragen · Talk To Benji",
-  description: "Antwoorden op veelgestelde vragen over Talk To Benji, Benji de AI-chatbot bij verlies en verdriet",
+  title: "Veelgestelde vragen · Praat met Benji",
+  description: "Antwoorden op veelgestelde vragen over Praat met Benji, Benji de AI-chatbot bij verlies en verdriet",
 };
 
 function FaqSection({ title, children }: { title: string; children: React.ReactNode }) {
@@ -34,9 +34,9 @@ export default function FaqPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Veelgestelde vragen</h1>
 
         <FaqSection title="Over Benji">
-          <FaqItem question="Wat is Talk To Benji?">
+          <FaqItem question="Wat is Praat met Benji?">
             <p>
-              Talk To Benji is een AI-chatbot speciaal ontwikkeld voor mensen die met verlies, verdriet of moeilijke emoties omgaan. Benji biedt een luisterend oor wanneer je dat nodig hebt: dag en nacht, zonder oordeel. Het is bedoeld als aanvullende steun, niet als vervanging van professionele hulp of menselijk contact.
+              Praat met Benji is een AI-chatbot speciaal ontwikkeld voor mensen die met verlies, verdriet of moeilijke emoties omgaan. Benji biedt een luisterend oor wanneer je dat nodig hebt: dag en nacht, zonder oordeel. Het is bedoeld als aanvullende steun, niet als vervanging van professionele hulp of menselijk contact.
             </p>
           </FaqItem>
           <FaqItem question="Wie heeft Benji gemaakt en waarom?">
@@ -160,7 +160,7 @@ export default function FaqPage() {
         </FaqSection>
 
         <FaqSection title="Kosten & Toekomstplannen">
-          <FaqItem question="Is Talk To Benji gratis?">
+          <FaqItem question="Is Praat met Benji gratis?">
             <p>
               Ja, momenteel is Benji volledig gratis tijdens onze lancering en testfase. Je kunt onbeperkt gesprekken voeren zonder kosten. Help ons Benji te verbeteren door je ervaring te delen.
             </p>
@@ -457,7 +457,7 @@ export default function FaqPage() {
               <Link href="/privacy" className="text-primary-600 hover:underline">privacybeleid</Link> voor details.
             </p>
           </FaqItem>
-          <FaqItem question="Is Talk To Benji geschikt voor kinderen?">
+          <FaqItem question="Is Praat met Benji geschikt voor kinderen?">
             <p>
               Benji is ontworpen voor volwassenen (18+). Jongeren onder de 18 mogen Benji gebruiken met toestemming van ouders/verzorgers, maar we raden professionele jeugdhulp aan bij jongeren die met verlies omgaan.
             </p>

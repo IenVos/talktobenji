@@ -43,8 +43,8 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
               <Image src="/images/benji-logo-2.png" alt="" width={56} height={48} className="object-contain h-full w-auto" />
             </div>
             <div className="flex flex-col items-start min-w-0">
-              <h2 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">Over Talk To Benji</h2>
-              <p className="text-xs sm:text-sm text-primary-600 leading-snug">Een luisterend oor, wanneer je het nodig hebt</p>
+              <h2 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">Praat met Benji</h2>
+              <p className="text-xs sm:text-sm text-primary-600 leading-snug">Een warme, betrouwbare plek waar je je verhaal kwijt kunt – 24/7 aandacht en steun, zonder oordeel</p>
             </div>
           </div>
           <div className="absolute bottom-0 left-5 right-5 sm:left-6 sm:right-6 border-b border-primary-200" aria-hidden />

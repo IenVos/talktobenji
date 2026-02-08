@@ -30,9 +30,9 @@ export function Sidebar() {
       <div className="px-6 py-4 border-b border-gray-100">
         <Link href="/admin" className="flex items-center gap-2">
           <div className="h-8 w-8 flex-shrink-0 flex items-center justify-center overflow-hidden">
-            <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={32} height={32} className="object-contain h-full w-auto" />
+            <Image src="/images/benji-logo-2.png" alt="Praat met Benji" width={32} height={32} className="object-contain h-full w-auto" />
           </div>
-          <span className="font-bold text-gray-900">Talk To Benji</span>
+          <span className="font-bold text-gray-900">Praat met Benji</span>
         </Link>
       </div>
 

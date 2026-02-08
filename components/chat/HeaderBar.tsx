@@ -16,7 +16,7 @@ type HeaderBarProps = {
   onLogoClick?: () => void;
 };
 
-/** Eén gedeelde header voor alle pagina's – logo, Talk To Benji, menu. Altijd identiek. */
+/** Eén gedeelde header voor alle pagina's – logo, Praat met Benji, menu. Altijd identiek. */
 export function HeaderBar({ onLogoClick }: HeaderBarProps) {
   const logoContent = (
     <>
@@ -31,7 +31,7 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
       </div>
       <div className="flex flex-col items-start min-w-0">
         <span className="font-semibold text-primary-500 text-sm sm:text-base leading-tight group-hover:text-primary-400">
-          Talk To Benji
+          Praat met Benji
         </span>
       </div>
     </>
@@ -48,7 +48,7 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
             type="button"
             onClick={onLogoClick}
             className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none bg-transparent border-0 p-0 text-left"
-            aria-label="Naar Talk To Benji"
+            aria-label="Naar Praat met Benji"
           >
             {logoContent}
           </button>
@@ -56,7 +56,7 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
           <Link
             href="/"
             className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none"
-            aria-label="Naar Talk To Benji"
+            aria-label="Naar Praat met Benji"
           >
             {logoContent}
           </Link>

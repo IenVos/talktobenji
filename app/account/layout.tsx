@@ -34,7 +34,7 @@ const REFLECTIES_SUBMENU = [
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account": { title: "Account", subtitle: "Overzicht" },
   "/account/gesprekken": { title: "Mijn gesprekken", subtitle: "Je eerdere gesprekken met Benji" },
-  "/account/steun": { title: "Steun Benji", subtitle: "Help Talk To Benji verder te groeien" },
+  "/account/steun": { title: "Steun Benji", subtitle: "Help Praat met Benji verder te groeien" },
   "/account/reflecties": { title: "Mijn reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/reflecties/eerdere-reflecties": { title: "Eerdere reflecties", subtitle: "Al je reflecties bekijken" },
   "/account/reflecties/eerdere-checkins": { title: "Eerdere check-ins", subtitle: "Al je dagelijkse check-ins bekijken" },
@@ -64,9 +64,14 @@ export default function AccountLayout({
   const [submenuOpen, setSubmenuOpen] = useState(() =>
     SUBMENU_ITEMS.some((item) => pathname === item.href)
   );
-  const [reflectiesSubmenuOpen, setReflectiesSubmenuOpen] = useState(() =>
-    pathname?.startsWith("/account/reflecties") ?? true
-  );
+  const [reflectiesSubmenuOpen, setReflectiesSubmenuOpen] = useState(false);
+  
+  // Submenu sluiten bij verlaten van reflecties, voorkomt layoutverschuiving bij terugkeren
+  useEffect(() => {
+    if (!pathname?.startsWith("/account/reflecties")) {
+      setReflectiesSubmenuOpen(false);
+    }
+  }, [pathname]);
   
   // Refresh session als status "unauthenticated" is maar we op account pagina zijn
   // Dit kan gebeuren als redirect te snel gaat na login
@@ -147,16 +152,16 @@ export default function AccountLayout({
       }
     >
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        {/* Gedeelde header – boven beide kolommen voor consistente uitlijning */}
-        <div className="flex items-center gap-3 mb-6">
+        {/* Gedeelde header – vaste hoogte om layoutverschuiving te voorkomen */}
+        <div className="flex items-center gap-3 mb-6 min-h-[4.5rem]">
           <Image
             src="/images/benji-logo-2.png"
             alt="Benji"
             width={40}
             height={40}
-            className="object-contain"
+            className="object-contain flex-shrink-0 brightness-75"
           />
-          <div>
+          <div className="min-w-0">
             <h1 className="text-xl font-bold text-primary-900">{pageInfo.title}</h1>
             <p className="text-sm text-gray-600">{pageInfo.subtitle}</p>
           </div>
@@ -184,25 +189,29 @@ export default function AccountLayout({
                           <Link
                             href="/account/reflecties"
                             className="flex items-center gap-3 flex-1 min-w-0"
+                            scroll={false}
                           >
                             <Icon size={18} className="flex-shrink-0" />
                             {item.label}
                           </Link>
-                          {isReflectiesSection && (
-                            <button
-                              type="button"
-                              onClick={() => setReflectiesSubmenuOpen((o) => !o)}
-                              className="p-1 rounded hover:bg-primary-100/50 transition-colors flex-shrink-0"
-                              title={reflectiesSubmenuOpen ? "Submenu sluiten" : "Submenu openen"}
-                              aria-expanded={reflectiesSubmenuOpen}
-                            >
-                              {reflectiesSubmenuOpen ? (
-                                <ChevronDown size={16} />
-                              ) : (
-                                <ChevronRight size={16} />
-                              )}
-                            </button>
-                          )}
+                          {/* Altijd ruimte reserveren voor chevron om layoutverschuiving te voorkomen */}
+                          <span className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                            {isReflectiesSection && (
+                              <button
+                                type="button"
+                                onClick={() => setReflectiesSubmenuOpen((o) => !o)}
+                                className="p-1 rounded hover:bg-primary-100/50 transition-colors -m-1"
+                                title={reflectiesSubmenuOpen ? "Submenu sluiten" : "Submenu openen"}
+                                aria-expanded={reflectiesSubmenuOpen}
+                              >
+                                {reflectiesSubmenuOpen ? (
+                                  <ChevronDown size={16} />
+                                ) : (
+                                  <ChevronRight size={16} />
+                                )}
+                              </button>
+                            )}
+                          </span>
                         </div>
                         {isReflectiesSection && reflectiesSubmenuOpen && (
                           <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
@@ -212,6 +221,7 @@ export default function AccountLayout({
                                 <li key={sub.href}>
                                   <Link
                                     href={sub.href}
+                                    scroll={false}
                                     className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors block ${
                                       subActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
                                     }`}
@@ -231,6 +241,7 @@ export default function AccountLayout({
                     <li key={item.href}>
                       <Link
                         href={item.href}
+                        scroll={false}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                           isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
                         }`}
@@ -273,6 +284,7 @@ export default function AccountLayout({
                           <li key={item.href}>
                             <Link
                               href={item.href}
+                              scroll={false}
                               className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                                 isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
                               }`}
@@ -290,6 +302,7 @@ export default function AccountLayout({
                 <li>
                   <Link
                     href="/account/steun"
+                    scroll={false}
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mt-2 border-t border-primary-100 pt-3 ${
                       pathname === "/account/steun"
                         ? "text-primary-800"

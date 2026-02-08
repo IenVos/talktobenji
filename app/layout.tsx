@@ -10,9 +10,18 @@ import { ConnectionBanner } from "@/components/chat/ConnectionBanner";
 import { SessionProvider } from "@/lib/SessionProvider";
 
 export const metadata: Metadata = {
-  title: "TalkToBenji - Benji",
-  description: "Rustige gesprekspartner bij rouw en verlies",
+  title: {
+    default: "Praat met Benji – Altijd een luisterend oor, wanneer jij het nodig hebt",
+    template: "%s",
+  },
+  description: "Op Talk to Benji vind je een vriendelijke AI die altijd luistert, dag en nacht. Deel je gevoelens, gedachten en verhalen in een veilige omgeving. Geen professionele hulp, maar een betrouwbare steun wanneer jij wilt praten.",
+  keywords: ["AI chatbot", "rouw", "verlies", "verdriet", "luisterend oor", "Benji", "TalkToBenji", "mentale steun"],
   manifest: "/manifest.webmanifest",
+  openGraph: {
+    title: "Praat met Benji – Altijd een luisterend oor, wanneer jij het nodig hebt",
+    description: "Een warme, betrouwbare plek waar je je verhaal kwijt kunt – 24/7 aandacht en steun, zonder oordeel.",
+    type: "website",
+  },
   icons: {
     icon: [
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },

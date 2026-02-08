@@ -39,7 +39,7 @@ export default function AccountSteunPage() {
 
         <div className="prose prose-sm max-w-none text-gray-700 space-y-4">
           <p>
-            Talk To Benji is een gratis chatbot voor iedereen die te maken heeft met rouw, verlies of verdriet.
+            Praat met Benji is een gratis chatbot voor iedereen die te maken heeft met rouw, verlies of verdriet.
             Of je nu een dierbare bent verloren, je huisdier mist, of gewoon even wil praten – Benji is er,
             dag en nacht, zonder oordeel.
           </p>

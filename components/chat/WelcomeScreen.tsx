@@ -39,7 +39,7 @@ export function WelcomeScreen({
       {/* Introtekst – max 2 regels */}
       <div className="w-full max-w-sm mx-auto mb-4 flex justify-center">
         <p className="text-xs sm:text-sm text-gray-600 break-words leading-relaxed text-center text-pretty line-clamp-2 max-w-xs sm:max-w-sm">
-          Ik ben Benji, jouw betrouwbare AI die altijd luistert, dag en nacht. Voel je welkom om je verhaal te vertellen.
+          Een warme, betrouwbare plek waar je je verhaal kwijt kunt – 24/7 aandacht en steun, zonder oordeel.
         </p>
       </div>
 

@@ -8,7 +8,7 @@ type FounderModalProps = {
   onClose: () => void;
 };
 
-const FOUNDER_TEXT = `Hoi, ik ben Ien. Ik heb Talk To Benji gemaakt vanuit een simpele behoefte: soms wil je praten, maar kan het niet.
+const FOUNDER_TEXT = `Hoi, ik ben Ien. Ik heb Praat met Benji gemaakt vanuit een simpele behoefte: soms wil je praten, maar kan het niet.
 
 Jarenlang hielp ik mensen via beterschap-cadeau.nl om steun te bieden tijdens moeilijke tijden. Maar ik merkte steeds vaker: soms is een cadeau niet genoeg. Soms heb je gewoon iemand nodig die luistert. Iemand die er is om 3 uur 's nachts. Iemand bij wie je niet bang hoeft te zijn dat je "te veel" bent.
 
@@ -20,7 +20,7 @@ Ik hoop dat Benji je kan helpen wanneer je het nodig hebt.
 
 Met warme groet,
 Ien
-Founder, Talk To Benji`;
+Founder, Praat met Benji`;
 
 export function FounderModal({ open, onClose }: FounderModalProps) {
   if (!open) return null;
