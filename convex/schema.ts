@@ -198,6 +198,23 @@ export default defineSchema({
   })
     .index("by_created", ["createdAt"]),
 
+  // Gebruikersvoorkeuren (per userId, voor personalisatie)
+  userPreferences: defineTable({
+    userId: v.string(),
+    accentColor: v.optional(v.string()),
+    backgroundImageStorageId: v.optional(v.id("_storage")),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  // Notities / dagboek (per gebruiker)
+  notes: defineTable({
+    userId: v.string(),
+    title: v.optional(v.string()),
+    content: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
   // Analytics
   analytics: defineTable({
     date: v.number(),

@@ -18,6 +18,8 @@ import type * as credentials from "../credentials.js";
 import type * as exampleData from "../exampleData.js";
 import type * as http from "../http.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
+import type * as notes from "../notes.js";
+import type * as preferences from "../preferences.js";
 import type * as seedData from "../seedData.js";
 import type * as settings from "../settings.js";
 import type * as sources from "../sources.js";
@@ -40,6 +42,8 @@ declare const fullApi: ApiFromModules<{
   exampleData: typeof exampleData;
   http: typeof http;
   knowledgeBase: typeof knowledgeBase;
+  notes: typeof notes;
+  preferences: typeof preferences;
   seedData: typeof seedData;
   settings: typeof settings;
   sources: typeof sources;
