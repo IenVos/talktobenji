@@ -48,6 +48,7 @@ function WachtwoordVergetenForm() {
                 width={64}
                 height={64}
                 className="mx-auto object-contain"
+                style={{ width: "auto", height: "auto" }}
               />
             </Link>
             <h1 className="text-xl font-bold text-primary-900 mt-3">E-mail verstuurd</h1>
@@ -89,6 +90,7 @@ function WachtwoordVergetenForm() {
               width={64}
               height={64}
               className="mx-auto object-contain"
+              style={{ width: "auto", height: "auto" }}
             />
           </Link>
           <h1 className="text-xl font-bold text-primary-900 mt-3">Wachtwoord vergeten</h1>

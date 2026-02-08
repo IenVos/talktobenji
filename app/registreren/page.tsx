@@ -109,6 +109,7 @@ function RegistrerenForm() {
               width={64}
               height={64}
               className="mx-auto object-contain"
+              style={{ width: "auto", height: "auto" }}
             />
           </Link>
           <h1 className="text-xl font-bold text-primary-900 mt-3">Account aanmaken</h1>

@@ -45,9 +45,9 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
       <div className="bg-primary-800/50 backdrop-blur-sm rounded-xl border border-primary-700 p-6 sm:p-8 w-full max-w-md">
         <div className="text-center mb-6 sm:mb-8">
           <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 flex items-center justify-center overflow-hidden">
-            <Image src="/images/benji-logo-2.png" alt="Praat met Benji" width={64} height={64} className="object-contain h-full w-auto" />
+            <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={64} height={64} className="object-contain h-full w-auto" style={{ width: "auto", height: "auto" }} />
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-white">Praat met Benji</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Talk To Benji</h1>
           <p className="text-sm sm:text-base text-primary-300 mt-2">Admin Panel – voer je wachtwoord in</p>
         </div>
 

@@ -86,6 +86,7 @@ export default function GesprekPage() {
                 width={40}
                 height={40}
                 className="object-contain"
+                style={{ width: "auto", height: "auto" }}
               />
             </Link>
             <div>

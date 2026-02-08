@@ -62,10 +62,10 @@ export default function AdminLayout({
       <header className="lg:hidden bg-primary-900 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-lg">
-            <Image src="/images/benji-logo-2.png" alt="Praat met Benji" width={32} height={32} className="object-contain h-full w-auto" />
+            <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={32} height={32} className="object-contain h-full w-auto" style={{ width: "auto", height: "auto" }} />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white">Praat met Benji</h1>
+            <h1 className="text-lg font-bold text-white">Talk To Benji</h1>
             <p className="text-xs text-gray-300">Admin Panel</p>
           </div>
         </div>
@@ -144,10 +144,10 @@ export default function AdminLayout({
           <div className="p-6 border-b border-primary-700">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-lg">
-                <Image src="/images/benji-logo-2.png" alt="Praat met Benji" width={40} height={40} className="object-contain h-full w-auto" />
+                <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={40} height={40} className="object-contain h-full w-auto" style={{ width: "auto", height: "auto" }} />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Praat met Benji</h1>
+                <h1 className="text-xl font-bold text-white">Talk To Benji</h1>
                 <p className="text-sm text-gray-300">Admin Panel</p>
               </div>
             </div>

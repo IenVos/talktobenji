@@ -4,8 +4,8 @@ import { CookieSettingsLink } from "@/components/chat/CookieSettingsLink";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 
 export const metadata: Metadata = {
-  title: "Privacy - Praat met Benji",
-  description: "Privacybeleid van Praat met Benji – hoe we met je gegevens omgaan",
+  title: "Privacy - Talk To Benji",
+  description: "Privacybeleid van Talk To Benji – hoe we met je gegevens omgaan",
 };
 
 export default function PrivacyPage() {
@@ -118,7 +118,7 @@ export default function PrivacyPage() {
         </section>
 
         <p className="text-xs text-gray-500 italic pt-4 border-t border-gray-200">
-          Praat met Benji verwerkt gegevens volgens de AVG (Algemene Verordening Gegevensbescherming). We bewaren niet meer dan nodig en beschermen wat we bewaren.
+          Talk To Benji verwerkt gegevens volgens de AVG (Algemene Verordening Gegevensbescherming). We bewaren niet meer dan nodig en beschermen wat we bewaren.
         </p>
 
         <div className="flex flex-wrap gap-4 pt-4">

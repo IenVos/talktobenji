@@ -34,7 +34,7 @@ const REFLECTIES_SUBMENU = [
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account": { title: "Account", subtitle: "Overzicht" },
   "/account/gesprekken": { title: "Mijn gesprekken", subtitle: "Je eerdere gesprekken met Benji" },
-  "/account/steun": { title: "Steun Benji", subtitle: "Help Praat met Benji verder te groeien" },
+  "/account/steun": { title: "Steun Benji", subtitle: "Help Talk To Benji verder te groeien" },
   "/account/reflecties": { title: "Mijn reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/reflecties/eerdere-reflecties": { title: "Eerdere reflecties", subtitle: "Al je reflecties bekijken" },
   "/account/reflecties/eerdere-checkins": { title: "Eerdere check-ins", subtitle: "Al je dagelijkse check-ins bekijken" },
@@ -114,6 +114,7 @@ export default function AccountLayout({
             width={64}
             height={64}
             className="mx-auto object-contain mb-4"
+            style={{ width: "auto", height: "auto" }}
           />
           <h1 className="text-xl font-bold text-primary-900">Account</h1>
           <p className="text-gray-600 mt-2 mb-6">
@@ -160,6 +161,7 @@ export default function AccountLayout({
             width={40}
             height={40}
             className="object-contain flex-shrink-0 brightness-75"
+            style={{ width: "auto", height: "auto" }}
           />
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-primary-900">{pageInfo.title}</h1>

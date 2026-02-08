@@ -8,7 +8,7 @@ type FounderModalProps = {
   onClose: () => void;
 };
 
-const FOUNDER_TEXT = `Hoi, ik ben Ien. Ik heb Praat met Benji gemaakt vanuit een simpele behoefte: soms wil je praten, maar kan het niet.
+const FOUNDER_TEXT = `Hoi, ik ben Ien. Ik heb Talk To Benji gemaakt vanuit een simpele behoefte: soms wil je praten, maar kan het niet.
 
 Jarenlang hielp ik mensen via beterschap-cadeau.nl om steun te bieden tijdens moeilijke tijden. Maar ik merkte steeds vaker: soms is een cadeau niet genoeg. Soms heb je gewoon iemand nodig die luistert. Iemand die er is om 3 uur 's nachts. Iemand bij wie je niet bang hoeft te zijn dat je "te veel" bent.
 
@@ -20,7 +20,7 @@ Ik hoop dat Benji je kan helpen wanneer je het nodig hebt.
 
 Met warme groet,
 Ien
-Founder, Praat met Benji`;
+Founder, Talk To Benji`;
 
 export function FounderModal({ open, onClose }: FounderModalProps) {
   if (!open) return null;
@@ -45,7 +45,7 @@ export function FounderModal({ open, onClose }: FounderModalProps) {
           </button>
           <div className="flex items-center gap-3 min-w-0 pr-8">
             <div className="h-10 sm:h-12 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <Image src="/images/benji-logo-2.png" alt="" width={56} height={48} className="object-contain h-full w-auto" />
+              <Image src="/images/benji-logo-2.png" alt="" width={56} height={48} className="object-contain h-full w-auto" style={{ width: "auto", height: "auto" }} />
             </div>
             <div className="flex flex-col items-start min-w-0">
               <h2 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">Over Ien</h2>

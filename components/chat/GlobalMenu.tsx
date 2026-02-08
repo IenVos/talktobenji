@@ -42,7 +42,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
 
   const menuItems = [
     {
-      label: "Over Praat met Benji",
+      label: "Over Talk To Benji",
       icon: Info,
       onClick: () => {
         setOpen(false);

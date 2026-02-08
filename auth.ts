@@ -18,6 +18,7 @@ const CONVEX_SITE_URL = (process.env.NEXT_PUBLIC_CONVEX_URL ?? "").replace(
 const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
 
 export const authOptions: AuthOptions = {
+  trustHost: true, // Vereist voor Vercel/productie – voorkomt session/cookie issues
   providers: [
     CredentialsProvider({
       id: "credentials",
@@ -28,32 +29,9 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password || !adapterSecret) {
-          if (process.env.NODE_ENV === "development") {
-            console.log("[Auth] Missing credentials or adapterSecret:", {
-              hasEmail: !!credentials?.email,
-              hasPassword: !!credentials?.password,
-              hasAdapterSecret: !!adapterSecret,
-            });
-          }
           return null;
         }
-        
-        // Debug logging - uitgebreid
-        console.log("[Auth] Debug authorize - Secret details:");
-        console.log("  - adapterSecret exists?", !!adapterSecret);
-        console.log("  - adapterSecret type:", typeof adapterSecret);
-        console.log("  - adapterSecret length:", adapterSecret?.length || 0);
-        console.log("  - adapterSecret first 15:", adapterSecret?.substring(0, 15) || "N/A");
-        console.log("  - adapterSecret last 10:", adapterSecret?.substring(adapterSecret.length - 10) || "N/A");
-        console.log("  - adapterSecret JSON:", JSON.stringify(adapterSecret?.substring(0, 20)));
-
-        // Zorg ervoor dat secret een string is en geen extra whitespace heeft
         const cleanSecret = String(adapterSecret || "").trim();
-        
-        console.log("[Auth] Clean secret:");
-        console.log("  - cleanSecret length:", cleanSecret.length);
-        console.log("  - cleanSecret first 15:", cleanSecret.substring(0, 15));
-        
         const cred = await fetchQuery(api.credentials.getCredentialsByEmail, {
           secret: cleanSecret, // Gebruik de cleaned secret
           email: credentials.email.trim(),

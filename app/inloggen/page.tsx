@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { signIn, getSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 function InloggenForm() {
@@ -25,46 +25,24 @@ function InloggenForm() {
     setLoading(true);
 
     try {
-      // NextAuth signIn met redirect: false om zelf te kunnen redirecten
       const result = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
         callbackUrl,
         redirect: false,
       });
-      
-      if (result?.error) {
-        setError("Ongeldig e-mailadres of wachtwoord");
-        setLoading(false);
+      if (result?.ok && result?.url) {
+        // Blijf op hetzelfde domein (voorkomt www vs non-www cookie-mismatch)
+        const targetPath = result.url.startsWith("http")
+          ? new URL(result.url).pathname
+          : result.url.startsWith("/")
+            ? result.url
+            : `/${result.url}`;
+        window.location.href = window.location.origin + targetPath;
         return;
       }
-      
-      // Als login succesvol is, wacht even zodat session cookie wordt ingesteld
-      if (result?.ok) {
-        // Wacht langer en refresh session meerdere keren om zeker te zijn dat cookie is ingesteld
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Probeer session meerdere keren op te halen
-        let session = null;
-        for (let i = 0; i < 3; i++) {
-          session = await getSession();
-          if (session) break;
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-        
-        // Gebruik router.push in plaats van window.location voor betere Next.js integratie
-        if (session) {
-          window.location.href = callbackUrl;
-        } else {
-          // Als session nog niet beschikbaar is, wacht nog even en probeer opnieuw
-          await new Promise(resolve => setTimeout(resolve, 500));
-          window.location.href = callbackUrl;
-        }
-        return;
-      }
-      
-      // Fallback: als result niet ok is, toon fout
-      setError("Ongeldig e-mailadres of wachtwoord");
+      // Geen redirect: ongeldige credentials of fout
+      setError(result?.error === "CredentialsSignin" ? "Ongeldig e-mailadres of wachtwoord" : "Er ging iets mis. Probeer het opnieuw.");
     } catch (err) {
       console.error("Login error:", err);
       setError("Er ging iets mis. Probeer het opnieuw.");
@@ -84,6 +62,7 @@ function InloggenForm() {
               width={64}
               height={64}
               className="mx-auto object-contain"
+              style={{ width: "auto", height: "auto" }}
             />
           </Link>
           <h1 className="text-xl font-bold text-primary-900 mt-3">Inloggen</h1>
