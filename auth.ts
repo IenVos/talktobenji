@@ -17,6 +17,7 @@ const CONVEX_SITE_URL = (process.env.NEXT_PUBLIC_CONVEX_URL ?? "").replace(
 
 const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
 
+// trustHost: gebruik AUTH_TRUST_HOST=true in Vercel env vars
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
