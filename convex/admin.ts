@@ -12,6 +12,63 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
 // ============================================================================
+// CHAT HISTORY QUERIES (voor admin overzicht)
+// ============================================================================
+
+/**
+ * Haal alle chat-sessies op voor admin (nieuwste eerst)
+ */
+export const listChatHistory = query({
+  args: {
+    limit: v.optional(v.number()),
+    status: v.optional(
+      v.union(
+        v.literal("active"),
+        v.literal("resolved"),
+        v.literal("escalated"),
+        v.literal("abandoned")
+      )
+    ),
+  },
+  handler: async (ctx, args) => {
+    const allSessions = await ctx.db.query("chatSessions").collect();
+    let sessions = allSessions.filter(
+      (s) => typeof s.lastActivityAt === "number"
+    );
+
+    if (args.status) {
+      sessions = sessions.filter((s) => s.status === args.status);
+    }
+
+    const sorted = [...sessions].sort(
+      (a, b) => (b.lastActivityAt ?? 0) - (a.lastActivityAt ?? 0)
+    );
+
+    const limit = Math.min(args.limit ?? 100, 200);
+    return sorted.slice(0, limit);
+  },
+});
+
+/**
+ * Haal sessie + berichten op voor admin detailweergave
+ */
+export const getChatHistoryDetail = query({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) return null;
+
+    const messages = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .order("asc")
+      .collect();
+
+    return { session, messages };
+  },
+});
+
+// ============================================================================
 // ESCALATION QUERIES
 // ============================================================================
 
