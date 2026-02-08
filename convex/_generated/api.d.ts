@@ -20,6 +20,7 @@ import type * as http from "../http.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
 import type * as notes from "../notes.js";
 import type * as preferences from "../preferences.js";
+import type * as reflecties from "../reflecties.js";
 import type * as seedData from "../seedData.js";
 import type * as settings from "../settings.js";
 import type * as sources from "../sources.js";
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   knowledgeBase: typeof knowledgeBase;
   notes: typeof notes;
   preferences: typeof preferences;
+  reflecties: typeof reflecties;
   seedData: typeof seedData;
   settings: typeof settings;
   sources: typeof sources;

@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import Image from "next/image";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { MessageSquare, Trash2 } from "lucide-react";
+
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("nl-NL", {
@@ -29,20 +29,6 @@ export default function AccountGesprekkenPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-6">
-        <Image
-          src="/images/benji-logo-2.png"
-          alt="Benji"
-          width={40}
-          height={40}
-          className="object-contain"
-        />
-        <div>
-          <h1 className="text-xl font-bold text-primary-900">Mijn gesprekken</h1>
-          <p className="text-sm text-gray-600">Je eerdere gesprekken met Benji</p>
-        </div>
-      </div>
-
       {sessions === undefined ? (
         <div className="flex justify-center py-12">
           <div className="animate-pulse rounded-full h-8 w-8 border-b-2 border-primary-600" />

@@ -206,7 +206,7 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
 
-  // Notities / dagboek (per gebruiker)
+  // Notities / reflecties (per gebruiker)
   notes: defineTable({
     userId: v.string(),
     title: v.optional(v.string()),
@@ -214,6 +214,65 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
+
+  // Emotie-tracker – dagelijkse stemming (1-5 schaal)
+  emotionEntries: defineTable({
+    userId: v.string(),
+    date: v.string(), // YYYY-MM-DD
+    mood: v.number(), // 1-5
+    note: v.optional(v.string()),
+    createdAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
+  // Persoonlijke doelen of wensen
+  goals: defineTable({
+    userId: v.string(),
+    content: v.string(),
+    completed: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
+  // Dagelijkse check-in antwoorden
+  checkInAnswers: defineTable({
+    userId: v.string(),
+    date: v.string(), // YYYY-MM-DD
+    questionKey: v.union(
+      v.literal("hoe_voel"),
+      v.literal("wat_hielp"),
+      v.literal("waar_dankbaar")
+    ),
+    answer: v.string(),
+    createdAt: v.number(),
+  }).index("by_user_date", ["userId", "date"]),
+
+  // Inspiratie & troost (admin beheerd, klant zichtbaar)
+  inspiratieItems: defineTable({
+    title: v.string(),
+    content: v.string(),
+    type: v.union(
+      v.literal("gedicht"),
+      v.literal("citaat"),
+      v.literal("tekst"),
+      v.literal("overig")
+    ),
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_active_order", ["isActive", "order"]),
+
+  // Handreikingen (admin beheerd, klant zichtbaar)
+  handreikingenItems: defineTable({
+    title: v.string(),
+    content: v.string(),
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_active_order", ["isActive", "order"]),
 
   // Analytics
   analytics: defineTable({

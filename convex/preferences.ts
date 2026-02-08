@@ -70,3 +70,21 @@ export const setPreferences = mutation({
     return await ctx.db.insert("userPreferences", updates);
   },
 });
+
+/** Verwijder achtergrondafbeelding */
+export const removeBackgroundImage = mutation({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("userPreferences")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .unique();
+    if (!existing || !existing.backgroundImageStorageId) return existing?._id ?? null;
+    const { backgroundImageStorageId: _bg, ...rest } = existing;
+    await ctx.db.replace(existing._id, {
+      ...rest,
+      updatedAt: Date.now(),
+    });
+    return existing._id;
+  },
+});
