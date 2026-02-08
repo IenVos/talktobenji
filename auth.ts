@@ -18,7 +18,6 @@ const CONVEX_SITE_URL = (process.env.NEXT_PUBLIC_CONVEX_URL ?? "").replace(
 const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
 
 export const authOptions: AuthOptions = {
-  trustHost: true, // Vereist voor Vercel/productie – voorkomt session/cookie issues
   providers: [
     CredentialsProvider({
       id: "credentials",

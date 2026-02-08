@@ -41,6 +41,7 @@ Voor de frontend (Next.js) heb je nodig:
 - `ADMIN_PASSWORD` – voor toegang tot `/admin`
 - **`NEXTAUTH_URL`** – **exact je live URL** (bijv. `https://www.talktobenji.com`). Moet overeenkomen met het domein waar gebruikers op inloggen. Geen slash aan het eind.
 - **`AUTH_SECRET`** – voor NextAuth (bijv. `openssl rand -base64 32`)
+- **`AUTH_TRUST_HOST`** – zet op `true` voor Vercel productie (session/cookies)
 - Voor login: ook `CONVEX_AUTH_ADAPTER_SECRET`, `CONVEX_AUTH_PRIVATE_KEY` (zie `.env.example`)
 
 ---
