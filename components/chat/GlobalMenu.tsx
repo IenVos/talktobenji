@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn } from "lucide-react";
+import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, KeyRound } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
 
 type GlobalMenuProps = {
@@ -80,6 +80,14 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       onClick: () => {
         setOpen(false);
         router.push("/inloggen");
+      },
+    },
+    {
+      label: "Wachtwoord vergeten",
+      icon: KeyRound,
+      onClick: () => {
+        setOpen(false);
+        router.push("/wachtwoord-vergeten");
       },
     },
     {

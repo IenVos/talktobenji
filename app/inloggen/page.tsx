@@ -119,9 +119,14 @@ function InloggenForm() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Wachtwoord
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Wachtwoord
+              </label>
+              <Link href="/wachtwoord-vergeten" className="text-xs text-primary-600 hover:underline">
+                Wachtwoord vergeten?
+              </Link>
+            </div>
             <input
               type="password"
               id="password"

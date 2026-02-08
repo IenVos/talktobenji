@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -64,6 +63,9 @@ export default function AccountLayout({
 
   const [submenuOpen, setSubmenuOpen] = useState(() =>
     SUBMENU_ITEMS.some((item) => pathname === item.href)
+  );
+  const [reflectiesSubmenuOpen, setReflectiesSubmenuOpen] = useState(() =>
+    pathname?.startsWith("/account/reflecties") ?? true
   );
   
   // Refresh session als status "unauthenticated" is maar we op account pagina zijn
@@ -173,17 +175,36 @@ export default function AccountLayout({
                   if (isReflecties) {
                     return (
                       <li key={item.href}>
-                        <Link
-                          href="/account/reflecties"
+                        <div
                           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                             isReflectiesSection ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
                           }`}
                           style={isReflectiesSection ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
                         >
-                          <Icon size={18} className="flex-shrink-0" />
-                          {item.label}
-                        </Link>
-                        {isReflectiesSection && (
+                          <Link
+                            href="/account/reflecties"
+                            className="flex items-center gap-3 flex-1 min-w-0"
+                          >
+                            <Icon size={18} className="flex-shrink-0" />
+                            {item.label}
+                          </Link>
+                          {isReflectiesSection && (
+                            <button
+                              type="button"
+                              onClick={() => setReflectiesSubmenuOpen((o) => !o)}
+                              className="p-1 rounded hover:bg-primary-100/50 transition-colors flex-shrink-0"
+                              title={reflectiesSubmenuOpen ? "Submenu sluiten" : "Submenu openen"}
+                              aria-expanded={reflectiesSubmenuOpen}
+                            >
+                              {reflectiesSubmenuOpen ? (
+                                <ChevronDown size={16} />
+                              ) : (
+                                <ChevronRight size={16} />
+                              )}
+                            </button>
+                          )}
+                        </div>
+                        {isReflectiesSection && reflectiesSubmenuOpen && (
                           <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
                             {REFLECTIES_SUBMENU.filter((s) => s.href !== "/account/reflecties").map((sub) => {
                               const subActive = pathname === sub.href;

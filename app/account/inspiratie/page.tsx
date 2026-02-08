@@ -86,7 +86,7 @@ export default function AccountInspiratiePage() {
                     {item.priceCents != null && item.priceCents > 0 && (
                       <a
                         href={`/account/steun?item=${encodeURIComponent(item.title)}&price=${item.priceCents}`}
-                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium border border-primary-900 bg-transparent text-primary-900 hover:bg-primary-600 hover:text-white hover:border-primary-600 transition-colors whitespace-nowrap"
+                        className="bestellen-btn inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
                       >
                         Bestellen €{(item.priceCents / 100).toFixed(2)}
                       </a>
@@ -122,7 +122,7 @@ export default function AccountInspiratiePage() {
                 {!item.imageUrl && item.priceCents != null && item.priceCents > 0 && (
                   <a
                     href={`/account/steun?item=${encodeURIComponent(item.title)}&price=${item.priceCents}`}
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border border-primary-900 bg-transparent text-primary-900 hover:bg-primary-600 hover:text-white hover:border-primary-600 transition-colors whitespace-nowrap self-start"
+                    className="bestellen-btn inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap self-start"
                   >
                     Bestellen €{(item.priceCents / 100).toFixed(2)}
                   </a>

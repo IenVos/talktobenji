@@ -483,7 +483,11 @@ BELANGRIJKE REGELS:
   3. Wat de persoon al heeft gedeeld in het gesprek
   Vraag NIET opnieuw "Wat speelt er voor jou?" wanneer iemand al om hulp heeft gevraagd.`;
 
-      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, conversationStyleRule].filter(Boolean).join("\n\n");
+      const accountRule = isEnglish
+        ? "ACCOUNT & REGISTRATION: When someone asks about creating an account, signing up, or registering, ALWAYS include a clickable link. Use markdown format: [click here to sign up](/registreren). If the question is clearly about account creation, give the link directly. Also mention the menu: they can click the three dots (⋮) and choose 'Sign up'."
+        : `ACCOUNT & REGISTRATIE: Wanneer iemand vraagt over een account aanmaken, aanmelden of registreren, voeg ALTIJD een klikbare link toe. Gebruik markdown: [hier klikken om je aan te melden](/registreren). Als de vraag duidelijk over account aanmaken gaat, geef de link direct. Vermeld ook het menu: ze kunnen op de drie puntjes (⋮) klikken en kiezen voor 'Aanmelden'. Bij wachtwoord vergeten: verwijs naar [deze pagina](/wachtwoord-vergeten).`;
+
+      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, conversationStyleRule, accountRule].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;

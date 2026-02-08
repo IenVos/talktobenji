@@ -13,6 +13,31 @@ import type { TopicId } from "@/components/chat/TopicButtons";
 
 export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[] };
 
+/** Rendert chatbericht met klikbare markdown-links [tekst](url) */
+function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match;
+  while ((match = linkRegex.exec(content)) !== null) {
+    parts.push(content.slice(lastIndex, match.index));
+    parts.push(
+      <a
+        key={match.index}
+        href={match[2].startsWith("/") ? match[2] : match[2]}
+        className={isUser ? "underline underline-offset-2 opacity-90" : "text-primary-600 hover:text-primary-700 underline underline-offset-2 font-medium"}
+        target={match[2].startsWith("http") ? "_blank" : undefined}
+        rel={match[2].startsWith("http") ? "noopener noreferrer" : undefined}
+      >
+        {match[1]}
+      </a>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+  parts.push(content.slice(lastIndex));
+  return <p className="text-sm sm:text-base break-words">{parts}</p>;
+}
+
 const STORAGE_KEY = "benji_session_id";
 const HAS_CHATTED_KEY = "benji_has_chatted";
 const ANONYMOUS_ID_KEY = "benji_anonymous_id";
@@ -367,14 +392,14 @@ export default function ChatPageClient({
             {messages?.map((msg: Doc<"chatMessages">) => (
               <div key={msg._id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "max-w-[85%] sm:max-w-[80%] bg-primary-900 text-white rounded-br-md" : "max-w-sm bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
-                  <p className="text-sm sm:text-base break-words">{msg.content}</p>
+                  <MessageContent content={msg.content} isUser={msg.role === "user"} />
                 </div>
               </div>
             ))}
             {pendingUserMessage && (
               <div className="flex justify-end">
                 <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
-                  <p className="text-sm sm:text-base">{pendingUserMessage}</p>
+                  <MessageContent content={pendingUserMessage} isUser />
                 </div>
               </div>
             )}

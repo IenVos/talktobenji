@@ -58,6 +58,19 @@
   color: var(--account-accent) !important;
 }
 
+/* Bestellen-knop: transparant + donkerblauwe rand/tekst, hover: blauw + wit */
+.account-theme .bestellen-btn {
+  background-color: transparent !important;
+  border: 1px solid #38465e !important;
+  color: #38465e !important;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.account-theme .bestellen-btn:hover {
+  background-color: var(--account-accent) !important;
+  border-color: var(--account-accent) !important;
+  color: white !important;
+}
+
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
