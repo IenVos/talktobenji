@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 function InloggenForm() {
@@ -34,37 +34,28 @@ function InloggenForm() {
     setLoading(true);
 
     try {
-      const result = await signIn("credentials", {
-        email: email.trim().toLowerCase(),
-        password,
-        callbackUrl,
-        redirect: false,
+      // Gebruik eigen login endpoint dat de cookie handmatig zet
+      // (omzeilt NextAuth CredentialsProvider cookie-bug)
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
       });
-      if (result?.ok) {
-        // Sessie laden in SessionProvider via update() zodat state behouden blijft
-        const path = result.url
-          ? result.url.startsWith("http")
-            ? new URL(result.url).pathname
-            : result.url.startsWith("/")
-              ? result.url
-              : `/${result.url}`
-          : callbackUrl;
+      const data = await res.json();
 
-        // Probeer sessie in React state te laden (client-side, geen page reload)
-        for (let i = 0; i < 5; i++) {
-          const updated = await update();
-          if (updated?.userId || updated?.user) {
-            router.push(path);
-            return;
-          }
-          await new Promise((r) => setTimeout(r, 300));
-        }
-
-        // Fallback: full page reload als update() niet werkt
-        window.location.href = window.location.origin + path;
+      if (res.ok && data.ok) {
+        // Cookie is nu gezet door de server response
+        // Laad sessie in SessionProvider
+        await update();
+        // Navigeer naar account (client-side)
+        router.push(callbackUrl);
         return;
       }
-      setError(result?.error === "CredentialsSignin" ? "Ongeldig e-mailadres of wachtwoord" : "Er ging iets mis. Probeer het opnieuw.");
+
+      setError(data.error || "Er ging iets mis. Probeer het opnieuw.");
     } catch (err) {
       console.error("Login error:", err);
       setError("Er ging iets mis. Probeer het opnieuw.");
