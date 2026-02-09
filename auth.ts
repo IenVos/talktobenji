@@ -18,13 +18,8 @@ const CONVEX_SITE_URL = (process.env.NEXT_PUBLIC_CONVEX_URL ?? "").replace(
 const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
 
 // trustHost: gebruik AUTH_TRUST_HOST=true in Vercel env vars
-const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-
 export const authOptions: AuthOptions = {
   secret: process.env.AUTH_SECRET,
-  cookies: {
-    useSecureCookies: baseUrl.startsWith("https://"),
-  },
   providers: [
     CredentialsProvider({
       id: "credentials",
