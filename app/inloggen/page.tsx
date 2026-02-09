@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 
 function InloggenForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/account/gesprekken";
+  const callbackUrl = searchParams.get("callbackUrl") || "/account";
   const registered = searchParams.get("registered") === "1";
   const errorParam = searchParams.get("error");
 

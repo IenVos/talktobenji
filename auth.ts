@@ -90,7 +90,7 @@ export const authOptions: AuthOptions = {
       // Als url al een volledige URL is en op hetzelfde domein, gebruik die
       if (url.startsWith(baseUrl)) return url;
       // Anders redirect naar account pagina
-      return `${baseUrl}/account/gesprekken`;
+      return `${baseUrl}/account`;
     },
   },
   pages: {

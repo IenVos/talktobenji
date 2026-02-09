@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 
 function RegistrerenForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/account/gesprekken";
+  const callbackUrl = searchParams.get("callbackUrl") || "/account";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
