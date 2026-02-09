@@ -252,6 +252,44 @@ export const linkSessionToUser = mutation({
   },
 });
 
+/** Gepersonaliseerde openers voor ingelogde gebruikers (vanuit account) */
+const PERSONALIZED_OPENERS: string[] = [
+  "Hoi {naam}, fijn dat je er weer bent! Waar wil je vandaag over praten?",
+  "Hey {naam}, welkom terug! Ik ben hier voor je. Wat speelt er?",
+  "Hoi {naam}, goed je weer te zien. Waar kan ik je mee helpen?",
+];
+
+/**
+ * Voeg een gepersonaliseerde opener toe (vanuit account/dashboard).
+ * Gebruikt de naam van de gebruiker in de openingszin.
+ */
+export const addPersonalizedOpenerToSession = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+    userName: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const firstName = args.userName.trim().split(/\s+/)[0] || args.userName;
+    const template = PERSONALIZED_OPENERS[Math.floor(Math.random() * PERSONALIZED_OPENERS.length)];
+    const openerText = template.replace("{naam}", firstName);
+    const now = Date.now();
+
+    await ctx.db.insert("chatMessages", {
+      sessionId: args.sessionId,
+      role: "bot",
+      content: openerText,
+      isAiGenerated: false,
+      createdAt: now,
+    });
+
+    await ctx.db.patch(args.sessionId, {
+      lastActivityAt: now,
+    });
+
+    return args.sessionId;
+  },
+});
+
 /**
  * Voeg opener-bericht toe aan sessie (na onderwerp-klik).
  * Toont een van de openingszinnen die bij het gekozen onderwerp horen.

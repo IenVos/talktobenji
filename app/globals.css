@@ -58,6 +58,34 @@
   color: var(--account-accent) !important;
 }
 
+/* Chat-thema: accentkleur op chatpagina (header, footer, knoppen, bubbles) */
+.chat-theme [class*="bg-primary-900"],
+.chat-theme [class*="bg-primary-800"] {
+  background-color: var(--chat-accent-dark) !important;
+}
+.chat-theme [class*="bg-primary-700"]:not(:hover),
+.chat-theme [class*="bg-primary-600"]:not(:hover) {
+  background-color: var(--chat-accent) !important;
+}
+.chat-theme [class*="hover:bg-primary-600"]:hover,
+.chat-theme [class*="hover:bg-primary-700"]:hover {
+  background-color: var(--chat-accent-hover) !important;
+}
+.chat-theme [class*="focus:ring-primary-500"]:focus-within,
+.chat-theme [class*="focus:ring-primary-500"]:focus {
+  --tw-ring-color: var(--chat-accent) !important;
+}
+.chat-theme [class*="bg-primary-600/60"] {
+  background-color: color-mix(in srgb, var(--chat-accent) 60%, transparent) !important;
+}
+/* Tekst op donkere chat-elementen (header, menuknop) wit maken */
+.chat-theme header [class*="text-primary-500"],
+.chat-theme header [class*="text-primary-400"],
+.chat-theme [class*="bg-primary-800"] [class*="text-primary-500"],
+.chat-theme [class*="bg-primary-800"] [class*="text-primary-400"] {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+
 /* Bestellen-knop: transparant + donkerblauwe rand/tekst, hover: blauw + wit */
 .account-theme .bestellen-btn {
   background-color: transparent !important;

@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, ChevronDown, ChevronRight, Settings, PencilLine, Sparkles, HandHelping } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping } from "lucide-react";
 
 const ORIGINAL_ACCENT = "#6d84a8";
 
@@ -17,12 +17,13 @@ const TOP_ITEMS = [
   { href: "/account/reflecties", label: "Mijn reflecties", icon: PencilLine },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
   { href: "/account/handreikingen", label: "Handreikingen", icon: HandHelping },
+  { href: "/account/instellingen", label: "Personalisatie", icon: UserCircle },
 ];
 
 const SUBMENU_ITEMS = [
-  { href: "/account/instellingen", label: "Personaliseer", icon: Settings },
   { href: "/account/betalingen", label: "Betalingen", icon: CreditCard },
   { href: "/account/abonnement", label: "Abonnement", icon: Calendar },
+  { href: "/wachtwoord-vergeten", label: "Wachtwoord wijzigen", icon: KeyRound },
 ];
 
 const REFLECTIES_SUBMENU = [
@@ -65,7 +66,6 @@ export default function AccountLayout({
     SUBMENU_ITEMS.some((item) => pathname === item.href)
   );
   const [reflectiesSubmenuOpen, setReflectiesSubmenuOpen] = useState(false);
-
   // HTTP → HTTPS in productie: session cookies werken alleen over HTTPS
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.protocol === "http:" && !window.location.hostname.includes("localhost")) {
@@ -73,7 +73,7 @@ export default function AccountLayout({
     }
   }, []);
 
-  // Submenu sluiten bij verlaten van reflecties, voorkomt layoutverschuiving bij terugkeren
+  // Submenu sluiten bij verlaten van reflecties
   useEffect(() => {
     if (!pathname?.startsWith("/account/reflecties")) {
       setReflectiesSubmenuOpen(false);
@@ -138,16 +138,22 @@ export default function AccountLayout({
       }
     >
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        {/* Gedeelde header – vaste hoogte om layoutverschuiving te voorkomen */}
+        {/* Gedeelde header – logo linkt naar chat met welkom, vaste hoogte om layoutverschuiving te voorkomen */}
         <div className="flex items-center gap-3 mb-6 min-h-[4.5rem]">
-          <Image
-            src="/images/benji-logo-2.png"
-            alt="Benji"
-            width={32}
-            height={32}
-            className="object-contain flex-shrink-0 brightness-75"
-            style={{ width: "auto", height: "auto" }}
-          />
+          <Link
+            href="/?welcome=1"
+            className="flex-shrink-0"
+            aria-label="Ga naar gesprek met Benji"
+          >
+            <Image
+              src="/images/benji-logo-2.png"
+              alt="Benji"
+              width={32}
+              height={32}
+              className="object-contain brightness-75 hover:brightness-90 transition-all"
+              style={{ width: "auto", height: "auto" }}
+            />
+          </Link>
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-primary-900">{pageInfo.title}</h1>
             <p className="text-sm text-gray-600">{pageInfo.subtitle}</p>

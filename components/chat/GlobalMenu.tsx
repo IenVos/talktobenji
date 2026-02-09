@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, KeyRound } from "lucide-react";
+import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
 
 type GlobalMenuProps = {
@@ -83,19 +83,27 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       },
     },
     {
-      label: "Wachtwoord vergeten",
-      icon: KeyRound,
-      onClick: () => {
-        setOpen(false);
-        router.push("/wachtwoord-vergeten");
-      },
-    },
-    {
       label: lastConversationDate ? `Mijn gesprekken · ${lastConversationDate}` : "Mijn gesprekken",
       icon: MessagesSquare,
       onClick: () => {
         setOpen(false);
         router.push("/account/gesprekken");
+      },
+    },
+    {
+      label: "Mijn reflecties",
+      icon: PencilLine,
+      onClick: () => {
+        setOpen(false);
+        router.push("/account/reflecties");
+      },
+    },
+    {
+      label: "Dagelijkse doelen",
+      icon: CalendarCheck,
+      onClick: () => {
+        setOpen(false);
+        router.push("/account/reflecties");
       },
     },
   ];
@@ -143,7 +151,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
           )}
           {menuItems.map((item, index) => {
             const Icon = item.icon;
-            const showDividerBefore = index === 3; // Lichte streep vóór "Aanmelden"
+            const showDividerBefore = index === 3 || index === 5; // Streep vóór "Aanmelden" en vóór "Mijn gesprekken"
             const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-100 transition-all duration-200 ${index === 0 ? "rounded-t-xl" : ""} ${index === menuItems.length - 1 ? "rounded-b-xl" : ""}`;
             if ("href" in item && item.href) {
               return (

@@ -10,8 +10,9 @@ import { Send, Mic, Square } from "lucide-react";
 import { WelcomeScreen, WelcomeScreenInfoIcons } from "@/components/chat/WelcomeScreen";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
+import { hexToDarker } from "@/lib/utils";
 
-export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[] };
+export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[] };
 
 /** Rendert chatbericht met klikbare markdown-links [tekst](url) */
 function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
@@ -39,6 +40,7 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
 }
 
 const STORAGE_KEY = "benji_session_id";
+const ORIGINAL_ACCENT = "#6d84a8";
 const HAS_CHATTED_KEY = "benji_has_chatted";
 const ANONYMOUS_ID_KEY = "benji_anonymous_id";
 
@@ -64,6 +66,7 @@ export default function ChatPageClient({
   const router = useRouter();
   const { data: session } = useSession();
   const topicParam = Array.isArray(searchParams?.topic) ? searchParams.topic[0] : searchParams?.topic;
+  const welcomeParam = Array.isArray(searchParams?.welcome) ? searchParams.welcome[0] : searchParams?.welcome;
   const [sessionIdState, setSessionIdState] = useState<Id<"chatSessions"> | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -99,6 +102,13 @@ export default function ChatPageClient({
     api.chat.getMessages,
     sessionId ? { sessionId } : "skip"
   );
+  const preferencesData = useQuery(
+    api.preferences.getPreferencesWithUrl,
+    session?.userId ? { userId: session.userId } : "skip"
+  );
+  const accent = preferencesData?.accentColor || ORIGINAL_ACCENT;
+  const accentHover = hexToDarker(accent, 12);
+  const accentDark = hexToDarker(accent, 45);
   const storedSession = useQuery(
     api.chat.getSession,
     sessionIdState ? { sessionId: sessionIdState } : "skip"
@@ -118,8 +128,43 @@ export default function ChatPageClient({
 
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
+  const addPersonalizedOpenerToSession = useMutation(api.chat.addPersonalizedOpenerToSession);
   const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
   const handleUserMessage = useAction(api.ai.handleUserMessage);
+
+  const welcomeFromAccountHandled = useRef(false);
+
+  // Vanuit account: start direct een gesprek met Benji's eerste bericht (gepersonaliseerd met naam)
+  useEffect(() => {
+    const userName = session?.user?.name;
+    if (welcomeParam !== "1" || !session?.userId || !userName || welcomeFromAccountHandled.current) return;
+    welcomeFromAccountHandled.current = true;
+    setShowTopicButtons(false);
+    (async () => {
+      try {
+        setIsAddingOpener(true);
+        setSessionId(null);
+        if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
+        const newSessionId = await startSession({
+          userId: session.userId,
+          userEmail: session.user?.email ?? undefined,
+          userName,
+        });
+        await addPersonalizedOpenerToSession({
+          sessionId: newSessionId,
+          userName,
+        });
+        setSessionId(newSessionId);
+        if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
+      } catch (e) {
+        console.error(e);
+        welcomeFromAccountHandled.current = false;
+        setChatError("Er ging iets mis. Probeer het opnieuw.");
+      } finally {
+        setIsAddingOpener(false);
+      }
+    })();
+  }, [welcomeParam, session?.userId, session?.user?.name, session?.user?.email, startSession, addPersonalizedOpenerToSession]);
 
   // Koppel anonieme sessie aan gebruiker na inloggen
   useEffect(() => {
@@ -329,15 +374,24 @@ export default function ChatPageClient({
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-white flex flex-col">
+    <div
+      className="min-h-screen min-h-[100dvh] bg-white flex flex-col chat-theme"
+      style={
+        {
+          "--chat-accent": accent,
+          "--chat-accent-hover": accentHover,
+          "--chat-accent-dark": accentDark,
+        } as React.CSSProperties
+      }
+    >
       <HeaderBar onLogoClick={() => { setSessionId(null); setShowTopicButtons(true); }} />
 
       <main ref={mainRef} className="flex-1 overflow-y-auto relative">
-        {/* Eén achtergrondlaag: beeld + waas gecombineerd, pointer-events: none, z-0 */}
+        {/* Eén achtergrondlaag: custom of standaard, pointer-events: none, z-0 */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: "linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(/images/achtergrond.png)",
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${preferencesData?.backgroundImageUrl || "/images/achtergrond.png"})`,
             pointerEvents: "none",
           }}
           aria-hidden
