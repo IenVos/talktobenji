@@ -17,9 +17,29 @@ const CONVEX_SITE_URL = (process.env.NEXT_PUBLIC_CONVEX_URL ?? "").replace(
 
 const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
 
-// trustHost: gebruik AUTH_TRUST_HOST=true in Vercel env vars
+// Cookie domain: .talktobenji.com zodat cookie werkt op zowel www als non-www
+const isProduction = process.env.NODE_ENV === "production";
+const cookieDomain =
+  isProduction && process.env.NEXTAUTH_URL
+    ? "." + new URL(process.env.NEXTAUTH_URL).hostname.replace(/^www\./, "")
+    : undefined;
+
 export const authOptions: AuthOptions = {
   secret: process.env.AUTH_SECRET,
+  cookies: {
+    sessionToken: {
+      name: isProduction
+        ? "__Secure-next-auth.session-token"
+        : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax" as const,
+        path: "/",
+        secure: isProduction,
+        domain: cookieDomain,
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       id: "credentials",

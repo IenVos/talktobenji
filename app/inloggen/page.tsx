@@ -3,11 +3,13 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 function InloggenForm() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { update } = useSession();
   const callbackUrl = searchParams.get("callbackUrl") || "/account";
   const registered = searchParams.get("registered") === "1";
   const errorParam = searchParams.get("error");
@@ -38,22 +40,27 @@ function InloggenForm() {
         callbackUrl,
         redirect: false,
       });
-      if (result?.ok && result?.url) {
-        // Wacht tot de sessie-cookie daadwerkelijk beschikbaar is vóór redirect
-        const path = result.url.startsWith("http") ? new URL(result.url).pathname : result.url.startsWith("/") ? result.url : `/${result.url}`;
-        for (let i = 0; i < 10; i++) {
-          await new Promise((r) => setTimeout(r, 400));
-          try {
-            const res = await fetch("/api/auth/session");
-            const data = await res.json();
-            if (data?.userId || data?.user) {
-              // Sessie is bevestigd, nu veilig om te navigeren
-              window.location.href = window.location.origin + path;
-              return;
-            }
-          } catch {}
+      if (result?.ok) {
+        // Sessie laden in SessionProvider via update() zodat state behouden blijft
+        const path = result.url
+          ? result.url.startsWith("http")
+            ? new URL(result.url).pathname
+            : result.url.startsWith("/")
+              ? result.url
+              : `/${result.url}`
+          : callbackUrl;
+
+        // Probeer sessie in React state te laden (client-side, geen page reload)
+        for (let i = 0; i < 5; i++) {
+          const updated = await update();
+          if (updated?.userId || updated?.user) {
+            router.push(path);
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 300));
         }
-        // Fallback: navigeer toch (session cookie kan er zijn maar response format anders)
+
+        // Fallback: full page reload als update() niet werkt
         window.location.href = window.location.origin + path;
         return;
       }
