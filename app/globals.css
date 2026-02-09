@@ -99,6 +99,19 @@
   color: white !important;
 }
 
+/* Welcome-knop op chatpagina: transparant + primaire kleur tekst, hover: primaire kleur achtergrond + wit */
+.chat-theme .welcome-btn {
+  background-color: transparent !important;
+  border: 1px solid var(--chat-accent, #6d84a8) !important;
+  color: var(--chat-accent, #6d84a8) !important;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.chat-theme .welcome-btn:hover {
+  background-color: var(--chat-accent, #6d84a8) !important;
+  border-color: var(--chat-accent, #6d84a8) !important;
+  color: white !important;
+}
+
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;

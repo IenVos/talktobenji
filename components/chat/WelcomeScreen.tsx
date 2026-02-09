@@ -48,7 +48,7 @@ export function WelcomeScreen({
         <button
           type="button"
           onClick={() => setShowAbout(true)}
-          className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 border border-primary-900 bg-transparent transition-all duration-200 hover:bg-primary-900 hover:border-primary-900 hover:text-white text-primary-900"
+          className="welcome-btn flex items-center justify-center gap-2 rounded-xl px-4 py-2.5"
         >
           Meer over Benji
           <span aria-hidden>→</span>
