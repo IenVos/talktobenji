@@ -51,7 +51,7 @@ export default function AccountLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
   const router = useRouter();
   const preferences = useQuery(
@@ -80,29 +80,6 @@ export default function AccountLayout({
     }
   }, [pathname]);
   
-  // Refresh session als status "unauthenticated" is maar we op account pagina zijn
-  // Na login redirect kan de session nog even niet beschikbaar zijn – meerdere pogingen
-  useEffect(() => {
-    if (status === "unauthenticated" && pathname?.startsWith("/account")) {
-      const attemptRefresh = async (attempt: number) => {
-        await update();
-        if (attempt >= 3) {
-          // Laatste poging: volledige pagina reload (haalt cookie opnieuw op)
-          window.location.reload();
-        } else if (attempt === 2) {
-          router.refresh();
-        }
-      };
-      const t1 = setTimeout(() => attemptRefresh(1), 200);
-      const t2 = setTimeout(() => attemptRefresh(2), 800);
-      const t3 = setTimeout(() => attemptRefresh(3), 2000);
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-        clearTimeout(t3);
-      };
-    }
-  }, [status, pathname, router, update]);
 
   if (status === "loading") {
     return (

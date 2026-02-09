@@ -36,12 +36,16 @@ function InloggenForm() {
         email: email.trim().toLowerCase(),
         password,
         callbackUrl,
-        redirect: true,
+        redirect: false,
       });
-      // Met redirect: true komt NextAuth nooit hier – bij succes of fout gaat de browser weg
-      if (!result?.ok) {
-        setError(result?.error === "CredentialsSignin" ? "Ongeldig e-mailadres of wachtwoord" : "Er ging iets mis. Probeer het opnieuw.");
+      if (result?.ok && result?.url) {
+        await new Promise((r) => setTimeout(r, 300));
+        // Blijf op huidige origin (anders cookie van localhost werkt niet op productie en omgekeerd)
+        const path = result.url.startsWith("http") ? new URL(result.url).pathname : result.url.startsWith("/") ? result.url : `/${result.url}`;
+        window.location.href = window.location.origin + path;
+        return;
       }
+      setError(result?.error === "CredentialsSignin" ? "Ongeldig e-mailadres of wachtwoord" : "Er ging iets mis. Probeer het opnieuw.");
     } catch (err) {
       console.error("Login error:", err);
       setError("Er ging iets mis. Probeer het opnieuw.");

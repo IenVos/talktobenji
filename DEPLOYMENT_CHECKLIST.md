@@ -56,10 +56,10 @@ Als je `manifest.webmanifest 404` ziet: er staat nu een statisch bestand in `pub
 
 Als je na inloggen terugkomt op "Log in om je account te bekijken":
 
-1. **`NEXTAUTH_URL`** moet **exact** overeenkomen met je live URL:
-   - Zit je op `https://www.talktobenji.com` → `NEXTAUTH_URL=https://www.talktobenji.com`
-   - Zit je op `https://talktobenji.com` (zonder www) → `NEXTAUTH_URL=https://talktobenji.com`
-2. **`AUTH_SECRET`** moet gezet zijn in Vercel
+1. **`NEXTAUTH_URL`** moet **exact** overeenkomen met de URL waar je op inlogt:
+   - **Lokaal testen** (`npm run dev`): zet `NEXTAUTH_URL=http://localhost:3000` in `.env.local`
+   - **Productie**: `NEXTAUTH_URL=https://www.talktobenji.com` (of jouw live domein)
+2. **`AUTH_SECRET`** moet gezet zijn (lokaal én in Vercel)
 3. Na wijziging: opnieuw deployen op Vercel
 
 ---

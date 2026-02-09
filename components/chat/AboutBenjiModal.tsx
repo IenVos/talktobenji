@@ -38,14 +38,14 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
           >
             <X size={20} />
           </button>
-          <div className="flex items-center gap-3 min-w-0 pr-8">
-            <div className="h-8 w-8 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <Image src="/images/benji-logo-2.png" alt="" width={32} height={32} className="object-contain" style={{ width: "auto", height: "auto" }} />
-            </div>
-            <div className="flex flex-col items-start min-w-0">
+          <div className="flex flex-col gap-1 min-w-0 pr-8">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                <Image src="/images/benji-logo-2.png" alt="" width={32} height={32} className="object-contain" style={{ width: "auto", height: "auto" }} />
+              </div>
               <h2 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">Talk To Benji</h2>
-              <p className="text-xs sm:text-sm text-primary-600 leading-snug">Een warme, betrouwbare plek waar je je verhaal kwijt kunt – 24/7 aandacht en steun, zonder oordeel</p>
             </div>
+            <p className="text-xs sm:text-sm text-primary-600 leading-snug pl-11">Een warme, betrouwbare plek waar je je verhaal kwijt kunt – 24/7 aandacht en steun, zonder oordeel</p>
           </div>
           <div className="absolute bottom-0 left-5 right-5 sm:left-6 sm:right-6 border-b border-primary-200" aria-hidden />
         </div>
