@@ -53,7 +53,7 @@ export default function AccountLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const pathname = usePathname();
   const router = useRouter();
   const preferences = useQuery(
@@ -67,12 +67,39 @@ export default function AccountLayout({
     SUBMENU_ITEMS.some((item) => pathname === item.href)
   );
   const [reflectiesSubmenuOpen, setReflectiesSubmenuOpen] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 5;
+
   // HTTP → HTTPS in productie: session cookies werken alleen over HTTPS
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.protocol === "http:" && !window.location.hostname.includes("localhost")) {
       window.location.replace("https://" + window.location.host + window.location.pathname + window.location.search);
     }
   }, []);
+
+  // Sessie opnieuw ophalen als status "unauthenticated" is na login-redirect
+  useEffect(() => {
+    if (status !== "unauthenticated" || retryCount >= maxRetries) return;
+    const delay = retryCount === 0 ? 200 : retryCount < 3 ? 600 : 1500;
+    const timer = setTimeout(async () => {
+      try {
+        // Haal sessie rechtstreeks op via API om cookie te verifiëren
+        const res = await fetch("/api/auth/session");
+        const data = await res.json();
+        if (data?.userId || data?.user) {
+          // Cookie is aanwezig, forceer useSession refresh
+          await update();
+          // Als update() niet werkt, doe een volledige reload
+          if (retryCount >= 2) {
+            window.location.reload();
+            return;
+          }
+        }
+      } catch {}
+      setRetryCount((c) => c + 1);
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [status, retryCount, update]);
 
   // Submenu sluiten bij verlaten van reflecties
   useEffect(() => {
@@ -82,7 +109,8 @@ export default function AccountLayout({
   }, [pathname]);
   
 
-  if (status === "loading") {
+  // Toon spinner zolang sessie aan het laden is OF we nog retries doen
+  if (status === "loading" || (status === "unauthenticated" && retryCount < maxRetries)) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: hexToLightTint(ORIGINAL_ACCENT, 12) }}>
         <div className="animate-pulse rounded-full h-8 w-8 border-b-2 border-primary-600" />

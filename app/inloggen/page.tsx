@@ -39,9 +39,21 @@ function InloggenForm() {
         redirect: false,
       });
       if (result?.ok && result?.url) {
-        await new Promise((r) => setTimeout(r, 300));
-        // Blijf op huidige origin (anders cookie van localhost werkt niet op productie en omgekeerd)
+        // Wacht tot de sessie-cookie daadwerkelijk beschikbaar is vóór redirect
         const path = result.url.startsWith("http") ? new URL(result.url).pathname : result.url.startsWith("/") ? result.url : `/${result.url}`;
+        for (let i = 0; i < 10; i++) {
+          await new Promise((r) => setTimeout(r, 400));
+          try {
+            const res = await fetch("/api/auth/session");
+            const data = await res.json();
+            if (data?.userId || data?.user) {
+              // Sessie is bevestigd, nu veilig om te navigeren
+              window.location.href = window.location.origin + path;
+              return;
+            }
+          } catch {}
+        }
+        // Fallback: navigeer toch (session cookie kan er zijn maar response format anders)
         window.location.href = window.location.origin + path;
         return;
       }
