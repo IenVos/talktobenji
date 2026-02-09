@@ -83,8 +83,8 @@ export default function GesprekPage() {
               <Image
                 src="/images/benji-logo-2.png"
                 alt="Benji"
-                width={40}
-                height={40}
+                width={32}
+                height={32}
                 className="object-contain"
                 style={{ width: "auto", height: "auto" }}
               />

@@ -65,7 +65,14 @@ export default function AccountLayout({
     SUBMENU_ITEMS.some((item) => pathname === item.href)
   );
   const [reflectiesSubmenuOpen, setReflectiesSubmenuOpen] = useState(false);
-  
+
+  // HTTP → HTTPS in productie: session cookies werken alleen over HTTPS
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.protocol === "http:" && !window.location.hostname.includes("localhost")) {
+      window.location.replace("https://" + window.location.host + window.location.pathname + window.location.search);
+    }
+  }, []);
+
   // Submenu sluiten bij verlaten van reflecties, voorkomt layoutverschuiving bij terugkeren
   useEffect(() => {
     if (!pathname?.startsWith("/account/reflecties")) {
@@ -74,24 +81,25 @@ export default function AccountLayout({
   }, [pathname]);
   
   // Refresh session als status "unauthenticated" is maar we op account pagina zijn
-  // Dit kan gebeuren als redirect te snel gaat na login
+  // Na login redirect kan de session nog even niet beschikbaar zijn – meerdere pogingen
   useEffect(() => {
     if (status === "unauthenticated" && pathname?.startsWith("/account")) {
-      // Probeer session te refreshen - meerdere pogingen met toenemende delay
       const attemptRefresh = async (attempt: number) => {
-        await update(); // Refresh session
-        // Als we na 1 seconde nog steeds niet ingelogd zijn, refresh de pagina
-        if (attempt === 2) {
-          router.refresh(); // Refresh page
+        await update();
+        if (attempt >= 3) {
+          // Laatste poging: volledige pagina reload (haalt cookie opnieuw op)
+          window.location.reload();
+        } else if (attempt === 2) {
+          router.refresh();
         }
       };
-      
-      const timer1 = setTimeout(() => attemptRefresh(1), 300);
-      const timer2 = setTimeout(() => attemptRefresh(2), 1000);
-      
+      const t1 = setTimeout(() => attemptRefresh(1), 200);
+      const t2 = setTimeout(() => attemptRefresh(2), 800);
+      const t3 = setTimeout(() => attemptRefresh(3), 2000);
       return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
       };
     }
   }, [status, pathname, router, update]);
@@ -111,8 +119,8 @@ export default function AccountLayout({
           <Image
             src="/images/benji-logo-2.png"
             alt="Benji"
-            width={64}
-            height={64}
+            width={40}
+            height={40}
             className="mx-auto object-contain mb-4"
             style={{ width: "auto", height: "auto" }}
           />
@@ -158,8 +166,8 @@ export default function AccountLayout({
           <Image
             src="/images/benji-logo-2.png"
             alt="Benji"
-            width={40}
-            height={40}
+            width={32}
+            height={32}
             className="object-contain flex-shrink-0 brightness-75"
             style={{ width: "auto", height: "auto" }}
           />

@@ -78,8 +78,11 @@ export default function RootLayout({
   );
 }
 
-// HydrateFallback voor Next.js 15+ streaming (optioneel, onderdrukt waarschuwing)
-// In Next.js 14 is dit nog niet standaard, maar we exporteren het om waarschuwingen te voorkomen
+// HydrateFallback voor Next.js 15+ streaming – minimal loader tijdens initiële hydration
 export function HydrateFallback() {
-  return null; // Return null omdat we al een Suspense fallback hebben
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-primary-50" aria-hidden="true">
+      <div className="animate-pulse rounded-full h-8 w-8 border-b-2 border-primary-600" />
+    </div>
+  );
 }

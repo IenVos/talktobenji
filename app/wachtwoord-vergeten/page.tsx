@@ -45,8 +45,8 @@ function WachtwoordVergetenForm() {
               <Image
                 src="/images/benji-logo-2.png"
                 alt="Benji"
-                width={64}
-                height={64}
+                width={40}
+                height={40}
                 className="mx-auto object-contain"
                 style={{ width: "auto", height: "auto" }}
               />
@@ -87,8 +87,8 @@ function WachtwoordVergetenForm() {
             <Image
               src="/images/benji-logo-2.png"
               alt="Benji"
-              width={64}
-              height={64}
+              width={40}
+              height={40}
               className="mx-auto object-contain"
               style={{ width: "auto", height: "auto" }}
             />

@@ -2,5 +2,13 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "talktobenji.com" }],
+      "destination": "https://www.talktobenji.com/:path*",
+      "permanent": true
+    }
+  ]
 }

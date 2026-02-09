@@ -39,8 +39,8 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
             <X size={20} />
           </button>
           <div className="flex items-center gap-3 min-w-0 pr-8">
-            <div className="h-10 sm:h-12 flex items-center justify-center flex-shrink-0 overflow-hidden">
-              <Image src="/images/benji-logo-2.png" alt="" width={56} height={48} className="object-contain h-full w-auto" style={{ width: "auto", height: "auto" }} />
+            <div className="h-8 w-8 flex items-center justify-center flex-shrink-0 overflow-hidden">
+              <Image src="/images/benji-logo-2.png" alt="" width={32} height={32} className="object-contain" style={{ width: "auto", height: "auto" }} />
             </div>
             <div className="flex flex-col items-start min-w-0">
               <h2 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">Talk To Benji</h2>

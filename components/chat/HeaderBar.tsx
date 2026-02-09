@@ -20,13 +20,13 @@ type HeaderBarProps = {
 export function HeaderBar({ onLogoClick }: HeaderBarProps) {
   const logoContent = (
     <>
-      <div className="h-10 sm:h-12 flex items-center justify-center flex-shrink-0 overflow-hidden">
+      <div className="h-8 w-8 flex items-center justify-center flex-shrink-0 overflow-hidden">
         <Image
           src={HEADER_LOGO}
           alt=""
-          width={56}
-          height={48}
-          className="object-contain h-full w-auto"
+          width={32}
+          height={32}
+          className="object-contain"
           style={{ width: "auto", height: "auto" }}
         />
       </div>

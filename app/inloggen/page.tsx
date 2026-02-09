@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
@@ -17,6 +17,13 @@ function InloggenForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // HTTP → HTTPS in productie: session cookies werken alleen over HTTPS
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.protocol === "http:" && !window.location.hostname.includes("localhost")) {
+      window.location.replace("https://" + window.location.host + window.location.pathname + window.location.search);
+    }
+  }, []);
+
   const displayError = error || (errorParam === "CredentialsSignin" ? "Ongeldig e-mailadres of wachtwoord" : "");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,20 +36,12 @@ function InloggenForm() {
         email: email.trim().toLowerCase(),
         password,
         callbackUrl,
-        redirect: false,
+        redirect: true,
       });
-      if (result?.ok && result?.url) {
-        // Blijf op hetzelfde domein (voorkomt www vs non-www cookie-mismatch)
-        const targetPath = result.url.startsWith("http")
-          ? new URL(result.url).pathname
-          : result.url.startsWith("/")
-            ? result.url
-            : `/${result.url}`;
-        window.location.href = window.location.origin + targetPath;
-        return;
+      // Met redirect: true komt NextAuth nooit hier – bij succes of fout gaat de browser weg
+      if (!result?.ok) {
+        setError(result?.error === "CredentialsSignin" ? "Ongeldig e-mailadres of wachtwoord" : "Er ging iets mis. Probeer het opnieuw.");
       }
-      // Geen redirect: ongeldige credentials of fout
-      setError(result?.error === "CredentialsSignin" ? "Ongeldig e-mailadres of wachtwoord" : "Er ging iets mis. Probeer het opnieuw.");
     } catch (err) {
       console.error("Login error:", err);
       setError("Er ging iets mis. Probeer het opnieuw.");
@@ -59,8 +58,8 @@ function InloggenForm() {
             <Image
               src="/images/benji-logo-2.png"
               alt="Benji"
-              width={64}
-              height={64}
+              width={40}
+              height={40}
               className="mx-auto object-contain"
               style={{ width: "auto", height: "auto" }}
             />
