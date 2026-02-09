@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus } from "lucide-react";
 
 const ORIGINAL_ACCENT = "#6d84a8";
 
@@ -165,6 +165,15 @@ export default function AccountLayout({
           <aside className="w-56 flex-shrink-0">
             <nav className="sticky top-6 rounded-xl border border-primary-200 bg-white p-3" style={{ borderLeftWidth: 4, borderLeftColor: accent }}>
               <ul className="space-y-0.5">
+                <li>
+                  <Link
+                    href="/?welcome=1"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-primary-700 hover:bg-primary-50/50"
+                  >
+                    <MessageCirclePlus size={18} className="flex-shrink-0" />
+                    Nieuw gesprek
+                  </Link>
+                </li>
                 {TOP_ITEMS.map((item) => {
                   const Icon = item.icon;
                   const isReflecties = item.href === "/account/reflecties";

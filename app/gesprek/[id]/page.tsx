@@ -8,7 +8,11 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { MessageSquare, Trash2 } from "lucide-react";
+import { MessageSquare, Trash2, MessageCircle } from "lucide-react";
+import { hexToLightTint, hexToDarker } from "@/lib/utils";
+
+const CHAT_STORAGE_KEY = "benji_session_id";
+const ORIGINAL_ACCENT = "#6d84a8";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("nl-NL", {
@@ -35,6 +39,12 @@ export default function GesprekPage() {
     api.chat.getMessages,
     id ? { sessionId: id as Id<"chatSessions"> } : "skip"
   );
+  const preferences = useQuery(
+    api.preferences.getPreferences,
+    session?.userId ? { userId: session.userId } : "skip"
+  );
+  const accent = preferences?.accentColor || ORIGINAL_ACCENT;
+  const bgTint = hexToLightTint(accent, 12);
 
   if (!id || status === "loading") {
     return (
@@ -75,7 +85,16 @@ export default function GesprekPage() {
   }
 
   return (
-    <div className="min-h-screen bg-primary-50">
+    <div
+      className="min-h-screen account-theme"
+      style={
+        {
+          backgroundColor: bgTint,
+          "--account-accent": accent,
+          "--account-accent-hover": hexToDarker(accent, 12),
+        } as React.CSSProperties
+      }
+    >
       <div className="max-w-2xl mx-auto p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
@@ -127,6 +146,21 @@ export default function GesprekPage() {
             <Trash2 size={18} />
             <span>Verwijderen</span>
           </button>
+        </div>
+
+        <div className="mb-4">
+          <Link
+            href="/"
+            onClick={() => {
+              if (typeof window !== "undefined" && id) {
+                localStorage.setItem(CHAT_STORAGE_KEY, id);
+              }
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium text-sm hover:bg-primary-700 transition-colors"
+          >
+            <MessageCircle size={18} />
+            Verder praten in dit gesprek
+          </Link>
         </div>
 
         <div className="bg-white rounded-xl border border-primary-200 overflow-hidden">
