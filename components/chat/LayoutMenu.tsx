@@ -9,6 +9,6 @@ const PAGES_WITH_OWN_MENU = ["/", "/privacy", "/algemene-voorwaarden", "/faq", "
 
 export function LayoutMenu() {
   const pathname = usePathname();
-  if (PAGES_WITH_OWN_MENU.includes(pathname) || pathname.startsWith("/admin") || pathname.startsWith("/account")) return null;
+  if (!pathname || PAGES_WITH_OWN_MENU.includes(pathname) || pathname.startsWith("/admin") || pathname.startsWith("/account")) return null;
   return <GlobalMenu />;
 }

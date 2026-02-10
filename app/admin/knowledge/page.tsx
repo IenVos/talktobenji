@@ -134,7 +134,7 @@ export default function KnowledgeBasePage() {
 
   // Pre-fill form vanuit Analytics (onbeantwoorde vragen)
   useEffect(() => {
-    const q = searchParams.get("question");
+    const q = searchParams?.get("question");
     if (q && typeof q === "string") {
       setFormData((prev) => ({ ...prev, question: decodeURIComponent(q) }));
       setShowForm(true);
