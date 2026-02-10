@@ -19,7 +19,17 @@ const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
 
 export const authOptions: AuthOptions = {
   secret: process.env.AUTH_SECRET,
-  useSecureCookies: false,
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: true,
+      },
+    },
+  },
   providers: [
     CredentialsProvider({
       id: "credentials",
