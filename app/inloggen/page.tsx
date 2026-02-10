@@ -3,20 +3,14 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 function InloggenForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const { update } = useSession();
   const callbackUrl = searchParams.get("callbackUrl") || "/account";
   const registered = searchParams.get("registered") === "1";
   const errorParam = searchParams.get("error");
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   // HTTP → HTTPS in productie: session cookies werken alleen over HTTPS
@@ -25,44 +19,6 @@ function InloggenForm() {
       window.location.replace("https://" + window.location.host + window.location.pathname + window.location.search);
     }
   }, []);
-
-  const displayError = error || (errorParam === "CredentialsSignin" ? "Ongeldig e-mailadres of wachtwoord" : "");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      // Gebruik eigen login endpoint dat de cookie handmatig zet
-      // (omzeilt NextAuth CredentialsProvider cookie-bug)
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password,
-        }),
-      });
-      const data = await res.json();
-
-      if (res.ok && data.ok) {
-        // Cookie is nu gezet door de server response
-        // Laad sessie in SessionProvider
-        await update();
-        // Navigeer naar account (client-side)
-        router.push(callbackUrl);
-        return;
-      }
-
-      setError(data.error || "Er ging iets mis. Probeer het opnieuw.");
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("Er ging iets mis. Probeer het opnieuw.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-primary-50 flex flex-col items-center justify-center p-4">
@@ -90,10 +46,15 @@ function InloggenForm() {
           </p>
         )}
 
+        {/* Native form POST: browser handles cookie + redirect natively */}
         <form
-          onSubmit={handleSubmit}
+          action="/api/auth/login"
+          method="POST"
+          onSubmit={() => setLoading(true)}
           className="bg-white rounded-xl border border-primary-200 shadow-sm p-6 space-y-4"
         >
+          <input type="hidden" name="callbackUrl" value={callbackUrl} />
+
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               E-mailadres
@@ -101,8 +62,7 @@ function InloggenForm() {
             <input
               type="email"
               id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
               className="input"
               placeholder="jouw@email.nl"
               required
@@ -122,8 +82,7 @@ function InloggenForm() {
             <input
               type="password"
               id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
               className="input"
               placeholder="Je wachtwoord"
               required
@@ -131,8 +90,8 @@ function InloggenForm() {
             />
           </div>
 
-          {displayError && (
-            <p className="text-red-600 text-sm">{displayError}</p>
+          {errorParam && (
+            <p className="text-red-600 text-sm">{errorParam}</p>
           )}
 
           <button
