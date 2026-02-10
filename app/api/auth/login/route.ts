@@ -56,11 +56,8 @@ export async function POST(request: NextRequest) {
       secret,
     });
 
-    // Zet de sessie-cookie handmatig
-    const useSecureCookies = (process.env.NEXTAUTH_URL || "").startsWith("https://");
-    const cookieName = useSecureCookies
-      ? "__Secure-next-auth.session-token"
-      : "next-auth.session-token";
+    // Zet de sessie-cookie handmatig (zonder __Secure- prefix, matched useSecureCookies: false in auth.ts)
+    const cookieName = "next-auth.session-token";
 
     const response = NextResponse.json({
       ok: true,
@@ -71,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set(cookieName, token, {
       httpOnly: true,
-      secure: useSecureCookies,
+      secure: true,
       sameSite: "lax",
       path: "/",
       maxAge: 30 * 24 * 60 * 60, // 30 dagen

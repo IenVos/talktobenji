@@ -19,6 +19,7 @@ const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
 
 export const authOptions: AuthOptions = {
   secret: process.env.AUTH_SECRET,
+  useSecureCookies: false,
   providers: [
     CredentialsProvider({
       id: "credentials",
