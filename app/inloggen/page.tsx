@@ -3,6 +3,7 @@
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 function InloggenForm() {
@@ -11,14 +12,52 @@ function InloggenForm() {
   const registered = searchParams.get("registered") === "1";
   const errorParam = searchParams.get("error");
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // HTTP → HTTPS in productie: session cookies werken alleen over HTTPS
+  // HTTP → HTTPS in productie
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.protocol === "http:" && !window.location.hostname.includes("localhost")) {
       window.location.replace("https://" + window.location.host + window.location.pathname + window.location.search);
     }
   }, []);
+
+  const displayError = error || (errorParam ? decodeURIComponent(errorParam) : "");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const result = await signIn("credentials", {
+        email: email.trim().toLowerCase(),
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Ongeldig e-mailadres of wachtwoord");
+        setLoading(false);
+        return;
+      }
+
+      if (result?.ok) {
+        // Force full page refresh zodat cookie meegestuurd wordt
+        window.location.href = callbackUrl;
+        return;
+      }
+
+      setError("Er ging iets mis. Probeer het opnieuw.");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Er ging iets mis. Probeer het opnieuw.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-primary-50 flex flex-col items-center justify-center p-4">
@@ -46,15 +85,10 @@ function InloggenForm() {
           </p>
         )}
 
-        {/* Native form POST: browser handles cookie + redirect natively */}
         <form
-          action="/api/auth/login"
-          method="POST"
-          onSubmit={() => setLoading(true)}
+          onSubmit={handleSubmit}
           className="bg-white rounded-xl border border-primary-200 shadow-sm p-6 space-y-4"
         >
-          <input type="hidden" name="callbackUrl" value={callbackUrl} />
-
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               E-mailadres
@@ -62,7 +96,8 @@ function InloggenForm() {
             <input
               type="email"
               id="email"
-              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="input"
               placeholder="jouw@email.nl"
               required
@@ -82,7 +117,8 @@ function InloggenForm() {
             <input
               type="password"
               id="password"
-              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="input"
               placeholder="Je wachtwoord"
               required
@@ -90,8 +126,8 @@ function InloggenForm() {
             />
           </div>
 
-          {errorParam && (
-            <p className="text-red-600 text-sm">{errorParam}</p>
+          {displayError && (
+            <p className="text-red-600 text-sm">{displayError}</p>
           )}
 
           <button
