@@ -19,18 +19,8 @@ const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
 
 export const authOptions: AuthOptions = {
   secret: process.env.AUTH_SECRET,
-  useSecureCookies: false,
-  cookies: {
-    sessionToken: {
-      name: "next-auth.session-token",
-      options: {
-        httpOnly: true,
-        sameSite: "lax" as const,
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-      },
-    },
-  },
+  // ← VERWIJDER useSecureCookies en cookies config volledig
+  
   providers: [
     CredentialsProvider({
       id: "credentials",
@@ -65,7 +55,7 @@ export const authOptions: AuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 dagen
+    maxAge: 30 * 24 * 60 * 60,
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -79,7 +69,6 @@ export const authOptions: AuthOptions = {
     async session({ session, token }) {
       const userId = token.userId as string | undefined;
       
-      // Zet userId en user info op session
       if (userId) {
         session.userId = userId;
         session.user = session.user || {};
@@ -87,11 +76,10 @@ export const authOptions: AuthOptions = {
         if (token.name) session.user.name = token.name as string;
       }
 
-      // Genereer Convex token
       const privateKeyPem = process.env.CONVEX_AUTH_PRIVATE_KEY;
       if (!privateKeyPem || !userId) {
         session.convexToken = null;
-        return session; // ← Return originele session object
+        return session;
       }
 
       const privateKey = await importPKCS8(privateKeyPem, "RS256");
@@ -104,14 +92,11 @@ export const authOptions: AuthOptions = {
         .sign(privateKey);
       
       session.convexToken = convexToken;
-      return session; // ← Return originele session object
+      return session;
     },
     async redirect({ url, baseUrl }) {
-      // Als er een callbackUrl is, gebruik die
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Als url al een volledige URL is en op hetzelfde domein, gebruik die
       if (url.startsWith(baseUrl)) return url;
-      // Anders redirect naar account pagina
       return `${baseUrl}/account`;
     },
   },
@@ -119,8 +104,9 @@ export const authOptions: AuthOptions = {
     signIn: "/inloggen",
     error: "/inloggen",
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: true, // ← Zet op true voor nu
 };
+
 
 // TypeScript declarations
 declare module "next-auth" {
