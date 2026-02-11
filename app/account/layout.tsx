@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, LayoutDashboard, Target, CalendarCheck } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, LayoutDashboard, Target, CalendarCheck, Menu, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const ORIGINAL_ACCENT = "#6d84a8";
@@ -68,6 +68,7 @@ export default function AccountLayout({
     SUBMENU_ITEMS.some((item) => pathname === item.href)
   );
   const [reflectiesSubmenuOpen, setReflectiesSubmenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 5;
 
@@ -84,13 +85,10 @@ export default function AccountLayout({
     const delay = retryCount === 0 ? 200 : retryCount < 3 ? 600 : 1500;
     const timer = setTimeout(async () => {
       try {
-        // Haal sessie rechtstreeks op via API om cookie te verifiëren
         const res = await fetch("/api/auth/session");
         const data = await res.json();
         if (data?.userId || data?.user) {
-          // Cookie is aanwezig, forceer useSession refresh
           await update();
-          // Als update() niet werkt, doe een volledige reload
           if (retryCount >= 2) {
             window.location.reload();
             return;
@@ -108,7 +106,19 @@ export default function AccountLayout({
       setReflectiesSubmenuOpen(false);
     }
   }, [pathname]);
-  
+
+  // Sluit mobiel menu bij navigatie
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Voorkom body scroll als mobiel menu open is
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [mobileMenuOpen]);
 
   // Toon spinner zolang sessie aan het laden is OF we nog retries doen
   if (status === "loading" || (status === "unauthenticated" && retryCount < maxRetries)) {
@@ -156,6 +166,166 @@ export default function AccountLayout({
 
   const pageInfo = PAGE_TITLES[pathname || "/account"] ?? PAGE_TITLES["/account"];
 
+  // Gedeelde navigatie-inhoud (gebruikt door zowel sidebar als mobiel menu)
+  const navContent = (
+    <ul className="space-y-0.5">
+      <li>
+        <Link
+          href="/?welcome=1"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-primary-700 hover:bg-primary-50/50"
+        >
+          <MessageCirclePlus size={18} className="flex-shrink-0" />
+          Nieuw gesprek
+        </Link>
+      </li>
+      {TOP_ITEMS.map((item) => {
+        const Icon = item.icon;
+        const isReflecties = item.href === "/account/reflecties";
+        const isActive = pathname === item.href;
+        const isReflectiesSection = pathname?.startsWith("/account/reflecties");
+        if (isReflecties) {
+          return (
+            <li key={item.href}>
+              <div
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isReflectiesSection ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                }`}
+                style={isReflectiesSection ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+              >
+                <Link
+                  href="/account/reflecties"
+                  className="flex items-center gap-3 flex-1 min-w-0"
+                  scroll={false}
+                >
+                  <Icon size={18} className="flex-shrink-0" />
+                  {item.label}
+                </Link>
+                <span className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                  {isReflectiesSection && (
+                    <button
+                      type="button"
+                      onClick={() => setReflectiesSubmenuOpen((o) => !o)}
+                      className="p-1 rounded hover:bg-primary-100/50 transition-colors -m-1"
+                      title={reflectiesSubmenuOpen ? "Submenu sluiten" : "Submenu openen"}
+                      aria-expanded={reflectiesSubmenuOpen}
+                    >
+                      {reflectiesSubmenuOpen ? (
+                        <ChevronDown size={16} />
+                      ) : (
+                        <ChevronRight size={16} />
+                      )}
+                    </button>
+                  )}
+                </span>
+              </div>
+              {isReflectiesSection && reflectiesSubmenuOpen && (
+                <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
+                  {REFLECTIES_SUBMENU.filter((s) => s.href !== "/account/reflecties").map((sub) => {
+                    const subActive = pathname === sub.href;
+                    return (
+                      <li key={sub.href}>
+                        <Link
+                          href={sub.href}
+                          scroll={false}
+                          className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors block ${
+                            subActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                          }`}
+                          style={subActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+                        >
+                          {sub.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </li>
+          );
+        }
+        return (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              scroll={false}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+              }`}
+              style={isActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+            >
+              <Icon size={18} className="flex-shrink-0" />
+              {item.label}
+            </Link>
+          </li>
+        );
+      })}
+      <li>
+        <button
+          type="button"
+          onClick={() => setSubmenuOpen(!submenuOpen)}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full ${
+            SUBMENU_ITEMS.some((i) => pathname === i.href)
+              ? "text-primary-800"
+              : "text-gray-700 hover:text-primary-700"
+          }`}
+          style={
+            SUBMENU_ITEMS.some((i) => pathname === i.href)
+              ? { backgroundColor: hexToLightTint(accent, 25) }
+              : {}
+          }
+        >
+          {submenuOpen ? (
+            <ChevronDown size={18} className="flex-shrink-0" />
+          ) : (
+            <ChevronRight size={18} className="flex-shrink-0" />
+          )}
+          <span>Meer</span>
+        </button>
+        {submenuOpen && (
+          <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
+            {SUBMENU_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    scroll={false}
+                    className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                    }`}
+                    style={isActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+                  >
+                    <Icon size={16} className="flex-shrink-0" />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </li>
+      <li>
+        <Link
+          href="/account/steun"
+          scroll={false}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mt-2 border-t border-primary-100 pt-3 ${
+            pathname === "/account/steun"
+              ? "text-primary-800"
+              : "text-gray-700 hover:text-primary-700"
+          }`}
+          style={
+            pathname === "/account/steun"
+              ? { backgroundColor: hexToLightTint(accent, 25) }
+              : {}
+          }
+        >
+          <Heart size={18} className="flex-shrink-0" />
+          Steun Benji
+        </Link>
+      </li>
+    </ul>
+  );
+
   return (
     <div
       className="min-h-screen account-theme"
@@ -168,8 +338,17 @@ export default function AccountLayout({
       }
     >
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
-        {/* Gedeelde header – logo linkt naar chat met welkom, vaste hoogte om layoutverschuiving te voorkomen */}
-        <div className="flex items-center gap-3 mb-6 min-h-[4.5rem]">
+        {/* Header */}
+        <div className="flex items-center gap-2 sm:gap-3 mb-6 min-h-[3.5rem] sm:min-h-[4.5rem]">
+          {/* Hamburger menu – alleen op mobiel */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className="lg:hidden p-2 -ml-1 text-primary-600 hover:bg-primary-100 rounded-lg transition-colors flex-shrink-0"
+            aria-label="Menu openen"
+          >
+            <Menu size={22} />
+          </button>
           <Link
             href="/?welcome=1"
             className="flex-shrink-0"
@@ -185,11 +364,11 @@ export default function AccountLayout({
             />
           </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-bold text-primary-900">{pageInfo.title}</h1>
-            <p className="text-sm text-gray-600">{pageInfo.subtitle}</p>
+            <h1 className="text-lg sm:text-xl font-bold text-primary-900 truncate">{pageInfo.title}</h1>
+            <p className="text-xs sm:text-sm text-gray-600 truncate">{pageInfo.subtitle}</p>
           </div>
           {session.user?.name && (
-            <p className="text-xl font-bold hidden sm:block flex-shrink-0" style={{ color: hexToDarker(accent, 12) }}>Fijn dat je er bent, {session.user.name}</p>
+            <p className="text-xl font-bold hidden lg:block flex-shrink-0" style={{ color: hexToDarker(accent, 12) }}>Fijn dat je er bent, {session.user.name}</p>
           )}
           <Link
             href="/account"
@@ -208,167 +387,44 @@ export default function AccountLayout({
           </button>
         </div>
 
+        {/* Mobiel menu overlay */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/30"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            {/* Slide-in panel */}
+            <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-white shadow-xl flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b border-primary-100">
+                <span className="font-semibold text-primary-900">Menu</span>
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  aria-label="Menu sluiten"
+                >
+                  <X size={20} className="text-gray-500" />
+                </button>
+              </div>
+              <nav className="flex-1 overflow-y-auto p-3">
+                {navContent}
+              </nav>
+              {session.user?.name && (
+                <div className="p-4 border-t border-primary-100">
+                  <p className="text-sm font-medium text-primary-700 truncate">{session.user.name}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-6 items-start">
-          {/* Zijbalk – top gelijk met content cards */}
-          <aside className="w-56 flex-shrink-0">
+          {/* Desktop zijbalk – verborgen op mobiel */}
+          <aside className="w-56 flex-shrink-0 hidden lg:block">
             <nav className="sticky top-6 rounded-xl border border-primary-200 bg-white p-3" style={{ borderLeftWidth: 4, borderLeftColor: accent }}>
-              <ul className="space-y-0.5">
-                <li>
-                  <Link
-                    href="/?welcome=1"
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-primary-700 hover:bg-primary-50/50"
-                  >
-                    <MessageCirclePlus size={18} className="flex-shrink-0" />
-                    Nieuw gesprek
-                  </Link>
-                </li>
-                {TOP_ITEMS.map((item) => {
-                  const Icon = item.icon;
-                  const isReflecties = item.href === "/account/reflecties";
-                  const isActive = pathname === item.href;
-                  const isReflectiesSection = pathname?.startsWith("/account/reflecties");
-                  if (isReflecties) {
-                    return (
-                      <li key={item.href}>
-                        <div
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                            isReflectiesSection ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
-                          }`}
-                          style={isReflectiesSection ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
-                        >
-                          <Link
-                            href="/account/reflecties"
-                            className="flex items-center gap-3 flex-1 min-w-0"
-                            scroll={false}
-                          >
-                            <Icon size={18} className="flex-shrink-0" />
-                            {item.label}
-                          </Link>
-                          {/* Altijd ruimte reserveren voor chevron om layoutverschuiving te voorkomen */}
-                          <span className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                            {isReflectiesSection && (
-                              <button
-                                type="button"
-                                onClick={() => setReflectiesSubmenuOpen((o) => !o)}
-                                className="p-1 rounded hover:bg-primary-100/50 transition-colors -m-1"
-                                title={reflectiesSubmenuOpen ? "Submenu sluiten" : "Submenu openen"}
-                                aria-expanded={reflectiesSubmenuOpen}
-                              >
-                                {reflectiesSubmenuOpen ? (
-                                  <ChevronDown size={16} />
-                                ) : (
-                                  <ChevronRight size={16} />
-                                )}
-                              </button>
-                            )}
-                          </span>
-                        </div>
-                        {isReflectiesSection && reflectiesSubmenuOpen && (
-                          <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
-                            {REFLECTIES_SUBMENU.filter((s) => s.href !== "/account/reflecties").map((sub) => {
-                              const subActive = pathname === sub.href;
-                              return (
-                                <li key={sub.href}>
-                                  <Link
-                                    href={sub.href}
-                                    scroll={false}
-                                    className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors block ${
-                                      subActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
-                                    }`}
-                                    style={subActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
-                                  >
-                                    {sub.label}
-                                  </Link>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        )}
-                      </li>
-                    );
-                  }
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        scroll={false}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                          isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
-                        }`}
-                        style={isActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
-                      >
-                        <Icon size={18} className="flex-shrink-0" />
-                        {item.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => setSubmenuOpen(!submenuOpen)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full ${
-                      SUBMENU_ITEMS.some((i) => pathname === i.href)
-                        ? "text-primary-800"
-                        : "text-gray-700 hover:text-primary-700"
-                    }`}
-                    style={
-                      SUBMENU_ITEMS.some((i) => pathname === i.href)
-                        ? { backgroundColor: hexToLightTint(accent, 25) }
-                        : {}
-                    }
-                  >
-                    {submenuOpen ? (
-                      <ChevronDown size={18} className="flex-shrink-0" />
-                    ) : (
-                      <ChevronRight size={18} className="flex-shrink-0" />
-                    )}
-                    <span>Meer</span>
-                  </button>
-                  {submenuOpen && (
-                    <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
-                      {SUBMENU_ITEMS.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href;
-                        return (
-                          <li key={item.href}>
-                            <Link
-                              href={item.href}
-                              scroll={false}
-                              className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
-                              }`}
-                              style={isActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
-                            >
-                              <Icon size={16} className="flex-shrink-0" />
-                              {item.label}
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </li>
-                <li>
-                  <Link
-                    href="/account/steun"
-                    scroll={false}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mt-2 border-t border-primary-100 pt-3 ${
-                      pathname === "/account/steun"
-                        ? "text-primary-800"
-                        : "text-gray-700 hover:text-primary-700"
-                    }`}
-                    style={
-                      pathname === "/account/steun"
-                        ? { backgroundColor: hexToLightTint(accent, 25) }
-                        : {}
-                    }
-                  >
-                    <Heart size={18} className="flex-shrink-0" />
-                    Steun Benji
-                  </Link>
-                </li>
-              </ul>
+              {navContent}
             </nav>
           </aside>
 

@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(ln:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(npx next build:*)"
     ]
   }
 }
