@@ -38,6 +38,23 @@ export async function GET(request: NextRequest) {
     jwtTestError = e.message;
   }
 
+  // Test: kan de private key worden geïmporteerd? (dit is wat faalt in de session callback)
+  let privateKeyTest = null;
+  try {
+    const rawKey = process.env.CONVEX_AUTH_PRIVATE_KEY || "";
+    const { importPKCS8 } = await import("jose");
+    const normalizedKey = rawKey.replace(/\\n/g, "\n");
+    await importPKCS8(normalizedKey, "RS256");
+    privateKeyTest = {
+      success: true,
+      rawHasLiteralBackslashN: rawKey.includes("\\n"),
+      rawHasRealNewlines: rawKey.includes("\n"),
+      rawLength: rawKey.length,
+    };
+  } catch (e: any) {
+    privateKeyTest = { success: false, error: e.message };
+  }
+
   // Check welke cookie-naam NextAuth zou gebruiken
   const useSecureCookies = (process.env.NEXTAUTH_URL || "").startsWith("https://");
   const expectedCookieName = useSecureCookies
@@ -66,6 +83,7 @@ export async function GET(request: NextRequest) {
       : null,
     sessionError,
     jwtTest: jwtTestResult || { error: jwtTestError },
+    privateKeyTest,
   });
 
   // Test: zet een testcookie om te zien of cookie-setting werkt op Vercel

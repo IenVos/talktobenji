@@ -76,22 +76,29 @@ export const authOptions: AuthOptions = {
         if (token.name) session.user.name = token.name as string;
       }
 
-      const privateKeyPem = process.env.CONVEX_AUTH_PRIVATE_KEY;
-      if (!privateKeyPem || !userId) {
+      const rawKey = process.env.CONVEX_AUTH_PRIVATE_KEY;
+      if (!rawKey || !userId) {
         session.convexToken = null;
         return session;
       }
 
-      const privateKey = await importPKCS8(privateKeyPem, "RS256");
-      const convexToken = await new SignJWT({ sub: userId })
-        .setProtectedHeader({ alg: "RS256" })
-        .setIssuedAt()
-        .setIssuer(CONVEX_SITE_URL)
-        .setAudience("convex")
-        .setExpirationTime("1h")
-        .sign(privateKey);
-      
-      session.convexToken = convexToken;
+      try {
+        // Normaliseer PEM: Vercel slaat \n op als letterlijke tekst, niet als newlines
+        const privateKeyPem = rawKey.replace(/\\n/g, "\n");
+        const privateKey = await importPKCS8(privateKeyPem, "RS256");
+        const convexToken = await new SignJWT({ sub: userId })
+          .setProtectedHeader({ alg: "RS256" })
+          .setIssuedAt()
+          .setIssuer(CONVEX_SITE_URL)
+          .setAudience("convex")
+          .setExpirationTime("1h")
+          .sign(privateKey);
+
+        session.convexToken = convexToken;
+      } catch (e) {
+        console.error("Convex token signing failed:", e);
+        session.convexToken = null;
+      }
       return session;
     },
     async redirect({ url, baseUrl }) {
