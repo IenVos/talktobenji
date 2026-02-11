@@ -359,7 +359,7 @@ export default function AccountLayout({
             <p className="text-[11px] sm:text-sm text-gray-600 truncate">{pageInfo.subtitle}</p>
           </div>
           {session.user?.name && (
-            <p className="text-sm sm:text-xl font-bold flex-shrink-0 truncate max-w-[40%] sm:max-w-none" style={{ color: hexToDarker(accent, 12) }}>Fijn dat je er bent, {session.user.name}</p>
+            <p className="text-sm sm:text-xl font-bold flex-shrink-0 truncate max-w-[40%] sm:max-w-none" style={{ color: hexToDarker(accent, 12) }}><span className="hidden sm:inline">Fijn dat je er bent, {session.user.name}</span><span className="sm:hidden">Hi {session.user.name}</span></p>
           )}
           <Link
             href="/account"
