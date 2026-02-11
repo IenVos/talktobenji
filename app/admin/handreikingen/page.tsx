@@ -41,10 +41,11 @@ export default function AdminHandreikingenPage() {
   }, [imagePreviewUrl]);
 
   const isPdf = form.kind === "pdf";
-  const canSave = form.title.trim() && !extractingCover && (
+  const hasImage = !!form.imageFile || !!editingImageUrl;
+  const canSave = !extractingCover && (
     isPdf
       ? (editingId ? true : !!form.pdfFile && !!form.imageFile)
-      : !!form.content.trim()
+      : (!!form.title.trim() || !!form.content.trim() || hasImage)
   );
 
   useEffect(() => {
@@ -82,7 +83,7 @@ export default function AdminHandreikingenPage() {
   };
 
   const handleCreate = async () => {
-    if (!form.title.trim()) return;
+    if (!canSave) return;
     if (isPdf) {
       if (!form.pdfFile || !form.imageFile) return;
       setSaving(true);
@@ -116,7 +117,6 @@ export default function AdminHandreikingenPage() {
         setSaving(false);
       }
     } else {
-      if (!form.content.trim()) return;
       setSaving(true);
       try {
         let imageStorageId: Id<"_storage"> | undefined;
@@ -147,7 +147,7 @@ export default function AdminHandreikingenPage() {
   };
 
   const handleUpdate = async () => {
-    if (!editingId || !form.title.trim()) return;
+    if (!editingId || !canSave) return;
     setSaving(true);
     try {
       const updates: Parameters<typeof updateItem>[0] = {
@@ -189,8 +189,8 @@ export default function AdminHandreikingenPage() {
 
   const startEdit = (item: {
     _id: Id<"handreikingenItems">;
-    title: string;
-    content: string;
+    title?: string;
+    content?: string;
     order: number;
     pdfStorageId?: unknown;
     publishFrom?: number | null;
@@ -198,8 +198,8 @@ export default function AdminHandreikingenPage() {
     priceCents?: number | null;
   }) => {
     setForm({
-      title: item.title,
-      content: item.content,
+      title: item.title ?? "",
+      content: item.content ?? "",
       order: item.order,
       kind: item.pdfStorageId ? "pdf" : "text",
       pdfFile: null,

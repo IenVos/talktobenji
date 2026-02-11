@@ -16,12 +16,18 @@ function InloggenForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [userName, setUserName] = useState("");
 
-  // HTTP → HTTPS in productie
   useEffect(() => {
+    // HTTP → HTTPS in productie
     if (typeof window !== "undefined" && window.location.protocol === "http:" && !window.location.hostname.includes("localhost")) {
       window.location.replace("https://" + window.location.host + window.location.pathname + window.location.search);
     }
+    // Haal naam op uit localStorage (gezet bij registratie)
+    try {
+      const stored = localStorage.getItem("benji_user_name");
+      if (stored) setUserName(stored);
+    } catch {}
   }, []);
 
   const displayError = error || (errorParam ? decodeURIComponent(errorParam) : "");
@@ -73,7 +79,9 @@ function InloggenForm() {
               style={{ width: "auto", height: "auto" }}
             />
           </Link>
-          <h1 className="text-xl font-bold text-primary-900 mt-3">Inloggen</h1>
+          <h1 className="text-xl font-bold text-primary-900 mt-3">
+            {userName ? `Fijn dat je er bent, ${userName}` : "Inloggen"}
+          </h1>
           <p className="text-sm text-gray-600 mt-1">
             Log in om je gesprekken terug te kijken
           </p>

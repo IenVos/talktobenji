@@ -21,6 +21,12 @@ import {
   CalendarCheck,
 } from "lucide-react";
 
+const CHECK_IN_LABELS: Record<string, string> = {
+  hoe_voel: "Hoe voel ik me vandaag?",
+  wat_hielp: "Wat hielp me vandaag?",
+  waar_dankbaar: "Waar ben ik dankbaar voor?",
+};
+
 const MOOD_OPTIONS = [
   { value: 1, emoji: "😔", label: "Zwaar" },
   { value: 2, emoji: "😕", label: "Moeilijk" },
@@ -55,12 +61,6 @@ function formatDateStr(dateStr: string) {
   });
 }
 
-const CHECK_IN_LABELS: Record<string, string> = {
-  hoe_voel: "Hoe voel ik me vandaag?",
-  wat_hielp: "Wat hielp me vandaag?",
-  waar_dankbaar: "Waar ben ik dankbaar voor?",
-};
-
 export default function AccountReflectiesPage() {
   const { data: session } = useSession();
   const userId = session?.userId ?? "";
@@ -80,7 +80,6 @@ export default function AccountReflectiesPage() {
     api.reflecties.listCheckInEntries,
     userId ? { userId, limit: 50 } : "skip"
   );
-
   const createNote = useMutation(api.reflecties.createNote);
   const updateNote = useMutation(api.reflecties.updateNote);
   const deleteNote = useMutation(api.reflecties.deleteNote);
@@ -90,7 +89,6 @@ export default function AccountReflectiesPage() {
   const deleteGoal = useMutation(api.reflecties.deleteGoal);
   const createCheckInEntry = useMutation(api.reflecties.createCheckInEntry);
   const deleteCheckInEntry = useMutation(api.reflecties.deleteCheckInEntry);
-
   const [showNewNote, setShowNewNote] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<Id<"notes"> | null>(null);
   const [noteTitle, setNoteTitle] = useState("");
@@ -148,6 +146,7 @@ export default function AccountReflectiesPage() {
     if (!userId || !confirm("Check-in verwijderen?")) return;
     await deleteCheckInEntry({ id, userId });
   };
+
   const displayDate = new Date().toLocaleDateString("nl-NL", {
     weekday: "long",
     day: "numeric",
@@ -311,34 +310,40 @@ export default function AccountReflectiesPage() {
           </button>
         </div>
         {goals && goals.length > 0 && (
-          <ul className="space-y-2">
-            {goals.map((g) => (
-              <li
-                key={g._id}
-                className="flex items-center gap-2 p-3 rounded-lg bg-primary-50/50"
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleGoal({ goalId: g._id, userId })}
-                  className="text-primary-600"
+          <>
+            <ul className="space-y-2">
+              {goals.slice(0, 3).map((g) => (
+                <li
+                  key={g._id}
+                  className="flex items-center gap-2 p-3 rounded-lg bg-primary-50/50"
                 >
-                  {g.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
-                </button>
-                <span className={`flex-1 ${g.completed ? "line-through text-gray-500" : ""}`}>
-                  {g.content}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (confirm("Doel verwijderen?")) deleteGoal({ goalId: g._id, userId });
-                  }}
-                  className="text-gray-400 hover:text-red-600"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </li>
-            ))}
-          </ul>
+                  <button
+                    type="button"
+                    onClick={() => toggleGoal({ goalId: g._id, userId })}
+                    className="text-primary-600"
+                  >
+                    {g.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                  </button>
+                  <span className={`flex-1 ${g.completed ? "line-through text-gray-500" : ""}`}>
+                    {g.content}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm("Doel verwijderen?")) deleteGoal({ goalId: g._id, userId });
+                    }}
+                    className="text-gray-400 hover:text-red-600"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <Link href="/account/doelen" className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg text-sm font-medium transition-colors">
+              <History size={18} />
+              Bekijk alle doelen
+            </Link>
+          </>
         )}
         {goals?.length === 0 && (
           <p className="text-sm text-gray-500">Nog geen doelen. Voeg er een toe.</p>
@@ -400,62 +405,38 @@ export default function AccountReflectiesPage() {
           <div className="mt-6 pt-6 border-t border-primary-100">
             <h3 className="flex items-center gap-2 text-base font-semibold text-primary-900 mb-3">
               <History size={18} className="text-primary-500" />
-              Eerdere check-ins terugkijken
+              Eerdere check-ins
             </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Bekijk je vorige antwoorden om patronen te zien.
-            </p>
             <div className="space-y-2">
               {checkInEntries.slice(0, 3).map((entry) => {
                 const isExpanded = expandedCheckInId === entry._id;
                 const emotionEntry = emotionHistory?.find((e) => e.date === entry.dateStr);
                 const moodOpt = emotionEntry?.mood ? MOOD_OPTIONS.find((m) => m.value === emotionEntry.mood) : null;
                 return (
-                  <div
-                    key={entry._id}
-                    className="rounded-lg border border-primary-200 overflow-hidden"
-                  >
+                  <div key={entry._id} className="rounded-lg border border-primary-200 overflow-hidden">
                     <div className="flex items-center gap-2 px-4 py-3 bg-white">
                       <button
                         type="button"
                         onClick={() => setExpandedCheckInId(isExpanded ? null : entry._id)}
                         className="flex items-center gap-2 text-left hover:bg-primary-50/50 rounded transition-colors flex-1 min-w-0"
                       >
-                        {isExpanded ? (
-                          <ChevronDown size={18} className="text-primary-600 flex-shrink-0" />
-                        ) : (
-                          <ChevronRight size={18} className="text-primary-600 flex-shrink-0" />
-                        )}
-                        {moodOpt && (
-                          <span className="text-xl flex-shrink-0" title={moodOpt.label}>{moodOpt.emoji}</span>
-                        )}
-                        <span className="font-medium text-primary-900 truncate">
-                          {formatDate(entry.createdAt)}
-                        </span>
+                        {isExpanded ? <ChevronDown size={18} className="text-primary-600 flex-shrink-0" /> : <ChevronRight size={18} className="text-primary-600 flex-shrink-0" />}
+                        {moodOpt && <span className="text-xl flex-shrink-0" title={moodOpt.label}>{moodOpt.emoji}</span>}
+                        <span className="font-medium text-primary-900 truncate">{formatDate(entry.createdAt)}</span>
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCheckIn(entry._id)}
-                        className="p-2 text-gray-400 hover:text-red-600 rounded-lg flex-shrink-0"
-                        aria-label="Verwijderen"
-                      >
+                      <button type="button" onClick={() => handleDeleteCheckIn(entry._id)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg flex-shrink-0" aria-label="Verwijderen">
                         <Trash2 size={18} />
                       </button>
                     </div>
                     {isExpanded && (
                       <div className="px-4 pb-4 pt-0 space-y-2 bg-primary-50/30">
-                        {(["hoe_voel", "wat_hielp", "waar_dankbaar"] as const).map(
-                          (key) =>
-                            entry[key] && entry[key] !== "-" && (
-                              <div key={key}>
-                                <p className="text-xs font-medium text-primary-600 mb-0.5">
-                                  {CHECK_IN_LABELS[key]}
-                                </p>
-                                <p className="text-sm text-primary-900">
-                                  {entry[key]}
-                                </p>
-                              </div>
-                            )
+                        {(["hoe_voel", "wat_hielp", "waar_dankbaar"] as const).map((key) =>
+                          entry[key] && entry[key] !== "-" && (
+                            <div key={key}>
+                              <p className="text-xs font-medium text-primary-600 mb-0.5">{CHECK_IN_LABELS[key]}</p>
+                              <p className="text-sm text-primary-900">{entry[key]}</p>
+                            </div>
+                          )
                         )}
                       </div>
                     )}
@@ -463,10 +444,7 @@ export default function AccountReflectiesPage() {
                 );
               })}
             </div>
-            <Link
-              href="/account/reflecties/eerdere-checkins"
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg text-sm font-medium transition-colors"
-            >
+            <Link href="/account/reflecties/eerdere-checkins" className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg text-sm font-medium transition-colors">
               <History size={18} />
               Bekijk alle eerdere check-ins
             </Link>

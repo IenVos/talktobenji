@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck } from "lucide-react";
+import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
 
 type GlobalMenuProps = {
@@ -99,11 +99,19 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       },
     },
     {
-      label: "Dagelijkse doelen",
-      icon: CalendarCheck,
+      label: "Persoonlijke doelen",
+      icon: Target,
       onClick: () => {
         setOpen(false);
-        router.push("/account/reflecties");
+        router.push("/account/doelen");
+      },
+    },
+    {
+      label: "Check-ins",
+      icon: ClipboardCheck,
+      onClick: () => {
+        setOpen(false);
+        router.push("/account/reflecties/eerdere-checkins");
       },
     },
   ];

@@ -52,6 +52,10 @@ function RegistrerenForm() {
         return;
       }
 
+      // Onthoud naam voor begroeting op loginpagina
+      const displayName = name.trim() || email.trim().split("@")[0];
+      try { localStorage.setItem("benji_user_name", displayName); } catch {}
+
       const signInResult = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,

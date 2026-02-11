@@ -46,10 +46,11 @@ export default function AdminInspiratiePage() {
   }, [imagePreviewUrl]);
 
   const isPdf = form.type === "pdf";
-  const canSave = form.title.trim() && !extractingCover && (
+  const hasImage = !!form.imageFile || !!editingImageUrl;
+  const canSave = !extractingCover && (
     isPdf
       ? (editingId ? true : !!form.pdfFile && !!form.imageFile)
-      : !!form.content.trim()
+      : (!!form.title.trim() || !!form.content.trim() || hasImage)
   );
 
   // PDF: automatisch cover uit eerste pagina halen
@@ -88,7 +89,7 @@ export default function AdminInspiratiePage() {
   };
 
   const handleCreate = async () => {
-    if (!form.title.trim()) return;
+    if (!canSave) return;
     if (isPdf) {
       if (!form.pdfFile || !form.imageFile) return;
       setSaving(true);
@@ -123,7 +124,6 @@ export default function AdminInspiratiePage() {
         setSaving(false);
       }
     } else {
-      if (!form.content.trim()) return;
       setSaving(true);
       try {
         let imageStorageId: Id<"_storage"> | undefined;
@@ -155,7 +155,7 @@ export default function AdminInspiratiePage() {
   };
 
   const handleUpdate = async () => {
-    if (!editingId || !form.title.trim()) return;
+    if (!editingId || !canSave) return;
     setSaving(true);
     try {
       const updates: Parameters<typeof updateItem>[0] = {
@@ -198,8 +198,8 @@ export default function AdminInspiratiePage() {
 
   const startEdit = (item: {
     _id: Id<"inspiratieItems">;
-    title: string;
-    content: string;
+    title?: string;
+    content?: string;
     type: string;
     order: number;
     publishFrom?: number | null;
@@ -207,8 +207,8 @@ export default function AdminInspiratiePage() {
     priceCents?: number | null;
   }) => {
     setForm({
-      title: item.title,
-      content: item.content,
+      title: item.title ?? "",
+      content: item.content ?? "",
       type: item.type as (typeof TYPES)[number],
       order: item.order,
       pdfFile: null,

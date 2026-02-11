@@ -87,8 +87,8 @@ export const generateUploadUrl = mutation({
 
 export const create = mutation({
   args: {
-    title: v.string(),
-    content: v.string(),
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
     type: v.union(
       v.literal("gedicht"),
       v.literal("citaat"),
@@ -105,8 +105,8 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     return await ctx.db.insert("inspiratieItems", {
-      title: args.title,
-      content: args.content,
+      title: args.title ?? "",
+      content: args.content ?? "",
       type: args.type,
       order: args.order,
       pdfStorageId: args.pdfStorageId,

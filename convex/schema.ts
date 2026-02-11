@@ -257,8 +257,8 @@ export default defineSchema({
 
   // Inspiratie & troost (admin beheerd, klant zichtbaar)
   inspiratieItems: defineTable({
-    title: v.string(),
-    content: v.string(),
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
     type: v.union(
       v.literal("gedicht"),
       v.literal("citaat"),
@@ -282,8 +282,8 @@ export default defineSchema({
 
   // Handreikingen (admin beheerd, klant zichtbaar)
   handreikingenItems: defineTable({
-    title: v.string(),
-    content: v.string(),
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
     order: v.number(),
     isActive: v.boolean(),
     createdAt: v.number(),

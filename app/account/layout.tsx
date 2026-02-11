@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, LayoutDashboard, Target, CalendarCheck } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const ORIGINAL_ACCENT = "#6d84a8";
@@ -16,21 +16,21 @@ const ORIGINAL_ACCENT = "#6d84a8";
 const TOP_ITEMS = [
   { href: "/account/gesprekken", label: "Mijn gesprekken", icon: MessageSquare },
   { href: "/account/reflecties", label: "Mijn reflecties", icon: PencilLine },
+  { href: "/account/doelen", label: "Persoonlijke doelen", icon: Target },
+  { href: "/account/checkins", label: "Dagelijkse check-ins", icon: CalendarCheck },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
   { href: "/account/handreikingen", label: "Handreikingen", icon: HandHelping },
   { href: "/account/instellingen", label: "Personalisatie", icon: UserCircle },
 ];
 
 const SUBMENU_ITEMS = [
-  { href: "/account/betalingen", label: "Betalingen", icon: CreditCard },
-  { href: "/account/abonnement", label: "Abonnement", icon: Calendar },
+  { href: "/account/abonnement", label: "Abonnement & betalingen", icon: CreditCard },
   { href: "/wachtwoord-vergeten", label: "Wachtwoord wijzigen", icon: KeyRound },
 ];
 
 const REFLECTIES_SUBMENU = [
   { href: "/account/reflecties", label: "Overzicht" },
   { href: "/account/reflecties/eerdere-reflecties", label: "Eerdere reflecties" },
-  { href: "/account/reflecties/eerdere-checkins", label: "Eerdere check-ins" },
 ];
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
@@ -40,11 +40,12 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account/reflecties": { title: "Mijn reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/reflecties/eerdere-reflecties": { title: "Eerdere reflecties", subtitle: "Al je reflecties bekijken" },
   "/account/reflecties/eerdere-checkins": { title: "Eerdere check-ins", subtitle: "Al je dagelijkse check-ins bekijken" },
+  "/account/doelen": { title: "Persoonlijke doelen", subtitle: "Je doelen en wensen bijhouden" },
+  "/account/checkins": { title: "Dagelijkse check-ins", subtitle: "Korte vragen om je gedachten te ordenen" },
   "/account/notities": { title: "Mijn reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/inspiratie": { title: "Inspiratie & troost", subtitle: "Gedichten, citaten en teksten die je kunnen steunen" },
   "/account/handreikingen": { title: "Handreikingen", subtitle: "Praktische tips en ideeën voor moeilijke momenten" },
-  "/account/betalingen": { title: "Betalingen", subtitle: "Overzicht van je betalingen" },
-  "/account/abonnement": { title: "Abonnement", subtitle: "Je abonnement" },
+  "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
   "/account/instellingen": { title: "Personaliseer", subtitle: "Personalisatie van je account" },
 };
 
@@ -187,14 +188,23 @@ export default function AccountLayout({
             <h1 className="text-xl font-bold text-primary-900">{pageInfo.title}</h1>
             <p className="text-sm text-gray-600">{pageInfo.subtitle}</p>
           </div>
+          {session.user?.name && (
+            <p className="text-xl font-bold hidden sm:block flex-shrink-0" style={{ color: hexToDarker(accent, 12) }}>Fijn dat je er bent, {session.user.name}</p>
+          )}
+          <Link
+            href="/account"
+            className="p-2 text-gray-300 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0"
+            title="Overzicht"
+          >
+            <LayoutDashboard size={18} />
+          </Link>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors flex-shrink-0"
+            className="p-2 text-gray-300 hover:text-orange-500 rounded-lg transition-colors flex-shrink-0"
             title="Uitloggen"
           >
             <LogOut size={18} />
-            <span className="hidden sm:inline">Uitloggen</span>
           </button>
         </div>
 
