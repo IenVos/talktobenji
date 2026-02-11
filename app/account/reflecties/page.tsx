@@ -221,13 +221,13 @@ export default function AccountReflectiesPage() {
           <p className="text-sm text-gray-600 mb-3">
             Hoe voel je je vandaag? Kies een emotie om bij te houden hoe je stemming is.
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {MOOD_OPTIONS.map((m) => (
               <button
                 key={m.value}
                 type="button"
                 onClick={() => setEmotion({ userId, date: dateStr, mood: m.value })}
-                className={`flex flex-col items-center gap-1 px-4 py-3 rounded-xl border-2 transition-all ${
+                className={`flex flex-col items-center gap-1 py-3 rounded-xl border-2 transition-all ${
                   emotion?.mood === m.value
                     ? "border-primary-600 bg-primary-50"
                     : "border-gray-200 hover:border-primary-300"
@@ -235,7 +235,7 @@ export default function AccountReflectiesPage() {
                 title={m.label}
               >
                 <span className="text-2xl">{m.emoji}</span>
-                <span className="text-xs text-gray-600">{m.label}</span>
+                <span className="text-[10px] sm:text-xs text-gray-600">{m.label}</span>
               </button>
             ))}
           </div>
@@ -291,7 +291,7 @@ export default function AccountReflectiesPage() {
         <p className="text-sm text-gray-600 mb-4">
           Schrijf kleine doelen op, bijvoorbeeld: &quot;Vandaag wil ik even buiten wandelen&quot; of &quot;Ik wil iets liefs doen voor mezelf&quot;.
         </p>
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
           <input
             type="text"
             placeholder="Bijv. Vandaag wil ik even buiten wandelen"
@@ -304,7 +304,7 @@ export default function AccountReflectiesPage() {
             type="button"
             onClick={handleAddGoal}
             disabled={!newGoal.trim()}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-50"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-50 flex-shrink-0"
           >
             Toevoegen
           </button>

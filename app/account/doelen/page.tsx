@@ -43,7 +43,7 @@ export default function AccountDoelenPage() {
         <p className="text-sm text-gray-600 mb-4">
           Schrijf kleine doelen op, bijvoorbeeld: &quot;Vandaag wil ik even buiten wandelen&quot; of &quot;Ik wil iets liefs doen voor mezelf&quot;.
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             type="text"
             placeholder="Bijv. Vandaag wil ik even buiten wandelen"
@@ -56,7 +56,7 @@ export default function AccountDoelenPage() {
             type="button"
             onClick={handleAddGoal}
             disabled={!newGoal.trim()}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-50 flex-shrink-0"
           >
             <Plus size={18} />
             Toevoegen

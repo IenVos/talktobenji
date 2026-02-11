@@ -339,16 +339,7 @@ export default function AccountLayout({
     >
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="flex items-center gap-2 sm:gap-3 mb-6 min-h-[3.5rem] sm:min-h-[4.5rem]">
-          {/* Hamburger menu – alleen op mobiel */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden p-2 -ml-1 text-primary-600 hover:bg-primary-100 rounded-lg transition-colors flex-shrink-0"
-            aria-label="Menu openen"
-          >
-            <Menu size={22} />
-          </button>
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
           <Link
             href="/?welcome=1"
             className="flex-shrink-0"
@@ -357,22 +348,22 @@ export default function AccountLayout({
             <Image
               src="/images/benji-logo-2.png"
               alt="Benji"
-              width={32}
-              height={32}
-              className="object-contain brightness-75 hover:brightness-90 transition-all"
+              width={28}
+              height={28}
+              className="object-contain brightness-75 hover:brightness-90 transition-all sm:w-8 sm:h-8"
               style={{ width: "auto", height: "auto" }}
             />
           </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg sm:text-xl font-bold text-primary-900 truncate">{pageInfo.title}</h1>
-            <p className="text-xs sm:text-sm text-gray-600 truncate">{pageInfo.subtitle}</p>
+            <h1 className="text-sm sm:text-xl font-bold text-primary-900 truncate">{pageInfo.title}</h1>
+            <p className="text-[11px] sm:text-sm text-gray-600 truncate">{pageInfo.subtitle}</p>
           </div>
           {session.user?.name && (
-            <p className="text-xl font-bold hidden lg:block flex-shrink-0" style={{ color: hexToDarker(accent, 12) }}>Fijn dat je er bent, {session.user.name}</p>
+            <p className="text-sm sm:text-xl font-bold flex-shrink-0 truncate max-w-[40%] sm:max-w-none" style={{ color: hexToDarker(accent, 12) }}>Fijn dat je er bent, {session.user.name}</p>
           )}
           <Link
             href="/account"
-            className="p-2 text-gray-300 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0"
+            className="p-2 text-gray-300 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0 hidden lg:block"
             title="Overzicht"
           >
             <LayoutDashboard size={18} />
@@ -380,10 +371,19 @@ export default function AccountLayout({
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="p-2 text-gray-300 hover:text-orange-500 rounded-lg transition-colors flex-shrink-0"
+            className="p-2 text-gray-300 hover:text-orange-500 rounded-lg transition-colors flex-shrink-0 hidden lg:block"
             title="Uitloggen"
           >
             <LogOut size={18} />
+          </button>
+          {/* Hamburger menu – alleen op mobiel */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className="lg:hidden p-2 text-primary-600 hover:bg-primary-100 rounded-lg transition-colors flex-shrink-0"
+            aria-label="Menu openen"
+          >
+            <Menu size={22} />
           </button>
         </div>
 
@@ -395,8 +395,8 @@ export default function AccountLayout({
               className="absolute inset-0 bg-black/30"
               onClick={() => setMobileMenuOpen(false)}
             />
-            {/* Slide-in panel */}
-            <div className="absolute inset-y-0 left-0 w-72 max-w-[85vw] bg-white shadow-xl flex flex-col">
+            {/* Slide-in panel – rechts */}
+            <div className="absolute inset-y-0 right-0 w-72 max-w-[85vw] bg-white shadow-xl flex flex-col">
               <div className="flex items-center justify-between p-4 border-b border-primary-100">
                 <span className="font-semibold text-primary-900">Menu</span>
                 <button
@@ -409,7 +409,34 @@ export default function AccountLayout({
                 </button>
               </div>
               <nav className="flex-1 overflow-y-auto p-3">
+                {/* Overzicht link */}
+                <ul className="space-y-0.5 mb-2">
+                  <li>
+                    <Link
+                      href="/account"
+                      scroll={false}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        pathname === "/account" ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                      }`}
+                      style={pathname === "/account" ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+                    >
+                      <LayoutDashboard size={18} className="flex-shrink-0" />
+                      Overzicht
+                    </Link>
+                  </li>
+                </ul>
                 {navContent}
+                {/* Uitloggen */}
+                <div className="mt-2 pt-2 border-t border-primary-100">
+                  <button
+                    type="button"
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors w-full"
+                  >
+                    <LogOut size={18} className="flex-shrink-0" />
+                    Uitloggen
+                  </button>
+                </div>
               </nav>
               {session.user?.name && (
                 <div className="p-4 border-t border-primary-100">
