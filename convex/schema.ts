@@ -137,6 +137,7 @@ export default defineSchema({
   // Gebruikersfeedback
   userFeedback: defineTable({
     sessionId: v.optional(v.id("chatSessions")),
+    userId: v.optional(v.string()),
     feedbackType: v.union(
       v.literal("bug"),
       v.literal("suggestion"),
@@ -147,6 +148,7 @@ export default defineSchema({
     comment: v.string(),
     rating: v.optional(v.number()),
     userEmail: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
     status: v.union(
       v.literal("new"),
       v.literal("reviewed"),

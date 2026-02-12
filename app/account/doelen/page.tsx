@@ -128,7 +128,7 @@ export default function AccountDoelenPage() {
                 >
                   <CheckCircle2 size={22} />
                 </button>
-                <span className="flex-1 text-gray-500 line-through">{g.content}</span>
+                <span className="flex-1 text-gray-500">{g.content}</span>
                 <button
                   type="button"
                   onClick={() => {

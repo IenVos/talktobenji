@@ -2,8 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck, House } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
+import { hexToDarker } from "@/lib/utils";
 
 type GlobalMenuProps = {
   lastConversationDate?: string | null;
@@ -11,12 +15,20 @@ type GlobalMenuProps = {
   embedded?: boolean;
 };
 
+const ORIGINAL_ACCENT = "#6d84a8";
+
 export function GlobalMenu({ lastConversationDate = null, embedded = false }: GlobalMenuProps) {
   const [open, setOpen] = useState(false);
   const [binnenkortMsg, setBinnenkortMsg] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { setShowAbout } = useAboutModal();
+  const { data: session } = useSession();
+  const preferences = useQuery(
+    api.preferences.getPreferences,
+    session?.userId ? { userId: session.userId as string } : "skip"
+  );
+  const accent = preferences?.accentColor || ORIGINAL_ACCENT;
 
   useEffect(() => {
     if (!open) return;
@@ -83,7 +95,15 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       },
     },
     {
-      label: lastConversationDate ? `Mijn gesprekken · ${lastConversationDate}` : "Mijn gesprekken",
+      label: "Mijn plek",
+      icon: House,
+      onClick: () => {
+        setOpen(false);
+        router.push("/account");
+      },
+    },
+    {
+      label: lastConversationDate ? `Jouw gesprekken · ${lastConversationDate}` : "Jouw gesprekken",
       icon: MessagesSquare,
       onClick: () => {
         setOpen(false);
@@ -91,7 +111,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       },
     },
     {
-      label: "Mijn reflecties",
+      label: "Reflecties",
       icon: PencilLine,
       onClick: () => {
         setOpen(false);
@@ -137,7 +157,8 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
           e.stopPropagation();
           setOpen((o) => !o);
         }}
-        className="p-2.5 rounded-full bg-primary-800/90 text-white hover:bg-primary-700 transition-colors shadow-md"
+        className="p-2.5 rounded-full text-white transition-colors shadow-md"
+        style={{ backgroundColor: hexToDarker(accent, 20) }}
         title="Menu"
         aria-label="Menu openen"
         aria-expanded={open}
@@ -159,7 +180,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
           )}
           {menuItems.map((item, index) => {
             const Icon = item.icon;
-            const showDividerBefore = index === 3 || index === 5; // Streep vóór "Aanmelden" en vóór "Mijn gesprekken"
+            const showDividerBefore = index === 3 || index === 5; // Streep vóór "Aanmelden" en vóór "Mijn plek"
             const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-100 transition-all duration-200 ${index === 0 ? "rounded-t-xl" : ""} ${index === menuItems.length - 1 ? "rounded-b-xl" : ""}`;
             if ("href" in item && item.href) {
               return (

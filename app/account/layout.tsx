@@ -8,14 +8,24 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, LayoutDashboard, Target, CalendarCheck, Menu, X } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, LayoutDashboard, Target, CalendarCheck, MoreVertical, House, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const ORIGINAL_ACCENT = "#6d84a8";
+const ACCENT_CACHE_KEY = "benji_accent_color";
+
+function getCachedAccent(): string {
+  if (typeof window === "undefined") return ORIGINAL_ACCENT;
+  try {
+    return localStorage.getItem(ACCENT_CACHE_KEY) || ORIGINAL_ACCENT;
+  } catch {
+    return ORIGINAL_ACCENT;
+  }
+}
 
 const TOP_ITEMS = [
-  { href: "/account/gesprekken", label: "Mijn gesprekken", icon: MessageSquare },
-  { href: "/account/reflecties", label: "Mijn reflecties", icon: PencilLine },
+  { href: "/account/gesprekken", label: "Jouw gesprekken", icon: MessageSquare },
+  { href: "/account/reflecties", label: "Reflecties", icon: PencilLine },
   { href: "/account/doelen", label: "Persoonlijke doelen", icon: Target },
   { href: "/account/checkins", label: "Dagelijkse check-ins", icon: CalendarCheck },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
@@ -35,14 +45,14 @@ const REFLECTIES_SUBMENU = [
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account": { title: "Account", subtitle: "Overzicht" },
-  "/account/gesprekken": { title: "Mijn gesprekken", subtitle: "Je eerdere gesprekken met Benji" },
+  "/account/gesprekken": { title: "Jouw gesprekken", subtitle: "Je eerdere gesprekken met Benji" },
   "/account/steun": { title: "Steun Benji", subtitle: "Help Talk To Benji verder te groeien" },
-  "/account/reflecties": { title: "Mijn reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
+  "/account/reflecties": { title: "Reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/reflecties/eerdere-reflecties": { title: "Eerdere reflecties", subtitle: "Al je reflecties bekijken" },
   "/account/reflecties/eerdere-checkins": { title: "Eerdere check-ins", subtitle: "Al je dagelijkse check-ins bekijken" },
   "/account/doelen": { title: "Persoonlijke doelen", subtitle: "Je doelen en wensen bijhouden" },
   "/account/checkins": { title: "Dagelijkse check-ins", subtitle: "Korte vragen om je gedachten te ordenen" },
-  "/account/notities": { title: "Mijn reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
+  "/account/notities": { title: "Reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/inspiratie": { title: "Inspiratie & troost", subtitle: "Gedichten, citaten en teksten die je kunnen steunen" },
   "/account/handreikingen": { title: "Handreikingen", subtitle: "Praktische tips en ideeën voor moeilijke momenten" },
   "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
@@ -61,8 +71,19 @@ export default function AccountLayout({
     api.preferences.getPreferences,
     session?.userId ? { userId: session.userId as string } : "skip"
   );
-  const accent = preferences?.accentColor || ORIGINAL_ACCENT;
+  const [cachedAccent, setCachedAccent] = useState(getCachedAccent);
+  const accent = preferences?.accentColor || cachedAccent;
   const bgTint = hexToLightTint(accent, 12);
+
+  // Update localStorage cache wanneer preferences laden
+  useEffect(() => {
+    if (preferences?.accentColor) {
+      try {
+        localStorage.setItem(ACCENT_CACHE_KEY, preferences.accentColor);
+        setCachedAccent(preferences.accentColor);
+      } catch {}
+    }
+  }, [preferences?.accentColor]);
 
   const [submenuOpen, setSubmenuOpen] = useState(() =>
     SUBMENU_ITEMS.some((item) => pathname === item.href)
@@ -339,52 +360,63 @@ export default function AccountLayout({
     >
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
         {/* Header */}
-        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-          <Link
-            href="/?welcome=1"
-            className="flex-shrink-0"
-            aria-label="Ga naar gesprek met Benji"
-          >
-            <Image
-              src="/images/benji-logo-2.png"
-              alt="Benji"
-              width={28}
-              height={28}
-              className="object-contain brightness-75 hover:brightness-90 transition-all sm:w-8 sm:h-8"
-              style={{ width: "auto", height: "auto" }}
-            />
-          </Link>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-sm sm:text-xl font-bold text-primary-900 truncate">{pageInfo.title}</h1>
-            <p className="text-[11px] sm:text-sm text-gray-600 truncate">{pageInfo.subtitle}</p>
+        <div className="mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/?welcome=1"
+              className="flex-shrink-0"
+              aria-label="Ga naar gesprek met Benji"
+            >
+              <Image
+                src="/images/benji-logo-2.png"
+                alt="Benji"
+                width={28}
+                height={28}
+                className="object-contain brightness-75 hover:brightness-90 transition-all sm:w-8 sm:h-8"
+                style={{ width: "auto", height: "auto" }}
+              />
+            </Link>
+            {/* Titel + subtitel – alleen op sm en groter in de header-rij */}
+            <div className="min-w-0 flex-1 hidden sm:block">
+              <h1 className="text-xl font-bold text-primary-900 truncate">{pageInfo.title}</h1>
+              <p className="text-sm text-gray-600 truncate">{pageInfo.subtitle}</p>
+            </div>
+            {/* Klantnaam – op mobiel compacter, op sm+ volledig */}
+            {session.user?.name && (
+              <p className="text-sm sm:text-xl font-bold flex-shrink-0 truncate max-w-[50%] sm:max-w-none" style={{ color: hexToDarker(accent, 12) }}><span className="hidden sm:inline">Fijn dat je er bent, {session.user.name.split(" ")[0]}</span><span className="sm:hidden">Fijn dat je er bent, {session.user.name.split(" ")[0]}</span></p>
+            )}
+            <div className="flex-1 sm:hidden" />
+            <Link
+              href="/account"
+              className="p-2 text-gray-300 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0 hidden lg:block"
+              title="Overzicht"
+            >
+              <LayoutDashboard size={18} />
+            </Link>
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/afscheid" })}
+              className="p-2 text-gray-300 hover:text-orange-500 rounded-lg transition-colors flex-shrink-0 hidden lg:block"
+              title="Uitloggen"
+            >
+              <LogOut size={18} />
+            </button>
+            {/* Menu-knop – drie puntjes, rechts uitgelijnd */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden p-2.5 rounded-full text-white transition-colors shadow-md flex-shrink-0"
+              style={{ backgroundColor: hexToDarker(accent, 20) }}
+              aria-label="Menu openen"
+            >
+              <MoreVertical size={22} strokeWidth={2} />
+            </button>
           </div>
-          {session.user?.name && (
-            <p className="text-sm sm:text-xl font-bold flex-shrink-0 truncate max-w-[40%] sm:max-w-none" style={{ color: hexToDarker(accent, 12) }}><span className="hidden sm:inline">Fijn dat je er bent, {session.user.name}</span><span className="sm:hidden">Hi {session.user.name}</span></p>
-          )}
-          <Link
-            href="/account"
-            className="p-2 text-gray-300 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0 hidden lg:block"
-            title="Overzicht"
-          >
-            <LayoutDashboard size={18} />
-          </Link>
-          <button
-            type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="p-2 text-gray-300 hover:text-orange-500 rounded-lg transition-colors flex-shrink-0 hidden lg:block"
-            title="Uitloggen"
-          >
-            <LogOut size={18} />
-          </button>
-          {/* Hamburger menu – alleen op mobiel */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(true)}
-            className="lg:hidden p-2 text-primary-600 hover:bg-primary-100 rounded-lg transition-colors flex-shrink-0"
-            aria-label="Menu openen"
-          >
-            <Menu size={22} />
-          </button>
+          {/* Titel + subtitel – apart blok op mobiel, onder de header-rij */}
+          <div className="sm:hidden mt-2">
+            <h1 className="text-base font-bold text-primary-900">{pageInfo.title}</h1>
+            <p className="text-xs text-gray-600">{pageInfo.subtitle}</p>
+          </div>
         </div>
 
         {/* Mobiel menu overlay */}
@@ -420,29 +452,23 @@ export default function AccountLayout({
                       }`}
                       style={pathname === "/account" ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
                     >
-                      <LayoutDashboard size={18} className="flex-shrink-0" />
-                      Overzicht
+                      <House size={18} className="flex-shrink-0" />
+                      Mijn plek
                     </Link>
                   </li>
                 </ul>
                 {navContent}
-                {/* Uitloggen */}
-                <div className="mt-2 pt-2 border-t border-primary-100">
-                  <button
-                    type="button"
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors w-full"
-                  >
-                    <LogOut size={18} className="flex-shrink-0" />
-                    Uitloggen
-                  </button>
-                </div>
               </nav>
-              {session.user?.name && (
-                <div className="p-4 border-t border-primary-100">
-                  <p className="text-sm font-medium text-primary-700 truncate">{session.user.name}</p>
-                </div>
-              )}
+              <div className="p-4 border-t border-primary-100">
+                <button
+                  type="button"
+                  onClick={() => signOut({ callbackUrl: "/afscheid" })}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors w-full"
+                >
+                  <LogOut size={18} className="flex-shrink-0" />
+                  Uitloggen
+                </button>
+              </div>
             </div>
           </div>
         )}

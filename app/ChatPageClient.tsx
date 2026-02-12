@@ -41,8 +41,18 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
 
 const STORAGE_KEY = "benji_session_id";
 const ORIGINAL_ACCENT = "#6d84a8";
+const ACCENT_CACHE_KEY = "benji_accent_color";
 const HAS_CHATTED_KEY = "benji_has_chatted";
 const ANONYMOUS_ID_KEY = "benji_anonymous_id";
+
+function getCachedAccent(): string {
+  if (typeof window === "undefined") return ORIGINAL_ACCENT;
+  try {
+    return localStorage.getItem(ACCENT_CACHE_KEY) || ORIGINAL_ACCENT;
+  } catch {
+    return ORIGINAL_ACCENT;
+  }
+}
 
 function getOrCreateAnonymousId(): string {
   if (typeof window === "undefined") return "";
@@ -106,9 +116,20 @@ export default function ChatPageClient({
     api.preferences.getPreferencesWithUrl,
     session?.userId ? { userId: session.userId } : "skip"
   );
-  const accent = preferencesData?.accentColor || ORIGINAL_ACCENT;
+  const [cachedAccent, setCachedAccent] = useState(getCachedAccent);
+  const accent = preferencesData?.accentColor || cachedAccent;
   const accentHover = hexToDarker(accent, 12);
   const accentDark = hexToDarker(accent, 45);
+
+  // Update localStorage cache wanneer preferences laden
+  useEffect(() => {
+    if (preferencesData?.accentColor) {
+      try {
+        localStorage.setItem(ACCENT_CACHE_KEY, preferencesData.accentColor);
+        setCachedAccent(preferencesData.accentColor);
+      } catch {}
+    }
+  }, [preferencesData?.accentColor]);
   const storedSession = useQuery(
     api.chat.getSession,
     sessionIdState ? { sessionId: sessionIdState } : "skip"

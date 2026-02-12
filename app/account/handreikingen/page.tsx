@@ -88,7 +88,7 @@ export default function AccountHandreikingenPage() {
           <p>
             In deze verzameling vind je kleine, praktische tips en ideeën die je kunnen ondersteunen
             in moeilijke tijden. Of het nu gaat om momenten van verdriet, rouw of gewoon even stil
-            staan bij je gevoelens – deze handreikingen bieden je een helpende hand om rust en troost
+            staan bij je gevoelens. Deze handreikingen bieden je een helpende hand om rust en troost
             te vinden in het dagelijks leven.
           </p>
         </div>

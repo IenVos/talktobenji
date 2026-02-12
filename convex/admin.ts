@@ -342,7 +342,17 @@ export const getAllFeedback = query({
     const sorted = feedback.sort((a, b) => b.createdAt - a.createdAt);
 
     // Limiteer als opgegeven
-    return args.limit ? sorted.slice(0, args.limit) : sorted;
+    const limited = args.limit ? sorted.slice(0, args.limit) : sorted;
+
+    // Voeg image URLs toe
+    return Promise.all(
+      limited.map(async (f) => ({
+        ...f,
+        imageUrl: f.imageStorageId
+          ? await ctx.storage.getUrl(f.imageStorageId)
+          : undefined,
+      }))
+    );
   },
 });
 
@@ -372,6 +382,34 @@ export const updateFeedbackStatus = mutation({
     await ctx.db.patch(args.feedbackId, updates);
 
     return args.feedbackId;
+  },
+});
+
+/**
+ * Verwijder feedback volledig
+ */
+export const deleteFeedback = mutation({
+  args: { feedbackId: v.id("userFeedback") },
+  handler: async (ctx, args) => {
+    const feedback = await ctx.db.get(args.feedbackId);
+    if (!feedback) return;
+    if (feedback.imageStorageId) {
+      await ctx.storage.delete(feedback.imageStorageId);
+    }
+    await ctx.db.delete(args.feedbackId);
+  },
+});
+
+/**
+ * Verwijder alleen de afbeelding van feedback (tekst blijft behouden)
+ */
+export const deleteFeedbackImage = mutation({
+  args: { feedbackId: v.id("userFeedback") },
+  handler: async (ctx, args) => {
+    const feedback = await ctx.db.get(args.feedbackId);
+    if (!feedback?.imageStorageId) return;
+    await ctx.storage.delete(feedback.imageStorageId);
+    await ctx.db.patch(args.feedbackId, { imageStorageId: undefined });
   },
 });
 

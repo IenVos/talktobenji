@@ -620,6 +620,7 @@ export const markSessionsAsAbandoned = mutation({
 export const submitGeneralFeedback = mutation({
   args: {
     sessionId: v.optional(v.id("chatSessions")),
+    userId: v.optional(v.string()),
     feedbackType: v.union(
       v.literal("bug"),
       v.literal("suggestion"),
@@ -630,6 +631,7 @@ export const submitGeneralFeedback = mutation({
     comment: v.string(),
     rating: v.optional(v.number()),
     userEmail: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
     // Validatie
@@ -639,10 +641,12 @@ export const submitGeneralFeedback = mutation({
 
     const feedbackId = await ctx.db.insert("userFeedback", {
       sessionId: args.sessionId,
+      userId: args.userId,
       feedbackType: args.feedbackType,
       comment: args.comment.trim(),
       rating: args.rating,
       userEmail: args.userEmail,
+      imageStorageId: args.imageStorageId,
       status: "new",
       createdAt: Date.now(),
     });

@@ -45,7 +45,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
               </div>
               <h2 className="font-semibold text-gray-900 text-sm sm:text-base leading-tight">Talk To Benji</h2>
             </div>
-            <p className="text-xs sm:text-sm text-primary-600 leading-snug pl-11">Een warme, betrouwbare plek waar je je verhaal kwijt kunt – 24/7 aandacht en steun, zonder oordeel</p>
+            <p className="text-xs sm:text-sm text-primary-600 leading-snug pl-11">Een warme, betrouwbare plek waar je je verhaal kwijt kunt. 24/7 aandacht en steun, zonder oordeel</p>
           </div>
           <div className="absolute bottom-0 left-5 right-5 sm:left-6 sm:right-6 border-b border-primary-200" aria-hidden />
         </div>
@@ -129,7 +129,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
             <h3 className="font-semibold text-gray-900 mb-2">Veelgestelde vragen</h3>
             <p className="font-medium text-gray-900 mb-1">Voor wie is Benji?</p>
             <p className="mb-3">
-              Voor iedereen met verlies en verdriet. Of je nu iemand bent verloren, rouwt om een huisdier, of gewoon behoefte hebt aan een luisterend oor – Benji is er voor je.
+              Voor iedereen met verlies en verdriet. Of je nu iemand bent verloren, rouwt om een huisdier, of gewoon behoefte hebt aan een luisterend oor, Benji is er voor je.
             </p>
             <p className="font-medium text-gray-900 mb-1">Waarom Benji in plaats van vrienden of een forum?</p>
             <p className="mb-3">
@@ -141,7 +141,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
             </p>
             <p className="font-medium text-gray-900 mb-1">Is Benji veilig?</p>
             <p className="mb-3">
-              Ja. Je gesprekken zijn privé. We gebruiken encryptie tijdens transport (HTTPS) en bij opslag op servers in de EU. Benji vervangt geen professionele hulp – bij crisissituaties wijzen we altijd op 113 (0800-0113).
+              Ja. Je gesprekken zijn privé. We gebruiken encryptie tijdens transport (HTTPS) en bij opslag op servers in de EU. Benji vervangt geen professionele hulp. Bij crisissituaties wijzen we altijd op 113 (0800-0113).
             </p>
             <p className="font-medium text-gray-900 mb-1">Waarom Benji en niet een andere chatbot?</p>
             <p>

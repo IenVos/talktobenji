@@ -48,7 +48,7 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
             <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={40} height={40} className="object-contain" style={{ width: "auto", height: "auto" }} />
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-white">Talk To Benji</h1>
-          <p className="text-sm sm:text-base text-primary-300 mt-2">Admin Panel – voer je wachtwoord in</p>
+          <p className="text-sm sm:text-base text-primary-300 mt-2">Admin Panel, voer je wachtwoord in</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

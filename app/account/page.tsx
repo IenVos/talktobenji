@@ -4,8 +4,8 @@ import Link from "next/link";
 import { MessageSquare, PencilLine, Sparkles, HandHelping } from "lucide-react";
 
 const CATEGORIES = [
-  { href: "/account/gesprekken", label: "Mijn gesprekken", icon: MessageSquare, desc: "Je eerdere gesprekken met Benji" },
-  { href: "/account/reflecties", label: "Mijn reflecties", icon: PencilLine, desc: "Notities, emoties en dagelijkse check-in" },
+  { href: "/account/gesprekken", label: "Jouw gesprekken", icon: MessageSquare, desc: "Je eerdere gesprekken met Benji" },
+  { href: "/account/reflecties", label: "Reflecties", icon: PencilLine, desc: "Notities, emoties en dagelijkse check-in" },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles, desc: "Gedichten, citaten en teksten die je kunnen steunen" },
   { href: "/account/handreikingen", label: "Handreikingen", icon: HandHelping, desc: "Praktische tips en ideeën voor moeilijke momenten" },
 ];

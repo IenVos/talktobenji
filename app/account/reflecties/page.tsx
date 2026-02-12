@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -19,6 +19,8 @@ import {
   ChevronRight,
   History,
   CalendarCheck,
+  Mic,
+  Square,
 } from "lucide-react";
 
 const CHECK_IN_LABELS: Record<string, string> = {
@@ -98,6 +100,47 @@ export default function AccountReflectiesPage() {
   const [checkInSaving, setCheckInSaving] = useState(false);
   const [expandedCheckInId, setExpandedCheckInId] = useState<Id<"checkInEntries"> | null>(null);
 
+  // Spraakherkenning
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [activeRecording, setActiveRecording] = useState<string | null>(null);
+  const recognitionRef = useRef<any>(null);
+  const activeFieldRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognitionAPI) {
+      setSpeechSupported(true);
+      const recognition = new SpeechRecognitionAPI();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = "nl-NL";
+      recognition.onresult = (event: any) => {
+        const transcript = Array.from(event.results).map((r: any) => r[0].transcript).join("");
+        const field = activeFieldRef.current;
+        if (field === "noteContent") setNoteContent(transcript);
+        else if (field === "hoe_voel") setCheckInForm((f) => ({ ...f, hoe_voel: transcript }));
+        else if (field === "wat_hielp") setCheckInForm((f) => ({ ...f, wat_hielp: transcript }));
+        else if (field === "waar_dankbaar") setCheckInForm((f) => ({ ...f, waar_dankbaar: transcript }));
+      };
+      recognition.onend = () => setActiveRecording(null);
+      recognition.onerror = () => setActiveRecording(null);
+      recognitionRef.current = recognition;
+    }
+  }, []);
+
+  const toggleRecording = (field: string) => {
+    if (!recognitionRef.current) return;
+    if (activeRecording) {
+      recognitionRef.current.stop();
+      setActiveRecording(null);
+      return;
+    }
+    activeFieldRef.current = field;
+    setActiveRecording(field);
+    recognitionRef.current.start();
+  };
+
   const handleCreateNote = async () => {
     if (!userId || !noteContent.trim()) return;
     await createNote({ userId, title: noteTitle.trim() || undefined, content: noteContent.trim() });
@@ -162,7 +205,7 @@ export default function AccountReflectiesPage() {
           Schrijf reflectie
         </h2>
         <p className="text-sm text-gray-600 mb-4">
-          {displayDate} – Neem even de tijd om je gedachten op te schrijven.
+          {displayDate}. Neem even de tijd om je gedachten op te schrijven.
         </p>
 
         {showNewNote && (
@@ -174,13 +217,25 @@ export default function AccountReflectiesPage() {
               onChange={(e) => setNoteTitle(e.target.value)}
               className="w-full px-3 py-2 border border-primary-200 rounded-lg mb-3"
             />
-            <textarea
-              placeholder="Schrijf je reflectie…"
-              value={noteContent}
-              onChange={(e) => setNoteContent(e.target.value)}
-              rows={4}
-              className="w-full px-3 py-2 border border-primary-200 rounded-lg mb-3"
-            />
+            <div className="relative mb-3">
+              <textarea
+                placeholder="Schrijf je reflectie…"
+                value={noteContent}
+                onChange={(e) => setNoteContent(e.target.value)}
+                rows={4}
+                className={`w-full px-3 py-2 border rounded-lg pr-12 ${activeRecording === "noteContent" ? "border-red-400 bg-red-50/30" : "border-primary-200"}`}
+              />
+              {speechSupported && (
+                <button
+                  type="button"
+                  onClick={() => toggleRecording("noteContent")}
+                  className={`absolute right-2 top-2 p-1.5 rounded-lg transition-colors ${activeRecording === "noteContent" ? "bg-red-500 text-white animate-pulse" : "text-gray-400 hover:text-primary-600 hover:bg-primary-50"}`}
+                  title={activeRecording === "noteContent" ? "Stop opname" : "Start spraakopname"}
+                >
+                  {activeRecording === "noteContent" ? <Square size={16} /> : <Mic size={16} />}
+                </button>
+              )}
+            </div>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -271,7 +326,7 @@ export default function AccountReflectiesPage() {
                         <span className="text-primary-800 font-medium">
                           {formatDateStr(e.date).split(" ").slice(1).join(" ")}
                         </span>
-                        <span className="text-primary-600">–</span>
+                        <span className="text-primary-600">&middot;</span>
                         <span className="text-primary-700">{opt?.label ?? ""}</span>
                       </div>
                     );
@@ -324,7 +379,7 @@ export default function AccountReflectiesPage() {
                   >
                     {g.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
                   </button>
-                  <span className={`flex-1 ${g.completed ? "line-through text-gray-500" : ""}`}>
+                  <span className={`flex-1 ${g.completed ? "text-gray-500" : ""}`}>
                     {g.content}
                   </span>
                   <button
@@ -362,33 +417,69 @@ export default function AccountReflectiesPage() {
         <div className="space-y-4 mb-4">
           <div>
             <label className="block text-sm font-medium text-primary-800 mb-2">Hoe voel ik me vandaag?</label>
-            <textarea
-              value={checkInForm.hoe_voel}
-              onChange={(e) => setCheckInForm((f) => ({ ...f, hoe_voel: e.target.value }))}
-              placeholder="Typ hier je antwoord…"
-              rows={2}
-              className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
-            />
+            <div className="relative">
+              <textarea
+                value={checkInForm.hoe_voel}
+                onChange={(e) => setCheckInForm((f) => ({ ...f, hoe_voel: e.target.value }))}
+                placeholder="Typ hier je antwoord…"
+                rows={2}
+                className={`w-full px-3 py-2 border rounded-lg text-sm pr-12 ${activeRecording === "hoe_voel" ? "border-red-400 bg-red-50/30" : "border-primary-200"}`}
+              />
+              {speechSupported && (
+                <button
+                  type="button"
+                  onClick={() => toggleRecording("hoe_voel")}
+                  className={`absolute right-2 top-2 p-1.5 rounded-lg transition-colors ${activeRecording === "hoe_voel" ? "bg-red-500 text-white animate-pulse" : "text-gray-400 hover:text-primary-600 hover:bg-primary-50"}`}
+                  title={activeRecording === "hoe_voel" ? "Stop opname" : "Start spraakopname"}
+                >
+                  {activeRecording === "hoe_voel" ? <Square size={16} /> : <Mic size={16} />}
+                </button>
+              )}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-primary-800 mb-2">Wat hielp me vandaag?</label>
-            <textarea
-              value={checkInForm.wat_hielp}
-              onChange={(e) => setCheckInForm((f) => ({ ...f, wat_hielp: e.target.value }))}
-              placeholder="Typ hier je antwoord…"
-              rows={2}
-              className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
-            />
+            <div className="relative">
+              <textarea
+                value={checkInForm.wat_hielp}
+                onChange={(e) => setCheckInForm((f) => ({ ...f, wat_hielp: e.target.value }))}
+                placeholder="Typ hier je antwoord…"
+                rows={2}
+                className={`w-full px-3 py-2 border rounded-lg text-sm pr-12 ${activeRecording === "wat_hielp" ? "border-red-400 bg-red-50/30" : "border-primary-200"}`}
+              />
+              {speechSupported && (
+                <button
+                  type="button"
+                  onClick={() => toggleRecording("wat_hielp")}
+                  className={`absolute right-2 top-2 p-1.5 rounded-lg transition-colors ${activeRecording === "wat_hielp" ? "bg-red-500 text-white animate-pulse" : "text-gray-400 hover:text-primary-600 hover:bg-primary-50"}`}
+                  title={activeRecording === "wat_hielp" ? "Stop opname" : "Start spraakopname"}
+                >
+                  {activeRecording === "wat_hielp" ? <Square size={16} /> : <Mic size={16} />}
+                </button>
+              )}
+            </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-primary-800 mb-2">Waar ben ik dankbaar voor?</label>
-            <textarea
-              value={checkInForm.waar_dankbaar}
-              onChange={(e) => setCheckInForm((f) => ({ ...f, waar_dankbaar: e.target.value }))}
-              placeholder="Typ hier je antwoord…"
-              rows={2}
-              className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
-            />
+            <div className="relative">
+              <textarea
+                value={checkInForm.waar_dankbaar}
+                onChange={(e) => setCheckInForm((f) => ({ ...f, waar_dankbaar: e.target.value }))}
+                placeholder="Typ hier je antwoord…"
+                rows={2}
+                className={`w-full px-3 py-2 border rounded-lg text-sm pr-12 ${activeRecording === "waar_dankbaar" ? "border-red-400 bg-red-50/30" : "border-primary-200"}`}
+              />
+              {speechSupported && (
+                <button
+                  type="button"
+                  onClick={() => toggleRecording("waar_dankbaar")}
+                  className={`absolute right-2 top-2 p-1.5 rounded-lg transition-colors ${activeRecording === "waar_dankbaar" ? "bg-red-500 text-white animate-pulse" : "text-gray-400 hover:text-primary-600 hover:bg-primary-50"}`}
+                  title={activeRecording === "waar_dankbaar" ? "Stop opname" : "Start spraakopname"}
+                >
+                  {activeRecording === "waar_dankbaar" ? <Square size={16} /> : <Mic size={16} />}
+                </button>
+              )}
+            </div>
           </div>
         </div>
         <button

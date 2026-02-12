@@ -5,7 +5,9 @@ import Image from "next/image";
 import { AdminLogin } from "@/components/admin/AdminLogin";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -15,6 +17,8 @@ export default function AdminLayout({
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const allFeedback = useQuery(api.admin.getAllFeedback, isAuthenticated === true ? {} : "skip");
+  const newFeedbackCount = allFeedback?.filter((f) => f.status === "new").length ?? 0;
 
   useEffect(() => {
     checkAuth();
@@ -47,13 +51,14 @@ export default function AdminLayout({
   }
 
   const navItems = [
-    { href: "/admin", label: "Instellingen", icon: Settings },
-    { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-    { href: "/admin/chat-history", label: "Chat history", icon: MessageSquare },
-    { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen },
-    { href: "/admin/bronnen", label: "Bronnen", icon: FileStack },
-    { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
-    { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping },
+    { href: "/admin", label: "Instellingen", icon: Settings, badge: 0 },
+    { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
+    { href: "/admin/analytics", label: "Analytics", icon: BarChart3, badge: 0 },
+    { href: "/admin/chat-history", label: "Chat history", icon: MessageSquare, badge: 0 },
+    { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen, badge: 0 },
+    { href: "/admin/bronnen", label: "Bronnen", icon: FileStack, badge: 0 },
+    { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
+    { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping, badge: 0 },
   ];
 
   return (
@@ -113,7 +118,12 @@ export default function AdminLayout({
                     }`}
                   >
                     <Icon size={20} />
-                    {item.label}
+                    <span className="flex-1">{item.label}</span>
+                    {item.badge > 0 && (
+                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold bg-red-500 text-white">
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 </li>
               );
@@ -169,7 +179,12 @@ export default function AdminLayout({
                       }`}
                     >
                       <Icon size={20} />
-                      {item.label}
+                      <span className="flex-1">{item.label}</span>
+                      {item.badge > 0 && (
+                        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold bg-red-500 text-white">
+                          {item.badge}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 );

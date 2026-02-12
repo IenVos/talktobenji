@@ -37,14 +37,12 @@ export function ImageLightbox({ imageUrl, alt, onClose }: ImageLightboxProps) {
       </button>
       <div
         className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center"
-        onClick={(e) => e.stopPropagation()}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageUrl}
           alt={alt}
-          className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
+          className="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl cursor-pointer"
         />
       </div>
     </div>

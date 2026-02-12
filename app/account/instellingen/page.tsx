@@ -58,7 +58,9 @@ export default function AccountInstellingenPage() {
     setSaving(true);
     setSaved(false);
     try {
-      await setPreferences({ userId, accentColor: accentColor || ORIGINAL_COLOR });
+      const colorToSave = accentColor || ORIGINAL_COLOR;
+      await setPreferences({ userId, accentColor: colorToSave });
+      try { localStorage.setItem("benji_accent_color", colorToSave); } catch {}
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } finally {

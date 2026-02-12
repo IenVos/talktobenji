@@ -87,7 +87,7 @@ export default function AccountInspiratiePage() {
           <p>
             Hier vind je gedichten, citaten en andere teksten die je kunnen troosten en inspireren
             in moeilijke momenten. Of je nu even behoefte hebt aan woorden van troost, een gedicht
-            om bij stil te staan, of een citaat dat je herinnert aan hoop – we verzamelen het hier
+            om bij stil te staan, of een citaat dat je herinnert aan hoop. We verzamelen het hier
             voor je.
           </p>
         </div>
@@ -167,14 +167,14 @@ export default function AccountInspiratiePage() {
                     >
                       <article
                         ref={(el) => { articleRefs.current[index] = el; }}
-                        className="rounded-xl bg-primary-50/50 border border-primary-100 overflow-hidden flex flex-col"
+                        className="rounded-xl overflow-hidden flex flex-col"
                         style={{ minHeight: maxCardHeight > 0 ? `${maxCardHeight}px` : undefined }}
                       >
                         {item.imageUrl && (
                           <button
                             type="button"
                             onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
-                            className="w-full overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity flex-1 min-h-0 flex items-center justify-center"
+                            className="w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex-1 min-h-0 flex items-center justify-center"
                             title="Afbeelding vergroten"
                             tabIndex={isActive ? 0 : -1}
                           >

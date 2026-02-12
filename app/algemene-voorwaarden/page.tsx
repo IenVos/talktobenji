@@ -36,7 +36,7 @@ export default function AlgemeneVoorwaardenPage() {
             <li>Medisch of psychologisch advies</li>
           </ul>
           <p>
-            Benji is bedoeld als aanvulling – een plek waar je terecht kunt wanneer je even wilt praten, zonder dat je iemand tot last bent.
+            Benji is bedoeld als aanvulling, een plek waar je terecht kunt wanneer je even wilt praten, zonder dat je iemand tot last bent.
           </p>
         </section>
 

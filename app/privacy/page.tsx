@@ -5,7 +5,7 @@ import { HeaderBar } from "@/components/chat/HeaderBar";
 
 export const metadata: Metadata = {
   title: "Privacy - Talk To Benji",
-  description: "Privacybeleid van Talk To Benji – hoe we met je gegevens omgaan",
+  description: "Privacybeleid van Talk To Benji | hoe we met je gegevens omgaan",
 };
 
 export default function PrivacyPage() {
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Privacy</h1>
 
         <p>
-          Talk To Benji neemt je privacy serieus. Hieronder leggen we uit wat we met je gegevens doen – en vooral: wat we er níét mee doen.
+          Talk To Benji neemt je privacy serieus. Hieronder leggen we uit wat we met je gegevens doen, en vooral: wat we er níét mee doen.
         </p>
 
         <section className="space-y-4">
@@ -32,7 +32,7 @@ export default function PrivacyPage() {
           <div>
             <h3 className="font-medium text-gray-800 mb-1">Wat we ermee doen</h3>
             <p>
-              We gebruiken geanonimiseerde gesprekken om Benji te verbeteren. Dat betekent: we halen alles wat naar jou kan leiden uit de data voordat we het gebruiken voor training. Geen namen, geen herkenbare details – alleen de essentie van het gesprek.
+              We gebruiken geanonimiseerde gesprekken om Benji te verbeteren. Dat betekent: we halen alles wat naar jou kan leiden uit de data voordat we het gebruiken voor training. Geen namen, geen herkenbare details, alleen de essentie van het gesprek.
             </p>
           </div>
 
@@ -56,8 +56,8 @@ export default function PrivacyPage() {
             Wanneer je een gesprek verwijdert, heb je twee opties:
           </p>
           <ul className="list-disc list-inside space-y-1 text-gray-700">
-            <li><strong>Volledig verwijderen</strong> – dan is het weg, ook voor training</li>
-            <li><strong>Anonimiseren</strong> – je gesprek wordt losgekoppeld van jou en kan (zonder persoonlijke details) worden gebruikt om Benji te verbeteren</li>
+            <li><strong>Volledig verwijderen</strong>: dan is het weg, ook voor training</li>
+            <li><strong>Anonimiseren</strong>: je gesprek wordt losgekoppeld van jou en kan (zonder persoonlijke details) worden gebruikt om Benji te verbeteren</li>
           </ul>
         </section>
 

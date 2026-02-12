@@ -14,6 +14,8 @@ interface FeedbackCardProps {
   status: string;
   createdAt: number;
   userEmail?: string;
+  userId?: string;
+  imageUrl?: string;
   onReview?: () => void;
   onDecline?: () => void;
 }
@@ -34,6 +36,8 @@ export function FeedbackCard({
   status,
   createdAt,
   userEmail,
+  userId,
+  imageUrl,
   onReview,
   onDecline,
 }: FeedbackCardProps) {
@@ -62,9 +66,17 @@ export function FeedbackCard({
 
           <p className="text-sm text-gray-900 line-clamp-3 mb-2">{comment}</p>
 
+          {imageUrl && (
+            <a href={imageUrl} target="_blank" rel="noopener noreferrer" className="block mb-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={imageUrl} alt="Bijlage" className="w-40 h-auto rounded-lg border border-gray-200" />
+            </a>
+          )}
+
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span>{formatRelativeTime(createdAt)}</span>
             {userEmail && <span>{userEmail}</span>}
+            {userId && !userEmail && <span>User: {userId}</span>}
           </div>
         </div>
 
