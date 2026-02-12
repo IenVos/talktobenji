@@ -100,7 +100,7 @@ export default function FaqPage() {
           <FaqItem question="Wat als Benji iets zegt dat niet klopt of niet helpt?">
             <p>
               Benji is AI en kan soms iets zeggen dat niet helemaal past bij jouw situatie. Je mag dit altijd aangeven in het gesprek (&quot;Dit voelt niet goed&quot;, &quot;Dat klopt niet voor mij&quot;) en Benji zal proberen anders te reageren. Je kunt ook feedback geven via{" "}
-              <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a>, zodat we Benji kunnen verbeteren.
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a>, zodat we Benji kunnen verbeteren.
             </p>
           </FaqItem>
           <FaqItem question="Kan ik in het Nederlands praten?">
@@ -212,7 +212,7 @@ export default function FaqPage() {
           <FaqItem question="Bieden jullie kortingen voor studenten of mensen in een moeilijke financiële situatie?">
             <p>
               We begrijpen dat niet iedereen €4,99 per maand kan betalen. Neem contact met ons op via{" "}
-              <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a> als financiën een barrière vormen: we denken graag mee over oplossingen.
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> als financiën een barrière vormen: we denken graag mee over oplossingen.
             </p>
           </FaqItem>
         </FaqSection>
@@ -294,7 +294,7 @@ export default function FaqPage() {
               <li>Een andere browser proberen</li>
             </ul>
             <p>Lukt het nog steeds niet? Neem contact op via{" "}
-              <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a>
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a>
             </p>
           </FaqItem>
           <FaqItem question="Kan ik mijn gesprekken exporteren of downloaden?">
@@ -367,7 +367,7 @@ export default function FaqPage() {
           <FaqItem question="Wat als Benji iets zegt dat me slechter doet voelen?">
             <p>
               Zie &quot;Wat als Benji iets zegt dat niet klopt of niet helpt?&quot; in de sectie Hoe het werkt. Hetzelfde geldt: geef het aan in het gesprek, stop als het te veel wordt, of meld het via{" "}
-              <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a>. Je welzijn is belangrijker dan het gesprek voortzetten.
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a>. Je welzijn is belangrijker dan het gesprek voortzetten.
             </p>
           </FaqItem>
           <FaqItem question="Wordt er gemonitord op gevaarlijke situaties?">
@@ -409,7 +409,7 @@ export default function FaqPage() {
           <FaqItem question="Hoe kan ik contact opnemen met jullie?">
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Email:{" "}
-                <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a>
+                <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a>
               </li>
               <li>Via het contactformulier op de website</li>
               <li>We proberen binnen 24 tot 48 uur te reageren</li>
@@ -418,19 +418,19 @@ export default function FaqPage() {
           <FaqItem question="Kan ik suggesties doen om Benji te verbeteren?">
             <p>
               Ja, graag zelfs! Stuur je suggesties naar{" "}
-              <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a>. We lezen alle feedback en gebruiken het om Benji beter te maken.
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a>. We lezen alle feedback en gebruiken het om Benji beter te maken.
             </p>
           </FaqItem>
           <FaqItem question="Waar kan ik een klacht indienen?">
             <p>
               Neem contact op via{" "}
-              <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a> met je klacht. We nemen alle klachten serieus en reageren binnen 5 werkdagen met een inhoudelijke reactie.
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> met je klacht. We nemen alle klachten serieus en reageren binnen 5 werkdagen met een inhoudelijke reactie.
             </p>
           </FaqItem>
           <FaqItem question="Wie kan ik bellen als ik vragen heb?">
             <p>
               We hebben geen telefonische support, maar je kunt mailen naar{" "}
-              <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a>. Voor dringende vragen over je account reageren we zo snel mogelijk.
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a>. Voor dringende vragen over je account reageren we zo snel mogelijk.
             </p>
           </FaqItem>
         </FaqSection>
@@ -465,7 +465,7 @@ export default function FaqPage() {
           <FaqItem question="Kan mijn werkgever Benji aanbieden aan medewerkers?">
             <p>
               Ja, we bieden zakelijke pakketten aan voor bedrijven die Benji willen aanbieden als onderdeel van welzijnsprogramma&apos;s. Neem contact op via{" "}
-              <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a> voor meer informatie.
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> voor meer informatie.
             </p>
           </FaqItem>
           <FaqItem question="Wat betekent &quot;early access&quot; of &quot;vroege gebruiker&quot;?">
@@ -479,7 +479,7 @@ export default function FaqPage() {
           <h2 className="text-lg font-semibold text-gray-900">Heb je nog andere vragen?</h2>
           <p>
             Staat je vraag er niet tussen? Stuur een email naar{" "}
-            <a href="mailto:support@talktobenji.com" className="text-primary-600 hover:underline">support@talktobenji.com</a> of gebruik het contactformulier. We helpen je graag verder.
+            <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> of gebruik het contactformulier. We helpen je graag verder.
           </p>
           <p className="text-xs text-gray-500">Laatste update: Januari 2026</p>
         </div>

@@ -36,7 +36,7 @@ export const exampleKnowledgeBaseEntry = {
 
   averageRating: 4.5, // Gebruikers geven dit antwoord gemiddeld 4.5/5 sterren
 
-  createdBy: "admin@talktobenji.com",
+  createdBy: "contactmetien@talktobenji.com",
 
   createdAt: Date.now(),
   updatedAt: Date.now(),
@@ -50,7 +50,7 @@ export const exampleKnowledgeBaseEntry = {
 export const exampleChatSession = {
   userId: "anonymous_192.168.1.1", // Of een echte user ID als ingelogd
 
-  userEmail: "gebruiker@example.com",
+  userEmail: "contactmetien@talktobenji.com",
 
   userName: "Jan Janssen",
 
@@ -188,7 +188,7 @@ export const exampleEscalation = {
 
   status: "assigned", // Al toegewezen aan een support medewerker
 
-  assignedTo: "support.agent.emma@talktobenji.com",
+  assignedTo: "contactmetien@talktobenji.com",
 
   agentNotes: "Gebruiker belt ook, dubbele betaling gevonden in systeem. Aan het uitzoeken met finance team.",
 
@@ -215,7 +215,7 @@ export const exampleUserFeedback = {
 
   rating: 4,
 
-  userEmail: "feedback.gebruiker@example.com",
+  userEmail: "contactmetien@talktobenji.com",
 
   status: "reviewed", // Admin heeft dit al bekeken
 
@@ -279,7 +279,7 @@ export const exampleAnalytics = {
  *   priority: 3,
  *   isActive: true,
  *   usageCount: 0,
- *   createdBy: "admin@talktobenji.com",
+ *   createdBy: "contactmetien@talktobenji.com",
  *   createdAt: Date.now(),
  *   updatedAt: Date.now(),
  * });

@@ -102,8 +102,8 @@ export default function AlgemeneVoorwaardenPage() {
           <h2 className="text-lg font-semibold text-gray-900">Contact</h2>
           <p>
             Vragen over deze voorwaarden? Neem contact op via{" "}
-            <a href="mailto:contact@talktobenji.nl" className="text-primary-600 hover:text-primary-700 underline">
-              contact@talktobenji.nl
+            <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:text-primary-700 underline">
+              contactmetien@talktobenji.com
             </a>
             .
           </p>

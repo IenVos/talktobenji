@@ -181,7 +181,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
             <Link href="/algemene-voorwaarden" onClick={onClose} className="text-primary-600 hover:text-primary-700 underline">
               Algemene voorwaarden
             </Link>
-            <a href="mailto:contact@talktobenji.nl" className="text-primary-600 hover:text-primary-700 underline">
+            <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:text-primary-700 underline">
               Contact
             </a>
           </div>
