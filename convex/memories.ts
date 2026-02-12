@@ -78,6 +78,7 @@ export const addMemory = mutation({
 export const updateMemory = mutation({
   args: {
     memoryId: v.id("memories"),
+    userId: v.string(),
     text: v.optional(v.string()),
     emotion: v.optional(v.string()),
     memoryDate: v.optional(v.string()),
@@ -86,7 +87,7 @@ export const updateMemory = mutation({
   },
   handler: async (ctx, args) => {
     const memory = await ctx.db.get(args.memoryId);
-    if (!memory) return;
+    if (!memory || memory.userId !== args.userId) return;
 
     const updates: Record<string, any> = {};
     if (args.text !== undefined) updates.text = args.text;
@@ -111,10 +112,10 @@ export const updateMemory = mutation({
  * Verwijder een herinnering (inclusief eventuele afbeelding)
  */
 export const deleteMemory = mutation({
-  args: { memoryId: v.id("memories") },
+  args: { memoryId: v.id("memories"), userId: v.string() },
   handler: async (ctx, args) => {
     const memory = await ctx.db.get(args.memoryId);
-    if (!memory) return;
+    if (!memory || memory.userId !== args.userId) return;
     if (memory.imageStorageId) {
       await ctx.storage.delete(memory.imageStorageId);
     }

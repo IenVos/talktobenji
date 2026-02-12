@@ -2,11 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const { allowed, retryAfterMs } = rateLimit(ip, { maxAttempts: 5, windowMs: 15 * 60 * 1000 });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Te veel registratiepogingen. Probeer het later opnieuw." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+    );
+  }
+
   const adapterSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
@@ -45,21 +55,7 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hash(password, 12);
 
-    // Debug logging - uitgebreid
-    console.log("[Register] Debug - Secret details:");
-    console.log("  - adapterSecret exists?", !!adapterSecret);
-    console.log("  - adapterSecret type:", typeof adapterSecret);
-    console.log("  - adapterSecret length:", adapterSecret?.length || 0);
-    console.log("  - adapterSecret first 15:", adapterSecret?.substring(0, 15) || "N/A");
-    console.log("  - adapterSecret last 10:", adapterSecret?.substring(adapterSecret.length - 10) || "N/A");
-    console.log("  - adapterSecret JSON:", JSON.stringify(adapterSecret?.substring(0, 20)));
-
-    // Zorg ervoor dat secret een string is en geen extra whitespace heeft
     const cleanSecret = String(adapterSecret || "").trim();
-    
-    console.log("[Register] Clean secret:");
-    console.log("  - cleanSecret length:", cleanSecret.length);
-    console.log("  - cleanSecret first 15:", cleanSecret.substring(0, 15));
 
     const userId = await fetchMutation(
       api.credentials.createUserWithPassword,

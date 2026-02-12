@@ -104,20 +104,7 @@ interface ClaudeAPIResponse {
   stop_reason: string;
 }
 
-/**
- * Voeg een lege regel (paragraaf) toe na elke n zinnen.
- * Zinnen eindigen op . ! ? of …
- */
-function addParagraphBreaksEveryNSentences(text: string, n: number): string {
-  if (!text?.trim() || n < 1) return text;
-  const sentences = text.split(/(?<=[.!?…])\s+/).filter((s) => s.trim());
-  if (sentences.length <= n) return text.trim();
-  const groups: string[] = [];
-  for (let i = 0; i < sentences.length; i += n) {
-    groups.push(sentences.slice(i, i + n).join(" ").trim());
-  }
-  return groups.join("\n\n").trim();
-}
+
 
 // ============================================================================
 // HOOFD AI ACTION

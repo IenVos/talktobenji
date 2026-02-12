@@ -3,6 +3,7 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { compare } from "bcryptjs";
 import { encode } from "next-auth/jwt";
+import { rateLimit } from "@/lib/rate-limit";
 
 async function handleLogin(email: string, password: string, callbackUrl: string) {
   if (!email || !password) {
@@ -53,6 +54,15 @@ async function handleLogin(email: string, password: string, callbackUrl: string)
  * Dit is de meest betrouwbare manier om cookies te zetten.
  */
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const { allowed, retryAfterMs } = rateLimit(ip, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Te veel inlogpogingen. Probeer het later opnieuw." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+    );
+  }
+
   try {
     const contentType = request.headers.get("content-type") || "";
 

@@ -31,62 +31,10 @@ function checkSecret(secret: string) {
   
   const normalizedReceived = normalizeSecret(secret);
   const normalizedEnv = normalizeSecret(envSecret);
-  
-  // Debug logging - uitgebreid
-  console.log("[Convex credentials] Debug checkSecret:");
-  console.log("  - Received secret length (original):", secret?.length || 0);
-  console.log("  - Received secret length (normalized):", normalizedReceived.length);
-  console.log("  - Env secret length (original):", envSecret.length);
-  console.log("  - Env secret length (normalized):", normalizedEnv.length);
-  
-  // Log de gehele secret als base64 om encoding problemen te zien
-  try {
-    const receivedBase64 = Buffer.from(secret, 'utf8').toString('base64');
-    const envBase64 = Buffer.from(envSecret, 'utf8').toString('base64');
-    console.log("  - Received (base64):", receivedBase64);
-    console.log("  - Env (base64):", envBase64);
-  } catch (e) {
-    console.log("  - Could not encode to base64:", e);
-  }
-  
-  // Log character codes voor alle karakters
-  console.log("  - Received char codes (first 10):", Array.from(secret.substring(0, 10)).map(c => c.charCodeAt(0)).join(','));
-  console.log("  - Env char codes (first 10):", Array.from(envSecret.substring(0, 10)).map(c => c.charCodeAt(0)).join(','));
-  
-  // Vergelijk de genormaliseerde versies
+
   if (normalizedReceived !== normalizedEnv) {
-    // Log karakter-voor-karakter vergelijking
-    console.error("[Convex credentials] Secret mismatch after normalization:");
-    console.error("  - Received (first 20):", normalizedReceived.substring(0, 20));
-    console.error("  - Env (first 20):", normalizedEnv.substring(0, 20));
-    console.error("  - Received (last 10):", normalizedReceived.substring(normalizedReceived.length - 10));
-    console.error("  - Env (last 10):", normalizedEnv.substring(normalizedEnv.length - 10));
-    
-    // Log character codes voor eerste verschillend karakter
-    const minLength = Math.min(normalizedReceived.length, normalizedEnv.length);
-    let foundDifference = false;
-    for (let i = 0; i < minLength; i++) {
-      if (normalizedReceived[i] !== normalizedEnv[i]) {
-        console.error(`  - First difference at position ${i}:`);
-        console.error(`    Received: '${normalizedReceived[i]}' (char code: ${normalizedReceived.charCodeAt(i)})`);
-        console.error(`    Env: '${normalizedEnv[i]}' (char code: ${normalizedEnv.charCodeAt(i)})`);
-        // Log context rond het verschil
-        const start = Math.max(0, i - 5);
-        const end = Math.min(minLength, i + 5);
-        console.error(`    Context received: "${normalizedReceived.substring(start, end)}"`);
-        console.error(`    Context env: "${normalizedEnv.substring(start, end)}"`);
-        foundDifference = true;
-        break;
-      }
-    }
-    
-    if (!foundDifference && normalizedReceived.length !== normalizedEnv.length) {
-      console.error(`  - Length difference: received=${normalizedReceived.length}, env=${normalizedEnv.length}`);
-    }
-    
     throw new Error("Credentials API called without correct secret value");
   }
-  console.log("[Convex credentials] Secret check passed ✓");
 }
 
 const withSecretQuery = customQuery(query, {

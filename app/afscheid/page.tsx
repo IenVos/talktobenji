@@ -14,7 +14,7 @@ const AFSCHEIDSGROETEN = [
   "Bedankt voor dit gesprek. Je mag er zijn.",
   "Tot ziens! Onthoud: elke stap telt, hoe klein ook.",
   "Wees zacht voor jezelf vandaag. Tot de volgende keer.",
-  "Je bent sterker dan je denkt. Tot snel, lieve mens.",
+  "Je bent sterker dan je denkt. Tot snel, lief mens.",
 ];
 
 export default function AfscheidPage() {

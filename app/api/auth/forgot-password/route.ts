@@ -1,11 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * Wachtwoord vergeten: neemt e-mailadres aan en stuurt resetlink.
  * Voor nu: altijd success (om te voorkomen dat we verraden of een e-mail bestaat).
  * Voeg later e-mailverzending toe (bijv. Resend) + Convex tabel voor reset-tokens.
  */
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const { allowed, retryAfterMs } = rateLimit(ip, { maxAttempts: 3, windowMs: 15 * 60 * 1000 });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Te veel verzoeken. Probeer het later opnieuw." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+    );
+  }
+
   try {
     const body = await req.json();
     const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";

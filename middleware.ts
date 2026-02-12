@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Redirect HTTP → HTTPS in productie.
- * Session cookies werken alleen over HTTPS, anders herkent NextAuth de sessie niet.
+ * Redirect HTTP → HTTPS in productie + security headers.
  */
 export function middleware(request: NextRequest) {
   if (
@@ -14,7 +13,19 @@ export function middleware(request: NextRequest) {
     url.protocol = "https:";
     return NextResponse.redirect(url, 301);
   }
-  return NextResponse.next();
+
+  const response = NextResponse.next();
+
+  response.headers.set("X-Frame-Options", "DENY");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Permissions-Policy", "camera=(), microphone=(self), geolocation=()");
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload"
+  );
+
+  return response;
 }
 
 export const config = {

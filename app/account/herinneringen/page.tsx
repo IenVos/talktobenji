@@ -218,6 +218,7 @@ export default function HerinneringenPage() {
       }
       await updateMemory({
         memoryId: selectedMemory._id,
+        userId: session!.userId as string,
         text: editText.trim(),
         emotion: editEmotion || undefined,
         memoryDate: editDate || undefined,
@@ -238,7 +239,7 @@ export default function HerinneringenPage() {
   // Verwijderen
   const handleDelete = async () => {
     if (!selectedMemory) return;
-    await deleteMemory({ memoryId: selectedMemory._id });
+    await deleteMemory({ memoryId: selectedMemory._id, userId: session!.userId as string });
     closeDetail();
   };
 
