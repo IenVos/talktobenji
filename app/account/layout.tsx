@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, LayoutDashboard, Target, CalendarCheck, MoreVertical, House, X } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const ORIGINAL_ACCENT = "#6d84a8";
@@ -30,6 +30,7 @@ const TOP_ITEMS = [
   { href: "/account/checkins", label: "Dagelijkse check-ins", icon: CalendarCheck },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
   { href: "/account/handreikingen", label: "Handreikingen", icon: HandHelping },
+  { href: "/account/herinneringen", label: "Jouw schatkist", icon: Gem, iconClassName: "text-amber-500" },
   { href: "/account/instellingen", label: "Personalisatie", icon: UserCircle },
 ];
 
@@ -44,7 +45,7 @@ const REFLECTIES_SUBMENU = [
 ];
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
-  "/account": { title: "Account", subtitle: "Overzicht" },
+  "/account": { title: "Wat wil je oppakken?", subtitle: "" },
   "/account/gesprekken": { title: "Jouw gesprekken", subtitle: "Je eerdere gesprekken met Benji" },
   "/account/steun": { title: "Steun Benji", subtitle: "Help Talk To Benji verder te groeien" },
   "/account/reflecties": { title: "Reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
@@ -55,6 +56,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account/notities": { title: "Reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/inspiratie": { title: "Inspiratie & troost", subtitle: "Gedichten, citaten en teksten die je kunnen steunen" },
   "/account/handreikingen": { title: "Handreikingen", subtitle: "Praktische tips en ideeën voor moeilijke momenten" },
+  "/account/herinneringen": { title: "Jouw schatkist", subtitle: "Mooie herinneringen om naar terug te kijken" },
   "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
   "/account/instellingen": { title: "Personaliseer", subtitle: "Personalisatie van je account" },
 };
@@ -192,8 +194,21 @@ export default function AccountLayout({
     <ul className="space-y-0.5">
       <li>
         <Link
+          href="/account"
+          scroll={false}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            pathname === "/account" ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
+          }`}
+          style={pathname === "/account" ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+        >
+          <House size={18} className="flex-shrink-0" />
+          Mijn plek
+        </Link>
+      </li>
+      <li>
+        <Link
           href="/?welcome=1"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-primary-700 hover:bg-primary-50/50"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-primary-700 nav-hover"
         >
           <MessageCirclePlus size={18} className="flex-shrink-0" />
           Nieuw gesprek
@@ -209,7 +224,7 @@ export default function AccountLayout({
             <li key={item.href}>
               <div
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  isReflectiesSection ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                  isReflectiesSection ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
                 }`}
                 style={isReflectiesSection ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
               >
@@ -218,7 +233,7 @@ export default function AccountLayout({
                   className="flex items-center gap-3 flex-1 min-w-0"
                   scroll={false}
                 >
-                  <Icon size={18} className="flex-shrink-0" />
+                  <Icon size={18} className={`flex-shrink-0 ${item.iconClassName || ""}`} />
                   {item.label}
                 </Link>
                 <span className="w-6 h-6 flex items-center justify-center flex-shrink-0">
@@ -249,7 +264,7 @@ export default function AccountLayout({
                           href={sub.href}
                           scroll={false}
                           className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors block ${
-                            subActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                            subActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
                           }`}
                           style={subActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
                         >
@@ -269,11 +284,11 @@ export default function AccountLayout({
               href={item.href}
               scroll={false}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
               }`}
               style={isActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
             >
-              <Icon size={18} className="flex-shrink-0" />
+              <Icon size={18} className={`flex-shrink-0 ${item.iconClassName || ""}`} />
               {item.label}
             </Link>
           </li>
@@ -286,7 +301,7 @@ export default function AccountLayout({
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full ${
             SUBMENU_ITEMS.some((i) => pathname === i.href)
               ? "text-primary-800"
-              : "text-gray-700 hover:text-primary-700"
+              : "text-gray-700 hover:text-primary-700 nav-hover"
           }`}
           style={
             SUBMENU_ITEMS.some((i) => pathname === i.href)
@@ -312,7 +327,7 @@ export default function AccountLayout({
                     href={item.href}
                     scroll={false}
                     className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
+                      isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
                     }`}
                     style={isActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
                   >
@@ -332,7 +347,7 @@ export default function AccountLayout({
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mt-2 border-t border-primary-100 pt-3 ${
             pathname === "/account/steun"
               ? "text-primary-800"
-              : "text-gray-700 hover:text-primary-700"
+              : "text-gray-700 hover:text-primary-700 nav-hover"
           }`}
           style={
             pathname === "/account/steun"
@@ -355,6 +370,7 @@ export default function AccountLayout({
           backgroundColor: bgTint,
           "--account-accent": accent,
           "--account-accent-hover": hexToDarker(accent, 12),
+          "--account-accent-light": hexToLightTint(accent, 25),
         } as React.CSSProperties
       }
     >
@@ -376,23 +392,12 @@ export default function AccountLayout({
                 style={{ width: "auto", height: "auto" }}
               />
             </Link>
-            {/* Titel + subtitel – alleen op sm en groter in de header-rij */}
-            <div className="min-w-0 flex-1 hidden sm:block">
-              <h1 className="text-xl font-bold text-primary-900 truncate">{pageInfo.title}</h1>
-              <p className="text-sm text-gray-600 truncate">{pageInfo.subtitle}</p>
-            </div>
-            {/* Klantnaam – op mobiel compacter, op sm+ volledig */}
             {session.user?.name && (
-              <p className="text-sm sm:text-xl font-bold flex-shrink-0 truncate max-w-[50%] sm:max-w-none" style={{ color: hexToDarker(accent, 12) }}><span className="hidden sm:inline">Fijn dat je er bent, {session.user.name.split(" ")[0]}</span><span className="sm:hidden">Fijn dat je er bent, {session.user.name.split(" ")[0]}</span></p>
+              <p className="text-sm sm:text-base font-bold flex-shrink-0 truncate" style={{ color: hexToDarker(accent, 12) }}>
+                Fijn dat je er bent, {session.user.name.split(" ")[0]}
+              </p>
             )}
-            <div className="flex-1 sm:hidden" />
-            <Link
-              href="/account"
-              className="p-2 text-gray-300 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0 hidden lg:block"
-              title="Overzicht"
-            >
-              <LayoutDashboard size={18} />
-            </Link>
+            <div className="flex-1" />
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/afscheid" })}
@@ -401,7 +406,7 @@ export default function AccountLayout({
             >
               <LogOut size={18} />
             </button>
-            {/* Menu-knop – drie puntjes, rechts uitgelijnd */}
+            {/* Menu-knop – drie puntjes */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
@@ -412,10 +417,13 @@ export default function AccountLayout({
               <MoreVertical size={22} strokeWidth={2} />
             </button>
           </div>
-          {/* Titel + subtitel – apart blok op mobiel, onder de header-rij */}
-          <div className="sm:hidden mt-2">
-            <h1 className="text-base font-bold text-primary-900">{pageInfo.title}</h1>
-            <p className="text-xs text-gray-600">{pageInfo.subtitle}</p>
+          {/* Titel + subtitel – altijd onder de header-rij */}
+          <div className="mt-2">
+            <h1 className="text-base sm:text-xl font-bold text-primary-900 flex items-center gap-2">
+              {pathname === "/account/herinneringen" && <Gem size={22} className="text-amber-500 flex-shrink-0" />}
+              {pageInfo.title}
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>
           </div>
         </div>
 
@@ -430,7 +438,14 @@ export default function AccountLayout({
             {/* Slide-in panel – rechts */}
             <div className="absolute inset-y-0 right-0 w-72 max-w-[85vw] bg-white shadow-xl flex flex-col">
               <div className="flex items-center justify-between p-4 border-b border-primary-100">
-                <span className="font-semibold text-primary-900">Menu</span>
+                <Image
+                  src="/images/benji-logo-2.png"
+                  alt="Benji"
+                  width={28}
+                  height={28}
+                  className="object-contain opacity-40"
+                  style={{ width: "auto", height: "auto" }}
+                />
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
@@ -441,22 +456,6 @@ export default function AccountLayout({
                 </button>
               </div>
               <nav className="flex-1 overflow-y-auto p-3">
-                {/* Overzicht link */}
-                <ul className="space-y-0.5 mb-2">
-                  <li>
-                    <Link
-                      href="/account"
-                      scroll={false}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                        pathname === "/account" ? "text-primary-800" : "text-gray-700 hover:text-primary-700"
-                      }`}
-                      style={pathname === "/account" ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
-                    >
-                      <House size={18} className="flex-shrink-0" />
-                      Mijn plek
-                    </Link>
-                  </li>
-                </ul>
                 {navContent}
               </nav>
               <div className="p-4 border-t border-primary-100">

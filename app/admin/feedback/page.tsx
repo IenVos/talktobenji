@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
-import { MessageCircleHeart, Star, Check, X, Image as ImageIcon } from "lucide-react";
+import { MessageCircleHeart, Star, Check, X, Image as ImageIcon, Trash2, ImageOff } from "lucide-react";
 
 const TYPE_LABELS: Record<string, { label: string; color: string }> = {
   bug: { label: "Bug", color: "bg-red-100 text-red-800" },
@@ -33,7 +33,10 @@ function formatDate(ts: number) {
 export default function AdminFeedbackPage() {
   const feedback = useQuery(api.admin.getAllFeedback, {});
   const updateStatus = useMutation(api.admin.updateFeedbackStatus);
+  const deleteFeedback = useMutation(api.admin.deleteFeedback);
+  const deleteFeedbackImage = useMutation(api.admin.deleteFeedbackImage);
   const [filter, setFilter] = useState<string>("all");
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   const filtered = feedback?.filter((f) => {
     if (filter === "all") return true;
@@ -131,39 +134,81 @@ export default function AdminFeedbackPage() {
                       </div>
                     )}
                   </div>
-                  {item.status === "new" && (
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {item.status === "new" && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => updateStatus({ feedbackId: item._id, status: "reviewed" })}
+                          className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title="Markeer als bekeken"
+                        >
+                          <Check size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateStatus({ feedbackId: item._id, status: "declined" })}
+                          className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
+                          title="Afwijzen"
+                        >
+                          <X size={18} />
+                        </button>
+                      </>
+                    )}
+                    {confirmDelete === item._id ? (
+                      <div className="flex items-center gap-1 bg-red-50 border border-red-200 rounded-lg px-2 py-1">
+                        <span className="text-xs text-red-700 mr-1">Verwijderen?</span>
+                        <button
+                          type="button"
+                          onClick={() => { deleteFeedback({ feedbackId: item._id }); setConfirmDelete(null); }}
+                          className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+                          title="Bevestig verwijderen"
+                        >
+                          <Check size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDelete(null)}
+                          className="p-1 text-gray-500 hover:bg-gray-100 rounded transition-colors"
+                          title="Annuleer"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
                       <button
                         type="button"
-                        onClick={() => updateStatus({ feedbackId: item._id, status: "reviewed" })}
-                        className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                        title="Markeer als bekeken"
+                        onClick={() => setConfirmDelete(item._id)}
+                        className="p-1.5 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                        title="Verwijder feedback"
                       >
-                        <Check size={18} />
+                        <Trash2 size={18} />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => updateStatus({ feedbackId: item._id, status: "declined" })}
-                        className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
-                        title="Afwijzen"
-                      >
-                        <X size={18} />
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
 
                 <p className="text-sm text-gray-900 whitespace-pre-wrap mb-3">{item.comment}</p>
 
                 {item.imageUrl && (
-                  <a href={item.imageUrl} target="_blank" rel="noopener noreferrer" className="inline-block mb-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.imageUrl}
-                      alt="Bijlage"
-                      className="max-w-xs h-auto rounded-lg border border-gray-200 hover:opacity-90 transition-opacity"
-                    />
-                  </a>
+                  <div className="flex items-start gap-2 mb-3">
+                    <a href={item.imageUrl} target="_blank" rel="noopener noreferrer" className="inline-block">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.imageUrl}
+                        alt="Bijlage"
+                        className="max-w-xs h-auto rounded-lg border border-gray-200 hover:opacity-90 transition-opacity"
+                      />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => { if (window.confirm("Afbeelding verwijderen? De tekst blijft behouden.")) { deleteFeedbackImage({ feedbackId: item._id }); } }}
+                      className="p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors flex-shrink-0"
+                      title="Verwijder alleen de afbeelding"
+                    >
+                      <ImageOff size={16} />
+                    </button>
+                  </div>
                 )}
 
                 <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">

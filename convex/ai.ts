@@ -487,7 +487,20 @@ BELANGRIJKE REGELS:
         ? "ACCOUNT & REGISTRATION: When someone asks about creating an account, signing up, or registering, ALWAYS include a clickable link. Use markdown format: [click here to sign up](/registreren). If the question is clearly about account creation, give the link directly. Also mention the menu: they can click the three dots (⋮) and choose 'Sign up'."
         : `ACCOUNT & REGISTRATIE: Wanneer iemand vraagt over een account aanmaken, aanmelden of registreren, voeg ALTIJD een klikbare link toe. Gebruik markdown: [hier klikken om je aan te melden](/registreren). Als de vraag duidelijk over account aanmaken gaat, geef de link direct. Vermeld ook het menu: ze kunnen op de drie puntjes (⋮) klikken en kiezen voor 'Aanmelden'. Bij wachtwoord vergeten: verwijs naar [deze pagina](/wachtwoord-vergeten).`;
 
-      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, conversationStyleRule, accountRule].filter(Boolean).join("\n\n");
+      const memoryRule = isEnglish
+        ? ""
+        : `HERINNERINGEN HERKENNEN: Wanneer iemand een mooie, warme of positieve herinnering deelt (een fijn moment met een dierbare, iets wat ze samen deden, een gelukkig gevoel van vroeger), bied dan aan om deze herinnering op te slaan in hun schatkist. Doe dit door aan het einde van je antwoord de volgende markering te plaatsen op een nieuwe regel:
+[HERINNERING: de kern van de herinnering hier | emotie: dankbaar/warm/gelukkig/trots/verbonden/geliefd]
+
+REGELS:
+- Doe dit ALLEEN bij duidelijk positieve, warme herinneringen. Niet bij verdrietige of pijnlijke momenten.
+- Doe dit maximaal één keer per gesprek, niet bij elk bericht.
+- Vat de herinnering kort samen in de markering (1-2 zinnen).
+- Kies de meest passende emotie uit: dankbaar, warm, gelukkig, trots, verbonden, geliefd.
+- Reageer EERST normaal empathisch op wat ze delen, en voeg dan pas de markering toe.
+- Als je niet zeker weet of het een positieve herinnering is, doe het dan NIET.`;
+
+      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, conversationStyleRule, accountRule, memoryRule].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;

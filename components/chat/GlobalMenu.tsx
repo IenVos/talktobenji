@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck, House } from "lucide-react";
+import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck, House, Gem } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
 import { hexToDarker } from "@/lib/utils";
 
@@ -132,6 +132,14 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       onClick: () => {
         setOpen(false);
         router.push("/account/reflecties/eerdere-checkins");
+      },
+    },
+    {
+      label: "Jouw schatkist",
+      icon: Gem,
+      onClick: () => {
+        setOpen(false);
+        router.push("/account/herinneringen");
       },
     },
   ];

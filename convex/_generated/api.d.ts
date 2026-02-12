@@ -20,6 +20,7 @@ import type * as handreikingen from "../handreikingen.js";
 import type * as http from "../http.js";
 import type * as inspiratie from "../inspiratie.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
+import type * as memories from "../memories.js";
 import type * as notes from "../notes.js";
 import type * as preferences from "../preferences.js";
 import type * as reflecties from "../reflecties.js";
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   inspiratie: typeof inspiratie;
   knowledgeBase: typeof knowledgeBase;
+  memories: typeof memories;
   notes: typeof notes;
   preferences: typeof preferences;
   reflecties: typeof reflecties;

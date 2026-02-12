@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { Send, Mic, Square } from "lucide-react";
+import { Send, Mic, Square, Gem } from "lucide-react";
 import { WelcomeScreen, WelcomeScreenInfoIcons } from "@/components/chat/WelcomeScreen";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
@@ -37,6 +37,65 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
   }
   parts.push(content.slice(lastIndex));
   return <p className="text-sm sm:text-base break-words">{parts}</p>;
+}
+
+/** Herkent [HERINNERING: tekst | emotie: gevoel] markers in bot-berichten */
+const MEMORY_REGEX = /\[HERINNERING:\s*(.+?)\s*\|\s*emotie:\s*(\w+)\]/;
+
+function parseMemoryMarker(content: string): { cleanContent: string; memoryText?: string; emotion?: string } {
+  const match = content.match(MEMORY_REGEX);
+  if (!match) return { cleanContent: content };
+  return {
+    cleanContent: content.replace(MEMORY_REGEX, "").trim(),
+    memoryText: match[1].trim(),
+    emotion: match[2].trim(),
+  };
+}
+
+function MemorySaveButton({ memoryText, emotion, userId, accent }: { memoryText: string; emotion: string; userId: string; accent: string }) {
+  const addMemory = useMutation(api.memories.addMemory);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (saved || saving) return;
+    setSaving(true);
+    try {
+      await addMemory({
+        userId,
+        text: memoryText,
+        emotion,
+        source: "chat",
+      });
+      setSaved(true);
+    } catch {
+      // stil falen
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (saved) {
+    return (
+      <div className="mt-2 flex items-center gap-2 text-xs text-amber-600">
+        <Gem size={14} />
+        <span>Bewaard in je schatkist</span>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleSave}
+      disabled={saving}
+      className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors hover:shadow-sm disabled:opacity-50"
+      style={{ borderColor: accent, color: accent }}
+    >
+      <Gem size={14} />
+      {saving ? "Opslaan..." : "Bewaar in je schatkist"}
+    </button>
+  );
 }
 
 const STORAGE_KEY = "benji_session_id";
@@ -464,13 +523,26 @@ export default function ChatPageClient({
           )}
 
           <div className="space-y-3 sm:space-y-4">
-            {messages?.map((msg: Doc<"chatMessages">) => (
-              <div key={msg._id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${msg.role === "user" ? "max-w-[85%] sm:max-w-[80%] bg-primary-900 text-white rounded-br-md" : "max-w-sm bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
-                  <MessageContent content={msg.content} isUser={msg.role === "user"} />
+            {messages?.map((msg: Doc<"chatMessages">) => {
+              const isUser = msg.role === "user";
+              const parsed = !isUser ? parseMemoryMarker(msg.content) : null;
+              const displayContent = parsed ? parsed.cleanContent : msg.content;
+              return (
+                <div key={msg._id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+                  <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${isUser ? "max-w-[85%] sm:max-w-[80%] bg-primary-900 text-white rounded-br-md" : "max-w-sm bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
+                    <MessageContent content={displayContent} isUser={isUser} />
+                    {parsed?.memoryText && session?.userId && (
+                      <MemorySaveButton
+                        memoryText={parsed.memoryText}
+                        emotion={parsed.emotion || "warm"}
+                        userId={session.userId as string}
+                        accent={accent}
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {pendingUserMessage && (
               <div className="flex justify-end">
                 <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">

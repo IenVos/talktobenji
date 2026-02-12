@@ -300,6 +300,19 @@ export default defineSchema({
   })
     .index("by_active_order", ["isActive", "order"]),
 
+  // Herinneringen (schatkist met mooie momenten)
+  memories: defineTable({
+    userId: v.string(),
+    text: v.string(),
+    imageStorageId: v.optional(v.id("_storage")),
+    emotion: v.optional(v.string()),
+    memoryDate: v.optional(v.string()), // YYYY-MM-DD
+    source: v.union(v.literal("manual"), v.literal("chat")),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_created", ["userId", "createdAt"]),
+
   // Analytics
   analytics: defineTable({
     date: v.number(),

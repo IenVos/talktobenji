@@ -58,6 +58,11 @@
   color: var(--account-accent) !important;
 }
 
+/* Navigatie-items hover: lichte accentkleur */
+.account-theme .nav-hover:hover {
+  background-color: var(--account-accent-light) !important;
+}
+
 /* Chat-thema: accentkleur op chatpagina (header, footer, knoppen, bubbles) */
 .chat-theme [class*="bg-primary-900"],
 .chat-theme [class*="bg-primary-800"] {

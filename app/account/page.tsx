@@ -1,21 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { MessageSquare, PencilLine, Sparkles, HandHelping } from "lucide-react";
+import { MessageSquare, PencilLine, Sparkles, HandHelping, Gem } from "lucide-react";
 
 const CATEGORIES = [
   { href: "/account/gesprekken", label: "Jouw gesprekken", icon: MessageSquare, desc: "Je eerdere gesprekken met Benji" },
   { href: "/account/reflecties", label: "Reflecties", icon: PencilLine, desc: "Notities, emoties en dagelijkse check-in" },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles, desc: "Gedichten, citaten en teksten die je kunnen steunen" },
   { href: "/account/handreikingen", label: "Handreikingen", icon: HandHelping, desc: "Praktische tips en ideeën voor moeilijke momenten" },
+  { href: "/account/herinneringen", label: "Jouw schatkist", icon: Gem, desc: "Mooie herinneringen om naar terug te kijken" },
 ];
 
 export default function AccountPage() {
   return (
     <div className="space-y-4">
-      <p className="text-gray-600 text-sm">
-        Kies waar je naartoe wilt:
-      </p>
       <div className="grid gap-4 sm:grid-cols-2">
         {CATEGORIES.map(({ href, label, icon: Icon, desc }) => (
           <Link
