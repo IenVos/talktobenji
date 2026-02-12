@@ -28,9 +28,9 @@ const TOP_ITEMS = [
   { href: "/account/reflecties", label: "Reflecties", icon: PencilLine },
   { href: "/account/doelen", label: "Persoonlijke doelen", icon: Target },
   { href: "/account/checkins", label: "Dagelijkse check-ins", icon: CalendarCheck },
+  { href: "/account/herinneringen", label: "Jouw schatkist", icon: Gem, iconClassName: "text-amber-500" },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
   { href: "/account/handreikingen", label: "Handreikingen", icon: HandHelping },
-  { href: "/account/herinneringen", label: "Jouw schatkist", icon: Gem, iconClassName: "text-amber-500" },
   { href: "/account/instellingen", label: "Personalisatie", icon: UserCircle },
 ];
 
