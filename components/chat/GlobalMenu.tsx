@@ -52,6 +52,8 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     setTimeout(() => setBinnenkortMsg(null), 2000);
   };
 
+  const isLoggedIn = !!session?.userId;
+
   const menuItems = [
     {
       label: "Over Talk To Benji",
@@ -97,6 +99,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: "Mijn plek",
       icon: House,
+      requiresAuth: true,
       onClick: () => {
         setOpen(false);
         router.push("/account");
@@ -105,6 +108,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: lastConversationDate ? `Jouw gesprekken · ${lastConversationDate}` : "Jouw gesprekken",
       icon: MessagesSquare,
+      requiresAuth: true,
       onClick: () => {
         setOpen(false);
         router.push("/account/gesprekken");
@@ -113,6 +117,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: "Reflecties",
       icon: PencilLine,
+      requiresAuth: true,
       onClick: () => {
         setOpen(false);
         router.push("/account/reflecties");
@@ -121,6 +126,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: "Persoonlijke doelen",
       icon: Target,
+      requiresAuth: true,
       onClick: () => {
         setOpen(false);
         router.push("/account/doelen");
@@ -129,6 +135,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: "Check-ins",
       icon: ClipboardCheck,
+      requiresAuth: true,
       onClick: () => {
         setOpen(false);
         router.push("/account/reflecties/eerdere-checkins");
@@ -137,6 +144,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: "Jouw schatkist",
       icon: Gem,
+      requiresAuth: true,
       onClick: () => {
         setOpen(false);
         router.push("/account/herinneringen");
@@ -188,8 +196,11 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
           )}
           {menuItems.map((item, index) => {
             const Icon = item.icon;
-            const showDividerBefore = index === 3 || index === 5; // Streep vóór "Aanmelden" en vóór "Mijn plek"
-            const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-800 hover:bg-gray-100 transition-all duration-200 ${index === 0 ? "rounded-t-xl" : ""} ${index === menuItems.length - 1 ? "rounded-b-xl" : ""}`;
+            const showDividerBefore = index === 3 || index === 5;
+            const locked = "requiresAuth" in item && item.requiresAuth && !isLoggedIn;
+            const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-all duration-200 ${
+              locked ? "text-gray-300 cursor-default" : "text-gray-800 hover:bg-gray-100"
+            } ${index === 0 ? "rounded-t-xl" : ""} ${index === menuItems.length - 1 ? "rounded-b-xl" : ""}`;
             if ("href" in item && item.href) {
               return (
                 <div key={item.label}>
@@ -204,14 +215,14 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
                     className={`block ${itemClass}`}
                     role="menuitem"
                   >
-                    <Icon size={18} strokeWidth={2} className="flex-shrink-0 text-primary-600" />
+                    <Icon size={18} strokeWidth={2} className={`flex-shrink-0 ${locked ? "text-gray-300" : "text-primary-600"}`} />
                     <span className="truncate">{item.label}</span>
                   </a>
                 </div>
               );
             }
             return (
-              <div key={item.label}>
+              <div key={item.label} className="relative group/locked">
                 {showDividerBefore && (
                   <div className="my-1 mx-4 border-t border-gray-200" aria-hidden />
                 )}
@@ -219,14 +230,20 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    item.onClick?.();
+                    if (!locked) item.onClick?.();
                   }}
+                  disabled={locked}
                   className={itemClass}
                   role="menuitem"
                 >
-                  <Icon size={18} strokeWidth={2} className="flex-shrink-0 text-primary-600" />
+                  <Icon size={18} strokeWidth={2} className={`flex-shrink-0 ${locked ? "text-gray-300" : "text-primary-600"}`} />
                   <span className="truncate">{item.label}</span>
                 </button>
+                {locked && (
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-3 py-1.5 bg-gray-800 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/locked:opacity-100 transition-opacity pointer-events-none z-10">
+                    Maak een account aan voor toegang
+                  </div>
+                )}
               </div>
             );
           })}
