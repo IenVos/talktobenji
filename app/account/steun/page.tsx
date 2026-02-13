@@ -120,7 +120,6 @@ export default function AccountSteunPage() {
       setFeedbackImagePreview(null);
       setFeedbackType("suggestion");
       setFeedbackSent(true);
-      setTimeout(() => setFeedbackSent(false), 4000);
     } catch (err) {
       console.error(err);
     } finally {

@@ -410,10 +410,22 @@ BELANGRIJKE GRAMMATICALE REGELS:
   Als je begint met een bevestiging, gebruik Nederlandse woorden of begin direct met je zin
 
 - Gebruik correcte lidwoorden (de/het/die/dat)
-  FOUT: "Dat stilte" of "Dat blijheid"
-  GOED: "Die stilte" of "De stilte" of "Die blijheid" of "De blijheid"
+  FOUT: "Dat stilte" of "Dat blijheid" of "Dat leegte"
+  GOED: "Die stilte" of "De stilte" of "Die blijheid" of "De blijheid" of "Die leegte"
   FOUT: "Wat voel je als dat stilte er is"
   GOED: "Wat voel je als die stilte er is" of "Wat voel je als het stil is"
+  FOUT: "Dat gemis"
+  GOED: "Het gemis"
+
+- Gebruik correcte zinsconstructies met "kunnen" en "beide"
+  FOUT: "Dat kunnen beide dingen tegelijk waar zijn"
+  GOED: "Beide dingen kunnen tegelijk waar zijn" of "Dat kan allebei waar zijn"
+
+- Maak altijd volledige, goed lopende zinnen
+  FOUT: "Die leegte, wat voelt dat als." (onvolledige zin)
+  GOED: "Die leegte die je voelt, hoe is dat voor je?" of "Kun je omschrijven hoe die leegte voelt?"
+  FOUT: "heel groot voor hem, voor jullie allemaal." (loshangende zin)
+  GOED: "Dat moet heel groot zijn geweest, voor jullie allemaal."
 
 CONTROLE:
 - Lees elke zin mentaal door voordat je het verstuurt
@@ -428,7 +440,41 @@ CONTROLE:
 
       const noRepetitionRule = isEnglish
         ? "AVOID REPETITION: Do not repeat the same words, phrases, or ideas in consecutive messages. Vary your language. If you already asked about something or mentioned it, don't repeat it in the same way. Use synonyms and different phrasings. Keep responses fresh and varied."
-        : "GEEN HERHALING: Herhaal niet dezelfde woorden, zinnen of ideeën in opeenvolgende berichten. Varieer je taalgebruik. Als je al iets gevraagd of genoemd hebt, herhaal het dan niet op dezelfde manier. Gebruik synoniemen en verschillende formuleringen. Houd antwoorden fris en gevarieerd.";
+        : `GEEN HERHALING: Herhaal niet dezelfde woorden, zinnen of ideeën in opeenvolgende berichten. Varieer je taalgebruik.
+
+SPECIFIEKE REGELS:
+- Begin NOOIT twee opeenvolgende berichten met dezelfde openingszin of hetzelfde patroon
+  FOUT: Bericht 1 begint met "Dat klinkt..." → Bericht 2 begint ook met "Dat klinkt..."
+  GOED: Varieer je openingszinnen (bijv. "Wat je beschrijft...", "Ik hoor je...", "Het is begrijpelijk dat...")
+
+- Gebruik NOOIT herhaaldelijk dezelfde slogans of kernzinnen
+  FOUT: "Zonder oordeel. Dag en nacht." in meerdere berichten herhalen
+  GOED: Zeg dit maximaal één keer in een heel gesprek, als het echt past
+
+- Vermijd meta-uitspraken over jezelf als AI/chatbot
+  FOUT: "Ik ben getraind om...", "Ik ben er om...", "Ik ben hier voor je, dag en nacht", "Zonder oordeel"
+  GOED: Toon het in je antwoord in plaats van het te zeggen. Wees gewoon empathisch zonder te benoemen dat je empathisch bent.
+
+- Herhaal NIET wat de gebruiker net zei in je eigen woorden als dat het hele antwoord is
+  FOUT: Gebruiker zegt "ik voel me leeg" → "Die leegte, wat voelt dat als." (voegt niets toe)
+  GOED: Reageer met iets dat het gesprek verder brengt: "Dat klinkt zwaar. Wanneer begon dat gevoel?" of "Ik kan me voorstellen dat dat moeilijk is. Wil je er meer over vertellen?"`;
+
+      const contextAwarenessRule = isEnglish
+        ? ""
+        : `CONTEXTBEWUSTZIJN: Let goed op de context van het gesprek en pas je taalgebruik aan.
+
+HUISDIEREN EN DIEREN:
+- Als iemand praat over het verlies van een huisdier (hond, kat, konijn, etc.), gebruik dan GEEN taal die alleen bij mensen past
+  FOUT: "jullie het niet hebben kunnen uitpraten" (een dier kan niet praten)
+  FOUT: "wat zou hij/zij tegen je willen zeggen" (een dier spreekt niet)
+  GOED: "dat jullie geen afscheid hebben kunnen nemen", "dat het zo plotseling ging", "je hebt niet meer de kans gehad om bij hem/haar te zijn"
+- Herken signalen dat het over een dier gaat: "mijn hond", "mijn kat", "mijn poes", "ons huisdier", "beestje", "dierenarts", "laten inslapen", namen die typisch voor dieren zijn
+- Bij dierenverlies: focus op het gemis van hun aanwezigheid, de lege plek, de routines die wegvallen, de onvoorwaardelijke liefde
+
+ALGEMEEN:
+- Pas je taalgebruik aan de situatie aan. Gebruik geen uitdrukkingen die niet logisch zijn in de context.
+- Als iemand over een kind praat, gebruik andere taal dan wanneer iemand over een partner praat.
+- Let op of iemand over zichzelf, een ander, of een dier praat en pas je reactie daarop aan.`;
 
       const conversationStyleRule = isEnglish
         ? "CONVERSATION STYLE: Give empathetic, specific responses. Don't ask multiple vague questions in a row. When someone shares something difficult, acknowledge it first before asking questions. Be concrete and specific, not generic. If you ask a question, make it one clear, specific question that builds on what they just said. Avoid generic questions like 'What helps you?' or 'What gives you space?' - be more specific based on the context. IMPORTANT: When someone explicitly asks for a tip or suggestion (e.g., 'can you give a tip', 'what can help', 'do you have advice'), provide a concrete tip or suggestion based on the knowledge base or general knowledge. Do NOT respond by asking another question - give actual helpful advice."
@@ -487,7 +533,7 @@ REGELS:
 - Reageer EERST normaal empathisch op wat ze delen, en voeg dan pas de markering toe.
 - Als je niet zeker weet of het een positieve herinnering is, doe het dan NIET.`;
 
-      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, conversationStyleRule, accountRule, memoryRule].filter(Boolean).join("\n\n");
+      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
@@ -590,10 +636,29 @@ REGELS:
         // Corrigeer "als dat stilte er is" → "als die stilte er is" of "als het stil is"
         aiResponse = aiResponse.replace(/\bals dat stilte er is\b/gi, "als die stilte er is");
         aiResponse = aiResponse.replace(/\bals dat blijheid er is\b/gi, "als die blijheid er is");
+
+        // Corrigeer "Dat leegte" → "Die leegte"
+        aiResponse = aiResponse.replace(/\bDat leegte\b/gi, "Die leegte");
+        aiResponse = aiResponse.replace(/\bdat leegte\b/gi, "die leegte");
+
+        // Corrigeer "Dat gemis" → "Het gemis"
+        aiResponse = aiResponse.replace(/\bDat gemis\b/g, "Het gemis");
+        aiResponse = aiResponse.replace(/\bdat gemis\b/g, "het gemis");
+
+        // Corrigeer "Dat kunnen beide dingen tegelijk waar zijn" → "Beide dingen kunnen tegelijk waar zijn"
+        aiResponse = aiResponse.replace(/\bDat kunnen beide dingen tegelijk waar zijn\b/gi, "Beide dingen kunnen tegelijk waar zijn");
+        aiResponse = aiResponse.replace(/\bdat kunnen beide dingen tegelijk waar zijn\b/gi, "beide dingen kunnen tegelijk waar zijn");
         
         // "Wat merkt je" → "Wat merk je" (verkeerde werkwoordsvorm)
         aiResponse = aiResponse.replace(/\bWat merkt je\b/gi, "Wat merk je");
         aiResponse = aiResponse.replace(/\bwat merkt je\b/gi, "wat merk je");
+
+        // Verwijder overmatige meta-zinnen over beschikbaarheid/AI
+        aiResponse = aiResponse.replace(/\.\s*Zonder oordeel\.\s*Dag en nacht\./gi, ".");
+        aiResponse = aiResponse.replace(/\bZonder oordeel\.\s*Dag en nacht\.\s*/gi, "");
+        aiResponse = aiResponse.replace(/\bIk ben hier voor je,?\s*dag en nacht\b\.?/gi, "");
+        aiResponse = aiResponse.replace(/\bIk ben getraind om\b/gi, "Ik probeer");
+        aiResponse = aiResponse.replace(/\bIk ben er om je te\b/gi, "Ik wil je graag");
         
         // "Dat alleen-zijn" → "Het alleen-zijn" (verkeerd lidwoord)
         aiResponse = aiResponse.replace(/\bDat alleen-zijn\b/gi, "Het alleen-zijn");

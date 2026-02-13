@@ -415,11 +415,11 @@ export default function AccountLayout({
           <div className="fixed inset-0 z-50 lg:hidden">
             {/* Backdrop */}
             <div
-              className="absolute inset-0 bg-black/30"
+              className="absolute inset-0 bg-black/30 mobile-menu-backdrop"
               onClick={() => setMobileMenuOpen(false)}
             />
             {/* Slide-in panel – rechts */}
-            <div className="absolute inset-y-0 right-0 w-72 max-w-[85vw] bg-white shadow-xl flex flex-col">
+            <div className="absolute inset-y-0 right-0 w-72 max-w-[85vw] bg-white shadow-xl flex flex-col mobile-menu-panel">
               <div className="flex items-center justify-between px-3 py-2 border-b border-primary-100">
                 <Image
                   src="/images/benji-logo-2.png"
@@ -445,7 +445,7 @@ export default function AccountLayout({
                 <button
                   type="button"
                   onClick={() => signOut({ callbackUrl: "/afscheid" })}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors w-full"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-medium text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors w-full"
                 >
                   <LogOut size={16} className="flex-shrink-0" />
                   Uitloggen
