@@ -715,6 +715,49 @@ export const generateDailyAnalytics = mutation({
 /**
  * Export alle data voor backup/analysis
  */
+// ============================================================================
+// CHAT BERICHTEN VERWIJDEREN
+// ============================================================================
+
+/** Verwijder een enkel chatbericht */
+export const deleteChatMessage = mutation({
+  args: {
+    messageId: v.id("chatMessages"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.messageId);
+  },
+});
+
+/** Verwijder meerdere chatberichten tegelijk */
+export const deleteChatMessages = mutation({
+  args: {
+    messageIds: v.array(v.id("chatMessages")),
+  },
+  handler: async (ctx, args) => {
+    for (const id of args.messageIds) {
+      await ctx.db.delete(id);
+    }
+  },
+});
+
+/** Verwijder een hele chat sessie met al zijn berichten */
+export const deleteChatSession = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+  },
+  handler: async (ctx, args) => {
+    const messages = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+    for (const msg of messages) {
+      await ctx.db.delete(msg._id);
+    }
+    await ctx.db.delete(args.sessionId);
+  },
+});
+
 export const exportAllData = query({
   args: {
     startDate: v.optional(v.number()),

@@ -23,6 +23,7 @@ export default function AccountSteunPage() {
 
   const [customAmount, setCustomAmount] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Feedback state
   const [feedbackType, setFeedbackType] = useState<typeof FEEDBACK_TYPES[number]["value"]>("suggestion");
@@ -146,154 +147,196 @@ export default function AccountSteunPage() {
 
   return (
     <div className="space-y-6">
-      {/* Feedback sectie */}
+      {/* Feedback sectie – compact blokje */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-3">
           <img src="/images/benji-logo-2.png" alt="Benji" width={28} height={28} className="flex-shrink-0 object-contain brightness-50" />
           <h2 className="text-lg font-semibold text-primary-900">Samen maken we Benji beter</h2>
         </div>
         <p className="text-sm text-gray-600 mb-2">
           Benji is er 24/7 voor iedereen die behoefte heeft aan een luisterend oor. Jouw ervaring helpt ons om Benji nog warmer, slimmer en behulpzamer te maken. Vertel ons wat je fijn vindt, wat beter kan, of deel een idee.
         </p>
-        <p className="text-xs text-primary-600 mb-5">
+        <p className="text-xs mb-5" style={{ color: "var(--account-accent)" }}>
           Elk bericht wordt gelezen. Dankzij jouw feedback wordt Benji elke dag een stukje beter voor iedereen.
         </p>
+        <button
+          type="button"
+          onClick={() => { setFeedbackSent(false); setFeedbackOpen(true); }}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-colors text-sm text-white"
+          style={{ backgroundColor: "var(--account-accent)" }}
+        >
+          <MessageCircleHeart size={18} />
+          Feedback geven
+        </button>
+      </div>
 
-        {feedbackSent ? (
-          <div className="p-5 rounded-xl bg-green-50 border border-green-200 text-center">
-            <p className="text-2xl mb-2">🙏</p>
-            <p className="text-green-800 font-semibold text-base">Heel erg bedankt!</p>
-            <p className="text-green-700 text-sm mt-1">Je feedback is ontvangen. We lezen alles persoonlijk en gebruiken het om Benji te verbeteren. Fijn dat je meedenkt!</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Type kiezen */}
-            <div>
-              <label className="block text-sm font-medium text-primary-800 mb-2">Wat wil je delen?</label>
-              <div className="flex flex-wrap gap-2">
-                {FEEDBACK_TYPES.map((t) => (
-                  <button
-                    key={t.value}
-                    type="button"
-                    onClick={() => setFeedbackType(t.value)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                      feedbackType === t.value
-                        ? "border-primary-500 bg-primary-50 text-primary-800"
-                        : "border-gray-200 text-gray-600 hover:border-primary-300"
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
+      {/* Feedback popup */}
+      {feedbackOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setFeedbackOpen(false)}>
+          <div className="absolute inset-0 bg-black/30" />
+          <div
+            className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[85vh] overflow-hidden z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h2 className="text-base font-semibold text-primary-900">Feedback geven</h2>
+              <button
+                type="button"
+                onClick={() => setFeedbackOpen(false)}
+                className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                aria-label="Sluiten"
+              >
+                <X size={18} className="text-gray-400" />
+              </button>
             </div>
 
-            {/* Beoordeling met sterren */}
-            <div>
-              <label className="block text-sm font-medium text-primary-800 mb-2">Hoe ervaar je Benji? (optioneel)</label>
-              <div className="flex gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => setFeedbackRating(feedbackRating === star ? null : star)}
-                    className="p-1 transition-colors"
-                    title={`${star} ster${star > 1 ? "ren" : ""}`}
-                  >
-                    <Star
-                      size={24}
-                      className={feedbackRating !== null && star <= feedbackRating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-                    />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tekstveld met spraak */}
-            <div>
-              <label className="block text-sm font-medium text-primary-800 mb-2">Je bericht</label>
-              <div className="relative">
-                <textarea
-                  value={feedbackText}
-                  onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder="Schrijf of spreek je feedback in..."
-                  rows={4}
-                  className={`w-full px-3 py-2 border rounded-lg text-sm pr-12 ${
-                    isRecording ? "border-red-400 bg-red-50/30" : "border-primary-200"
-                  }`}
-                />
-                {speechSupported && (
+            {/* Content */}
+            <div className="overflow-y-auto max-h-[calc(85vh-60px)] p-5 space-y-4">
+              {feedbackSent ? (
+                <div className="p-5 rounded-xl bg-green-50 border border-green-200 text-center">
+                  <p className="text-green-800 font-semibold text-base">Heel erg bedankt!</p>
+                  <p className="text-green-700 text-sm mt-1">Je feedback is ontvangen. We lezen alles persoonlijk.</p>
                   <button
                     type="button"
-                    onClick={toggleRecording}
-                    className={`absolute right-2 top-2 p-1.5 rounded-lg transition-colors ${
-                      isRecording
-                        ? "bg-red-500 text-white animate-pulse"
-                        : "text-gray-400 hover:text-primary-600 hover:bg-primary-50"
-                    }`}
-                    title={isRecording ? "Stop opname" : "Start spraakopname"}
+                    onClick={() => setFeedbackOpen(false)}
+                    className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                   >
-                    {isRecording ? <Square size={16} /> : <Mic size={16} />}
-                  </button>
-                )}
-              </div>
-              {isRecording && (
-                <p className="text-xs text-red-500 mt-1 animate-pulse">Spraakopname actief, spreek nu...</p>
-              )}
-            </div>
-
-            {/* Afbeelding toevoegen */}
-            <div>
-              <label className="block text-sm font-medium text-primary-800 mb-2">Afbeelding toevoegen (optioneel)</label>
-              {feedbackImagePreview ? (
-                <div className="relative inline-block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={feedbackImagePreview}
-                    alt="Bijlage"
-                    className="w-32 h-32 object-cover rounded-lg border border-primary-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                    aria-label="Afbeelding verwijderen"
-                  >
-                    <X size={14} />
+                    Sluiten
                   </button>
                 </div>
               ) : (
-                <label className="inline-flex items-center gap-2 px-4 py-2 border border-dashed border-primary-300 text-primary-700 rounded-lg cursor-pointer hover:bg-primary-50 transition-colors text-sm">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="sr-only"
-                  />
-                  <ImagePlus size={18} />
-                  Kies afbeelding
-                </label>
-              )}
-              {imageError && (
-                <p className="text-xs text-red-600 mt-1">{imageError}</p>
-              )}
-              <p className="text-xs text-gray-500 mt-1">
-                Bijvoorbeeld een screenshot van iets dat niet goed werkt. Maximaal 5 MB.
-              </p>
-            </div>
+                <>
+                  {/* Type kiezen */}
+                  <div>
+                    <label className="block text-sm font-medium text-primary-800 mb-2">Wat wil je delen?</label>
+                    <div className="flex flex-wrap gap-2">
+                      {FEEDBACK_TYPES.map((t) => (
+                        <button
+                          key={t.value}
+                          type="button"
+                          onClick={() => setFeedbackType(t.value)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                            feedbackType === t.value
+                              ? "border-primary-500 bg-primary-50 text-primary-800"
+                              : "border-gray-200 text-gray-600 hover:border-primary-300"
+                          }`}
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-            {/* Verstuur knop */}
-            <button
-              type="button"
-              onClick={handleSubmitFeedback}
-              disabled={!feedbackText.trim() || feedbackSending}
-              className="px-5 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {feedbackSending ? "Bezig met versturen..." : "Feedback versturen"}
-            </button>
+                  {/* Beoordeling met sterren */}
+                  <div>
+                    <label className="block text-sm font-medium text-primary-800 mb-2">Hoe ervaar je Benji? (optioneel)</label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setFeedbackRating(feedbackRating === star ? null : star)}
+                          className="p-1 transition-colors"
+                          title={`${star} ster${star > 1 ? "ren" : ""}`}
+                        >
+                          <Star
+                            size={24}
+                            className={feedbackRating !== null && star <= feedbackRating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tekstveld met spraak */}
+                  <div>
+                    <label className="block text-sm font-medium text-primary-800 mb-2">Je bericht</label>
+                    <div className="relative">
+                      <textarea
+                        value={feedbackText}
+                        onChange={(e) => setFeedbackText(e.target.value)}
+                        placeholder="Schrijf of spreek je feedback in..."
+                        rows={4}
+                        className={`w-full px-3 py-2 border rounded-lg text-sm pr-12 ${
+                          isRecording ? "border-red-400 bg-red-50/30" : "border-primary-200"
+                        }`}
+                      />
+                      {speechSupported && (
+                        <button
+                          type="button"
+                          onClick={toggleRecording}
+                          className={`absolute right-2 top-2 p-1.5 rounded-lg transition-colors ${
+                            isRecording
+                              ? "bg-red-500 text-white animate-pulse"
+                              : "text-gray-400 hover:text-primary-600 hover:bg-primary-50"
+                          }`}
+                          title={isRecording ? "Stop opname" : "Start spraakopname"}
+                        >
+                          {isRecording ? <Square size={16} /> : <Mic size={16} />}
+                        </button>
+                      )}
+                    </div>
+                    {isRecording && (
+                      <p className="text-xs text-red-500 mt-1 animate-pulse">Spraakopname actief, spreek nu...</p>
+                    )}
+                  </div>
+
+                  {/* Afbeelding toevoegen */}
+                  <div>
+                    <label className="block text-sm font-medium text-primary-800 mb-2">Afbeelding toevoegen (optioneel)</label>
+                    {feedbackImagePreview ? (
+                      <div className="relative inline-block">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={feedbackImagePreview}
+                          alt="Bijlage"
+                          className="w-32 h-32 object-cover rounded-lg border border-primary-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                          aria-label="Afbeelding verwijderen"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="inline-flex items-center gap-2 px-4 py-2 border border-dashed border-primary-300 text-primary-700 rounded-lg cursor-pointer hover:bg-primary-50 transition-colors text-sm">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          className="sr-only"
+                        />
+                        <ImagePlus size={18} />
+                        Kies afbeelding
+                      </label>
+                    )}
+                    {imageError && (
+                      <p className="text-xs text-red-600 mt-1">{imageError}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Bijvoorbeeld een screenshot. Maximaal 5 MB.
+                    </p>
+                  </div>
+
+                  {/* Verstuur knop */}
+                  <button
+                    type="button"
+                    onClick={handleSubmitFeedback}
+                    disabled={!feedbackText.trim() || feedbackSending}
+                    className="w-full px-5 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {feedbackSending ? "Bezig met versturen..." : "Feedback versturen"}
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-primary-200 p-6">
         <div className="flex items-center gap-3 text-primary-700 mb-6">
