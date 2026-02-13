@@ -240,24 +240,24 @@ export default function AccountInstellingenPage() {
           </label>
         </div>
 
-        {/* Push notificaties */}
+        {/* Hartverwarmers */}
         <div className="bg-white rounded-xl border border-primary-200 p-6">
           <div className="flex items-center gap-3 mb-4">
             <Bell size={24} className="text-primary-500" />
-            <h2 className="text-lg font-semibold text-primary-900">Notificaties</h2>
+            <h2 className="text-lg font-semibold text-primary-900">Hartverwarmers</h2>
           </div>
           <p className="text-sm text-gray-600 mb-4">
-            Ontvang een melding op je telefoon wanneer er een nieuw bericht voor je is.
+            Hartverwarmers zijn kleine berichtjes die je helpen je dag goed te beginnen of je herinneren aan doelen die je hebt gesteld. Ze zorgen ervoor dat je belangrijke dingen niet vergeet en houden je gefocust. Hartverwarmers worden spaarzaam verstuurd om je liefde en kracht te geven.
           </p>
           {!pushSupported ? (
             <p className="text-sm text-gray-500 italic">
-              Notificaties worden niet ondersteund in deze browser. Installeer de app op je telefoon voor notificaties.
+              Hartverwarmers worden niet ondersteund in deze browser. Installeer de app op je telefoon om hartverwarmers te ontvangen.
             </p>
           ) : (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-700">
-                  {isSubscribed ? "Notificaties staan aan" : "Notificaties staan uit"}
+                  {isSubscribed ? "Hartverwarmers staan aan" : "Hartverwarmers staan uit"}
                 </span>
                 <button
                   type="button"

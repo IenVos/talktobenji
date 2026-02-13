@@ -411,8 +411,8 @@ export default function AccountLayout({
                   }
                 }}
                 className="p-2 text-gray-400 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0 relative"
-                title="Notificaties"
-                aria-label="Notificaties"
+                title="Hartverwarmers"
+                aria-label="Hartverwarmers"
               >
                 <Bell size={18} />
                 {notifData && notifData.unreadCount > 0 && (
@@ -424,11 +424,11 @@ export default function AccountLayout({
               {notifOpen && (
                 <div className="absolute right-0 top-full mt-1 w-80 max-w-[90vw] bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
                   <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-900">Notificaties</p>
+                    <p className="text-sm font-semibold text-gray-900">Hartverwarmers</p>
                   </div>
                   <div className="max-h-64 overflow-y-auto">
                     {!notifData || notifData.notifications.length === 0 ? (
-                      <p className="p-4 text-sm text-gray-500 text-center">Geen notificaties</p>
+                      <p className="p-4 text-sm text-gray-500 text-center">Geen hartverwarmers</p>
                     ) : (
                       notifData.notifications.map((n: any) => (
                         <a
