@@ -410,16 +410,25 @@ export default function AccountLayout({
                     markRead({ userId: session.userId as string });
                   }
                 }}
-                className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                className={`relative p-2 rounded-lg transition-colors flex-shrink-0 ${
                   notifData && notifData.unreadCount > 0
-                    ? "text-primary-600"
+                    ? ""
                     : "text-gray-400 hover:text-primary-600"
                 }`}
+                style={notifData && notifData.unreadCount > 0 ? { color: accent } : {}}
                 title="Hartverwarmers"
                 aria-label="Hartverwarmers"
               >
                 {notifData && notifData.unreadCount > 0 ? (
-                  <Bell size={18} fill="currentColor" />
+                  <>
+                    <Bell size={18} fill="currentColor" />
+                    <span
+                      className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-bold text-white leading-none px-1"
+                      style={{ backgroundColor: accent }}
+                    >
+                      {notifData.unreadCount}
+                    </span>
+                  </>
                 ) : (
                   <Bell size={18} />
                 )}
