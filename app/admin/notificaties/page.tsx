@@ -1,15 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useAction } from "convex/react";
+import { useQuery, useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Bell, Send, Users, Clock } from "lucide-react";
+import { Bell, Send, Users, Clock, Trash2, RefreshCw } from "lucide-react";
 
 export default function AdminNotificatiesPage() {
   const subscriberCount = useQuery(api.pushSubscriptions.getSubscriberCount);
   const subscribers = useQuery(api.pushSubscriptions.listSubscribers);
   const sentNotifications = useQuery(api.pushSubscriptions.listSentNotifications);
   const sendToAll = useAction(api.pushNotifications.sendToAll);
+  const deleteNotification = useMutation(api.pushSubscriptions.deleteNotification);
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -174,9 +175,38 @@ export default function AdminNotificatiesPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900">{n.title}</p>
                   <p className="text-sm text-gray-600">{n.body}</p>
+                  {n.url && <p className="text-xs text-primary-500 mt-0.5">{n.url}</p>}
                   <p className="text-xs text-gray-400 mt-1">
                     {new Date(n.sentAt).toLocaleString("nl-NL")} — {n.recipientCount} ontvanger(s)
                   </p>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTitle(n.title);
+                        setBody(n.body);
+                        setUrl(n.url || "");
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                      title="Opnieuw versturen"
+                    >
+                      <RefreshCw size={12} />
+                      Opnieuw
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!confirm("Deze notificatie verwijderen?")) return;
+                        await deleteNotification({ notificationId: n._id });
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs text-red-500 hover:bg-red-50 rounded transition-colors"
+                      title="Verwijderen"
+                    >
+                      <Trash2 size={12} />
+                      Verwijderen
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

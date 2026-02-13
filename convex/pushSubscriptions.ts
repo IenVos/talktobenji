@@ -244,3 +244,13 @@ export const recordNotification = mutation({
     });
   },
 });
+
+/** Verwijder een notificatie (admin) */
+export const deleteNotification = mutation({
+  args: {
+    notificationId: v.id("pushNotifications"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.notificationId);
+  },
+});

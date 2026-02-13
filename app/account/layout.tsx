@@ -400,8 +400,8 @@ export default function AccountLayout({
         <div className="mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex-1" />
-            {/* Notificatie bell */}
-            <div className="relative" ref={notifRef}>
+            {/* Hartverwarmer bell */}
+            <div ref={notifRef}>
               <button
                 type="button"
                 onClick={() => {
@@ -410,45 +410,74 @@ export default function AccountLayout({
                     markRead({ userId: session.userId as string });
                   }
                 }}
-                className="p-2 text-gray-400 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0 relative"
+                className={`p-2 rounded-lg transition-colors flex-shrink-0 ${
+                  notifData && notifData.unreadCount > 0
+                    ? "text-primary-600"
+                    : "text-gray-400 hover:text-primary-600"
+                }`}
                 title="Hartverwarmers"
                 aria-label="Hartverwarmers"
               >
-                <Bell size={18} />
-                {notifData && notifData.unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                    {notifData.unreadCount > 9 ? "9+" : notifData.unreadCount}
-                  </span>
+                {notifData && notifData.unreadCount > 0 ? (
+                  <Bell size={18} fill="currentColor" />
+                ) : (
+                  <Bell size={18} />
                 )}
               </button>
-              {notifOpen && (
-                <div className="absolute right-0 top-full mt-1 w-80 max-w-[90vw] bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-900">Hartverwarmers</p>
+            </div>
+            {/* Hartverwarmer popup – gecentreerd */}
+            {notifOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setNotifOpen(false)}>
+                <div className="absolute inset-0 bg-black/30 mobile-menu-backdrop" />
+                <div
+                  className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[70vh] overflow-hidden z-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-center justify-between px-5 py-4 rounded-t-2xl" style={{ backgroundColor: accent }}>
+                    <p className="text-base font-semibold text-white">Hartverwarmers</p>
+                    <button
+                      type="button"
+                      onClick={() => setNotifOpen(false)}
+                      className="p-1 rounded-lg hover:bg-white/20 transition-colors"
+                      aria-label="Sluiten"
+                    >
+                      <X size={18} className="text-white/80" />
+                    </button>
                   </div>
-                  <div className="max-h-64 overflow-y-auto">
+                  <div className="overflow-y-auto max-h-[55vh]">
                     {!notifData || notifData.notifications.length === 0 ? (
-                      <p className="p-4 text-sm text-gray-500 text-center">Geen hartverwarmers</p>
+                      <p className="p-6 text-sm text-gray-500 text-center">Nog geen hartverwarmers ontvangen</p>
                     ) : (
                       notifData.notifications.map((n: any) => (
-                        <a
+                        <div
                           key={n._id}
-                          href={n.url || "/account"}
-                          onClick={() => setNotifOpen(false)}
-                          className="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                          className="px-5 py-4 border-b border-gray-50 last:border-0"
                         >
                           <p className="text-sm font-medium text-gray-900">{n.title}</p>
-                          <p className="text-sm text-gray-600 mt-0.5">{n.body}</p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {new Date(n.sentAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                          </p>
-                        </a>
+                          <p className="text-sm text-gray-600 mt-1">{n.body}</p>
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-xs text-gray-400">
+                              {new Date(n.sentAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </p>
+                            {n.url && (
+                              <Link
+                                href={n.url}
+                                onClick={() => setNotifOpen(false)}
+                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg transition-colors"
+                                style={{ color: accent, backgroundColor: hexToLightTint(accent, 25) }}
+                              >
+                                Bekijken
+                                <ChevronRight size={14} />
+                              </Link>
+                            )}
+                          </div>
+                        </div>
                       ))
                     )}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/afscheid" })}
