@@ -457,39 +457,41 @@ export default function AccountLayout({
                     {!notifData || notifData.notifications.length === 0 ? (
                       <p className="p-6 text-sm text-gray-500 text-center">Nog geen hartverwarmers ontvangen</p>
                     ) : (
-                      notifData.notifications.map((n: any) => (
-                        <div
-                          key={n._id}
-                          className="px-5 py-4 border-b border-gray-50 last:border-0"
-                        >
-                          <p className="text-sm font-medium text-gray-900">{n.title}</p>
-                          <p className="text-sm text-gray-600 mt-1">{n.body}</p>
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-xs text-gray-400">
-                              {new Date(n.sentAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                            </p>
-                            {n.url && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  const targetUrl = n.url;
-                                  setNotifOpen(false);
-                                  setTimeout(() => {
-                                    window.location.href = targetUrl;
-                                  }, 100);
-                                }}
-                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg transition-colors"
+                      notifData.notifications.map((n: any) =>
+                        n.url ? (
+                          <a
+                            key={n._id}
+                            href={n.url}
+                            className="block px-5 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors cursor-pointer"
+                          >
+                            <p className="text-sm font-medium text-gray-900">{n.title}</p>
+                            <p className="text-sm text-gray-600 mt-1">{n.body}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              <p className="text-xs text-gray-400">
+                                {new Date(n.sentAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                              <span
+                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg"
                                 style={{ color: accent, backgroundColor: hexToLightTint(accent, 25) }}
                               >
                                 Bekijken
                                 <ChevronRight size={14} />
-                              </button>
-                            )}
+                              </span>
+                            </div>
+                          </a>
+                        ) : (
+                          <div
+                            key={n._id}
+                            className="px-5 py-4 border-b border-gray-50 last:border-0"
+                          >
+                            <p className="text-sm font-medium text-gray-900">{n.title}</p>
+                            <p className="text-sm text-gray-600 mt-1">{n.body}</p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              {new Date(n.sentAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </p>
                           </div>
-                        </div>
-                      ))
+                        )
+                      )
                     )}
                   </div>
                 </div>
