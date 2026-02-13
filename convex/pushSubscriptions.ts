@@ -232,6 +232,7 @@ export const recordNotification = mutation({
     body: v.string(),
     url: v.optional(v.string()),
     recipientCount: v.number(),
+    recipients: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await ctx.db.insert("pushNotifications", {
@@ -241,7 +242,25 @@ export const recordNotification = mutation({
       sentBy: "admin",
       sentAt: Date.now(),
       recipientCount: args.recipientCount,
+      recipients: args.recipients,
     });
+  },
+});
+
+/** Haal alle userIds op die ooit een notificatie hebben ontvangen */
+export const getAllNotifiedUserIds = query({
+  args: {},
+  handler: async (ctx) => {
+    const allNotifs = await ctx.db.query("pushNotifications").collect();
+    const userIds = new Set<string>();
+    for (const n of allNotifs) {
+      if (n.recipients) {
+        for (const uid of n.recipients) {
+          userIds.add(uid);
+        }
+      }
+    }
+    return Array.from(userIds);
   },
 });
 

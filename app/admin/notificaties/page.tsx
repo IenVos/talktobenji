@@ -3,21 +3,28 @@
 import { useState } from "react";
 import { useQuery, useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Bell, Send, Users, Clock, Trash2, RefreshCw } from "lucide-react";
+import { Bell, Send, Users, Clock, Trash2, RefreshCw, UserPlus } from "lucide-react";
 
 export default function AdminNotificatiesPage() {
   const subscriberCount = useQuery(api.pushSubscriptions.getSubscriberCount);
   const subscribers = useQuery(api.pushSubscriptions.listSubscribers);
   const sentNotifications = useQuery(api.pushSubscriptions.listSentNotifications);
   const sendToAll = useAction(api.pushNotifications.sendToAll);
+  const sendToNewOnly = useAction(api.pushNotifications.sendToNewOnly);
   const deleteNotification = useMutation(api.pushSubscriptions.deleteNotification);
+  const alreadyNotifiedIds = useQuery(api.pushSubscriptions.getAllNotifiedUserIds);
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [url, setUrl] = useState("");
   const [sending, setSending] = useState(false);
-  const [result, setResult] = useState<{ sent: number; failed: number } | null>(null);
+  const [result, setResult] = useState<{ sent: number; failed: number; skipped?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Bereken het aantal nieuwe subscribers (nog nooit een notificatie ontvangen)
+  const newSubscriberCount = subscribers && alreadyNotifiedIds
+    ? subscribers.filter((s) => !alreadyNotifiedIds.includes(s.userId)).length
+    : 0;
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +38,32 @@ export default function AdminNotificatiesPage() {
 
     try {
       const res = await sendToAll({
+        title: title.trim(),
+        body: body.trim(),
+        url: url.trim() || undefined,
+      });
+      setResult(res);
+      setTitle("");
+      setBody("");
+      setUrl("");
+    } catch (err: any) {
+      setError(err.message || "Versturen mislukt");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleSendToNew = async () => {
+    if (!title.trim() || !body.trim()) return;
+
+    if (!confirm(`Notificatie versturen naar ${newSubscriberCount} nieuwe subscriber(s)?`)) return;
+
+    setSending(true);
+    setResult(null);
+    setError(null);
+
+    try {
+      const res = await sendToNewOnly({
         title: title.trim(),
         body: body.trim(),
         url: url.trim() || undefined,
@@ -147,18 +180,34 @@ export default function AdminNotificatiesPage() {
           <p className="text-xs text-gray-400 mt-1">Waar de gebruiker naartoe gaat als ze op de notificatie tikken. Standaard: /account</p>
         </div>
 
-        <button
-          type="submit"
-          disabled={sending || !title.trim() || !body.trim() || subscriberCount === 0}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
-        >
-          <Send size={18} />
-          {sending ? "Versturen..." : "Verstuur naar alle subscribers"}
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="submit"
+            disabled={sending || !title.trim() || !body.trim() || subscriberCount === 0}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
+          >
+            <Send size={18} />
+            {sending ? "Versturen..." : `Alle subscribers (${subscriberCount ?? 0})`}
+          </button>
+          <button
+            type="button"
+            onClick={handleSendToNew}
+            disabled={sending || !title.trim() || !body.trim() || newSubscriberCount === 0}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+          >
+            <UserPlus size={18} />
+            {sending ? "Versturen..." : `Alleen nieuwe subscribers (${newSubscriberCount})`}
+          </button>
+        </div>
+        {newSubscriberCount === 0 && (subscriberCount ?? 0) > 0 && (
+          <p className="text-xs text-gray-400">Alle subscribers hebben al eerder een notificatie ontvangen.</p>
+        )}
 
         {result && (
           <p className="text-sm text-green-600">
-            Verstuurd naar {result.sent} gebruiker(s).{result.failed > 0 && ` ${result.failed} mislukt.`}
+            Verstuurd naar {result.sent} gebruiker(s).
+            {result.failed > 0 && ` ${result.failed} mislukt.`}
+            {result.skipped !== undefined && result.skipped > 0 && ` ${result.skipped} overgeslagen (al ontvangen).`}
           </p>
         )}
         {error && <p className="text-sm text-red-600">{error}</p>}

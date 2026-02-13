@@ -333,6 +333,7 @@ export default defineSchema({
     sentBy: v.string(), // "admin"
     sentAt: v.number(),
     recipientCount: v.number(),
+    recipients: v.optional(v.array(v.string())), // userIds die deze notificatie ontvingen
   })
     .index("by_sent", ["sentAt"]),
 
