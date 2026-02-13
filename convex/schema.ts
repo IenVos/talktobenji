@@ -313,6 +313,28 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_created", ["userId", "createdAt"]),
 
+  // Push notificatie subscriptions
+  pushSubscriptions: defineTable({
+    userId: v.string(),
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_endpoint", ["endpoint"]),
+
+  // Push notificaties (verstuurde berichten)
+  pushNotifications: defineTable({
+    title: v.string(),
+    body: v.string(),
+    url: v.optional(v.string()),
+    sentBy: v.string(), // "admin"
+    sentAt: v.number(),
+    recipientCount: v.number(),
+  })
+    .index("by_sent", ["sentAt"]),
+
   // Analytics
   analytics: defineTable({
     date: v.number(),

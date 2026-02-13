@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart } from "lucide-react";
+import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -59,6 +59,7 @@ export default function AdminLayout({
     { href: "/admin/bronnen", label: "Bronnen", icon: FileStack, badge: 0 },
     { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
     { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping, badge: 0 },
+    { href: "/admin/notificaties", label: "Notificaties", icon: Bell, badge: 0 },
   ];
 
   return (

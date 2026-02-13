@@ -1,0 +1,162 @@
+"use client";
+
+import { useState } from "react";
+import { useQuery, useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Bell, Send, Users, Clock } from "lucide-react";
+
+export default function AdminNotificatiesPage() {
+  const subscriberCount = useQuery(api.pushSubscriptions.getSubscriberCount);
+  const sentNotifications = useQuery(api.pushSubscriptions.listSentNotifications);
+  const sendToAll = useAction(api.pushNotifications.sendToAll);
+
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [url, setUrl] = useState("");
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState<{ sent: number; failed: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !body.trim()) return;
+
+    if (!confirm(`Notificatie versturen naar ${subscriberCount ?? 0} gebruiker(s)?`)) return;
+
+    setSending(true);
+    setResult(null);
+    setError(null);
+
+    try {
+      const res = await sendToAll({
+        title: title.trim(),
+        body: body.trim(),
+        url: url.trim() || undefined,
+      });
+      setResult(res);
+      setTitle("");
+      setBody("");
+      setUrl("");
+    } catch (err: any) {
+      setError(err.message || "Versturen mislukt");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Bell size={24} className="text-primary-600" />
+        <h1 className="text-xl font-bold text-primary-900">Push Notificaties</h1>
+      </div>
+
+      {/* Stats */}
+      <div className="flex gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+          <Users size={20} className="text-primary-500" />
+          <div>
+            <p className="text-2xl font-bold text-primary-900">{subscriberCount ?? 0}</p>
+            <p className="text-xs text-gray-500">Subscribers</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
+          <Send size={20} className="text-primary-500" />
+          <div>
+            <p className="text-2xl font-bold text-primary-900">{sentNotifications?.length ?? 0}</p>
+            <p className="text-xs text-gray-500">Verstuurd</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Verstuur formulier */}
+      <form onSubmit={handleSend} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900">Nieuwe notificatie versturen</h2>
+
+        <div>
+          <label htmlFor="notif-title" className="block text-sm font-medium text-gray-700 mb-1">
+            Titel
+          </label>
+          <input
+            id="notif-title"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Bijv. Nieuw bericht van Benji"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            maxLength={100}
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="notif-body" className="block text-sm font-medium text-gray-700 mb-1">
+            Bericht
+          </label>
+          <textarea
+            id="notif-body"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Bijv. Er staat een nieuwe handreiking voor je klaar"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            rows={3}
+            maxLength={300}
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="notif-url" className="block text-sm font-medium text-gray-700 mb-1">
+            Link (optioneel)
+          </label>
+          <input
+            id="notif-url"
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="/account/handreikingen"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          />
+          <p className="text-xs text-gray-400 mt-1">Waar de gebruiker naartoe gaat als ze op de notificatie tikken. Standaard: /account</p>
+        </div>
+
+        <button
+          type="submit"
+          disabled={sending || !title.trim() || !body.trim() || subscriberCount === 0}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
+        >
+          <Send size={18} />
+          {sending ? "Versturen..." : "Verstuur naar alle subscribers"}
+        </button>
+
+        {result && (
+          <p className="text-sm text-green-600">
+            Verstuurd naar {result.sent} gebruiker(s).{result.failed > 0 && ` ${result.failed} mislukt.`}
+          </p>
+        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
+      </form>
+
+      {/* Geschiedenis */}
+      {sentNotifications && sentNotifications.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Verstuurde notificaties</h2>
+          <div className="space-y-3">
+            {sentNotifications.map((n) => (
+              <div key={n._id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                <Clock size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900">{n.title}</p>
+                  <p className="text-sm text-gray-600">{n.body}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {new Date(n.sentAt).toLocaleString("nl-NL")} — {n.recipientCount} ontvanger(s)
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

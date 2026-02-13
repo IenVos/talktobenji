@@ -140,7 +140,7 @@ export default function AccountCheckinsPage() {
           <p className="text-gray-500 text-sm">Nog geen check-ins ingevuld.</p>
         ) : (
           <div className="space-y-2">
-            {checkInEntries.map((entry) => {
+            {checkInEntries.map((entry: any) => {
               const isExpanded = expandedCheckInId === entry._id;
               return (
                 <div key={entry._id} className="rounded-lg border border-primary-200 overflow-hidden">

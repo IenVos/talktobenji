@@ -29,8 +29,8 @@ export default function AccountDoelenPage() {
     setNewGoal("");
   };
 
-  const openGoals = goals?.filter((g) => !g.completed) ?? [];
-  const completedGoals = goals?.filter((g) => g.completed) ?? [];
+  const openGoals = goals?.filter((g: any) => !g.completed) ?? [];
+  const completedGoals = goals?.filter((g: any) => g.completed) ?? [];
 
   return (
     <div className="space-y-6">
@@ -78,7 +78,7 @@ export default function AccountDoelenPage() {
           <p className="text-sm text-gray-500">Geen openstaande doelen. Voeg er een toe.</p>
         ) : (
           <ul className="space-y-2">
-            {openGoals.map((g) => (
+            {openGoals.map((g: any) => (
               <li
                 key={g._id}
                 className="flex items-center gap-3 p-3 rounded-lg bg-primary-50/50 border border-primary-100"
@@ -115,7 +115,7 @@ export default function AccountDoelenPage() {
             Voltooide doelen
           </h2>
           <ul className="space-y-2">
-            {completedGoals.map((g) => (
+            {completedGoals.map((g: any) => (
               <li
                 key={g._id}
                 className="flex items-center gap-3 p-3 rounded-lg bg-green-50/50 border border-green-100"

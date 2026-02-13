@@ -23,6 +23,8 @@ import type * as knowledgeBase from "../knowledgeBase.js";
 import type * as memories from "../memories.js";
 import type * as notes from "../notes.js";
 import type * as preferences from "../preferences.js";
+import type * as pushNotifications from "../pushNotifications.js";
+import type * as pushSubscriptions from "../pushSubscriptions.js";
 import type * as reflecties from "../reflecties.js";
 import type * as seedData from "../seedData.js";
 import type * as settings from "../settings.js";
@@ -51,6 +53,8 @@ declare const fullApi: ApiFromModules<{
   memories: typeof memories;
   notes: typeof notes;
   preferences: typeof preferences;
+  pushNotifications: typeof pushNotifications;
+  pushSubscriptions: typeof pushSubscriptions;
   reflecties: typeof reflecties;
   seedData: typeof seedData;
   settings: typeof settings;

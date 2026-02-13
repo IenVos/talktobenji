@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Palette, ImageIcon, Trash2, Save, RotateCcw, Smartphone, X } from "lucide-react";
+import { Palette, ImageIcon, Trash2, Save, RotateCcw, Smartphone, X, Bell } from "lucide-react";
+import { isPushSupported, subscribeToPush, unsubscribeFromPush, getPermissionStatus } from "@/lib/pushNotifications";
 
 // Originele Benji-kleur (primary-600 uit tailwind)
 const ORIGINAL_COLOR = "#6d84a8";
@@ -45,6 +46,54 @@ export default function AccountInstellingenPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showInstallPopup, setShowInstallPopup] = useState(false);
+
+  // Push notificaties
+  const pushSupported = typeof window !== "undefined" && isPushSupported();
+  const isSubscribed = useQuery(
+    api.pushSubscriptions.isSubscribed,
+    userId ? { userId } : "skip"
+  );
+  const subscribeMutation = useMutation(api.pushSubscriptions.subscribe);
+  const unsubscribeMutation = useMutation(api.pushSubscriptions.unsubscribe);
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushError, setPushError] = useState<string | null>(null);
+
+  const handleTogglePush = async () => {
+    if (!userId) return;
+    setPushLoading(true);
+    setPushError(null);
+    try {
+      if (isSubscribed) {
+        // Uitschakelen
+        await unsubscribeFromPush();
+        await unsubscribeMutation({ userId });
+      } else {
+        // Inschakelen
+        const subscription = await subscribeToPush();
+        if (!subscription) {
+          const perm = getPermissionStatus();
+          if (perm === "denied") {
+            setPushError("Je hebt notificaties geblokkeerd in je browser. Ga naar je browserinstellingen om dit te wijzigen.");
+          } else {
+            setPushError("Notificaties konden niet worden ingeschakeld. Probeer het opnieuw.");
+          }
+          return;
+        }
+        const json = subscription.toJSON();
+        await subscribeMutation({
+          userId,
+          endpoint: json.endpoint!,
+          p256dh: json.keys!.p256dh,
+          auth: json.keys!.auth,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setPushError("Er ging iets mis. Probeer het opnieuw.");
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   useEffect(() => {
     setAccentColor(preferences?.accentColor ?? "");
@@ -189,6 +238,49 @@ export default function AccountInstellingenPage() {
             />
             {uploading ? "Bezig met uploaden…" : "Afbeelding uploaden"}
           </label>
+        </div>
+
+        {/* Push notificaties */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Bell size={24} className="text-primary-500" />
+            <h2 className="text-lg font-semibold text-primary-900">Notificaties</h2>
+          </div>
+          <p className="text-sm text-gray-600 mb-4">
+            Ontvang een melding op je telefoon wanneer er een nieuw bericht voor je is.
+          </p>
+          {!pushSupported ? (
+            <p className="text-sm text-gray-500 italic">
+              Notificaties worden niet ondersteund in deze browser. Installeer de app op je telefoon voor notificaties.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700">
+                  {isSubscribed ? "Notificaties staan aan" : "Notificaties staan uit"}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleTogglePush}
+                  disabled={pushLoading || isSubscribed === undefined}
+                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+                    isSubscribed ? "bg-primary-600" : "bg-gray-300"
+                  }`}
+                  role="switch"
+                  aria-checked={!!isSubscribed}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      isSubscribed ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+              {pushError && (
+                <p className="text-sm text-red-600">{pushError}</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Installeer als app */}
