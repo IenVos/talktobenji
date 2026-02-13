@@ -15,7 +15,7 @@ export const sendToAll = action({
     body: v.string(),
     url: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ sent: number; failed: number }> => {
     const webpush = require("web-push");
 
     const vapidPublic = process.env.VAPID_PUBLIC_KEY;
@@ -34,7 +34,7 @@ export const sendToAll = action({
     );
 
     // Haal alle subscriptions op
-    const allSubs = await ctx.runQuery(api.pushSubscriptions.getAllSubscriptions);
+    const allSubs: any[] = await ctx.runQuery(api.pushSubscriptions.getAllSubscriptions);
 
     const payload = JSON.stringify({
       title: args.title,

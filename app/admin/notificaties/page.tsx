@@ -7,6 +7,7 @@ import { Bell, Send, Users, Clock } from "lucide-react";
 
 export default function AdminNotificatiesPage() {
   const subscriberCount = useQuery(api.pushSubscriptions.getSubscriberCount);
+  const subscribers = useQuery(api.pushSubscriptions.listSubscribers);
   const sentNotifications = useQuery(api.pushSubscriptions.listSentNotifications);
   const sendToAll = useAction(api.pushNotifications.sendToAll);
 
@@ -68,6 +69,31 @@ export default function AdminNotificatiesPage() {
           </div>
         </div>
       </div>
+
+      {/* Subscribers lijst */}
+      {subscribers && subscribers.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscribers</h2>
+          <div className="space-y-2">
+            {subscribers.map((sub) => (
+              <div key={sub.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{sub.name}</p>
+                  <p className="text-xs text-gray-500">{sub.email}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-gray-400">
+                    {sub.deviceCount > 1 ? `${sub.deviceCount} apparaten` : "1 apparaat"}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Sinds {new Date(sub.subscribedAt).toLocaleDateString("nl-NL")}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Verstuur formulier */}
       <form onSubmit={handleSend} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">

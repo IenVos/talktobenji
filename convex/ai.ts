@@ -190,7 +190,7 @@ export const handleUserMessage = action({
           role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
           content: m.content.slice(0, charLimit), // Dynamische karakter limiet
         }))
-        .filter(m => m.content.trim().length > 0); // Verwijder lege berichten
+        .filter((m: ClaudeMessage) => m.content.trim().length > 0); // Verwijder lege berichten
 
       // STAP 4: Filter relevante knowledge base vragen - ALLEEN als er een goede match is
       const userMessageLower = args.userMessage.toLowerCase().trim();
@@ -271,13 +271,13 @@ export const handleUserMessage = action({
       });
       
       // Sorteer op score
-      const sortedQuestions = scoredQuestions.sort((a, b) => b.score - a.score);
+      const sortedQuestions = scoredQuestions.sort((a: any, b: any) => b.score - a.score);
       
       // BELANGRIJK: Alleen Q&As meesturen als er een goede match is (score >= 15 - verhoogd voor betere filtering)
       // Dit voorkomt dat we onnodig veel tokens gebruiken
       const minScoreThreshold = 15; // Minimum score om mee te sturen (verhoogd voor rate limits)
       const knowledgeBaseQuestions = sortedQuestions
-        .filter(q => q.score >= minScoreThreshold)
+        .filter((q: any) => q.score >= minScoreThreshold)
         .slice(0, 5); // Max 5 relevante Q&As (verlaagd van 10 voor rate limits)
 
       // STAP 5: Filter en limiter sources (max 2 sources, max 4000 karakters per source - balans)
@@ -310,7 +310,7 @@ export const handleUserMessage = action({
       
       // Knowledge base: ALLEEN als er een EXCELLENTE match is (dynamische threshold)
       const excellentMatches = sortedQuestions
-        .filter(q => q.score >= kbThreshold) // Dynamische threshold
+        .filter((q: any) => q.score >= kbThreshold) // Dynamische threshold
         .slice(0, kbMaxMatches); // Dynamisch aantal matches
       
       if (excellentMatches.length > 0) {

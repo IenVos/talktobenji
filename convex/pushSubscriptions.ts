@@ -79,6 +79,42 @@ export const getSubscriberCount = query({
   },
 });
 
+/** Haal alle subscribers op met naam/email (voor admin) */
+export const listSubscribers = query({
+  args: {},
+  handler: async (ctx) => {
+    const subs = await ctx.db.query("pushSubscriptions").collect();
+    // Groepeer per userId (kan meerdere devices hebben)
+    const userMap = new Map<string, { userId: string; deviceCount: number; subscribedAt: number }>();
+    for (const sub of subs) {
+      const existing = userMap.get(sub.userId);
+      if (existing) {
+        existing.deviceCount++;
+        if (sub.createdAt < existing.subscribedAt) existing.subscribedAt = sub.createdAt;
+      } else {
+        userMap.set(sub.userId, { userId: sub.userId, deviceCount: 1, subscribedAt: sub.createdAt });
+      }
+    }
+
+    // Haal user info op
+    const results = [];
+    for (const entry of userMap.values()) {
+      const user = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("_id"), entry.userId))
+        .first();
+      results.push({
+        userId: entry.userId,
+        name: user?.name || "Onbekend",
+        email: user?.email || "",
+        deviceCount: entry.deviceCount,
+        subscribedAt: entry.subscribedAt,
+      });
+    }
+    return results;
+  },
+});
+
 /** Haal alle verstuurde notificaties op (voor admin) */
 export const listSentNotifications = query({
   args: {},
@@ -113,6 +149,59 @@ export const removeExpiredSubscriptions = mutation({
       if (sub) {
         await ctx.db.delete(sub._id);
       }
+    }
+  },
+});
+
+// ============================================================================
+// IN-APP NOTIFICATIES (voor account bell icon)
+// ============================================================================
+
+/** Haal notificaties op voor een gebruiker + ongelezen count */
+export const getNotificationsForUser = query({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Haal lastSeenNotificationsAt op uit preferences
+    const prefs = await ctx.db
+      .query("userPreferences")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+    const lastSeen = prefs?.lastSeenNotificationsAt ?? 0;
+
+    // Haal recente notificaties op
+    const notifications = await ctx.db
+      .query("pushNotifications")
+      .withIndex("by_sent")
+      .order("desc")
+      .take(20);
+
+    const unreadCount = notifications.filter((n) => n.sentAt > lastSeen).length;
+
+    return { notifications, unreadCount };
+  },
+});
+
+/** Markeer notificaties als gelezen */
+export const markNotificationsRead = mutation({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const prefs = await ctx.db
+      .query("userPreferences")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (prefs) {
+      await ctx.db.patch(prefs._id, { lastSeenNotificationsAt: Date.now() });
+    } else {
+      await ctx.db.insert("userPreferences", {
+        userId: args.userId,
+        lastSeenNotificationsAt: Date.now(),
+        updatedAt: Date.now(),
+      });
     }
   },
 });

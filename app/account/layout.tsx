@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const ORIGINAL_ACCENT = "#6d84a8";
@@ -94,6 +94,27 @@ export default function AccountLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 5;
+
+  // Notificatie bell
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const notifData = useQuery(
+    api.pushSubscriptions.getNotificationsForUser,
+    session?.userId ? { userId: session.userId as string } : "skip"
+  );
+  const markRead = useMutation(api.pushSubscriptions.markNotificationsRead);
+
+  // Sluit notificatie dropdown bij klik buiten
+  useEffect(() => {
+    if (!notifOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    };
+    const timer = setTimeout(() => document.addEventListener("mousedown", handleClick), 50);
+    return () => { clearTimeout(timer); document.removeEventListener("mousedown", handleClick); };
+  }, [notifOpen]);
 
   // HTTP → HTTPS in productie: session cookies werken alleen over HTTPS
   useEffect(() => {
@@ -379,6 +400,55 @@ export default function AccountLayout({
         <div className="mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex-1" />
+            {/* Notificatie bell */}
+            <div className="relative" ref={notifRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setNotifOpen((o) => !o);
+                  if (!notifOpen && notifData && notifData.unreadCount > 0 && session?.userId) {
+                    markRead({ userId: session.userId as string });
+                  }
+                }}
+                className="p-2 text-gray-400 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0 relative"
+                title="Notificaties"
+                aria-label="Notificaties"
+              >
+                <Bell size={18} />
+                {notifData && notifData.unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {notifData.unreadCount > 9 ? "9+" : notifData.unreadCount}
+                  </span>
+                )}
+              </button>
+              {notifOpen && (
+                <div className="absolute right-0 top-full mt-1 w-80 max-w-[90vw] bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <p className="text-sm font-semibold text-gray-900">Notificaties</p>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {!notifData || notifData.notifications.length === 0 ? (
+                      <p className="p-4 text-sm text-gray-500 text-center">Geen notificaties</p>
+                    ) : (
+                      notifData.notifications.map((n: any) => (
+                        <a
+                          key={n._id}
+                          href={n.url || "/account"}
+                          onClick={() => setNotifOpen(false)}
+                          className="block px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
+                        >
+                          <p className="text-sm font-medium text-gray-900">{n.title}</p>
+                          <p className="text-sm text-gray-600 mt-0.5">{n.body}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(n.sentAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        </a>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/afscheid" })}

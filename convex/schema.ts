@@ -205,6 +205,7 @@ export default defineSchema({
     userId: v.string(),
     accentColor: v.optional(v.string()),
     backgroundImageStorageId: v.optional(v.id("_storage")),
+    lastSeenNotificationsAt: v.optional(v.number()),
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
 
