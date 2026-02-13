@@ -142,7 +142,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       },
     },
     {
-      label: "Jouw schatkist",
+      label: "Memories",
       icon: Gem,
       requiresAuth: true,
       onClick: () => {

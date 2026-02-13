@@ -364,7 +364,7 @@ export default function HerinneringenPage() {
               className="px-5 py-2 rounded-lg text-sm font-medium text-white transition-colors disabled:opacity-50 shadow-sm"
               style={{ backgroundColor: "var(--account-accent)" }}
             >
-              {saving ? "Opslaan..." : "Bewaren in schatkist"}
+              {saving ? "Opslaan..." : "Bewaren in Memories"}
             </button>
             <button
               type="button"
@@ -385,7 +385,7 @@ export default function HerinneringenPage() {
       ) : memories.length === 0 && !showForm ? (
         <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
           <Gem size={40} className="mx-auto text-amber-300 mb-3" />
-          <h3 className="font-semibold text-primary-900 mb-1">Je schatkist is nog leeg</h3>
+          <h3 className="font-semibold text-primary-900 mb-1">Je Memories is nog leeg</h3>
           <p className="text-sm text-gray-500 mb-4">
             Bewaar hier je mooiste herinneringen. Een moment, een gevoel, iets moois om naar terug te kijken.
           </p>

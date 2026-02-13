@@ -5,16 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 
 const AFSCHEIDSGROETEN = [
-  "Pas goed op jezelf. Je bent het waard.",
-  "Tot de volgende keer. Benji is er altijd voor je.",
-  "Neem de rust die je nodig hebt. Je doet het goed.",
-  "Fijn dat je er was. Tot snel!",
-  "Vergeet niet: je bent niet alleen. Tot de volgende keer.",
-  "Ga lief voor jezelf zijn. Tot gauw!",
-  "Bedankt voor dit gesprek. Je mag er zijn.",
-  "Tot ziens! Onthoud: elke stap telt, hoe klein ook.",
-  "Wees zacht voor jezelf vandaag. Tot de volgende keer.",
-  "Je bent sterker dan je denkt. Tot snel, lief mens.",
+  "Pas goed op jezelf.\nJe bent het waard.",
+  "Tot de volgende keer.\nBenji is er altijd voor je.",
+  "Neem de rust die je nodig hebt.\nJe doet het goed.",
+  "Fijn dat je er was.\nTot snel!",
+  "Vergeet niet: je bent niet alleen.\nTot de volgende keer.",
+  "Ga lief voor jezelf zijn.\nTot gauw!",
+  "Bedankt voor dit gesprek.\nJe mag er zijn.",
+  "Tot ziens!\nOnthoud: elke stap telt, hoe klein ook.",
+  "Wees zacht voor jezelf vandaag.\nTot de volgende keer.",
+  "Je bent sterker dan je denkt.\nTot snel, lief mens.",
 ];
 
 export default function AfscheidPage() {
@@ -22,6 +22,14 @@ export default function AfscheidPage() {
 
   useEffect(() => {
     setGroet(AFSCHEIDSGROETEN[Math.floor(Math.random() * AFSCHEIDSGROETEN.length)]);
+    // Clear all user data so homepage shows the original welcome screen after logout
+    try {
+      localStorage.removeItem("benji_session_id");
+      localStorage.removeItem("benji_has_chatted");
+      localStorage.removeItem("benji_accent_color");
+      localStorage.removeItem("benji_user_name");
+      localStorage.removeItem("benji_anonymous_id");
+    } catch {}
   }, []);
 
   return (
@@ -35,7 +43,7 @@ export default function AfscheidPage() {
           className="mx-auto object-contain mb-6"
           style={{ width: "auto", height: "auto" }}
         />
-        <p className="text-lg text-gray-700 leading-relaxed mb-8 italic">
+        <p className="text-lg text-gray-700 leading-relaxed mb-8 italic whitespace-pre-line">
           &ldquo;{groet}&rdquo;
         </p>
         <Link

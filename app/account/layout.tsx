@@ -28,7 +28,7 @@ const TOP_ITEMS = [
   { href: "/account/reflecties", label: "Reflecties", icon: PencilLine },
   { href: "/account/doelen", label: "Persoonlijke doelen", icon: Target },
   { href: "/account/checkins", label: "Dagelijkse check-ins", icon: CalendarCheck },
-  { href: "/account/herinneringen", label: "Jouw schatkist", icon: Gem, iconClassName: "text-amber-500" },
+  { href: "/account/herinneringen", label: "Memories", icon: Gem, iconClassName: "text-amber-500" },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
   { href: "/account/handreikingen", label: "Handreikingen", icon: HandHelping },
   { href: "/account/instellingen", label: "Personalisatie", icon: UserCircle },
@@ -56,7 +56,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account/notities": { title: "Reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/inspiratie": { title: "Inspiratie & troost", subtitle: "Gedichten, citaten en teksten die je kunnen steunen" },
   "/account/handreikingen": { title: "Handreikingen", subtitle: "Praktische tips en ideeën voor moeilijke momenten" },
-  "/account/herinneringen": { title: "Jouw schatkist", subtitle: "Mooie herinneringen om naar terug te kijken" },
+  "/account/herinneringen": { title: "Memories", subtitle: "Mooie herinneringen om naar terug te kijken" },
   "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
   "/account/instellingen": { title: "Personaliseer", subtitle: "Personalisatie van je account" },
 };
@@ -437,34 +437,34 @@ export default function AccountLayout({
             />
             {/* Slide-in panel – rechts */}
             <div className="absolute inset-y-0 right-0 w-72 max-w-[85vw] bg-white shadow-xl flex flex-col">
-              <div className="flex items-center justify-between p-4 border-b border-primary-100">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-primary-100">
                 <Image
                   src="/images/benji-logo-2.png"
                   alt="Benji"
-                  width={28}
-                  height={28}
+                  width={24}
+                  height={24}
                   className="object-contain opacity-40"
                   style={{ width: "auto", height: "auto" }}
                 />
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
                   aria-label="Menu sluiten"
                 >
-                  <X size={20} className="text-gray-500" />
+                  <X size={18} className="text-gray-500" />
                 </button>
               </div>
-              <nav className="flex-1 overflow-y-auto p-3">
+              <nav className="flex-1 overflow-y-auto p-2 mobile-nav-compact">
                 {navContent}
               </nav>
-              <div className="p-4 border-t border-primary-100">
+              <div className="px-3 py-2 border-t border-primary-100">
                 <button
                   type="button"
                   onClick={() => signOut({ callbackUrl: "/afscheid" })}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors w-full"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-medium text-orange-600 hover:bg-orange-50 transition-colors w-full"
                 >
-                  <LogOut size={18} className="flex-shrink-0" />
+                  <LogOut size={16} className="flex-shrink-0" />
                   Uitloggen
                 </button>
               </div>

@@ -79,7 +79,7 @@ function MemorySaveButton({ memoryText, emotion, userId, accent }: { memoryText:
     return (
       <div className="mt-2 flex items-center gap-2 text-xs text-amber-600">
         <Gem size={14} />
-        <span>Bewaard in je schatkist</span>
+        <span>Bewaard in Memories</span>
       </div>
     );
   }
@@ -93,7 +93,7 @@ function MemorySaveButton({ memoryText, emotion, userId, accent }: { memoryText:
       style={{ borderColor: accent, color: accent }}
     >
       <Gem size={14} />
-      {saving ? "Opslaan..." : "Bewaar in je schatkist"}
+      {saving ? "Opslaan..." : "Bewaar in Memories"}
     </button>
   );
 }

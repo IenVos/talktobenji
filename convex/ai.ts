@@ -476,7 +476,7 @@ BELANGRIJKE REGELS:
 
       const memoryRule = isEnglish
         ? ""
-        : `HERINNERINGEN HERKENNEN: Wanneer iemand een mooie, warme of positieve herinnering deelt (een fijn moment met een dierbare, iets wat ze samen deden, een gelukkig gevoel van vroeger), bied dan aan om deze herinnering op te slaan in hun schatkist. Doe dit door aan het einde van je antwoord de volgende markering te plaatsen op een nieuwe regel:
+        : `HERINNERINGEN HERKENNEN: Wanneer iemand een mooie, warme of positieve herinnering deelt (een fijn moment met een dierbare, iets wat ze samen deden, een gelukkig gevoel van vroeger), bied dan aan om deze herinnering op te slaan in hun Memories. Doe dit door aan het einde van je antwoord de volgende markering te plaatsen op een nieuwe regel:
 [HERINNERING: de kern van de herinnering hier | emotie: dankbaar/warm/gelukkig/trots/verbonden/geliefd]
 
 REGELS:

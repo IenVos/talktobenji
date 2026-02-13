@@ -63,6 +63,18 @@
   background-color: var(--account-accent-light) !important;
 }
 
+/* Compact mobiel menu */
+.mobile-nav-compact li a,
+.mobile-nav-compact li button,
+.mobile-nav-compact li > div {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 0.8125rem;
+}
+.mobile-nav-compact ul {
+  gap: 0;
+}
+
 /* Chat-thema: accentkleur op chatpagina (header, footer, knoppen, bubbles) */
 .chat-theme [class*="bg-primary-900"],
 .chat-theme [class*="bg-primary-800"] {

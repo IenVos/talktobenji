@@ -105,6 +105,7 @@ export default function AccountReflectiesPage() {
   const [activeRecording, setActiveRecording] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const activeFieldRef = useRef<string | null>(null);
+  const prefixRef = useRef<string>("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -112,19 +113,35 @@ export default function AccountReflectiesPage() {
     if (SpeechRecognitionAPI) {
       setSpeechSupported(true);
       const recognition = new SpeechRecognitionAPI();
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "nl-NL";
       recognition.onresult = (event: any) => {
-        const transcript = Array.from(event.results).map((r: any) => r[0].transcript).join("");
+        const parts: string[] = [];
+        for (let i = 0; i < event.results.length; i++) {
+          parts.push(event.results[i][0].transcript);
+        }
+        const transcript = parts.join(" ");
+        const combined = prefixRef.current ? prefixRef.current + " " + transcript : transcript;
         const field = activeFieldRef.current;
-        if (field === "noteContent") setNoteContent(transcript);
-        else if (field === "hoe_voel") setCheckInForm((f) => ({ ...f, hoe_voel: transcript }));
-        else if (field === "wat_hielp") setCheckInForm((f) => ({ ...f, wat_hielp: transcript }));
-        else if (field === "waar_dankbaar") setCheckInForm((f) => ({ ...f, waar_dankbaar: transcript }));
+        if (field === "noteContent") setNoteContent(combined);
+        else if (field === "hoe_voel") setCheckInForm((f) => ({ ...f, hoe_voel: combined }));
+        else if (field === "wat_hielp") setCheckInForm((f) => ({ ...f, wat_hielp: combined }));
+        else if (field === "waar_dankbaar") setCheckInForm((f) => ({ ...f, waar_dankbaar: combined }));
       };
-      recognition.onend = () => setActiveRecording(null);
-      recognition.onerror = () => setActiveRecording(null);
+      // Only stop when user clicks the stop button – auto-restart on unexpected end
+      recognition.onend = () => {
+        if (activeFieldRef.current) {
+          try { recognition.start(); } catch {}
+        } else {
+          setActiveRecording(null);
+        }
+      };
+      recognition.onerror = (e: any) => {
+        if (e.error === "aborted") return;
+        setActiveRecording(null);
+        activeFieldRef.current = null;
+      };
       recognitionRef.current = recognition;
     }
   }, []);
@@ -132,10 +149,18 @@ export default function AccountReflectiesPage() {
   const toggleRecording = (field: string) => {
     if (!recognitionRef.current) return;
     if (activeRecording) {
+      activeFieldRef.current = null;
       recognitionRef.current.stop();
       setActiveRecording(null);
       return;
     }
+    // Save existing text so new speech appends to it
+    let existing = "";
+    if (field === "noteContent") existing = noteContent;
+    else if (field === "hoe_voel") existing = checkInForm.hoe_voel;
+    else if (field === "wat_hielp") existing = checkInForm.wat_hielp;
+    else if (field === "waar_dankbaar") existing = checkInForm.waar_dankbaar;
+    prefixRef.current = existing.trim();
     activeFieldRef.current = field;
     setActiveRecording(field);
     recognitionRef.current.start();
@@ -205,7 +230,7 @@ export default function AccountReflectiesPage() {
           Schrijf reflectie
         </h2>
         <p className="text-sm text-gray-600 mb-4">
-          {displayDate}. Neem even de tijd om je gedachten op te schrijven.
+          Vandaag is het {displayDate}, neem even de tijd om je gedachten op te schrijven of in te spreken.
         </p>
 
         {showNewNote && (
@@ -301,40 +326,100 @@ export default function AccountReflectiesPage() {
             </p>
           )}
 
-          {/* Eerdere emoties terugkijken */}
-          {emotionHistory && emotionHistory.filter((e) => e.date !== dateStr).length > 0 && (
-            <div className="mt-6 pt-6 border-t border-primary-100">
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-primary-900 mb-3">
-                <History size={16} className="text-primary-500" />
-                Eerdere emoties terugkijken
-              </h4>
-              <p className="text-xs text-gray-600 mb-3">
-                Bekijk je stemming over tijd.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {emotionHistory
-                  .filter((e) => e.date !== dateStr)
-                  .slice(0, 14)
-                  .map((e) => {
-                    const opt = MOOD_OPTIONS.find((m) => m.value === e.mood);
-                    return (
-                      <div
-                        key={e.date}
-                        className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50/50 border border-primary-100 text-sm"
-                      >
-                        <span className="text-lg">{opt?.emoji ?? "?"}</span>
-                        <span className="text-primary-800 font-medium">
-                          {formatDateStr(e.date).split(" ").slice(1).join(" ")}
-                        </span>
-                        <span className="text-primary-600">&middot;</span>
-                        <span className="text-primary-700">{opt?.label ?? ""}</span>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Laatste reflectie */}
+        {notes && notes.length > 0 && (
+          <div className="mt-6 pt-6 border-t border-primary-100">
+            <h3 className="flex items-center gap-2 text-base font-semibold text-primary-900 mb-3">
+              <History size={18} className="text-primary-500" />
+              Laatste reflectie
+            </h3>
+            {(() => {
+              const note = notes.filter((n) => n._id !== editingNoteId)[0];
+              if (!note) return null;
+              return (
+                <div className="p-4 rounded-lg border border-primary-100">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      {note.title && (
+                        <h3 className="font-semibold text-primary-900 truncate mb-1">{note.title}</h3>
+                      )}
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap line-clamp-2">
+                        {note.content}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-2">
+                        {formatDate(note.updatedAt)}
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingNoteId(note._id);
+                          setNoteTitle(note.title ?? "");
+                          setNoteContent(note.content);
+                        }}
+                        className="p-2 text-gray-500 hover:text-primary-600 rounded-lg"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteNote(note._id)}
+                        className="p-2 text-gray-500 hover:text-red-600 rounded-lg"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+            {editingNoteId && (
+              <div className="mt-3 p-4 bg-primary-50/50 rounded-lg border border-primary-200">
+                <input
+                  type="text"
+                  placeholder="Titel (optioneel)"
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-primary-200 rounded-lg mb-3"
+                />
+                <textarea
+                  placeholder="Inhoud"
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-primary-200 rounded-lg mb-3"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateNote(editingNoteId)}
+                    disabled={!noteContent.trim()}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-50"
+                  >
+                    Opslaan
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEditingNoteId(null); setNoteTitle(""); setNoteContent(""); }}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg"
+                  >
+                    Annuleren
+                  </button>
+                </div>
+              </div>
+            )}
+            <Link
+              href="/account/reflecties/eerdere-reflecties"
+              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg text-sm font-medium transition-colors"
+            >
+              <History size={18} />
+              Bekijk alle eerdere reflecties
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* 3. Persoonlijke doelen of wensen */}
@@ -367,7 +452,7 @@ export default function AccountReflectiesPage() {
         {goals && goals.length > 0 && (
           <>
             <ul className="space-y-2">
-              {goals.slice(0, 3).map((g) => (
+              {goals.slice(0, 1).map((g) => (
                 <li
                   key={g._id}
                   className="flex items-center gap-2 p-3 rounded-lg bg-primary-50/50"
@@ -499,10 +584,8 @@ export default function AccountReflectiesPage() {
               Eerdere check-ins
             </h3>
             <div className="space-y-2">
-              {checkInEntries.slice(0, 3).map((entry) => {
+              {checkInEntries.slice(0, 1).map((entry) => {
                 const isExpanded = expandedCheckInId === entry._id;
-                const emotionEntry = emotionHistory?.find((e) => e.date === entry.dateStr);
-                const moodOpt = emotionEntry?.mood ? MOOD_OPTIONS.find((m) => m.value === emotionEntry.mood) : null;
                 return (
                   <div key={entry._id} className="rounded-lg border border-primary-200 overflow-hidden">
                     <div className="flex items-center gap-2 px-4 py-3 bg-white">
@@ -512,7 +595,6 @@ export default function AccountReflectiesPage() {
                         className="flex items-center gap-2 text-left hover:bg-primary-50/50 rounded transition-colors flex-1 min-w-0"
                       >
                         {isExpanded ? <ChevronDown size={18} className="text-primary-600 flex-shrink-0" /> : <ChevronRight size={18} className="text-primary-600 flex-shrink-0" />}
-                        {moodOpt && <span className="text-xl flex-shrink-0" title={moodOpt.label}>{moodOpt.emoji}</span>}
                         <span className="font-medium text-primary-900 truncate">{formatDate(entry.createdAt)}</span>
                       </button>
                       <button type="button" onClick={() => handleDeleteCheckIn(entry._id)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg flex-shrink-0" aria-label="Verwijderen">
@@ -543,121 +625,6 @@ export default function AccountReflectiesPage() {
         )}
       </div>
 
-      {/* 5. Eerdere reflecties – max 3, rest via knop */}
-      <div className="bg-white rounded-xl border border-primary-200 p-6">
-        <h2 className="flex items-center gap-2 text-lg font-semibold text-primary-900 mb-4">
-          <PencilLine size={20} className="text-primary-500" />
-          Eerdere reflecties
-        </h2>
-        {notes === undefined ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-pulse rounded-full h-8 w-8 border-b-2 border-primary-600" />
-          </div>
-        ) : notes.length === 0 ? (
-          <p className="text-gray-500 text-sm">Nog geen reflecties geschreven.</p>
-        ) : (
-          <div className="space-y-3">
-            {notes
-              ?.filter((n) => n._id !== editingNoteId)
-              .slice(0, 3)
-              .map((note) => {
-                const noteDate = new Date(note.updatedAt).toISOString().slice(0, 10);
-                const emotionEntry = emotionHistory?.find((e) => e.date === noteDate);
-                const moodOpt = emotionEntry?.mood ? MOOD_OPTIONS.find((m) => m.value === emotionEntry.mood) : null;
-                return (
-                <div
-                  key={note._id}
-                  className="p-4 rounded-lg border border-primary-100"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      {(moodOpt || note.title) && (
-                        <div className="flex items-center gap-2 mb-1">
-                          {moodOpt && (
-                            <span className="text-xl flex-shrink-0" title={moodOpt.label}>{moodOpt.emoji}</span>
-                          )}
-                          {note.title && (
-                            <h3 className="font-semibold text-primary-900 truncate">{note.title}</h3>
-                          )}
-                        </div>
-                      )}
-                      <p className="text-sm text-gray-600 mt-1 whitespace-pre-wrap line-clamp-2">
-                        {note.content}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-2">
-                        {formatDate(note.updatedAt)}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingNoteId(note._id);
-                          setNoteTitle(note.title ?? "");
-                          setNoteContent(note.content);
-                        }}
-                        className="p-2 text-gray-500 hover:text-primary-600 rounded-lg"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteNote(note._id)}
-                        className="p-2 text-gray-500 hover:text-red-600 rounded-lg"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );})}
-
-            <Link
-              href="/account/reflecties/eerdere-reflecties"
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-primary-600 hover:bg-primary-50 rounded-lg text-sm font-medium transition-colors"
-            >
-              <History size={18} />
-              Bekijk alle eerdere reflecties
-            </Link>
-
-            {editingNoteId && (
-              <div className="p-4 bg-primary-50/50 rounded-lg border border-primary-200">
-                <input
-                  type="text"
-                  placeholder="Titel (optioneel)"
-                  value={noteTitle}
-                  onChange={(e) => setNoteTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-primary-200 rounded-lg mb-3"
-                />
-                <textarea
-                  placeholder="Inhoud"
-                  value={noteContent}
-                  onChange={(e) => setNoteContent(e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-primary-200 rounded-lg mb-3"
-                />
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleUpdateNote(editingNoteId)}
-                    disabled={!noteContent.trim()}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg disabled:opacity-50"
-                  >
-                    Opslaan
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setEditingNoteId(null); setNoteTitle(""); setNoteContent(""); }}
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg"
-                  >
-                    Annuleren
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

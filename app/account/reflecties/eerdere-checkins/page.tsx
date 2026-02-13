@@ -74,8 +74,6 @@ export default function EerdereCheckinsPage() {
           <div className="space-y-2">
             {checkInEntries.map((entry) => {
               const isExpanded = expandedCheckInId === entry._id;
-              const emotionEntry = emotionHistory?.find((e) => e.date === entry.dateStr);
-              const moodOpt = emotionEntry?.mood ? MOOD_OPTIONS.find((m) => m.value === emotionEntry.mood) : null;
               return (
                 <div
                   key={entry._id}
@@ -91,9 +89,6 @@ export default function EerdereCheckinsPage() {
                         <ChevronDown size={18} className="text-primary-600 flex-shrink-0" />
                       ) : (
                         <ChevronRight size={18} className="text-primary-600 flex-shrink-0" />
-                      )}
-                      {moodOpt && (
-                        <span className="text-xl flex-shrink-0" title={moodOpt.label}>{moodOpt.emoji}</span>
                       )}
                       <span className="font-medium text-primary-900 truncate">
                         {formatDate(entry.createdAt)}

@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { MessageSquare, PencilLine, Sparkles, HandHelping, Gem } from "lucide-react";
+import { MessageSquare, PencilLine, Sparkles, HandHelping, Gem, Target, CalendarCheck } from "lucide-react";
 
 const CATEGORIES = [
   { href: "/account/gesprekken", label: "Jouw gesprekken", icon: MessageSquare, desc: "Je eerdere gesprekken met Benji" },
   { href: "/account/reflecties", label: "Reflecties", icon: PencilLine, desc: "Notities, emoties en dagelijkse check-in" },
+  { href: "/account/doelen", label: "Persoonlijke doelen", icon: Target, desc: "Je doelen en wensen bijhouden" },
+  { href: "/account/checkins", label: "Dagelijkse check-ins", icon: CalendarCheck, desc: "Korte vragen om je gedachten te ordenen" },
+  { href: "/account/herinneringen", label: "Memories", icon: Gem, desc: "Mooie herinneringen om naar terug te kijken" },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles, desc: "Gedichten, citaten en teksten die je kunnen steunen" },
   { href: "/account/handreikingen", label: "Handreikingen", icon: HandHelping, desc: "Praktische tips en ideeën voor moeilijke momenten" },
-  { href: "/account/herinneringen", label: "Jouw schatkist", icon: Gem, desc: "Mooie herinneringen om naar terug te kijken" },
 ];
 
 export default function AccountPage() {
