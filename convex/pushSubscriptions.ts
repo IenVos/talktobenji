@@ -14,20 +14,24 @@ export const subscribe = mutation({
     auth: v.string(),
   },
   handler: async (ctx, args) => {
-    const existing = await ctx.db
+    // Check of deze user+endpoint combinatie al bestaat
+    const allForEndpoint = await ctx.db
       .query("pushSubscriptions")
       .withIndex("by_endpoint", (q) => q.eq("endpoint", args.endpoint))
-      .first();
+      .collect();
 
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        userId: args.userId,
+    const existingForUser = allForEndpoint.find((s) => s.userId === args.userId);
+
+    if (existingForUser) {
+      // Update bestaande subscription voor deze user
+      await ctx.db.patch(existingForUser._id, {
         p256dh: args.p256dh,
         auth: args.auth,
       });
-      return existing._id;
+      return existingForUser._id;
     }
 
+    // Maak nieuwe subscription aan (ook als andere users dezelfde endpoint hebben)
     return await ctx.db.insert("pushSubscriptions", {
       userId: args.userId,
       endpoint: args.endpoint,
@@ -96,17 +100,32 @@ export const listSubscribers = query({
       }
     }
 
-    // Haal user info op
+    // Haal user info op via db.get (directe ID lookup)
     const results = [];
     for (const entry of userMap.values()) {
-      const user = await ctx.db
-        .query("users")
-        .filter((q) => q.eq(q.field("_id"), entry.userId))
-        .first();
+      let name = "Onbekend";
+      let email = "";
+      try {
+        const user = await ctx.db.get(entry.userId as any);
+        if (user) {
+          name = (user as any).name || "Onbekend";
+          email = (user as any).email || "";
+        }
+      } catch {
+        // userId is geen geldig document ID, probeer via email index
+        const user = await ctx.db
+          .query("users")
+          .withIndex("email", (q) => q.eq("email", entry.userId))
+          .first();
+        if (user) {
+          name = user.name || "Onbekend";
+          email = user.email || "";
+        }
+      }
       results.push({
         userId: entry.userId,
-        name: user?.name || "Onbekend",
-        email: user?.email || "",
+        name,
+        email,
         deviceCount: entry.deviceCount,
         subscribedAt: entry.subscribedAt,
       });
