@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -97,24 +97,13 @@ export default function AccountLayout({
 
   // Notificatie bell
   const [notifOpen, setNotifOpen] = useState(false);
-  const notifRef = useRef<HTMLDivElement>(null);
   const notifData = useQuery(
     api.pushSubscriptions.getNotificationsForUser,
     session?.userId ? { userId: session.userId as string } : "skip"
   );
   const markRead = useMutation(api.pushSubscriptions.markNotificationsRead);
 
-  // Sluit notificatie dropdown bij klik buiten
-  useEffect(() => {
-    if (!notifOpen) return;
-    const handleClick = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setNotifOpen(false);
-      }
-    };
-    const timer = setTimeout(() => document.addEventListener("mousedown", handleClick), 50);
-    return () => { clearTimeout(timer); document.removeEventListener("mousedown", handleClick); };
-  }, [notifOpen]);
+  // Sluiten van notificatie popup gaat via de overlay onClick (geen extra listener nodig)
 
   // HTTP → HTTPS in productie: session cookies werken alleen over HTTPS
   useEffect(() => {
@@ -401,7 +390,7 @@ export default function AccountLayout({
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="flex-1" />
             {/* Hartverwarmer bell */}
-            <div ref={notifRef}>
+            <div>
               <button
                 type="button"
                 onClick={() => {
