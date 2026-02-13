@@ -314,6 +314,13 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_created", ["userId", "createdAt"]),
 
+  // Wachtwoord reset tokens
+  passwordResetTokens: defineTable({
+    userId: v.id("users"),
+    token: v.string(),
+    expiresAt: v.number(),
+  }).index("by_token", ["token"]),
+
   // Push notificatie subscriptions
   pushSubscriptions: defineTable({
     userId: v.string(),

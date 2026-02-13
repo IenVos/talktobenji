@@ -5,9 +5,16 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+async function requireAuth(ctx: any, userId: string) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Niet ingelogd");
+  if (identity.subject !== userId) throw new Error("Geen toegang");
+}
+
 export const getPreferences = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.userId);
     const prefs = await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -20,6 +27,7 @@ export const getPreferences = query({
 export const getPreferencesWithUrl = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.userId);
     const prefs = await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -37,6 +45,8 @@ export const getPreferencesWithUrl = query({
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Niet ingelogd");
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -48,6 +58,7 @@ export const setPreferences = mutation({
     backgroundImageStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.userId);
     const now = Date.now();
     const existing = await ctx.db
       .query("userPreferences")
@@ -75,6 +86,7 @@ export const setPreferences = mutation({
 export const removeBackgroundImage = mutation({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.userId);
     const existing = await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))

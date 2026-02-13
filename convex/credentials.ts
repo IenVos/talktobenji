@@ -110,6 +110,103 @@ export const createUserWithPassword = withSecretMutation({
   },
 });
 
+// ============================================================================
+// WACHTWOORD RESET
+// ============================================================================
+
+/** Maak een reset-token aan voor een gebruiker (server-side, via secret) */
+export const createPasswordResetToken = mutation({
+  args: {
+    secret: v.string(),
+    email: v.string(),
+    token: v.string(),
+    expiresAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    checkSecret(args.secret);
+    const emailLower = args.email.toLowerCase().trim();
+
+    // Zoek credentials
+    const cred = await ctx.db
+      .query("credentials")
+      .withIndex("email", (q) => q.eq("email", emailLower))
+      .unique();
+    if (!cred) return null;
+
+    // Verwijder oude tokens voor deze user
+    const oldTokens = await ctx.db
+      .query("passwordResetTokens")
+      .filter((q) => q.eq(q.field("userId"), cred.userId))
+      .collect();
+    for (const t of oldTokens) {
+      await ctx.db.delete(t._id);
+    }
+
+    // Sla nieuwe token op
+    await ctx.db.insert("passwordResetTokens", {
+      userId: cred.userId,
+      token: args.token,
+      expiresAt: args.expiresAt,
+    });
+
+    return { userId: cred.userId };
+  },
+});
+
+/** Valideer een reset-token */
+export const validateResetToken = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    const resetToken = await ctx.db
+      .query("passwordResetTokens")
+      .withIndex("by_token", (q) => q.eq("token", token))
+      .first();
+
+    if (!resetToken || resetToken.expiresAt < Date.now()) {
+      return { valid: false };
+    }
+    return { valid: true };
+  },
+});
+
+/** Reset het wachtwoord met een geldig token (server-side, via secret) */
+export const resetPassword = mutation({
+  args: {
+    secret: v.string(),
+    token: v.string(),
+    hashedPassword: v.string(),
+  },
+  handler: async (ctx, args) => {
+    checkSecret(args.secret);
+
+    const resetToken = await ctx.db
+      .query("passwordResetTokens")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .first();
+
+    if (!resetToken || resetToken.expiresAt < Date.now()) {
+      throw new Error("Token is ongeldig of verlopen");
+    }
+
+    // Update wachtwoord in credentials
+    const cred = await ctx.db
+      .query("credentials")
+      .filter((q) => q.eq(q.field("userId"), resetToken.userId))
+      .first();
+
+    if (!cred) {
+      throw new Error("Gebruiker niet gevonden");
+    }
+
+    await ctx.db.patch(cred._id, { hashedPassword: args.hashedPassword });
+
+    // Verwijder token
+    await ctx.db.delete(resetToken._id);
+
+    return { success: true };
+  },
+});
+
 /** Haal credentials op voor wachtwoordcontrole (alleen server-side). */
 export const getCredentialsByEmail = withSecretQuery({
   args: {},

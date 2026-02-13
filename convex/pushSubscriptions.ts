@@ -5,6 +5,12 @@ import { mutation, query } from "./_generated/server";
 // SUBSCRIPTIONS BEHEER (queries + mutations, GEEN "use node")
 // ============================================================================
 
+async function requireAuth(ctx: any, userId: string) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) throw new Error("Niet ingelogd");
+  if (identity.subject !== userId) throw new Error("Geen toegang");
+}
+
 /** Sla een push subscription op voor een gebruiker */
 export const subscribe = mutation({
   args: {
@@ -14,6 +20,7 @@ export const subscribe = mutation({
     auth: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.userId);
     // Check of deze user+endpoint combinatie al bestaat
     const allForEndpoint = await ctx.db
       .query("pushSubscriptions")
@@ -48,6 +55,7 @@ export const unsubscribe = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.userId);
     const subs = await ctx.db
       .query("pushSubscriptions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -65,6 +73,7 @@ export const isSubscribed = query({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.userId);
     const sub = await ctx.db
       .query("pushSubscriptions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -182,6 +191,7 @@ export const getNotificationsForUser = query({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.userId);
     // Haal lastSeenNotificationsAt op uit preferences
     const prefs = await ctx.db
       .query("userPreferences")
@@ -208,6 +218,7 @@ export const markNotificationsRead = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAuth(ctx, args.userId);
     const prefs = await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
