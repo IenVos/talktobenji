@@ -247,9 +247,12 @@ export default function HerinneringenPage() {
 
   return (
     <div className="space-y-6">
-      {/* Toevoegen-knop */}
-      {!showForm && (
-        <div className="flex justify-end">
+      {/* Intro + toevoegen */}
+      <div className="bg-white rounded-xl border border-primary-200 p-6">
+        <p className="text-sm text-gray-600 mb-4">
+          Bewaar hier je mooiste herinneringen. Een moment, een gevoel, iets moois om naar terug te kijken.
+        </p>
+        {!showForm && (
           <button
             type="button"
             onClick={() => setShowForm(true)}
@@ -257,11 +260,9 @@ export default function HerinneringenPage() {
             style={{ backgroundColor: "var(--account-accent)" }}
           >
             <Plus size={16} />
-            <span className="hidden sm:inline">Herinnering toevoegen</span>
-            <span className="sm:hidden">Toevoegen</span>
+            Herinnering toevoegen
           </button>
-        </div>
-      )}
+        )}
 
       {/* Formulier */}
       {showForm && (
@@ -376,6 +377,7 @@ export default function HerinneringenPage() {
           </div>
         </div>
       )}
+      </div>
 
       {/* Herinneringen lijst */}
       {memories === undefined ? (
@@ -400,7 +402,7 @@ export default function HerinneringenPage() {
           </button>
         </div>
       ) : (
-        <div className="columns-1 sm:columns-2 gap-4 space-y-4">
+        <div className="columns-1 sm:columns-2 gap-4" style={{ columnFill: "balance" }}>
           {memories.map((memory) => {
             const em = memory.emotion ? emotionForValue(memory.emotion) : null;
             return (
@@ -408,7 +410,7 @@ export default function HerinneringenPage() {
                 key={memory._id}
                 type="button"
                 onClick={() => openDetail(memory as Memory)}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden transition-shadow hover:shadow-md relative group text-left w-full break-inside-avoid"
+                className="bg-white rounded-xl border border-gray-200 overflow-hidden transition-shadow hover:shadow-md relative group text-left w-full break-inside-avoid mb-4 block"
               >
                 {/* Oog-icoon */}
                 <div

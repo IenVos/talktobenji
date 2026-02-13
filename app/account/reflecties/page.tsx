@@ -106,6 +106,7 @@ export default function AccountReflectiesPage() {
   const recognitionRef = useRef<any>(null);
   const activeFieldRef = useRef<string | null>(null);
   const prefixRef = useRef<string>("");
+  const latestTextRef = useRef<string>("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -123,6 +124,7 @@ export default function AccountReflectiesPage() {
         }
         const transcript = parts.join(" ");
         const combined = prefixRef.current ? prefixRef.current + " " + transcript : transcript;
+        latestTextRef.current = combined;
         const field = activeFieldRef.current;
         if (field === "noteContent") setNoteContent(combined);
         else if (field === "hoe_voel") setCheckInForm((f) => ({ ...f, hoe_voel: combined }));
@@ -132,6 +134,8 @@ export default function AccountReflectiesPage() {
       // Only stop when user clicks the stop button – auto-restart on unexpected end
       recognition.onend = () => {
         if (activeFieldRef.current) {
+          // Update prefix with everything accumulated so far before restarting
+          prefixRef.current = latestTextRef.current;
           try { recognition.start(); } catch {}
         } else {
           setActiveRecording(null);

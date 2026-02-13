@@ -175,7 +175,7 @@ export default function AccountHandreikingenPage() {
                           <button
                             type="button"
                             onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
-                            className="w-full overflow-hidden bg-gray-100 cursor-pointer hover:opacity-90 transition-opacity flex-1 min-h-0 flex items-center justify-center"
+                            className="w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex-1 min-h-0 flex items-center justify-center"
                             title="Afbeelding vergroten"
                             tabIndex={isActive ? 0 : -1}
                           >

@@ -16,6 +16,16 @@ type GlobalMenuProps = {
 };
 
 const ORIGINAL_ACCENT = "#6d84a8";
+const ACCENT_CACHE_KEY = "benji_accent_color";
+
+function getCachedAccent(): string {
+  if (typeof window === "undefined") return ORIGINAL_ACCENT;
+  try {
+    return localStorage.getItem(ACCENT_CACHE_KEY) || ORIGINAL_ACCENT;
+  } catch {
+    return ORIGINAL_ACCENT;
+  }
+}
 
 export function GlobalMenu({ lastConversationDate = null, embedded = false }: GlobalMenuProps) {
   const [open, setOpen] = useState(false);
@@ -28,7 +38,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     api.preferences.getPreferences,
     session?.userId ? { userId: session.userId as string } : "skip"
   );
-  const accent = preferences?.accentColor || ORIGINAL_ACCENT;
+  const accent = preferences?.accentColor || getCachedAccent();
 
   useEffect(() => {
     if (!open) return;

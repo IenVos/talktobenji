@@ -142,8 +142,6 @@ export default function AccountCheckinsPage() {
           <div className="space-y-2">
             {checkInEntries.map((entry) => {
               const isExpanded = expandedCheckInId === entry._id;
-              const emotionEntry = emotionHistory?.find((e) => e.date === entry.dateStr);
-              const moodOpt = emotionEntry?.mood ? MOOD_OPTIONS.find((m) => m.value === emotionEntry.mood) : null;
               return (
                 <div key={entry._id} className="rounded-lg border border-primary-200 overflow-hidden">
                   <div className="flex items-center gap-2 px-4 py-3 bg-white">
@@ -153,7 +151,6 @@ export default function AccountCheckinsPage() {
                       className="flex items-center gap-2 text-left hover:bg-primary-50/50 rounded transition-colors flex-1 min-w-0"
                     >
                       {isExpanded ? <ChevronDown size={18} className="text-primary-600 flex-shrink-0" /> : <ChevronRight size={18} className="text-primary-600 flex-shrink-0" />}
-                      {moodOpt && <span className="text-xl flex-shrink-0" title={moodOpt.label}>{moodOpt.emoji}</span>}
                       <span className="font-medium text-primary-900 truncate">{formatDate(entry.createdAt)}</span>
                     </button>
                     <button type="button" onClick={() => handleDeleteCheckIn(entry._id)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg flex-shrink-0" aria-label="Verwijderen">

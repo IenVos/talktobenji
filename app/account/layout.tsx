@@ -378,25 +378,6 @@ export default function AccountLayout({
         {/* Header */}
         <div className="mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/?welcome=1"
-              className="flex-shrink-0"
-              aria-label="Ga naar gesprek met Benji"
-            >
-              <Image
-                src="/images/benji-logo-2.png"
-                alt="Benji"
-                width={28}
-                height={28}
-                className="object-contain brightness-75 hover:brightness-90 transition-all sm:w-8 sm:h-8"
-                style={{ width: "auto", height: "auto" }}
-              />
-            </Link>
-            {session.user?.name && (
-              <p className="text-sm sm:text-base font-bold flex-shrink-0 truncate" style={{ color: hexToDarker(accent, 12) }}>
-                Fijn dat je er bent, {session.user.name.split(" ")[0]}
-              </p>
-            )}
             <div className="flex-1" />
             <button
               type="button"
@@ -420,10 +401,12 @@ export default function AccountLayout({
           {/* Titel + subtitel – altijd onder de header-rij */}
           <div className="mt-2">
             <h1 className="text-base sm:text-xl font-bold text-primary-900 flex items-center gap-2">
-              {pathname === "/account/herinneringen" && <Gem size={22} className="text-amber-500 flex-shrink-0" />}
-              {pageInfo.title}
+              {pathname === "/account" && session.user?.name
+                ? <span>Fijn dat je er bent, {session.user.name.split(" ")[0]}. {pageInfo.title}</span>
+                : pageInfo.title
+              }
             </h1>
-            <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>
+            {pageInfo.subtitle && <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>}
           </div>
         </div>
 

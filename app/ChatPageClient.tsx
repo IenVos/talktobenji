@@ -263,15 +263,39 @@ export default function ChatPageClient({
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognitionAPI) {
       setSpeechSupported(true);
-      recognitionRef.current = new SpeechRecognitionAPI();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = "nl-NL";
-      recognitionRef.current.onresult = (event: any) => {
-        setInput(Array.from(event.results).map((r: any) => r[0].transcript).join(""));
+      const recognition = new SpeechRecognitionAPI();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "nl-NL";
+      let speechPrefix = "";
+      let latestText = "";
+      recognition.onresult = (event: any) => {
+        const parts: string[] = [];
+        for (let i = 0; i < event.results.length; i++) {
+          parts.push(event.results[i][0].transcript);
+        }
+        const transcript = parts.join(" ");
+        latestText = speechPrefix ? speechPrefix + " " + transcript : transcript;
+        setInput(latestText);
       };
-      recognitionRef.current.onend = () => setIsRecording(false);
-      recognitionRef.current.onerror = () => setIsRecording(false);
+      recognition.onend = () => {
+        // Auto-restart unless user explicitly stopped
+        if (recognitionRef.current?._userStopped) {
+          recognitionRef.current._userStopped = false;
+          setIsRecording(false);
+        } else if (recognitionRef.current) {
+          speechPrefix = latestText;
+          try { recognition.start(); } catch {}
+        }
+      };
+      recognition.onerror = (e: any) => {
+        if (e.error === "aborted") return;
+        setIsRecording(false);
+      };
+      recognitionRef.current = recognition;
+      recognitionRef.current._speechPrefix = speechPrefix;
+      recognitionRef.current._setSpeechPrefix = (v: string) => { speechPrefix = v; };
+      recognitionRef.current._setLatestText = (v: string) => { latestText = v; };
     }
   }, []);
 
@@ -339,8 +363,17 @@ export default function ChatPageClient({
 
   const toggleRecording = () => {
     if (!recognitionRef.current) return;
-    if (isRecording) { recognitionRef.current.stop(); setIsRecording(false); }
-    else { setInput(""); recognitionRef.current.start(); setIsRecording(true); }
+    if (isRecording) {
+      recognitionRef.current._userStopped = true;
+      recognitionRef.current.stop();
+      setIsRecording(false);
+    } else {
+      // Preserve existing text in the input
+      recognitionRef.current._setSpeechPrefix(input.trim());
+      recognitionRef.current._setLatestText(input.trim());
+      recognitionRef.current.start();
+      setIsRecording(true);
+    }
   };
 
   const sendMessage = async (text: string) => {
@@ -449,7 +482,7 @@ export default function ChatPageClient({
     e.preventDefault();
     e.stopPropagation(); // Voorkom dat form submit scroll-gedrag triggert
     if (!input.trim() || isLoading) return;
-    if (isRecording && recognitionRef.current) { recognitionRef.current.stop(); setIsRecording(false); }
+    if (isRecording && recognitionRef.current) { recognitionRef.current._userStopped = true; recognitionRef.current.stop(); setIsRecording(false); }
     await sendMessage(input.trim());
   };
 

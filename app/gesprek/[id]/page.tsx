@@ -13,6 +13,16 @@ import { hexToLightTint, hexToDarker } from "@/lib/utils";
 
 const CHAT_STORAGE_KEY = "benji_session_id";
 const ORIGINAL_ACCENT = "#6d84a8";
+const ACCENT_CACHE_KEY = "benji_accent_color";
+
+function getCachedAccent(): string {
+  if (typeof window === "undefined") return ORIGINAL_ACCENT;
+  try {
+    return localStorage.getItem(ACCENT_CACHE_KEY) || ORIGINAL_ACCENT;
+  } catch {
+    return ORIGINAL_ACCENT;
+  }
+}
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("nl-NL", {
@@ -43,7 +53,7 @@ export default function GesprekPage() {
     api.preferences.getPreferences,
     session?.userId ? { userId: session.userId } : "skip"
   );
-  const accent = preferences?.accentColor || ORIGINAL_ACCENT;
+  const accent = preferences?.accentColor || getCachedAccent();
   const bgTint = hexToLightTint(accent, 12);
 
   if (!id || status === "loading") {
