@@ -38,7 +38,7 @@ next-env.d.ts
 .convex/
 
 # PWA (next-pwa generated in public/)
-public/sw.js
+# public/sw.js is onze eigen service worker, NIET uitsluiten
 public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map

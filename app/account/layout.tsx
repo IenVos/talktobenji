@@ -471,9 +471,14 @@ export default function AccountLayout({
                             {n.url && (
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  const targetUrl = n.url;
                                   setNotifOpen(false);
-                                  router.push(n.url);
+                                  setTimeout(() => {
+                                    window.location.href = targetUrl;
+                                  }, 100);
                                 }}
                                 className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg transition-colors"
                                 style={{ color: accent, backgroundColor: hexToLightTint(accent, 25) }}
