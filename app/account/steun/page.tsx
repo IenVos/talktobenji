@@ -149,16 +149,14 @@ export default function AccountSteunPage() {
     <div className="space-y-6">
       {/* Feedback sectie */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
-        <div className="flex items-start gap-3 text-primary-700 mb-2">
-          <MessageCircleHeart size={28} className="text-primary-500 flex-shrink-0 mt-0.5" />
-          <div>
-            <h2 className="text-lg font-semibold text-primary-900">Samen maken we Benji beter</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Benji is er 24/7 voor iedereen die behoefte heeft aan een luisterend oor. Jouw ervaring helpt ons om Benji nog warmer, slimmer en behulpzamer te maken. Vertel ons wat je fijn vindt, wat beter kan, of deel een idee.
-            </p>
-          </div>
+        <div className="flex items-center gap-3 mb-4">
+          <img src="/images/benji-logo-2.png" alt="Benji" width={28} height={28} className="flex-shrink-0 object-contain brightness-50" />
+          <h2 className="text-lg font-semibold text-primary-900">Samen maken we Benji beter</h2>
         </div>
-        <p className="text-xs text-primary-600 mb-5 ml-10">
+        <p className="text-sm text-gray-600 mb-2">
+          Benji is er 24/7 voor iedereen die behoefte heeft aan een luisterend oor. Jouw ervaring helpt ons om Benji nog warmer, slimmer en behulpzamer te maken. Vertel ons wat je fijn vindt, wat beter kan, of deel een idee.
+        </p>
+        <p className="text-xs text-primary-600 mb-5">
           Elk bericht wordt gelezen. Dankzij jouw feedback wordt Benji elke dag een stukje beter voor iedereen.
         </p>
 
