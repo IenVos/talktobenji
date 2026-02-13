@@ -460,15 +460,18 @@ export default function AccountLayout({
                               {new Date(n.sentAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                             </p>
                             {n.url && (
-                              <Link
-                                href={n.url}
-                                onClick={() => setNotifOpen(false)}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNotifOpen(false);
+                                  router.push(n.url);
+                                }}
                                 className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg transition-colors"
                                 style={{ color: accent, backgroundColor: hexToLightTint(accent, 25) }}
                               >
                                 Bekijken
                                 <ChevronRight size={14} />
-                              </Link>
+                              </button>
                             )}
                           </div>
                         </div>
