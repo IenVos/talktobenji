@@ -2,15 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAdminMutation } from "./AdminAuthContext";
 import { Save, BookOpen, ListChecks, AlertCircle, CheckCircle, Settings2, Key, FileText, Loader2 } from "lucide-react";
 import { extractTextFromPdf } from "@/lib/extractPdfText";
 
 export default function AdminSettings() {
   const settings = useQuery(api.settings.get);
   const knowledgeBaseQuestions = useQuery(api.knowledgeBase.getAllQuestions, { isActive: true });
-  const saveSettings = useMutation(api.settings.save);
+  const saveSettings = useAdminMutation(api.settings.save);
 
   const [knowledge, setKnowledge] = useState("");
   const [rules, setRules] = useState("");

@@ -11,11 +11,13 @@ import { api } from "./_generated/api";
 /** Verstuur een push notificatie naar alle subscribers */
 export const sendToAll = action({
   args: {
+    adminToken: v.string(),
     title: v.string(),
     body: v.string(),
     url: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<{ sent: number; failed: number }> => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     const webpush = require("web-push");
 
     const vapidPublic = process.env.VAPID_PUBLIC_KEY;
@@ -97,11 +99,13 @@ export const sendToAll = action({
 /** Verstuur een push notificatie naar alleen nieuwe subscribers (die nog nooit een notificatie ontvingen) */
 export const sendToNewOnly = action({
   args: {
+    adminToken: v.string(),
     title: v.string(),
     body: v.string(),
     url: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<{ sent: number; failed: number; skipped: number }> => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     const webpush = require("web-push");
 
     const vapidPublic = process.env.VAPID_PUBLIC_KEY;
@@ -123,7 +127,7 @@ export const sendToNewOnly = action({
     const allSubs: any[] = await ctx.runQuery(api.pushSubscriptions.getAllSubscriptions);
 
     // Haal alle userIds op die al eerder een notificatie ontvingen
-    const alreadyNotified: string[] = await ctx.runQuery(api.pushSubscriptions.getAllNotifiedUserIds);
+    const alreadyNotified: string[] = await ctx.runQuery(api.pushSubscriptions.getAllNotifiedUserIds, { adminToken: args.adminToken });
     const notifiedSet = new Set(alreadyNotified);
 
     // Filter: alleen subscribers die nog nooit een notificatie kregen

@@ -1,18 +1,18 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { HandHelping, Plus, Edit, Trash2, Save, X, FileText } from "lucide-react";
 import { extractPdfCoverAsBlob } from "@/lib/extractPdfCover";
 
 export default function AdminHandreikingenPage() {
-  const items = useQuery(api.handreikingen.listWithUrls, {});
-  const createItem = useMutation(api.handreikingen.create);
-  const updateItem = useMutation(api.handreikingen.update);
-  const removeItem = useMutation(api.handreikingen.remove);
-  const generateUploadUrl = useMutation(api.handreikingen.generateUploadUrl);
+  const items = useAdminQuery(api.handreikingen.listWithUrls, {});
+  const createItem = useAdminMutation(api.handreikingen.create);
+  const updateItem = useAdminMutation(api.handreikingen.update);
+  const removeItem = useAdminMutation(api.handreikingen.remove);
+  const generateUploadUrl = useAdminMutation(api.handreikingen.generateUploadUrl);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"handreikingenItems"> | null>(null);
@@ -404,8 +404,8 @@ export default function AdminHandreikingenPage() {
         ) : (
           <ul className="space-y-3">
             {items
-              .sort((a, b) => a.order - b.order)
-              .map((item) => (
+              .sort((a: any, b: any) => a.order - b.order)
+              .map((item: any) => (
                 <li
                   key={item._id}
                   className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50"

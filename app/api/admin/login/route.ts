@@ -1,17 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { rateLimit } from "@/lib/rate-limit";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
 
-function signSessionToken(): string {
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+function signSessionToken(sessionId: string): string {
   const secret = process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD || "";
-  const sessionId = crypto.randomUUID();
   const hmac = crypto.createHmac("sha256", secret);
   hmac.update(sessionId);
   return `${sessionId}.${hmac.digest("hex")}`;
 }
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const { allowed, retryAfterMs } = rateLimit(`admin:${ip}`, {
     maxAttempts: 5,
     windowMs: 15 * 60 * 1000,
@@ -20,7 +24,12 @@ export async function POST(request: NextRequest) {
   if (!allowed) {
     return NextResponse.json(
       { error: "Te veel pogingen. Probeer het later opnieuw." },
-      { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil(retryAfterMs / 1000)),
+        },
+      }
     );
   }
 
@@ -36,13 +45,31 @@ export async function POST(request: NextRequest) {
     }
 
     if (password === adminPassword) {
-      const token = signSessionToken();
-      const response = NextResponse.json({ success: true });
+      const sessionId = crypto.randomUUID();
+      const token = signSessionToken(sessionId);
+      const expiresAt = Date.now() + 8 * 60 * 60 * 1000; // 8 uur
+
+      // Sla admin sessie op in Convex
+      try {
+        await convex.mutation(api.adminAuth.createSession, {
+          token: sessionId,
+          expiresAt,
+          secret: process.env.ADMIN_SESSION_SECRET || "",
+        });
+      } catch (err) {
+        console.error("Failed to create admin session in Convex:", err);
+        // Ga door - cookie-based auth werkt nog steeds
+      }
+
+      const response = NextResponse.json({
+        success: true,
+        adminToken: sessionId,
+      });
       response.cookies.set("admin_session", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 60 * 60 * 8, // 8 hours
+        maxAge: 60 * 60 * 8,
       });
       return response;
     }

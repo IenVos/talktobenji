@@ -1,18 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useAction, useMutation } from "convex/react";
+import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import { Bell, Send, Users, Clock, Trash2, RefreshCw, UserPlus } from "lucide-react";
 
 export default function AdminNotificatiesPage() {
-  const subscriberCount = useQuery(api.pushSubscriptions.getSubscriberCount);
-  const subscribers = useQuery(api.pushSubscriptions.listSubscribers);
-  const sentNotifications = useQuery(api.pushSubscriptions.listSentNotifications);
-  const sendToAll = useAction(api.pushNotifications.sendToAll);
-  const sendToNewOnly = useAction(api.pushNotifications.sendToNewOnly);
-  const deleteNotification = useMutation(api.pushSubscriptions.deleteNotification);
-  const alreadyNotifiedIds = useQuery(api.pushSubscriptions.getAllNotifiedUserIds);
+  const subscriberCount = useAdminQuery(api.pushSubscriptions.getSubscriberCount, {});
+  const subscribers = useAdminQuery(api.pushSubscriptions.listSubscribers, {});
+  const sentNotifications = useAdminQuery(api.pushSubscriptions.listSentNotifications, {});
+  const sendToAll = useAdminAction(api.pushNotifications.sendToAll);
+  const sendToNewOnly = useAdminAction(api.pushNotifications.sendToNewOnly);
+  const deleteNotification = useAdminMutation(api.pushSubscriptions.deleteNotification);
+  const alreadyNotifiedIds = useAdminQuery(api.pushSubscriptions.getAllNotifiedUserIds, {});
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -23,7 +23,7 @@ export default function AdminNotificatiesPage() {
 
   // Bereken het aantal nieuwe subscribers (nog nooit een notificatie ontvangen)
   const newSubscriberCount = subscribers && alreadyNotifiedIds
-    ? subscribers.filter((s) => !alreadyNotifiedIds.includes(s.userId)).length
+    ? subscribers.filter((s: any) => !alreadyNotifiedIds.includes(s.userId)).length
     : 0;
 
   const handleSend = async (e: React.FormEvent) => {
@@ -193,7 +193,7 @@ export default function AdminNotificatiesPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Subscribers</h2>
           <div className="space-y-2">
-            {subscribers.map((sub) => (
+            {subscribers.map((sub: any) => (
               <div key={sub.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{sub.name}</p>
@@ -218,7 +218,7 @@ export default function AdminNotificatiesPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Verstuurde notificaties</h2>
           <div className="space-y-3">
-            {sentNotifications.map((n) => (
+            {sentNotifications.map((n: any) => (
               <div key={n._id} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
                 <Clock size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">

@@ -207,6 +207,25 @@ export const resetPassword = mutation({
   },
 });
 
+/** Wijzig wachtwoord voor een ingelogde gebruiker (server-side, via secret + userId) */
+export const changePassword = mutation({
+  args: {
+    secret: v.string(),
+    userId: v.string(),
+    hashedPassword: v.string(),
+  },
+  handler: async (ctx, args) => {
+    checkSecret(args.secret);
+    const cred = await ctx.db
+      .query("credentials")
+      .filter((q) => q.eq(q.field("userId"), args.userId as any))
+      .first();
+    if (!cred) throw new Error("Gebruiker niet gevonden");
+    await ctx.db.patch(cred._id, { hashedPassword: args.hashedPassword });
+    return { success: true };
+  },
+});
+
 /** Haal credentials op voor wachtwoordcontrole (alleen server-side). */
 export const getCredentialsByEmail = withSecretQuery({
   args: {},

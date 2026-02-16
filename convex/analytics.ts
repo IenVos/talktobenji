@@ -8,6 +8,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { checkAdmin } from "./adminAuth";
 
 /**
  * Registreer een vraag waar de AI geen antwoord op had (voor Knowledge Base-aanvulling)

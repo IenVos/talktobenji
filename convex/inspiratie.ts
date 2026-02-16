@@ -4,6 +4,7 @@
  */
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { checkAdmin } from "./adminAuth";
 
 export const list = query({
   args: { activeOnly: v.optional(v.boolean()) },
@@ -60,8 +61,9 @@ export const listActiveWithUrls = query({
 
 /** Admin: lijst alle items met URLs (voor preview bij bewerken) */
 export const listWithUrls = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const items = await ctx.db.query("inspiratieItems").collect();
     const sorted = items.sort((a, b) => a.order - b.order);
     const result = [];
@@ -81,12 +83,16 @@ export const listWithUrls = query({
 });
 
 export const generateUploadUrl = mutation({
-  args: {},
-  handler: async (ctx) => ctx.storage.generateUploadUrl(),
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.generateUploadUrl();
+  },
 });
 
 export const create = mutation({
   args: {
+    adminToken: v.string(),
     title: v.optional(v.string()),
     content: v.optional(v.string()),
     type: v.union(
@@ -103,6 +109,7 @@ export const create = mutation({
     priceCents: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const now = Date.now();
     return await ctx.db.insert("inspiratieItems", {
       title: args.title ?? "",
@@ -122,6 +129,7 @@ export const create = mutation({
 
 export const update = mutation({
   args: {
+    adminToken: v.string(),
     id: v.id("inspiratieItems"),
     title: v.optional(v.string()),
     content: v.optional(v.string()),
@@ -142,7 +150,8 @@ export const update = mutation({
     priceCents: v.optional(v.union(v.number(), v.null())),
   },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    await checkAdmin(ctx, args.adminToken);
+    const { id, adminToken: _token, ...updates } = args;
     const existing = await ctx.db.get(id);
     if (!existing) throw new Error("Item niet gevonden");
     const filtered = Object.fromEntries(
@@ -158,8 +167,9 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-  args: { id: v.id("inspiratieItems") },
+  args: { adminToken: v.string(), id: v.id("inspiratieItems") },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     await ctx.db.delete(args.id);
     return args.id;
   },

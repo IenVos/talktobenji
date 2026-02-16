@@ -344,6 +344,12 @@ export default defineSchema({
   })
     .index("by_sent", ["sentAt"]),
 
+  // Admin sessies (voor admin panel beveiliging)
+  adminSessions: defineTable({
+    token: v.string(),
+    expiresAt: v.number(),
+  }).index("by_token", ["token"]),
+
   // Analytics
   analytics: defineTable({
     date: v.number(),

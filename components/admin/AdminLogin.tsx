@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 
 interface AdminLoginProps {
-  onLogin: () => void;
+  onLogin: (adminToken: string) => void;
 }
 
 export function AdminLogin({ onLogin }: AdminLoginProps) {
@@ -26,8 +26,10 @@ export function AdminLogin({ onLogin }: AdminLoginProps) {
 
       const data = await res.json().catch(() => ({}));
 
-      if (res.ok) {
-        onLogin();
+      if (res.ok && data.adminToken) {
+        onLogin(data.adminToken);
+      } else if (res.ok) {
+        onLogin("");
       } else if (res.status === 500 && data.error?.includes("not configured")) {
         setError("Admin-wachtwoord niet geconfigureerd. Zet ADMIN_PASSWORD in .env.local (lokaal) of in Vercel Environment Variables.");
       } else {

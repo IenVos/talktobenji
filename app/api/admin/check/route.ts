@@ -1,36 +1,43 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
-function verifySessionToken(token: string): boolean {
+function verifySessionToken(token: string): { valid: boolean; sessionId: string } {
   const secret = process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD || "";
   const dotIndex = token.indexOf(".");
-  if (dotIndex === -1) return false;
+  if (dotIndex === -1) return { valid: false, sessionId: "" };
 
   const sessionId = token.slice(0, dotIndex);
   const signature = token.slice(dotIndex + 1);
-  if (!sessionId || !signature) return false;
+  if (!sessionId || !signature) return { valid: false, sessionId: "" };
 
   const hmac = crypto.createHmac("sha256", secret);
   hmac.update(sessionId);
   const expected = hmac.digest("hex");
 
-  if (signature.length !== expected.length) return false;
+  if (signature.length !== expected.length) return { valid: false, sessionId: "" };
 
   try {
-    return crypto.timingSafeEqual(
+    const isValid = crypto.timingSafeEqual(
       Buffer.from(signature, "hex"),
       Buffer.from(expected, "hex")
     );
+    return { valid: isValid, sessionId: isValid ? sessionId : "" };
   } catch {
-    return false;
+    return { valid: false, sessionId: "" };
   }
 }
 
 export async function GET(request: NextRequest) {
   const session = request.cookies.get("admin_session");
 
-  if (session?.value && verifySessionToken(session.value)) {
-    return NextResponse.json({ authenticated: true });
+  if (session?.value) {
+    const { valid, sessionId } = verifySessionToken(session.value);
+    if (valid) {
+      return NextResponse.json({
+        authenticated: true,
+        adminToken: sessionId,
+      });
+    }
   }
 
   return NextResponse.json({ authenticated: false }, { status: 401 });

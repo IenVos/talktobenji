@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery, useMutation, useAction } from "convex/react";
+import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useAdminMutation } from "../AdminAuthContext";
 import { Id } from "@/convex/_generated/dataModel";
 import {
   Plus,
@@ -60,12 +61,12 @@ export default function KnowledgeBasePage() {
   const dbCategories = useQuery(api.knowledgeBase.getCategories);
   const allCats = [...SUGGESTED_CATEGORIES, ...(dbCategories || [])];
   const categories = allCats.filter((c, i) => allCats.indexOf(c) === i).sort();
-  const addQuestion = useMutation(api.knowledgeBase.addQuestion);
-  const updateQuestion = useMutation(api.knowledgeBase.updateQuestion);
-  const deleteQuestion = useMutation(api.knowledgeBase.deleteQuestion);
-  const activateQuestion = useMutation(api.knowledgeBase.activateQuestion);
-  const deactivateQuestion = useMutation(api.knowledgeBase.deactivateQuestion);
-  const bulkImportQuestions = useMutation(api.knowledgeBase.bulkImportQuestions);
+  const addQuestion = useAdminMutation(api.knowledgeBase.addQuestion);
+  const updateQuestion = useAdminMutation(api.knowledgeBase.updateQuestion);
+  const deleteQuestion = useAdminMutation(api.knowledgeBase.deleteQuestion);
+  const activateQuestion = useAdminMutation(api.knowledgeBase.activateQuestion);
+  const deactivateQuestion = useAdminMutation(api.knowledgeBase.deactivateQuestion);
+  const bulkImportQuestions = useAdminMutation(api.knowledgeBase.bulkImportQuestions);
   const generateAlternativeQuestions = useAction(api.ai.generateAlternativeQuestions);
   const generateAlternativeAnswers = useAction(api.ai.generateAlternativeAnswers);
   const generateTags = useAction(api.ai.generateTags);

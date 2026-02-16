@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Sparkles, Plus, Edit, Trash2, Save, X, FileText } from "lucide-react";
@@ -10,11 +10,11 @@ import { extractPdfCoverAsBlob } from "@/lib/extractPdfCover";
 const TYPES = ["gedicht", "citaat", "tekst", "overig", "pdf"] as const;
 
 export default function AdminInspiratiePage() {
-  const items = useQuery(api.inspiratie.listWithUrls, {});
-  const createItem = useMutation(api.inspiratie.create);
-  const updateItem = useMutation(api.inspiratie.update);
-  const removeItem = useMutation(api.inspiratie.remove);
-  const generateUploadUrl = useMutation(api.inspiratie.generateUploadUrl);
+  const items = useAdminQuery(api.inspiratie.listWithUrls, {});
+  const createItem = useAdminMutation(api.inspiratie.create);
+  const updateItem = useAdminMutation(api.inspiratie.update);
+  const removeItem = useAdminMutation(api.inspiratie.remove);
+  const generateUploadUrl = useAdminMutation(api.inspiratie.generateUploadUrl);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"inspiratieItems"> | null>(null);
@@ -416,8 +416,8 @@ export default function AdminInspiratiePage() {
         ) : (
           <ul className="space-y-3">
             {items
-              .sort((a, b) => a.order - b.order)
-              .map((item) => (
+              .sort((a: any, b: any) => a.order - b.order)
+              .map((item: any) => (
                 <li
                   key={item._id}
                   className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50"

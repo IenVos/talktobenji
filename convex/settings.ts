@@ -66,6 +66,7 @@
 
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { checkAdmin } from "./adminAuth";
 
 /**
  * Haal de huidige bot instellingen op
@@ -100,10 +101,12 @@ export const get = query({
  */
 export const save = mutation({
   args: {
+    adminToken: v.string(),
     knowledge: v.string(),
     rules: v.string(),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const existing = await ctx.db.query("botSettings").first();
 
     if (existing) {

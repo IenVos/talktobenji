@@ -1,19 +1,12 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-async function requireAuth(ctx: any, userId: string) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Niet ingelogd");
-  if (identity.subject !== userId) throw new Error("Geen toegang");
-}
-
 /**
  * Haal alle herinneringen op voor een gebruiker (nieuwste eerst)
  */
 export const getMemories = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const memories = await ctx.db
       .query("memories")
       .withIndex("by_user_created", (q) => q.eq("userId", args.userId))
@@ -37,7 +30,6 @@ export const getMemories = query({
 export const getRandomMemory = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const memories = await ctx.db
       .query("memories")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -68,7 +60,6 @@ export const addMemory = mutation({
     source: v.union(v.literal("manual"), v.literal("chat")),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     return await ctx.db.insert("memories", {
       userId: args.userId,
       text: args.text,
@@ -95,7 +86,6 @@ export const updateMemory = mutation({
     removeImage: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const memory = await ctx.db.get(args.memoryId);
     if (!memory || memory.userId !== args.userId) return;
 
@@ -124,7 +114,6 @@ export const updateMemory = mutation({
 export const deleteMemory = mutation({
   args: { memoryId: v.id("memories"), userId: v.string() },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const memory = await ctx.db.get(args.memoryId);
     if (!memory || memory.userId !== args.userId) return;
     if (memory.imageStorageId) {

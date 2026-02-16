@@ -97,6 +97,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { checkAdmin } from "./adminAuth";
 
 // ============================================================================
 // QUERIES (Data ophalen)
@@ -268,6 +269,7 @@ export const getPopularQuestions = query({
  */
 export const addQuestion = mutation({
   args: {
+    adminToken: v.string(),
     // Nederlandse velden (verplicht)
     question: v.string(),
     answer: v.string(),
@@ -284,6 +286,7 @@ export const addQuestion = mutation({
     createdBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     // Validatie: vraag en antwoord mogen niet leeg zijn
     if (args.question.trim().length === 0) {
       throw new Error("Vraag mag niet leeg zijn");
@@ -321,6 +324,7 @@ export const addQuestion = mutation({
  */
 export const updateQuestion = mutation({
   args: {
+    adminToken: v.string(),
     id: v.id("knowledgeBase"),
     // Nederlandse velden
     question: v.optional(v.string()),
@@ -338,7 +342,8 @@ export const updateQuestion = mutation({
     isActive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { id, ...updates } = args;
+    await checkAdmin(ctx, args.adminToken);
+    const { id, adminToken: _token, ...updates } = args;
 
     // Check of de Q&A bestaat
     const existing = await ctx.db.get(id);
@@ -365,8 +370,9 @@ export const updateQuestion = mutation({
  * Verwijder een Q&A (soft delete - zet isActive op false)
  */
 export const deactivateQuestion = mutation({
-  args: { id: v.id("knowledgeBase") },
+  args: { adminToken: v.string(), id: v.id("knowledgeBase") },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     await ctx.db.patch(args.id, {
       isActive: false,
       updatedAt: Date.now(),
@@ -379,8 +385,9 @@ export const deactivateQuestion = mutation({
  * Activeer een Q&A weer
  */
 export const activateQuestion = mutation({
-  args: { id: v.id("knowledgeBase") },
+  args: { adminToken: v.string(), id: v.id("knowledgeBase") },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     await ctx.db.patch(args.id, {
       isActive: true,
       updatedAt: Date.now(),
@@ -393,8 +400,9 @@ export const activateQuestion = mutation({
  * Verwijder een Q&A permanent (gebruik met voorzichtigheid!)
  */
 export const deleteQuestion = mutation({
-  args: { id: v.id("knowledgeBase") },
+  args: { adminToken: v.string(), id: v.id("knowledgeBase") },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     await ctx.db.delete(args.id);
     return args.id;
   },
@@ -452,6 +460,7 @@ export const updateAverageRating = mutation({
  */
 export const bulkImportQuestions = mutation({
   args: {
+    adminToken: v.string(),
     questions: v.array(
       v.object({
         // Nederlandse velden (verplicht)
@@ -472,6 +481,7 @@ export const bulkImportQuestions = mutation({
     createdBy: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const now = Date.now();
     const ids = [];
 

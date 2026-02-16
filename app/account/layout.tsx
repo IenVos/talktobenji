@@ -36,7 +36,7 @@ const TOP_ITEMS = [
 
 const SUBMENU_ITEMS = [
   { href: "/account/abonnement", label: "Abonnement & betalingen", icon: CreditCard },
-  { href: "/wachtwoord-vergeten", label: "Wachtwoord wijzigen", icon: KeyRound },
+  { href: "/account/wachtwoord", label: "Wachtwoord wijzigen", icon: KeyRound },
 ];
 
 const REFLECTIES_SUBMENU = [
@@ -59,6 +59,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account/herinneringen": { title: "Memories", subtitle: "Mooie herinneringen om naar terug te kijken" },
   "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
   "/account/instellingen": { title: "Personaliseer", subtitle: "Personalisatie van je account" },
+  "/account/wachtwoord": { title: "Wachtwoord wijzigen", subtitle: "Wijzig je wachtwoord" },
 };
 
 export default function AccountLayout({

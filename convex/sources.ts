@@ -4,6 +4,8 @@
  */
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
+import { checkAdmin } from "./adminAuth";
+import { api } from "./_generated/api";
 
 /** Haal alle actieve bronnen op (voor de AI) */
 export const getActiveSources = query({
@@ -26,8 +28,9 @@ export const getAllSources = query({
 
 /** Genereer upload-URL voor PDF */
 export const generateUploadUrl = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -35,11 +38,13 @@ export const generateUploadUrl = mutation({
 /** Voeg bron toe na PDF-upload */
 export const addPdfSource = mutation({
   args: {
+    adminToken: v.string(),
     title: v.string(),
     storageId: v.id("_storage"),
     extractedText: v.string(),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const now = Date.now();
     return await ctx.db.insert("sources", {
       title: args.title.trim(),
@@ -56,11 +61,13 @@ export const addPdfSource = mutation({
 /** Voeg URL-bron toe (tekst komt van action) */
 export const addUrlSource = mutation({
   args: {
+    adminToken: v.string(),
     title: v.string(),
     url: v.string(),
     extractedText: v.string(),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const now = Date.now();
     return await ctx.db.insert("sources", {
       title: args.title.trim(),
@@ -76,8 +83,9 @@ export const addUrlSource = mutation({
 
 /** Verwijder bron */
 export const deleteSource = mutation({
-  args: { id: v.id("sources") },
+  args: { adminToken: v.string(), id: v.id("sources") },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const doc = await ctx.db.get(args.id);
     if (doc?.storageId) {
       await ctx.storage.delete(doc.storageId);
@@ -89,8 +97,9 @@ export const deleteSource = mutation({
 
 /** Activeer/deactiveer bron */
 export const setSourceActive = mutation({
-  args: { id: v.id("sources"), isActive: v.boolean() },
+  args: { adminToken: v.string(), id: v.id("sources"), isActive: v.boolean() },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     await ctx.db.patch(args.id, {
       isActive: args.isActive,
       updatedAt: Date.now(),
@@ -101,8 +110,9 @@ export const setSourceActive = mutation({
 
 /** Haal tekst uit URL (action - heeft netwerktoegang) */
 export const fetchAndExtractUrl = action({
-  args: { url: v.string() },
+  args: { adminToken: v.string(), url: v.string() },
   handler: async (ctx, args): Promise<{ text: string; title: string }> => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     const urlStr = args.url.trim();
     if (!urlStr.startsWith("http://") && !urlStr.startsWith("https://")) {
       throw new Error("Ongeldige URL. Gebruik http:// of https://");

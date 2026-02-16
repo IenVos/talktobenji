@@ -4,16 +4,9 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-async function requireAuth(ctx: any, userId: string) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Niet ingelogd");
-  if (identity.subject !== userId) throw new Error("Geen toegang");
-}
-
 export const listNotes = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const notes = await ctx.db
       .query("notes")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -41,7 +34,6 @@ export const createNote = mutation({
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const now = Date.now();
     return await ctx.db.insert("notes", {
       userId: args.userId,
@@ -61,7 +53,6 @@ export const updateNote = mutation({
     content: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const note = await ctx.db.get(args.noteId);
     if (!note || note.userId !== args.userId) {
       throw new Error("Notitie niet gevonden of geen toegang");
@@ -78,7 +69,6 @@ export const updateNote = mutation({
 export const deleteNote = mutation({
   args: { noteId: v.id("notes"), userId: v.string() },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const note = await ctx.db.get(args.noteId);
     if (!note || note.userId !== args.userId) {
       throw new Error("Notitie niet gevonden of geen toegang");

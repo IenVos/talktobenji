@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useQuery, useMutation, useAction } from "convex/react";
+import { useQuery } from "convex/react";
+import { useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -17,12 +18,12 @@ import { extractTextFromPdf } from "@/lib/extractPdfText";
 
 export default function BronnenPage() {
   const sources = useQuery(api.sources.getAllSources);
-  const addUrlSource = useMutation(api.sources.addUrlSource);
-  const addPdfSource = useMutation(api.sources.addPdfSource);
-  const generateUploadUrl = useMutation(api.sources.generateUploadUrl);
-  const deleteSource = useMutation(api.sources.deleteSource);
-  const setSourceActive = useMutation(api.sources.setSourceActive);
-  const fetchAndExtractUrl = useAction(api.sources.fetchAndExtractUrl);
+  const addUrlSource = useAdminMutation(api.sources.addUrlSource);
+  const addPdfSource = useAdminMutation(api.sources.addPdfSource);
+  const generateUploadUrl = useAdminMutation(api.sources.generateUploadUrl);
+  const deleteSource = useAdminMutation(api.sources.deleteSource);
+  const setSourceActive = useAdminMutation(api.sources.setSourceActive);
+  const fetchAndExtractUrl = useAdminAction(api.sources.fetchAndExtractUrl);
 
   const [showAddUrl, setShowAddUrl] = useState(false);
   const [urlInput, setUrlInput] = useState("");

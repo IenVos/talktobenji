@@ -10,6 +10,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { checkAdmin } from "./adminAuth";
 
 // ============================================================================
 // CHAT HISTORY QUERIES (voor admin overzicht)
@@ -20,6 +21,7 @@ import { mutation, query } from "./_generated/server";
  */
 export const listChatHistory = query({
   args: {
+    adminToken: v.string(),
     limit: v.optional(v.number()),
     status: v.optional(
       v.union(
@@ -31,6 +33,7 @@ export const listChatHistory = query({
     ),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const allSessions = await ctx.db.query("chatSessions").collect();
     let sessions = allSessions.filter(
       (s) => typeof s.lastActivityAt === "number"
@@ -53,8 +56,9 @@ export const listChatHistory = query({
  * Haal sessie + berichten op voor admin detailweergave
  */
 export const getChatHistoryDetail = query({
-  args: { sessionId: v.id("chatSessions") },
+  args: { adminToken: v.string(), sessionId: v.id("chatSessions") },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const session = await ctx.db.get(args.sessionId);
     if (!session) return null;
 
@@ -77,6 +81,7 @@ export const getChatHistoryDetail = query({
  */
 export const getEscalations = query({
   args: {
+    adminToken: v.string(),
     status: v.optional(
       v.union(
         v.literal("pending"),
@@ -98,6 +103,7 @@ export const getEscalations = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     // Fetch all escalations and filter in memory for complex conditions
     let escalations = await ctx.db.query("escalations").collect();
 
@@ -134,8 +140,9 @@ export const getEscalations = query({
  * Haal escalation met complete sessie info
  */
 export const getEscalationWithSession = query({
-  args: { escalationId: v.id("escalations") },
+  args: { adminToken: v.string(), escalationId: v.id("escalations") },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const escalation = await ctx.db.get(args.escalationId);
     if (!escalation) {
       throw new Error("Escalation niet gevonden");
@@ -168,6 +175,7 @@ export const getEscalationWithSession = query({
  */
 export const createEscalation = mutation({
   args: {
+    adminToken: v.string(),
     sessionId: v.id("chatSessions"),
     originalQuestion: v.string(),
     reason: v.union(
@@ -185,6 +193,7 @@ export const createEscalation = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const escalationId = await ctx.db.insert("escalations", {
       sessionId: args.sessionId,
       originalQuestion: args.originalQuestion,
@@ -211,10 +220,12 @@ export const createEscalation = mutation({
  */
 export const assignEscalation = mutation({
   args: {
+    adminToken: v.string(),
     escalationId: v.id("escalations"),
     assignedTo: v.string(),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     await ctx.db.patch(args.escalationId, {
       assignedTo: args.assignedTo,
       status: "assigned",
@@ -230,6 +241,7 @@ export const assignEscalation = mutation({
  */
 export const updateEscalationStatus = mutation({
   args: {
+    adminToken: v.string(),
     escalationId: v.id("escalations"),
     status: v.union(
       v.literal("pending"),
@@ -241,6 +253,7 @@ export const updateEscalationStatus = mutation({
     agentNotes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const updates: any = {
       status: args.status,
     };
@@ -265,12 +278,14 @@ export const updateEscalationStatus = mutation({
  */
 export const resolveEscalation = mutation({
   args: {
+    adminToken: v.string(),
     escalationId: v.id("escalations"),
     resolution: v.string(),
     shouldAddToKnowledgeBase: v.boolean(),
     agentNotes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const escalation = await ctx.db.get(args.escalationId);
     if (!escalation) {
       throw new Error("Escalation niet gevonden");
@@ -305,6 +320,7 @@ export const resolveEscalation = mutation({
  */
 export const getAllFeedback = query({
   args: {
+    adminToken: v.string(),
     feedbackType: v.optional(
       v.union(
         v.literal("bug"),
@@ -325,6 +341,7 @@ export const getAllFeedback = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     // Fetch all feedback and filter in memory
     let feedback = await ctx.db.query("userFeedback").collect();
 
@@ -361,6 +378,7 @@ export const getAllFeedback = query({
  */
 export const updateFeedbackStatus = mutation({
   args: {
+    adminToken: v.string(),
     feedbackId: v.id("userFeedback"),
     status: v.union(
       v.literal("new"),
@@ -371,6 +389,7 @@ export const updateFeedbackStatus = mutation({
     adminResponse: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const updates: any = {
       status: args.status,
     };
@@ -389,8 +408,9 @@ export const updateFeedbackStatus = mutation({
  * Verwijder feedback volledig
  */
 export const deleteFeedback = mutation({
-  args: { feedbackId: v.id("userFeedback") },
+  args: { adminToken: v.string(), feedbackId: v.id("userFeedback") },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const feedback = await ctx.db.get(args.feedbackId);
     if (!feedback) return;
     if (feedback.imageStorageId) {
@@ -404,8 +424,9 @@ export const deleteFeedback = mutation({
  * Verwijder alleen de afbeelding van feedback (tekst blijft behouden)
  */
 export const deleteFeedbackImage = mutation({
-  args: { feedbackId: v.id("userFeedback") },
+  args: { adminToken: v.string(), feedbackId: v.id("userFeedback") },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const feedback = await ctx.db.get(args.feedbackId);
     if (!feedback?.imageStorageId) return;
     await ctx.storage.delete(feedback.imageStorageId);
@@ -422,10 +443,12 @@ export const deleteFeedbackImage = mutation({
  */
 export const getAnalytics = query({
   args: {
+    adminToken: v.string(),
     startDate: v.number(),
     endDate: v.number(),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const analytics = await ctx.db
       .query("analytics")
       .withIndex("by_date", (q) =>
@@ -442,9 +465,11 @@ export const getAnalytics = query({
  */
 export const getRealtimeStats = query({
   args: {
+    adminToken: v.string(),
     periodDays: v.optional(v.number()), // Aantal dagen terug
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const days = args.periodDays || 7;
     const cutoffTime = Date.now() - days * 24 * 60 * 60 * 1000;
 
@@ -558,7 +583,9 @@ export const getRealtimeStats = query({
  * Genereer dashboard overview (voor admin home)
  */
 export const getDashboardOverview = query({
-  handler: async (ctx) => {
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const now = Date.now();
     const last24h = now - 24 * 60 * 60 * 1000;
     const last7d = now - 7 * 24 * 60 * 60 * 1000;
@@ -611,9 +638,11 @@ export const getDashboardOverview = query({
  */
 export const generateDailyAnalytics = mutation({
   args: {
+    adminToken: v.string(),
     date: v.optional(v.number()), // Default: gisteren
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     // Bepaal de datum (default: gisteren)
     const targetDate = args.date || Date.now() - 24 * 60 * 60 * 1000;
     const dayStart = new Date(targetDate).setHours(0, 0, 0, 0);
@@ -722,9 +751,11 @@ export const generateDailyAnalytics = mutation({
 /** Verwijder een enkel chatbericht */
 export const deleteChatMessage = mutation({
   args: {
+    adminToken: v.string(),
     messageId: v.id("chatMessages"),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     await ctx.db.delete(args.messageId);
   },
 });
@@ -732,9 +763,11 @@ export const deleteChatMessage = mutation({
 /** Verwijder meerdere chatberichten tegelijk */
 export const deleteChatMessages = mutation({
   args: {
+    adminToken: v.string(),
     messageIds: v.array(v.id("chatMessages")),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     for (const id of args.messageIds) {
       await ctx.db.delete(id);
     }
@@ -744,9 +777,11 @@ export const deleteChatMessages = mutation({
 /** Verwijder een hele chat sessie met al zijn berichten */
 export const deleteChatSession = mutation({
   args: {
+    adminToken: v.string(),
     sessionId: v.id("chatSessions"),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const messages = await ctx.db
       .query("chatMessages")
       .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
@@ -760,10 +795,12 @@ export const deleteChatSession = mutation({
 
 export const exportAllData = query({
   args: {
+    adminToken: v.string(),
     startDate: v.optional(v.number()),
     endDate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const start = args.startDate || 0;
     const end = args.endDate || Date.now();
 

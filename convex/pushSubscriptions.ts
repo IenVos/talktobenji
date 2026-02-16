@@ -1,15 +1,11 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { checkAdmin } from "./adminAuth";
 
 // ============================================================================
 // SUBSCRIPTIONS BEHEER (queries + mutations, GEEN "use node")
 // ============================================================================
 
-async function requireAuth(ctx: any, userId: string) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) throw new Error("Niet ingelogd");
-  if (identity.subject !== userId) throw new Error("Geen toegang");
-}
 
 /** Sla een push subscription op voor een gebruiker */
 export const subscribe = mutation({
@@ -20,7 +16,6 @@ export const subscribe = mutation({
     auth: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     // Check of deze user+endpoint combinatie al bestaat
     const allForEndpoint = await ctx.db
       .query("pushSubscriptions")
@@ -55,7 +50,6 @@ export const unsubscribe = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const subs = await ctx.db
       .query("pushSubscriptions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -73,7 +67,6 @@ export const isSubscribed = query({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const sub = await ctx.db
       .query("pushSubscriptions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -84,8 +77,9 @@ export const isSubscribed = query({
 
 /** Haal het totaal aantal subscribers op (voor admin) */
 export const getSubscriberCount = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const subs = await ctx.db.query("pushSubscriptions").collect();
     const uniqueUsers = new Set(subs.map((s) => s.userId));
     return uniqueUsers.size;
@@ -94,8 +88,9 @@ export const getSubscriberCount = query({
 
 /** Haal alle subscribers op met naam/email (voor admin) */
 export const listSubscribers = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const subs = await ctx.db.query("pushSubscriptions").collect();
     // Groepeer per userId (kan meerdere devices hebben)
     const userMap = new Map<string, { userId: string; deviceCount: number; subscribedAt: number }>();
@@ -145,8 +140,9 @@ export const listSubscribers = query({
 
 /** Haal alle verstuurde notificaties op (voor admin) */
 export const listSentNotifications = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     return await ctx.db
       .query("pushNotifications")
       .withIndex("by_sent")
@@ -191,7 +187,6 @@ export const getNotificationsForUser = query({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     // Haal lastSeenNotificationsAt op uit preferences
     const prefs = await ctx.db
       .query("userPreferences")
@@ -218,7 +213,6 @@ export const markNotificationsRead = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    await requireAuth(ctx, args.userId);
     const prefs = await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -260,8 +254,9 @@ export const recordNotification = mutation({
 
 /** Haal alle userIds op die ooit een notificatie hebben ontvangen */
 export const getAllNotifiedUserIds = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const allNotifs = await ctx.db.query("pushNotifications").collect();
     const userIds = new Set<string>();
     for (const n of allNotifs) {
@@ -278,9 +273,11 @@ export const getAllNotifiedUserIds = query({
 /** Verwijder een notificatie (admin) */
 export const deleteNotification = mutation({
   args: {
+    adminToken: v.string(),
     notificationId: v.id("pushNotifications"),
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     await ctx.db.delete(args.notificationId);
   },
 });

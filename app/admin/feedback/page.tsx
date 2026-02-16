@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import { useState } from "react";
 import { MessageCircleHeart, Star, Check, X, Image as ImageIcon, Trash2, ImageOff } from "lucide-react";
@@ -31,19 +31,19 @@ function formatDate(ts: number) {
 }
 
 export default function AdminFeedbackPage() {
-  const feedback = useQuery(api.admin.getAllFeedback, {});
-  const updateStatus = useMutation(api.admin.updateFeedbackStatus);
-  const deleteFeedback = useMutation(api.admin.deleteFeedback);
-  const deleteFeedbackImage = useMutation(api.admin.deleteFeedbackImage);
+  const feedback = useAdminQuery(api.admin.getAllFeedback, {});
+  const updateStatus = useAdminMutation(api.admin.updateFeedbackStatus);
+  const deleteFeedback = useAdminMutation(api.admin.deleteFeedback);
+  const deleteFeedbackImage = useAdminMutation(api.admin.deleteFeedbackImage);
   const [filter, setFilter] = useState<string>("all");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-  const filtered = feedback?.filter((f) => {
+  const filtered = feedback?.filter((f: any) => {
     if (filter === "all") return true;
     return f.status === filter;
   });
 
-  const newCount = feedback?.filter((f) => f.status === "new").length ?? 0;
+  const newCount = feedback?.filter((f: any) => f.status === "new").length ?? 0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -104,7 +104,7 @@ export default function AdminFeedbackPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered?.map((item) => {
+          {filtered?.map((item: any) => {
             const typeConfig = TYPE_LABELS[item.feedbackType] ?? TYPE_LABELS.suggestion;
             const statusConfig = STATUS_LABELS[item.status] ?? STATUS_LABELS.new;
             return (

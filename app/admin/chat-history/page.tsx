@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
@@ -43,21 +43,21 @@ export default function AdminChatHistory() {
   const [selectedSessions, setSelectedSessions] = useState<Set<Id<"chatSessions">>>(new Set());
   const [sessionSelectMode, setSessionSelectMode] = useState(false);
 
-  const sessions = useQuery(
+  const sessions = useAdminQuery(
     api.admin.listChatHistory,
     statusFilter === "all"
       ? { limit: 100 }
       : { limit: 100, status: statusFilter }
   );
 
-  const detail = useQuery(
+  const detail = useAdminQuery(
     api.admin.getChatHistoryDetail,
     expandedSessionId ? { sessionId: expandedSessionId } : "skip"
   );
 
-  const deleteChatMessage = useMutation(api.admin.deleteChatMessage);
-  const deleteChatMessages = useMutation(api.admin.deleteChatMessages);
-  const deleteChatSession = useMutation(api.admin.deleteChatSession);
+  const deleteChatMessage = useAdminMutation(api.admin.deleteChatMessage);
+  const deleteChatMessages = useAdminMutation(api.admin.deleteChatMessages);
+  const deleteChatSession = useAdminMutation(api.admin.deleteChatSession);
 
   const toggleMessage = (id: Id<"chatMessages">) => {
     setSelectedMessages((prev) => {
@@ -110,7 +110,7 @@ export default function AdminChatHistory() {
     if (selectedSessions.size === sessions.length) {
       setSelectedSessions(new Set());
     } else {
-      setSelectedSessions(new Set(sessions.map((s) => s._id)));
+      setSelectedSessions(new Set(sessions.map((s: any) => s._id)));
     }
   };
 
@@ -211,7 +211,7 @@ export default function AdminChatHistory() {
         </div>
       ) : (
         <div className="space-y-2">
-          {sessions.map((session) => {
+          {sessions.map((session: any) => {
             const isExpanded = expandedSessionId === session._id;
             return (
               <div

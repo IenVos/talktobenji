@@ -7,48 +7,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { AdminAuthProvider, useAdminQuery } from "./AdminAuthContext";
 import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell } from "lucide-react";
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const allFeedback = useQuery(api.admin.getAllFeedback, isAuthenticated === true ? {} : "skip");
-  const newFeedbackCount = allFeedback?.filter((f) => f.status === "new").length ?? 0;
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const res = await fetch("/api/admin/check");
-      setIsAuthenticated(res.ok);
-    } catch {
-      setIsAuthenticated(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    await fetch("/api/admin/logout", { method: "POST" });
-    setIsAuthenticated(false);
-  };
-
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-primary-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <AdminLogin onLogin={() => setIsAuthenticated(true)} />;
-  }
+  const allFeedback = useAdminQuery(api.admin.getAllFeedback, {});
+  const newFeedbackCount = allFeedback?.filter((f: any) => f.status === "new").length ?? 0;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: "/admin", label: "Instellingen", icon: Settings, badge: 0 },
@@ -140,13 +106,6 @@ export default function AdminLayout({
             <Home size={20} />
             Naar chat
           </Link>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full"
-          >
-            <LogOut size={20} />
-            Uitloggen
-          </button>
         </div>
       </div>
 
@@ -201,13 +160,6 @@ export default function AdminLayout({
               <Home size={20} />
               Naar chat
             </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors w-full border border-transparent hover:border-red-800"
-            >
-              <LogOut size={20} />
-              Uitloggen
-            </button>
           </div>
         </aside>
 
@@ -216,5 +168,72 @@ export default function AdminLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [adminToken, setAdminToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const res = await fetch("/api/admin/check");
+      if (res.ok) {
+        const data = await res.json();
+        setIsAuthenticated(true);
+        setAdminToken(data.adminToken || null);
+      } else {
+        setIsAuthenticated(false);
+        setAdminToken(null);
+      }
+    } catch {
+      setIsAuthenticated(false);
+      setAdminToken(null);
+    }
+  };
+
+  const handleLogin = (token: string) => {
+    setIsAuthenticated(true);
+    setAdminToken(token || null);
+  };
+
+  const handleLogout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    setIsAuthenticated(false);
+    setAdminToken(null);
+  };
+
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-primary-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={handleLogin} />;
+  }
+
+  return (
+    <AdminAuthProvider adminToken={adminToken}>
+      <AdminLayoutInner>{children}</AdminLayoutInner>
+      {/* Floating logout button */}
+      <button
+        onClick={handleLogout}
+        className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50 flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-colors text-sm"
+      >
+        <LogOut size={16} />
+        Uitloggen
+      </button>
+    </AdminAuthProvider>
   );
 }
