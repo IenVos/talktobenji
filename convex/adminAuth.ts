@@ -18,7 +18,8 @@ export async function checkAdmin(ctx: any, adminToken: string) {
     .first();
   if (!session) throw new Error("Ongeldige admin sessie");
   if (session.expiresAt < Date.now()) {
-    await ctx.db.delete(session._id);
+    // Niet hier verwijderen — checkAdmin wordt ook vanuit queries aangeroepen
+    // en queries zijn read-only in Convex. Cleanup gebeurt in createSession.
     throw new Error("Admin sessie verlopen");
   }
 }

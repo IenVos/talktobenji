@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 function verifySessionToken(token: string): { valid: boolean; sessionId: string } {
   const secret = process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD || "";
@@ -33,10 +37,19 @@ export async function GET(request: NextRequest) {
   if (session?.value) {
     const { valid, sessionId } = verifySessionToken(session.value);
     if (valid) {
-      return NextResponse.json({
-        authenticated: true,
-        adminToken: sessionId,
-      });
+      // Verifieer ook dat de Convex sessie nog geldig is
+      try {
+        await convex.query(api.adminAuth.validateToken, { adminToken: sessionId });
+        return NextResponse.json({
+          authenticated: true,
+          adminToken: sessionId,
+        });
+      } catch {
+        // Convex sessie ongeldig of verlopen → cookie verwijderen
+        const response = NextResponse.json({ authenticated: false }, { status: 401 });
+        response.cookies.delete("admin_session");
+        return response;
+      }
     }
   }
 
