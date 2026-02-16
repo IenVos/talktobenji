@@ -153,22 +153,6 @@ export const createPasswordResetToken = mutation({
   },
 });
 
-/** Valideer een reset-token */
-export const validateResetToken = query({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const resetToken = await ctx.db
-      .query("passwordResetTokens")
-      .withIndex("by_token", (q) => q.eq("token", token))
-      .first();
-
-    if (!resetToken || resetToken.expiresAt < Date.now()) {
-      return { valid: false };
-    }
-    return { valid: true };
-  },
-});
-
 /** Reset het wachtwoord met een geldig token (server-side, via secret) */
 export const resetPassword = mutation({
   args: {
