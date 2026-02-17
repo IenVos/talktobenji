@@ -203,6 +203,7 @@ export default defineSchema({
   // Gebruikersvoorkeuren (per userId, voor personalisatie)
   userPreferences: defineTable({
     userId: v.string(),
+    userContext: v.optional(v.string()), // Achtergrond/verhaal van gebruiker voor Benji
     accentColor: v.optional(v.string()),
     backgroundImageStorageId: v.optional(v.id("_storage")),
     lastSeenNotificationsAt: v.optional(v.number()),

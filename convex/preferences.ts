@@ -46,6 +46,7 @@ export const generateUploadUrl = mutation({
 export const setPreferences = mutation({
   args: {
     userId: v.string(),
+    userContext: v.optional(v.string()),
     accentColor: v.optional(v.string()),
     backgroundImageStorageId: v.optional(v.id("_storage")),
   },
@@ -59,6 +60,7 @@ export const setPreferences = mutation({
     const updates = {
       userId: args.userId,
       updatedAt: now,
+      ...(args.userContext !== undefined && { userContext: args.userContext }),
       ...(args.accentColor !== undefined && { accentColor: args.accentColor }),
       ...(args.backgroundImageStorageId !== undefined && {
         backgroundImageStorageId: args.backgroundImageStorageId,

@@ -8,8 +8,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { ScrollIndicator } from "@/components/ScrollIndicator";
 
 const ORIGINAL_ACCENT = "#6d84a8";
 const ACCENT_CACHE_KEY = "benji_accent_color";
@@ -35,8 +36,9 @@ const TOP_ITEMS = [
 ];
 
 const SUBMENU_ITEMS = [
-  { href: "/account/abonnement", label: "Abonnement & betalingen", icon: CreditCard },
-  { href: "/account/wachtwoord", label: "Wachtwoord wijzigen", icon: KeyRound },
+  { href: "/account/support", label: "Support", icon: HelpCircle },
+  { href: "/account/abonnement", label: "Abonnement", icon: CreditCard },
+  { href: "/account/wachtwoord", label: "Wachtwoord", icon: KeyRound },
 ];
 
 const REFLECTIES_SUBMENU = [
@@ -48,6 +50,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account": { title: "Wat wil je oppakken?", subtitle: "" },
   "/account/gesprekken": { title: "Jouw gesprekken", subtitle: "Je eerdere gesprekken met Benji" },
   "/account/steun": { title: "Steun Benji", subtitle: "Help Talk To Benji verder te groeien" },
+  "/account/support": { title: "Support", subtitle: "Heb je hulp nodig? Stuur ons een bericht" },
   "/account/reflecties": { title: "Reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/reflecties/eerdere-reflecties": { title: "Eerdere reflecties", subtitle: "Al je reflecties bekijken" },
   "/account/reflecties/eerdere-checkins": { title: "Eerdere check-ins", subtitle: "Al je dagelijkse check-ins bekijken" },
@@ -251,7 +254,11 @@ export default function AccountLayout({
                   {isReflectiesSection && (
                     <button
                       type="button"
-                      onClick={() => setReflectiesSubmenuOpen((o) => !o)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setReflectiesSubmenuOpen((o) => !o);
+                      }}
                       className="p-1 rounded hover:bg-primary-100/50 transition-colors -m-1"
                       title={reflectiesSubmenuOpen ? "Submenu sluiten" : "Submenu openen"}
                       aria-expanded={reflectiesSubmenuOpen}
@@ -308,7 +315,11 @@ export default function AccountLayout({
       <li>
         <button
           type="button"
-          onClick={() => setSubmenuOpen(!submenuOpen)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setSubmenuOpen(!submenuOpen);
+          }}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full ${
             SUBMENU_ITEMS.some((i) => pathname === i.href)
               ? "text-primary-800"
@@ -487,6 +498,14 @@ export default function AccountLayout({
                 </div>
               </div>
             )}
+            {/* Support link */}
+            <Link
+              href="/account/support"
+              className="p-2 text-gray-400 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0 hidden lg:block"
+              title="Support"
+            >
+              <HelpCircle size={18} />
+            </Link>
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/afscheid" })}
@@ -566,7 +585,7 @@ export default function AccountLayout({
         <div className="flex gap-6 items-start">
           {/* Desktop zijbalk – verborgen op mobiel */}
           <aside className="w-56 flex-shrink-0 hidden lg:block">
-            <nav className="sticky top-6 rounded-xl border border-primary-200 bg-white p-3" style={{ borderLeftWidth: 4, borderLeftColor: accent }}>
+            <nav className="sticky top-6 rounded-xl border border-primary-200 bg-white p-3 shadow-sm">
               {navContent}
             </nav>
           </aside>
@@ -575,6 +594,9 @@ export default function AccountLayout({
           <main className="flex-1 min-w-0">{children}</main>
         </div>
       </div>
+
+      {/* Scroll indicator */}
+      <ScrollIndicator />
     </div>
   );
 }

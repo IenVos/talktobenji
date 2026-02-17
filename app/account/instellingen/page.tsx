@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Palette, ImageIcon, Trash2, Save, RotateCcw, Smartphone, X, Bell } from "lucide-react";
+import { Palette, ImageIcon, Trash2, Save, RotateCcw, Smartphone, X, Bell, FileText } from "lucide-react";
 import { isPushSupported, subscribeToPush, unsubscribeFromPush, getPermissionStatus } from "@/lib/pushNotifications";
 
 // Originele Benji-kleur (primary-600 uit tailwind)
@@ -41,10 +41,14 @@ export default function AccountInstellingenPage() {
   const generateUploadUrl = useMutation(api.preferences.generateUploadUrl);
 
   const savedColor = preferences?.accentColor ?? "";
+  const savedContextValue = preferences?.userContext ?? "";
   const [accentColor, setAccentColor] = useState(savedColor);
+  const [userContext, setUserContext] = useState(savedContextValue);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [savingContext, setSavingContext] = useState(false);
+  const [contextSaved, setContextSaved] = useState(false);
   const [showInstallPopup, setShowInstallPopup] = useState(false);
 
   // Push notificaties
@@ -97,10 +101,26 @@ export default function AccountInstellingenPage() {
 
   useEffect(() => {
     setAccentColor(preferences?.accentColor ?? "");
-  }, [preferences?.accentColor]);
+    setUserContext(preferences?.userContext ?? "");
+  }, [preferences?.accentColor, preferences?.userContext]);
 
   const effectiveSaved = savedColor || ORIGINAL_COLOR;
   const hasColorChanged = (accentColor || ORIGINAL_COLOR) !== effectiveSaved;
+
+  const handleSaveContext = async () => {
+    if (!userId) return;
+    setSavingContext(true);
+    setContextSaved(false);
+    try {
+      await setPreferences({ userId, userContext });
+      setContextSaved(true);
+      setTimeout(() => setContextSaved(false), 2000);
+    } finally {
+      setSavingContext(false);
+    }
+  };
+
+  const hasContextChanged = userContext !== savedContextValue;
 
   const handleSaveColor = async () => {
     if (!userId) return;
@@ -149,95 +169,37 @@ export default function AccountInstellingenPage() {
 
   return (
     <div className="space-y-6">
-        {/* Hoofdkleur */}
+        {/* Context voor Benji */}
         <div className="bg-white rounded-xl border border-primary-200 p-6">
           <div className="flex items-center gap-3 mb-4">
-            <Palette size={24} className="text-primary-500" />
-            <h2 className="text-lg font-semibold text-primary-900">Hoofdkleur</h2>
+            <FileText size={24} className="text-primary-500" />
+            <h2 className="text-lg font-semibold text-primary-900">Jouw verhaal</h2>
           </div>
           <p className="text-sm text-gray-600 mb-4">
-            Kies een kleur voor knoppen en accenten in je account. De eerste kleur is de originele Benji-kleur.
+            Vertel Benji wat over jouw situatie. Dit helpt Benji om beter aan te sluiten bij wat je nodig hebt. Deze informatie is alleen zichtbaar voor jou.
           </p>
-          <div className="flex flex-wrap gap-3 mb-4">
-            {ACCENT_COLORS.map((c) => (
-              <button
-                key={c.value}
-                type="button"
-                onClick={() => setAccentColor(c.value)}
-                className={`w-10 h-10 rounded-full border-2 transition-transform hover:scale-110 ${
-                  effectiveSelection === c.value
-                    ? "border-primary-900 ring-2 ring-primary-500 ring-offset-2"
-                    : "border-gray-300"
-                }`}
-                style={{ backgroundColor: c.value }}
-                title={c.name}
-                aria-label={c.name}
-              />
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2 items-center">
+          <textarea
+            value={userContext}
+            onChange={(e) => setUserContext(e.target.value)}
+            placeholder="Waar wil je over praten? Denk aan:&#10;• Wat voor verlies je hebt meegemaakt&#10;• Hoe lang het geleden is&#10;• Waar je nu het meest mee worstelt&#10;• Wat je zoekt in gesprekken met Benji"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm resize-none"
+            rows={8}
+            maxLength={1000}
+          />
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-xs text-gray-500">
+              {userContext.length}/1000 karakters
+            </span>
             <button
               type="button"
-              onClick={handleSaveColor}
-              disabled={!hasColorChanged || saving}
+              onClick={handleSaveContext}
+              disabled={!hasContextChanged || savingContext}
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Save size={18} />
-              {saving ? "Bezig…" : saved ? "Opgeslagen!" : "Opslaan"}
+              {savingContext ? "Bezig…" : contextSaved ? "Opgeslagen!" : "Opslaan"}
             </button>
-            {effectiveSaved !== ORIGINAL_COLOR && (
-              <button
-                type="button"
-                onClick={handleResetToOriginal}
-                className="inline-flex items-center gap-2 px-4 py-2 text-primary-700 hover:bg-primary-50 rounded-lg font-medium transition-colors"
-              >
-                <RotateCcw size={18} />
-                Terug naar origineel
-              </button>
-            )}
           </div>
-        </div>
-
-        {/* Achtergrond afbeelding */}
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <ImageIcon size={24} className="text-primary-500" />
-            <h2 className="text-lg font-semibold text-primary-900">
-              Achtergrondafbeelding
-            </h2>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">
-            Upload een eigen achtergrond die je ziet wanneer je Benji gebruikt.
-          </p>
-          {preferencesData?.backgroundImageUrl && (
-            <div className="mb-4 relative inline-block">
-              <div className="rounded-lg overflow-hidden border border-primary-200">
-                <img
-                  src={preferencesData.backgroundImageUrl}
-                  alt="Je achtergrond"
-                  className="w-full h-32 object-cover"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleRemoveBackground}
-                className="absolute top-2 right-2 p-2 bg-red-500/90 text-white rounded-lg hover:bg-red-600 transition-colors"
-                aria-label="Achtergrond verwijderen"
-              >
-                <Trash2 size={18} />
-              </button>
-            </div>
-          )}
-          <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-800 rounded-lg cursor-pointer hover:bg-primary-200 transition-colors disabled:opacity-50">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleBackgroundUpload}
-              disabled={uploading}
-              className="sr-only"
-            />
-            {uploading ? "Bezig met uploaden…" : "Afbeelding uploaden"}
-          </label>
         </div>
 
         {/* Hartverwarmers */}
@@ -281,6 +243,97 @@ export default function AccountInstellingenPage() {
               )}
             </div>
           )}
+        </div>
+
+        {/* Uiterlijk - Kleur + Achtergrond samengevoegd */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <Palette size={24} className="text-primary-500" />
+            <h2 className="text-lg font-semibold text-primary-900">Uiterlijk</h2>
+          </div>
+
+          {/* Hoofdkleur sectie */}
+          <div className="mb-8 pb-8 border-b border-gray-100">
+            <h3 className="text-base font-medium text-gray-900 mb-2">Hoofdkleur</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Kies een kleur voor knoppen en accenten in je account. De eerste kleur is de originele Benji-kleur.
+            </p>
+            <div className="flex flex-wrap gap-3 mb-4">
+              {ACCENT_COLORS.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => setAccentColor(c.value)}
+                  className={`w-10 h-10 rounded-full border-2 transition-transform hover:scale-110 ${
+                    effectiveSelection === c.value
+                      ? "border-primary-900 ring-2 ring-primary-500 ring-offset-2"
+                      : "border-gray-300"
+                  }`}
+                  style={{ backgroundColor: c.value }}
+                  title={c.name}
+                  aria-label={c.name}
+                />
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <button
+                type="button"
+                onClick={handleSaveColor}
+                disabled={!hasColorChanged || saving}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Save size={18} />
+                {saving ? "Bezig…" : saved ? "Opgeslagen!" : "Opslaan"}
+              </button>
+              {effectiveSaved !== ORIGINAL_COLOR && (
+                <button
+                  type="button"
+                  onClick={handleResetToOriginal}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-primary-700 hover:bg-primary-50 rounded-lg font-medium transition-colors"
+                >
+                  <RotateCcw size={18} />
+                  Terug naar origineel
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Achtergrond afbeelding sectie */}
+          <div>
+            <h3 className="text-base font-medium text-gray-900 mb-2">Achtergrondafbeelding</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Upload een eigen achtergrond die je ziet wanneer je Benji gebruikt.
+            </p>
+            {preferencesData?.backgroundImageUrl && (
+              <div className="mb-4 relative inline-block">
+                <div className="rounded-lg overflow-hidden border border-primary-200">
+                  <img
+                    src={preferencesData.backgroundImageUrl}
+                    alt="Je achtergrond"
+                    className="w-full h-32 object-cover"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveBackground}
+                  className="absolute top-2 right-2 p-2 bg-red-500/90 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  aria-label="Achtergrond verwijderen"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            )}
+            <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-800 rounded-lg cursor-pointer hover:bg-primary-200 transition-colors disabled:opacity-50">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleBackgroundUpload}
+                disabled={uploading}
+                className="sr-only"
+              />
+              {uploading ? "Bezig met uploaden…" : "Afbeelding uploaden"}
+            </label>
+          </div>
         </div>
 
         {/* Installeer als app */}
