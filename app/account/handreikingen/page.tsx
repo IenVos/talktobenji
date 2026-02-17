@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { HandHelping, FileDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
+import { Paywall } from "@/components/Paywall";
 
 const CARD_PCT = 75;
 const SIDE_PCT = (100 - CARD_PCT) / 2; // 12.5%
@@ -18,9 +20,33 @@ function circularOffset(index: number, active: number, total: number) {
 }
 
 export default function AccountHandreikingenPage() {
+  const { data: session } = useSession();
+
+  // Check feature access
+  const hasAccess = useQuery(
+    api.subscriptions.hasFeatureAccess,
+    session?.userId
+      ? {
+          userId: session.userId as string,
+          email: session.user?.email || undefined,
+          feature: "handreikingen",
+        }
+      : "skip"
+  );
+
   const items = useQuery(api.handreikingen.listActiveWithUrls, {});
   const [lightboxImage, setLightboxImage] = useState<{ url: string; alt: string } | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // Show paywall if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Alles in 1"
+        message="Handreikingen zijn beschikbaar in Benji Alles in 1. Krijg praktische tips en ideeën voor moeilijke momenten."
+      />
+    );
+  }
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
   const [isDragging, setIsDragging] = useState(false);

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Sparkles, FileDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
+import { Paywall } from "@/components/Paywall";
 
 const CARD_PCT = 75;
 const SIDE_PCT = (100 - CARD_PCT) / 2;
@@ -18,9 +20,33 @@ function circularOffset(index: number, active: number, total: number) {
 }
 
 export default function AccountInspiratiePage() {
+  const { data: session } = useSession();
+
+  // Check feature access
+  const hasAccess = useQuery(
+    api.subscriptions.hasFeatureAccess,
+    session?.userId
+      ? {
+          userId: session.userId as string,
+          email: session.user?.email || undefined,
+          feature: "inspiration",
+        }
+      : "skip"
+  );
+
   const items = useQuery(api.inspiratie.listActiveWithUrls, {});
   const [lightboxImage, setLightboxImage] = useState<{ url: string; alt: string } | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // Show paywall if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Alles in 1"
+        message="Inspiratie & troost is beschikbaar in Benji Alles in 1. Krijg toegang tot gedichten, citaten en teksten die je kunnen steunen."
+      />
+    );
+  }
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
   const [isDragging, setIsDragging] = useState(false);

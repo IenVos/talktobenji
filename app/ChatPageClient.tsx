@@ -11,6 +11,7 @@ import { WelcomeScreen, WelcomeScreenInfoIcons } from "@/components/chat/Welcome
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
 import { hexToDarker } from "@/lib/utils";
+import { ConversationLimitGate } from "@/components/ConversationLimitGate";
 
 export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[] };
 
@@ -499,7 +500,11 @@ export default function ChatPageClient({
     >
       <HeaderBar onLogoClick={() => { setSessionId(null); setShowTopicButtons(true); }} />
 
-      <main ref={mainRef} className="flex-1 overflow-y-auto relative">
+      <ConversationLimitGate
+        userId={session?.userId as string | undefined}
+        email={session?.user?.email || undefined}
+      >
+        <main ref={mainRef} className="flex-1 overflow-y-auto relative">
         {/* Eén achtergrondlaag: custom of standaard, pointer-events: none, z-0 */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -642,6 +647,7 @@ export default function ChatPageClient({
           </div>
         )}
       </footer>
+      </ConversationLimitGate>
     </div>
   );
 }

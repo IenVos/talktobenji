@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Gem, Plus, Trash2, Mic, Square, ImagePlus, X, Sparkles, Pencil, Eye, ImageOff } from "lucide-react";
+import { Paywall } from "@/components/Paywall";
 
 const EMOTIONS = [
   { value: "dankbaar", emoji: "\u{1F64F}", label: "Dankbaar" },
@@ -38,6 +39,19 @@ type Memory = {
 
 export default function HerinneringenPage() {
   const { data: session } = useSession();
+
+  // Check feature access
+  const hasAccess = useQuery(
+    api.subscriptions.hasFeatureAccess,
+    session?.userId
+      ? {
+          userId: session.userId as string,
+          email: session.user?.email || undefined,
+          feature: "memories",
+        }
+      : "skip"
+  );
+
   const memories = useQuery(
     api.memories.getMemories,
     session?.userId ? { userId: session.userId as string } : "skip"
@@ -46,6 +60,16 @@ export default function HerinneringenPage() {
   const updateMemory = useMutation(api.memories.updateMemory);
   const deleteMemory = useMutation(api.memories.deleteMemory);
   const generateUploadUrl = useMutation(api.preferences.generateUploadUrl);
+
+  // Show paywall if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Alles in 1"
+        message="Memories zijn beschikbaar in Benji Alles in 1. Leg mooie herinneringen vast om later naar terug te kijken."
+      />
+    );
+  }
 
   // Formulier state
   const [showForm, setShowForm] = useState(false);

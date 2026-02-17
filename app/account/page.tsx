@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { MessageSquare, PencilLine, Sparkles, HandHelping, Gem, Target, CalendarCheck } from "lucide-react";
+import { SubscriptionStatus } from "@/components/SubscriptionStatus";
+import { ConversationLimitBanner } from "@/components/ConversationLimitBanner";
 
 const CATEGORIES = [
   { href: "/account/gesprekken", label: "Jouw gesprekken", icon: MessageSquare, desc: "Je eerdere gesprekken met Benji" },
@@ -14,8 +17,26 @@ const CATEGORIES = [
 ];
 
 export default function AccountPage() {
+  const { data: session } = useSession();
+
   return (
     <div className="space-y-4">
+      {/* Conversation limit banner */}
+      {session?.userId && (
+        <ConversationLimitBanner
+          userId={session.userId as string}
+          email={session.user?.email || undefined}
+        />
+      )}
+
+      {/* Subscription status */}
+      {session?.userId && (
+        <SubscriptionStatus
+          userId={session.userId as string}
+          email={session.user?.email || undefined}
+        />
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         {CATEGORIES.map(({ href, label, icon: Icon, desc }) => (
           <Link

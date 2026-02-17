@@ -11,10 +11,23 @@ import {
   Circle,
   Trash2,
 } from "lucide-react";
+import { Paywall } from "@/components/Paywall";
 
 export default function AccountDoelenPage() {
   const { data: session } = useSession();
   const userId = session?.userId ?? "";
+
+  // Check feature access
+  const hasAccess = useQuery(
+    api.subscriptions.hasFeatureAccess,
+    session?.userId
+      ? {
+          userId: session.userId as string,
+          email: session.user?.email || undefined,
+          feature: "goals",
+        }
+      : "skip"
+  );
 
   const goals = useQuery(api.reflecties.listGoals, userId ? { userId } : "skip");
   const createGoal = useMutation(api.reflecties.createGoal);
@@ -31,6 +44,16 @@ export default function AccountDoelenPage() {
 
   const openGoals = goals?.filter((g: any) => !g.completed) ?? [];
   const completedGoals = goals?.filter((g: any) => g.completed) ?? [];
+
+  // Show paywall if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Uitgebreid"
+        message="Persoonlijke doelen zijn beschikbaar vanaf Benji Uitgebreid. Houd je doelen en wensen bij."
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { CalendarCheck, ChevronDown, ChevronRight, Trash2, History } from "lucide-react";
+import { Paywall } from "@/components/Paywall";
 
 const MOOD_OPTIONS = [
   { value: 1, emoji: "😔", label: "Zwaar" },
@@ -35,6 +36,18 @@ const CHECK_IN_LABELS: Record<string, string> = {
 export default function AccountCheckinsPage() {
   const { data: session } = useSession();
   const userId = session?.userId ?? "";
+
+  // Check feature access
+  const hasAccess = useQuery(
+    api.subscriptions.hasFeatureAccess,
+    session?.userId
+      ? {
+          userId: session.userId as string,
+          email: session.user?.email || undefined,
+          feature: "check_ins",
+        }
+      : "skip"
+  );
 
   const checkInEntries = useQuery(
     api.reflecties.listCheckInEntries,
@@ -72,6 +85,16 @@ export default function AccountCheckinsPage() {
     if (!userId || !confirm("Check-in verwijderen?")) return;
     await deleteCheckInEntry({ id, userId });
   };
+
+  // Show paywall if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Uitgebreid"
+        message="Dagelijkse check-ins zijn beschikbaar vanaf Benji Uitgebreid. Gebruik korte vragen om je gedachten te ordenen."
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

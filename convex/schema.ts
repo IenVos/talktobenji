@@ -210,6 +210,40 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
 
+  // Gebruiker abonnementen
+  userSubscriptions: defineTable({
+    userId: v.string(),
+    email: v.string(), // Voor admin override check
+    subscriptionType: v.union(
+      v.literal("free"),
+      v.literal("uitgebreid"),
+      v.literal("alles_in_1")
+    ),
+    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("yearly"))),
+    status: v.union(
+      v.literal("active"),
+      v.literal("cancelled"),
+      v.literal("expired")
+    ),
+    startedAt: v.number(),
+    expiresAt: v.optional(v.number()),
+    cancelledAt: v.optional(v.number()),
+    paymentProvider: v.optional(v.string()), // "mollie", "stripe", etc.
+    externalSubscriptionId: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_email", ["email"]),
+
+  // Gesprekken teller (voor free tier limiet)
+  conversationUsage: defineTable({
+    userId: v.string(),
+    month: v.string(), // YYYY-MM
+    conversationCount: v.number(),
+    lastConversationAt: v.number(),
+    createdAt: v.number(),
+  }).index("by_user_month", ["userId", "month"]),
+
   // Notities / reflecties (per gebruiker)
   notes: defineTable({
     userId: v.string(),

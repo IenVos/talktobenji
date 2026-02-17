@@ -207,6 +207,33 @@ export const startSession = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
+    // Track conversation count voor logged-in users (niet voor admin)
+    if (args.userId && args.userEmail !== "annadelapierre@icloud.com") {
+      const month = `${new Date(now).getFullYear()}-${String(new Date(now).getMonth() + 1).padStart(2, "0")}`;
+
+      const existing = await ctx.db
+        .query("conversationUsage")
+        .withIndex("by_user_month", (q) =>
+          q.eq("userId", args.userId!).eq("month", month)
+        )
+        .first();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          conversationCount: existing.conversationCount + 1,
+          lastConversationAt: now,
+        });
+      } else {
+        await ctx.db.insert("conversationUsage", {
+          userId: args.userId,
+          month,
+          conversationCount: 1,
+          lastConversationAt: now,
+          createdAt: now,
+        });
+      }
+    }
+
     const sessionId = await ctx.db.insert("chatSessions", {
       userId: args.userId,
       userEmail: args.userEmail,

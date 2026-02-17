@@ -22,6 +22,7 @@ import {
   Mic,
   Square,
 } from "lucide-react";
+import { Paywall } from "@/components/Paywall";
 
 const CHECK_IN_LABELS: Record<string, string> = {
   hoe_voel: "Hoe voel ik me vandaag?",
@@ -67,6 +68,18 @@ export default function AccountReflectiesPage() {
   const { data: session } = useSession();
   const userId = session?.userId ?? "";
   const dateStr = todayStr();
+
+  // Check feature access
+  const hasAccess = useQuery(
+    api.subscriptions.hasFeatureAccess,
+    session?.userId
+      ? {
+          userId: session.userId as string,
+          email: session.user?.email || undefined,
+          feature: "reflections",
+        }
+      : "skip"
+  );
 
   const notes = useQuery(api.reflecties.listNotes, userId ? { userId } : "skip");
   const emotion = useQuery(
@@ -224,6 +237,16 @@ export default function AccountReflectiesPage() {
     day: "numeric",
     month: "long",
   });
+
+  // Show paywall if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Uitgebreid"
+        message="Reflecties zijn beschikbaar vanaf Benji Uitgebreid. Schrijf notities, registreer je emoties en doe dagelijkse check-ins."
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
