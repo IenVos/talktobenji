@@ -562,8 +562,8 @@ export default function AccountSteunPage() {
                         }}
                         onClick={() => { if (!isActive && isVisible) goToOnderwegItem(index); }}
                       >
-                        <Link href="/account/onderweg" className="block">
-                          <article className="rounded-lg bg-white border border-primary-100 overflow-hidden hover:border-primary-200 transition-colors aspect-square flex flex-col">
+                        <article className="rounded-lg bg-white border border-primary-100 overflow-hidden hover:border-primary-200 transition-colors aspect-square flex flex-col">
+                          <Link href="/account/onderweg" className="flex-1 flex flex-col">
                             {item.imageUrl && (
                               <div className="flex-1 overflow-hidden flex items-center justify-center bg-white p-3">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -589,8 +589,21 @@ export default function AccountSteunPage() {
                                 </div>
                               </div>
                             )}
-                          </article>
-                        </Link>
+                          </Link>
+                          {item.paymentUrl && (
+                            <div className="px-3 pb-3">
+                              <a
+                                href={item.paymentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-1.5 bg-primary-600 text-white rounded-lg text-xs font-medium hover:bg-primary-700 transition-colors"
+                              >
+                                Bestellen
+                              </a>
+                            </div>
+                          )}
+                        </article>
                       </div>
                     );
                   })}

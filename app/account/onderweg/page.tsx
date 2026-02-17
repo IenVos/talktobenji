@@ -170,14 +170,14 @@ export default function AccountOnderwegPage() {
                     >
                       <article
                         ref={(el) => { articleRefs.current[index] = el; }}
-                        className="rounded-xl bg-primary-50/50 border border-primary-100 overflow-hidden flex flex-col"
+                        className="rounded-xl bg-white border border-primary-100 overflow-hidden flex flex-col aspect-square"
                         style={{ minHeight: maxCardHeight > 0 ? `${maxCardHeight}px` : undefined }}
                       >
                         {item.imageUrl && (
                           <button
                             type="button"
                             onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
-                            className="w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex-1 min-h-0 flex items-center justify-center"
+                            className="flex-1 overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center bg-white p-6"
                             title="Afbeelding vergroten"
                             tabIndex={isActive ? 0 : -1}
                           >
@@ -185,40 +185,35 @@ export default function AccountOnderwegPage() {
                             <img
                               src={item.imageUrl}
                               alt={item.title}
-                              className="w-full max-h-96 object-contain"
+                              className="w-full h-full object-contain"
                               onLoad={() => setImagesLoaded((c) => c + 1)}
                             />
                           </button>
                         )}
 
                         {(item.title || item.content || item.paymentUrl || (item.priceCents != null && item.priceCents > 0)) && (
-                        <div className="p-5 flex-1">
-                          {item.title && (
-                            <h3 className="text-base font-semibold text-primary-900">{item.title}</h3>
-                          )}
-                          {item.content && (
-                            <p className="text-sm text-gray-600 mt-2">{item.content}</p>
-                          )}
-                          {(item.priceCents != null && item.priceCents > 0 || item.paymentUrl) && (
-                            <div className="mt-3 flex items-center gap-2">
-                              {item.priceCents != null && item.priceCents > 0 && (
-                                <span className="text-lg font-semibold text-primary-900">
-                                  €{(item.priceCents / 100).toFixed(2)}
-                                </span>
-                              )}
-                              {item.paymentUrl && (
-                                <a
-                                  href={item.paymentUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
-                                  tabIndex={isActive ? 0 : -1}
-                                >
-                                  Bestellen
-                                  <ExternalLink size={14} />
-                                </a>
-                              )}
-                            </div>
+                        <div className="p-5 flex flex-col items-center justify-center gap-3">
+                          <div className="flex flex-col items-center justify-center gap-2 px-4 py-3 rounded-lg border border-primary-200 bg-white w-full">
+                            {item.title && (
+                              <h3 className="text-sm font-semibold text-primary-900 text-center">{item.title}</h3>
+                            )}
+                            {item.priceCents != null && item.priceCents > 0 && (
+                              <span className="text-base font-semibold text-primary-600">
+                                €{(item.priceCents / 100).toFixed(2)}
+                              </span>
+                            )}
+                          </div>
+                          {item.paymentUrl && (
+                            <a
+                              href={item.paymentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+                              tabIndex={isActive ? 0 : -1}
+                            >
+                              Bestellen
+                              <ExternalLink size={14} />
+                            </a>
                           )}
                         </div>
                         )}
