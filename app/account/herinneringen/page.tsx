@@ -61,16 +61,6 @@ export default function HerinneringenPage() {
   const deleteMemory = useMutation(api.memories.deleteMemory);
   const generateUploadUrl = useMutation(api.preferences.generateUploadUrl);
 
-  // Show paywall if no access
-  if (hasAccess === false) {
-    return (
-      <Paywall
-        title="Upgrade naar Benji Alles in 1"
-        message="Memories zijn beschikbaar in Benji Alles in 1. Leg mooie herinneringen vast om later naar terug te kijken."
-      />
-    );
-  }
-
   // Formulier state
   const [showForm, setShowForm] = useState(false);
   const [text, setText] = useState("");
@@ -269,7 +259,16 @@ export default function HerinneringenPage() {
 
   const emotionForValue = (val: string) => EMOTIONS.find((e) => e.value === val);
 
-  return (
+  // Show loading state to prevent flash
+  if (hasAccess === undefined) {
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-pulse rounded-full h-8 w-8 border-b-2 border-primary-600" />
+      </div>
+    );
+  }
+
+  const content = (
     <div className="space-y-6">
       {/* Intro + toevoegen */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
@@ -717,4 +716,18 @@ export default function HerinneringenPage() {
       )}
     </div>
   );
+
+  // Show paywall overlay if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Alles in 1"
+        message="Memories zijn beschikbaar in Benji Alles in 1. Leg mooie herinneringen vast om later naar terug te kijken."
+      >
+        {content}
+      </Paywall>
+    );
+  }
+
+  return content;
 }

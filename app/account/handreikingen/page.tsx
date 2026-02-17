@@ -37,16 +37,6 @@ export default function AccountHandreikingenPage() {
   const items = useQuery(api.handreikingen.listActiveWithUrls, {});
   const [lightboxImage, setLightboxImage] = useState<{ url: string; alt: string } | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-
-  // Show paywall if no access
-  if (hasAccess === false) {
-    return (
-      <Paywall
-        title="Upgrade naar Benji Alles in 1"
-        message="Handreikingen zijn beschikbaar in Benji Alles in 1. Krijg praktische tips en ideeën voor moeilijke momenten."
-      />
-    );
-  }
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -99,7 +89,7 @@ export default function AccountHandreikingenPage() {
     touchDeltaX.current = 0;
   }, [activeIndex, goTo]);
 
-  return (
+  const content = (
     <div className="space-y-6">
       {/* Introductie — eigen kaart */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
@@ -301,4 +291,18 @@ export default function AccountHandreikingenPage() {
       )}
     </div>
   );
+
+  // Show paywall overlay if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Alles in 1"
+        message="Handreikingen zijn beschikbaar in Benji Alles in 1. Krijg praktische tips en ideeën voor moeilijke momenten."
+      >
+        {content}
+      </Paywall>
+    );
+  }
+
+  return content;
 }

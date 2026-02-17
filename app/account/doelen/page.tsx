@@ -45,17 +45,16 @@ export default function AccountDoelenPage() {
   const openGoals = goals?.filter((g: any) => !g.completed) ?? [];
   const completedGoals = goals?.filter((g: any) => g.completed) ?? [];
 
-  // Show paywall if no access
-  if (hasAccess === false) {
+  // Show loading state or paywall immediately to prevent flash
+  if (hasAccess === undefined) {
     return (
-      <Paywall
-        title="Upgrade naar Benji Uitgebreid"
-        message="Persoonlijke doelen zijn beschikbaar vanaf Benji Uitgebreid. Houd je doelen en wensen bij."
-      />
+      <div className="flex justify-center py-12">
+        <div className="animate-pulse rounded-full h-8 w-8 border-b-2 border-primary-600" />
+      </div>
     );
   }
 
-  return (
+  const content = (
     <div className="space-y-6">
       {/* Nieuw doel toevoegen */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
@@ -168,4 +167,18 @@ export default function AccountDoelenPage() {
       )}
     </div>
   );
+
+  // Show paywall overlay if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Uitgebreid"
+        message="Persoonlijke doelen zijn beschikbaar vanaf Benji Uitgebreid. Houd je doelen en wensen bij."
+      >
+        {content}
+      </Paywall>
+    );
+  }
+
+  return content;
 }

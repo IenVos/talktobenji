@@ -3,7 +3,7 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Check, Sparkles, Crown } from "lucide-react";
+import { Check, Sparkles, Star } from "lucide-react";
 
 interface SubscriptionStatusProps {
   userId: string;
@@ -30,15 +30,21 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
   };
 
   const planColors = {
-    free: "bg-gray-100 text-gray-700 border-gray-200",
-    uitgebreid: "bg-primary-100 text-primary-700 border-primary-200",
-    alles_in_1: "bg-amber-100 text-amber-700 border-amber-200",
+    free: "bg-green-50 text-green-700 border-green-200",
+    uitgebreid: "bg-amber-50 text-amber-700 border-amber-200",
+    alles_in_1: "bg-purple-50 text-purple-700 border-purple-200",
+  };
+
+  const iconColors = {
+    free: "text-green-600",
+    uitgebreid: "text-amber-500",
+    alles_in_1: "text-purple-600",
   };
 
   const planIcons = {
     free: Check,
     uitgebreid: Sparkles,
-    alles_in_1: Crown,
+    alles_in_1: Star,
   };
 
   const Icon = planIcons[subscription.subscriptionType];
@@ -55,7 +61,7 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
             planColors[subscription.subscriptionType]
           }`}
         >
-          <Icon size={18} />
+          <Icon size={18} className={iconColors[subscription.subscriptionType]} />
           <span className="font-medium">{planNames[subscription.subscriptionType]}</span>
         </div>
         {subscription.isAdmin && (

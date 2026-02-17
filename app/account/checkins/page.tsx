@@ -86,17 +86,16 @@ export default function AccountCheckinsPage() {
     await deleteCheckInEntry({ id, userId });
   };
 
-  // Show paywall if no access
-  if (hasAccess === false) {
+  // Show loading state to prevent flash
+  if (hasAccess === undefined) {
     return (
-      <Paywall
-        title="Upgrade naar Benji Uitgebreid"
-        message="Dagelijkse check-ins zijn beschikbaar vanaf Benji Uitgebreid. Gebruik korte vragen om je gedachten te ordenen."
-      />
+      <div className="flex justify-center py-12">
+        <div className="animate-pulse rounded-full h-8 w-8 border-b-2 border-primary-600" />
+      </div>
     );
   }
 
-  return (
+  const content = (
     <div className="space-y-6">
       {/* Nieuwe check-in invullen */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
@@ -200,4 +199,18 @@ export default function AccountCheckinsPage() {
       </div>
     </div>
   );
+
+  // Show paywall overlay if no access
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Uitgebreid"
+        message="Dagelijkse check-ins zijn beschikbaar vanaf Benji Uitgebreid. Gebruik korte vragen om je gedachten te ordenen."
+      >
+        {content}
+      </Paywall>
+    );
+  }
+
+  return content;
 }

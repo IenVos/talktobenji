@@ -29,14 +29,6 @@ export default function AccountPage() {
         />
       )}
 
-      {/* Subscription status */}
-      {session?.userId && (
-        <SubscriptionStatus
-          userId={session.userId as string}
-          email={session.user?.email || undefined}
-        />
-      )}
-
       <div className="grid gap-4 sm:grid-cols-2">
         {CATEGORIES.map(({ href, label, icon: Icon, desc }) => (
           <Link

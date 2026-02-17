@@ -11,6 +11,7 @@ import { hexToLightTint, hexToDarker } from "@/lib/utils";
 import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ScrollIndicator } from "@/components/ScrollIndicator";
+import { UpgradeBadge } from "@/components/UpgradeBadge";
 
 const ORIGINAL_ACCENT = "#6d84a8";
 const ACCENT_CACHE_KEY = "benji_accent_color";
@@ -207,17 +208,26 @@ export default function AccountLayout({
   const navContent = (
     <ul className="space-y-0.5">
       <li>
-        <Link
-          href="/account"
-          scroll={false}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-            pathname === "/account" ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
+        <div className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            pathname === "/account" ? "text-primary-800" : "text-gray-700"
           }`}
           style={pathname === "/account" ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
         >
-          <House size={18} className="flex-shrink-0" />
-          Mijn plek
-        </Link>
+          <Link
+            href="/account"
+            scroll={false}
+            className="flex items-center gap-3 flex-1 hover:text-primary-700 transition-colors"
+          >
+            <House size={18} className="flex-shrink-0" />
+            Mijn plek
+          </Link>
+          {session?.userId && (
+            <UpgradeBadge
+              userId={session.userId as string}
+              email={session.user?.email || undefined}
+            />
+          )}
+        </div>
       </li>
       <li>
         <Link

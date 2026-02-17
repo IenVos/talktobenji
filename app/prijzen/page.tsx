@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { ScrollToTop } from "@/components/ScrollToTop";
-import { Check } from "lucide-react";
+import { Check, Sparkles, Star } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Wat kost Benji? · Talk To Benji",
@@ -39,7 +39,8 @@ export default function PrijzenPage() {
           {/* Gratis Account */}
           <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200 p-6 sm:p-8">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Check size={20} className="text-green-600" strokeWidth={3} />
                 Gewoon proberen — Gratis
               </h2>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
@@ -63,7 +64,8 @@ export default function PrijzenPage() {
           {/* Benji Uitgebreid */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-primary-300 p-6 sm:p-8">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Sparkles size={20} className="text-amber-500" />
                 Benji Uitgebreid — € 6,99 per maand
               </h2>
               <p className="text-xs text-gray-500 mb-4">
@@ -88,7 +90,8 @@ export default function PrijzenPage() {
           {/* Benji Alles in 1 */}
           <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-primary-300 p-6 sm:p-8">
             <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">
+              <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                <Star size={20} className="text-purple-600" fill="currentColor" />
                 Benji Alles in 1 — € 11,99 per maand
               </h2>
               <p className="text-xs text-gray-500 mb-4">
