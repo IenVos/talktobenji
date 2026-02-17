@@ -59,7 +59,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
           <section>
             <h3 className="font-semibold text-gray-900 mb-2">Wie heeft Benji gemaakt en waarom?</h3>
             <p>
-              Benji is ontwikkeld door <FounderLink label="Ien" />, uit persoonlijke ervaring met verlies en het besef dat verdriet niet altijd past in kantooruren of beschikbaarheid van vrienden en familie. We merkten dat algemene chatbots niet de zachtheid en het begrip boden die nodig zijn bij rouw, daarom maakten we Benji: een plek waar je verhaal er altijd toe doet.
+              Benji is ontwikkeld door <FounderLink label="Ien" onClick={onClose} />, uit persoonlijke ervaring met verlies en het besef dat verdriet niet altijd past in kantooruren of beschikbaarheid van vrienden en familie. We merkten dat algemene chatbots niet de zachtheid en het begrip boden die nodig zijn bij rouw, daarom maakten we Benji: een plek waar je verhaal er altijd toe doet.
             </p>
           </section>
 

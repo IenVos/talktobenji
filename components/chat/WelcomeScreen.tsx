@@ -1,8 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Lock, AlertTriangle } from "lucide-react";
 import { TopicButtons, type TopicId } from "./TopicButtons";
-import { useAboutModal } from "@/lib/AboutModalContext";
 
 type WelcomeScreenProps = {
   showTopicButtons: boolean;
@@ -32,8 +32,6 @@ export function WelcomeScreen({
   showTopicButtons,
   onTopicSelect,
 }: WelcomeScreenProps) {
-  const { setShowAbout } = useAboutModal();
-
   return (
     <div className="w-full flex flex-col items-center justify-center text-center pt-2 sm:pt-4 pb-4 sm:pb-8 px-4 sm:px-6">
       {/* Introtekst – max 2 regels */}
@@ -43,16 +41,15 @@ export function WelcomeScreen({
         </p>
       </div>
 
-      {/* Meer over Benji-knop – gecentreerd */}
+      {/* Waarom Benji-knop – gecentreerd */}
       <div className="w-full flex justify-center mb-4 sm:mb-5">
-        <button
-          type="button"
-          onClick={() => setShowAbout(true)}
+        <Link
+          href="/waarom-benji"
           className="welcome-btn flex items-center justify-center gap-2 rounded-xl px-4 py-2.5"
         >
-          Meer over Benji
+          Waarom TalkToBenji
           <span aria-hidden>→</span>
-        </button>
+        </Link>
       </div>
 
       {/* Vraag en topic-sectie */}

@@ -1,27 +1,21 @@
-"use client";
-
-import { useState } from "react";
-import { FounderModal } from "./FounderModal";
+import Link from "next/link";
 
 type FounderLinkProps = {
   /** Tekst om te tonen (standaard: "LAAV") */
   label?: string;
+  /** Optionele callback die wordt aangeroepen bij klik (bijv. om modal te sluiten) */
+  onClick?: () => void;
 };
 
-/** Klikbare link die een popup opent met info over de oprichter. */
-export function FounderLink({ label = "LAAV" }: FounderLinkProps) {
-  const [open, setOpen] = useState(false);
-
+/** Klikbare link die verwijst naar de Waarom Benji pagina. */
+export function FounderLink({ label = "LAAV", onClick }: FounderLinkProps) {
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="text-primary-600 hover:text-primary-700 underline bg-transparent border-0 p-0 cursor-pointer font-inherit text-inherit"
-      >
-        {label}
-      </button>
-      <FounderModal open={open} onClose={() => setOpen(false)} />
-    </>
+    <Link
+      href="/waarom-benji"
+      onClick={onClick}
+      className="text-primary-600 hover:text-primary-700 underline underline-offset-2 font-medium transition-colors"
+    >
+      {label}
+    </Link>
   );
 }
