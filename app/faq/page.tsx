@@ -159,35 +159,27 @@ export default function FaqPage() {
           </FaqItem>
         </FaqSection>
 
-        <FaqSection title="Kosten & Toekomstplannen">
-          <FaqItem question="Is Talk To Benji gratis?">
+        <FaqSection title="Kosten & Abonnementen">
+          <FaqItem question="Wat kost Talk To Benji?">
             <p>
-              Ja, momenteel is Benji volledig gratis tijdens onze lancering en testfase. Je kunt onbeperkt gesprekken voeren zonder kosten. Help ons Benji te verbeteren door je ervaring te delen.
+              Je kunt Benji altijd even proberen voordat je een account aanmaakt. Met een gratis account kun je tot 10 gesprekken per maand voeren. Wil je Benji vaker gebruiken en toegang tot extra functies zoals reflecties en doelen? Dan zijn er twee betaalde opties:
             </p>
-          </FaqItem>
-          <FaqItem question="Blijft Benji altijd gratis?">
-            <p>
-              Nee, we werken aan een duurzaam model zodat we Benji kunnen blijven verbeteren en onderhouden. In de toekomst introduceren we een abonnement van €4,99 per maand voor nieuwe gebruikers. Vroege gebruikers (zoals jij, als je nu start) krijgen speciale voorwaarden als dank voor hun vertrouwen en feedback.
-            </p>
-          </FaqItem>
-          <FaqItem question="Wanneer wordt het betaald?">
-            <p>
-              Dat hangt af van hoeveel mensen Benji gebruiken en hoeveel feedback we krijgen. We zullen minimaal 30 dagen van tevoren communiceren voordat we eventuele kosten introduceren. Je wordt nooit verrast.
-            </p>
-          </FaqItem>
-          <FaqItem question="Wat zijn &quot;speciale voorwaarden&quot; voor vroege gebruikers?">
-            <p>Mogelijkheden die we overwegen:</p>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>Permanent gratis voor de eerste 50/100 gebruikers</li>
-              <li>Fors gereduceerd tarief (€2,99 in plaats van €4,99)</li>
-              <li>Eerste jaar gratis, daarna standaard tarief</li>
-              <li>Lifetime 50% korting</li>
+            <ul className="list-disc list-inside space-y-1 ml-2 mt-2">
+              <li><strong>Benji Uitgebreid</strong> — €6,99 per maand (of €54 per jaar): onbeperkte gesprekken, reflecties, doelen en check-ins</li>
+              <li><strong>Benji Alles in 1</strong> — €11,99 per maand (of €89 per jaar): alles van Uitgebreid plus memories, inspiratie en handreikingen</li>
             </ul>
-            <p>We maken dit bekend zodra we besluiten kosten in te voeren.</p>
+            <p className="mt-2">
+              <a href="/prijzen" className="text-primary-600 hover:text-primary-700 underline">Bekijk alle opties en prijzen →</a>
+            </p>
           </FaqItem>
-          <FaqItem question="Waarom niet voor altijd gratis?">
+          <FaqItem question="Is er een gratis versie?">
             <p>
-              AI technologie kost geld per gesprek (API kosten), hosting, onderhoud en doorontwikkeling. Om Benji goed en veilig te houden, hebben we inkomsten nodig. We geloven dat €4,99/maand redelijk is voor 24/7 ondersteuning wanneer je het nodig hebt.
+              Ja, je kunt Benji gebruiken met een gratis account. Je krijgt dan tot 10 gesprekken per maand en je gesprekken worden bewaard. Dit is perfect om Benji te proberen en te kijken of het bij je past. Voor onbeperkte gesprekken en extra functies zoals reflecties en doelen heb je een betaald abonnement nodig.
+            </p>
+          </FaqItem>
+          <FaqItem question="Waarom kost Benji geld?">
+            <p>
+              AI technologie kost geld per gesprek (API kosten), hosting, onderhoud en doorontwikkeling. Om Benji goed en veilig te houden en door te kunnen ontwikkelen, hebben we inkomsten nodig. We proberen de prijzen zo toegankelijk mogelijk te houden, zodat zoveel mogelijk mensen gebruik kunnen maken van Benji wanneer ze het nodig hebben.
             </p>
           </FaqItem>
           <FaqItem question="Kan ik maandelijks opzeggen?">
@@ -448,7 +440,7 @@ export default function FaqPage() {
           </FaqItem>
           <FaqItem question="Kan ik Benji cadeau doen aan iemand?">
             <p>
-              Niet direct, maar je kunt iemand wijzen op Benji. Momenteel is Benji gratis, dus er is geen financiële drempel. In de toekomst kunnen we cadeaubonnen overwegen.
+              Momenteel niet direct, maar je kunt iemand wijzen op Benji. Iedereen kan Benji gratis proberen met het gratis account (tot 10 gesprekken per maand). In de toekomst kunnen we cadeaubonnen of gift subscriptions overwegen.
             </p>
           </FaqItem>
           <FaqItem question="Gebruiken jullie cookies?">
@@ -468,9 +460,9 @@ export default function FaqPage() {
               <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> voor meer informatie.
             </p>
           </FaqItem>
-          <FaqItem question="Wat betekent &quot;early access&quot; of &quot;vroege gebruiker&quot;?">
+          <FaqItem question="Kan ik Benji eerst proberen voordat ik betaal?">
             <p>
-              Als je Benji gebruikt tijdens de gratis testfase, beschouwen we je als vroege gebruiker. Je helpt ons Benji te verbeteren met je feedback. Als dank krijg je speciale voorwaarden wanneer we het abonnement introduceren (zoals permanente korting of gratis toegang).
+              Ja, je kunt Benji altijd eerst proberen zonder account aan te maken. Je eerste gesprekken zijn toegankelijk zonder registratie. Als je een gratis account aanmaakt, kun je tot 10 gesprekken per maand voeren. Zo kun je rustig kijken of Benji bij je past voordat je eventueel upgradet naar een betaald abonnement.
             </p>
           </FaqItem>
         </FaqSection>

@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle, ShoppingBag } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ScrollIndicator } from "@/components/ScrollIndicator";
 import { UpgradeBadge } from "@/components/UpgradeBadge";
@@ -60,6 +60,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account/notities": { title: "Reflecties", subtitle: "Notities, emoties en dagelijkse check-in" },
   "/account/inspiratie": { title: "Inspiratie & troost", subtitle: "Gedichten, citaten en teksten die je kunnen steunen" },
   "/account/handreikingen": { title: "Handreikingen", subtitle: "Praktische tips en ideeën voor moeilijke momenten" },
+  "/account/onderweg": { title: "Iets voor onderweg", subtitle: "Producten en items die je kunnen helpen" },
   "/account/herinneringen": { title: "Memories", subtitle: "Mooie herinneringen om naar terug te kijken" },
   "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
   "/account/instellingen": { title: "Personaliseer", subtitle: "Personalisatie van je account" },

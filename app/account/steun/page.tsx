@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Heart, Euro, Compass, MessageCircleHeart, Mic, Square, ImagePlus, X, Star } from "lucide-react";
+import { Heart, Euro, Compass, MessageCircleHeart, Mic, Square, ImagePlus, X, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 const FIXED_AMOUNTS = [5, 10, 25];
 
@@ -16,14 +17,35 @@ const FEEDBACK_TYPES = [
   { value: "complaint" as const, label: "Klacht" },
 ];
 
+// Mini-carousel constants (smaller than handreikingen)
+const CARD_PCT = 60;
+const SIDE_PCT = (100 - CARD_PCT) / 2;
+const GAP_PX = 12;
+
+function circularOffset(index: number, active: number, total: number) {
+  let d = index - active;
+  if (d > total / 2) d -= total;
+  if (d < -total / 2) d += total;
+  return d;
+}
+
 export default function AccountSteunPage() {
   const { data: session } = useSession();
   const submitFeedback = useMutation(api.chat.submitGeneralFeedback);
   const generateUploadUrl = useMutation(api.preferences.generateUploadUrl);
 
+  // Load onderweg items for mini-carousel
+  const onderwegItems = useQuery(api.onderweg.listActiveWithUrls, {});
+
   const [customAmount, setCustomAmount] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+
+  // Mini-carousel state
+  const [activeOnderwegIndex, setActiveOnderwegIndex] = useState(0);
+  const onderwegTouchStartX = useRef(0);
+  const onderwegTouchDeltaX = useRef(0);
+  const [isOnderwegDragging, setIsOnderwegDragging] = useState(false);
 
   // Feedback state
   const [feedbackType, setFeedbackType] = useState<typeof FEEDBACK_TYPES[number]["value"]>("suggestion");
@@ -58,6 +80,33 @@ export default function AccountSteunPage() {
       recognitionRef.current = recognition;
     }
   }, []);
+
+  // Mini-carousel handlers
+  const totalOnderwegItems = onderwegItems?.length ?? 0;
+
+  const goToOnderwegItem = useCallback((index: number) => {
+    if (totalOnderwegItems === 0) return;
+    setActiveOnderwegIndex(((index % totalOnderwegItems) + totalOnderwegItems) % totalOnderwegItems);
+  }, [totalOnderwegItems]);
+
+  const handleOnderwegTouchStart = useCallback((e: React.TouchEvent) => {
+    onderwegTouchStartX.current = e.touches[0].clientX;
+    onderwegTouchDeltaX.current = 0;
+    setIsOnderwegDragging(true);
+  }, []);
+
+  const handleOnderwegTouchMove = useCallback((e: React.TouchEvent) => {
+    onderwegTouchDeltaX.current = e.touches[0].clientX - onderwegTouchStartX.current;
+  }, []);
+
+  const handleOnderwegTouchEnd = useCallback(() => {
+    setIsOnderwegDragging(false);
+    if (Math.abs(onderwegTouchDeltaX.current) > 50) {
+      if (onderwegTouchDeltaX.current < 0) goToOnderwegItem(activeOnderwegIndex + 1);
+      else goToOnderwegItem(activeOnderwegIndex - 1);
+    }
+    onderwegTouchDeltaX.current = 0;
+  }, [activeOnderwegIndex, goToOnderwegItem]);
 
   const toggleRecording = () => {
     if (!recognitionRef.current) return;
@@ -349,14 +398,15 @@ export default function AccountSteunPage() {
 
         <div className="prose prose-sm max-w-none text-gray-700 space-y-4">
           <p>
-            Talk To Benji is een gratis chatbot voor iedereen die te maken heeft met rouw, verlies of verdriet.
-            Of je nu een dierbare bent verloren, je huisdier mist, of gewoon even wil praten, Benji is er
-            dag en nacht, zonder oordeel.
+            Talk To Benji is er voor iedereen die te maken heeft met rouw, verlies of verdriet. Of je nu een
+            dierbare bent verloren, je huisdier mist, of gewoon even wil praten, Benji is er dag en nacht,
+            zonder oordeel. Je kunt Benji altijd <a href="/prijzen" className="text-primary-600 hover:text-primary-700 underline">gratis proberen</a> voordat
+            je een abonnement kiest.
           </p>
           <p>
-            Om Benji gratis en voor iedereen beschikbaar te houden, zijn we afhankelijk van steun van mensen
-            zoals jij. Een donatie of aankoop helpt ons om de techniek te onderhouden, Benji verder te
-            verbeteren, en meer mensen te bereiken die een luisterend oor nodig hebben.
+            Wil je Benji extra steunen? Een donatie helpt ons om de techniek te onderhouden, Benji verder te
+            verbeteren, en meer mensen te bereiken die een luisterend oor nodig hebben. Jouw bijdrage maakt
+            het verschil.
           </p>
         </div>
       </div>
@@ -435,22 +485,145 @@ export default function AccountSteunPage() {
         )}
       </div>
 
+      {/* Iets voor onderweg mini-carousel */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
         <h3 className="flex items-center gap-2 text-base font-semibold text-primary-900 mb-4">
           <Compass size={20} className="text-primary-500" />
           Iets voor onderweg
         </h3>
-        <p className="text-sm text-gray-700 mb-2">
+        <p className="text-sm text-gray-700 mb-4">
           Kleine dingen met betekenis die je onderweg kunnen dragen, een kaart, boek of iets anders
-          dat troost en herinnering biedt. De opbrengst gaat naar Benji. Binnenkort beschikbaar.
+          dat troost en herinnering biedt. De opbrengst gaat naar Benji.
         </p>
+
+        {onderwegItems === undefined ? (
+          <div className="py-6 flex justify-center">
+            <div className="animate-pulse rounded-full h-6 w-6 border-b-2 border-primary-600" />
+          </div>
+        ) : onderwegItems.length === 0 ? (
+          <div className="p-3 rounded-lg bg-primary-50 border border-primary-100">
+            <p className="text-sm text-primary-800">
+              Binnenkort beschikbaar.
+            </p>
+          </div>
+        ) : (
+          <div>
+            <div
+              className="relative"
+              onTouchStart={handleOnderwegTouchStart}
+              onTouchMove={handleOnderwegTouchMove}
+              onTouchEnd={handleOnderwegTouchEnd}
+            >
+              {totalOnderwegItems > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => goToOnderwegItem(activeOnderwegIndex - 1)}
+                    className="absolute top-1/2 -translate-y-1/2 z-10 p-1 rounded-full bg-white border border-primary-200 text-primary-600 hover:bg-primary-50 transition-colors shadow-sm"
+                    style={{ left: `calc(${SIDE_PCT / 2}% - 12px)` }}
+                    aria-label="Vorige"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToOnderwegItem(activeOnderwegIndex + 1)}
+                    className="absolute top-1/2 -translate-y-1/2 z-10 p-1 rounded-full bg-white border border-primary-200 text-primary-600 hover:bg-primary-50 transition-colors shadow-sm"
+                    style={{ right: `calc(${SIDE_PCT / 2}% - 12px)` }}
+                    aria-label="Volgende"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </>
+              )}
+
+              <div className="overflow-hidden">
+                <div className="relative" style={{ width: `${CARD_PCT}%`, marginLeft: `${SIDE_PCT}%` }}>
+                  {onderwegItems.map((item, index) => {
+                    const offset = circularOffset(index, activeOnderwegIndex, totalOnderwegItems);
+                    const isActive = offset === 0;
+                    const isNeighbor = Math.abs(offset) === 1;
+                    const isVisible = Math.abs(offset) <= 1;
+
+                    return (
+                      <div
+                        key={item._id}
+                        style={{
+                          position: isActive ? "relative" : "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          transform: `translateX(calc(${offset} * (100% + ${GAP_PX}px))) scale(${isActive ? 1 : 0.92})`,
+                          opacity: isActive ? 1 : isNeighbor ? 0.3 : 0,
+                          transition: isOnderwegDragging ? "none" : "transform 0.4s ease, opacity 0.4s ease",
+                          zIndex: isActive ? 2 : 1,
+                          pointerEvents: isActive ? "auto" : "none",
+                          cursor: isActive ? "pointer" : "default",
+                        }}
+                        onClick={() => { if (!isActive && isVisible) goToOnderwegItem(index); }}
+                      >
+                        <Link href="/account/onderweg" className="block">
+                          <article className="rounded-lg bg-white border border-primary-100 overflow-hidden hover:border-primary-200 transition-colors aspect-square flex flex-col">
+                            {item.imageUrl && (
+                              <div className="flex-1 overflow-hidden flex items-center justify-center bg-white p-3">
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.title}
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                            )}
+
+                            {(item.title || item.content || item.priceCents) && (
+                              <div className="p-3 flex flex-col items-center justify-center gap-1.5">
+                                <div className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg border border-primary-200 bg-white w-full">
+                                  {item.title && (
+                                    <h4 className="text-xs font-semibold text-primary-900 line-clamp-1 text-center">{item.title}</h4>
+                                  )}
+                                  {item.priceCents != null && item.priceCents > 0 && (
+                                    <span className="text-xs font-semibold text-primary-600">
+                                      €{(item.priceCents / 100).toFixed(2)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </article>
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {totalOnderwegItems > 1 && (
+              <div className="flex justify-center gap-1.5 mt-3">
+                {onderwegItems.map((item, index) => (
+                  <button
+                    key={item._id}
+                    type="button"
+                    onClick={() => goToOnderwegItem(index)}
+                    className={`rounded-full transition-all ${
+                      index === activeOnderwegIndex
+                        ? "w-2.5 h-2.5 bg-primary-600"
+                        : "w-2 h-2 bg-primary-300 hover:bg-primary-400"
+                    }`}
+                    aria-label={`Ga naar item ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="bg-primary-50 rounded-xl border border-primary-200 p-6">
         <p className="font-medium text-primary-800 mb-2">Dank je voor je interesse!</p>
         <p className="text-sm text-gray-600">
-          De online betaling komt binnenkort. We werken aan een Stripe-integratie.
-          Tot die tijd: deel Benji met iemand die het kan gebruiken.
+          De online betaling voor donaties komt binnenkort. We werken aan een Stripe-integratie.
+          Tot die tijd: deel Benji met iemand die het kan gebruiken — daar zijn we heel dankbaar voor.
         </p>
       </div>
     </div>

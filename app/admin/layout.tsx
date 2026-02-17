@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { AdminAuthProvider, useAdminQuery } from "./AdminAuthContext";
-import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell } from "lucide-react";
+import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell, ShoppingBag } from "lucide-react";
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -25,6 +25,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { href: "/admin/bronnen", label: "Bronnen", icon: FileStack, badge: 0 },
     { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
     { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping, badge: 0 },
+    { href: "/admin/onderweg", label: "Iets voor onderweg", icon: ShoppingBag, badge: 0 },
     { href: "/admin/notificaties", label: "Notificaties", icon: Bell, badge: 0 },
   ];
 

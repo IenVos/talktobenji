@@ -336,6 +336,25 @@ export default defineSchema({
   })
     .index("by_active_order", ["isActive", "order"]),
 
+  // Iets voor onderweg (admin beheerd, klant zichtbaar)
+  onderwegItems: defineTable({
+    title: v.optional(v.string()),
+    content: v.optional(v.string()),
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    // Afbeelding
+    imageStorageId: v.optional(v.id("_storage")),
+    // Drip: datum (ms) vanaf wanneer item zichtbaar wordt; null/afwezig = direct zichtbaar
+    publishFrom: v.optional(v.union(v.number(), v.null())),
+    // Prijs in centen; null/afwezig = geen prijs
+    priceCents: v.optional(v.union(v.number(), v.null())),
+    // Betaallink (URL naar betalingspagina)
+    paymentUrl: v.optional(v.union(v.string(), v.null())),
+  })
+    .index("by_active_order", ["isActive", "order"]),
+
   // Herinneringen (schatkist met mooie momenten)
   memories: defineTable({
     userId: v.string(),

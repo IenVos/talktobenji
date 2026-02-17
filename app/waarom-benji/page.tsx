@@ -74,7 +74,7 @@ export default function WaarομBenjiPage() {
           </div>
 
           <p className="text-sm sm:text-base text-gray-500 leading-relaxed">
-            <span className="italic">P.S.</span> Benji is niet gratis, omdat bouwen en onderhouden nu eenmaal iets kost. Maar toegankelijkheid vind ik belangrijk. Daarom houd ik de drempel zo laag mogelijk, zodat zoveel mogelijk mensen er gebruik van kunnen maken wanneer ze het nodig hebben.
+            <span className="italic">P.S.</span> Benji is niet gratis, omdat bouwen en onderhouden nu eenmaal iets kost. Maar toegankelijkheid vind ik belangrijk. Daarom houd ik de drempel zo laag mogelijk, zodat zoveel mogelijk mensen er gebruik van kunnen maken wanneer ze het nodig hebben. Je kunt Benji altijd <a href="/prijzen" className="text-primary-600 hover:text-primary-700 underline">gratis proberen</a> voordat je besluit een abonnement te nemen.
           </p>
 
           {/* Start je eerste gesprek button */}

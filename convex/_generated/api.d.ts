@@ -25,6 +25,7 @@ import type * as inspiratie from "../inspiratie.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
 import type * as memories from "../memories.js";
 import type * as notes from "../notes.js";
+import type * as onderweg from "../onderweg.js";
 import type * as preferences from "../preferences.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as pushSubscriptions from "../pushSubscriptions.js";
@@ -59,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   knowledgeBase: typeof knowledgeBase;
   memories: typeof memories;
   notes: typeof notes;
+  onderweg: typeof onderweg;
   preferences: typeof preferences;
   pushNotifications: typeof pushNotifications;
   pushSubscriptions: typeof pushSubscriptions;
