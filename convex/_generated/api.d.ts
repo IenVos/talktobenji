@@ -17,6 +17,7 @@ import type * as authSchema from "../authSchema.js";
 import type * as chat from "../chat.js";
 import type * as credentials from "../credentials.js";
 import type * as exampleData from "../exampleData.js";
+import type * as feedback from "../feedback.js";
 import type * as handreikingen from "../handreikingen.js";
 import type * as http from "../http.js";
 import type * as inspiratie from "../inspiratie.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   chat: typeof chat;
   credentials: typeof credentials;
   exampleData: typeof exampleData;
+  feedback: typeof feedback;
   handreikingen: typeof handreikingen;
   http: typeof http;
   inspiratie: typeof inspiratie;

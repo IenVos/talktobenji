@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { HeaderBar } from "@/components/chat/HeaderBar";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
   title: "Waarom ik Benji begon · Talk To Benji",
@@ -19,6 +20,7 @@ export default function WaarομBenjiPage() {
         backgroundRepeat: "no-repeat",
       }}
     >
+      <ScrollToTop />
       <HeaderBar />
       <main className="flex-1 w-full max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 text-gray-700 text-sm sm:text-base leading-relaxed">
         <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Waarom ik Talk To Benji ben gestart</h1>
