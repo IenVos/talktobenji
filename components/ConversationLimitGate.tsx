@@ -23,12 +23,12 @@ export function ConversationLimitGate({
 
   // Loading state
   if (userId && usage === undefined) {
-    return <div>{children}</div>;
+    return <>{children}</>;
   }
 
   // No user or unlimited access
   if (!userId || !usage || usage.hasUnlimited) {
-    return <div>{children}</div>;
+    return <>{children}</>;
   }
 
   // Check if limit reached
@@ -77,5 +77,5 @@ export function ConversationLimitGate({
   }
 
   // Has access
-  return <div>{children}</div>;
+  return <>{children}</>;
 }
