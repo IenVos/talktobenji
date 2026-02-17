@@ -16,6 +16,7 @@ import type * as authAdapter from "../authAdapter.js";
 import type * as authSchema from "../authSchema.js";
 import type * as chat from "../chat.js";
 import type * as credentials from "../credentials.js";
+import type * as emails from "../emails.js";
 import type * as exampleData from "../exampleData.js";
 import type * as feedback from "../feedback.js";
 import type * as handreikingen from "../handreikingen.js";
@@ -31,6 +32,7 @@ import type * as reflecties from "../reflecties.js";
 import type * as seedData from "../seedData.js";
 import type * as settings from "../settings.js";
 import type * as sources from "../sources.js";
+import type * as subscriptions from "../subscriptions.js";
 import type * as user from "../user.js";
 
 import type {
@@ -48,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   authSchema: typeof authSchema;
   chat: typeof chat;
   credentials: typeof credentials;
+  emails: typeof emails;
   exampleData: typeof exampleData;
   feedback: typeof feedback;
   handreikingen: typeof handreikingen;
@@ -63,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   seedData: typeof seedData;
   settings: typeof settings;
   sources: typeof sources;
+  subscriptions: typeof subscriptions;
   user: typeof user;
 }>;
 

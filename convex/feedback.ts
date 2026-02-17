@@ -53,7 +53,8 @@ export const submitFeedback = mutation({
         // Haal image URL op als er een afbeelding is
         let imageUrl: string | undefined;
         if (storageId) {
-          imageUrl = await ctx.storage.getUrl(storageId);
+          const url = await ctx.storage.getUrl(storageId);
+          imageUrl = url || undefined;
         }
 
         // Parse onderwerp en bericht uit comment

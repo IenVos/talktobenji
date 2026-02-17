@@ -81,7 +81,7 @@ export const hasFeatureAccess = query({
     if (!isActive) return false;
 
     // Feature matrix
-    const features = {
+    const features: Record<string, string[]> = {
       free: [],
       uitgebreid: [
         "unlimited_conversations",
@@ -101,7 +101,7 @@ export const hasFeatureAccess = query({
       ],
     };
 
-    return features[subType].includes(args.feature);
+    return features[subType]?.includes(args.feature) ?? false;
   },
 });
 
