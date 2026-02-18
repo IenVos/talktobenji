@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { X, Sparkles } from "lucide-react";
 
 const TRIAL_ENDED_KEY = "trialEndedSeen";
@@ -15,6 +16,7 @@ interface TrialBannerProps {
 }
 
 export function TrialBanner({ userId, email }: TrialBannerProps) {
+  const pathname = usePathname();
   const subscription = useQuery(api.subscriptions.getUserSubscription, {
     userId,
     email,
@@ -50,6 +52,9 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
 
   if (!subscription) return null;
 
+  // Op de abonnement-pagina geen banner tonen
+  if (pathname?.startsWith("/account/abonnement")) return null;
+
   // Trial banner
   if (subscription.subscriptionType === "trial") {
     const daysLeft = subscription.trialDaysLeft ?? 0;
@@ -66,7 +71,7 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
           . Upgrade om alles te blijven gebruiken.
         </p>
         <Link
-          href="/account/abonnement"
+          href="/account/abonnement?upgrade=true"
           className="flex-shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 transition-colors"
         >
           Mijn abonnement

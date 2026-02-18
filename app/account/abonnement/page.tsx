@@ -47,7 +47,7 @@ export default function AbonnementPage() {
         </h2>
 
         <div className="space-y-3">
-          {currentTier === "free" && (
+          {(currentTier === "free" || currentTier === "trial") && (
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-primary-300 overflow-hidden">
               <button
                 onClick={() => setOpenCard(openCard === "uitgebreid" ? null : "uitgebreid")}
@@ -78,7 +78,7 @@ export default function AbonnementPage() {
             </div>
           )}
 
-          {(currentTier === "free" || currentTier === "uitgebreid") && (
+          {(currentTier === "free" || currentTier === "trial" || currentTier === "uitgebreid") && (
             <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-primary-300 overflow-hidden">
               <button
                 onClick={() => setOpenCard(openCard === "alles" ? null : "alles")}
