@@ -25,6 +25,7 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
     if (!subscription) return;
     if (
       subscription.subscriptionType === "free" &&
+      "expiresAt" in subscription &&
       subscription.expiresAt &&
       subscription.expiresAt < Date.now() &&
       subscription.expiresAt > Date.now() - SEVEN_DAYS_MS
