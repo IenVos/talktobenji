@@ -88,6 +88,7 @@ export const hasFeatureAccess = query({
         "check_ins",
         "goals",
         "reflections",
+        "personalization",
       ],
       alles_in_1: [
         "unlimited_conversations",
