@@ -1,6 +1,6 @@
 "use node";
 
-const CLAUDE_MODEL = CLAUDE_MODEL;
+const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
 
 /**
  * AI INTEGRATIE (Claude API)
