@@ -97,10 +97,6 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
               <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
               <span>10 gesprekken per maand</span>
             </div>
-            <div className="flex items-start gap-2 text-sm text-gray-600">
-              <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
-              <span>Je gesprekken worden bewaard</span>
-            </div>
           </>
         )}
 
@@ -131,15 +127,6 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
         )}
       </div>
 
-      {/* Upgrade CTA */}
-      {subscription.subscriptionType !== "alles_in_1" && !subscription.isAdmin && (
-        <Link
-          href="/prijzen"
-          className="block w-full text-center px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors text-sm"
-        >
-          {subscription.subscriptionType === "free" ? "Upgrade" : "Upgrade naar Alles in 1"}
-        </Link>
-      )}
     </div>
   );
 }

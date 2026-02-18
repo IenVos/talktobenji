@@ -42,6 +42,10 @@ export function middleware(request: NextRequest) {
     "Strict-Transport-Security",
     "max-age=63072000; includeSubDomains; preload"
   );
+  response.headers.set(
+    "Content-Security-Policy",
+    "frame-ancestors 'none'; object-src 'none';"
+  );
 
   return response;
 }

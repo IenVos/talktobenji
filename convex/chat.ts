@@ -208,7 +208,8 @@ export const startSession = mutation({
     const now = Date.now();
 
     // Track conversation count voor logged-in users (niet voor admin)
-    if (args.userId && args.userEmail !== "annadelapierre@icloud.com") {
+    const exemptEmail = process.env.ADMIN_EXEMPT_EMAIL;
+    if (args.userId && (!exemptEmail || args.userEmail !== exemptEmail)) {
       const month = `${new Date(now).getFullYear()}-${String(new Date(now).getMonth() + 1).padStart(2, "0")}`;
 
       const existing = await ctx.db

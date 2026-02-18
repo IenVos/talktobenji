@@ -2,6 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 const secret = process.env.CONVEX_AUTH_ADAPTER_SECRET!;
@@ -23,10 +24,13 @@ export async function POST(req: NextRequest) {
     // Hash nieuw wachtwoord
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Hash het ontvangen token om te vergelijken met de opgeslagen hash
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
     // Reset wachtwoord via Convex
     await convex.mutation(api.credentials.resetPassword, {
       secret,
-      token,
+      token: hashedToken,
       hashedPassword,
     });
 

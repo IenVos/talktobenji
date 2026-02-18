@@ -22,14 +22,17 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
   let lastIndex = 0;
   let match;
   while ((match = linkRegex.exec(content)) !== null) {
+    const href = match[2];
+    const isSafe = href.startsWith("/") || href.startsWith("https://") || href.startsWith("http://");
+    if (!isSafe) { lastIndex = match.index + match[0].length; continue; }
     parts.push(content.slice(lastIndex, match.index));
     parts.push(
       <a
         key={match.index}
-        href={match[2].startsWith("/") ? match[2] : match[2]}
+        href={href}
         className={isUser ? "underline underline-offset-2 opacity-90" : "text-primary-600 hover:text-primary-700 underline underline-offset-2 font-medium"}
-        target={match[2].startsWith("http") ? "_blank" : undefined}
-        rel={match[2].startsWith("http") ? "noopener noreferrer" : undefined}
+        target={href.startsWith("http") ? "_blank" : undefined}
+        rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
       >
         {match[1]}
       </a>
@@ -271,6 +274,7 @@ export default function ChatPageClient({
       let speechPrefix = "";
       let latestText = "";
       recognition.onresult = (event: any) => {
+        if (recognitionRef.current?._ignoreResults) return;
         const parts: string[] = [];
         for (let i = 0; i < event.results.length; i++) {
           parts.push(event.results[i][0].transcript);
@@ -370,6 +374,7 @@ export default function ChatPageClient({
       setIsRecording(false);
     } else {
       // Preserve existing text in the input
+      recognitionRef.current._ignoreResults = false;
       recognitionRef.current._setSpeechPrefix(input.trim());
       recognitionRef.current._setLatestText(input.trim());
       recognitionRef.current.start();
@@ -382,6 +387,11 @@ export default function ChatPageClient({
     setShowTopicButtons(false);
     const messageText = text.trim();
     setInput("");
+    if (recognitionRef.current) {
+      recognitionRef.current._ignoreResults = true;
+      recognitionRef.current._setSpeechPrefix("");
+      recognitionRef.current._setLatestText("");
+    }
     // Behoud scroll positie tijdens het versturen om verspringen te voorkomen
     const currentScrollTop = mainRef.current?.scrollTop ?? 0;
     setPendingUserMessage(messageText); // Direct tonen: 1. jouw bericht, 2. bolletjes, 3. Benji
@@ -399,10 +409,13 @@ export default function ChatPageClient({
       
       // Verstuur bericht en genereer antwoord (gebruikersbericht staat al via pendingUserMessage)
       setIsLoading(true);
-      const messagePromise = handleUserMessage({ sessionId: activeSessionId, userMessage: messageText });
-      
-      // Wacht op antwoord
-      await messagePromise;
+      const result = await handleUserMessage({ sessionId: activeSessionId, userMessage: messageText });
+
+      // Rate limit of andere zachte fout
+      if (result && !result.success && result.error) {
+        setChatError(result.error);
+        return;
+      }
       
       // Minimum 5 seconden: bolletjes langer zichtbaar, rustiger tempo als een echt gesprek
       const elapsed = Date.now() - startTime;

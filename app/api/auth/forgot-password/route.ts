@@ -29,13 +29,15 @@ export async function POST(req: NextRequest) {
 
     // Genereer token
     const token = crypto.randomUUID() + crypto.randomUUID();
+    // Hash het token voor veilige opslag - plaintext token gaat alleen in de e-mail
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const expiresAt = Date.now() + 60 * 60 * 1000; // 1 uur
 
     // Maak reset-token aan in Convex (retourneert null als email niet bestaat)
     const result = await convex.mutation(api.credentials.createPasswordResetToken, {
       secret,
       email,
-      token,
+      token: hashedToken,
       expiresAt,
     });
 

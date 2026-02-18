@@ -55,7 +55,7 @@ export const authOptions: AuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
+    maxAge: 7 * 24 * 60 * 60,
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -111,7 +111,7 @@ export const authOptions: AuthOptions = {
     signIn: "/inloggen",
     error: "/inloggen",
   },
-  debug: true, // ← Zet op true voor nu
+  debug: process.env.NODE_ENV === "development",
 };
 
 

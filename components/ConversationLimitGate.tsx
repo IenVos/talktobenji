@@ -3,7 +3,8 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { Lock, MessageCircle } from "lucide-react";
+import { Lock } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface ConversationLimitGateProps {
   userId?: string;
@@ -21,61 +22,61 @@ export function ConversationLimitGate({
     userId ? { userId, email } : "skip"
   );
 
+  const [testLimit, setTestLimit] = useState(false);
+  useEffect(() => {
+    setTestLimit(new URLSearchParams(window.location.search).get("testLimit") === "1");
+  }, []);
+
   // Loading state
   if (userId && usage === undefined) {
     return <>{children}</>;
   }
 
-  // No user or unlimited access
-  if (!userId || !usage || usage.hasUnlimited) {
+  // No user or unlimited access (bypass voor testLimit preview)
+  if (!testLimit && (!userId || !usage || usage.hasUnlimited)) {
     return <>{children}</>;
   }
 
   // Check if limit reached
-  const remaining = usage.limit! - usage.count;
-  const limitReached = remaining <= 0;
+  const remaining = (usage?.limit ?? 0) - (usage?.count ?? 0);
+  const limitReached = testLimit || remaining <= 0;
 
-  if (limitReached) {
-    return (
-      <div className="flex items-center justify-center min-h-[500px] p-6">
-        <div className="max-w-md text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary-100 mb-6">
-            <Lock size={36} className="text-primary-600" />
+  return (
+    <>
+      {children}
+      {limitReached && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 mb-4">
+              <Lock size={22} className="text-primary-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              Wil je verder praten?
+            </h2>
+            <p className="text-sm text-gray-600 leading-relaxed mb-2">
+              Je hebt deze maand je gratis gesprekken al gebruikt. Bekijk de mogelijkheden.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              <Link
+                href="/account/abonnement?upgrade=true"
+                className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                Mijn abonnement
+              </Link>
+              <Link
+                href="/account"
+                className="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 rounded-lg text-sm font-medium transition-colors"
+              >
+                Mijn plek
+              </Link>
+            </div>
+
+            <p className="text-xs text-gray-400 mt-4">
+              Je limiet wordt automatisch gereset aan het begin van volgende maand.
+            </p>
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-3">
-            Je maandelijkse limiet is bereikt
-          </h2>
-          <p className="text-base text-gray-600 leading-relaxed mb-2">
-            Je hebt deze maand al {usage.count} gesprekken gevoerd. Met een gratis account kun je tot {usage.limit} gesprekken per maand voeren.
-          </p>
-          <p className="text-base text-gray-700 leading-relaxed mb-8">
-            Wil je vaker met Benji praten? Upgrade naar <strong>Benji Uitgebreid</strong> voor onbeperkte gesprekken.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/prijzen"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium transition-colors"
-            >
-              <MessageCircle size={18} />
-              Bekijk abonnementen
-            </Link>
-            <Link
-              href="/account"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 rounded-lg font-medium transition-colors"
-            >
-              Terug naar account
-            </Link>
-          </div>
-
-          <p className="text-sm text-gray-500 mt-6">
-            Je limiet wordt automatisch gereset aan het begin van volgende maand.
-          </p>
         </div>
-      </div>
-    );
-  }
-
-  // Has access
-  return <>{children}</>;
+      )}
+    </>
+  );
 }

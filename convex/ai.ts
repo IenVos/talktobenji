@@ -1,5 +1,7 @@
 "use node";
 
+const CLAUDE_MODEL = CLAUDE_MODEL;
+
 /**
  * AI INTEGRATIE (Claude API)
  *
@@ -129,6 +131,22 @@ export const handleUserMessage = action({
     const startTime = Date.now();
 
     try {
+      // RATE LIMIT: max 10 berichten per 60 seconden per sessie (beschermt tegen spam/kosten)
+      const recentMessages = await ctx.runQuery(api.chat.getMessages, {
+        sessionId: args.sessionId,
+        limit: 20,
+      });
+      const oneMinuteAgo = Date.now() - 60 * 1000;
+      const recentUserCount = (recentMessages || []).filter(
+        (m: any) => m.role === "user" && m._creationTime > oneMinuteAgo
+      ).length;
+      if (recentUserCount >= 10) {
+        return {
+          success: false,
+          error: "Je stuurt berichten te snel. Even een moment wachten.",
+        };
+      }
+
       // STAP 1: Sla gebruikersbericht op
       const userMessageId = await ctx.runMutation(api.chat.sendUserMessage, {
         sessionId: args.sessionId,
@@ -690,7 +708,7 @@ REGELS:
         isAiGenerated: true,
         confidenceScore: 0.8,
         generationMetadata: {
-          model: "claude-haiku-4-5-20251001",
+          model: CLAUDE_MODEL,
           responseTime,
         },
       });
@@ -773,7 +791,7 @@ Regels:
           "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
+          model: CLAUDE_MODEL,
           max_tokens: 512,
           messages: [{ role: "user", content: prompt }],
         }),
@@ -844,7 +862,7 @@ Regels:
           "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
+          model: CLAUDE_MODEL,
           max_tokens: 1024,
           messages: [{ role: "user", content: prompt }],
         }),
@@ -918,7 +936,7 @@ Regels:
           "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
+          model: CLAUDE_MODEL,
           max_tokens: 256,
           messages: [{ role: "user", content: prompt }],
         }),
@@ -1094,7 +1112,7 @@ Beantwoord vragen op basis van bovenstaande kennis en regels. Als je het antwoor
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
-            model: "claude-haiku-4-5-20251001",
+            model: CLAUDE_MODEL,
             max_tokens: 1024,
             system: systemPrompt,
             messages: messages,

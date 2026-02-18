@@ -30,7 +30,8 @@ function InloggenForm() {
     } catch {}
   }, []);
 
-  const displayError = error || (errorParam ? decodeURIComponent(errorParam) : "");
+  const sessionExpired = errorParam === "SessionRequired" || errorParam === "SessionExpired";
+  const displayError = error || (!sessionExpired && errorParam ? decodeURIComponent(errorParam) : "");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +87,12 @@ function InloggenForm() {
             Log in om je gesprekken terug te kijken
           </p>
         </div>
+
+        {sessionExpired && (
+          <p className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-3 mb-4 text-center">
+            Je was een tijdje weg. Log opnieuw in om verder te gaan.
+          </p>
+        )}
 
         {registered && (
           <p className="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg px-4 py-3 mb-4 text-center">

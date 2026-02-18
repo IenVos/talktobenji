@@ -7,7 +7,8 @@ import { api } from "@/convex/_generated/api";
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 function signSessionToken(sessionId: string): string {
-  const secret = process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD || "";
+  const secret = process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD;
+  if (!secret) throw new Error("No signing secret configured");
   const hmac = crypto.createHmac("sha256", secret);
   hmac.update(sessionId);
   return `${sessionId}.${hmac.digest("hex")}`;

@@ -68,9 +68,6 @@ export default function PrijzenPage() {
                 <Sparkles size={20} className="text-amber-500" />
                 Benji Uitgebreid — € 6,99 per maand
               </h2>
-              <p className="text-xs text-gray-500 mb-4">
-                Per jaar betalen? Dan is het € 54 — dat zijn twee maanden gratis.
-              </p>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
                 Voor wie Benji regelmatig wil gebruiken. Je kunt zoveel gesprekken voeren als je wilt, zonder limiet. Daarnaast kun je dagelijkse check-ins doen, persoonlijke doelen bijhouden en reflecties opslaan om later terug te lezen.
               </p>
@@ -94,9 +91,6 @@ export default function PrijzenPage() {
                 <Star size={20} className="text-purple-600" fill="currentColor" />
                 Benji Alles in 1 — € 11,99 per maand
               </h2>
-              <p className="text-xs text-gray-500 mb-4">
-                Per jaar is het € 89.
-              </p>
               <p className="text-sm text-gray-700 leading-relaxed mb-4">
                 Voor wie Benji als een vast steunpunt wil hebben. Je krijgt alles van Benji Uitgebreid, plus toegang tot memories (om mooie herinneringen vast te leggen), inspiratie en troost (teksten en gedichten die kunnen helpen), en handreikingen voor moeilijke momenten.
               </p>
