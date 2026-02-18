@@ -58,13 +58,21 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
   // Trial banner
   if (subscription.subscriptionType === "trial") {
     const daysLeft = subscription.trialDaysLeft ?? 0;
-    const dayText = daysLeft === 1 ? "dag" : "dagen";
+
+    const bannerText =
+      daysLeft <= 0 ? (
+        <>Vandaag is de <strong>laatste dag</strong> om toegang te houden tot alles wat je graag gebruikt. Upgrade nu.</>
+      ) : daysLeft === 1 ? (
+        <>Benji is nog <strong>1 dag</strong> gratis beschikbaar. Upgrade daarna om toegang te blijven houden tot alles wat je graag gebruikt.</>
+      ) : (
+        <>Benji is de komende <strong>{daysLeft} dagen</strong> gratis beschikbaar. Upgrade daarna om toegang te blijven houden tot alles wat je graag gebruikt.</>
+      );
 
     return (
       <div className="mb-4 flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
         <Star size={16} className="text-purple-600 flex-shrink-0" fill="currentColor" />
         <p className="flex-1 text-sm text-amber-800">
-          Benji is de komende <strong>{daysLeft} {dayText}</strong> gratis beschikbaar. Upgrade daarna om toegang te blijven houden tot alles wat je graag gebruikt.
+          {bannerText}
         </p>
         <Link
           href="/account/abonnement?upgrade=true"

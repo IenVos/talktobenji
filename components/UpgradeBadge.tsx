@@ -33,15 +33,15 @@ export function UpgradeBadge({ userId, email }: UpgradeBadgeProps) {
     );
   }
 
-  // Trial tier: amber sparkles, klikbaar voor upgrade
+  // Trial tier: paarse ster (volledige toegang), klikbaar voor upgrade
   if (subType === "trial") {
     return (
       <Link
         href="/account/abonnement?upgrade=true"
-        className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-100 hover:bg-amber-200 transition-colors"
+        className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 hover:bg-purple-200 transition-colors"
         title="Upgrade je abonnement"
       >
-        <Sparkles size={14} className="text-amber-500" />
+        <Star size={14} className="text-purple-600" fill="currentColor" />
       </Link>
     );
   }
