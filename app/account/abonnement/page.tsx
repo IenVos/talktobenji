@@ -123,23 +123,6 @@ export default function AbonnementPage() {
         />
       )}
 
-      {subscription && subscription.subscriptionType !== "free" && (
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-2">
-            Abonnement stopzetten
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Wil je je abonnement stopzetten? Stuur ons een bericht en we regelen het voor je.
-          </p>
-          <a
-            href={`mailto:contactmetien@talktobenji.com?subject=Abonnement stopzetten&body=Hallo,%0D%0A%0D%0AIk wil mijn abonnement stopzetten.%0D%0A%0D%0AMijn e-mailadres: ${encodeURIComponent(session?.user?.email || "")}`}
-            className="inline-flex items-center justify-center px-4 py-2 border border-red-300 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-medium"
-          >
-            Abonnement stopzetten
-          </a>
-        </div>
-      )}
-
       <div className="bg-white rounded-xl border border-primary-200 p-6">
         <h3 className="text-base font-semibold text-gray-900 mb-4">
           Alle abonnementen
@@ -151,6 +134,20 @@ export default function AbonnementPage() {
           Bekijk alle opties
         </Link>
       </div>
+
+      {subscription && subscription.subscriptionType !== "free" && (
+        <div className="px-1">
+          <p className="text-xs text-gray-400 mb-2">
+            Wil je je abonnement stopzetten? Stuur ons een bericht en we regelen het voor je.
+          </p>
+          <a
+            href={`mailto:contactmetien@talktobenji.com?subject=Abonnement stopzetten&body=Hallo,%0D%0A%0D%0AIk wil mijn abonnement stopzetten.%0D%0A%0D%0AMijn e-mailadres: ${encodeURIComponent(session?.user?.email || "")}`}
+            className="inline-flex items-center justify-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-400 hover:text-gray-500 rounded-lg transition-colors text-xs"
+          >
+            Abonnement stopzetten
+          </a>
+        </div>
+      )}
     </div>
   );
 }
