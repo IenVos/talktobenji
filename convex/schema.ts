@@ -216,6 +216,7 @@ export default defineSchema({
     email: v.string(), // Voor admin override check
     subscriptionType: v.union(
       v.literal("free"),
+      v.literal("trial"),
       v.literal("uitgebreid"),
       v.literal("alles_in_1")
     ),
@@ -230,6 +231,8 @@ export default defineSchema({
     cancelledAt: v.optional(v.number()),
     paymentProvider: v.optional(v.string()), // "mollie", "stripe", etc.
     externalSubscriptionId: v.optional(v.string()),
+    reminderDay5Sent: v.optional(v.boolean()),
+    reminderDay7Sent: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])

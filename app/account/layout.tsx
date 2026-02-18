@@ -12,6 +12,7 @@ import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown,
 import { signOut } from "next-auth/react";
 import { ScrollIndicator } from "@/components/ScrollIndicator";
 import { UpgradeBadge } from "@/components/UpgradeBadge";
+import { TrialBanner } from "@/components/TrialBanner";
 
 const ORIGINAL_ACCENT = "#6d84a8";
 const ACCENT_CACHE_KEY = "benji_accent_color";
@@ -547,6 +548,14 @@ export default function AccountLayout({
             {pageInfo.subtitle && <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>}
           </div>
         </div>
+
+        {/* Trial banner */}
+        {session?.userId && (
+          <TrialBanner
+            userId={session.userId as string}
+            email={session.user?.email || undefined}
+          />
+        )}
 
         {/* Mobiel menu overlay */}
         {mobileMenuOpen && (

@@ -22,6 +22,7 @@ export const getUserSubscription = query({
         subscriptionType: "alles_in_1" as const,
         status: "active" as const,
         isAdmin: true,
+        trialDaysLeft: null as number | null,
       };
     }
 
@@ -36,12 +37,19 @@ export const getUserSubscription = query({
         subscriptionType: "free" as const,
         status: "active" as const,
         isAdmin: false,
+        trialDaysLeft: null as number | null,
       };
     }
+
+    const trialDaysLeft =
+      subscription.subscriptionType === "trial" && subscription.expiresAt
+        ? Math.max(0, Math.ceil((subscription.expiresAt - Date.now()) / (1000 * 60 * 60 * 24)))
+        : null;
 
     return {
       ...subscription,
       isAdmin: false,
+      trialDaysLeft,
     };
   },
 });
@@ -80,9 +88,24 @@ export const hasFeatureAccess = query({
 
     if (!isActive) return false;
 
+    // Trial verlopen → geen toegang
+    if (subType === "trial" && subscription?.expiresAt && subscription.expiresAt < Date.now()) {
+      return false;
+    }
+
     // Feature matrix
     const features: Record<string, string[]> = {
       free: [],
+      trial: [
+        "unlimited_conversations",
+        "check_ins",
+        "goals",
+        "reflections",
+        "memories",
+        "inspiration",
+        "handreikingen",
+        "personalization",
+      ],
       uitgebreid: [
         "unlimited_conversations",
         "check_ins",
@@ -143,8 +166,11 @@ export const getConversationCount = query({
       .first();
 
     const subType = subscription?.subscriptionType || "free";
+    const isActiveTrial =
+      subType === "trial" &&
+      (!subscription?.expiresAt || subscription.expiresAt >= Date.now());
 
-    if (subType === "uitgebreid" || subType === "alles_in_1") {
+    if (subType === "uitgebreid" || subType === "alles_in_1" || isActiveTrial) {
       return {
         count,
         limit: null,

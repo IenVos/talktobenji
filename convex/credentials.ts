@@ -106,6 +106,17 @@ export const createUserWithPassword = withSecretMutation({
       email: emailLower,
       hashedPassword,
     });
+    // Maak automatisch een 7-daagse trial subscription aan
+    const now = Date.now();
+    await ctx.db.insert("userSubscriptions", {
+      userId: userId.toString(),
+      email: emailLower,
+      subscriptionType: "trial",
+      status: "active",
+      startedAt: now,
+      expiresAt: now + 7 * 24 * 60 * 60 * 1000,
+      updatedAt: now,
+    });
     return userId;
   },
 });
