@@ -25,24 +25,28 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
 
   const planNames = {
     free: "Gratis account",
+    trial: "Gratis proefperiode",
     uitgebreid: "Benji Uitgebreid",
     alles_in_1: "Benji Alles in 1",
   };
 
   const planColors = {
     free: "bg-green-50 text-green-700 border-green-200",
+    trial: "bg-amber-50 text-amber-700 border-amber-200",
     uitgebreid: "bg-amber-50 text-amber-700 border-amber-200",
     alles_in_1: "bg-purple-50 text-purple-700 border-purple-200",
   };
 
   const iconColors = {
     free: "text-green-600",
+    trial: "text-amber-500",
     uitgebreid: "text-amber-500",
     alles_in_1: "text-purple-600",
   };
 
   const planIcons = {
     free: Check,
+    trial: Sparkles,
     uitgebreid: Sparkles,
     alles_in_1: Star,
   };
@@ -96,6 +100,23 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
             <div className="flex items-start gap-2 text-sm text-gray-600">
               <Check size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
               <span>10 gesprekken per maand</span>
+            </div>
+          </>
+        )}
+
+        {subscription.subscriptionType === "trial" && (
+          <>
+            <div className="flex items-start gap-2 text-sm text-gray-600">
+              <Check size={16} className="text-primary-600 mt-0.5 flex-shrink-0" />
+              <span>Volledige toegang tot alles</span>
+            </div>
+            <div className="flex items-start gap-2 text-sm text-gray-600">
+              <Check size={16} className="text-primary-600 mt-0.5 flex-shrink-0" />
+              <span>
+                Nog{" "}
+                {subscription.trialDaysLeft ?? 0}{" "}
+                {(subscription.trialDaysLeft ?? 0) === 1 ? "dag" : "dagen"} resterend
+              </span>
             </div>
           </>
         )}
