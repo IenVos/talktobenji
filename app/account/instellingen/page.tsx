@@ -173,12 +173,45 @@ export default function AccountInstellingenPage() {
     await removeBackgroundImage({ userId });
   };
 
+  const pageContent = (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl border border-primary-200 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <FileText size={24} className="text-primary-500" />
+          <h2 className="text-lg font-semibold text-primary-900">Jouw verhaal</h2>
+        </div>
+        <div className="h-40 bg-gray-100 rounded-lg" />
+      </div>
+      <div className="bg-white rounded-xl border border-primary-200 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Bell size={24} className="text-primary-500" />
+          <h2 className="text-lg font-semibold text-primary-900">Hartverwarmers</h2>
+        </div>
+        <div className="h-8 bg-gray-100 rounded-lg" />
+      </div>
+      <div className="bg-white rounded-xl border border-primary-200 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Palette size={24} className="text-primary-500" />
+          <h2 className="text-lg font-semibold text-primary-900">Uiterlijk</h2>
+        </div>
+        <div className="flex gap-3 mb-4">
+          {[1,2,3,4,5,6].map(i => (
+            <div key={i} className="w-10 h-10 rounded-full bg-gray-200" />
+          ))}
+        </div>
+        <div className="h-32 bg-gray-100 rounded-lg mt-4" />
+      </div>
+    </div>
+  );
+
   if (hasAccess === false) {
     return (
       <Paywall
         title="Upgrade naar Benji Alles in 1"
         message="Personalisatie is beschikbaar vanaf Benji Alles in 1. Pas je eigen kleur, achtergrond en persoonlijke context in."
-      />
+      >
+        {pageContent}
+      </Paywall>
     );
   }
 
