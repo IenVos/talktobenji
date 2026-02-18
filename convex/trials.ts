@@ -1,12 +1,12 @@
 /**
  * Trial verwerking: dagelijkse check voor reminders en verlopen proefperiodes.
  */
-import { internalMutation } from "./_generated/server";
+import { mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
-export const checkAndProcessTrials = internalMutation({
+export const checkAndProcessTrials = mutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now();

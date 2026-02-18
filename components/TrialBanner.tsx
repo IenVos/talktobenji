@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X, Sparkles } from "lucide-react";
+import { X, Star } from "lucide-react";
 
 const TRIAL_ENDED_KEY = "trialEndedSeen";
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -62,13 +62,9 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
 
     return (
       <div className="mb-4 flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3">
-        <Sparkles size={16} className="text-amber-500 flex-shrink-0" />
+        <Star size={16} className="text-purple-600 flex-shrink-0" fill="currentColor" />
         <p className="flex-1 text-sm text-amber-800">
-          Je proeft Benji gratis — nog{" "}
-          <strong>
-            {daysLeft} {dayText}
-          </strong>
-          . Upgrade om alles te blijven gebruiken.
+          Benji is de komende <strong>{daysLeft} {dayText}</strong> gratis beschikbaar. Upgrade daarna om toegang te blijven houden tot alles wat je graag gebruikt.
         </p>
         <Link
           href="/account/abonnement?upgrade=true"
@@ -98,7 +94,7 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
             <X size={18} />
           </button>
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles size={20} className="text-amber-500" />
+            <Star size={20} className="text-amber-500" />
             <h2 className="text-base font-bold text-gray-900">
               Je proefperiode is afgelopen
             </h2>
