@@ -98,34 +98,37 @@ export const sendTrialDaySevenReminder = internalAction({
       <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
         <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${args.name},</p>
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Vandaag is de <strong>laatste dag</strong> van je gratis proefperiode bij Benji.
+          Hoe gaat het met je? We hopen dat de afgelopen week met Benji een beetje steun heeft gebracht.
         </p>
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Morgen wordt je toegang teruggezet naar gratis. Daarmee verlies je toegang tot:
+          De komende 7 dagen hebben we je laten proeven van alles wat Benji te bieden heeft — en vandaag is de laatste dag dat je volledige toegang hebt.
         </p>
-        <ul style="font-size: 15px; line-height: 1.9; color: #4a5568; padding-left: 20px;">
-          <li>Onbeperkt gesprekken met Benji</li>
-          <li>Reflecties en check-ins</li>
-          <li>Persoonlijke doelen</li>
-          <li>Memories, inspiratie en handreikingen</li>
-          <li>Personalisatie van je account</li>
-        </ul>
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Je verhaal, gesprekken en alles wat je hebt opgebouwd blijven altijd bewaard.
+          Heb je gemerkt dat bepaalde dingen je goed deden? De gesprekken, je reflecties, de check-ins of de memories? Dan is het fijn om te weten dat die gewoon voor je bewaard blijven — wat je ook kiest.
+        </p>
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Mocht je willen blijven gebruiken wat je de afgelopen tijd hebt ontdekt, dan kan dat via een abonnement dat bij je past. Geen druk, maar we willen je er wel even op wijzen.
         </p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="https://talktobenji.com/account/abonnement?upgrade=true"
              style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
-            Nu upgraden
+            Bekijk de abonnementen
           </a>
         </div>
-        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warmte,<br />Benji</p>
+        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warmte,</p>
+        <div style="display: flex; align-items: center; gap: 14px; margin-top: 8px;">
+          <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;" />
+          <div>
+            <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0;">Ien</p>
+            <p style="font-size: 13px; color: #718096; margin: 2px 0 0 0;">Founder van TalkToBenji</p>
+          </div>
+        </div>
       </div>
     `;
 
     await sendEmail({
       to: args.email,
-      subject: "Vandaag is je laatste dag — upgrade nu",
+      subject: "Vandaag is de laatste dag van je proefperiode",
       html,
       apiKey: RESEND_API_KEY,
     });
