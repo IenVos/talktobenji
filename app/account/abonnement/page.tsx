@@ -21,8 +21,8 @@ export default function AbonnementPage() {
 
   const [openCard, setOpenCard] = useState<string | null>(null);
 
-  // Upgrade view
-  if (showUpgrade && subscription) {
+  // Upgrade view (niet tonen voor alles_in_1 — er is niets meer om naar te upgraden)
+  if (showUpgrade && subscription && subscription.subscriptionType !== "alles_in_1") {
     const currentTier = subscription.subscriptionType;
 
     return (

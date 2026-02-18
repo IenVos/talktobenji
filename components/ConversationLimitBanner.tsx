@@ -49,7 +49,7 @@ export function ConversationLimitBanner({ userId, email }: ConversationLimitBann
               : "Wil je vaker met Benji praten? Overweeg een upgrade."}
           </p>
           <Link
-            href="/prijzen"
+            href="/account/abonnement?upgrade=true"
             className={`inline-block mt-2 text-sm font-medium underline ${
               isOut ? "text-red-800 hover:text-red-900" : "text-amber-800 hover:text-amber-900"
             }`}

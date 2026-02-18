@@ -15,7 +15,7 @@ export function Paywall({
   title = "Upgrade naar Benji Uitgebreid",
   message,
   ctaText = "Bekijk abonnementen",
-  ctaLink = "/prijzen",
+  ctaLink = "/account/abonnement?upgrade=true",
   children,
 }: PaywallProps) {
   return (

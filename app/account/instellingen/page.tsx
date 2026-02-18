@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Palette, ImageIcon, Trash2, Save, RotateCcw, Smartphone, X, Bell, FileText } from "lucide-react";
 import { isPushSupported, subscribeToPush, unsubscribeFromPush, getPermissionStatus } from "@/lib/pushNotifications";
+import { Paywall } from "@/components/Paywall";
 
 // Originele Benji-kleur (primary-600 uit tailwind)
 const ORIGINAL_COLOR = "#6d84a8";
@@ -39,6 +40,11 @@ export default function AccountInstellingenPage() {
   const setPreferences = useMutation(api.preferences.setPreferences);
   const removeBackgroundImage = useMutation(api.preferences.removeBackgroundImage);
   const generateUploadUrl = useMutation(api.preferences.generateUploadUrl);
+
+  const hasAccess = useQuery(
+    api.subscriptions.hasFeatureAccess,
+    userId ? { userId, email: session?.user?.email || undefined, feature: "personalization" } : "skip"
+  );
 
   const savedColor = preferences?.accentColor ?? "";
   const savedContextValue = preferences?.userContext ?? "";
@@ -166,6 +172,15 @@ export default function AccountInstellingenPage() {
     if (!userId || !confirm("Achtergrondafbeelding verwijderen?")) return;
     await removeBackgroundImage({ userId });
   };
+
+  if (hasAccess === false) {
+    return (
+      <Paywall
+        title="Upgrade naar Benji Alles in 1"
+        message="Personalisatie is beschikbaar vanaf Benji Alles in 1. Pas je eigen kleur, achtergrond en persoonlijke context in."
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
