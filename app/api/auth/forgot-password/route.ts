@@ -3,6 +3,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { Resend } from "resend";
 import { rateLimit } from "@/lib/rate-limit";
+import crypto from "crypto";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 const resend = new Resend(process.env.RESEND_API_KEY);
