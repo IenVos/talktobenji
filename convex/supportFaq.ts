@@ -60,6 +60,49 @@ export const upsertFaq = mutation({
   },
 });
 
+/** Sla onbeantwoorde zoekopdracht op als suggestie (publiek, geen token) */
+export const logSuggestion = mutation({
+  args: { question: v.string() },
+  handler: async (ctx, args) => {
+    const q = args.question.trim();
+    if (q.length < 3) return;
+
+    const normalize = (s: string) => s.toLowerCase().replace(/[-\s]+/g, "");
+    const qNorm = normalize(q);
+
+    // Sla over als er al een (actieve) vraag is die overeenkomt
+    const all = await ctx.db.query("supportFaq").collect();
+    const alreadyExists = all.some(
+      (item) =>
+        normalize(item.question).includes(qNorm) ||
+        qNorm.includes(normalize(item.question))
+    );
+    if (alreadyExists) return;
+
+    const now = Date.now();
+    await ctx.db.insert("supportFaq", {
+      question: q,
+      answer: "",
+      category: "account",
+      order: 999,
+      isActive: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
+/** Alle klant-suggesties (onbeantwoord, isActive=false, answer="") */
+export const listSuggestions = query({
+  args: { adminToken: v.optional(v.string()) },
+  handler: async (ctx) => {
+    const all = await ctx.db.query("supportFaq").collect();
+    return all
+      .filter((item) => !item.isActive && item.answer === "")
+      .sort((a, b) => b.createdAt - a.createdAt);
+  },
+});
+
 /** Verwijderen */
 export const deleteFaq = mutation({
   args: {

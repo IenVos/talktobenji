@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id, Doc } from "@/convex/_generated/dataModel";
-import { HelpCircle, Plus, Trash2, Save, X, Sprout, ChevronDown, ChevronUp } from "lucide-react";
+import { HelpCircle, Plus, Trash2, Save, X, Sprout, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 
 const CATEGORIES = [
   { key: "account", label: "Account" },
@@ -126,6 +126,7 @@ export default function AdminSupportFaqPage() {
   const deleteFaq = useAdminMutation(api.supportFaq.deleteFaq);
   const seedFaq = useAdminMutation(api.supportFaq.seedFaq);
   const updateAnswers = useAdminMutation(api.supportFaq.updateAnswers);
+  const suggestions = useAdminQuery(api.supportFaq.listSuggestions, {}) as Doc<"supportFaq">[] | undefined;
 
   const [editingId, setEditingId] = useState<Id<"supportFaq"> | null>(null);
   const [editForm, setEditForm] = useState(EMPTY_FORM);
@@ -273,6 +274,49 @@ export default function AdminSupportFaqPage() {
       {message && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
           {message}
+        </div>
+      )}
+
+      {/* Klant-suggesties */}
+      {suggestions && suggestions.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-amber-200">
+            <Lightbulb size={16} className="text-amber-600" />
+            <span className="text-sm font-semibold text-amber-800">
+              Klanten zochten dit maar vonden geen antwoord ({suggestions.length})
+            </span>
+          </div>
+          <ul className="divide-y divide-amber-100">
+            {suggestions.map((s) => (
+              <li key={s._id} className="flex items-center justify-between gap-4 px-5 py-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-800">&ldquo;{s.question}&rdquo;</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {new Date(s.createdAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+                <div className="flex gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => {
+                      setNewForm({ question: s.question, answer: "", category: "account", order: 10, isActive: true });
+                      setShowNewForm(true);
+                      handleDelete(s._id);
+                    }}
+                    className="px-3 py-1.5 text-xs font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    Beantwoorden
+                  </button>
+                  <button
+                    onClick={() => handleDelete(s._id)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                    title="Negeren"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

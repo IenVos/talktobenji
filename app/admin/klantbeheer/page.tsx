@@ -5,8 +5,9 @@ import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import {
   Search, Users, CreditCard, KeyRound, MessageSquare,
-  Palette, BookHeart, CheckCircle, AlertCircle, ChevronDown, AtSign,
+  Palette, BookHeart, CheckCircle, AlertCircle, ChevronDown, AtSign, HelpCircle, ArrowRight,
 } from "lucide-react";
+import Link from "next/link";
 
 const SUB_LABELS: Record<string, string> = {
   free: "Gratis",
@@ -92,6 +93,7 @@ function ActionRow({
 }
 
 export default function KlantbeheerPage() {
+  const suggestions = useAdminQuery(api.supportFaq.listSuggestions, {}) as { _id: string; question: string; createdAt: number }[] | undefined;
   const [searchInput, setSearchInput] = useState("");
   const [activeEmail, setActiveEmail] = useState("");
   const [newSubType, setNewSubType] = useState<"free" | "trial" | "uitgebreid" | "alles_in_1">("uitgebreid");
@@ -174,6 +176,30 @@ export default function KlantbeheerPage() {
           Zoek een klant op e-mailadres en beheer hun account
         </p>
       </div>
+
+      {/* Support FAQ kaartje */}
+      <Link
+        href="/admin/support-faq"
+        className="flex items-center justify-between gap-4 bg-white rounded-xl border border-primary-200 shadow-sm px-5 py-4 hover:bg-primary-50 transition-colors group"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+            <HelpCircle size={18} className="text-primary-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-gray-800">Support FAQ</p>
+            <p className="text-xs text-gray-500">Beheer veelgestelde vragen</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {suggestions && suggestions.length > 0 && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-semibold">
+              {suggestions.length} nieuwe {suggestions.length === 1 ? "suggestie" : "suggesties"}
+            </span>
+          )}
+          <ArrowRight size={16} className="text-gray-400 group-hover:text-primary-600 transition-colors" />
+        </div>
+      </Link>
 
       {/* Zoekbalk */}
       <form onSubmit={handleSearch} className="flex gap-2">

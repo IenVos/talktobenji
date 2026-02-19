@@ -37,6 +37,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 function SupportFaq({ onScrollToForm }: { onScrollToForm: () => void }) {
   const faqItems = useQuery(api.supportFaq.listActive) ?? [];
+  const logSuggestion = useMutation(api.supportFaq.logSuggestion);
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -45,16 +46,30 @@ function SupportFaq({ onScrollToForm }: { onScrollToForm: () => void }) {
   const trimmed = query.trim();
   const hasQuery = trimmed.length >= 2;
 
+  // Normaliseer tekst: verwijder koppeltekens zodat "emailadres" == "e-mailadres"
+  const normalize = (s: string) => s.toLowerCase().replace(/[-\s]+/g, "");
+
   const matches = hasQuery
-    ? faqItems.filter(
-        (item) =>
-          item.question.toLowerCase().includes(trimmed.toLowerCase()) ||
-          item.answer.toLowerCase().includes(trimmed.toLowerCase())
-      )
+    ? faqItems.filter((item) => {
+        const q = normalize(trimmed);
+        return (
+          normalize(item.question).includes(q) ||
+          normalize(item.answer).includes(q)
+        );
+      })
     : [];
 
   const suggestions = matches.slice(0, 6);
   const openItem = openId ? faqItems.find((i) => i._id === openId) : null;
+
+  // Auto-log als geen resultaten gevonden na 1.5s stilstand
+  useEffect(() => {
+    if (!hasQuery || matches.length > 0) return;
+    const timer = setTimeout(() => {
+      logSuggestion({ question: trimmed }).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [hasQuery, matches.length, trimmed]);
 
   const handleSuggestionClick = (id: string) => {
     setOpenId(id);
