@@ -207,7 +207,7 @@ export default function AccountHandreikingenPage() {
                         )}
 
                         {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
-                        <div className="px-5 pb-5 pt-4 flex-1 flex flex-col">
+                        <div className={`px-5 pb-5 pt-4 flex-1 flex flex-col ${!isActive ? "opacity-0" : ""}`}>
                           {item.title && (
                             <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
                           )}
