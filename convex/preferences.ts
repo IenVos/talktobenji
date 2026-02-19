@@ -37,8 +37,6 @@ export const getPreferencesWithUrl = query({
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Niet ingelogd");
     return await ctx.storage.generateUploadUrl();
   },
 });

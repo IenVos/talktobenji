@@ -5,7 +5,8 @@
       "Bash(npm run build:*)",
       "Bash(npx next build:*)",
       "Bash(npm install:*)",
-      "Bash(npx convex dev:*)"
+      "Bash(npx convex dev:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

@@ -401,6 +401,14 @@ export default defineSchema({
   })
     .index("by_sent", ["sentAt"]),
 
+  // E-mail templates (bewerkbaar via admin)
+  emailTemplates: defineTable({
+    key: v.string(),      // "trial_day5" | "trial_day7"
+    subject: v.string(),
+    bodyText: v.string(), // platte tekst, \n\n = alinea-scheiding
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
+
   // Admin sessies (voor admin panel beveiliging)
   adminSessions: defineTable({
     token: v.string(),

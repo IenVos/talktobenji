@@ -17,6 +17,7 @@ import type * as authSchema from "../authSchema.js";
 import type * as chat from "../chat.js";
 import type * as credentials from "../credentials.js";
 import type * as crons from "../crons.js";
+import type * as emailTemplates from "../emailTemplates.js";
 import type * as emails from "../emails.js";
 import type * as exampleData from "../exampleData.js";
 import type * as feedback from "../feedback.js";
@@ -54,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   chat: typeof chat;
   credentials: typeof credentials;
   crons: typeof crons;
+  emailTemplates: typeof emailTemplates;
   emails: typeof emails;
   exampleData: typeof exampleData;
   feedback: typeof feedback;
