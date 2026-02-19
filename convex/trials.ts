@@ -8,7 +8,7 @@ import { v } from "convex/values";
 const DAY_MS = 1000 * 60 * 60 * 24;
 
 export const checkAndProcessTrials = mutation({
-  args: {},
+  args: { adminToken: v.optional(v.string()) },
   handler: async (ctx) => {
     const now = Date.now();
 
@@ -86,6 +86,7 @@ export const checkAndProcessTrials = mutation({
  */
 export const setTrialStateForTesting = mutation({
   args: {
+    adminToken: v.optional(v.string()),
     email: v.string(),
     state: v.union(
       v.literal("fresh"),

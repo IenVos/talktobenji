@@ -70,6 +70,7 @@ export default function HerinneringenPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   // Detail modal state
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
@@ -90,6 +91,7 @@ export default function HerinneringenPage() {
   const [speechSupported, setSpeechSupported] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const textBeforeRecordingRef = useRef("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -102,7 +104,8 @@ export default function HerinneringenPage() {
       recognition.lang = "nl-NL";
       recognition.onresult = (event: any) => {
         const transcript = Array.from(event.results).map((r: any) => r[0].transcript).join("");
-        setText(transcript);
+        const prefix = textBeforeRecordingRef.current;
+        setText(prefix + (prefix && !prefix.endsWith(" ") ? " " : "") + transcript);
       };
       recognition.onend = () => setIsRecording(false);
       recognition.onerror = () => setIsRecording(false);
@@ -116,6 +119,7 @@ export default function HerinneringenPage() {
       recognitionRef.current.stop();
       setIsRecording(false);
     } else {
+      textBeforeRecordingRef.current = text;
       recognitionRef.current.start();
       setIsRecording(true);
     }
@@ -156,12 +160,14 @@ export default function HerinneringenPage() {
     setImage(null);
     setImagePreview(null);
     setImageError(null);
+    setSaveError(null);
     setShowForm(false);
   };
 
   const handleSubmit = async () => {
     if (!text.trim() || !session?.userId) return;
     setSaving(true);
+    setSaveError(null);
     try {
       let imageStorageId: Id<"_storage"> | undefined;
       if (image) {
@@ -181,8 +187,8 @@ export default function HerinneringenPage() {
         source: "manual",
       });
       resetForm();
-    } catch {
-      // stil falen
+    } catch (err: any) {
+      setSaveError(err?.message || "Opslaan mislukt. Probeer het opnieuw.");
     } finally {
       setSaving(false);
     }
@@ -270,12 +276,12 @@ export default function HerinneringenPage() {
 
   const content = (
     <div className="space-y-6">
-      {/* Intro + toevoegen */}
-      <div className="bg-white rounded-xl border border-primary-200 p-6">
-        <p className="text-sm text-gray-600 mb-4">
-          Bewaar hier je mooiste herinneringen. Een moment, een gevoel, iets moois om naar terug te kijken.
-        </p>
-        {!showForm && (
+      {/* Intro + toevoegen — alleen zichtbaar als er al memories zijn */}
+      {memories && memories.length > 0 && !showForm && (
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <p className="text-sm text-gray-600 mb-4">
+            Bewaar hier je mooiste herinneringen. Een moment, een gevoel, iets moois om naar terug te kijken.
+          </p>
           <button
             type="button"
             onClick={() => setShowForm(true)}
@@ -285,7 +291,8 @@ export default function HerinneringenPage() {
             <Plus size={16} />
             Herinnering toevoegen
           </button>
-        )}
+        </div>
+      )}
 
       {/* Formulier */}
       {showForm && (
@@ -398,9 +405,11 @@ export default function HerinneringenPage() {
               Annuleren
             </button>
           </div>
+          {saveError && (
+            <p className="text-sm text-red-500 mt-1">{saveError}</p>
+          )}
         </div>
       )}
-      </div>
 
       {/* Herinneringen lijst */}
       {memories === undefined ? (
