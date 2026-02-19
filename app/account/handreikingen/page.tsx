@@ -188,26 +188,25 @@ export default function AccountHandreikingenPage() {
                         className="rounded-xl bg-primary-50/50 border border-primary-100 overflow-hidden flex flex-col"
                         style={{ minHeight: maxCardHeight > 0 ? `${maxCardHeight}px` : undefined }}
                       >
-                        {item.imageUrl && (
-                          <button
-                            type="button"
-                            onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
-                            className="w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
-                            title="Afbeelding vergroten"
-                            tabIndex={isActive ? 0 : -1}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={item.imageUrl}
-                              alt={item.title}
-                              className="w-full max-h-96 object-contain block"
-                              onLoad={() => setImagesLoaded((c) => c + 1)}
-                            />
-                          </button>
-                        )}
-
-                        {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
-                        <div className={`px-5 pb-5 pt-4 flex-1 flex flex-col ${!isActive ? "opacity-0" : ""}`}>
+                        {(item.title || item.content || item.imageUrl || item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
+                        <div className="p-5 flex-1 flex flex-col">
+                          {item.imageUrl && (
+                            <button
+                              type="button"
+                              onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
+                              className="w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0 mb-4"
+                              title="Afbeelding vergroten"
+                              tabIndex={isActive ? 0 : -1}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={item.imageUrl}
+                                alt={item.title}
+                                className="w-full max-h-96 object-contain"
+                                onLoad={() => setImagesLoaded((c) => c + 1)}
+                              />
+                            </button>
+                          )}
                           {item.title && (
                             <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
                           )}
@@ -217,7 +216,7 @@ export default function AccountHandreikingenPage() {
                             )}
                           </div>
                           {(item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
-                            <div className="mt-auto pt-4 flex flex-wrap items-center gap-2">
+                            <div className="mt-4 flex flex-wrap items-center gap-2">
                               {item.priceCents != null && item.priceCents > 0 && (
                                 <a
                                   href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
