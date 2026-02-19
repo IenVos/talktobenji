@@ -54,30 +54,38 @@ export const sendTrialDayFiveReminder = internalAction({
       <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
         <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${args.name},</p>
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Je gratis proefperiode van Benji loopt over <strong>2 dagen</strong> af — op ${expiresDate}.
+          We wilden je even laten weten dat je proefperiode over <strong>2 dagen</strong> afloopt, op ${expiresDate}.
         </p>
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Tot die tijd heb je nog toegang tot alles: gesprekken met Benji, reflecties, check-ins, doelen, memories, inspiratie en handreikingen.
+          We hopen dat je de afgelopen dagen hebt kunnen voelen waarvoor Benji er is: een plek waar je je verhaal kwijt kunt, op je eigen tempo.
         </p>
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Wil je dit blijven gebruiken? Kies dan nu een abonnement dat bij je past.
+          Als je wilt blijven werken aan wat je bent begonnen, je reflecties, je doelen, je gesprekken, dan is er een abonnement dat daarbij past. En wat je tot nu toe hebt opgebouwd, blijft altijd van jou.
         </p>
         <div style="text-align: center; margin: 32px 0;">
           <a href="https://talktobenji.com/account/abonnement?upgrade=true"
              style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
-            Mijn abonnement bekijken
+            Bekijk de abonnementen
           </a>
         </div>
-        <p style="font-size: 14px; line-height: 1.7; color: #718096;">
-          Je gesprekken, reflecties en doelen blijven altijd bewaard — ook als je niet upgradet.
-        </p>
-        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warmte,<br />Benji</p>
+        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warme groet,</p>
+        <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
+          <tr>
+            <td style="padding-right: 14px; vertical-align: middle;">
+              <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="56" height="56" style="border-radius: 50%; display: block; width: 56px; height: 56px; object-fit: cover;" />
+            </td>
+            <td style="vertical-align: middle;">
+              <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0; padding: 0;">Ien</p>
+              <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0; padding: 0;">Founder van TalkToBenji</p>
+            </td>
+          </tr>
+        </table>
       </div>
     `;
 
     await sendEmail({
       to: args.email,
-      subject: "Nog 2 dagen proeftijd — upgrade om alles te blijven gebruiken",
+      subject: "Nog 2 dagen — je proefperiode loopt bijna af",
       html,
       apiKey: RESEND_API_KEY,
     });
@@ -101,10 +109,10 @@ export const sendTrialDaySevenReminder = internalAction({
           Hoe gaat het met je? We hopen dat de afgelopen week met Benji een beetje steun heeft gebracht.
         </p>
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          De komende 7 dagen hebben we je laten proeven van alles wat Benji te bieden heeft — en vandaag is de laatste dag dat je volledige toegang hebt.
+          De afgelopen 7 dagen hebben we je laten proeven van alles wat Benji te bieden heeft, en vandaag is de laatste dag dat je volledige toegang hebt.
         </p>
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Heb je gemerkt dat bepaalde dingen je goed deden? De gesprekken, je reflecties, de check-ins of de memories? Dan is het fijn om te weten dat die gewoon voor je bewaard blijven — wat je ook kiest.
+          Heb je gemerkt dat bepaalde dingen je goed deden? De gesprekken, je reflecties, de check-ins of de memories? Dan is het fijn om te weten dat die gewoon voor je bewaard blijven, wat je ook kiest.
         </p>
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
           Mocht je willen blijven gebruiken wat je de afgelopen tijd hebt ontdekt, dan kan dat via een abonnement dat bij je past. Geen druk, maar we willen je er wel even op wijzen.
@@ -115,7 +123,7 @@ export const sendTrialDaySevenReminder = internalAction({
             Bekijk de abonnementen
           </a>
         </div>
-        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warmte,</p>
+        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warme groet,</p>
         <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
           <tr>
             <td style="padding-right: 14px; vertical-align: middle;">

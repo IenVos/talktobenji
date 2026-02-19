@@ -3,6 +3,7 @@
  */
 import { mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { v } from "convex/values";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
@@ -76,5 +77,49 @@ export const checkAndProcessTrials = mutation({
         await ctx.db.patch(sub._id, { reminderDay7Sent: true, updatedAt: now });
       }
     }
+  },
+});
+
+/**
+ * Zet trial naar een teststate (alleen voor admin/testing).
+ * state: "fresh" | "day5" | "day7" | "expired"
+ */
+export const setTrialStateForTesting = mutation({
+  args: {
+    email: v.string(),
+    state: v.union(
+      v.literal("fresh"),
+      v.literal("day5"),
+      v.literal("day7"),
+      v.literal("expired")
+    ),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const sub = await ctx.db
+      .query("userSubscriptions")
+      .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase().trim()))
+      .first();
+
+    if (!sub) throw new Error("Geen subscription gevonden voor dit e-mailadres");
+
+    const expiresAtMap = {
+      fresh:   now + 7 * DAY_MS,
+      day5:    now + 2 * DAY_MS,
+      day7:    now + DAY_MS * 0.5, // 12 uur over → ceil = 1 dag
+      expired: now - 1000,
+    };
+
+    await ctx.db.patch(sub._id, {
+      subscriptionType: "trial",
+      status: "active",
+      expiresAt: expiresAtMap[args.state],
+      reminderDay5Sent: false,
+      reminderDay7Sent: false,
+      updatedAt: now,
+    });
+
+    return { success: true, expiresAt: expiresAtMap[args.state] };
   },
 });
