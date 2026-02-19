@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Gem, Plus, Trash2, Mic, Square, ImagePlus, X, Sparkles, Pencil, Eye, ImageOff } from "lucide-react";
 import { Paywall } from "@/components/Paywall";
+import { ComingSoonCard } from "@/components/ComingSoonCard";
 
 const EMOTIONS = [
   { value: "dankbaar", emoji: "\u{1F64F}", label: "Dankbaar" },
@@ -701,6 +702,17 @@ export default function HerinneringenPage() {
           </div>
         </div>
       )}
+
+      {/* Aankomende functies */}
+      <div className="space-y-3">
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1">Aankomend in Memories</p>
+        <ComingSoonCard
+          id="herinneringenboekje"
+          emoji="📖"
+          title="Jouw herinneringenboekje"
+          description="Zet jouw mooiste herinneringen om in een persoonlijk boekje dat je kunt downloaden en bewaren."
+        />
+      </div>
 
       {/* Fullscreen afbeelding */}
       {fullscreenImage && (

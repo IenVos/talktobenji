@@ -11,6 +11,7 @@ import {
   BarChart3,
   Home,
   Settings,
+  ThumbsUp,
 } from "lucide-react";
 
 const navItems = [
@@ -19,6 +20,7 @@ const navItems = [
   { href: "/admin/feedback", label: "Feedback", icon: MessageSquare },
   { href: "/admin/knowledge-base", label: "Kennisbank", icon: BookOpen },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/wensen", label: "Wensen", icon: ThumbsUp },
 ];
 
 export function Sidebar() {

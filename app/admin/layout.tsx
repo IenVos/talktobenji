@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { AdminAuthProvider, useAdminQuery } from "./AdminAuthContext";
-import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell, ShoppingBag, FlaskConical, Mail, Users, HelpCircle } from "lucide-react";
+import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell, ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp } from "lucide-react";
 
 type NavItem =
   | { type: "item"; href: string; label: string; icon: React.ElementType; badge: number }
@@ -38,6 +38,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { type: "separator", thin: true },
     { type: "item", href: "/admin/trial-test", label: "Trial testen", icon: FlaskConical, badge: 0 },
     { type: "item", href: "/admin/trial-emails", label: "Trial e-mails", icon: Mail, badge: 0 },
+    { type: "item", href: "/admin/wensen", label: "Wensen", icon: ThumbsUp, badge: 0 },
   ];
 
   return (

@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { HandHelping, FileDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { Paywall } from "@/components/Paywall";
+import { ComingSoonCard } from "@/components/ComingSoonCard";
 
 const CARD_PCT = 75;
 const SIDE_PCT = (100 - CARD_PCT) / 2; // 12.5%
@@ -281,6 +282,17 @@ export default function AccountHandreikingenPage() {
           )}
         </div>
       )}
+
+      {/* Aankomende functies */}
+      <div className="space-y-3">
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1">Aankomend in Handreikingen</p>
+        <ComingSoonCard
+          id="wat-zeg-je"
+          emoji="💬"
+          title="Wat zeg je tegen iemand die rouwt?"
+          description="Een praktische gids voor je omgeving. Deel hem met mensen die er voor je willen zijn maar niet weten hoe."
+        />
+      </div>
 
       {lightboxImage && (
         <ImageLightbox

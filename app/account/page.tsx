@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { MessageSquare, PencilLine, Sparkles, HandHelping, Gem, Target, CalendarCheck } from "lucide-react";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
 import { ConversationLimitBanner } from "@/components/ConversationLimitBanner";
+import { ComingSoonCard } from "@/components/ComingSoonCard";
 
 const CATEGORIES = [
   { href: "/account/gesprekken", label: "Jouw gesprekken", icon: MessageSquare, desc: "Je eerdere gesprekken met Benji" },
@@ -48,6 +49,17 @@ export default function AccountPage() {
             <span className="text-primary-500 group-hover:translate-x-0.5 transition-transform" aria-hidden>→</span>
           </Link>
         ))}
+      </div>
+
+      {/* Aankomende functies */}
+      <div className="space-y-3">
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1">Aankomend</p>
+        <ComingSoonCard
+          id="herdenkingskalender"
+          emoji="🗓️"
+          title="Herdenkingskalender"
+          description="Voeg belangrijke datums toe. Op die dag staat Benji extra voor je klaar met een warm bericht."
+        />
       </div>
     </div>
   );

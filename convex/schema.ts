@@ -426,6 +426,15 @@ export default defineSchema({
     expiresAt: v.number(),
   }).index("by_token", ["token"]),
 
+  // Feature stemmen (aankomende functies)
+  featureVotes: defineTable({
+    featureId: v.string(),
+    userId: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index("by_feature", ["featureId"])
+    .index("by_user_feature", ["userId", "featureId"]),
+
   // Analytics
   analytics: defineTable({
     date: v.number(),
