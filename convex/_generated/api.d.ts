@@ -15,6 +15,7 @@ import type * as analytics from "../analytics.js";
 import type * as authAdapter from "../authAdapter.js";
 import type * as authSchema from "../authSchema.js";
 import type * as chat from "../chat.js";
+import type * as comingSoonFeatures from "../comingSoonFeatures.js";
 import type * as credentials from "../credentials.js";
 import type * as crons from "../crons.js";
 import type * as deleteAccount from "../deleteAccount.js";
@@ -57,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   authAdapter: typeof authAdapter;
   authSchema: typeof authSchema;
   chat: typeof chat;
+  comingSoonFeatures: typeof comingSoonFeatures;
   credentials: typeof credentials;
   crons: typeof crons;
   deleteAccount: typeof deleteAccount;

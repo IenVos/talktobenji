@@ -191,7 +191,7 @@ export default function AccountInspiratiePage() {
                           <button
                             type="button"
                             onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
-                            className="w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex-1 min-h-0 flex items-center justify-center"
+                            className="w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0 flex items-center justify-center"
                             title="Afbeelding vergroten"
                             tabIndex={isActive ? 0 : -1}
                           >
@@ -206,25 +206,27 @@ export default function AccountInspiratiePage() {
                         )}
 
                         {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
-                        <div className="p-5 flex-1">
+                        <div className="p-5 flex-1 flex flex-col">
                           {item.title && (
-                            <h3 className="text-base font-semibold text-primary-900">{item.title}</h3>
+                            <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
                           )}
-                          {item.pdfUrl ? (
-                            <div className="mt-2">
-                              {item.content && (
-                                <p className="text-sm text-gray-600 mb-3">{item.content}</p>
+                          <div className="flex-1 text-sm text-gray-600 leading-relaxed">
+                            {item.content && (
+                              <p className="whitespace-pre-wrap">{item.content}</p>
+                            )}
+                          </div>
+                          {(item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
+                            <div className="mt-4 flex flex-wrap items-center gap-2">
+                              {item.priceCents != null && item.priceCents > 0 && (
+                                <a
+                                  href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
+                                  className="bestellen-btn inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
+                                  tabIndex={isActive ? 0 : -1}
+                                >
+                                  Bestellen €{(item.priceCents / 100).toFixed(2)}
+                                </a>
                               )}
-                              <div className="flex items-center gap-2">
-                                {item.priceCents != null && item.priceCents > 0 && (
-                                  <a
-                                    href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
-                                    className="bestellen-btn inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
-                                    tabIndex={isActive ? 0 : -1}
-                                  >
-                                    Bestellen €{(item.priceCents / 100).toFixed(2)}
-                                  </a>
-                                )}
+                              {item.pdfUrl && (
                                 <a
                                   href={item.pdfUrl}
                                   target="_blank"
@@ -236,21 +238,8 @@ export default function AccountInspiratiePage() {
                                   <FileDown size={16} />
                                   Download
                                 </a>
-                              </div>
+                              )}
                             </div>
-                          ) : item.content ? (
-                            <div className="mt-3 text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
-                              {item.content}
-                            </div>
-                          ) : null}
-                          {item.priceCents != null && item.priceCents > 0 && !item.pdfUrl && (
-                            <a
-                              href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
-                              className="bestellen-btn inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap mt-3"
-                              tabIndex={isActive ? 0 : -1}
-                            >
-                              Bestellen €{(item.priceCents / 100).toFixed(2)}
-                            </a>
                           )}
                         </div>
                         )}
