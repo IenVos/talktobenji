@@ -336,28 +336,26 @@ export default function AccountLayout({
                   {item.label}
                 </Link>
                 <span className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                  {isReflectiesSection && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setReflectiesSubmenuOpen((o) => !o);
-                      }}
-                      className="p-1 rounded hover:bg-primary-100/50 transition-colors -m-1"
-                      title={reflectiesSubmenuOpen ? "Submenu sluiten" : "Submenu openen"}
-                      aria-expanded={reflectiesSubmenuOpen}
-                    >
-                      {reflectiesSubmenuOpen ? (
-                        <ChevronDown size={16} />
-                      ) : (
-                        <ChevronRight size={16} />
-                      )}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setReflectiesSubmenuOpen((o) => !o);
+                    }}
+                    className="p-1 rounded hover:bg-primary-100/50 transition-colors -m-1"
+                    title={reflectiesSubmenuOpen ? "Submenu sluiten" : "Submenu openen"}
+                    aria-expanded={reflectiesSubmenuOpen}
+                  >
+                    {reflectiesSubmenuOpen ? (
+                      <ChevronDown size={16} />
+                    ) : (
+                      <ChevronRight size={16} />
+                    )}
+                  </button>
                 </span>
               </div>
-              {isReflectiesSection && reflectiesSubmenuOpen && (
+              {reflectiesSubmenuOpen && (
                 <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
                   {REFLECTIES_SUBMENU.filter((s) => s.href !== "/account/reflecties").map((sub) => {
                     const subActive = pathname === sub.href;
