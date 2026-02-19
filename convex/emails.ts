@@ -116,13 +116,17 @@ export const sendTrialDaySevenReminder = internalAction({
           </a>
         </div>
         <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warmte,</p>
-        <div style="display: flex; align-items: center; gap: 14px; margin-top: 8px;">
-          <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;" />
-          <div>
-            <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0;">Ien</p>
-            <p style="font-size: 13px; color: #718096; margin: 2px 0 0 0;">Founder van TalkToBenji</p>
-          </div>
-        </div>
+        <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
+          <tr>
+            <td style="padding-right: 14px; vertical-align: middle;">
+              <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="56" height="56" style="border-radius: 50%; display: block; width: 56px; height: 56px; object-fit: cover;" />
+            </td>
+            <td style="vertical-align: middle;">
+              <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0; padding: 0;">Ien</p>
+              <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0; padding: 0;">Founder van TalkToBenji</p>
+            </td>
+          </tr>
+        </table>
       </div>
     `;
 
