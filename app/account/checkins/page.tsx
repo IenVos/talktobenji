@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { CalendarCheck, ChevronDown, ChevronRight, Trash2, History } from "lucide-react";
 import { Paywall } from "@/components/Paywall";
+import { ComingSoonSection } from "@/components/ComingSoonSection";
 
 const MOOD_OPTIONS = [
   { value: 1, emoji: "😔", label: "Zwaar" },
@@ -147,6 +148,8 @@ export default function AccountCheckinsPage() {
           {checkInSaving ? "Bezig…" : "Toevoegen"}
         </button>
       </div>
+
+      <ComingSoonSection section="checkins" label="Dagelijkse check-ins" />
 
       {/* Eerdere check-ins */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">

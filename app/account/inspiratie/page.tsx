@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { Sparkles, FileDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { Paywall } from "@/components/Paywall";
-import { ComingSoonCard } from "@/components/ComingSoonCard";
+import { ComingSoonSection } from "@/components/ComingSoonSection";
 
 const CARD_PCT = 75;
 const SIDE_PCT = (100 - CARD_PCT) / 2;
@@ -282,28 +282,7 @@ export default function AccountInspiratiePage() {
         </div>
       )}
 
-      {/* Aankomende functies */}
-      <div className="space-y-3">
-        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1">Aankomend in Inspiratie & troost</p>
-        <ComingSoonCard
-          id="seizoensgidsen"
-          emoji="🍂"
-          title="Seizoensgidsen"
-          description="Een persoonlijk boekje voor bijzondere momenten in het jaar — zoals de feestdagen of de eerste verjaardag zonder hem of haar."
-        />
-        <ComingSoonCard
-          id="rituelen-bibliotheek"
-          emoji="✨"
-          title="Rituelen-bibliotheek"
-          description="Kleine, betekenisvolle rituelen om bij stil te staan. Geen therapie, wel iets om houvast aan te hebben."
-        />
-        <ComingSoonCard
-          id="aanbevolen-voor-jou"
-          emoji="📚"
-          title="Aanbevolen voor jou"
-          description="Een gecureerde selectie van boeken, podcasts en films — afgestemd op wat jij doormaakt."
-        />
-      </div>
+      <ComingSoonSection section="inspiratie" label="Inspiratie & troost" />
 
       {lightboxImage && (
         <ImageLightbox

@@ -426,6 +426,21 @@ export default defineSchema({
     expiresAt: v.number(),
   }).index("by_token", ["token"]),
 
+  // Aankomende functies (beheerbaar via admin)
+  comingSoonFeatures: defineTable({
+    featureId: v.string(),   // slug voor vote-tracking
+    iconName: v.string(),    // naam van Lucide icon
+    title: v.string(),
+    description: v.string(),
+    section: v.string(),     // "herinneringen" | "inspiratie" | "handreikingen" | "checkins" | "account"
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_section", ["section", "isActive"])
+    .index("by_order", ["isActive", "order"]),
+
   // Feature stemmen (aankomende functies)
   featureVotes: defineTable({
     featureId: v.string(),

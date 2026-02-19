@@ -21,6 +21,7 @@ import type * as deleteAccount from "../deleteAccount.js";
 import type * as emailTemplates from "../emailTemplates.js";
 import type * as emails from "../emails.js";
 import type * as exampleData from "../exampleData.js";
+import type * as featureVotes from "../featureVotes.js";
 import type * as feedback from "../feedback.js";
 import type * as handreikingen from "../handreikingen.js";
 import type * as http from "../http.js";
@@ -62,6 +63,7 @@ declare const fullApi: ApiFromModules<{
   emailTemplates: typeof emailTemplates;
   emails: typeof emails;
   exampleData: typeof exampleData;
+  featureVotes: typeof featureVotes;
   feedback: typeof feedback;
   handreikingen: typeof handreikingen;
   http: typeof http;
