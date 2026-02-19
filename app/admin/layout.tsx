@@ -8,7 +8,11 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { AdminAuthProvider, useAdminQuery } from "./AdminAuthContext";
-import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell, ShoppingBag, FlaskConical, Mail } from "lucide-react";
+import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell, ShoppingBag, FlaskConical, Mail, Users, HelpCircle } from "lucide-react";
+
+type NavItem =
+  | { type: "item"; href: string; label: string; icon: React.ElementType; badge: number }
+  | { type: "separator"; thin?: boolean };
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -16,19 +20,24 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const newFeedbackCount = allFeedback?.filter((f: any) => f.status === "new").length ?? 0;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems = [
-    { href: "/admin", label: "Instellingen", icon: Settings, badge: 0 },
-    { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
-    { href: "/admin/analytics", label: "Analytics", icon: BarChart3, badge: 0 },
-    { href: "/admin/chat-history", label: "Chat history", icon: MessageSquare, badge: 0 },
-    { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen, badge: 0 },
-    { href: "/admin/bronnen", label: "Bronnen", icon: FileStack, badge: 0 },
-    { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
-    { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping, badge: 0 },
-    { href: "/admin/onderweg", label: "Iets voor onderweg", icon: ShoppingBag, badge: 0 },
-    { href: "/admin/notificaties", label: "Notificaties", icon: Bell, badge: 0 },
-    { href: "/admin/trial-test", label: "Trial testen", icon: FlaskConical, badge: 0 },
-    { href: "/admin/trial-emails", label: "Trial e-mails", icon: Mail, badge: 0 },
+  const navItems: NavItem[] = [
+    { type: "item", href: "/admin/klantbeheer", label: "Klantbeheer", icon: Users, badge: 0 },
+    { type: "separator" },
+    { type: "item", href: "/admin", label: "Instellingen", icon: Settings, badge: 0 },
+    { type: "item", href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
+    { type: "item", href: "/admin/analytics", label: "Analytics", icon: BarChart3, badge: 0 },
+    { type: "item", href: "/admin/chat-history", label: "Chat history", icon: MessageSquare, badge: 0 },
+    { type: "item", href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen, badge: 0 },
+    { type: "item", href: "/admin/bronnen", label: "Bronnen", icon: FileStack, badge: 0 },
+    { type: "item", href: "/admin/support-faq", label: "Support FAQ", icon: HelpCircle, badge: 0 },
+    { type: "separator" },
+    { type: "item", href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
+    { type: "item", href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping, badge: 0 },
+    { type: "item", href: "/admin/onderweg", label: "Iets voor onderweg", icon: ShoppingBag, badge: 0 },
+    { type: "item", href: "/admin/notificaties", label: "Notificaties", icon: Bell, badge: 0 },
+    { type: "separator", thin: true },
+    { type: "item", href: "/admin/trial-test", label: "Trial testen", icon: FlaskConical, badge: 0 },
+    { type: "item", href: "/admin/trial-emails", label: "Trial e-mails", icon: Mail, badge: 0 },
   ];
 
   return (
@@ -74,8 +83,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           </button>
         </div>
         <nav className="p-4">
-          <ul className="space-y-2">
-            {navItems.map((item) => {
+          <ul className="space-y-1">
+            {navItems.map((item, i) => {
+              if (item.type === "separator") {
+                return <li key={i} className={`${item.thin ? "border-t border-gray-200/60 my-1" : "border-t border-gray-200 my-2"}`} />;
+              }
               const isActive = pathname === item.href;
               const Icon = item.icon;
               return (
@@ -127,8 +139,11 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
 
           <nav className="flex-1 p-4">
-            <ul className="space-y-2">
-              {navItems.map((item) => {
+            <ul className="space-y-1">
+              {navItems.map((item, i) => {
+                if (item.type === "separator") {
+                  return <li key={i} className={`${item.thin ? "border-t border-primary-800/30 my-1" : "border-t border-primary-700 my-2"}`} />;
+                }
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
                 return (

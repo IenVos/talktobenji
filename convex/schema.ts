@@ -401,6 +401,17 @@ export default defineSchema({
   })
     .index("by_sent", ["sentAt"]),
 
+  // Support FAQ (account-vragen, beheerbaar via admin)
+  supportFaq: defineTable({
+    question: v.string(),
+    answer: v.string(),
+    category: v.string(), // "account" | "abonnement" | "gebruik" | "technisch" | "privacy"
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_active_order", ["isActive", "order"]),
+
   // E-mail templates (bewerkbaar via admin)
   emailTemplates: defineTable({
     key: v.string(),      // "trial_day5" | "trial_day7"

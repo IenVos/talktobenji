@@ -17,6 +17,7 @@ import type * as authSchema from "../authSchema.js";
 import type * as chat from "../chat.js";
 import type * as credentials from "../credentials.js";
 import type * as crons from "../crons.js";
+import type * as deleteAccount from "../deleteAccount.js";
 import type * as emailTemplates from "../emailTemplates.js";
 import type * as emails from "../emails.js";
 import type * as exampleData from "../exampleData.js";
@@ -24,6 +25,7 @@ import type * as feedback from "../feedback.js";
 import type * as handreikingen from "../handreikingen.js";
 import type * as http from "../http.js";
 import type * as inspiratie from "../inspiratie.js";
+import type * as klantbeheer from "../klantbeheer.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
 import type * as memories from "../memories.js";
 import type * as notes from "../notes.js";
@@ -36,6 +38,7 @@ import type * as seedData from "../seedData.js";
 import type * as settings from "../settings.js";
 import type * as sources from "../sources.js";
 import type * as subscriptions from "../subscriptions.js";
+import type * as supportFaq from "../supportFaq.js";
 import type * as trials from "../trials.js";
 import type * as user from "../user.js";
 
@@ -55,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   chat: typeof chat;
   credentials: typeof credentials;
   crons: typeof crons;
+  deleteAccount: typeof deleteAccount;
   emailTemplates: typeof emailTemplates;
   emails: typeof emails;
   exampleData: typeof exampleData;
@@ -62,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   handreikingen: typeof handreikingen;
   http: typeof http;
   inspiratie: typeof inspiratie;
+  klantbeheer: typeof klantbeheer;
   knowledgeBase: typeof knowledgeBase;
   memories: typeof memories;
   notes: typeof notes;
@@ -74,6 +79,7 @@ declare const fullApi: ApiFromModules<{
   settings: typeof settings;
   sources: typeof sources;
   subscriptions: typeof subscriptions;
+  supportFaq: typeof supportFaq;
   trials: typeof trials;
   user: typeof user;
 }>;

@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Palette, ImageIcon, Trash2, Save, RotateCcw, Smartphone, X, Bell, FileText } from "lucide-react";
+import { Palette, ImageIcon, Trash2, Save, RotateCcw, Smartphone, X, Bell, FileText, AlertTriangle } from "lucide-react";
 import { isPushSupported, subscribeToPush, unsubscribeFromPush, getPermissionStatus } from "@/lib/pushNotifications";
 import { Paywall } from "@/components/Paywall";
+import { signOut } from "next-auth/react";
 
 // Originele Benji-kleur (primary-600 uit tailwind)
 const ORIGINAL_COLOR = "#6d84a8";
@@ -67,6 +68,9 @@ export default function AccountInstellingenPage() {
   const unsubscribeMutation = useMutation(api.pushSubscriptions.unsubscribe);
   const [pushLoading, setPushLoading] = useState(false);
   const [pushError, setPushError] = useState<string | null>(null);
+
+  const deleteAccountMutation = useMutation(api.deleteAccount.deleteAccount);
+  const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "deleting">("idle");
 
   const handleTogglePush = async () => {
     if (!userId) return;
@@ -504,6 +508,91 @@ export default function AccountInstellingenPage() {
             </div>
           </div>
         )}
+
+      {/* Account verwijderen */}
+      <div className="bg-white rounded-2xl border border-red-100 p-5 sm:p-6 shadow-sm space-y-4">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0 border border-red-100">
+            <Trash2 className="w-4 h-4 text-red-500" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">Account verwijderen</h2>
+            <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">
+              Al je gegevens worden permanent gewist — gesprekken, notities, doelen, herinneringen en check-ins. Dit kan niet ongedaan worden gemaakt.
+            </p>
+          </div>
+        </div>
+
+        {deleteStep === "idle" && (
+          <button
+            type="button"
+            onClick={() => setDeleteStep("confirm")}
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 border border-gray-200 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
+          >
+            Verwijder mijn account
+          </button>
+        )}
+
+        {deleteStep === "confirm" && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
+              <div className="space-y-2 text-sm text-gray-700">
+                <p className="font-semibold text-gray-900">Weet je het zeker?</p>
+                <p>Na bevestiging worden de volgende gegevens <strong>definitief gewist</strong>:</p>
+                <ul className="list-disc list-inside space-y-0.5 text-gray-600">
+                  <li>Alle gesprekken met Benji</li>
+                  <li>Reflecties en notities</li>
+                  <li>Persoonlijke doelen</li>
+                  <li>Dagelijkse check-ins</li>
+                  <li>Memories en herinneringen</li>
+                  <li>Jouw verhaal en personalisatie</li>
+                  <li>Je account en inloggegevens</li>
+                </ul>
+                <p className="text-xs text-gray-500 pt-1">
+                  We bewaren geen enkel gegeven na verwijdering. Je e-mailadres wordt volledig verwijderd uit onze systemen.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!session?.userId || !session?.user?.email) return;
+                  setDeleteStep("deleting");
+                  try {
+                    await deleteAccountMutation({
+                      userId: session.userId as string,
+                      email: session.user.email,
+                    });
+                    await signOut({ callbackUrl: "/?accountVerwijderd=1" });
+                  } catch {
+                    setDeleteStep("confirm");
+                  }
+                }}
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors"
+              >
+                Ja, verwijder alles definitief
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteStep("idle")}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                Annuleren
+              </button>
+            </div>
+          </div>
+        )}
+
+        {deleteStep === "deleting" && (
+          <p className="text-sm text-gray-500 flex items-center gap-2">
+            <span className="inline-block w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            Bezig met verwijderen...
+          </p>
+        )}
+      </div>
+
     </div>
   );
 }

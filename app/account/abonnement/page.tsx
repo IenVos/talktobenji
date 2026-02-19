@@ -123,17 +123,19 @@ export default function AbonnementPage() {
         />
       )}
 
-      <div className="bg-white rounded-xl border border-primary-200 p-6">
-        <h3 className="text-base font-semibold text-gray-900 mb-4">
-          Alle abonnementen
-        </h3>
-        <Link
-          href="/account/abonnement?upgrade=true"
-          className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm"
-        >
-          Bekijk alle opties
-        </Link>
-      </div>
+      {subscription?.subscriptionType !== "alles_in_1" && (
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h3 className="text-base font-semibold text-gray-900 mb-4">
+            Alle abonnementen
+          </h3>
+          <Link
+            href="/account/abonnement?upgrade=true"
+            className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm"
+          >
+            Bekijk alle opties
+          </Link>
+        </div>
+      )}
 
       {subscription && subscription.subscriptionType !== "free" && (
         <div className="px-1">

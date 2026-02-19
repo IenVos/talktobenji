@@ -17,6 +17,8 @@ function InloggenForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [userName, setUserName] = useState("");
+  const [emailExists, setEmailExists] = useState<boolean | null>(null);
+  const [checkingEmail, setCheckingEmail] = useState(false);
 
   useEffect(() => {
     // HTTP → HTTPS in productie
@@ -32,6 +34,25 @@ function InloggenForm() {
 
   const sessionExpired = errorParam === "SessionRequired" || errorParam === "SessionExpired";
   const displayError = error || (!sessionExpired && errorParam ? decodeURIComponent(errorParam) : "");
+
+  const handleEmailBlur = async () => {
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || !trimmed.includes("@")) return;
+    setCheckingEmail(true);
+    try {
+      const res = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmed }),
+      });
+      const data = await res.json();
+      setEmailExists(data.exists);
+    } catch {
+      setEmailExists(null);
+    } finally {
+      setCheckingEmail(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,12 +133,21 @@ function InloggenForm() {
               type="email"
               id="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); setEmailExists(null); }}
+              onBlur={handleEmailBlur}
               className="input"
               placeholder="jouw@email.nl"
               required
               autoComplete="email"
             />
+            {checkingEmail && (
+              <p className="text-xs text-gray-400 mt-1">Controleren...</p>
+            )}
+            {!checkingEmail && emailExists === false && email.includes("@") && (
+              <p className="text-xs text-amber-600 mt-1">
+                Dit e-mailadres kennen we niet — nog geen account?
+              </p>
+            )}
           </div>
 
           <div>
@@ -145,13 +175,22 @@ function InloggenForm() {
             <p className="text-red-600 text-sm">{displayError}</p>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 btn btn-primary rounded-lg disabled:opacity-50"
-          >
-            {loading ? "Bezig..." : "Inloggen"}
-          </button>
+          {emailExists === false && !loading ? (
+            <Link
+              href={`/registreren?email=${encodeURIComponent(email.trim().toLowerCase())}`}
+              className="w-full py-3 btn btn-primary rounded-lg text-center block"
+            >
+              Account aanmaken
+            </Link>
+          ) : (
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 btn btn-primary rounded-lg disabled:opacity-50"
+            >
+              {loading ? "Bezig..." : "Inloggen"}
+            </button>
+          )}
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-4">

@@ -81,6 +81,38 @@ export const checkAndProcessTrials = mutation({
 });
 
 /**
+ * Simuleer upgrade naar betaald abonnement (alleen voor admin/testing).
+ * Verwijdert trial-velden, zet subscription naar uitgebreid of alles_in_1.
+ */
+export const upgradeSubscriptionForTesting = mutation({
+  args: {
+    adminToken: v.optional(v.string()),
+    email: v.string(),
+    subscriptionType: v.union(v.literal("uitgebreid"), v.literal("alles_in_1")),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const sub = await ctx.db
+      .query("userSubscriptions")
+      .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase().trim()))
+      .first();
+
+    if (!sub) throw new Error("Geen subscription gevonden voor dit e-mailadres");
+
+    const { expiresAt: _exp, reminderDay5Sent: _r5, reminderDay7Sent: _r7, ...rest } = sub;
+    await ctx.db.replace(sub._id, {
+      ...rest,
+      subscriptionType: args.subscriptionType,
+      status: "active",
+      updatedAt: now,
+    });
+
+    return { success: true };
+  },
+});
+
+/**
  * Zet trial naar een teststate (alleen voor admin/testing).
  * state: "fresh" | "day5" | "day7" | "expired"
  */

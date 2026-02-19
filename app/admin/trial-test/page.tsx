@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
-import { FlaskConical, Mail, Clock, AlertTriangle, CheckCircle, Play } from "lucide-react";
+import { FlaskConical, Mail, Clock, AlertTriangle, CheckCircle, Play, Star, Sparkles } from "lucide-react";
 
 const STATES = [
   {
@@ -47,6 +47,7 @@ export default function TrialTestPage() {
 
   const setTrialState = useAdminMutation(api.trials.setTrialStateForTesting);
   const processTrials = useAdminMutation(api.trials.checkAndProcessTrials);
+  const upgradeSubscription = useAdminMutation(api.trials.upgradeSubscriptionForTesting);
 
   const handleSetState = async (state: typeof STATES[number]["key"]) => {
     if (!email.trim()) {
@@ -58,6 +59,24 @@ export default function TrialTestPage() {
     try {
       await setTrialState({ email: email.trim(), state });
       setStatus({ type: "success", message: `Trial ingesteld op "${STATES.find(s => s.key === state)?.label}"` });
+    } catch (err: any) {
+      setStatus({ type: "error", message: err.message || "Mislukt" });
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleUpgrade = async (subscriptionType: "uitgebreid" | "alles_in_1") => {
+    if (!email.trim()) {
+      setStatus({ type: "error", message: "Vul eerst een e-mailadres in" });
+      return;
+    }
+    setLoading(subscriptionType);
+    setStatus(null);
+    try {
+      await upgradeSubscription({ email: email.trim(), subscriptionType });
+      const label = subscriptionType === "alles_in_1" ? "Alles-in-1" : "Uitgebreid";
+      setStatus({ type: "success", message: `Abonnement ingesteld op "${label}" — open nu de accountpagina om te controleren` });
     } catch (err: any) {
       setStatus({ type: "error", message: err.message || "Mislukt" });
     } finally {
@@ -143,6 +162,32 @@ export default function TrialTestPage() {
           <Play size={16} />
           {loading === "process" ? "Bezig..." : "Verwerk trials nu"}
         </button>
+      </div>
+
+      {/* Stap 3: upgrade simuleren */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <p className="text-sm font-semibold text-gray-700">Stap 3 — Simuleer betaald abonnement</p>
+        <p className="text-xs text-gray-500">
+          Zet het account direct op een betaald abo — trial-velden worden verwijderd. Controleer daarna of gesprekken, reflecties en doelen nog staan.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={() => handleUpgrade("uitgebreid")}
+            disabled={loading !== null}
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+          >
+            <Star size={16} />
+            {loading === "uitgebreid" ? "Bezig..." : "Upgrade naar Uitgebreid"}
+          </button>
+          <button
+            onClick={() => handleUpgrade("alles_in_1")}
+            disabled={loading !== null}
+            className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+          >
+            <Sparkles size={16} />
+            {loading === "alles_in_1" ? "Bezig..." : "Upgrade naar Alles-in-1"}
+          </button>
+        </div>
       </div>
 
       {/* Statusmelding */}

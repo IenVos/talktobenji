@@ -1,15 +1,178 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Send, CheckCircle, Upload, X } from "lucide-react";
+import { Send, CheckCircle, Upload, X, Search } from "lucide-react";
+import Link from "next/link";
+
+/** Zet [tekst](url) in antwoordtekst om naar klikbare links */
+function renderAnswer(text: string) {
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\))/g);
+  return parts.map((part, i) => {
+    const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (match) {
+      return (
+        <Link
+          key={i}
+          href={match[2]}
+          className="font-semibold underline text-gray-800 hover:text-primary-700"
+        >
+          {match[1]}
+        </Link>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  account: "Account",
+  abonnement: "Abonnement",
+  gebruik: "Gebruik",
+  technisch: "Technisch",
+  privacy: "Privacy & gegevens",
+};
+
+function SupportFaq({ onScrollToForm }: { onScrollToForm: () => void }) {
+  const faqItems = useQuery(api.supportFaq.listActive) ?? [];
+  const [query, setQuery] = useState("");
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const trimmed = query.trim();
+  const hasQuery = trimmed.length >= 2;
+
+  const matches = hasQuery
+    ? faqItems.filter(
+        (item) =>
+          item.question.toLowerCase().includes(trimmed.toLowerCase()) ||
+          item.answer.toLowerCase().includes(trimmed.toLowerCase())
+      )
+    : [];
+
+  const suggestions = matches.slice(0, 6);
+  const openItem = openId ? faqItems.find((i) => i._id === openId) : null;
+
+  const handleSuggestionClick = (id: string) => {
+    setOpenId(id);
+    setShowSuggestions(false);
+    setQuery("");
+  };
+
+  const handleClear = () => {
+    setQuery("");
+    setOpenId(null);
+    setShowSuggestions(false);
+    inputRef.current?.focus();
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-primary-200 p-5 sm:p-6 shadow-sm space-y-4">
+      <div>
+        <h2 className="text-base font-semibold text-gray-900 mb-1">Veelgestelde vragen</h2>
+        <p className="text-sm text-gray-500">Typ je vraag en we zoeken het antwoord voor je op</p>
+      </div>
+
+      {/* Zoekbalk */}
+      <div className="relative">
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setShowSuggestions(true); setOpenId(null); }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+            placeholder="Bijv. 'wachtwoord vergeten'..."
+            className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Suggesties dropdown — alleen bij 2+ tekens én echte matches */}
+        {showSuggestions && hasQuery && suggestions.length > 0 && (
+          <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden">
+            {suggestions.map((item) => (
+              <button
+                key={item._id}
+                type="button"
+                onMouseDown={() => handleSuggestionClick(item._id)}
+                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-primary-50 border-b border-gray-50 last:border-0"
+              >
+                <span className="font-medium">{item.question}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Geen resultaten — alleen bij 2+ tekens én geen matches */}
+        {showSuggestions && hasQuery && suggestions.length === 0 && (
+          <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 px-4 py-3">
+            <p className="text-sm text-gray-500">Geen vragen gevonden voor &ldquo;{trimmed}&rdquo;.</p>
+            <button
+              type="button"
+              onMouseDown={onScrollToForm}
+              className="mt-1 text-sm text-primary-600 hover:underline font-medium"
+            >
+              Stuur ons een bericht ↓
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Geselecteerd antwoord */}
+      {openItem && (
+        <div className="border border-primary-100 rounded-lg overflow-hidden">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 bg-primary-50">
+            <span className="text-sm font-medium text-gray-800">{openItem.question}</span>
+            <button
+              type="button"
+              onClick={() => setOpenId(null)}
+              className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+            >
+              <X size={15} />
+            </button>
+          </div>
+          <div className="px-4 py-3 bg-white text-sm text-gray-600 leading-relaxed whitespace-pre-line border-t border-primary-100">
+            {renderAnswer(openItem.answer)}
+          </div>
+        </div>
+      )}
+
+      <div className="pt-1 border-t border-gray-100 text-center">
+        <button
+          type="button"
+          onClick={onScrollToForm}
+          className="text-sm text-primary-600 hover:underline"
+        >
+          Vraag staat er niet bij? Stuur ons een bericht ↓
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function SupportPage() {
   const { data: session } = useSession();
   const submitFeedback = useMutation(api.feedback.submitFeedback);
   const generateUploadUrl = useMutation(api.feedback.generateUploadUrl);
+  const formRef = useRef<HTMLDivElement>(null);
+
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const [onderwerp, setOnderwerp] = useState("");
   const [bericht, setBericht] = useState("");
@@ -97,8 +260,10 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="max-w-2xl">
-      <div className="bg-white rounded-xl border border-primary-200 p-6">
+    <div className="max-w-2xl space-y-6">
+      <SupportFaq onScrollToForm={scrollToForm} />
+
+      <div ref={formRef} className="bg-white rounded-xl border border-primary-200 p-6">
         {submitted ? (
           <div className="text-center py-12">
             <CheckCircle size={48} className="text-green-500 mx-auto mb-4" />

@@ -37,10 +37,10 @@ const TOP_ITEMS = [
   { href: "/account/instellingen", label: "Personalisatie", icon: UserCircle },
 ];
 
-const SUBMENU_ITEMS = [
+const PERSONALISATIE_SUBMENU = [
   { href: "/account/support", label: "Support", icon: HelpCircle },
   { href: "/account/abonnement", label: "Abonnement", icon: CreditCard },
-  { href: "/account/wachtwoord", label: "Wachtwoord", icon: KeyRound },
+  { href: "/account/wachtwoord", label: "Inloggegevens", icon: KeyRound },
 ];
 
 const REFLECTIES_SUBMENU = [
@@ -65,7 +65,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account/herinneringen": { title: "Memories", subtitle: "Mooie herinneringen om naar terug te kijken" },
   "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
   "/account/instellingen": { title: "Personaliseer", subtitle: "Personalisatie van je account" },
-  "/account/wachtwoord": { title: "Wachtwoord wijzigen", subtitle: "Wijzig je wachtwoord" },
+  "/account/wachtwoord": { title: "Inloggegevens", subtitle: "Wijzig je e-mailadres of wachtwoord" },
 };
 
 export default function AccountLayout({
@@ -95,7 +95,8 @@ export default function AccountLayout({
   }, [preferences?.accentColor]);
 
   const [submenuOpen, setSubmenuOpen] = useState(() =>
-    SUBMENU_ITEMS.some((item) => pathname === item.href)
+    pathname === "/account/instellingen" ||
+    PERSONALISATIE_SUBMENU.some((item) => pathname === item.href)
   );
   const [reflectiesSubmenuOpen, setReflectiesSubmenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -243,8 +244,80 @@ export default function AccountLayout({
       {TOP_ITEMS.map((item) => {
         const Icon = item.icon;
         const isReflecties = item.href === "/account/reflecties";
+        const isPersonalisatie = item.href === "/account/instellingen";
         const isActive = pathname === item.href;
         const isReflectiesSection = pathname?.startsWith("/account/reflecties");
+        const isPersonalisatieSection =
+          pathname === "/account/instellingen" ||
+          PERSONALISATIE_SUBMENU.some((s) => pathname === s.href);
+
+        if (isPersonalisatie) {
+          return (
+            <li key={item.href}>
+              <div
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                  isPersonalisatieSection ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
+                }`}
+                style={isPersonalisatieSection ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+              >
+                <Link
+                  href="/account/instellingen"
+                  className="flex items-center gap-3 flex-1 min-w-0"
+                  scroll={false}
+                >
+                  <Icon size={18} className="flex-shrink-0" />
+                  {item.label}
+                </Link>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setSubmenuOpen((o) => !o);
+                  }}
+                  className="p-1 rounded hover:bg-primary-100/50 transition-colors -m-1 flex-shrink-0"
+                  aria-expanded={submenuOpen}
+                >
+                  {submenuOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                </button>
+              </div>
+              {submenuOpen && (
+                <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
+                  {PERSONALISATIE_SUBMENU.map((sub) => {
+                    const SubIcon = sub.icon;
+                    const subActive = pathname === sub.href;
+                    return (
+                      <li key={sub.href}>
+                        <Link
+                          href={sub.href}
+                          scroll={false}
+                          className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            subActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
+                          }`}
+                          style={subActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+                        >
+                          <SubIcon size={16} className="flex-shrink-0" />
+                          {sub.label}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => signOut({ callbackUrl: "/afscheid" })}
+                      className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors w-full text-gray-500 hover:text-orange-500 hover:bg-orange-50"
+                    >
+                      <LogOut size={16} className="flex-shrink-0" />
+                      Uitloggen
+                    </button>
+                  </li>
+                </ul>
+              )}
+            </li>
+          );
+        }
+
         if (isReflecties) {
           return (
             <li key={item.href}>
@@ -324,56 +397,6 @@ export default function AccountLayout({
           </li>
         );
       })}
-      <li>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setSubmenuOpen(!submenuOpen);
-          }}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors w-full ${
-            SUBMENU_ITEMS.some((i) => pathname === i.href)
-              ? "text-primary-800"
-              : "text-gray-700 hover:text-primary-700 nav-hover"
-          }`}
-          style={
-            SUBMENU_ITEMS.some((i) => pathname === i.href)
-              ? { backgroundColor: hexToLightTint(accent, 25) }
-              : {}
-          }
-        >
-          {submenuOpen ? (
-            <ChevronDown size={18} className="flex-shrink-0" />
-          ) : (
-            <ChevronRight size={18} className="flex-shrink-0" />
-          )}
-          <span>Meer</span>
-        </button>
-        {submenuOpen && (
-          <ul className="mt-0.5 ml-4 pl-3 border-l border-primary-200 space-y-0.5">
-            {SUBMENU_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    scroll={false}
-                    className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
-                    }`}
-                    style={isActive ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
-                  >
-                    <Icon size={16} className="flex-shrink-0" />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </li>
       <li>
         <Link
           href="/account/steun"

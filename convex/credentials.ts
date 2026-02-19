@@ -221,6 +221,49 @@ export const changePassword = mutation({
   },
 });
 
+/** Wijzig e-mailadres voor een ingelogde gebruiker (server-side, via secret + userId) */
+export const changeEmail = mutation({
+  args: {
+    secret: v.string(),
+    userId: v.string(),
+    newEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    checkSecret(args.secret);
+    const newEmailLower = args.newEmail.toLowerCase().trim();
+
+    // Check of nieuw e-mailadres al in gebruik is
+    const existing = await ctx.db
+      .query("credentials")
+      .withIndex("email", (q) => q.eq("email", newEmailLower))
+      .unique();
+    if (existing) throw new Error("Dit e-mailadres is al in gebruik");
+
+    // Update credentials
+    const cred = await ctx.db
+      .query("credentials")
+      .filter((q) => q.eq(q.field("userId"), args.userId as any))
+      .first();
+    if (!cred) throw new Error("Gebruiker niet gevonden");
+    await ctx.db.patch(cred._id, { email: newEmailLower });
+
+    // Update users
+    const user = await ctx.db.get(cred.userId);
+    if (user) await ctx.db.patch(cred.userId, { email: newEmailLower });
+
+    // Update userSubscriptions
+    const subs = await ctx.db
+      .query("userSubscriptions")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+    for (const sub of subs) {
+      await ctx.db.patch(sub._id, { email: newEmailLower });
+    }
+
+    return { success: true };
+  },
+});
+
 /** Haal credentials op voor wachtwoordcontrole (alleen server-side). */
 export const getCredentialsByEmail = withSecretQuery({
   args: {},
