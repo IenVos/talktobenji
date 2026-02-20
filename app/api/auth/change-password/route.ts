@@ -4,6 +4,9 @@ import { api } from "@/convex/_generated/api";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 const secret = process.env.CONVEX_AUTH_ADAPTER_SECRET!;
 
