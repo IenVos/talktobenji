@@ -60,13 +60,19 @@ export const authOptions: AuthOptions = {
     maxAge: 7 * 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.userId = user.id;
         token.email = user.email;
         token.name = user.name;
         token.issuedAt = Date.now();
         token.lastChecked = Date.now();
+      }
+
+      // Sessie-update na naam- of e-mailwijziging
+      if (trigger === "update") {
+        if (session?.name) token.name = session.name;
+        if (session?.email) token.email = session.email;
       }
 
       // Periodiek controleren of wachtwoord is gewijzigd na uitgifte van token

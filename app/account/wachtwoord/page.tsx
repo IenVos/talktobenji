@@ -50,7 +50,7 @@ function AccordionRow({
 }
 
 function NaamWijzigen() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const currentName = session?.user?.name || "";
   const [name, setName] = useState(currentName);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -75,6 +75,7 @@ function NaamWijzigen() {
         setStatus("error");
         return;
       }
+      await update({ name: name.trim() });
       setStatus("success");
       setTimeout(() => setStatus("idle"), 2500);
     } catch {
