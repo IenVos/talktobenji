@@ -684,6 +684,67 @@ export const submitGeneralFeedback = mutation({
 });
 
 /**
+ * Sla een AI-gegenereerde samenvatting op bij een sessie
+ */
+export const setSessionSummary = mutation({
+  args: { sessionId: v.id("chatSessions"), summary: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.sessionId, {
+      summary: args.summary,
+      summarizedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Haal sessies op die nog geen AI-samenvatting hebben (voor achtergrondverwerking)
+ */
+export const getSessionsToSummarize = query({
+  args: {
+    userId: v.string(),
+    excludeSessionId: v.id("chatSessions"),
+  },
+  handler: async (ctx, args) => {
+    const sessions = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(15);
+
+    return sessions
+      .filter((s) => s._id !== args.excludeSessionId && !s.summarizedAt)
+      .slice(0, 3)
+      .map((s) => ({ sessionId: s._id, startedAt: s.startedAt }));
+  },
+});
+
+/**
+ * Haal recente AI-samenvattingen op van eerdere sessies
+ */
+export const getRecentSummaries = query({
+  args: {
+    userId: v.string(),
+    excludeSessionId: v.id("chatSessions"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const sessions = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(25);
+
+    return sessions
+      .filter((s) => s._id !== args.excludeSessionId && s.summarizedAt && s.summary)
+      .slice(0, args.limit ?? 4)
+      .map((s) => ({
+        startedAt: s.startedAt,
+        summary: s.summary!,
+      }));
+  },
+});
+
+/**
  * Haal chat geschiedenis op voor export
  */
 export const exportChatHistory = query({

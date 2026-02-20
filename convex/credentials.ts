@@ -232,7 +232,12 @@ export const changeName = mutation({
     checkSecret(args.secret);
     const trimmed = args.name.trim();
     if (!trimmed) throw new Error("Naam mag niet leeg zijn");
-    await ctx.db.patch(args.userId as any, { name: trimmed });
+    const cred = await ctx.db
+      .query("credentials")
+      .filter((q) => q.eq(q.field("userId"), args.userId as any))
+      .first();
+    if (!cred) throw new Error("Gebruiker niet gevonden");
+    await ctx.db.patch(cred.userId, { name: trimmed });
     return { success: true };
   },
 });

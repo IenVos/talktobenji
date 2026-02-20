@@ -147,6 +147,26 @@ export const handleUserMessage = action({
         };
       }
 
+      // Detecteer of dit het eerste gebruikersbericht in deze sessie is
+      const isFirstMessageInSession = !(recentMessages || []).some((m: any) => m.role === "user");
+
+      // Haal sessie op voor subscription check (vóór opslaan bericht)
+      const chatSession = await ctx.runQuery(api.chat.getSession, { sessionId: args.sessionId });
+
+      // BACKEND GESPREKSLIMIET CHECK — voorkomt omzeilen van de frontend paywall
+      if (chatSession?.userId) {
+        const convCount = await ctx.runQuery(api.subscriptions.getConversationCount, {
+          userId: chatSession.userId,
+          email: chatSession.userEmail ?? undefined,
+        });
+        if (!convCount.hasUnlimited && convCount.limit !== null && convCount.count > convCount.limit) {
+          return {
+            success: false,
+            error: "Je hebt je gespreksmaandlimiet bereikt. Upgrade je abonnement voor onbeperkte gesprekken.",
+          };
+        }
+      }
+
       // STAP 1: Sla gebruikersbericht op
       const userMessageId = await ctx.runMutation(api.chat.sendUserMessage, {
         sessionId: args.sessionId,
@@ -159,6 +179,76 @@ export const handleUserMessage = action({
         isActive: true,
       });
       const allSources = await ctx.runQuery(api.sources.getActiveSources);
+
+      // Gebruikersprofiel al opgehaald (chatSession hierboven)
+      let userContext: string | null = null;
+      let userGoals: string | null = null;
+      let userMemories: string | null = null;
+      let userCheckIn: string | null = null;
+      let sessionSummaries: string | null = null;
+
+      if (chatSession?.userId) {
+        const uid = chatSession.userId;
+        const [prefs, goals, memories, checkIns, recentSummaries] = await Promise.all([
+          ctx.runQuery(api.preferences.getPreferences, { userId: uid }),
+          ctx.runQuery(api.reflecties.listGoals, { userId: uid }),
+          ctx.runQuery(api.memories.getMemories, { userId: uid }),
+          ctx.runQuery(api.reflecties.listCheckInEntries, { userId: uid, limit: 1 }),
+          ctx.runQuery(api.chat.getRecentSummaries, {
+            userId: uid,
+            excludeSessionId: args.sessionId,
+            limit: 4,
+          }),
+        ]);
+
+        // Trigger achtergrond-samenvattingen van vorige sessies (alleen bij eerste bericht)
+        if (isFirstMessageInSession) {
+          await ctx.scheduler.runAfter(0, api.ai.summarizeSession, {
+            userId: uid,
+            excludeSessionId: args.sessionId,
+          });
+        }
+
+        // Bouw samenvattingen van eerdere gesprekken
+        if (recentSummaries && recentSummaries.length > 0) {
+          sessionSummaries = recentSummaries
+            .map((s: any) => {
+              const date = new Date(s.startedAt).toLocaleDateString("nl-NL", {
+                day: "numeric", month: "long",
+              });
+              return `[${date}]: ${s.summary}`;
+            })
+            .join("\n\n");
+        }
+
+        if (prefs?.userContext?.trim()) {
+          userContext = prefs.userContext.trim();
+        }
+
+        // Actieve (niet afgeronde) doelen, max 5
+        const activeGoals = (goals || []).filter((g: any) => !g.completed).slice(0, 5);
+        if (activeGoals.length > 0) {
+          userGoals = activeGoals.map((g: any) => `• ${g.content.slice(0, 120)}`).join("\n");
+        }
+
+        // Meest recente 2 herinneringen
+        const recentMemories = (memories || []).slice(0, 2);
+        if (recentMemories.length > 0) {
+          userMemories = recentMemories.map((m: any) =>
+            `• ${m.text.slice(0, 150)}${m.emotion ? ` (${m.emotion})` : ""}`
+          ).join("\n");
+        }
+
+        // Meest recente check-in
+        const lastCheckIn = (checkIns || [])[0];
+        if (lastCheckIn) {
+          const checkInLines: string[] = [];
+          if (lastCheckIn.hoe_voel) checkInLines.push(`Hoe voel ik me: ${lastCheckIn.hoe_voel.slice(0, 100)}`);
+          if (lastCheckIn.wat_hielp) checkInLines.push(`Wat hielp: ${lastCheckIn.wat_hielp.slice(0, 100)}`);
+          if (lastCheckIn.waar_dankbaar) checkInLines.push(`Dankbaar voor: ${lastCheckIn.waar_dankbaar.slice(0, 100)}`);
+          if (checkInLines.length > 0) userCheckIn = checkInLines.join("\n");
+        }
+      }
 
       const isEnglish = /^[A-Za-z]/.test(args.userMessage.trim());
       const emptyKbMessage = isEnglish
@@ -320,6 +410,18 @@ export const handleUserMessage = action({
       const kbThreshold = isAskingForTip ? Math.max(10, baseKbThreshold - 10) : baseKbThreshold; // Lagere threshold bij tip-verzoek
       const kbMaxMatches = isAskingForTip ? (messageCount > 10 ? 3 : 5) : (messageCount > 10 ? 2 : 3); // Meer matches bij tip-verzoek
       
+      // Persoonlijke context van deze gebruiker — altijd als eerste
+      // Gebruik dit om persoonlijker te reageren; verwijs er niet expliciet naar tenzij relevant.
+      const userBgParts: string[] = [];
+      if (userContext) userBgParts.push("Jouw verhaal:\n" + userContext.slice(0, 800));
+      if (userGoals) userBgParts.push("Persoonlijke doelen:\n" + userGoals);
+      if (userMemories) userBgParts.push("Herinneringen:\n" + userMemories);
+      if (userCheckIn) userBgParts.push("Laatste check-in:\n" + userCheckIn);
+      if (sessionSummaries) userBgParts.push("Eerdere gesprekken (samengevat — stel geen vragen die hier al gesteld zijn):\n" + sessionSummaries.slice(0, 2000));
+      if (userBgParts.length > 0) {
+        parts.push("## Persoonlijke context van deze gebruiker\n" + userBgParts.join("\n\n"));
+      }
+
       // Altijd: algemene kennis (dynamische limiet)
       if (knowledgeFromSettings) {
         const limitedSettings = knowledgeFromSettings.slice(0, settingsLimit);
@@ -551,7 +653,27 @@ REGELS:
 - Reageer EERST normaal empathisch op wat ze delen, en voeg dan pas de markering toe.
 - Als je niet zeker weet of het een positieve herinnering is, doe het dan NIET.`;
 
-      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule].filter(Boolean).join("\n\n");
+      const personalContextRule = isEnglish
+        ? ""
+        : `PERSOONLIJKE CONTEXT GEBRUIKEN: Je hebt toegang tot informatie over de gebruiker (hun verhaal, doelen, herinneringen, check-ins en samenvattingen van eerdere gesprekken). Gebruik dit verstandig.
+
+WANNEER JE DE CONTEXT WEL GEBRUIKT:
+- Om herhaling te vermijden: stel geen vragen die je al eerder hebt gesteld (check de samenvattingen van eerdere gesprekken)
+- Als de gebruiker zelf terugverwijst naar een eerder gesprek ("vorige keer zei ik...", "weet je nog..."), bevestig dan warm dat je het (her)kent
+- Als een onderwerp uit eerdere gesprekken vanzelf terugkomt, mag je er subtiel op inhaken ("Je noemde eerder...", "Dat herken ik van vorige keer...")
+- Als een actief doel of herinnering direct relevant is voor wat de gebruiker nu deelt, mag je er voorzichtig naar verwijzen
+
+WANNEER JE DE CONTEXT NIET GEBRUIKT:
+- Begin een gesprek NOOIT met het opsommen of benoemen van wat je weet ("Ik zie dat je...", "Uit je profiel blijkt...", "Je hebt verteld dat...")
+- Val NIET proactief aan met persoonlijke details als de gebruiker er niet zelf om vraagt
+- Gebruik de informatie als achtergrond, niet als script
+- Laat de gebruiker het gesprek leiden; jij volgt
+
+BELANGRIJK: Laat merken dat je de persoon kent door hóé je reageert, niet door wat je opsomt.
+FOUT: "Ik weet dat je je moeder hebt verloren. Hoe gaat het daarmee?"
+GOED: Reageer warm en passend op wat de gebruiker deelt, waarbij je eerdere context gebruikt om beter aan te sluiten — zonder het letterlijk te benoemen.`;
+
+      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
@@ -743,6 +865,103 @@ REGELS:
         success: false,
         error: error.message,
       };
+    }
+  },
+});
+
+// ============================================================================
+// SAMENVATTEN VAN GESPREKKEN
+// ============================================================================
+
+/**
+ * Samenvatten van eerdere sessies in de achtergrond.
+ * Wordt aangeroepen bij het eerste bericht van een nieuw gesprek.
+ * Zoekt sessies die nog geen AI-samenvatting hebben en vat ze samen.
+ */
+export const summarizeSession = action({
+  args: {
+    userId: v.string(),
+    excludeSessionId: v.id("chatSessions"),
+  },
+  handler: async (ctx, args) => {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey || apiKey === "your-api-key-here") return;
+
+    // Zoek sessies die nog geen AI-samenvatting hebben
+    const toSummarize = await ctx.runQuery(api.chat.getSessionsToSummarize, {
+      userId: args.userId,
+      excludeSessionId: args.excludeSessionId,
+    });
+
+    for (const { sessionId } of toSummarize) {
+      try {
+        // Haal berichten op
+        const messages = await ctx.runQuery(api.chat.getMessages, {
+          sessionId,
+          limit: 40,
+        });
+
+        // Sla over als te weinig inhoud
+        const userMessages = (messages || []).filter((m: any) => m.role === "user");
+        if (userMessages.length < 2) {
+          // Markeer als "gesummariseerd" zodat we het niet opnieuw proberen
+          await ctx.runMutation(api.chat.setSessionSummary, {
+            sessionId,
+            summary: "",
+          });
+          continue;
+        }
+
+        // Bouw transcript (max 300 chars per bericht)
+        const transcript = (messages || [])
+          .filter((m: any) => m.content?.trim())
+          .map((m: any) =>
+            `${m.role === "user" ? "Gebruiker" : "Benji"}: ${m.content.slice(0, 300)}`
+          )
+          .join("\n");
+
+        // Roep Claude aan voor samenvatting
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "anthropic-version": "2023-06-01",
+          },
+          body: JSON.stringify({
+            model: CLAUDE_MODEL,
+            max_tokens: 400,
+            system: `Je maakt beknopte samenvattingen van gesprekken tussen een gebruiker en Benji (een empathische chatbot voor rouwverwerking). Schrijf in derde persoon ("de gebruiker"), in het Nederlands, max 120 woorden.
+
+Vat samen:
+1. Wat de gebruiker heeft gedeeld (situatie, emoties, verlies)
+2. Welke onderwerpen zijn besproken
+3. Welke vragen Benji heeft gesteld (zodat deze niet herhaald worden)
+
+Schrijf beknopt en feitelijk. Geen inleiding of afsluiting.`,
+            messages: [
+              {
+                role: "user",
+                content: `Maak een samenvatting van dit gesprek:\n\n${transcript.slice(0, 6000)}`,
+              },
+            ],
+          }),
+        });
+
+        if (!response.ok) {
+          console.error(`Summarize API error: ${response.status}`);
+          continue;
+        }
+
+        const data = (await response.json()) as ClaudeAPIResponse;
+        const summary = data.content?.[0]?.text?.trim() ?? "";
+
+        if (summary) {
+          await ctx.runMutation(api.chat.setSessionSummary, { sessionId, summary });
+        }
+      } catch (e) {
+        console.error("Summarize session error:", e);
+      }
     }
   },
 });

@@ -4,10 +4,8 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Palette, ImageIcon, Trash2, Save, RotateCcw, Smartphone, X, Bell, FileText, AlertTriangle } from "lucide-react";
-import { isPushSupported, subscribeToPush, unsubscribeFromPush, getPermissionStatus } from "@/lib/pushNotifications";
+import { Palette, Trash2, Save, RotateCcw, FileText } from "lucide-react";
 import { Paywall } from "@/components/Paywall";
-import { signOut } from "next-auth/react";
 
 // Originele Benji-kleur (primary-600 uit tailwind)
 const ORIGINAL_COLOR = "#6d84a8";
@@ -56,58 +54,6 @@ export default function AccountInstellingenPage() {
   const [saved, setSaved] = useState(false);
   const [savingContext, setSavingContext] = useState(false);
   const [contextSaved, setContextSaved] = useState(false);
-  const [showInstallPopup, setShowInstallPopup] = useState(false);
-
-  // Push notificaties
-  const pushSupported = typeof window !== "undefined" && isPushSupported();
-  const isSubscribed = useQuery(
-    api.pushSubscriptions.isSubscribed,
-    userId ? { userId } : "skip"
-  );
-  const subscribeMutation = useMutation(api.pushSubscriptions.subscribe);
-  const unsubscribeMutation = useMutation(api.pushSubscriptions.unsubscribe);
-  const [pushLoading, setPushLoading] = useState(false);
-  const [pushError, setPushError] = useState<string | null>(null);
-
-  const deleteAccountMutation = useMutation(api.deleteAccount.deleteAccount);
-  const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "deleting">("idle");
-
-  const handleTogglePush = async () => {
-    if (!userId) return;
-    setPushLoading(true);
-    setPushError(null);
-    try {
-      if (isSubscribed) {
-        // Uitschakelen
-        await unsubscribeFromPush();
-        await unsubscribeMutation({ userId });
-      } else {
-        // Inschakelen
-        const subscription = await subscribeToPush();
-        if (!subscription) {
-          const perm = getPermissionStatus();
-          if (perm === "denied") {
-            setPushError("Je hebt notificaties geblokkeerd in je browser. Ga naar je browserinstellingen om dit te wijzigen.");
-          } else {
-            setPushError("Notificaties konden niet worden ingeschakeld. Probeer het opnieuw.");
-          }
-          return;
-        }
-        const json = subscription.toJSON();
-        await subscribeMutation({
-          userId,
-          endpoint: json.endpoint!,
-          p256dh: json.keys!.p256dh,
-          auth: json.keys!.auth,
-        });
-      }
-    } catch (err) {
-      console.error(err);
-      setPushError("Er ging iets mis. Probeer het opnieuw.");
-    } finally {
-      setPushLoading(false);
-    }
-  };
 
   useEffect(() => {
     setAccentColor(preferences?.accentColor ?? "");
@@ -188,13 +134,6 @@ export default function AccountInstellingenPage() {
       </div>
       <div className="bg-white rounded-xl border border-primary-200 p-6">
         <div className="flex items-center gap-3 mb-4">
-          <Bell size={24} className="text-primary-500" />
-          <h2 className="text-lg font-semibold text-primary-900">Hartverwarmers</h2>
-        </div>
-        <div className="h-8 bg-gray-100 rounded-lg" />
-      </div>
-      <div className="bg-white rounded-xl border border-primary-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
           <Palette size={24} className="text-primary-500" />
           <h2 className="text-lg font-semibold text-primary-900">Uiterlijk</h2>
         </div>
@@ -252,49 +191,6 @@ export default function AccountInstellingenPage() {
               {savingContext ? "Bezig…" : contextSaved ? "Opgeslagen!" : "Opslaan"}
             </button>
           </div>
-        </div>
-
-        {/* Hartverwarmers */}
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Bell size={24} className="text-primary-500" />
-            <h2 className="text-lg font-semibold text-primary-900">Hartverwarmers</h2>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">
-            Hartverwarmers zijn kleine berichtjes die je helpen je dag goed te beginnen of je herinneren aan doelen die je hebt gesteld. Ze zorgen ervoor dat je belangrijke dingen niet vergeet en houden je gefocust. Hartverwarmers worden spaarzaam verstuurd om je liefde en kracht te geven.
-          </p>
-          {!pushSupported ? (
-            <p className="text-sm text-gray-500 italic">
-              Hartverwarmers worden niet ondersteund in deze browser. Installeer de app op je telefoon om hartverwarmers te ontvangen.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700">
-                  {isSubscribed ? "Hartverwarmers staan aan" : "Hartverwarmers staan uit"}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleTogglePush}
-                  disabled={pushLoading || isSubscribed === undefined}
-                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
-                    isSubscribed ? "bg-primary-600" : "bg-gray-300"
-                  }`}
-                  role="switch"
-                  aria-checked={!!isSubscribed}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      isSubscribed ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-              {pushError && (
-                <p className="text-sm text-red-600">{pushError}</p>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Uiterlijk - Kleur + Achtergrond samengevoegd */}
@@ -375,7 +271,7 @@ export default function AccountInstellingenPage() {
                 </button>
               </div>
             )}
-            <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary-100 text-primary-800 rounded-lg cursor-pointer hover:bg-primary-200 transition-colors disabled:opacity-50">
+            <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg cursor-pointer hover:bg-primary-700 transition-colors disabled:opacity-50">
               <input
                 type="file"
                 accept="image/*"
@@ -387,211 +283,6 @@ export default function AccountInstellingenPage() {
             </label>
           </div>
         </div>
-
-        {/* Installeer als app */}
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Smartphone size={24} className="text-primary-500" />
-            <h2 className="text-lg font-semibold text-primary-900">
-              TalkToBenji op je telefoon
-            </h2>
-          </div>
-          <div className="flex flex-col items-center gap-5">
-            <div className="flex flex-col sm:flex-row gap-5 items-center">
-              <p className="text-sm text-gray-600">
-                Wist je dat je TalkToBenji als app op je telefoon kunt zetten? Het werkt net als een
-                gewone app, zonder dat je iets hoeft te downloaden uit de App Store of Play Store.
-                Zo heb je Benji altijd binnen handbereik — één tik en je bent er.
-              </p>
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/benji-app-homescreen.png"
-              alt="Benji app op je beginscherm"
-              className="w-full max-w-sm rounded-xl"
-            />
-            <button
-              type="button"
-              onClick={() => setShowInstallPopup(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
-            >
-              <Smartphone size={18} />
-              Hoe installeer ik de app?
-            </button>
-          </div>
-        </div>
-
-        {/* Installatie popup */}
-        {showInstallPopup && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setShowInstallPopup(false)}>
-            <div
-              className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[85vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between p-5 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-primary-900">Installeer TalkToBenji</h3>
-                <button
-                  type="button"
-                  onClick={() => setShowInstallPopup(false)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                  aria-label="Sluiten"
-                >
-                  <X size={20} className="text-gray-500" />
-                </button>
-              </div>
-
-              <div className="p-5 space-y-6">
-                {/* iPhone instructies */}
-                <div>
-                  <h4 className="font-semibold text-primary-900 mb-3 flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold">🍎</span>
-                    iPhone (Safari)
-                  </h4>
-                  <ol className="space-y-2 text-sm text-gray-700">
-                    <li className="flex gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-                      <span>Open <strong>talktobenji.nl</strong> in <strong>Safari</strong></span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-                      <span>Tik op het <strong>deel-icoon</strong> (vierkantje met pijl omhoog) onderaan het scherm</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-                      <span>Scroll naar beneden en tik op <strong>&quot;Zet op beginscherm&quot;</strong></span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
-                      <span>Tik op <strong>&quot;Voeg toe&quot;</strong> — klaar!</span>
-                    </li>
-                  </ol>
-                </div>
-
-                <hr className="border-gray-100" />
-
-                {/* Android instructies */}
-                <div>
-                  <h4 className="font-semibold text-primary-900 mb-3 flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-sm font-bold">🤖</span>
-                    Android (Chrome)
-                  </h4>
-                  <ol className="space-y-2 text-sm text-gray-700">
-                    <li className="flex gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-                      <span>Open <strong>talktobenji.nl</strong> in <strong>Chrome</strong></span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-                      <span>Tik op de <strong>drie puntjes</strong> (⋮) rechtsboven</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-                      <span>Tik op <strong>&quot;Toevoegen aan startscherm&quot;</strong></span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
-                      <span>Bevestig door op <strong>&quot;Toevoegen&quot;</strong> te tikken — klaar!</span>
-                    </li>
-                  </ol>
-                </div>
-              </div>
-
-              <div className="p-5 border-t border-gray-100">
-                <button
-                  type="button"
-                  onClick={() => setShowInstallPopup(false)}
-                  className="w-full px-4 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
-                >
-                  Begrepen!
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-      {/* Account verwijderen */}
-      <div className="bg-white rounded-2xl border border-red-100 p-5 sm:p-6 shadow-sm space-y-4">
-        <div className="flex items-start gap-3">
-          <div className="w-9 h-9 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0 border border-red-100">
-            <Trash2 className="w-4 h-4 text-red-500" />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">Account verwijderen</h2>
-            <p className="text-sm text-gray-500 mt-0.5 leading-relaxed">
-              Al je gegevens worden permanent gewist — gesprekken, notities, doelen, herinneringen en check-ins. Dit kan niet ongedaan worden gemaakt.
-            </p>
-          </div>
-        </div>
-
-        {deleteStep === "idle" && (
-          <button
-            type="button"
-            onClick={() => setDeleteStep("confirm")}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 border border-gray-200 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-colors"
-          >
-            Verwijder mijn account
-          </button>
-        )}
-
-        {deleteStep === "confirm" && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
-            <div className="flex items-start gap-2">
-              <AlertTriangle size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
-              <div className="space-y-2 text-sm text-gray-700">
-                <p className="font-semibold text-gray-900">Weet je het zeker?</p>
-                <p>Na bevestiging worden de volgende gegevens <strong>definitief gewist</strong>:</p>
-                <ul className="list-disc list-inside space-y-0.5 text-gray-600">
-                  <li>Alle gesprekken met Benji</li>
-                  <li>Reflecties en notities</li>
-                  <li>Persoonlijke doelen</li>
-                  <li>Dagelijkse check-ins</li>
-                  <li>Memories en herinneringen</li>
-                  <li>Jouw verhaal en personalisatie</li>
-                  <li>Je account en inloggegevens</li>
-                </ul>
-                <p className="text-xs text-gray-500 pt-1">
-                  We bewaren geen enkel gegeven na verwijdering. Je e-mailadres wordt volledig verwijderd uit onze systemen.
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!session?.userId || !session?.user?.email) return;
-                  setDeleteStep("deleting");
-                  try {
-                    await deleteAccountMutation({
-                      userId: session.userId as string,
-                      email: session.user.email,
-                    });
-                    await signOut({ callbackUrl: "/?accountVerwijderd=1" });
-                  } catch {
-                    setDeleteStep("confirm");
-                  }
-                }}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors"
-              >
-                Ja, verwijder alles definitief
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleteStep("idle")}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-              >
-                Annuleren
-              </button>
-            </div>
-          </div>
-        )}
-
-        {deleteStep === "deleting" && (
-          <p className="text-sm text-gray-500 flex items-center gap-2">
-            <span className="inline-block w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-            Bezig met verwijderen...
-          </p>
-        )}
-      </div>
 
     </div>
   );

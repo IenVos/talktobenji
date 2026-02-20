@@ -8,6 +8,7 @@ import { LayoutMenu } from "@/components/chat/LayoutMenu";
 import { CookieConsentBanner } from "@/components/chat/CookieConsentBanner";
 import { ConnectionBanner } from "@/components/chat/ConnectionBanner";
 import { SessionProvider } from "@/lib/SessionProvider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const metadata: Metadata = {
   title: {
@@ -59,20 +60,22 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <body>
-        <ConvexClientProvider>
-          <SessionProvider>
-            <Suspense fallback={<div className="min-h-screen" aria-hidden="true" />}>
-              <AboutModalProvider>
-                <ProfessionalHelpProvider>
-                  <LayoutMenu />
-                  {children}
-                  <CookieConsentBanner />
-                  <ConnectionBanner />
-                </ProfessionalHelpProvider>
-              </AboutModalProvider>
-            </Suspense>
-          </SessionProvider>
-        </ConvexClientProvider>
+        <ErrorBoundary>
+          <ConvexClientProvider>
+            <SessionProvider>
+              <Suspense fallback={<div className="min-h-screen" aria-hidden="true" />}>
+                <AboutModalProvider>
+                  <ProfessionalHelpProvider>
+                    <LayoutMenu />
+                    {children}
+                    <CookieConsentBanner />
+                    <ConnectionBanner />
+                  </ProfessionalHelpProvider>
+                </AboutModalProvider>
+              </Suspense>
+            </SessionProvider>
+          </ConvexClientProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

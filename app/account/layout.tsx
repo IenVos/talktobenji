@@ -38,8 +38,8 @@ const TOP_ITEMS = [
 ];
 
 const PERSONALISATIE_SUBMENU = [
-  { href: "/account/support", label: "Support", icon: HelpCircle },
   { href: "/account/wachtwoord", label: "Account", icon: KeyRound },
+  { href: "/account/support", label: "Support", icon: HelpCircle },
 ];
 
 const REFLECTIES_SUBMENU = [
