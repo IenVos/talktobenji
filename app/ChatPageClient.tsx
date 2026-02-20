@@ -502,12 +502,13 @@ export default function ChatPageClient({
 
   return (
     <div
-      className="h-[100dvh] bg-white flex flex-col chat-theme"
+      className="h-[100dvh] flex flex-col chat-theme bg-cover bg-center bg-no-repeat"
       style={
         {
           "--chat-accent": accent,
           "--chat-accent-hover": accentHover,
           "--chat-accent-dark": accentDark,
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${preferencesData?.backgroundImageUrl || "/images/achtergrond.png"})`,
         } as React.CSSProperties
       }
     >
@@ -518,17 +519,8 @@ export default function ChatPageClient({
         email={session?.user?.email || undefined}
       >
         <main ref={mainRef} className="flex-1 overflow-y-auto relative min-h-0">
-        {/* Eén achtergrondlaag: custom of standaard, pointer-events: none, z-0 */}
-        <div
-          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${preferencesData?.backgroundImageUrl || "/images/achtergrond.png"})`,
-            pointerEvents: "none",
-          }}
-          aria-hidden
-        />
-        {/* Chat-inhoud - relative in flow, z-50 bovenop. Geen pointer-events/touchAction override - defaults werken. */}
-        <div className="relative z-50 max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full touch-manipulation">
+        {/* Chat-inhoud */}
+        <div className="relative max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full touch-manipulation">
           {!sessionId && !isAddingOpener && (
             <>
               <WelcomeScreen
