@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ThumbsUp, Check } from "lucide-react";
+import { ThumbsUp, Check, ChevronDown } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { getIcon } from "@/lib/iconRegistry";
 
@@ -15,23 +15,26 @@ interface ComingSoonCardProps {
 export function ComingSoonCard({ id, iconName, title, description }: ComingSoonCardProps) {
   const [voted, setVoted] = useState(false);
   const [justVoted, setJustVoted] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const { data: session } = useSession();
   const Icon = getIcon(iconName);
 
+  const storageKey = `benji_feature_votes_${session?.userId || "anon"}`;
+
   useEffect(() => {
     try {
-      const votes = JSON.parse(localStorage.getItem("benji_feature_votes") || "{}");
+      const votes = JSON.parse(localStorage.getItem(storageKey) || "{}");
       setVoted(!!votes[id]);
     } catch {
       // ignore
     }
-  }, [id]);
+  }, [id, storageKey]);
 
   const handleVote = async () => {
     try {
-      const votes = JSON.parse(localStorage.getItem("benji_feature_votes") || "{}");
+      const votes = JSON.parse(localStorage.getItem(storageKey) || "{}");
       votes[id] = true;
-      localStorage.setItem("benji_feature_votes", JSON.stringify(votes));
+      localStorage.setItem(storageKey, JSON.stringify(votes));
     } catch {
       // ignore
     }
@@ -46,21 +49,36 @@ export function ComingSoonCard({ id, iconName, title, description }: ComingSoonC
     }).catch(() => {});
   };
 
-  // Compacte weergave na stemmen
+  // Compacte weergave na stemmen (uitklapbaar)
   if (voted) {
     return (
-      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary-50 border border-primary-300 transition-all duration-300">
-        <div className="p-1.5 rounded-lg bg-primary-100 text-primary-600 flex-shrink-0">
-          <Icon size={16} strokeWidth={2} />
-        </div>
-        <span className="text-sm font-medium text-gray-700 flex-1 min-w-0 truncate">{title}</span>
-        <span className="text-xs px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 border border-primary-200 font-medium whitespace-nowrap flex-shrink-0">
-          Binnenkort
-        </span>
-        <span className="inline-flex items-center gap-1 text-xs text-green-700 font-medium flex-shrink-0">
-          <Check size={13} />
-          {justVoted ? "Bedankt!" : "Gestemd"}
-        </span>
+      <div className="rounded-xl bg-primary-50 border border-primary-300 overflow-hidden transition-all duration-300">
+        <button
+          type="button"
+          onClick={() => setExpanded((o) => !o)}
+          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-primary-100/50 transition-colors"
+        >
+          <div className="p-1.5 rounded-lg bg-primary-100 text-primary-600 flex-shrink-0">
+            <Icon size={16} strokeWidth={2} />
+          </div>
+          <span className="text-sm font-medium text-gray-700 flex-1 min-w-0 truncate">{title}</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-primary-100 text-primary-700 border border-primary-200 font-medium whitespace-nowrap flex-shrink-0">
+            Binnenkort
+          </span>
+          <span className="inline-flex items-center gap-1 text-xs text-green-700 font-medium flex-shrink-0">
+            <Check size={13} />
+            {justVoted ? "Bedankt!" : "Gestemd"}
+          </span>
+          <ChevronDown
+            size={15}
+            className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+          />
+        </button>
+        {expanded && (
+          <div className="px-4 pb-4 pt-1 border-t border-primary-200">
+            <p className="text-sm text-gray-600">{description}</p>
+          </div>
+        )}
       </div>
     );
   }

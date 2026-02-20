@@ -10,6 +10,7 @@ export default defineSchema({
     userId: v.id("users"),
     email: v.string(),
     hashedPassword: v.string(),
+    passwordChangedAt: v.optional(v.number()),
   }).index("email", ["email"]),
 
   // Bot instellingen (knowledge + rules)
@@ -377,6 +378,14 @@ export default defineSchema({
     token: v.string(),
     expiresAt: v.number(),
   }).index("by_token", ["token"]),
+
+  // E-mail verificatie OTP tokens
+  emailVerificationTokens: defineTable({
+    userId: v.id("users"),
+    email: v.string(),
+    hashedOtp: v.string(),
+    expiresAt: v.number(),
+  }).index("by_email", ["email"]),
 
   // Push notificatie subscriptions
   pushSubscriptions: defineTable({

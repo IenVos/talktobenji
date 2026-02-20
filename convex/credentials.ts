@@ -193,7 +193,7 @@ export const resetPassword = mutation({
       throw new Error("Gebruiker niet gevonden");
     }
 
-    await ctx.db.patch(cred._id, { hashedPassword: args.hashedPassword });
+    await ctx.db.patch(cred._id, { hashedPassword: args.hashedPassword, passwordChangedAt: Date.now() });
 
     // Verwijder token
     await ctx.db.delete(resetToken._id);
@@ -216,7 +216,23 @@ export const changePassword = mutation({
       .filter((q) => q.eq(q.field("userId"), args.userId as any))
       .first();
     if (!cred) throw new Error("Gebruiker niet gevonden");
-    await ctx.db.patch(cred._id, { hashedPassword: args.hashedPassword });
+    await ctx.db.patch(cred._id, { hashedPassword: args.hashedPassword, passwordChangedAt: Date.now() });
+    return { success: true };
+  },
+});
+
+/** Wijzig naam voor een ingelogde gebruiker (server-side, via secret + userId) */
+export const changeName = mutation({
+  args: {
+    secret: v.string(),
+    userId: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    checkSecret(args.secret);
+    const trimmed = args.name.trim();
+    if (!trimmed) throw new Error("Naam mag niet leeg zijn");
+    await ctx.db.patch(args.userId as any, { name: trimmed });
     return { success: true };
   },
 });
@@ -280,6 +296,90 @@ export const getCredentialsByEmail = withSecretQuery({
       hashedPassword: cred.hashedPassword,
       email: user.email,
       name: user.name,
+      emailVerified: user.emailVerified ?? null,
     };
+  },
+});
+
+/** Haal passwordChangedAt op voor sessievalidatie. */
+export const getPasswordChangedAt = query({
+  args: { secret: v.string(), email: v.string() },
+  handler: async (ctx, args) => {
+    checkSecret(args.secret);
+    const cred = await ctx.db
+      .query("credentials")
+      .withIndex("email", (q) => q.eq("email", args.email.toLowerCase().trim()))
+      .unique();
+    return cred?.passwordChangedAt ?? null;
+  },
+});
+
+// ============================================================================
+// E-MAIL VERIFICATIE
+// ============================================================================
+
+/** Sla een OTP-token op voor e-mailverificatie (vervangt eventueel bestaande). */
+export const createEmailVerificationToken = mutation({
+  args: {
+    secret: v.string(),
+    userId: v.id("users"),
+    email: v.string(),
+    hashedOtp: v.string(),
+    expiresAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    checkSecret(args.secret);
+    const emailLower = args.email.toLowerCase().trim();
+
+    // Verwijder bestaande tokens voor dit e-mailadres
+    const existing = await ctx.db
+      .query("emailVerificationTokens")
+      .withIndex("by_email", (q) => q.eq("email", emailLower))
+      .collect();
+    for (const t of existing) await ctx.db.delete(t._id);
+
+    await ctx.db.insert("emailVerificationTokens", {
+      userId: args.userId,
+      email: emailLower,
+      hashedOtp: args.hashedOtp,
+      expiresAt: args.expiresAt,
+    });
+
+    return { success: true };
+  },
+});
+
+/** Controleer OTP en markeer gebruiker als geverifieerd. */
+export const verifyEmailOtp = mutation({
+  args: {
+    secret: v.string(),
+    email: v.string(),
+    hashedOtp: v.string(),
+  },
+  handler: async (ctx, args) => {
+    checkSecret(args.secret);
+    const emailLower = args.email.toLowerCase().trim();
+
+    const token = await ctx.db
+      .query("emailVerificationTokens")
+      .withIndex("by_email", (q) => q.eq("email", emailLower))
+      .first();
+
+    if (!token) throw new Error("Code niet gevonden of verlopen");
+    if (token.expiresAt < Date.now()) {
+      await ctx.db.delete(token._id);
+      throw new Error("Code is verlopen");
+    }
+    if (token.hashedOtp !== args.hashedOtp) {
+      throw new Error("Code is onjuist");
+    }
+
+    // Markeer gebruiker als geverifieerd
+    await ctx.db.patch(token.userId, { emailVerified: Date.now() });
+
+    // Verwijder token
+    await ctx.db.delete(token._id);
+
+    return { success: true };
   },
 });

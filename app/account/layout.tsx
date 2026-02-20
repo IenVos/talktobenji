@@ -39,8 +39,7 @@ const TOP_ITEMS = [
 
 const PERSONALISATIE_SUBMENU = [
   { href: "/account/support", label: "Support", icon: HelpCircle },
-  { href: "/account/abonnement", label: "Abonnement", icon: CreditCard },
-  { href: "/account/wachtwoord", label: "Inloggegevens", icon: KeyRound },
+  { href: "/account/wachtwoord", label: "Account", icon: KeyRound },
 ];
 
 const REFLECTIES_SUBMENU = [
@@ -65,7 +64,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account/herinneringen": { title: "Memories", subtitle: "Mooie herinneringen om naar terug te kijken" },
   "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
   "/account/instellingen": { title: "Personaliseer", subtitle: "Personalisatie van je account" },
-  "/account/wachtwoord": { title: "Inloggegevens", subtitle: "Wijzig je e-mailadres of wachtwoord" },
+  "/account/wachtwoord": { title: "Account", subtitle: "Wijzig je naam, e-mailadres of wachtwoord" },
 };
 
 export default function AccountLayout({
@@ -119,6 +118,13 @@ export default function AccountLayout({
       window.location.replace("https://" + window.location.host + window.location.pathname + window.location.search);
     }
   }, []);
+
+  // Automatisch uitloggen als wachtwoord is gewijzigd op een ander apparaat
+  useEffect(() => {
+    if ((session as any)?.forceLogout) {
+      signOut({ callbackUrl: "/inloggen?sessieVerlopen=1" });
+    }
+  }, [session]);
 
   // Sessie opnieuw ophalen als status "unauthenticated" is na login-redirect
   useEffect(() => {
@@ -290,7 +296,6 @@ export default function AccountLayout({
                       <li key={sub.href}>
                         <Link
                           href={sub.href}
-                          scroll={false}
                           className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                             subActive ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
                           }`}
@@ -302,16 +307,6 @@ export default function AccountLayout({
                       </li>
                     );
                   })}
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => signOut({ callbackUrl: "/afscheid" })}
-                      className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-medium transition-colors w-full text-gray-500 hover:text-orange-500 hover:bg-orange-50"
-                    >
-                      <LogOut size={16} className="flex-shrink-0" />
-                      Uitloggen
-                    </button>
-                  </li>
                 </ul>
               )}
             </li>
@@ -433,6 +428,16 @@ export default function AccountLayout({
         {/* Header */}
         <div className="mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-3">
+            {pathname !== "/account" && (
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="p-1 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-white/60 transition-colors flex-shrink-0"
+                aria-label="Terug"
+              >
+                <ChevronLeft size={20} strokeWidth={2.5} />
+              </button>
+            )}
             <div className="flex-1" />
             {/* Hartverwarmer bell */}
             <div>
@@ -560,24 +565,12 @@ export default function AccountLayout({
           </div>
           {/* Titel + subtitel – altijd onder de header-rij */}
           <div className="mt-2">
-            <div className="flex items-center gap-2">
-              {pathname !== "/account" && (
-                <button
-                  type="button"
-                  onClick={() => router.back()}
-                  className="p-1 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-white/60 transition-colors flex-shrink-0"
-                  aria-label="Terug"
-                >
-                  <ChevronLeft size={20} strokeWidth={2.5} />
-                </button>
-              )}
-              <h1 className="text-base sm:text-xl font-bold text-primary-900">
-                {pathname === "/account" && session.user?.name
-                  ? <span>Fijn dat je er bent, {session.user.name.split(" ")[0]}. {pageInfo.title}</span>
-                  : pageInfo.title
-                }
-              </h1>
-            </div>
+            <h1 className="text-base sm:text-xl font-bold text-primary-900">
+              {pathname === "/account" && session.user?.name
+                ? <span>Fijn dat je er bent, {session.user.name.split(" ")[0]}. {pageInfo.title}</span>
+                : pageInfo.title
+              }
+            </h1>
             {pageInfo.subtitle && <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>}
           </div>
         </div>

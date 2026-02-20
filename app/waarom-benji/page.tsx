@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "Het verhaal achter Talk To Benji - waarom Ien deze plek creëerde voor mensen die met verlies en verdriet omgaan",
 };
 
-export default function WaarομBenjiPage() {
+export default function WaaromBenjiPage() {
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -27,31 +27,122 @@ export default function WaarομBenjiPage() {
 
         <div className="space-y-4">
           <p>
-            Verlies is iets wat iedereen meemaakt. De een verliest een dierbare, de ander een kinderwens die nooit is ingevuld mogen worden, en daarmee een hele toekomst die stilletjes verdampt. Geen babykamer, geen eerste schooldag, geen kleinkinderen. Verdriet dat blijft, ook als de wereld om je heen alweer doorleeft.
+            Verlies is iets wat iedereen meemaakt.
           </p>
 
           <p>
-            Weer een ander verliest de gezondheid die er opeens niet meer is, of een bedrijf waar alles in zat. Verdriet heeft geen vaste vorm. Het past niet altijd in een categorie, en het volgt zeker geen planning.
+            Iemand die ziek is en midden in zware behandelingen zit. Van uitslag naar uitslag, van controle naar controle. Het leven dat op pauze lijkt te staan, terwijl de zorgen zich opstapelen en de onzekerheid constant aan je trekt.
           </p>
 
           <p>
-            Ik weet dat uit eigen ervaring. Ik zag het van dichtbij toen mijn schoonzus ziek werd en overleed. Het verdriet van haar man, haar kinderen, haar broers en zussen, iedereen op zijn eigen manier. En ik begreep toen nog beter: dit overkomt iedereen, vroeg of laat. De een wat vroeger dan de ander.
+            Een scheiding die een relatie doet eindigen. Niet alleen het verlies van een partner, maar ook van een gedeelde toekomst, van plannen, van een thuis zoals je het kende. Verdriet dat vaak onzichtbaar blijft, maar wel diep kan snijden.
           </p>
 
           <p>
-            Vanuit die ervaring begon ik vier jaar geleden Beterschap-cadeau.nl, een plek voor mensen die iemand willen steunen die iets moeilijks meemaakt. Dat werd meer gebruikt dan ik had verwacht. Er volgde een troostwoordenboekje, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen. En langzaamaan groeide de vraag: hoe kan ik mensen nog beter bijstaan, juist in die eerste, moeilijkste laag?
+            De één verliest een dierbare, iemand die er altijd was en er nu opeens niet meer is.
           </p>
 
           <p>
-            Want dat is precies waar het vaak mis gaat. Niet omdat er geen mensen zijn die om je geven. Maar iedereen heeft het druk. Je wil niemand belasten. Je voelt je misschien al te veel. En soms is het gewoon fijner om eerst je gedachten te ordenen voordat je ze deelt met iemand die je kent.
+            De ander verliest een kinderwens die nooit vervuld mocht worden, en daarmee een hele toekomst die stilletjes verdampt. Geen babykamer, geen eerste schooldag, geen kleinkinderen. Verdriet dat blijft, ook als de wereld om je heen alweer doorleeft.
           </p>
 
           <p>
-            Benji is voor die momenten. Door te schrijven of hardop te praten worden dingen vaak een stukje duidelijker. Niet opgelost, maar draaglijker.
+            Weer een ander verliest de gezondheid die er opeens niet meer is, of een bedrijf waar alles in zat, jarenlang werk, dromen en identiteit.
           </p>
 
           <p>
-            Verdriet verdient ruimte. Benji geeft die ruimte, altijd. Ik hoop dat het voor jou kan zijn wat ik zelf graag had gehad: een plek waar je verhaal ertoe doet.
+            Verdriet heeft geen vaste vorm.
+          </p>
+
+          <p>
+            Het past niet altijd in een categorie, en het volgt zeker geen planning.
+          </p>
+
+          <p>
+            Maar er is iets wat ik keer op keer zie, al jaren.<br />
+            Verdriet wordt heel vaak alleen gedragen.
+          </p>
+
+          <p>
+            Niet omdat er niemand is.<br />
+            Maar omdat je niemand wilt belasten.
+          </p>
+
+          <p>
+            Omdat iedereen het druk heeft.<br />
+            Omdat je je misschien al te veel voelt.
+          </p>
+
+          <p>
+            Of omdat je eerst je gedachten wilt ordenen voordat je ze deelt met iemand die je kent.
+          </p>
+
+          <p>
+            En dus zwijg je.
+          </p>
+
+          <p>
+            Of je praat wel, maar niet echt.
+          </p>
+
+          <p>
+            Ik weet hoe dat voelt.
+          </p>
+
+          <p>
+            Ik zag het van dichtbij toen mijn schoonzus ziek werd en overleed. Het verdriet van haar man, haar kinderen, haar broers en zussen, iedereen op zijn eigen manier, en iedereen ergens ook alleen.
+          </p>
+
+          <p>
+            En ik begreep toen nog beter: dit overkomt iedereen, vroeg of laat. En toch doorleven zo veel mensen het in stilte, meer dan je van buitenaf zou denken.
+          </p>
+
+          <p>
+            Vanuit die overtuiging begon ik vier jaar geleden Beterschap-cadeau.nl, een plek voor mensen die iemand willen steunen die iets moeilijks meemaakt. Dat werd meer gebruikt dan ik had verwacht.
+          </p>
+
+          <p>
+            Er volgde een troostwoordenboekje, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen.
+          </p>
+
+          <p>
+            En langzaamaan groeide de vraag die me al die tijd bezighield:
+          </p>
+
+          <p>
+            Hoe kan ik mensen direct helpen, op het moment dat ze er zelf mee zitten?
+          </p>
+
+          <p>
+            Niet als cadeau voor iemand anders, maar voor zichzelf.
+          </p>
+
+          <p>
+            Benji is het antwoord op die vraag.
+          </p>
+
+          <p>
+            Door te schrijven of hardop te praten worden dingen vaak een stukje duidelijker.
+          </p>
+          
+          <p>
+            Niet opgelost, maar draaglijker.
+          </p>
+
+          <p>
+            En soms is het makkelijker om eerst bij Benji te beginnen, voordat je het deelt met de mensen om je heen.
+          </p>
+
+          <p>
+            Verdriet verdient ruimte.
+          </p>
+
+          <p>
+            Benji geeft die ruimte, altijd.
+          </p>
+
+          <p>
+            Ik hoop dat het voor jou kan zijn wat ik zelf graag had gehad: een plek waar je verhaal ertoe doet, ook als je het (nog) niet hardop durft te zeggen.
           </p>
         </div>
 
@@ -74,7 +165,7 @@ export default function WaarομBenjiPage() {
           </div>
 
           <p className="text-sm sm:text-base text-gray-500 leading-relaxed">
-            <span className="italic">P.S.</span> Benji is niet gratis, omdat bouwen en onderhouden nu eenmaal iets kost. Maar toegankelijkheid vind ik belangrijk. Daarom houd ik de drempel zo laag mogelijk, zodat zoveel mogelijk mensen er gebruik van kunnen maken wanneer ze het nodig hebben. Je kunt Benji altijd <a href="/prijzen" className="text-primary-600 hover:text-primary-700 underline">gratis proberen</a> voordat je besluit een abonnement te nemen.
+            <span className="italic">P.S.</span> Benji is niet gratis, omdat bouwen en onderhouden nu eenmaal iets kost. Maar toegankelijkheid vind ik belangrijk. Daarom houd ik de drempel zo laag mogelijk, zodat zoveel mogelijk mensen er gebruik van kunnen maken wanneer ze het nodig hebben. Je kunt Benji altijd <Link href="/prijzen" className="text-primary-600 hover:text-primary-700 underline">gratis gebruiken</Link>.
           </p>
 
           {/* Start je eerste gesprek button */}

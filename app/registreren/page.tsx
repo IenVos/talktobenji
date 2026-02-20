@@ -3,7 +3,6 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 function RegistrerenForm() {
@@ -56,46 +55,20 @@ function RegistrerenForm() {
       const displayName = name.trim() || email.trim().split("@")[0];
       try { localStorage.setItem("benji_user_name", displayName); } catch {}
 
-      const signInResult = await signIn("credentials", {
-        email: email.trim().toLowerCase(),
-        password,
-        callbackUrl,
-        redirect: false,
+      // Sla userId op zodat verificatiepagina opnieuw kan versturen
+      try { sessionStorage.setItem("benji_pending_userid", data.userId); } catch {}
+
+      // Stuur verificatie-e-mail
+      await fetch("/api/auth/send-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), userId: data.userId }),
       });
 
       setLoading(false);
 
-      if (signInResult?.error) {
-        window.location.href = "/inloggen?registered=1";
-        return;
-      }
-
-      // Als login succesvol is, wacht even zodat session cookie wordt ingesteld
-      if (signInResult?.ok) {
-        // Wacht langer en refresh session meerdere keren om zeker te zijn dat cookie is ingesteld
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // Probeer session meerdere keren op te halen
-        let session = null;
-        for (let i = 0; i < 3; i++) {
-          session = await getSession();
-          if (session) break;
-          await new Promise(resolve => setTimeout(resolve, 200));
-        }
-        
-        // Gebruik router.push in plaats van window.location voor betere Next.js integratie
-        if (session) {
-          window.location.href = callbackUrl;
-        } else {
-          // Als session nog niet beschikbaar is, wacht nog even en probeer opnieuw
-          await new Promise(resolve => setTimeout(resolve, 500));
-          window.location.href = callbackUrl;
-        }
-        return;
-      }
-
-      // Fallback: als result niet ok is, redirect naar login
-      window.location.href = "/inloggen?registered=1";
+      // Redirect naar verificatiepagina
+      window.location.href = `/verificeer-email?email=${encodeURIComponent(email.trim().toLowerCase())}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
     } catch {
       setError("Er ging iets mis. Probeer het opnieuw.");
       setLoading(false);

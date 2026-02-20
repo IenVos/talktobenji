@@ -10,9 +10,11 @@ function InloggenForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams?.get("callbackUrl") || "/account";
   const registered = searchParams?.get("registered") === "1";
+  const verified = searchParams?.get("verified") === "1";
   const errorParam = searchParams?.get("error");
+  const emailParam = searchParams?.get("email") || "";
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(emailParam);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +34,7 @@ function InloggenForm() {
     } catch {}
   }, []);
 
+  const sessieVerlopen = searchParams?.get("sessieVerlopen") === "1";
   const sessionExpired = errorParam === "SessionRequired" || errorParam === "SessionExpired";
   const displayError = error || (!sessionExpired && errorParam ? decodeURIComponent(errorParam) : "");
 
@@ -115,9 +118,21 @@ function InloggenForm() {
           </p>
         )}
 
+        {sessieVerlopen && (
+          <p className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-lg px-4 py-3 mb-4 text-center">
+            Je wachtwoord is gewijzigd. Log opnieuw in om door te gaan.
+          </p>
+        )}
+
         {registered && (
           <p className="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg px-4 py-3 mb-4 text-center">
             Account aangemaakt. Log nu in.
+          </p>
+        )}
+
+        {verified && (
+          <p className="bg-green-50 border border-green-200 text-green-800 text-sm rounded-lg px-4 py-3 mb-4 text-center">
+            E-mail bevestigd. Je kunt nu inloggen.
           </p>
         )}
 

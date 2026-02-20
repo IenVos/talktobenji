@@ -9,6 +9,8 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { compare } from "bcryptjs";
 
+const SESSION_CHECK_INTERVAL_MS = 10 * 60 * 1000; // elke 10 minuten controleren
+
 // Convex verwacht issuer = CONVEX_SITE_URL (bijv. https://xxx.convex.site)
 const CONVEX_SITE_URL = (process.env.NEXT_PUBLIC_CONVEX_URL ?? "").replace(
   /\.cloud$/,
@@ -63,10 +65,38 @@ export const authOptions: AuthOptions = {
         token.userId = user.id;
         token.email = user.email;
         token.name = user.name;
+        token.issuedAt = Date.now();
+        token.lastChecked = Date.now();
       }
+
+      // Periodiek controleren of wachtwoord is gewijzigd na uitgifte van token
+      if (!user && token.userId && token.email) {
+        const lastChecked = (token.lastChecked as number) ?? 0;
+        if (Date.now() - lastChecked > SESSION_CHECK_INTERVAL_MS) {
+          try {
+            const cleanSecret = String(adapterSecret || "").trim();
+            const passwordChangedAt = await fetchQuery(
+              api.credentials.getPasswordChangedAt,
+              { secret: cleanSecret, email: token.email as string }
+            );
+            token.lastChecked = Date.now();
+            if (passwordChangedAt && passwordChangedAt > ((token.issuedAt as number) ?? 0)) {
+              token.forceLogout = true;
+            }
+          } catch {
+            // Bij fout sessie intact laten
+          }
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
+      if (token.forceLogout) {
+        session.forceLogout = true;
+        return session;
+      }
+
       const userId = token.userId as string | undefined;
       
       if (userId) {
@@ -120,6 +150,7 @@ declare module "next-auth" {
   interface Session {
     userId?: string;
     convexToken?: string | null;
+    forceLogout?: boolean;
     user: {
       email?: string | null;
       name?: string | null;
@@ -135,6 +166,9 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     userId?: string;
+    issuedAt?: number;
+    lastChecked?: number;
+    forceLogout?: boolean;
   }
 }
 

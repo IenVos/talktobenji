@@ -18,6 +18,7 @@ import type * as chat from "../chat.js";
 import type * as comingSoonFeatures from "../comingSoonFeatures.js";
 import type * as credentials from "../credentials.js";
 import type * as crons from "../crons.js";
+import type * as dataExport from "../dataExport.js";
 import type * as deleteAccount from "../deleteAccount.js";
 import type * as emailTemplates from "../emailTemplates.js";
 import type * as emails from "../emails.js";
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   comingSoonFeatures: typeof comingSoonFeatures;
   credentials: typeof credentials;
   crons: typeof crons;
+  dataExport: typeof dataExport;
   deleteAccount: typeof deleteAccount;
   emailTemplates: typeof emailTemplates;
   emails: typeof emails;
