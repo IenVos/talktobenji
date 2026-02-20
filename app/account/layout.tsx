@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle, ShoppingBag } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, ChevronLeft, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle, ShoppingBag } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ScrollIndicator } from "@/components/ScrollIndicator";
 import { UpgradeBadge } from "@/components/UpgradeBadge";
@@ -534,7 +534,7 @@ export default function AccountLayout({
             {/* Support link */}
             <Link
               href="/account/support"
-              className="p-2 text-gray-400 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0 hidden lg:block"
+              className="p-2 text-gray-400 hover:text-primary-600 rounded-lg transition-colors flex-shrink-0"
               title="Support"
             >
               <HelpCircle size={18} />
@@ -560,12 +560,24 @@ export default function AccountLayout({
           </div>
           {/* Titel + subtitel – altijd onder de header-rij */}
           <div className="mt-2">
-            <h1 className="text-base sm:text-xl font-bold text-primary-900 flex items-center gap-2">
-              {pathname === "/account" && session.user?.name
-                ? <span>Fijn dat je er bent, {session.user.name.split(" ")[0]}. {pageInfo.title}</span>
-                : pageInfo.title
-              }
-            </h1>
+            <div className="flex items-center gap-2">
+              {pathname !== "/account" && (
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="p-1 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-white/60 transition-colors flex-shrink-0"
+                  aria-label="Terug"
+                >
+                  <ChevronLeft size={20} strokeWidth={2.5} />
+                </button>
+              )}
+              <h1 className="text-base sm:text-xl font-bold text-primary-900">
+                {pathname === "/account" && session.user?.name
+                  ? <span>Fijn dat je er bent, {session.user.name.split(" ")[0]}. {pageInfo.title}</span>
+                  : pageInfo.title
+                }
+              </h1>
+            </div>
             {pageInfo.subtitle && <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>}
           </div>
         </div>

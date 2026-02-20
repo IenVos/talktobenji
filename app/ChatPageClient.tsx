@@ -502,7 +502,7 @@ export default function ChatPageClient({
 
   return (
     <div
-      className="min-h-screen min-h-[100dvh] bg-white flex flex-col chat-theme"
+      className="h-[100dvh] bg-white flex flex-col chat-theme"
       style={
         {
           "--chat-accent": accent,
@@ -517,10 +517,10 @@ export default function ChatPageClient({
         userId={session?.userId as string | undefined}
         email={session?.user?.email || undefined}
       >
-        <main ref={mainRef} className="flex-1 overflow-y-auto relative">
+        <main ref={mainRef} className="flex-1 overflow-y-auto relative min-h-0">
         {/* Eén achtergrondlaag: custom of standaard, pointer-events: none, z-0 */}
         <div
-          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+          className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${preferencesData?.backgroundImageUrl || "/images/achtergrond.png"})`,
             pointerEvents: "none",
