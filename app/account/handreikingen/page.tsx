@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { HandHelping, FileDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { renderRichText } from "@/lib/renderRichText";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { Paywall } from "@/components/Paywall";
 import { ComingSoonSection } from "@/components/ComingSoonSection";
@@ -212,7 +213,7 @@ export default function AccountHandreikingenPage() {
                             )}
                             <div className="flex-1 text-sm text-gray-600 leading-relaxed">
                               {item.content && (
-                                <p className="whitespace-pre-wrap">{item.content}</p>
+                                <p className="whitespace-pre-wrap">{renderRichText(item.content)}</p>
                               )}
                             </div>
                             {(item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (

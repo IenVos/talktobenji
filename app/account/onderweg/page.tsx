@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ShoppingBag, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import { renderRichText } from "@/lib/renderRichText";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 
 const CARD_PCT = 75;
@@ -196,6 +197,11 @@ export default function AccountOnderwegPage() {
                           <div className="flex flex-col items-center justify-center gap-2 px-4 py-3 rounded-lg border border-primary-200 bg-white w-full">
                             {item.title && (
                               <h3 className="text-sm font-semibold text-primary-900 text-center">{item.title}</h3>
+                            )}
+                            {item.content && (
+                              <p className="text-sm text-gray-600 leading-relaxed text-center whitespace-pre-wrap">
+                                {renderRichText(item.content)}
+                              </p>
                             )}
                             {item.priceCents != null && item.priceCents > 0 && (
                               <span className="text-base font-semibold text-primary-600">

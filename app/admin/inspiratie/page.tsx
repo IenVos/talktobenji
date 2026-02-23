@@ -364,6 +364,9 @@ export default function AdminInspiratiePage() {
                   rows={4}
                   className="w-full px-3 py-2 border border-primary-200 rounded-lg"
                 />
+                <p className="text-xs text-gray-400">
+                  Link toevoegen: <code className="bg-gray-100 px-1 rounded">[link tekst](https://url.com)</code>
+                </p>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Afbeelding (optioneel)</label>
                   <input
