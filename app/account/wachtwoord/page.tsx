@@ -699,31 +699,45 @@ function AbonnementAccordion() {
             </div>
           )}
 
-          {/* Opzeg-flow */}
+          {/* Opzeggen knop */}
           {subscription.subscriptionType !== "free" && subscription.status !== "cancelled" && !cancelDone && (
-            !showCancel ? (
-              <button
-                onClick={() => setShowCancel(true)}
-                className="block w-full text-center text-xs text-gray-400 hover:text-gray-500 transition-colors"
-              >
-                Abonnement opzeggen
-              </button>
-            ) : (
-              <div className="space-y-4 pt-1">
-                <p className="text-sm text-gray-600">Help ons te begrijpen waarom, dan kunnen we Benji blijven verbeteren.</p>
+            <button
+              onClick={() => setShowCancel(true)}
+              className="block w-full text-center text-xs text-gray-400 hover:text-gray-500 transition-colors"
+            >
+              Abonnement opzeggen
+            </button>
+          )}
+
+          {/* Popup */}
+          {showCancel && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-base font-semibold text-gray-900">Abonnement opzeggen</h2>
+                    <p className="text-sm text-gray-500 mt-1">Help ons te begrijpen waarom.</p>
+                  </div>
+                  <button
+                    onClick={() => { setShowCancel(false); setAnswers({}); }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
 
                 {CANCEL_QUESTIONS.map((q) => (
                   <div key={q.key}>
-                    <p className="text-xs font-medium text-gray-700 mb-2">{q.vraag}</p>
-                    <div className="flex flex-wrap gap-1.5">
+                    <p className="text-sm font-medium text-gray-800 mb-2">{q.vraag}</p>
+                    <div className="flex flex-wrap gap-2">
                       {q.opties.map((optie) => (
                         <button
                           key={optie}
                           onClick={() => setAnswers((a) => ({ ...a, [q.key]: optie }))}
-                          className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
+                          className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
                             answers[q.key] === optie
                               ? "bg-primary-600 text-white border-primary-600"
-                              : "bg-white text-gray-600 border-gray-300 hover:border-primary-400"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-primary-400"
                           }`}
                         >
                           {optie}
@@ -733,23 +747,23 @@ function AbonnementAccordion() {
                   </div>
                 ))}
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                   <button
                     onClick={handleCancel}
                     disabled={!allAnswered || cancelling}
-                    className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-medium hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {cancelling ? "Bezig…" : "Abo opzeggen"}
                   </button>
                   <button
                     onClick={() => { setShowCancel(false); setAnswers({}); }}
-                    className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-gray-200 transition-colors"
+                    className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm hover:bg-gray-200 transition-colors"
                   >
                     Toch niet
                   </button>
                 </div>
               </div>
-            )
+            </div>
           )}
         </div>
       )}
