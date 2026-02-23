@@ -3,6 +3,7 @@
  */
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 // Admin email met volledige toegang
 const ADMIN_EMAIL = "annadelapierre@icloud.com";
@@ -388,6 +389,18 @@ export const cancelOwnSubscription = mutation({
       cancellationValuable: args.valuable,
       cancellationWouldRecommend: args.wouldRecommend,
       updatedAt: now,
+    });
+
+    // Stuur admin-notificatie via e-mail
+    const user = await ctx.db.get(args.userId as any);
+
+    await ctx.scheduler.runAfter(0, internal.emails.sendCancellationNotification, {
+      userEmail: subscription.email,
+      userName: (user as any)?.name ?? undefined,
+      reason: args.reason,
+      valuable: args.valuable,
+      wouldRecommend: args.wouldRecommend,
+      expiresAt: nextRenewal.getTime(),
     });
 
     return { expiresAt: nextRenewal.getTime() };

@@ -4,6 +4,8 @@
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+
+const ADMIN_EMAIL = "annadelapierre@icloud.com";
 import { DEFAULT_TEMPLATES } from "./emailTemplates";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
@@ -191,5 +193,57 @@ export const sendSupportEmail = internalAction({
       console.error("❌ Error sending email:", error);
       throw error;
     }
+  },
+});
+
+/**
+ * Stuur admin-notificatie als een gebruiker zijn abonnement opzegt.
+ */
+export const sendCancellationNotification = internalAction({
+  args: {
+    userEmail: v.string(),
+    userName: v.optional(v.string()),
+    reason: v.string(),
+    valuable: v.string(),
+    wouldRecommend: v.string(),
+    expiresAt: v.number(),
+  },
+  handler: async (_ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) return;
+
+    const einddatum = new Date(args.expiresAt).toLocaleDateString("nl-NL", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    const html = `
+      <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
+        <h2 style="font-size: 18px; color: #2d3748;">Abonnement opgezegd</h2>
+        <table style="width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 16px;">
+          <tr><td style="padding: 8px 0; color: #718096; width: 160px;">Gebruiker</td><td style="padding: 8px 0;">${args.userName ?? "—"} (${args.userEmail})</td></tr>
+          <tr><td style="padding: 8px 0; color: #718096;">Toegang tot</td><td style="padding: 8px 0;">${einddatum}</td></tr>
+          <tr><td style="padding: 8px 0; color: #718096;">Reden</td><td style="padding: 8px 0;">${args.reason}</td></tr>
+          <tr><td style="padding: 8px 0; color: #718096;">Meest waardevol</td><td style="padding: 8px 0;">${args.valuable}</td></tr>
+          <tr><td style="padding: 8px 0; color: #718096;">Zou aanraden</td><td style="padding: 8px 0;">${args.wouldRecommend}</td></tr>
+        </table>
+        <p style="font-size: 13px; color: #a0aec0; margin-top: 24px;">Vergeet niet het abonnement ook in KennisShop te annuleren.</p>
+      </div>
+    `;
+
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+      },
+      body: JSON.stringify({
+        from: "Talk To Benji <noreply@talktobenji.com>",
+        to: [ADMIN_EMAIL],
+        subject: `Abonnement opgezegd — ${args.userEmail}`,
+        html,
+      }),
+    });
   },
 });
