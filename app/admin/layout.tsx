@@ -22,23 +22,25 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
   const navItems: NavItem[] = [
     { type: "item", href: "/admin/klantbeheer", label: "Klantbeheer", icon: Users, badge: 0 },
-    { type: "separator" },
-    { type: "item", href: "/admin", label: "Instellingen", icon: Settings, badge: 0 },
-    { type: "item", href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
-    { type: "item", href: "/admin/analytics", label: "Analytics", icon: BarChart3, badge: 0 },
-    { type: "item", href: "/admin/chat-history", label: "Chat history", icon: MessageSquare, badge: 0 },
-    { type: "item", href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen, badge: 0 },
-    { type: "item", href: "/admin/bronnen", label: "Bronnen", icon: FileStack, badge: 0 },
     { type: "item", href: "/admin/support-faq", label: "Support FAQ", icon: HelpCircle, badge: 0 },
+    { type: "separator" },
+    { type: "item", href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
+    { type: "item", href: "/admin/wensen", label: "Wensen", icon: ThumbsUp, badge: 0 },
     { type: "separator" },
     { type: "item", href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
     { type: "item", href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping, badge: 0 },
     { type: "item", href: "/admin/onderweg", label: "Iets voor onderweg", icon: ShoppingBag, badge: 0 },
     { type: "item", href: "/admin/notificaties", label: "Notificaties", icon: Bell, badge: 0 },
-    { type: "separator", thin: true },
+    { type: "separator" },
+    { type: "item", href: "/admin/chat-history", label: "Chat history", icon: MessageSquare, badge: 0 },
+    { type: "item", href: "/admin/analytics", label: "Analytics", icon: BarChart3, badge: 0 },
+    { type: "item", href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen, badge: 0 },
+    { type: "item", href: "/admin/bronnen", label: "Bronnen", icon: FileStack, badge: 0 },
+    { type: "separator" },
     { type: "item", href: "/admin/trial-test", label: "Trial testen", icon: FlaskConical, badge: 0 },
     { type: "item", href: "/admin/trial-emails", label: "Trial e-mails", icon: Mail, badge: 0 },
-    { type: "item", href: "/admin/wensen", label: "Wensen", icon: ThumbsUp, badge: 0 },
+    { type: "separator" },
+    { type: "item", href: "/admin", label: "Instellingen", icon: Settings, badge: 0 },
   ];
 
   return (
@@ -248,7 +250,7 @@ export default function AdminLayout({
       {/* Floating logout button */}
       <button
         onClick={handleLogout}
-        className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50 flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-colors text-sm"
+        className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50 flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-500 rounded-full shadow hover:bg-gray-300 transition-colors text-sm"
       >
         <LogOut size={16} />
         Uitloggen
