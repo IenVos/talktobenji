@@ -230,6 +230,111 @@ export const incrementConversationCount = mutation({
 
 
 /**
+ * Activeer subscription via e-mail (voor webhook na KennisShop betaling).
+ * Zoekt gebruiker op via e-mail in credentials tabel, dan upsert subscription.
+ */
+export const activateSubscriptionByEmail = mutation({
+  args: {
+    webhookSecret: v.string(),
+    email: v.string(),
+    subscriptionType: v.union(v.literal("uitgebreid"), v.literal("alles_in_1")),
+    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("yearly"))),
+    externalSubscriptionId: v.optional(v.string()),
+    paymentProvider: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Controleer webhook secret
+    if (args.webhookSecret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
+      throw new Error("Ongeldig webhook secret");
+    }
+
+    const emailLower = args.email.toLowerCase().trim();
+    const now = Date.now();
+
+    // Zoek gebruiker op via credentials tabel
+    const cred = await ctx.db
+      .query("credentials")
+      .withIndex("email", (q) => q.eq("email", emailLower))
+      .unique();
+
+    if (!cred) {
+      throw new Error(`Geen account gevonden voor e-mail: ${emailLower}`);
+    }
+
+    const userId = cred.userId.toString();
+
+    // Zoek bestaande subscription
+    const existing = await ctx.db
+      .query("userSubscriptions")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    const subscriptionData = {
+      userId,
+      email: emailLower,
+      subscriptionType: args.subscriptionType,
+      billingPeriod: args.billingPeriod,
+      status: "active" as const,
+      startedAt: existing?.startedAt || now,
+      externalSubscriptionId: args.externalSubscriptionId,
+      paymentProvider: args.paymentProvider || "kennisshop",
+      updatedAt: now,
+      // Trial velden verwijderen bij upgrade
+      expiresAt: undefined,
+    };
+
+    if (existing) {
+      await ctx.db.patch(existing._id, subscriptionData);
+      return { success: true, action: "updated", userId };
+    }
+
+    await ctx.db.insert("userSubscriptions", {
+      ...subscriptionData,
+      startedAt: now,
+    });
+    return { success: true, action: "created", userId };
+  },
+});
+
+/**
+ * Opzeg subscription via e-mail (voor webhook bij KennisShop opzegging).
+ */
+export const cancelSubscriptionByEmail = mutation({
+  args: {
+    webhookSecret: v.string(),
+    email: v.string(),
+    externalSubscriptionId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Controleer webhook secret
+    if (args.webhookSecret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
+      throw new Error("Ongeldig webhook secret");
+    }
+
+    const emailLower = args.email.toLowerCase().trim();
+    const now = Date.now();
+
+    const existing = await ctx.db
+      .query("userSubscriptions")
+      .withIndex("by_email", (q) => q.eq("email", emailLower))
+      .first();
+
+    if (!existing) {
+      // Geen subscription gevonden — al opgezegd of nooit actief
+      return { success: true, action: "not_found" };
+    }
+
+    await ctx.db.patch(existing._id, {
+      status: "cancelled",
+      cancelledAt: now,
+      updatedAt: now,
+    });
+
+    return { success: true, action: "cancelled" };
+  },
+});
+
+/**
  * Maak of update subscription (voor admin of na betaling)
  */
 export const upsertSubscription = mutation({
