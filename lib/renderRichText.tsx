@@ -16,12 +16,13 @@ function renderLine(line: string, lineIndex: number): React.ReactNode {
     if (match.index > lastIndex) {
       nodes.push(line.slice(lastIndex, match.index));
     }
+    const href = match[2];
+    const isExternal = href.startsWith("http");
     nodes.push(
       <a
         key={keyIndex++}
-        href={match[2]}
-        target="_blank"
-        rel="noopener noreferrer"
+        href={href}
+        {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         className="text-primary-600 underline hover:text-primary-800 transition-colors"
       >
         {match[1]}
