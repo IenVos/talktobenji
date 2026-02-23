@@ -5,7 +5,7 @@ import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
-const ADMIN_EMAIL = "annadelapierre@icloud.com";
+const ADMIN_EMAIL = process.env.ADMIN_EXEMPT_EMAIL ?? "";
 import { DEFAULT_TEMPLATES } from "./emailTemplates";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";

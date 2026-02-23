@@ -104,12 +104,17 @@ export const getUserSessions = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    // Fetch all sessions and filter in memory
-    let sessions = await ctx.db.query("chatSessions").collect();
-
-    // Filter op userId
+    // Gebruik index zodat alleen de sessies van de opgegeven gebruiker worden opgehaald
+    // en niet alle sessies van alle gebruikers
+    let sessions;
     if (args.userId) {
-      sessions = sessions.filter((s) => s.userId === args.userId);
+      sessions = await ctx.db
+        .query("chatSessions")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId!))
+        .collect();
+    } else {
+      // Geen userId opgegeven: lege lijst teruggeven (geen volledige dump)
+      return [];
     }
 
     // Extra filter op email als opgegeven

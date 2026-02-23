@@ -131,16 +131,16 @@ export const handleUserMessage = action({
     const startTime = Date.now();
 
     try {
-      // RATE LIMIT: max 10 berichten per 60 seconden per sessie (beschermt tegen spam/kosten)
+      // RATE LIMIT: max 4 berichten per 30 seconden per sessie (beschermt tegen spam/kosten)
       const recentMessages = await ctx.runQuery(api.chat.getMessages, {
         sessionId: args.sessionId,
         limit: 20,
       });
-      const oneMinuteAgo = Date.now() - 60 * 1000;
+      const thirtySecondsAgo = Date.now() - 30 * 1000;
       const recentUserCount = (recentMessages || []).filter(
-        (m: any) => m.role === "user" && m._creationTime > oneMinuteAgo
+        (m: any) => m.role === "user" && m._creationTime > thirtySecondsAgo
       ).length;
-      if (recentUserCount >= 10) {
+      if (recentUserCount >= 4) {
         return {
           success: false,
           error: "Je stuurt berichten te snel. Even een moment wachten.",

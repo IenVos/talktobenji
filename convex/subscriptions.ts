@@ -5,8 +5,8 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 
-// Admin email met volledige toegang
-const ADMIN_EMAIL = "annadelapierre@icloud.com";
+// Admin email met volledige toegang — via env var, niet hardcoded
+const ADMIN_EMAIL = process.env.ADMIN_EXEMPT_EMAIL ?? "";
 
 /**
  * Haal subscription info op voor een user

@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /account/
+Disallow: /registreren
+Disallow: /inloggen
+Allow: /
+Allow: /faq
+Allow: /privacy
+Allow: /algemene-voorwaarden
+Allow: /prijzen
+
+Sitemap: https://www.talktobenji.com/sitemap.xml

@@ -11,6 +11,7 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 const nextConfig = {
   reactStrictMode: true,
   distDir: ".next",
+  productionBrowserSourceMaps: false,
   async redirects() {
     return [
       { source: "/favicon.ico", destination: "/icon.svg", permanent: false },

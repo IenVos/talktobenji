@@ -41,7 +41,7 @@ async function handleLogin(email: string, password: string, callbackUrl: string)
       email: cred.email,
       name: cred.name ?? null,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60,
+      exp: Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60,
     },
     secret,
   });
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         secure: true,
         sameSite: "lax",
         path: "/",
-        maxAge: 30 * 24 * 60 * 60,
+        maxAge: 14 * 24 * 60 * 60,
       });
       return response;
     }
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
       secure: true,
       sameSite: "lax",
       path: "/",
-      maxAge: 30 * 24 * 60 * 60,
+      maxAge: 14 * 24 * 60 * 60,
     });
     return response;
   } catch (e: any) {
