@@ -15,19 +15,21 @@ function AccordionRow({
   label,
   currentValue,
   children,
+  isOpen,
+  onToggle,
 }: {
   icon: React.ReactNode;
   label: string;
   currentValue: string;
   children: React.ReactNode;
+  isOpen: boolean;
+  onToggle: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-
   return (
     <div className="border border-primary-200 rounded-xl overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-primary-50/50 transition-colors text-left"
       >
         <span className="text-primary-500 flex-shrink-0">{icon}</span>
@@ -37,10 +39,10 @@ function AccordionRow({
         </div>
         <ChevronDown
           size={16}
-          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-      {open && (
+      {isOpen && (
         <div className="border-t border-primary-100 bg-primary-50/30 p-4 space-y-4">
           {children}
         </div>
@@ -49,7 +51,7 @@ function AccordionRow({
   );
 }
 
-function NaamWijzigen() {
+function NaamWijzigen({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const { data: session, update } = useSession();
   const currentName = session?.user?.name || "";
   const [name, setName] = useState(currentName);
@@ -85,7 +87,7 @@ function NaamWijzigen() {
   };
 
   return (
-    <AccordionRow icon={<User size={18} />} label="Naam" currentValue={currentName || "—"}>
+    <AccordionRow icon={<User size={18} />} label="Naam" currentValue={currentName || "—"} isOpen={isOpen} onToggle={onToggle}>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label htmlFor="name-input" className="block text-sm font-medium text-gray-700 mb-1">
@@ -120,7 +122,7 @@ function NaamWijzigen() {
   );
 }
 
-function EmailWijzigen() {
+function EmailWijzigen({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const { data: session } = useSession();
   const currentEmail = session?.user?.email || "";
   const [newEmail, setNewEmail] = useState("");
@@ -159,7 +161,7 @@ function EmailWijzigen() {
 
   if (status === "success") {
     return (
-      <AccordionRow icon={<Mail size={18} />} label="E-mailadres" currentValue={currentEmail}>
+      <AccordionRow icon={<Mail size={18} />} label="E-mailadres" currentValue={currentEmail} isOpen={isOpen} onToggle={onToggle}>
         <div className="flex items-center gap-2 text-sm text-green-700">
           <CheckCircle size={18} />
           <span>E-mailadres gewijzigd. Log opnieuw in met je nieuwe adres.</span>
@@ -169,7 +171,7 @@ function EmailWijzigen() {
   }
 
   return (
-    <AccordionRow icon={<Mail size={18} />} label="E-mailadres" currentValue={currentEmail}>
+    <AccordionRow icon={<Mail size={18} />} label="E-mailadres" currentValue={currentEmail} isOpen={isOpen} onToggle={onToggle}>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label htmlFor="new-email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -225,7 +227,7 @@ function EmailWijzigen() {
   );
 }
 
-function WachtwoordWijzigen() {
+function WachtwoordWijzigen({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -269,7 +271,7 @@ function WachtwoordWijzigen() {
 
   if (status === "success") {
     return (
-      <AccordionRow icon={<KeyRound size={18} />} label="Wachtwoord" currentValue="••••••••">
+      <AccordionRow icon={<KeyRound size={18} />} label="Wachtwoord" currentValue="••••••••" isOpen={isOpen} onToggle={onToggle}>
         <div className="flex items-center gap-2 text-sm text-green-700">
           <CheckCircle size={18} />
           <span>Wachtwoord gewijzigd.</span>
@@ -279,7 +281,7 @@ function WachtwoordWijzigen() {
   }
 
   return (
-    <AccordionRow icon={<KeyRound size={18} />} label="Wachtwoord" currentValue="••••••••">
+    <AccordionRow icon={<KeyRound size={18} />} label="Wachtwoord" currentValue="••••••••" isOpen={isOpen} onToggle={onToggle}>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <label htmlFor="current" className="block text-sm font-medium text-gray-700 mb-1">
@@ -366,9 +368,8 @@ function WachtwoordWijzigen() {
   );
 }
 
-function DataExport() {
+function DataExport({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
 
   const handleExport = async () => {
     setLoading(true);
@@ -394,7 +395,7 @@ function DataExport() {
     <div className="border border-primary-200 rounded-xl overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-primary-50/50 transition-colors text-left"
       >
         <span className="text-primary-500 flex-shrink-0"><Download size={18} /></span>
@@ -404,10 +405,10 @@ function DataExport() {
         </div>
         <ChevronDown
           size={16}
-          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-      {open && (
+      {isOpen && (
         <div className="border-t border-primary-100 bg-primary-50/30 px-4 py-4 space-y-4">
           <p className="text-sm text-gray-600 leading-relaxed">
             Je kunt al je gegevens downloaden als een tekstbestand. Dit bevat je gesprekken, reflecties, doelen, check-ins, memories en persoonlijke instellingen. Handig als je een back-up wilt bewaren of je data wilt inzien.
@@ -427,7 +428,7 @@ function DataExport() {
   );
 }
 
-function Hartverwarmers() {
+function Hartverwarmers({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const { data: session } = useSession();
   const userId = session?.userId;
   const isSubscribed = useQuery(api.pushSubscriptions.isSubscribed, userId ? { userId } : "skip");
@@ -435,7 +436,6 @@ function Hartverwarmers() {
   const unsubscribeMutation = useMutation(api.pushSubscriptions.unsubscribe);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
   const pushSupported = typeof window !== "undefined" && isPushSupported();
 
   const handleToggle = async () => {
@@ -470,7 +470,7 @@ function Hartverwarmers() {
     <div className="border border-primary-200 rounded-xl overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-primary-50/50 transition-colors text-left"
       >
         <span className="text-primary-500 flex-shrink-0"><Bell size={18} /></span>
@@ -480,10 +480,10 @@ function Hartverwarmers() {
         </div>
         <ChevronDown
           size={16}
-          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-      {open && (
+      {isOpen && (
         <div className="border-t border-primary-100 bg-primary-50/30 px-4 py-4 space-y-4">
           <p className="text-sm text-gray-600 leading-relaxed">
             Hartverwarmers zijn kleine berichtjes die je helpen je dag goed te beginnen of je herinneren aan doelen die je hebt gesteld. Ze zorgen ervoor dat je belangrijke dingen niet vergeet en houden je gefocust. Hartverwarmers worden spaarzaam verstuurd om je liefde en kracht te geven.
@@ -534,11 +534,10 @@ const CANCEL_QUESTIONS = [
   },
 ];
 
-function AbonnementAccordion() {
+function AbonnementAccordion({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const { data: session } = useSession();
   const userId = session?.userId;
   const email = session?.user?.email || undefined;
-  const [open, setOpen] = useState(false);
   const [showCancel, setShowCancel] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [cancelDone, setCancelDone] = useState(false);
@@ -597,7 +596,7 @@ function AbonnementAccordion() {
     <div className="border border-primary-200 rounded-xl overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-primary-50/50 transition-colors text-left"
       >
         <span className="text-primary-500 flex-shrink-0"><CreditCard size={18} /></span>
@@ -607,11 +606,11 @@ function AbonnementAccordion() {
         </div>
         <ChevronDown
           size={16}
-          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
 
-      {open && subscription && (
+      {isOpen && subscription && (
         <div className="border-t border-primary-100 bg-primary-50/30 px-4 py-4 space-y-4">
           {/* Huidig plan badge */}
           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium ${planColors[subscription.subscriptionType]}`}>
@@ -771,8 +770,7 @@ function AbonnementAccordion() {
   );
 }
 
-function AppInstalleren() {
-  const [open, setOpen] = useState(false);
+function AppInstalleren({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const [showPopup, setShowPopup] = useState(false);
 
   return (
@@ -780,7 +778,7 @@ function AppInstalleren() {
       <div className="border border-primary-200 rounded-xl overflow-hidden">
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={onToggle}
           className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-primary-50/50 transition-colors text-left"
         >
           <span className="text-primary-500 flex-shrink-0"><Smartphone size={18} /></span>
@@ -790,10 +788,10 @@ function AppInstalleren() {
           </div>
           <ChevronDown
             size={16}
-            className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+            className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           />
         </button>
-        {open && (
+        {isOpen && (
           <div className="border-t border-primary-100 bg-primary-50/30 px-4 py-4 space-y-4">
             <p className="text-sm text-gray-600 leading-relaxed">
               Wist je dat je TalkToBenji als app op je telefoon kunt zetten? Het werkt net als een gewone app, zonder dat je iets hoeft te downloaden uit de App Store of Play Store. Zo heb je Benji altijd binnen handbereik — één tik en je bent er.
@@ -902,17 +900,16 @@ function AppInstalleren() {
   );
 }
 
-function AccountVerwijderen() {
+function AccountVerwijderen({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
   const { data: session } = useSession();
   const deleteAccountMutation = useMutation(api.deleteAccount.deleteAccount);
   const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "deleting">("idle");
-  const [open, setOpen] = useState(false);
 
   return (
     <div className="border border-primary-200 rounded-xl overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={onToggle}
         className="w-full flex items-center gap-3 px-4 py-3 bg-white hover:bg-primary-50/50 transition-colors text-left"
       >
         <span className="text-primary-500 flex-shrink-0"><Trash2 size={18} /></span>
@@ -922,10 +919,10 @@ function AccountVerwijderen() {
         </div>
         <ChevronDown
           size={16}
-          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          className={`text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
       </button>
-      {open && (
+      {isOpen && (
         <div className="border-t border-primary-100 bg-primary-50/30 px-4 py-4 space-y-4">
           <p className="text-sm text-gray-600 leading-relaxed">
             Al je gegevens worden permanent gewist — gesprekken, notities, doelen, herinneringen en check-ins. Dit kan niet ongedaan worden gemaakt.
@@ -1006,16 +1003,22 @@ function AccountVerwijderen() {
 }
 
 export default function InloggegevensPage() {
+  const [openSection, setOpenSection] = useState<string | null>(null);
+
+  function toggle(section: string) {
+    setOpenSection((cur) => (cur === section ? null : section));
+  }
+
   return (
     <div className="space-y-3 max-w-md">
-      <NaamWijzigen />
-      <EmailWijzigen />
-      <WachtwoordWijzigen />
-      <Hartverwarmers />
-      <AppInstalleren />
-      <AbonnementAccordion />
-      <DataExport />
-      <AccountVerwijderen />
+      <NaamWijzigen isOpen={openSection === "naam"} onToggle={() => toggle("naam")} />
+      <EmailWijzigen isOpen={openSection === "email"} onToggle={() => toggle("email")} />
+      <WachtwoordWijzigen isOpen={openSection === "wachtwoord"} onToggle={() => toggle("wachtwoord")} />
+      <Hartverwarmers isOpen={openSection === "meldingen"} onToggle={() => toggle("meldingen")} />
+      <AppInstalleren isOpen={openSection === "app"} onToggle={() => toggle("app")} />
+      <AbonnementAccordion isOpen={openSection === "abonnement"} onToggle={() => toggle("abonnement")} />
+      <DataExport isOpen={openSection === "data"} onToggle={() => toggle("data")} />
+      <AccountVerwijderen isOpen={openSection === "account"} onToggle={() => toggle("account")} />
     </div>
   );
 }
