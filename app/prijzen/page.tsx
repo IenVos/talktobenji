@@ -77,10 +77,9 @@ export default function PrijzenPage() {
             </div>
 
             <div className="pt-4 border-t border-gray-200">
-              <button className="block w-full text-center px-6 py-2.5 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white rounded-lg font-medium transition-colors text-sm mb-2">
+              <a href="https://talktobenji.kennis.shop/pay/talktobenji-uitgebreid" className="block w-full text-center px-6 py-2.5 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white rounded-lg font-medium transition-colors text-sm">
                 Kies Benji Uitgebreid
-              </button>
-              {/* Plak hier je betaallink onder de button als <a> tag */}
+              </a>
             </div>
           </div>
 
@@ -100,10 +99,9 @@ export default function PrijzenPage() {
             </div>
 
             <div className="pt-4 border-t border-gray-200">
-              <button className="block w-full text-center px-6 py-2.5 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white rounded-lg font-medium transition-colors text-sm mb-2">
+              <a href="https://talktobenji.kennis.shop/pay/talktobenji-alles-in-1" className="block w-full text-center px-6 py-2.5 bg-white border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white rounded-lg font-medium transition-colors text-sm">
                 Kies Benji Alles in 1
-              </button>
-              {/* Plak hier je betaallink onder de button als <a> tag */}
+              </a>
             </div>
           </div>
         </div>

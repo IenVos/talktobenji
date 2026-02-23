@@ -682,12 +682,21 @@ function AbonnementAccordion({ isOpen, onToggle }: { isOpen: boolean; onToggle: 
 
           {/* Upgrade knop */}
           {subscription.subscriptionType !== "alles_in_1" && (
-            <Link
-              href="/account/abonnement?upgrade=true"
-              className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm font-medium"
-            >
-              Bekijk upgrade opties
-            </Link>
+            subscription.subscriptionType === "uitgebreid" ? (
+              <a
+                href="https://talktobenji.kennis.shop/pay/talktobenji-alles-in-1"
+                className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm font-medium"
+              >
+                Upgraden naar Alles in 1
+              </a>
+            ) : (
+              <Link
+                href="/account/abonnement?upgrade=true"
+                className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm font-medium"
+              >
+                Bekijk upgrade opties
+              </Link>
+            )
           )}
 
           {/* Opzegging bevestigd */}
