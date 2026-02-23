@@ -8,6 +8,7 @@ import {
 } from "convex-helpers/server/customFunctions";
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 function checkSecret(secret: string) {
   const envSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
@@ -384,6 +385,15 @@ export const verifyEmailOtp = mutation({
 
     // Verwijder token
     await ctx.db.delete(token._id);
+
+    // Stuur welkomstmail (fire-and-forget, mag niet blokkeren)
+    const user = await ctx.db.get(token.userId);
+    if (user?.email) {
+      await ctx.scheduler.runAfter(0, internal.emails.sendWelcomeEmail, {
+        email: user.email,
+        name: user.name ?? user.email.split("@")[0],
+      });
+    }
 
     return { success: true };
   },

@@ -199,6 +199,68 @@ export const sendSupportEmail = internalAction({
 /**
  * Stuur admin-notificatie als een gebruiker zijn abonnement opzegt.
  */
+export const sendWelcomeEmail = internalAction({
+  args: {
+    email: v.string(),
+    name: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) return;
+
+    const firstName = args.name.split(" ")[0] || args.name;
+
+    const html = `
+      <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
+        <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${firstName},</p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Fijn dat je er bent. Je account staat klaar.
+        </p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Benji is er voor jou — op momenten dat je wilt praten, even wilt stilstaan bij iets wat je bezighoudt, of gewoon een luisterend oor nodig hebt. Geen oordeel, geen haast. Gewoon aandacht.
+        </p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          De komende 7 dagen heb je vrije toegang tot alles wat Benji te bieden heeft. Begin een gesprek, doe een dagelijkse check-in, of verken je account — op je eigen tempo.
+        </p>
+
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="https://talktobenji.com/chat"
+             style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
+            Begin je eerste gesprek
+          </a>
+        </div>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Heb je een vraag? Je kunt me altijd bereiken via <a href="mailto:contactmetien@talktobenji.com" style="color: #6d84a8;">contactmetien@talktobenji.com</a>.
+        </p>
+
+        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warme groet,</p>
+        <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
+          <tr>
+            <td style="padding-right: 14px; vertical-align: middle;">
+              <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="56" height="56" style="border-radius: 50%; display: block; width: 56px; height: 56px; object-fit: cover;" />
+            </td>
+            <td style="vertical-align: middle;">
+              <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0; padding: 0;">Ien</p>
+              <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0; padding: 0;">Founder van TalkToBenji</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
+
+    await sendEmail({
+      to: args.email,
+      subject: "Welkom bij Talk To Benji",
+      html,
+      apiKey: RESEND_API_KEY,
+    });
+  },
+});
+
 export const sendCancellationNotification = internalAction({
   args: {
     userEmail: v.string(),

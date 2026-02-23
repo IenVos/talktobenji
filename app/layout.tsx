@@ -22,6 +22,22 @@ export const metadata: Metadata = {
     title: "Talk To Benji | Altijd een luisterend oor, wanneer jij het nodig hebt",
     description: "Een warme, betrouwbare plek waar je je verhaal kwijt kunt. 24/7 aandacht en steun, zonder oordeel.",
     type: "website",
+    url: "https://www.talktobenji.com",
+    siteName: "Talk To Benji",
+    images: [
+      {
+        url: "https://www.talktobenji.com/images/benji-logo-2.png",
+        width: 512,
+        height: 512,
+        alt: "Talk To Benji",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Talk To Benji | Altijd een luisterend oor, wanneer jij het nodig hebt",
+    description: "Een warme, betrouwbare plek waar je je verhaal kwijt kunt. 24/7 aandacht en steun, zonder oordeel.",
+    images: ["https://www.talktobenji.com/images/benji-logo-2.png"],
   },
   icons: {
     icon: [
