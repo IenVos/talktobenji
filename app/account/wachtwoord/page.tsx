@@ -516,11 +516,55 @@ function Hartverwarmers() {
   );
 }
 
+const CANCEL_QUESTIONS = [
+  {
+    key: "reason",
+    vraag: "Waarom stop je?",
+    opties: ["Ik gebruik het te weinig", "Het is te duur voor mij", "Het is niet wat ik zocht", "Mijn situatie is veranderd"],
+  },
+  {
+    key: "valuable",
+    vraag: "Wat vond je het meest waardevol?",
+    opties: ["De gesprekken met Benji", "Reflecties en check-ins", "Inspiratie en handreikingen", "Heb het weinig gebruikt"],
+  },
+  {
+    key: "wouldRecommend",
+    vraag: "Zou je Benji aanraden aan iemand die het nodig heeft?",
+    opties: ["Ja, zeker", "Misschien", "Nee"],
+  },
+];
+
 function AbonnementAccordion() {
   const { data: session } = useSession();
   const userId = session?.userId;
   const email = session?.user?.email || undefined;
   const [open, setOpen] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [cancelDone, setCancelDone] = useState(false);
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  const cancelOwnSubscription = useMutation(api.subscriptions.cancelOwnSubscription);
+  const allAnswered = CANCEL_QUESTIONS.every((q) => answers[q.key]);
+
+  async function handleCancel() {
+    if (!userId || !allAnswered) return;
+    setCancelling(true);
+    try {
+      const result = await cancelOwnSubscription({
+        userId: userId as string,
+        reason: answers.reason,
+        valuable: answers.valuable,
+        wouldRecommend: answers.wouldRecommend,
+      });
+      setExpiresAt(result.expiresAt);
+      setCancelDone(true);
+      setShowCancel(false);
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   const subscription = useQuery(
     api.subscriptions.getUserSubscription,
@@ -647,14 +691,65 @@ function AbonnementAccordion() {
             </Link>
           )}
 
-          {/* Stopzetten */}
-          {subscription.subscriptionType !== "free" && (
-            <a
-              href={`mailto:contactmetien@talktobenji.com?subject=Abonnement stopzetten&body=Hallo,%0D%0A%0D%0AIk wil mijn abonnement stopzetten.%0D%0A%0D%0AMijn e-mailadres: ${encodeURIComponent(email ?? "")}`}
-              className="block text-center text-xs text-gray-400 hover:text-gray-500 transition-colors"
-            >
-              Abonnement stopzetten
-            </a>
+          {/* Opzegging bevestigd */}
+          {cancelDone && expiresAt && (
+            <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-700 space-y-1">
+              <p className="font-medium text-gray-900">Je abonnement is opgezegd.</p>
+              <p>Toegang tot en met {new Date(expiresAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}.</p>
+            </div>
+          )}
+
+          {/* Opzeg-flow */}
+          {subscription.subscriptionType !== "free" && subscription.status !== "cancelled" && !cancelDone && (
+            !showCancel ? (
+              <button
+                onClick={() => setShowCancel(true)}
+                className="block w-full text-center text-xs text-gray-400 hover:text-gray-500 transition-colors"
+              >
+                Abonnement opzeggen
+              </button>
+            ) : (
+              <div className="space-y-4 pt-1">
+                <p className="text-sm text-gray-600">Help ons te begrijpen waarom, dan kunnen we Benji blijven verbeteren.</p>
+
+                {CANCEL_QUESTIONS.map((q) => (
+                  <div key={q.key}>
+                    <p className="text-xs font-medium text-gray-700 mb-2">{q.vraag}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {q.opties.map((optie) => (
+                        <button
+                          key={optie}
+                          onClick={() => setAnswers((a) => ({ ...a, [q.key]: optie }))}
+                          className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
+                            answers[q.key] === optie
+                              ? "bg-primary-600 text-white border-primary-600"
+                              : "bg-white text-gray-600 border-gray-300 hover:border-primary-400"
+                          }`}
+                        >
+                          {optie}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCancel}
+                    disabled={!allAnswered || cancelling}
+                    className="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-medium hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {cancelling ? "Bezig…" : "Abo opzeggen"}
+                  </button>
+                  <button
+                    onClick={() => { setShowCancel(false); setAnswers({}); }}
+                    className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs hover:bg-gray-200 transition-colors"
+                  >
+                    Toch niet
+                  </button>
+                </div>
+              </div>
+            )
           )}
         </div>
       )}
