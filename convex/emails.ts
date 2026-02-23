@@ -48,10 +48,10 @@ function buildEmailHtml(name: string, bodyText: string): string {
     .join("\n");
 
   return `
-    <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
+    <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
       <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${name},</p>
       ${paragraphsHtml}
-      <div style="text-align: center; margin: 32px 0;">
+      <div style="margin: 32px 0;">
         <a href="https://talktobenji.com/account/abonnement?upgrade=true"
            style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
           Bekijk de abonnementen
@@ -211,7 +211,7 @@ export const sendWelcomeEmail = internalAction({
     const firstName = args.name.split(" ")[0] || args.name;
 
     const html = `
-      <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
+      <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
         <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${firstName},</p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
@@ -219,14 +219,14 @@ export const sendWelcomeEmail = internalAction({
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Benji is er voor jou — op momenten dat je wilt praten, even wilt stilstaan bij iets wat je bezighoudt, of gewoon een luisterend oor nodig hebt. Geen oordeel, geen haast. Gewoon aandacht.
+          Benji is er voor jou. Op momenten dat je wilt praten, even wilt stilstaan bij iets wat je bezighoudt, of gewoon een luisterend oor nodig hebt. Geen oordeel, geen haast. Gewoon aandacht.
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          De komende 7 dagen heb je vrije toegang tot alles wat Benji te bieden heeft. Begin een gesprek, doe een dagelijkse check-in, of verken je account — op je eigen tempo.
+          De komende 7 dagen heb je vrije toegang tot alles wat Benji te bieden heeft. Begin een gesprek, doe een dagelijkse check-in, of verken je account op je eigen tempo.
         </p>
 
-        <div style="text-align: center; margin: 32px 0;">
+        <div style="margin: 32px 0;">
           <a href="https://talktobenji.com/chat"
              style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
             Begin je eerste gesprek

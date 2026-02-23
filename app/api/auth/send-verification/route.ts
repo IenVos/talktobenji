@@ -53,18 +53,18 @@ export async function POST(req: NextRequest) {
       to: email,
       subject: "Bevestig je e-mailadres — Talk To Benji",
       html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 16px;">
-          <img src="${appUrl}/images/benji-logo-2.png" alt="Benji" width="40" height="40" style="display: block; margin: 0 auto 16px;" />
-          <h1 style="font-size: 20px; text-align: center; color: #1a1a2e; margin-bottom: 8px;">Bevestig je e-mailadres</h1>
-          <p style="font-size: 14px; color: #555; text-align: center; line-height: 1.5;">
+        <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 16px;">
+          <img src="${appUrl}/images/benji-logo-2.png" alt="Benji" width="40" height="40" style="display: block; margin-bottom: 20px;" />
+          <h1 style="font-size: 20px; color: #1a1a2e; margin-bottom: 8px;">Bevestig je e-mailadres</h1>
+          <p style="font-size: 14px; color: #555; line-height: 1.5;">
             Gebruik de code hieronder om je e-mailadres te bevestigen. De code is 10 minuten geldig.
           </p>
-          <div style="text-align: center; margin: 28px 0;">
+          <div style="margin: 28px 0;">
             <div style="display: inline-block; background: #f0f4ff; border: 1px solid #c7d4f0; border-radius: 12px; padding: 20px 40px;">
               <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #1a1a2e;">${otp}</span>
             </div>
           </div>
-          <p style="font-size: 12px; color: #999; text-align: center; line-height: 1.5;">
+          <p style="font-size: 12px; color: #999; line-height: 1.5;">
             Als je dit niet hebt aangevraagd, kun je deze e-mail negeren.
           </p>
         </div>
