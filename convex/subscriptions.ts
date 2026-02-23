@@ -85,8 +85,12 @@ export const hasFeatureAccess = query({
 
     const subType = subscription?.subscriptionType || "free";
     const isActive = subscription?.status === "active" || !subscription;
+    const isCancelledButValid =
+      subscription?.status === "cancelled" &&
+      subscription?.expiresAt != null &&
+      subscription.expiresAt > Date.now();
 
-    if (!isActive) return false;
+    if (!isActive && !isCancelledButValid) return false;
 
     // Trial verlopen → geen toegang
     if (subType === "trial" && subscription?.expiresAt && subscription.expiresAt < Date.now()) {
@@ -170,7 +174,12 @@ export const getConversationCount = query({
       subType === "trial" &&
       (!subscription?.expiresAt || subscription.expiresAt >= Date.now());
 
-    if (subType === "uitgebreid" || subType === "alles_in_1" || isActiveTrial) {
+    const isCancelledButValid =
+      subscription?.status === "cancelled" &&
+      subscription?.expiresAt != null &&
+      subscription.expiresAt > Date.now();
+
+    if (subType === "uitgebreid" || subType === "alles_in_1" || isActiveTrial || isCancelledButValid) {
       return {
         count,
         limit: null,
@@ -331,6 +340,57 @@ export const cancelSubscriptionByEmail = mutation({
     });
 
     return { success: true, action: "cancelled" };
+  },
+});
+
+/**
+ * Gebruiker zegt zelf zijn abonnement op vanuit account-pagina.
+ * Berekent automatisch einde betaalde periode (maandelijks op startdatum).
+ */
+export const cancelOwnSubscription = mutation({
+  args: {
+    userId: v.string(),
+    reason: v.string(),
+    valuable: v.string(),
+    wouldRecommend: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    const subscription = await ctx.db
+      .query("userSubscriptions")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (!subscription) throw new Error("Geen actief abonnement gevonden");
+    if (subscription.status === "cancelled") throw new Error("Abonnement is al opgezegd");
+
+    // Bereken einde huidige betaalde periode:
+    // Volgende maandelijkse vervaldag na vandaag op basis van startdatum
+    const start = new Date(subscription.startedAt);
+    const nowDate = new Date(now);
+
+    const nextRenewal = new Date(
+      nowDate.getFullYear(),
+      nowDate.getMonth(),
+      start.getDate()
+    );
+    // Als die dag al voorbij is deze maand → volgende maand
+    if (nextRenewal.getTime() <= now) {
+      nextRenewal.setMonth(nextRenewal.getMonth() + 1);
+    }
+
+    await ctx.db.patch(subscription._id, {
+      status: "cancelled",
+      cancelledAt: now,
+      expiresAt: nextRenewal.getTime(),
+      cancellationReason: args.reason,
+      cancellationValuable: args.valuable,
+      cancellationWouldRecommend: args.wouldRecommend,
+      updatedAt: now,
+    });
+
+    return { expiresAt: nextRenewal.getTime() };
   },
 });
 

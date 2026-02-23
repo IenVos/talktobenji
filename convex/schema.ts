@@ -235,6 +235,9 @@ export default defineSchema({
     externalSubscriptionId: v.optional(v.string()),
     reminderDay5Sent: v.optional(v.boolean()),
     reminderDay7Sent: v.optional(v.boolean()),
+    cancellationReason: v.optional(v.string()),
+    cancellationValuable: v.optional(v.string()),
+    cancellationWouldRecommend: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
