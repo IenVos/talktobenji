@@ -39,43 +39,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const body = req.body;
 
-  // Log voor debugging (verwijder in productie als je wil)
   console.log("[KennisShop webhook] Event ontvangen:", JSON.stringify(body, null, 2));
 
-  // ——————————————————————————————————————————————
-  // Haal e-mail en event-type op uit de payload.
-  // KennisShop's exacte veldnamen → check hun docs of test met een test-webhook.
-  // Veelvoorkomende varianten zijn hieronder opgenomen.
-  // ——————————————————————————————————————————————
-  const email: string | undefined =
-    body?.customer?.email ||
-    body?.email ||
-    body?.order?.customer_email ||
-    body?.billing?.email;
+  // KennisShop stuurt data in een "data" object
+  const data = body?.data || body;
 
-  const eventType: string | undefined =
-    body?.event ||
-    body?.type ||
-    body?.status;
-
+  const email: string | undefined = data?.customer_email;
+  const externalId: string | undefined = data?.order_id?.toString();
   const productId: string | undefined =
-    body?.product_id?.toString() ||
-    body?.order?.product_id?.toString() ||
-    body?.line_items?.[0]?.product_id?.toString();
+    data?.bought_products?.[0]?.product_id?.toString();
 
-  const externalId: string | undefined =
-    body?.subscription_id?.toString() ||
-    body?.order_id?.toString() ||
-    body?.id?.toString();
+  // Bij opzegging stuurt KennisShop een apart veld
+  const isCancellation = data?.status === "cancelled" || data?.status === "canceled";
 
   if (!email) {
     console.error("[KennisShop webhook] Geen e-mail in payload");
     return res.status(400).json({ error: "Geen e-mail gevonden in payload" });
   }
 
-  // ——————————————————————————————————————————————
-  // Bepaal abonnement type op basis van product-ID
-  // ——————————————————————————————————————————————
   function getSubscriptionType(prodId?: string): "uitgebreid" | "alles_in_1" | null {
     if (!prodId) return null;
     if (prodId === process.env.KENNISSHOP_PRODUCT_UITGEBREID) return "uitgebreid";
@@ -87,48 +68,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // ——————————————————————————————————————————————
-    // BETALING GESLAAGD → activeer abonnement
-    // Pas de eventType-waarden aan op wat KennisShop exact stuurt
+    // OPZEGGING
     // ——————————————————————————————————————————————
-    const isActivation =
-      eventType === "order.completed" ||
-      eventType === "payment.succeeded" ||
-      eventType === "subscription.activated" ||
-      eventType === "completed" ||
-      eventType === "paid";
-
-    if (isActivation) {
-      const subscriptionType = getSubscriptionType(productId);
-
-      if (!subscriptionType) {
-        // Product-ID niet herkend — log en accepteer toch (zodat KennisShop niet blijft retrien)
-        console.warn("[KennisShop webhook] Onbekend product-ID:", productId);
-        return res.status(200).json({ received: true, warning: "Onbekend product-ID" });
-      }
-
-      await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
-        webhookSecret,
-        email,
-        subscriptionType,
-        billingPeriod: "monthly",
-        externalSubscriptionId: externalId,
-        paymentProvider: "kennisshop",
-      });
-
-      console.log(`[KennisShop webhook] Abonnement geactiveerd: ${email} → ${subscriptionType}`);
-      return res.status(200).json({ received: true, action: "activated" });
-    }
-
-    // ——————————————————————————————————————————————
-    // OPZEGGING → zet status op cancelled
-    // ——————————————————————————————————————————————
-    const isCancellation =
-      eventType === "subscription.cancelled" ||
-      eventType === "subscription.canceled" ||
-      eventType === "order.refunded" ||
-      eventType === "cancelled" ||
-      eventType === "canceled";
-
     if (isCancellation) {
       await convex.mutation(api.subscriptions.cancelSubscriptionByEmail, {
         webhookSecret,
@@ -140,9 +81,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ received: true, action: "cancelled" });
     }
 
-    // Onbekend event — accepteer zonder actie
-    console.log("[KennisShop webhook] Onbekend event-type:", eventType);
-    return res.status(200).json({ received: true, action: "ignored" });
+    // ——————————————————————————————————————————————
+    // AANKOOP → activeer abonnement
+    // ——————————————————————————————————————————————
+    const subscriptionType = getSubscriptionType(productId);
+
+    if (!subscriptionType) {
+      console.warn("[KennisShop webhook] Onbekend product-ID:", productId);
+      return res.status(200).json({ received: true, warning: "Onbekend product-ID" });
+    }
+
+    await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
+      webhookSecret,
+      email,
+      subscriptionType,
+      billingPeriod: "monthly",
+      externalSubscriptionId: externalId,
+      paymentProvider: "kennisshop",
+    });
+
+    console.log(`[KennisShop webhook] Abonnement geactiveerd: ${email} → ${subscriptionType}`);
+    return res.status(200).json({ received: true, action: "activated" });
 
   } catch (err: any) {
     console.error("[KennisShop webhook] Fout:", err?.message || err);
