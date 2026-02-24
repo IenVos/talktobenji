@@ -6,7 +6,7 @@ import React from "react";
  * Regeleinden (\n) worden als <br /> weergegeven.
  */
 function renderLine(line: string, lineIndex: number): React.ReactNode {
-  const pattern = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+  const pattern = /\[([^\]]+)\]\(([^)]+)\)/g;
   const nodes: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;

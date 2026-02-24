@@ -4,7 +4,8 @@
 import { SignJWT, importPKCS8 } from "jose";
 import NextAuth, { type AuthOptions, type User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { fetchQuery } from "convex/nextjs";
+import GoogleProvider from "next-auth/providers/google";
+import { fetchQuery, fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { compare } from "bcryptjs";
@@ -24,6 +25,10 @@ export const authOptions: AuthOptions = {
   // ← VERWIJDER useSecureCookies en cookies config volledig
   
   providers: [
+    GoogleProvider({
+      clientId: process.env.AUTH_GOOGLE_ID!,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+    }),
     CredentialsProvider({
       id: "credentials",
       name: "E-mail en wachtwoord",
@@ -60,9 +65,21 @@ export const authOptions: AuthOptions = {
     maxAge: 7 * 24 * 60 * 60,
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      if (user) {
-        token.userId = user.id;
+    async jwt({ token, user, account, trigger, session }) {
+      if (user && account) {
+        if (account.provider === "google") {
+          // Google-gebruiker: zoek of maak Convex-account op basis van e-mail
+          const cleanSecret = String(adapterSecret || "").trim();
+          const result = await fetchMutation(api.credentials.findOrCreateOAuthUser, {
+            secret: cleanSecret,
+            email: user.email!,
+            name: user.name ?? "",
+          });
+          token.userId = result.userId;
+        } else {
+          // Credentials: user.id is al het Convex userId (uit authorize())
+          token.userId = user.id;
+        }
         token.email = user.email;
         token.name = user.name;
         token.issuedAt = Date.now();

@@ -286,6 +286,61 @@ export const changeEmail = mutation({
   },
 });
 
+/** Zoek bestaande gebruiker op e-mail of maak nieuwe aan voor OAuth (Google). */
+export const findOrCreateOAuthUser = mutation({
+  args: {
+    secret: v.string(),
+    email: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    checkSecret(args.secret);
+    const emailLower = args.email.toLowerCase().trim();
+    const displayName = args.name.trim() || emailLower.split("@")[0];
+
+    // Bestaande gebruiker opzoeken
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", emailLower))
+      .unique();
+
+    if (existingUser) {
+      // Markeer als geverifieerd als dat nog niet het geval is
+      if (!existingUser.emailVerified) {
+        await ctx.db.patch(existingUser._id, { emailVerified: Date.now() });
+      }
+      return { userId: existingUser._id.toString(), isNew: false };
+    }
+
+    // Nieuwe gebruiker aanmaken
+    const now = Date.now();
+    const userId = await ctx.db.insert("users", {
+      email: emailLower,
+      name: displayName,
+      emailVerified: now,
+    });
+
+    // 7-daagse trial aanmaken
+    await ctx.db.insert("userSubscriptions", {
+      userId: userId.toString(),
+      email: emailLower,
+      subscriptionType: "trial",
+      status: "active",
+      startedAt: now,
+      expiresAt: now + 7 * 24 * 60 * 60 * 1000,
+      updatedAt: now,
+    });
+
+    // Welkomstmail sturen
+    await ctx.scheduler.runAfter(0, internal.emails.sendWelcomeEmail, {
+      email: emailLower,
+      name: displayName,
+    });
+
+    return { userId: userId.toString(), isNew: true };
+  },
+});
+
 /** Haal credentials op voor wachtwoordcontrole (alleen server-side). */
 export const getCredentialsByEmail = withSecretQuery({
   args: {},
