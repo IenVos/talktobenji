@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Download, Mail, Check, Pencil, X, Gem, Mic, Square } from "lucide-react";
+import { ArrowLeft, ArrowRight, Mail, Check, Pencil, X, Gem, Mic, Square } from "lucide-react";
 import { Paywall } from "@/components/Paywall";
 
 const TOTAL = 6;
@@ -17,7 +17,7 @@ function getSteps(name: string) {
     {
       stepNum: 1,
       title: "Deze brief schrijf ik aan...",
-      subtitle: "Schrijf de naam, of gewoon hoe je hem of haar noemde.",
+      subtitle: "Schrijf de naam, of gewoon hoe je deze persoon noemde.",
       placeholder: "Bijv. mama, opa, mijn beste vriend...",
       multiline: false,
     },
@@ -188,16 +188,6 @@ export default function BriefOefeningPage() {
       .join("\n\n");
   const letterBody = assembleLetter();
 
-  const handleDownload = () => {
-    const text = `${addressee ? `Aan: ${addressee}\n\n` : ""}${letterBody}`;
-    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "mijn-brief.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   const handleSendEmail = async () => {
     if (sending || sent) return;
@@ -353,6 +343,7 @@ export default function BriefOefeningPage() {
             <div className="relative">
               {currentStep.multiline ? (
                 <textarea
+                  key={screen}
                   value={answers[screen] ?? ""}
                   onChange={(e) =>
                     setAnswers((a) => ({ ...a, [screen]: e.target.value }))
@@ -373,6 +364,7 @@ export default function BriefOefeningPage() {
                 />
               ) : (
                 <input
+                  key={screen}
                   type="text"
                   value={answers[screen] ?? ""}
                   onChange={(e) =>
@@ -511,15 +503,6 @@ export default function BriefOefeningPage() {
             in het menu
           </p>
         )}
-
-        <button
-          type="button"
-          onClick={handleDownload}
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 border border-primary-200 text-primary-700 rounded-xl text-sm font-medium hover:bg-primary-50 transition-colors"
-        >
-          <Download size={16} />
-          Downloaden als tekstbestand
-        </button>
 
         <button
           type="button"
