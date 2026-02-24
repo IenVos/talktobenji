@@ -17,6 +17,7 @@ import {
   BookOpen,
   MessageCircle,
   Printer,
+  Camera,
 } from "lucide-react";
 import { Paywall } from "@/components/Paywall";
 
@@ -210,7 +211,9 @@ export default function GeheugenarchiefPage() {
   const [screen, setScreen] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [petMode, setPetMode] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [hasSavedProgress, setHasSavedProgress] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState("");
@@ -239,14 +242,14 @@ export default function GeheugenarchiefPage() {
     } catch {}
   }, []);
 
-  // Sla antwoorden + petMode op in localStorage
+  // Sla antwoorden + petMode + foto op in localStorage
   useEffect(() => {
     if (Object.keys(answers).length > 0) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, petMode }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, petMode, photoUrl }));
       } catch {}
     }
-  }, [answers, petMode]);
+  }, [answers, petMode, photoUrl]);
 
   // Spraakherkenning
   useEffect(() => {
@@ -331,8 +334,9 @@ export default function GeheugenarchiefPage() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const { answers: savedAnswers, petMode: savedPetMode } = JSON.parse(raw);
+        const { answers: savedAnswers, petMode: savedPetMode, photoUrl: savedPhoto } = JSON.parse(raw);
         if (typeof savedPetMode === "boolean") setPetMode(savedPetMode);
+        if (typeof savedPhoto === "string") setPhotoUrl(savedPhoto);
         setAnswers(savedAnswers || {});
         // Ga naar eerste onbeantwoorde stap
         for (let i = 1; i <= TOTAL; i++) {
@@ -355,8 +359,22 @@ export default function GeheugenarchiefPage() {
     setSaved(false);
     setSendError("");
     setPetMode(false);
+    setPhotoUrl(null);
     setHasSavedProgress(false);
     try { localStorage.removeItem(STORAGE_KEY); } catch {}
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setPhotoUrl(result);
+    };
+    reader.readAsDataURL(file);
+    // reset input zodat dezelfde foto opnieuw gekozen kan worden
+    e.target.value = "";
   };
 
   const name = (answers[1] || "").trim();
@@ -525,13 +543,25 @@ ${answeredSteps
           <ArrowLeft size={15} />
           {screen === 1 ? "Terug" : "Vorige"}
         </button>
-        {screen > 1 && name && (
-          <span
-            className="text-sm text-center truncate mx-3 max-w-[160px] sm:max-w-xs"
-            style={{ color: "#a09088" }}
-          >
-            Portret van {name}
-          </span>
+        {screen > 1 && (name || photoUrl) && (
+          <div className="flex items-center gap-2 mx-3 min-w-0">
+            {photoUrl && (
+              <img
+                src={photoUrl}
+                alt=""
+                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                style={{ border: "1.5px solid #e8dfd5" }}
+              />
+            )}
+            {name && (
+              <span
+                className="text-sm truncate max-w-[120px] sm:max-w-xs"
+                style={{ color: "#a09088" }}
+              >
+                Portret van {name}
+              </span>
+            )}
+          </div>
         )}
         <button
           type="button"
@@ -548,6 +578,35 @@ ${answeredSteps
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col items-center justify-start min-h-full px-4 sm:px-6 pt-6 pb-10">
           <div className="w-full max-w-xl">
+            {/* Foto upload — alleen op stap 1 */}
+            {screen === 1 && (
+              <div className="flex justify-center mb-6">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative w-20 h-20 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80 flex-shrink-0"
+                  style={{
+                    backgroundColor: "#f0ebe4",
+                    border: photoUrl ? "none" : "2px dashed #d4cec8",
+                  }}
+                  title={photoUrl ? "Foto wijzigen" : "Foto toevoegen (optioneel)"}
+                >
+                  {photoUrl ? (
+                    <img src={photoUrl} alt="Foto" className="w-full h-full object-cover" />
+                  ) : (
+                    <Camera size={22} style={{ color: "#c5b8ae" }} />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoChange}
+                />
+              </div>
+            )}
+
             {/* Categorie + vraag */}
             <div className="mb-6">
               <p
@@ -755,12 +814,22 @@ ${answeredSteps
     <div className="space-y-5">
       {/* Archief */}
       <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-6">
-        <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">
-          Portret
-        </p>
-        <h2 className="text-xl font-semibold text-primary-900 mb-6">
-          {name ? `Portret van ${name}` : "Portret van..."}
-        </h2>
+        <div className="flex items-center gap-4 mb-6">
+          {photoUrl && (
+            <img
+              src={photoUrl}
+              alt={name}
+              className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+              style={{ border: "2px solid #e8dfd5" }}
+            />
+          )}
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Portret</p>
+            <h2 className="text-xl font-semibold text-primary-900">
+              {name ? `Portret van ${name}` : "Portret van..."}
+            </h2>
+          </div>
+        </div>
         <div className="space-y-6">
           {answeredSteps.map((s) => (
             <div key={s.stepNum}>
