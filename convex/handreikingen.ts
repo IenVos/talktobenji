@@ -100,6 +100,7 @@ export const create = mutation({
     imageStorageId: v.optional(v.id("_storage")),
     publishFrom: v.optional(v.number()),
     priceCents: v.optional(v.number()),
+    exerciseSlug: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -112,6 +113,7 @@ export const create = mutation({
       imageStorageId: args.imageStorageId,
       publishFrom: args.publishFrom,
       priceCents: args.priceCents,
+      exerciseSlug: args.exerciseSlug,
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -131,6 +133,7 @@ export const update = mutation({
     imageStorageId: v.optional(v.id("_storage")),
     publishFrom: v.optional(v.union(v.number(), v.null())),
     priceCents: v.optional(v.union(v.number(), v.null())),
+    exerciseSlug: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -143,6 +146,7 @@ export const update = mutation({
     const patch: Record<string, unknown> = { ...filtered, updatedAt: Date.now() };
     if ("priceCents" in updates && updates.priceCents === null) patch.priceCents = undefined;
     if ("publishFrom" in updates && updates.publishFrom === null) patch.publishFrom = undefined;
+    if ("exerciseSlug" in updates && updates.exerciseSlug === null) patch.exerciseSlug = undefined;
     await ctx.db.patch(id, patch);
     return id;
   },

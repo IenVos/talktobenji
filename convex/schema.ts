@@ -341,6 +341,8 @@ export default defineSchema({
     publishFrom: v.optional(v.union(v.number(), v.null())),
     // Prijs in centen; null/afwezig = geen Koop-knop
     priceCents: v.optional(v.union(v.number(), v.null())),
+    // Oefening slug: koppelt kaart aan geleide oefening (bijv. "brief")
+    exerciseSlug: v.optional(v.string()),
   })
     .index("by_active_order", ["isActive", "order"]),
 

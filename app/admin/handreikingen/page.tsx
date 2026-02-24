@@ -26,6 +26,7 @@ export default function AdminHandreikingenPage() {
     imageFile: null as File | null,
     publishFromDate: "",
     priceEuro: "",
+    exerciseSlug: "",
   });
   const [extractingCover, setExtractingCover] = useState(false);
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
@@ -73,6 +74,7 @@ export default function AdminHandreikingenPage() {
       imageFile: null,
       publishFromDate: "",
       priceEuro: "",
+      exerciseSlug: "",
     });
     setEditingId(null);
     setEditingImageUrl(null);
@@ -111,6 +113,7 @@ export default function AdminHandreikingenPage() {
             const n = parseFloat(v.replace(",", "."));
             return !Number.isNaN(n) && n > 0 ? Math.round(n * 100) : undefined;
           })(),
+          exerciseSlug: form.exerciseSlug.trim() || undefined,
         });
         resetForm();
       } finally {
@@ -138,6 +141,7 @@ export default function AdminHandreikingenPage() {
             const n = parseFloat(v.replace(",", "."));
             return !Number.isNaN(n) && n > 0 ? Math.round(n * 100) : undefined;
           })(),
+          exerciseSlug: form.exerciseSlug.trim() || undefined,
         });
         resetForm();
       } finally {
@@ -162,6 +166,7 @@ export default function AdminHandreikingenPage() {
           const n = parseFloat(v.replace(",", "."));
           return !Number.isNaN(n) && n > 0 ? Math.round(n * 100) : null;
         })(),
+        exerciseSlug: form.exerciseSlug.trim() || null,
       };
       if (isPdf && form.pdfFile) {
         const url = await generateUploadUrl();
@@ -206,6 +211,7 @@ export default function AdminHandreikingenPage() {
       imageFile: null,
       publishFromDate: item.publishFrom ? new Date(item.publishFrom).toISOString().slice(0, 16) : "",
       priceEuro: item.priceCents ? (item.priceCents / 100).toString() : "",
+      exerciseSlug: (item as any).exerciseSlug ?? "",
     });
     setEditingImageUrl(item.imageUrl ?? null);
     setEditingId(item._id);
@@ -358,6 +364,17 @@ export default function AdminHandreikingenPage() {
                   Link toevoegen: <code className="bg-gray-100 px-1 rounded">[link tekst](https://url.com)</code>
                 </p>
                 <div>
+                  <label className="block text-xs text-gray-600 mb-0.5">Oefening koppelen (slug) — leeg = geen oefening-knop</label>
+                  <input
+                    type="text"
+                    placeholder="bv. brief"
+                    value={form.exerciseSlug}
+                    onChange={(e) => setForm((f) => ({ ...f, exerciseSlug: e.target.value }))}
+                    className="w-40 px-3 py-2 border border-primary-200 rounded-lg text-sm"
+                  />
+                  <p className="text-xs text-gray-400 mt-0.5">Beschikbare oefeningen: <code className="bg-gray-100 px-1 rounded">brief</code></p>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Afbeelding (optioneel)</label>
                   <input
                     ref={imageInputRef}
@@ -430,6 +447,11 @@ export default function AdminHandreikingenPage() {
                           {item.publishFrom && item.publishFrom > Date.now() && (
                             <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
                               Zichtbaar vanaf {new Date(item.publishFrom).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}
+                            </span>
+                          )}
+                          {(item as any).exerciseSlug && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">
+                              Oefening: {(item as any).exerciseSlug}
                             </span>
                           )}
                         </div>

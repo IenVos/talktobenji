@@ -4,7 +4,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { HandHelping, FileDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { HandHelping, FileDown, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import Link from "next/link";
 import { renderRichText } from "@/lib/renderRichText";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { Paywall } from "@/components/Paywall";
@@ -216,7 +217,7 @@ export default function AccountHandreikingenPage() {
                                 <p className="whitespace-pre-wrap">{renderRichText(item.content)}</p>
                               )}
                             </div>
-                            {(item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
+                            {(item.pdfUrl || (item.priceCents != null && item.priceCents > 0) || (item as any).exerciseSlug) && (
                               <div className="mt-4 flex flex-wrap items-center gap-2">
                                 {item.priceCents != null && item.priceCents > 0 && (
                                   <a
@@ -239,6 +240,16 @@ export default function AccountHandreikingenPage() {
                                     <FileDown size={16} />
                                     Download
                                   </a>
+                                )}
+                                {(item as any).exerciseSlug && (
+                                  <Link
+                                    href={`/account/handreikingen/${(item as any).exerciseSlug}`}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+                                    tabIndex={isActive ? 0 : -1}
+                                  >
+                                    <Pencil size={15} />
+                                    Begin oefening
+                                  </Link>
                                 )}
                               </div>
                             )}
