@@ -207,6 +207,7 @@ export default function GeheugenarchiefPage() {
   );
 
   const addMemory = useMutation(api.memories.addMemory);
+  const generateUploadUrl = useMutation(api.preferences.generateUploadUrl);
 
   const [screen, setScreen] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
@@ -397,7 +398,12 @@ export default function GeheugenarchiefPage() {
       const res = await fetch("/api/oefeningen/send-geheugenarchief", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers, name }),
+        body: JSON.stringify({
+          answers,
+          name,
+          photoUrl,
+          categories: Object.fromEntries(steps.map((s) => [s.stepNum, s.category])),
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -424,11 +430,30 @@ export default function GeheugenarchiefPage() {
           .filter((s) => answers[s.stepNum]?.trim())
           .map((s) => `${s.category}\n${answers[s.stepNum]}`),
       ].join("\n\n");
+
+      let imageStorageId: any;
+      if (photoUrl) {
+        try {
+          const blob = await fetch(photoUrl).then((r) => r.blob());
+          const uploadUrl = await generateUploadUrl();
+          const uploadRes = await fetch(uploadUrl, {
+            method: "POST",
+            headers: { "Content-Type": blob.type },
+            body: blob,
+          });
+          const { storageId } = await uploadRes.json();
+          imageStorageId = storageId;
+        } catch {
+          // foto upload mislukt — doorgaan zonder foto
+        }
+      }
+
       await addMemory({
         userId: session.userId as string,
         text,
         source: "manual",
         memoryDate: new Date().toISOString().slice(0, 10),
+        imageStorageId,
       });
       setSaved(true);
     } catch {}
@@ -445,13 +470,16 @@ export default function GeheugenarchiefPage() {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/\n/g, "<br/>");
+    const photoHtml = photoUrl
+      ? `<img src="${photoUrl}" alt="" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;display:block;margin-bottom:20px;" />`
+      : "";
     const html = `<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="utf-8">
 <title>${name ? `Portret van ${name}` : "Portret van..."}</title>
 <style>
-  body { font-family: Georgia, serif; max-width: 600px; margin: 48px auto; color: #2d3748; line-height: 1.8; }
+  body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 48px auto; color: #2d3748; line-height: 1.8; }
   h1 { font-size: 26px; font-weight: normal; color: #1a202c; margin: 0 0 6px; }
   .meta { font-size: 13px; color: #a0aec0; margin-bottom: 48px; }
   .entry { margin-bottom: 36px; page-break-inside: avoid; }
@@ -461,6 +489,7 @@ export default function GeheugenarchiefPage() {
 </style>
 </head>
 <body>
+${photoHtml}
 <h1>${name ? `Portret van ${name}` : "Portret van..."}</h1>
 <div class="meta">Opgemaakt via Talk To Benji</div>
 ${answeredSteps

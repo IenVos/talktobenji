@@ -44,15 +44,26 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const answers: Record<number, string> = body?.answers || {};
     const name = typeof body?.name === "string" ? body.name.trim() : "";
+    const rawPhotoUrl: unknown = body?.photoUrl;
+    const photoUrl =
+      typeof rawPhotoUrl === "string" && rawPhotoUrl.startsWith("data:image/")
+        ? rawPhotoUrl
+        : null;
+    // categories passed from frontend (accounts for pet mode & dynamic names)
+    const categoriesFromClient: Record<string, string> | null =
+      body?.categories && typeof body.categories === "object" ? body.categories : null;
 
-    const entriesHtml = Object.entries(CATEGORIES)
-      .filter(([num]) => answers[Number(num)]?.trim())
+    const resolveCategory = (num: number): string =>
+      categoriesFromClient?.[String(num)] ?? CATEGORIES[num] ?? "";
+
+    const entriesHtml = Array.from({ length: 14 }, (_, i) => i + 2)
+      .filter((num) => answers[num]?.trim())
       .map(
-        ([num, cat]) => `
+        (num) => `
         <div style="margin-bottom: 28px;">
-          <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #a0aec0; margin: 0 0 6px 0;">${cat}</p>
+          <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #a0aec0; margin: 0 0 6px 0;">${resolveCategory(num)}</p>
           <div style="border-left: 3px solid #c7d4f0; padding: 10px 16px; background: #f7f9ff; border-radius: 0 6px 6px 0;">
-            <p style="font-size: 14px; line-height: 1.8; color: #2d3748; margin: 0;">${escapeHtml(answers[Number(num)])}</p>
+            <p style="font-size: 14px; line-height: 1.8; color: #2d3748; margin: 0;">${escapeHtml(answers[num])}</p>
           </div>
         </div>`
       )
@@ -62,9 +73,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Geen antwoorden gevonden" }, { status: 400 });
     }
 
+    const photoHtml = photoUrl
+      ? `<div style="margin-bottom: 20px;"><img src="${photoUrl}" alt="" width="72" height="72" style="width:72px;height:72px;border-radius:50%;object-fit:cover;display:block;" /></div>`
+      : "";
+
     const html = `
       <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 16px; color: #2d3748;">
         <img src="${appUrl}/images/benji-logo-2.png" alt="Benji" width="36" height="36" style="display: block; margin-bottom: 24px;" />
+        ${photoHtml}
         <h1 style="font-size: 22px; font-weight: 500; color: #1a202c; margin: 0 0 4px 0;">${name ? `Portret van ${name}` : "Portret van..."}</h1>
         <p style="font-size: 13px; color: #718096; margin: 0 0 36px 0;">Opgemaakt via Talk To Benji</p>
         ${entriesHtml}

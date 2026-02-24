@@ -453,18 +453,17 @@ export default function HerinneringenPage() {
                   <Eye size={14} />
                 </div>
 
-                {/* Afbeelding – volledig zichtbaar */}
-                {memory.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={memory.imageUrl}
-                    alt=""
-                    className="w-full h-auto max-h-64 object-contain bg-gray-50"
-                  />
-                )}
-
                 {/* Content */}
-                <div className="p-4">
+                <div className="p-4 flex items-start gap-3">
+                  {memory.imageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={memory.imageUrl}
+                      alt=""
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-100"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
                   <p className="text-sm text-gray-900 whitespace-pre-wrap line-clamp-3">{memory.text}</p>
 
                   <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-gray-500">
@@ -483,6 +482,7 @@ export default function HerinneringenPage() {
                       </span>
                     )}
                     <span className="ml-auto">{formatDate(memory.createdAt)}</span>
+                  </div>
                   </div>
                 </div>
               </button>
