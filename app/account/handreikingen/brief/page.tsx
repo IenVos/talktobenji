@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Download, Mail, Check, Pencil } from "lucide-react";
+import { ArrowLeft, ArrowRight, Download, Mail, Check, Pencil, X } from "lucide-react";
 import { Paywall } from "@/components/Paywall";
 
 const STEPS = [
@@ -56,6 +56,8 @@ const STEPS = [
   },
 ];
 
+const TOTAL = STEPS.length;
+
 export default function BriefOefeningPage() {
   const { data: session } = useSession();
 
@@ -77,33 +79,31 @@ export default function BriefOefeningPage() {
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState("");
 
+  // Vergrendel body-scroll tijdens focusmodus (stappen 1–6)
+  useEffect(() => {
+    if (screen >= 1 && screen <= TOTAL) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [screen]);
+
   const currentStep = STEPS[screen - 1];
-  const totalSteps = STEPS.length;
-
-  const progressPct = screen === 0 ? 0 : screen >= totalSteps + 1 ? 100 : Math.round((screen / totalSteps) * 100);
-
   const canNext =
     screen === 0 ||
-    screen > totalSteps ||
+    screen > TOTAL ||
     (answers[screen] !== undefined && answers[screen].trim().length > 0);
 
-  const assembleLetter = () => {
-    const parts = [
-      answers[2], // aanhef
-      answers[3], // wat je mist
-      answers[4], // onafgemaakt
-      answers[5], // wat je meedraagt
-      answers[6], // afsluiting
-    ].filter(Boolean);
-    return parts.join("\n\n");
-  };
+  const assembleLetter = () =>
+    [answers[2], answers[3], answers[4], answers[5], answers[6]]
+      .filter(Boolean)
+      .join("\n\n");
 
   const addressee = answers[1] || "";
   const letterBody = assembleLetter();
-  const fullLetterText = `${addressee ? `Aan: ${addressee}\n\n` : ""}${letterBody}`;
 
   const handleDownload = () => {
-    const blob = new Blob([fullLetterText], { type: "text/plain;charset=utf-8" });
+    const text = `${addressee ? `Aan: ${addressee}\n\n` : ""}${letterBody}`;
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -135,29 +135,30 @@ export default function BriefOefeningPage() {
     }
   };
 
-  // --- Schermen ---
-
-  // Introscherm
+  // ─── Introscherm ────────────────────────────────────────────────────────────
   const introScreen = (
-    <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-8 max-w-lg mx-auto text-center">
-      <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-6">
-        <Pencil size={26} className="text-primary-600" />
+    <div className="bg-white rounded-2xl border border-primary-100 shadow-sm p-8 max-w-lg mx-auto text-center">
+      <div className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-6">
+        <Pencil size={24} className="text-primary-500" />
       </div>
-      <h1 className="text-2xl font-bold text-primary-900 mb-3">De onafgemaakte brief</h1>
-      <p className="text-gray-600 leading-relaxed mb-2">
-        Er zijn dingen die we nooit hebben kunnen zeggen. Woorden die bleven hangen.
-        Dit is je kans om ze alsnog een plek te geven.
+      <h1 className="text-2xl font-semibold text-primary-900 mb-3">
+        De onafgemaakte brief
+      </h1>
+      <p className="text-gray-500 leading-relaxed mb-2">
+        Er zijn dingen die we nooit hebben kunnen zeggen. Woorden die bleven
+        hangen. Dit is je kans om ze alsnog een plek te geven.
       </p>
-      <p className="text-gray-600 leading-relaxed mb-6">
-        In zes stappen schrijf je een brief aan degene die je mist. Er is geen goed of fout.
+      <p className="text-gray-500 leading-relaxed mb-6">
+        In zes stappen schrijf je een brief aan degene die je mist. Er is geen
+        goed of fout.
       </p>
-      <p className="text-sm text-gray-400 mb-8">
-        ~20–30 minuten · je kunt altijd stoppen en later verdergaan
+      <p className="text-sm text-gray-300 mb-8">
+        ~20–30 minuten · je kunt altijd stoppen
       </p>
       <button
         type="button"
         onClick={() => setScreen(1)}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white rounded-xl text-base font-medium hover:bg-primary-700 transition-colors"
+        className="inline-flex items-center gap-2 px-7 py-3 bg-primary-600 text-white rounded-xl text-base font-medium hover:bg-primary-700 transition-colors"
       >
         Ik ben er klaar voor
         <ArrowRight size={18} />
@@ -165,104 +166,169 @@ export default function BriefOefeningPage() {
     </div>
   );
 
-  // Stap-scherm (1–6)
+  // ─── Schrijfstap (focusmodus) ────────────────────────────────────────────────
   const stepScreen = currentStep && (
-    <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-6 sm:p-8 max-w-lg mx-auto">
-      {/* Voortgangsbalk */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-xs text-gray-400">Stap {screen} van {totalSteps}</span>
-          <span className="text-xs text-gray-400">{progressPct}%</span>
-        </div>
-        <div className="h-1.5 bg-primary-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary-500 rounded-full transition-all duration-500"
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
-      </div>
-
-      <h2 className="text-lg font-semibold text-primary-900 mb-2">{currentStep.title}</h2>
-      <p className="text-sm text-gray-500 leading-relaxed mb-5">{currentStep.subtitle}</p>
-
-      {currentStep.multiline ? (
-        <textarea
-          value={answers[screen] ?? ""}
-          onChange={(e) => setAnswers((a) => ({ ...a, [screen]: e.target.value }))}
-          placeholder={currentStep.placeholder}
-          rows={7}
-          className="w-full px-4 py-3 border border-primary-200 rounded-xl text-gray-800 text-base leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent placeholder:text-gray-300"
-          autoFocus
-        />
-      ) : (
-        <input
-          type="text"
-          value={answers[screen] ?? ""}
-          onChange={(e) => setAnswers((a) => ({ ...a, [screen]: e.target.value }))}
-          placeholder={currentStep.placeholder}
-          className="w-full px-4 py-3 border border-primary-200 rounded-xl text-gray-800 text-base focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-transparent placeholder:text-gray-300"
-          autoFocus
-        />
-      )}
-
-      <div className="flex justify-between items-center mt-6">
+    // Vaste overlay — bedekt sidebar en alles eronder
+    <div
+      className="fixed inset-0 z-[60] overflow-y-auto flex flex-col"
+      style={{ backgroundColor: "#fdf9f4" }}
+    >
+      {/* Topbalk — minimaal */}
+      <div className="flex items-center justify-between px-5 pt-5 pb-2 flex-shrink-0">
         <button
           type="button"
           onClick={() => setScreen((s) => s - 1)}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-gray-500 hover:text-gray-700 text-sm transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm text-[#b0a098] hover:text-[#6d5f55] transition-colors"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={15} />
           {screen === 1 ? "Terug" : "Vorige"}
         </button>
         <button
           type="button"
-          onClick={() => setScreen((s) => s + 1)}
-          disabled={!canNext}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          onClick={() => window.history.back()}
+          className="p-1.5 rounded-lg text-[#c5b8ae] hover:text-[#6d5f55] transition-colors"
+          aria-label="Sluiten"
         >
-          {screen === totalSteps ? "Klaar" : "Volgende stap"}
-          <ArrowRight size={16} />
+          <X size={18} />
         </button>
+      </div>
+
+      {/* Schrijfveld — gecentreerd op het scherm */}
+      <div className="flex-1 flex flex-col items-center justify-center px-5 py-8">
+        <div className="w-full max-w-xl">
+          {/* Vraag */}
+          <div className="mb-7">
+            <h2
+              className="text-2xl leading-snug mb-3"
+              style={{ color: "#3d3530", fontWeight: 400 }}
+            >
+              {currentStep.title}
+            </h2>
+            <p
+              className="text-sm leading-relaxed italic"
+              style={{ color: "#a09088" }}
+            >
+              {currentStep.subtitle}
+            </p>
+          </div>
+
+          {/* Schrijfveld */}
+          {currentStep.multiline ? (
+            <textarea
+              value={answers[screen] ?? ""}
+              onChange={(e) =>
+                setAnswers((a) => ({ ...a, [screen]: e.target.value }))
+              }
+              placeholder={currentStep.placeholder}
+              rows={8}
+              autoFocus
+              className="w-full rounded-2xl px-5 py-4 text-base leading-relaxed resize-none focus:outline-none transition-colors"
+              style={{
+                backgroundColor: "#fffcf8",
+                border: "1px solid #e8dfd5",
+                color: "#3d3530",
+                caretColor: "#6d84a8",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#6d84a8")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#e8dfd5")}
+            />
+          ) : (
+            <input
+              type="text"
+              value={answers[screen] ?? ""}
+              onChange={(e) =>
+                setAnswers((a) => ({ ...a, [screen]: e.target.value }))
+              }
+              placeholder={currentStep.placeholder}
+              autoFocus
+              className="w-full rounded-2xl px-5 py-4 text-base leading-relaxed focus:outline-none transition-colors"
+              style={{
+                backgroundColor: "#fffcf8",
+                border: "1px solid #e8dfd5",
+                color: "#3d3530",
+                caretColor: "#6d84a8",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "#6d84a8")}
+              onBlur={(e) => (e.currentTarget.style.borderColor = "#e8dfd5")}
+            />
+          )}
+
+          {/* Volgende knop */}
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setScreen((s) => s + 1)}
+              disabled={!canNext}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all"
+              style={{
+                backgroundColor: canNext ? "#6d84a8" : "#d4cfc9",
+                color: "white",
+                cursor: canNext ? "pointer" : "not-allowed",
+              }}
+            >
+              {screen === TOTAL ? "Klaar" : "Volgende"}
+              <ArrowRight size={16} />
+            </button>
+          </div>
+
+          {/* Voortgangsstippen */}
+          <div className="mt-10 flex justify-center gap-2.5">
+            {STEPS.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setScreen(i + 1)}
+                className="rounded-full transition-all duration-300"
+                style={{
+                  width: i + 1 === screen ? "24px" : "8px",
+                  height: "8px",
+                  backgroundColor: i + 1 === screen ? "#6d84a8" : "#d4cec8",
+                }}
+                aria-label={`Stap ${i + 1}`}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
 
-  // Eindscherm
+  // ─── Eindscherm ──────────────────────────────────────────────────────────────
   const endScreen = (
-    <div className="max-w-lg mx-auto space-y-6">
-      <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-6 sm:p-8">
-        <p className="text-sm text-gray-400 mb-1">Je brief is klaar</p>
-        <h2 className="text-xl font-bold text-primary-900 mb-6">
+    <div className="max-w-lg mx-auto space-y-5">
+      <div className="bg-white rounded-2xl border border-primary-100 shadow-sm p-6 sm:p-8">
+        <p className="text-xs text-gray-300 mb-1 uppercase tracking-wide">
+          Je brief
+        </p>
+        <h2 className="text-xl font-semibold text-primary-900 mb-6">
           {addressee ? `Aan: ${addressee}` : "Jouw brief"}
         </h2>
-
-        {/* De brief */}
-        <div className="border-l-4 border-primary-200 pl-5 space-y-4">
+        <div className="border-l-4 border-primary-100 pl-5 space-y-4">
           {[answers[2], answers[3], answers[4], answers[5], answers[6]]
             .filter(Boolean)
             .map((para, i) => (
-              <p key={i} className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm">
+              <p
+                key={i}
+                className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm"
+              >
                 {para}
               </p>
             ))}
         </div>
       </div>
 
-      {/* Acties */}
-      <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-6 space-y-3">
-        <p className="text-sm text-gray-500 mb-4">
+      <div className="bg-white rounded-2xl border border-primary-100 shadow-sm p-6 space-y-3">
+        <p className="text-sm text-gray-400 mb-4">
           Je kunt je brief bewaren of naar jezelf sturen.
         </p>
-
         <button
           type="button"
           onClick={handleDownload}
-          className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 border border-primary-300 text-primary-700 rounded-xl text-sm font-medium hover:bg-primary-50 transition-colors"
+          className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 border border-primary-200 text-primary-700 rounded-xl text-sm font-medium hover:bg-primary-50 transition-colors"
         >
-          <Download size={17} />
+          <Download size={16} />
           Downloaden als tekstbestand
         </button>
-
         <button
           type="button"
           onClick={handleSendEmail}
@@ -271,26 +337,24 @@ export default function BriefOefeningPage() {
         >
           {sent ? (
             <>
-              <Check size={17} />
+              <Check size={16} />
               Verstuurd naar {session?.user?.email}
             </>
           ) : sending ? (
             "Versturen..."
           ) : (
             <>
-              <Mail size={17} />
+              <Mail size={16} />
               Stuur naar mijn e-mail
             </>
           )}
         </button>
-
         {sendError && (
-          <p className="text-red-500 text-xs text-center">{sendError}</p>
+          <p className="text-red-400 text-xs text-center">{sendError}</p>
         )}
       </div>
 
-      {/* Opnieuw / terug */}
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-3 pb-4">
         <button
           type="button"
           onClick={() => {
@@ -299,13 +363,13 @@ export default function BriefOefeningPage() {
             setSent(false);
             setSendError("");
           }}
-          className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-sm text-gray-300 hover:text-gray-500 transition-colors"
         >
           Opnieuw beginnen
         </button>
         <Link
           href="/account/handreikingen"
-          className="text-sm text-primary-600 hover:underline"
+          className="text-sm text-primary-500 hover:underline"
         >
           ← Terug naar handreikingen
         </Link>
@@ -313,24 +377,20 @@ export default function BriefOefeningPage() {
     </div>
   );
 
-  const mainContent = (
+  // ─── Wrapper voor intro en eindscherm ───────────────────────────────────────
+  const regularContent = (
     <div className="space-y-4">
-      {/* Terugknop (niet op eindscherm) */}
-      {screen <= totalSteps && (
-        <div className="flex items-center gap-3">
-          <Link
-            href="/account/handreikingen"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <ArrowLeft size={15} />
-            Handreikingen
-          </Link>
-        </div>
+      {screen !== TOTAL + 1 && (
+        <Link
+          href="/account/handreikingen"
+          className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <ArrowLeft size={15} />
+          Handreikingen
+        </Link>
       )}
-
       {screen === 0 && introScreen}
-      {screen >= 1 && screen <= totalSteps && stepScreen}
-      {screen > totalSteps && endScreen}
+      {screen === TOTAL + 1 && endScreen}
     </div>
   );
 
@@ -350,10 +410,17 @@ export default function BriefOefeningPage() {
         title="Upgrade naar Benji Alles in 1"
         message="De schrijfoefeningen zijn beschikbaar in Benji Alles in 1."
       >
-        {mainContent}
+        {regularContent}
       </Paywall>
     );
   }
 
-  return mainContent;
+  return (
+    <>
+      {/* Stappen — overlay (bedekt sidebar) */}
+      {screen >= 1 && screen <= TOTAL && stepScreen}
+      {/* Intro en eindscherm — gewone pagina-layout */}
+      {(screen === 0 || screen === TOTAL + 1) && regularContent}
+    </>
+  );
 }
