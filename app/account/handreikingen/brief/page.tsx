@@ -8,55 +8,56 @@ import Link from "next/link";
 import { ArrowLeft, ArrowRight, Download, Mail, Check, Pencil, X, Gem, Mic, Square } from "lucide-react";
 import { Paywall } from "@/components/Paywall";
 
-const STEPS = [
-  {
-    stepNum: 1,
-    title: "Aan wie schrijf je deze brief?",
-    subtitle: "Denk aan een naam, of gewoon hoe je hem of haar noemde.",
-    placeholder: "Bijv. mijn moeder, mijn beste vriend, opa...",
-    multiline: false,
-  },
-  {
-    stepNum: 2,
-    title: "Hoe begin je jouw brief?",
-    subtitle: "Niet wat je normaal zou schrijven, maar wat het meest voelt als jij.",
-    placeholder: "Lieve mama,\nHé jij,\nBeste opa,",
-    multiline: true,
-  },
-  {
-    stepNum: 3,
-    title: "Wat mis je het meest?",
-    subtitle:
-      "Dat kan groot zijn — maar vaak zijn het de kleine dingen die het hardst aankomen. De geur, een gewoonte, iets wat alleen jullie wisten.",
-    placeholder: "Het hoeft geen mooie zin te zijn...",
-    multiline: true,
-  },
-  {
-    stepNum: 4,
-    title: "Wat bleef er onafgemaakt?",
-    subtitle:
-      "Een gesprek dat nooit is gevoerd. Iets dat je wilde zeggen of vragen. Het hoeft niet zwaar te zijn.",
-    placeholder: "Soms is het gewoon: 'Ik wilde je nog zo veel laten zien.'",
-    multiline: true,
-  },
-  {
-    stepNum: 5,
-    title: "Wat draag je mee?",
-    subtitle:
-      "Iets van hem of haar is in jou blijven leven. Een waarde, een manier van kijken, iets wat je nooit loslaat.",
-    placeholder: "",
-    multiline: true,
-  },
-  {
-    stepNum: 6,
-    title: "Hoe sluit je af?",
-    subtitle: "Wat zijn de laatste woorden die je wil schrijven? Neem je tijd.",
-    placeholder: "",
-    multiline: true,
-  },
-];
+const TOTAL = 6;
 
-const TOTAL = STEPS.length;
+function getSteps(name: string) {
+  const n = name.trim();
+  const ref = n || "diegene";
+  return [
+    {
+      stepNum: 1,
+      title: "Deze brief schrijf ik aan...",
+      subtitle: "Schrijf de naam, of gewoon hoe je hem of haar noemde.",
+      placeholder: "Bijv. mama, opa, mijn beste vriend...",
+      multiline: false,
+    },
+    {
+      stepNum: 2,
+      title: "Hoe begin je jouw brief?",
+      subtitle: `Niet wat je normaal aan ${ref} zou schrijven, maar wat het meest voelt als jij. Het mag precies zo zijn als jullie dat hadden.`,
+      placeholder: n ? `Lieve ${n},\nHé ${n},\nBeste ${n},` : "Lieve...,\nHé jij,",
+      multiline: true,
+    },
+    {
+      stepNum: 3,
+      title: `Wat mis je het meest aan ${ref}?`,
+      subtitle: "Sluit je ogen en denk aan een gewone dag. Wanneer voel je het het sterkst? Is het een geluid, een geur, een gewoonte, iets kleins dat alleen jullie wisten?",
+      placeholder: `Ik mis de manier waarop ${ref}...`,
+      multiline: true,
+    },
+    {
+      stepNum: 4,
+      title: "Wat bleef er onafgemaakt?",
+      subtitle: `Er was iets wat je ${ref} wilde zeggen, vragen, of laten zien. Misschien iets wat je dacht dat er altijd nog tijd voor zou zijn. Je hoeft het niet op te lossen, alleen te schrijven.`,
+      placeholder: "Ik wilde je nog vertellen dat...",
+      multiline: true,
+    },
+    {
+      stepNum: 5,
+      title: `Wat draag je mee van ${ref}?`,
+      subtitle: "Wat is er in jou blijven leven? Een manier van zijn, een zin, een kracht. Iets wat je nooit loslaat.",
+      placeholder: "Wat ik van jou meedraag is...",
+      multiline: true,
+    },
+    {
+      stepNum: 6,
+      title: "Hoe sluit je af?",
+      subtitle: `Je mag afsluiten zoals je wilt. Met een belofte, een dankjewel, een laatste gedag aan ${ref}. Of gewoon met je naam. Er is geen verkeerde afsluiting.`,
+      placeholder: "Met liefde,",
+      multiline: true,
+    },
+  ];
+}
 
 export default function BriefOefeningPage() {
   const { data: session } = useSession();
@@ -85,6 +86,8 @@ export default function BriefOefeningPage() {
   // Microfoon
   const recognitionRef = useRef<any>(null);
   const textBeforeRecordingRef = useRef("");
+  const finalTranscriptRef = useRef("");
+  const isRecordingRef = useRef(false);
   const screenRef = useRef(screen);
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
@@ -95,22 +98,43 @@ export default function BriefOefeningPage() {
     if (SpeechRecognitionAPI) {
       setSpeechSupported(true);
       const recognition = new SpeechRecognitionAPI();
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "nl-NL";
       recognition.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((r: any) => r[0].transcript)
-          .join("");
+        let newFinal = "";
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            newFinal += event.results[i][0].transcript;
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+        if (newFinal) finalTranscriptRef.current += newFinal;
         const prefix = textBeforeRecordingRef.current;
+        const combined = finalTranscriptRef.current + interim;
+        const spacer = prefix && combined && !prefix.endsWith(" ") ? " " : "";
         setAnswers((a) => ({
           ...a,
-          [screenRef.current]:
-            prefix + (prefix && !prefix.endsWith(" ") ? " " : "") + transcript,
+          [screenRef.current]: prefix + spacer + combined,
         }));
       };
-      recognition.onend = () => setIsRecording(false);
-      recognition.onerror = () => setIsRecording(false);
+      recognition.onend = () => {
+        // Auto-restart als gebruiker nog wil inspreken
+        if (isRecordingRef.current) {
+          try { recognition.start(); } catch {}
+        } else {
+          setIsRecording(false);
+        }
+      };
+      recognition.onerror = (event: any) => {
+        // Bij 'no-speech' gewoon doorgaan; bij andere fouten stoppen
+        if (event.error !== "no-speech") {
+          isRecordingRef.current = false;
+          setIsRecording(false);
+        }
+      };
       recognitionRef.current = recognition;
     }
   }, []);
@@ -118,6 +142,7 @@ export default function BriefOefeningPage() {
   // Stop opname + update ref bij stap-wissel
   useEffect(() => {
     screenRef.current = screen;
+    isRecordingRef.current = false;
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch {}
     }
@@ -135,16 +160,23 @@ export default function BriefOefeningPage() {
   const toggleRecording = () => {
     if (!recognitionRef.current) return;
     if (isRecording) {
+      isRecordingRef.current = false;
       recognitionRef.current.stop();
       setIsRecording(false);
     } else {
       textBeforeRecordingRef.current = answers[screen] || "";
-      recognitionRef.current.start();
+      finalTranscriptRef.current = "";
+      isRecordingRef.current = true;
+      try {
+        recognitionRef.current.start();
+      } catch {}
       setIsRecording(true);
     }
   };
 
-  const currentStep = STEPS[screen - 1];
+  const addressee = answers[1] || "";
+  const steps = getSteps(addressee);
+  const currentStep = steps[screen - 1];
   const canNext =
     screen === 0 ||
     screen > TOTAL ||
@@ -154,8 +186,6 @@ export default function BriefOefeningPage() {
     [answers[2], answers[3], answers[4], answers[5], answers[6]]
       .filter(Boolean)
       .join("\n\n");
-
-  const addressee = answers[1] || "";
   const letterBody = assembleLetter();
 
   const handleDownload = () => {
@@ -253,16 +283,25 @@ export default function BriefOefeningPage() {
         <button
           type="button"
           onClick={() => setScreen((s) => s - 1)}
-          className="inline-flex items-center gap-1.5 text-sm transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm transition-colors flex-shrink-0"
           style={{ color: "#b0a098" }}
         >
           <ArrowLeft size={15} />
           {screen === 1 ? "Terug" : "Vorige"}
         </button>
+        {/* Naam in topbalk */}
+        {screen > 1 && addressee && (
+          <span
+            className="text-sm text-center truncate mx-3 max-w-[160px] sm:max-w-xs"
+            style={{ color: "#a09088" }}
+          >
+            Brief aan {addressee}
+          </span>
+        )}
         <button
           type="button"
           onClick={() => window.history.back()}
-          className="p-1.5 rounded-lg transition-colors"
+          className="p-1.5 rounded-lg transition-colors flex-shrink-0"
           style={{ color: "#c5b8ae" }}
           aria-label="Sluiten"
         >
@@ -276,18 +315,38 @@ export default function BriefOefeningPage() {
           <div className="w-full max-w-xl">
             {/* Vraag */}
             <div className="mb-6">
-              <h2
-                className="text-xl sm:text-2xl leading-snug mb-3 max-w-prose"
-                style={{ color: "#3d3530", fontWeight: 400 }}
-              >
-                {currentStep.title}
-              </h2>
-              <p
-                className="text-sm leading-relaxed italic max-w-prose"
-                style={{ color: "#a09088" }}
-              >
-                {currentStep.subtitle}
-              </p>
+              {screen === 1 ? (
+                /* Stap 1: zin-aanvulstijl */
+                <div className="mb-3">
+                  <p
+                    className="text-xl sm:text-2xl leading-snug mb-1"
+                    style={{ color: "#3d3530", fontWeight: 400 }}
+                  >
+                    Deze brief schrijf ik aan...
+                  </p>
+                  <p
+                    className="text-sm leading-relaxed italic"
+                    style={{ color: "#a09088" }}
+                  >
+                    {currentStep.subtitle}
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <h2
+                    className="text-xl sm:text-2xl leading-snug mb-3 max-w-prose"
+                    style={{ color: "#3d3530", fontWeight: 400 }}
+                  >
+                    {currentStep.title}
+                  </h2>
+                  <p
+                    className="text-sm leading-relaxed italic max-w-prose"
+                    style={{ color: "#a09088" }}
+                  >
+                    {currentStep.subtitle}
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Schrijfveld */}
@@ -377,14 +436,14 @@ export default function BriefOefeningPage() {
                   cursor: canNext ? "pointer" : "not-allowed",
                 }}
               >
-                {screen === TOTAL ? "Klaar" : "Volgende"}
+                {screen === TOTAL ? "Klaar" : "Ga verder"}
                 <ArrowRight size={15} />
               </button>
             </div>
 
             {/* Voortgangsstippen */}
             <div className="mt-8 flex justify-center gap-2.5">
-              {STEPS.map((_, i) => (
+              {Array.from({ length: TOTAL }, (_, i) => (
                 <button
                   key={i}
                   type="button"
