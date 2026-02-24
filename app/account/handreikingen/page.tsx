@@ -248,7 +248,7 @@ export default function AccountHandreikingenPage() {
                                     tabIndex={isActive ? 0 : -1}
                                   >
                                     <Pencil size={15} />
-                                    Begin oefening
+                                    {(item as any).exerciseButtonLabel || "Begin oefening"}
                                   </Link>
                                 )}
                               </div>

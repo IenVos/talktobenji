@@ -101,6 +101,7 @@ export const create = mutation({
     publishFrom: v.optional(v.number()),
     priceCents: v.optional(v.number()),
     exerciseSlug: v.optional(v.string()),
+    exerciseButtonLabel: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -114,6 +115,7 @@ export const create = mutation({
       publishFrom: args.publishFrom,
       priceCents: args.priceCents,
       exerciseSlug: args.exerciseSlug,
+      exerciseButtonLabel: args.exerciseButtonLabel,
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -134,6 +136,7 @@ export const update = mutation({
     publishFrom: v.optional(v.union(v.number(), v.null())),
     priceCents: v.optional(v.union(v.number(), v.null())),
     exerciseSlug: v.optional(v.union(v.string(), v.null())),
+    exerciseButtonLabel: v.optional(v.union(v.string(), v.null())),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -147,6 +150,7 @@ export const update = mutation({
     if ("priceCents" in updates && updates.priceCents === null) patch.priceCents = undefined;
     if ("publishFrom" in updates && updates.publishFrom === null) patch.publishFrom = undefined;
     if ("exerciseSlug" in updates && updates.exerciseSlug === null) patch.exerciseSlug = undefined;
+    if ("exerciseButtonLabel" in updates && updates.exerciseButtonLabel === null) patch.exerciseButtonLabel = undefined;
     await ctx.db.patch(id, patch);
     return id;
   },

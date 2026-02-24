@@ -343,6 +343,8 @@ export default defineSchema({
     priceCents: v.optional(v.union(v.number(), v.null())),
     // Oefening slug: koppelt kaart aan geleide oefening (bijv. "brief")
     exerciseSlug: v.optional(v.string()),
+    // Knoptekst voor de oefening-knop (standaard "Begin oefening")
+    exerciseButtonLabel: v.optional(v.string()),
   })
     .index("by_active_order", ["isActive", "order"]),
 

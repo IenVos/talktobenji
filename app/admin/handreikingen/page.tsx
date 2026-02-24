@@ -27,6 +27,7 @@ export default function AdminHandreikingenPage() {
     publishFromDate: "",
     priceEuro: "",
     exerciseSlug: "",
+    exerciseButtonLabel: "",
   });
   const [extractingCover, setExtractingCover] = useState(false);
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
@@ -75,6 +76,7 @@ export default function AdminHandreikingenPage() {
       publishFromDate: "",
       priceEuro: "",
       exerciseSlug: "",
+      exerciseButtonLabel: "",
     });
     setEditingId(null);
     setEditingImageUrl(null);
@@ -114,6 +116,7 @@ export default function AdminHandreikingenPage() {
             return !Number.isNaN(n) && n > 0 ? Math.round(n * 100) : undefined;
           })(),
           exerciseSlug: form.exerciseSlug.trim() || undefined,
+          exerciseButtonLabel: form.exerciseButtonLabel.trim() || undefined,
         });
         resetForm();
       } finally {
@@ -142,6 +145,7 @@ export default function AdminHandreikingenPage() {
             return !Number.isNaN(n) && n > 0 ? Math.round(n * 100) : undefined;
           })(),
           exerciseSlug: form.exerciseSlug.trim() || undefined,
+          exerciseButtonLabel: form.exerciseButtonLabel.trim() || undefined,
         });
         resetForm();
       } finally {
@@ -167,6 +171,7 @@ export default function AdminHandreikingenPage() {
           return !Number.isNaN(n) && n > 0 ? Math.round(n * 100) : null;
         })(),
         exerciseSlug: form.exerciseSlug.trim() || null,
+        exerciseButtonLabel: form.exerciseButtonLabel.trim() || null,
       };
       if (isPdf && form.pdfFile) {
         const url = await generateUploadUrl();
@@ -212,6 +217,7 @@ export default function AdminHandreikingenPage() {
       publishFromDate: item.publishFrom ? new Date(item.publishFrom).toISOString().slice(0, 16) : "",
       priceEuro: item.priceCents ? (item.priceCents / 100).toString() : "",
       exerciseSlug: (item as any).exerciseSlug ?? "",
+      exerciseButtonLabel: (item as any).exerciseButtonLabel ?? "",
     });
     setEditingImageUrl(item.imageUrl ?? null);
     setEditingId(item._id);
@@ -363,16 +369,28 @@ export default function AdminHandreikingenPage() {
                 <p className="text-xs text-gray-400">
                   Link toevoegen: <code className="bg-gray-100 px-1 rounded">[link tekst](https://url.com)</code>
                 </p>
-                <div>
-                  <label className="block text-xs text-gray-600 mb-0.5">Oefening koppelen (slug) — leeg = geen oefening-knop</label>
-                  <input
-                    type="text"
-                    placeholder="bv. brief"
-                    value={form.exerciseSlug}
-                    onChange={(e) => setForm((f) => ({ ...f, exerciseSlug: e.target.value }))}
-                    className="w-40 px-3 py-2 border border-primary-200 rounded-lg text-sm"
-                  />
-                  <p className="text-xs text-gray-400 mt-0.5">Beschikbare oefeningen: <code className="bg-gray-100 px-1 rounded">brief</code></p>
+                <div className="flex gap-3 flex-wrap items-end">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-0.5">Oefening koppelen (slug) — leeg = geen knop</label>
+                    <input
+                      type="text"
+                      placeholder="bv. brief"
+                      value={form.exerciseSlug}
+                      onChange={(e) => setForm((f) => ({ ...f, exerciseSlug: e.target.value }))}
+                      className="w-36 px-3 py-2 border border-primary-200 rounded-lg text-sm"
+                    />
+                    <p className="text-xs text-gray-400 mt-0.5">Beschikbaar: <code className="bg-gray-100 px-1 rounded">brief</code></p>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-0.5">Knoptekst (standaard: &quot;Begin oefening&quot;)</label>
+                    <input
+                      type="text"
+                      placeholder="Begin oefening"
+                      value={form.exerciseButtonLabel}
+                      onChange={(e) => setForm((f) => ({ ...f, exerciseButtonLabel: e.target.value }))}
+                      className="w-52 px-3 py-2 border border-primary-200 rounded-lg text-sm"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Afbeelding (optioneel)</label>
