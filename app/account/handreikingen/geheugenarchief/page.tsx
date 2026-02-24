@@ -92,8 +92,9 @@ function getSteps(name: string, isPet = false): StepDef[] {
       stepNum: 6,
       category: "De kleine gewoontes",
       title: `Wat deed ${ref} altijd, bijna zonder het te weten?`,
-      subtitle:
-        `Iedereen heeft kleine gewoontes die niemand anders opvallen, maar jij wel. Hoe liep ${ref} de kamer in? Wat deed ${ref} als die nadacht?`,
+      subtitle: isPet
+        ? `Ieder dier heeft gewoontes die alleen jij opmerkte. Waar sliep ${ref} het liefst? Hoe vroeg ${ref} om aandacht? Wat deed ${ref} altijd op precies hetzelfde moment?`
+        : `Iedereen heeft kleine gewoontes die niemand anders opvallen, maar jij wel. Hoe liep ${ref} de kamer in? Wat deed ${ref} als die nadacht?`,
       placeholder: "",
       multiline: true,
     },
@@ -111,10 +112,11 @@ function getSteps(name: string, isPet = false): StepDef[] {
     },
     {
       stepNum: 8,
-      category: "Waar ${ref} van hield",
+      category: `Waar ${ref} van hield`,
       title: `Wat bracht ${ref} echt tot leven?`,
-      subtitle:
-        `Niet wat ${ref} 'leuk vond', maar waar die ogen van gingen stralen. Wat kon ${ref} uren over praten?`,
+      subtitle: isPet
+        ? `Niet wat ${ref} 'leuk vond', maar wat echte vreugde bracht. Waar kon ${ref} niet van wegblijven? Wat zorgde voor die herkenbare energie?`
+        : `Niet wat ${ref} 'leuk vond', maar waar die ogen van gingen stralen. Wat kon ${ref} uren over praten?`,
       placeholder: "",
       multiline: true,
     },
@@ -122,8 +124,9 @@ function getSteps(name: string, isPet = false): StepDef[] {
       stepNum: 9,
       category: "Wat dwarszat",
       title: `Wat kon ${ref} echt niet hebben?`,
-      subtitle:
-        `Iets kleins of iets groots. Waar werd ${ref} onrustig of geïrriteerd van? Dit hoort ook bij wie iemand was.`,
+      subtitle: isPet
+        ? `Wat maakte ${ref} angstig, onrustig of prikkelbaar? Een geluid, een situatie, iets wat niemand anders opviel maar jij altijd zag aankomen.`
+        : `Iets kleins of iets groots. Waar werd ${ref} onrustig of geïrriteerd van? Dit hoort ook bij wie iemand was.`,
       placeholder: "",
       multiline: true,
     },
@@ -138,10 +141,11 @@ function getSteps(name: string, isPet = false): StepDef[] {
     },
     {
       stepNum: 11,
-      category: "Iets wat mensen niet wisten",
+      category: "Iets wat anderen niet zagen",
       title: `Is er iets aan ${ref} wat de meeste mensen niet wisten, maar jij wel?`,
-      subtitle:
-        `Een kant die ${ref} niet snel liet zien. Iets zachts, grappigs, kwetsbaars, verrassends.`,
+      subtitle: isPet
+        ? `Een eigenaardigheid, een gewoonte, iets grappigs of aandoenlijks dat alleen jij zag. Iets wat van ${ref} was en van niemand anders.`
+        : `Een kant die ${ref} niet snel liet zien. Iets zachts, grappigs, kwetsbaars, verrassends.`,
       placeholder: "",
       multiline: true,
     },
@@ -170,8 +174,9 @@ function getSteps(name: string, isPet = false): StepDef[] {
       stepNum: 14,
       category: "Wat is meegegeven",
       title: `${ref} heeft iets in jou achtergelaten. Wat is dat voor jou?`,
-      subtitle:
-        `Een waarde, een manier van kijken, een gewoonte die van ${ref} is overgenomen. Iets wat je draagt zonder het altijd te beseffen.`,
+      subtitle: isPet
+        ? `Wat heeft het leven met ${ref} jou geleerd? Een manier van genieten, van trouw zijn, van gewoon aanwezig zijn. Iets wat in jou is blijven leven.`
+        : `Een waarde, een manier van kijken, een gewoonte die van ${ref} is overgenomen. Iets wat je draagt zonder het altijd te beseffen.`,
       placeholder: "",
       multiline: true,
     },
