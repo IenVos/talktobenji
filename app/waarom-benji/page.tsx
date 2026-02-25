@@ -102,7 +102,7 @@ export default function WaaromBenjiPage() {
           </p>
 
           <p>
-            Er volgde een troostwoordenboekje, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen.
+            Er volgde een <Link href="/account/onderweg?title=Troostende+woorden" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">troostwoordenboekje</Link>, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen.
           </p>
 
           <p>

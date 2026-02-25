@@ -26,9 +26,20 @@ function OnderwegContent() {
 
   const items = useQuery(api.onderweg.listActiveWithUrls, {});
 
+  const titleParam = searchParams?.get("title") ?? null;
   const initialIndex = Math.min(Number(searchParams?.get("index") ?? 0), (items?.length ?? 1) - 1);
   const [lightboxImage, setLightboxImage] = useState<{ url: string; alt: string } | null>(null);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+
+  // Navigeer naar kaart op basis van ?title= param zodra items geladen zijn
+  useEffect(() => {
+    if (!titleParam || !items || items.length === 0) return;
+    const needle = titleParam.toLowerCase();
+    const idx = items.findIndex(
+      (item) => item.title?.toLowerCase().includes(needle) || needle.includes(item.title?.toLowerCase() ?? "____")
+    );
+    if (idx >= 0) setActiveIndex(idx);
+  }, [titleParam, items]);
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
