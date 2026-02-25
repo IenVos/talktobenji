@@ -209,7 +209,7 @@ export default function AccountInspiratiePage() {
                       <article
                         ref={(el) => { articleRefs.current[index] = el; }}
                         className={`rounded-xl overflow-hidden flex flex-col${!item.imageUrl ? " bg-white border border-primary-100 shadow-sm" : ""}`}
-                        style={{ minHeight: maxCardHeight > 0 ? `${maxCardHeight}px` : undefined }}
+                        style={{ minHeight: maxCardHeight > 0 && item.imageUrl ? `${maxCardHeight}px` : undefined }}
                       >
                         {item.imageUrl && (
                           <button
@@ -236,7 +236,7 @@ export default function AccountInspiratiePage() {
                               <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
                             )}
                             <div className="flex-1 text-sm text-gray-600 leading-relaxed">
-                              {item.content && (
+                              {item.content && item.content.trim() !== item.title?.trim() && (
                                 <p className="whitespace-pre-wrap">{renderRichText(item.content)}</p>
                               )}
                             </div>

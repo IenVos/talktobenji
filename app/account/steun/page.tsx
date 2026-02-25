@@ -18,7 +18,7 @@ const FEEDBACK_TYPES = [
 ];
 
 // Mini-carousel constants (smaller than handreikingen)
-const CARD_PCT = 60;
+const CARD_PCT = 50;
 const SIDE_PCT = (100 - CARD_PCT) / 2;
 const GAP_PX = 12;
 
@@ -496,7 +496,7 @@ export default function AccountSteunPage() {
                         onClick={() => { if (!isActive && isVisible) goToOnderwegItem(index); }}
                       >
                         <article className="rounded-lg bg-white border border-primary-100 overflow-hidden hover:border-primary-200 transition-colors flex flex-col">
-                          <Link href="/account/onderweg" className="flex flex-col">
+                          <Link href={`/account/onderweg?title=${encodeURIComponent(item.title || "")}`} className="flex flex-col">
                             {item.imageUrl && (
                               <div className="h-32 overflow-hidden flex items-center justify-center bg-white p-2">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -522,13 +522,13 @@ export default function AccountSteunPage() {
                             )}
                           </Link>
                           {item.paymentUrl && (
-                            <div className="px-3 pb-3 pt-1">
+                            <div className="px-3 pb-3 pt-1 flex justify-center">
                               <a
                                 href={item.paymentUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-1.5 bg-primary-600 text-white rounded-lg text-xs font-medium hover:bg-primary-700 transition-colors"
+                                className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-primary-600 text-white rounded-lg text-xs font-medium hover:bg-primary-700 transition-colors"
                               >
                                 {(item as any).buttonLabel || "Bestellen"}
                               </a>
