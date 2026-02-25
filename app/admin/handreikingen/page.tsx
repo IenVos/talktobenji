@@ -4,7 +4,35 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { HandHelping, Plus, Edit, Trash2, Save, X, FileText } from "lucide-react";
+import {
+  HandHelping, Plus, Edit, Trash2, Save, X, FileText,
+  Pencil, Waves, BookOpen, Heart, Leaf, Sun, Feather, Star,
+  Anchor, Wind, Sparkles, Flame, Music, Compass, Cloud, MessageCircle,
+  Flower2, Coffee, Umbrella, Bird,
+} from "lucide-react";
+
+const ICON_OPTIONS = [
+  { name: "pencil",        label: "Pen",       Icon: Pencil },
+  { name: "waves",         label: "Golven",    Icon: Waves },
+  { name: "bookOpen",      label: "Boek",      Icon: BookOpen },
+  { name: "heart",         label: "Hart",      Icon: Heart },
+  { name: "leaf",          label: "Blad",      Icon: Leaf },
+  { name: "sun",           label: "Zon",       Icon: Sun },
+  { name: "feather",       label: "Veer",      Icon: Feather },
+  { name: "star",          label: "Ster",      Icon: Star },
+  { name: "anchor",        label: "Anker",     Icon: Anchor },
+  { name: "wind",          label: "Wind",      Icon: Wind },
+  { name: "sparkles",      label: "Vonken",    Icon: Sparkles },
+  { name: "flame",         label: "Vlam",      Icon: Flame },
+  { name: "music",         label: "Muziek",    Icon: Music },
+  { name: "compass",       label: "Kompas",    Icon: Compass },
+  { name: "cloud",         label: "Wolk",      Icon: Cloud },
+  { name: "messageCircle", label: "Gesprek",   Icon: MessageCircle },
+  { name: "flower2",       label: "Bloem",     Icon: Flower2 },
+  { name: "coffee",        label: "Koffie",    Icon: Coffee },
+  { name: "umbrella",      label: "Paraplu",   Icon: Umbrella },
+  { name: "bird",          label: "Vogel",     Icon: Bird },
+];
 import { extractPdfCoverAsBlob } from "@/lib/extractPdfCover";
 
 export default function AdminHandreikingenPage() {
@@ -28,6 +56,7 @@ export default function AdminHandreikingenPage() {
     priceEuro: "",
     exerciseSlug: "",
     exerciseButtonLabel: "",
+    icon: "",
   });
   const [extractingCover, setExtractingCover] = useState(false);
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
@@ -77,6 +106,7 @@ export default function AdminHandreikingenPage() {
       priceEuro: "",
       exerciseSlug: "",
       exerciseButtonLabel: "",
+      icon: "",
     });
     setEditingId(null);
     setEditingImageUrl(null);
@@ -117,6 +147,7 @@ export default function AdminHandreikingenPage() {
           })(),
           exerciseSlug: form.exerciseSlug.trim() || undefined,
           exerciseButtonLabel: form.exerciseButtonLabel.trim() || undefined,
+          icon: form.icon || undefined,
         });
         resetForm();
       } finally {
@@ -146,6 +177,7 @@ export default function AdminHandreikingenPage() {
           })(),
           exerciseSlug: form.exerciseSlug.trim() || undefined,
           exerciseButtonLabel: form.exerciseButtonLabel.trim() || undefined,
+          icon: form.icon || undefined,
         });
         resetForm();
       } finally {
@@ -172,6 +204,7 @@ export default function AdminHandreikingenPage() {
         })(),
         exerciseSlug: form.exerciseSlug.trim() || null,
         exerciseButtonLabel: form.exerciseButtonLabel.trim() || null,
+        icon: form.icon || null,
       };
       if (isPdf && form.pdfFile) {
         const url = await generateUploadUrl();
@@ -218,6 +251,7 @@ export default function AdminHandreikingenPage() {
       priceEuro: item.priceCents ? (item.priceCents / 100).toString() : "",
       exerciseSlug: (item as any).exerciseSlug ?? "",
       exerciseButtonLabel: (item as any).exerciseButtonLabel ?? "",
+      icon: (item as any).icon ?? "",
     });
     setEditingImageUrl(item.imageUrl ?? null);
     setEditingId(item._id);
@@ -379,7 +413,7 @@ export default function AdminHandreikingenPage() {
                       onChange={(e) => setForm((f) => ({ ...f, exerciseSlug: e.target.value }))}
                       className="w-36 px-3 py-2 border border-primary-200 rounded-lg text-sm"
                     />
-                    <p className="text-xs text-gray-400 mt-0.5">Beschikbaar: <code className="bg-gray-100 px-1 rounded">brief</code></p>
+                    <p className="text-xs text-gray-400 mt-0.5">Beschikbaar: <code className="bg-gray-100 px-1 rounded">brief</code> <code className="bg-gray-100 px-1 rounded">geheugenarchief</code> <code className="bg-gray-100 px-1 rounded">golven</code></p>
                   </div>
                   <div>
                     <label className="block text-xs text-gray-600 mb-0.5">Knoptekst (standaard: &quot;Begin oefening&quot;)</label>
@@ -390,6 +424,29 @@ export default function AdminHandreikingenPage() {
                       onChange={(e) => setForm((f) => ({ ...f, exerciseButtonLabel: e.target.value }))}
                       className="w-52 px-3 py-2 border border-primary-200 rounded-lg text-sm"
                     />
+                  </div>
+                </div>
+                {/* Icon picker */}
+                <div>
+                  <label className="block text-xs text-gray-600 mb-2">Icoontje voor de kaart (optioneel)</label>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, icon: "" }))}
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-xs transition-colors ${form.icon === "" ? "bg-primary-100 border-primary-400 text-primary-800 font-medium" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+                    >
+                      <X size={13} /> Geen
+                    </button>
+                    {ICON_OPTIONS.map(({ name, label, Icon: IconComp }) => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, icon: name }))}
+                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-xs transition-colors ${form.icon === name ? "bg-primary-100 border-primary-400 text-primary-800 font-medium" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+                      >
+                        <IconComp size={13} /> {label}
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div>

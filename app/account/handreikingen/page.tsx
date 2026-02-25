@@ -4,12 +4,47 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { HandHelping, FileDown, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
+import {
+  HandHelping, FileDown, ChevronLeft, ChevronRight, Pencil,
+  Waves, BookOpen, Heart, Leaf, Sun, Feather, Star,
+  Anchor, Wind, Sparkles, Flame, Music, Compass, Cloud, MessageCircle,
+  Flower2, Coffee, Umbrella, Bird, type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { renderRichText } from "@/lib/renderRichText";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { Paywall } from "@/components/Paywall";
 import { ComingSoonSection } from "@/components/ComingSoonSection";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  pencil: Pencil,
+  waves: Waves,
+  bookOpen: BookOpen,
+  heart: Heart,
+  leaf: Leaf,
+  sun: Sun,
+  feather: Feather,
+  star: Star,
+  anchor: Anchor,
+  wind: Wind,
+  sparkles: Sparkles,
+  flame: Flame,
+  music: Music,
+  compass: Compass,
+  cloud: Cloud,
+  messageCircle: MessageCircle,
+  flower2: Flower2,
+  coffee: Coffee,
+  umbrella: Umbrella,
+  bird: Bird,
+};
+
+function CardIcon({ name }: { name?: string }) {
+  if (!name) return null;
+  const Icon = ICON_MAP[name];
+  if (!Icon) return null;
+  return <Icon size={32} className="text-primary-400" />;
+}
 
 const CARD_PCT = 75;
 const SIDE_PCT = (100 - CARD_PCT) / 2; // 12.5%
@@ -209,6 +244,11 @@ export default function AccountHandreikingenPage() {
                         )}
                         {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0) || (item as any).exerciseSlug) && (
                           <div className="p-5 flex-1 flex flex-col bg-white">
+                            {!item.imageUrl && (item as any).icon && (
+                              <div className="mb-3">
+                                <CardIcon name={(item as any).icon} />
+                              </div>
+                            )}
                             {item.title && (
                               <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
                             )}
