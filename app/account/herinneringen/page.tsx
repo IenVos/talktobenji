@@ -34,7 +34,7 @@ type Memory = {
   imageUrl?: string;
   emotion?: string;
   memoryDate?: string;
-  source: "manual" | "chat" | "handreikingen" | "inspiratie";
+  source?: "manual" | "chat" | "handreikingen" | "inspiratie";
   title?: string;
   createdAt: number;
 };

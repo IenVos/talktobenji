@@ -378,7 +378,7 @@ export default defineSchema({
     imageStorageId: v.optional(v.id("_storage")),
     emotion: v.optional(v.string()),
     memoryDate: v.optional(v.string()), // YYYY-MM-DD
-    source: v.union(v.literal("manual"), v.literal("chat"), v.literal("handreikingen"), v.literal("inspiratie")),
+    source: v.optional(v.union(v.literal("manual"), v.literal("chat"), v.literal("handreikingen"), v.literal("inspiratie"))),
     // Optionele kaarttitel (voor handreikingen en inspiratie)
     title: v.optional(v.string()),
     createdAt: v.number(),
