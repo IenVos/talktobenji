@@ -24,6 +24,7 @@ export default function AdminOnderwegPage() {
     publishFromDate: "",
     priceEuro: "",
     paymentUrl: "",
+    buttonLabel: "",
   });
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +49,7 @@ export default function AdminOnderwegPage() {
       publishFromDate: "",
       priceEuro: "",
       paymentUrl: "",
+      buttonLabel: "",
     });
     setEditingId(null);
     setEditingImageUrl(null);
@@ -79,6 +81,7 @@ export default function AdminOnderwegPage() {
           return !Number.isNaN(n) && n > 0 ? Math.round(n * 100) : undefined;
         })(),
         paymentUrl: form.paymentUrl.trim() || undefined,
+        buttonLabel: form.buttonLabel.trim() || undefined,
       });
       resetForm();
     } finally {
@@ -103,6 +106,7 @@ export default function AdminOnderwegPage() {
           return !Number.isNaN(n) && n > 0 ? Math.round(n * 100) : null;
         })(),
         paymentUrl: form.paymentUrl.trim() || null,
+        buttonLabel: form.buttonLabel.trim() || null,
       };
       if (form.imageFile) {
         const url = await generateUploadUrl();
@@ -140,6 +144,7 @@ export default function AdminOnderwegPage() {
       publishFromDate: item.publishFrom ? new Date(item.publishFrom).toISOString().slice(0, 16) : "",
       priceEuro: item.priceCents ? (item.priceCents / 100).toString() : "",
       paymentUrl: item.paymentUrl ?? "",
+      buttonLabel: item.buttonLabel ?? "",
     });
     setEditingImageUrl(item.imageUrl ?? null);
     setEditingId(item._id);
@@ -223,6 +228,16 @@ export default function AdminOnderwegPage() {
                 placeholder="https://..."
                 value={form.paymentUrl}
                 onChange={(e) => setForm((f) => ({ ...f, paymentUrl: e.target.value }))}
+                className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Knoptekst (standaard "Bestellen")</label>
+              <input
+                type="text"
+                placeholder="Bestellen"
+                value={form.buttonLabel}
+                onChange={(e) => setForm((f) => ({ ...f, buttonLabel: e.target.value }))}
                 className="w-full px-3 py-2 border border-primary-200 rounded-lg text-sm"
               />
             </div>

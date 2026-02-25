@@ -366,6 +366,8 @@ export default defineSchema({
     priceCents: v.optional(v.union(v.number(), v.null())),
     // Betaallink (URL naar betalingspagina)
     paymentUrl: v.optional(v.union(v.string(), v.null())),
+    // Tekst op de bestelknop (standaard "Bestellen")
+    buttonLabel: v.optional(v.union(v.string(), v.null())),
   })
     .index("by_active_order", ["isActive", "order"]),
 
