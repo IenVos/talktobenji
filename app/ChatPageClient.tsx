@@ -137,7 +137,7 @@ export default function ChatPageClient({
   searchParams?: SearchParamsProp;
 }) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const topicParam = Array.isArray(searchParams?.topic) ? searchParams.topic[0] : searchParams?.topic;
   const welcomeParam = Array.isArray(searchParams?.welcome) ? searchParams.welcome[0] : searchParams?.welcome;
   const [sessionIdState, setSessionIdState] = useState<Id<"chatSessions"> | null>(() => {
@@ -204,6 +204,14 @@ export default function ChatPageClient({
       if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
     }
   }, [sessionIdState, storedSession]);
+
+  // Wis chat zodra gebruiker uitlogt (status "unauthenticated")
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      setSessionIdState(null);
+      if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
+    }
+  }, [status]);
 
   // Reset lastMessageCountRef bij sessiewissel – anders herkent useEffect het opener-bericht niet
   useEffect(() => {

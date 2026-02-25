@@ -453,17 +453,18 @@ export default function HerinneringenPage() {
                   <Eye size={14} />
                 </div>
 
-                {/* Content */}
-                <div className="p-4 flex items-start gap-3">
-                  {memory.imageUrl && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={memory.imageUrl}
-                      alt=""
-                      className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-100"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
+                {/* Afbeelding — vol breedte bovenaan */}
+                {memory.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={memory.imageUrl}
+                    alt=""
+                    className="w-full max-h-72 object-contain bg-gray-50"
+                  />
+                )}
+
+                {/* Tekst + metadata */}
+                <div className="p-4">
                   {memory.text.startsWith("Portret van ") ? (() => {
                     const sections = memory.text.split("\n\n").slice(1).filter(Boolean);
                     const first = sections[0];
@@ -496,7 +497,6 @@ export default function HerinneringenPage() {
                       </span>
                     )}
                     <span className="ml-auto">{formatDate(memory.createdAt)}</span>
-                  </div>
                   </div>
                 </div>
               </button>

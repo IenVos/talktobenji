@@ -70,10 +70,10 @@ export default function AccountPage() {
             </Link>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            {featuredItems.map((item) => (
+            {featuredItems.map((item, i) => (
               <Link
                 key={item._id}
-                href="/account/onderweg"
+                href={`/account/onderweg?index=${i}`}
                 className="group flex flex-col gap-2"
               >
                 {(item as any).imageUrl ? (

@@ -434,7 +434,7 @@ export default function AccountSteunPage() {
           <div className="py-6 flex justify-center">
             <div className="animate-pulse rounded-full h-6 w-6 border-b-2 border-primary-600" />
           </div>
-        ) : onderwegItems.length === 0 ? (
+        ) : !steunItems || steunItems.length === 0 ? (
           <div className="p-3 rounded-lg bg-primary-50 border border-primary-100">
             <p className="text-sm text-primary-800">
               Binnenkort beschikbaar.
@@ -473,7 +473,7 @@ export default function AccountSteunPage() {
 
               <div className="overflow-hidden">
                 <div className="relative" style={{ width: `${CARD_PCT}%`, marginLeft: `${SIDE_PCT}%` }}>
-                  {onderwegItems.map((item, index) => {
+                  {steunItems!.map((item, index) => {
                     const offset = circularOffset(index, activeOnderwegIndex, totalOnderwegItems);
                     const isActive = offset === 0;
                     const isNeighbor = Math.abs(offset) === 1;
@@ -547,7 +547,7 @@ export default function AccountSteunPage() {
 
             {totalOnderwegItems > 1 && (
               <div className="flex justify-center gap-1.5 mt-3">
-                {onderwegItems.map((item, index) => (
+                {steunItems!.map((item, index) => (
                   <button
                     key={item._id}
                     type="button"

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -19,15 +20,15 @@ function circularOffset(index: number, active: number, total: number) {
   return d;
 }
 
-export default function AccountOnderwegPage() {
+function OnderwegContent() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
 
   const items = useQuery(api.onderweg.listActiveWithUrls, {});
 
-  // Debug logging
-  console.log("Onderweg items:", items);
+  const initialIndex = Math.min(Number(searchParams?.get("index") ?? 0), (items?.length ?? 1) - 1);
   const [lightboxImage, setLightboxImage] = useState<{ url: string; alt: string } | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -259,5 +260,13 @@ export default function AccountOnderwegPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function AccountOnderwegPage() {
+  return (
+    <Suspense>
+      <OnderwegContent />
+    </Suspense>
   );
 }
