@@ -39,11 +39,11 @@ const ICON_MAP: Record<string, LucideIcon> = {
   bird: Bird,
 };
 
-function CardIcon({ name }: { name?: string }) {
+function CardIcon({ name, size = 15, className }: { name?: string; size?: number; className?: string }) {
   if (!name) return null;
   const Icon = ICON_MAP[name];
   if (!Icon) return null;
-  return <Icon size={32} className="text-primary-400" />;
+  return <Icon size={size} className={className} />;
 }
 
 const CARD_PCT = 75;
@@ -242,13 +242,8 @@ export default function AccountHandreikingenPage() {
                             />
                           </button>
                         )}
-                        {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0) || (item as any).exerciseSlug) && (
+                        {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0) || (item as any).exerciseSlug || (item as any).icon) && (
                           <div className="p-5 flex-1 flex flex-col bg-white">
-                            {!item.imageUrl && (item as any).icon && (
-                              <div className="mb-3">
-                                <CardIcon name={(item as any).icon} />
-                              </div>
-                            )}
                             {item.title && (
                               <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
                             )}
@@ -287,7 +282,8 @@ export default function AccountHandreikingenPage() {
                                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
                                     tabIndex={isActive ? 0 : -1}
                                   >
-                                    <Pencil size={15} />
+                                    <CardIcon name={(item as any).icon} size={15} />
+                                    {!(item as any).icon && <Pencil size={15} />}
                                     {(item as any).exerciseButtonLabel || "Begin oefening"}
                                   </Link>
                                 )}

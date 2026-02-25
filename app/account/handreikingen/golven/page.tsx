@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -218,7 +218,7 @@ export default function GolvenPage() {
                 <p className="text-xs uppercase tracking-widest" style={{ color: "#c5b8ae" }}>
                   Fase 1 · Erkennen
                 </p>
-                <div className="space-y-3 text-base leading-relaxed" style={{ color: "#6b5e58" }}>
+                <div className="space-y-3 text-base leading-relaxed" style={{ color: "#6b5e58", textWrap: "balance" } as React.CSSProperties}>
                   <p>Stop even{firstName ? `, ${firstName}` : ""}. Je hoeft nu niets te doen.</p>
                   <p>Er is een golf. Je voelt hem. Dat klopt, het is er.</p>
                   <p>Je hoeft hem niet weg te duwen. Je hoeft ook niet te begrijpen waarom hij er nu is.</p>
@@ -243,23 +243,21 @@ export default function GolvenPage() {
                   />
                 </div>
 
-                {phase1Ready ? (
-                  <div className="space-y-3">
-                    <button
-                      type="button"
-                      onClick={() => setScreen(2)}
-                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all"
-                      style={{ backgroundColor: "#6d84a8", color: "white" }}
-                    >
-                      Ik ben er klaar voor
-                      <ArrowRight size={15} />
-                    </button>
-                    <p className="text-sm" style={{ color: "#c5b8ae" }}>
-                      Neem even dit moment om zo verder te gaan.
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm" style={{ color: "#d4cec8" }}>Even een moment...</p>
+                {!phase1Ready && (
+                  <p className="text-sm" style={{ color: "#c5b8ae" }}>
+                    Neem even dit moment om zo verder te gaan.
+                  </p>
+                )}
+                {phase1Ready && (
+                  <button
+                    type="button"
+                    onClick={() => setScreen(2)}
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all"
+                    style={{ backgroundColor: "#f2f5f9", color: "#6d84a8", border: "1px solid #ccd6e2" }}
+                  >
+                    Ik ben er klaar voor
+                    <ArrowRight size={15} />
+                  </button>
                 )}
               </div>
             )}
@@ -342,14 +340,14 @@ export default function GolvenPage() {
                         margin: "0 auto",
                       }}
                     />
-                    <p className="text-base" style={{ color: "#6b5e58" }}>
+                    <p className="text-base" style={{ color: "#6b5e58", textWrap: "balance" } as React.CSSProperties}>
                       Goed{firstName ? `, ${firstName}` : ""}. Je ademhaling is iets gekalmeerd. We gaan verder.
                     </p>
                     <button
                       type="button"
                       onClick={() => setScreen(3)}
                       className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium"
-                      style={{ backgroundColor: "#6d84a8", color: "white" }}
+                      style={{ backgroundColor: "#f2f5f9", color: "#6d84a8", border: "1px solid #ccd6e2" }}
                     >
                       Ga verder
                       <ArrowRight size={15} />
@@ -366,10 +364,8 @@ export default function GolvenPage() {
                   <p className="text-xs uppercase tracking-widest" style={{ color: "#c5b8ae" }}>
                     Fase 3 · Gronding
                   </p>
-                  <p className="text-sm leading-relaxed" style={{ color: "#a09088" }}>
-                    Rouw trekt je naar het verleden of de toekomst. We halen je even terug naar dit
-                    moment, niet omdat dit moment makkelijker is, maar omdat het het enige is waar
-                    je nu bent.
+                  <p className="text-sm leading-relaxed" style={{ color: "#a09088", textWrap: "balance" } as React.CSSProperties}>
+                    Rouw trekt je naar het verleden of de toekomst. We halen je even terug naar dit moment, niet omdat dit moment makkelijker is, maar omdat het het enige is waar je nu bent.
                   </p>
                 </div>
 
@@ -404,14 +400,14 @@ export default function GolvenPage() {
                 </div>
 
                 <div className="text-center space-y-4">
-                  <p className="text-sm italic" style={{ color: "#a09088" }}>
+                  <p className="text-sm italic" style={{ color: "#a09088", textWrap: "balance" } as React.CSSProperties}>
                     Je bent hier{firstName ? `, ${firstName}` : ""}. In deze ruimte. In dit moment. Dat is genoeg.
                   </p>
                   <button
                     type="button"
                     onClick={() => setScreen(4)}
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium"
-                    style={{ backgroundColor: "#6d84a8", color: "white" }}
+                    style={{ backgroundColor: "#f2f5f9", color: "#6d84a8", border: "1px solid #ccd6e2" }}
                   >
                     Ga verder
                     <ArrowRight size={15} />
@@ -427,10 +423,8 @@ export default function GolvenPage() {
                   <p className="text-xs uppercase tracking-widest" style={{ color: "#c5b8ae" }}>
                     Fase 4 · Ankerzin
                   </p>
-                  <p className="text-sm leading-relaxed" style={{ color: "#a09088" }}>
-                    Een ankerzin is een zin die je vasthoudt als alles beweegt. Niet om jezelf te
-                    overtuigen van iets wat niet waar is, maar om jezelf te herinneren wat wél waar
-                    is.
+                  <p className="text-sm leading-relaxed" style={{ color: "#a09088", textWrap: "balance" } as React.CSSProperties}>
+                    Een ankerzin is een zin die je vasthoudt als alles beweegt. Niet om jezelf te overtuigen van iets wat niet waar is, maar om jezelf te herinneren wat wél waar is.
                   </p>
                 </div>
 
@@ -495,8 +489,9 @@ export default function GolvenPage() {
                     disabled={!anchorText}
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all"
                     style={{
-                      backgroundColor: anchorText ? "#6d84a8" : "#d4cfc9",
-                      color: "white",
+                      backgroundColor: anchorText ? "#f2f5f9" : "#f5f5f5",
+                      color: anchorText ? "#6d84a8" : "#b8bec5",
+                      border: anchorText ? "1px solid #ccd6e2" : "1px solid #e5e5e5",
                       cursor: anchorText ? "pointer" : "not-allowed",
                     }}
                   >
