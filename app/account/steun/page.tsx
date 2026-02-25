@@ -81,8 +81,11 @@ export default function AccountSteunPage() {
     }
   }, []);
 
+  // Items 4-10 (de nieuwste 3 staan al op Mijn plek)
+  const steunItems = onderwegItems?.slice(3);
+
   // Mini-carousel handlers
-  const totalOnderwegItems = onderwegItems?.length ?? 0;
+  const totalOnderwegItems = steunItems?.length ?? 0;
 
   const goToOnderwegItem = useCallback((index: number) => {
     if (totalOnderwegItems === 0) return;

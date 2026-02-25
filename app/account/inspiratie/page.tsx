@@ -210,7 +210,7 @@ export default function AccountInspiratiePage() {
                     >
                       <article
                         ref={(el) => { articleRefs.current[index] = el; }}
-                        className="rounded-xl overflow-hidden flex flex-col"
+                        className={`rounded-xl overflow-hidden flex flex-col${!item.imageUrl ? " bg-white border border-primary-100 shadow-sm" : ""}`}
                         style={{ minHeight: maxCardHeight > 0 ? `${maxCardHeight}px` : undefined }}
                       >
                         {item.imageUrl && (

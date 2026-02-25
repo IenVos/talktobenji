@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { MessageSquare, PencilLine, Sparkles, HandHelping, Gem, Target, CalendarCheck } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { MessageSquare, PencilLine, Sparkles, HandHelping, Gem, Target, CalendarCheck, ShoppingBag } from "lucide-react";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
 import { ConversationLimitBanner } from "@/components/ConversationLimitBanner";
 import { ComingSoonSection } from "@/components/ComingSoonSection";
@@ -19,6 +21,8 @@ const CATEGORIES = [
 
 export default function AccountPage() {
   const { data: session } = useSession();
+  const onderwegItems = useQuery(api.onderweg.listActiveWithUrls, {});
+  const featuredItems = onderwegItems?.slice(0, 3) ?? [];
 
   return (
     <div className="space-y-4">
@@ -50,6 +54,52 @@ export default function AccountPage() {
           </Link>
         ))}
       </div>
+
+      {featuredItems.length > 0 && (
+        <div className="bg-white rounded-xl border border-primary-100 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2 text-primary-800">
+              <ShoppingBag size={16} className="text-primary-400" />
+              <span className="text-sm font-medium">Iets om mee te nemen</span>
+            </div>
+            <Link
+              href="/account/onderweg"
+              className="text-xs text-primary-500 hover:text-primary-700 transition-colors"
+            >
+              Bekijk alles →
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {featuredItems.map((item) => (
+              <Link
+                key={item._id}
+                href="/account/onderweg"
+                className="group flex flex-col gap-2"
+              >
+                {(item as any).imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={(item as any).imageUrl}
+                    alt={item.title || ""}
+                    className="w-full aspect-square object-cover rounded-lg bg-primary-50 group-hover:opacity-90 transition-opacity"
+                  />
+                ) : (
+                  <div className="w-full aspect-square rounded-lg bg-primary-50 flex items-center justify-center">
+                    <ShoppingBag size={24} className="text-primary-200" />
+                  </div>
+                )}
+                <div>
+                  {item.title && (
+                    <p className="text-xs font-medium text-gray-700 leading-snug line-clamp-2 group-hover:text-primary-700 transition-colors">
+                      {item.title}
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <ComingSoonSection section="account" label="Mijn plek" />
     </div>

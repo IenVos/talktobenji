@@ -47,7 +47,13 @@ export const listActiveWithUrls = query({
     const visible = activeItems.filter((i) => !i.publishFrom || i.publishFrom <= now);
     console.log("Visible items:", visible);
 
-    const sorted = visible.sort((a, b) => a.order - b.order);
+    // Nieuwste eerst (op publishFrom, fallback createdAt), max 10
+    const byRecent = [...visible].sort((a, b) => {
+      const aTime = a.publishFrom ?? a.createdAt;
+      const bTime = b.publishFrom ?? b.createdAt;
+      return bTime - aTime;
+    });
+    const sorted = byRecent.slice(0, 10);
     const result = [];
     for (const item of sorted) {
       let imageUrl: string | null = null;
