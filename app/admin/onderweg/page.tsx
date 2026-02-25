@@ -135,6 +135,7 @@ export default function AdminOnderwegPage() {
     imageUrl?: string | null;
     priceCents?: number | null;
     paymentUrl?: string | null;
+    buttonLabel?: string | null;
   }) => {
     setForm({
       title: item.title ?? "",
