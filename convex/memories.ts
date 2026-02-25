@@ -57,7 +57,8 @@ export const addMemory = mutation({
     imageStorageId: v.optional(v.id("_storage")),
     emotion: v.optional(v.string()),
     memoryDate: v.optional(v.string()),
-    source: v.union(v.literal("manual"), v.literal("chat")),
+    source: v.union(v.literal("manual"), v.literal("chat"), v.literal("handreikingen"), v.literal("inspiratie")),
+    title: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("memories", {
@@ -67,6 +68,7 @@ export const addMemory = mutation({
       emotion: args.emotion,
       memoryDate: args.memoryDate,
       source: args.source,
+      title: args.title,
       createdAt: Date.now(),
     });
   },

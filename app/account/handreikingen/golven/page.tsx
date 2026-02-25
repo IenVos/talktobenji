@@ -123,7 +123,8 @@ export default function GolvenPage() {
       await addMemory({
         userId: session.userId as string,
         text: `Ankerzin\n\n${anchorText}`,
-        source: "manual",
+        source: "handreikingen",
+        title: "Ankerzin",
         memoryDate: new Date().toISOString().slice(0, 10),
       });
       setSaved(true);

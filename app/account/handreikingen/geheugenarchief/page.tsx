@@ -451,7 +451,8 @@ export default function GeheugenarchiefPage() {
       await addMemory({
         userId: session.userId as string,
         text,
-        source: "manual",
+        source: "handreikingen",
+        title: "Geheugenportret",
         memoryDate: new Date().toISOString().slice(0, 10),
         imageStorageId,
       });

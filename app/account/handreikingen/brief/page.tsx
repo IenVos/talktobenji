@@ -249,7 +249,8 @@ export default function BriefOefeningPage() {
         userId: session.userId as string,
         text,
         imageStorageId,
-        source: "manual",
+        source: "handreikingen",
+        title: addressee ? `Brief aan ${addressee}` : "Brief",
         memoryDate: new Date().toISOString().slice(0, 10),
       });
       setSaved(true);

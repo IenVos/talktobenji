@@ -34,7 +34,8 @@ type Memory = {
   imageUrl?: string;
   emotion?: string;
   memoryDate?: string;
-  source: "manual" | "chat";
+  source: "manual" | "chat" | "handreikingen" | "inspiratie";
+  title?: string;
   createdAt: number;
 };
 
@@ -453,8 +454,8 @@ export default function HerinneringenPage() {
                   <Eye size={14} />
                 </div>
 
-                {/* Afbeelding — vol breedte bovenaan */}
-                {memory.imageUrl && (
+                {/* Vol-breedte afbeelding — alleen voor eigen herinneringen met foto */}
+                {memory.source === "manual" && memory.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={memory.imageUrl}
@@ -465,20 +466,74 @@ export default function HerinneringenPage() {
 
                 {/* Tekst + metadata */}
                 <div className="p-4">
-                  {memory.text.startsWith("Portret van ") ? (() => {
-                    const sections = memory.text.split("\n\n").slice(1).filter(Boolean);
-                    const first = sections[0];
-                    const nl = first ? first.indexOf("\n") : -1;
-                    const cat = nl >= 0 ? first.slice(0, nl) : first;
-                    const ans = nl >= 0 ? first.slice(nl + 1) : "";
-                    return (
-                      <div>
-                        <p className="text-xs uppercase tracking-widest text-gray-300 mb-0.5">{cat}</p>
-                        <p className="text-sm text-gray-900 line-clamp-2">{ans}</p>
+                  {/* Inspiratie: alleen de kaarttitel tonen */}
+                  {memory.source === "inspiratie" ? (
+                    <div className="flex items-start gap-3">
+                      {memory.imageUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={memory.imageUrl}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-100"
+                        />
+                      )}
+                      <div className="min-w-0">
+                        {memory.title ? (
+                          <p className="text-xs uppercase tracking-widest text-gray-400 leading-snug line-clamp-2">{memory.title}</p>
+                        ) : (
+                          <p className="text-sm text-gray-900 line-clamp-2">{memory.text}</p>
+                        )}
                       </div>
-                    );
-                  })() : (
-                    <p className="text-sm text-gray-900 whitespace-pre-wrap line-clamp-3">{memory.text}</p>
+                    </div>
+                  ) : memory.source === "handreikingen" ? (
+                    /* Handreikingen: kleine ronde foto + titel + tekst */
+                    <div className="flex items-start gap-3">
+                      {memory.imageUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={memory.imageUrl}
+                          alt=""
+                          className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-100"
+                        />
+                      )}
+                      <div className="min-w-0">
+                        {memory.title && (
+                          <p className="text-xs uppercase tracking-widest text-gray-400 mb-0.5">{memory.title}</p>
+                        )}
+                        {memory.text.startsWith("Portret van ") ? (() => {
+                          const sections = memory.text.split("\n\n").slice(1).filter(Boolean);
+                          const first = sections[0];
+                          const nl = first ? first.indexOf("\n") : -1;
+                          const cat = nl >= 0 ? first.slice(0, nl) : first;
+                          const ans = nl >= 0 ? first.slice(nl + 1) : "";
+                          return (
+                            <div>
+                              <p className="text-xs uppercase tracking-widest text-gray-300 mb-0.5">{cat}</p>
+                              <p className="text-sm text-gray-900 line-clamp-2">{ans}</p>
+                            </div>
+                          );
+                        })() : (
+                          <p className="text-sm text-gray-900 whitespace-pre-wrap line-clamp-3">{memory.text}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Handmatig of chat */
+                    memory.text.startsWith("Portret van ") ? (() => {
+                      const sections = memory.text.split("\n\n").slice(1).filter(Boolean);
+                      const first = sections[0];
+                      const nl = first ? first.indexOf("\n") : -1;
+                      const cat = nl >= 0 ? first.slice(0, nl) : first;
+                      const ans = nl >= 0 ? first.slice(nl + 1) : "";
+                      return (
+                        <div>
+                          <p className="text-xs uppercase tracking-widest text-gray-300 mb-0.5">{cat}</p>
+                          <p className="text-sm text-gray-900 line-clamp-2">{ans}</p>
+                        </div>
+                      );
+                    })() : (
+                      <p className="text-sm text-gray-900 whitespace-pre-wrap line-clamp-3">{memory.text}</p>
+                    )
                   )}
 
                   <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-gray-500">

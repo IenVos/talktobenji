@@ -100,13 +100,11 @@ export default function AccountInspiratiePage() {
     if (!text || !session?.userId) return;
     setSavingId(itemId);
     try {
-      const memoryText = itemTitle
-        ? `Reflectie bij "${itemTitle}"\n\n${text}`
-        : text;
       await addMemory({
         userId: session.userId as string,
-        text: memoryText,
-        source: "manual",
+        text,
+        title: itemTitle || undefined,
+        source: "inspiratie",
         memoryDate: new Date().toISOString().slice(0, 10),
         ...(imageStorageId ? { imageStorageId: imageStorageId as any } : {}),
       });
