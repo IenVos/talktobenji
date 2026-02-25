@@ -2,9 +2,9 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Sparkles, FileDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Sparkles, FileDown, ChevronLeft, ChevronRight, Gem, Check, PenLine } from "lucide-react";
 import { renderRichText } from "@/lib/renderRichText";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { Paywall } from "@/components/Paywall";
@@ -37,8 +37,13 @@ export default function AccountInspiratiePage() {
   );
 
   const items = useQuery(api.inspiratie.listActiveWithUrls, {});
+  const addMemory = useMutation(api.memories.addMemory);
+
   const [lightboxImage, setLightboxImage] = useState<{ url: string; alt: string } | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [reflections, setReflections] = useState<Record<string, string>>({});
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [savingId, setSavingId] = useState<string | null>(null);
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -89,6 +94,26 @@ export default function AccountInspiratiePage() {
     }
     touchDeltaX.current = 0;
   }, [activeIndex, goTo]);
+
+  const handleSaveReflection = async (itemId: string, itemTitle: string, imageStorageId?: string) => {
+    const text = reflections[itemId]?.trim();
+    if (!text || !session?.userId) return;
+    setSavingId(itemId);
+    try {
+      const memoryText = itemTitle
+        ? `Reflectie bij "${itemTitle}"\n\n${text}`
+        : text;
+      await addMemory({
+        userId: session.userId as string,
+        text: memoryText,
+        source: "manual",
+        memoryDate: new Date().toISOString().slice(0, 10),
+        ...(imageStorageId ? { imageStorageId: imageStorageId as any } : {}),
+      });
+      setSavedIds((prev) => new Set([...prev, itemId]));
+    } catch {}
+    finally { setSavingId(null); }
+  };
 
   const content = (
     <div className="space-y-6">
@@ -207,43 +232,95 @@ export default function AccountInspiratiePage() {
                         )}
 
                         {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
-                        <div className="p-5 flex-1 flex flex-col">
-                          {item.title && (
-                            <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
-                          )}
-                          <div className="flex-1 text-sm text-gray-600 leading-relaxed">
-                            {item.content && (
-                              <p className="whitespace-pre-wrap">{renderRichText(item.content)}</p>
+                        <div className="p-5 flex-1 flex flex-col items-center">
+                          <div className="w-full max-w-sm">
+                            {item.title && (
+                              <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
+                            )}
+                            <div className="flex-1 text-sm text-gray-600 leading-relaxed">
+                              {item.content && (
+                                <p className="whitespace-pre-wrap">{renderRichText(item.content)}</p>
+                              )}
+                            </div>
+                            {(item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
+                              <div className="mt-4 flex flex-wrap items-center gap-2">
+                                {item.priceCents != null && item.priceCents > 0 && (
+                                  <a
+                                    href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
+                                    className="bestellen-btn inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
+                                    tabIndex={isActive ? 0 : -1}
+                                  >
+                                    Bestellen €{(item.priceCents / 100).toFixed(2)}
+                                  </a>
+                                )}
+                                {item.pdfUrl && (
+                                  <a
+                                    href={item.pdfUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 border border-primary-300 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-50 transition-colors"
+                                    title="PDF downloaden"
+                                    tabIndex={isActive ? 0 : -1}
+                                  >
+                                    <FileDown size={16} />
+                                    Download
+                                  </a>
+                                )}
+                              </div>
                             )}
                           </div>
-                          {(item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
-                            <div className="mt-4 flex flex-wrap items-center gap-2">
-                              {item.priceCents != null && item.priceCents > 0 && (
-                                <a
-                                  href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
-                                  className="bestellen-btn inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
-                                  tabIndex={isActive ? 0 : -1}
-                                >
-                                  Bestellen €{(item.priceCents / 100).toFixed(2)}
-                                </a>
-                              )}
-                              {item.pdfUrl && (
-                                <a
-                                  href={item.pdfUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1.5 px-3 py-2 border border-primary-300 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-50 transition-colors"
-                                  title="PDF downloaden"
-                                  tabIndex={isActive ? 0 : -1}
-                                >
-                                  <FileDown size={16} />
-                                  Download
-                                </a>
+                        </div>
+                        )}
+
+                        {/* Reflectie — alleen bij kaarten met een afbeelding */}
+                        {item.imageUrl && <div className="px-5 pb-6 pt-5 bg-white border-t border-gray-100 flex flex-col items-center">
+                          {savedIds.has(item._id) ? (
+                            <div className="w-full max-w-xs space-y-2 text-center">
+                              <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                {reflections[item._id]}
+                              </p>
+                              <p className="text-xs text-primary-500 flex items-center justify-center gap-1">
+                                <Check size={11} /> Bewaard in Memories
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="w-full max-w-xs space-y-2.5">
+                              <label className="flex items-center justify-center gap-1.5 text-xs text-gray-400 cursor-text">
+                                <PenLine size={12} />
+                                Schrijf een gedachte bij deze kaart
+                              </label>
+                              <textarea
+                                value={reflections[item._id] ?? ""}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setReflections((r) => ({ ...r, [item._id]: val }));
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                placeholder="Wat komt er bij je op?"
+                                rows={2}
+                                tabIndex={isActive ? 0 : -1}
+                                className="w-full text-sm resize-none rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 focus:outline-none focus:border-primary-300 focus:bg-white text-gray-700 placeholder-gray-300 transition-colors"
+                              />
+                              {reflections[item._id]?.trim() && (
+                                <div className="flex justify-center">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSaveReflection(item._id, item.title || "", (item as any).imageStorageId);
+                                    }}
+                                    disabled={savingId === item._id}
+                                    tabIndex={isActive ? 0 : -1}
+                                    className="inline-flex items-center gap-1.5 text-xs text-primary-500 hover:text-primary-700 transition-colors disabled:opacity-50"
+                                  >
+                                    <Gem size={12} />
+                                    {savingId === item._id ? "Bewaren..." : "Bewaren in Memories"}
+                                  </button>
+                                </div>
                               )}
                             </div>
                           )}
-                        </div>
-                        )}
+                        </div>}
                       </article>
                     </div>
                   );

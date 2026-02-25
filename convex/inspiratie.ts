@@ -42,7 +42,14 @@ export const listActiveWithUrls = query({
       .collect();
     const now = Date.now();
     const visible = items.filter((i) => !i.publishFrom || i.publishFrom <= now);
-    const sorted = visible.sort((a, b) => a.order - b.order);
+    // Maximaal 10 meest recent gepubliceerde kaarten tonen
+    const byRecent = [...visible].sort((a, b) => {
+      const aTime = a.publishFrom ?? a.createdAt;
+      const bTime = b.publishFrom ?? b.createdAt;
+      return bTime - aTime;
+    });
+    const limited = byRecent.slice(0, 10);
+    const sorted = limited.sort((a, b) => a.order - b.order);
     const result = [];
     for (const item of sorted) {
       let pdfUrl: string | null = null;
