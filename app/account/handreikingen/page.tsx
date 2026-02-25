@@ -207,7 +207,7 @@ export default function AccountHandreikingenPage() {
                             />
                           </button>
                         )}
-                        {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
+                        {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0) || (item as any).exerciseSlug) && (
                           <div className="p-5 flex-1 flex flex-col bg-white">
                             {item.title && (
                               <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>

@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Mail, Check, Pencil, X, Gem, Mic, Square } from "lucide-react";
+import { ArrowLeft, ArrowRight, Mail, Check, Pencil, X, Gem, Mic, Square, Camera } from "lucide-react";
 import { Paywall } from "@/components/Paywall";
 
 const TOTAL = 6;
@@ -74,9 +74,12 @@ export default function BriefOefeningPage() {
   );
 
   const addMemory = useMutation(api.memories.addMemory);
+  const generateUploadUrl = useMutation(api.preferences.generateUploadUrl);
 
   const [screen, setScreen] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState("");
@@ -174,6 +177,15 @@ export default function BriefOefeningPage() {
     }
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setPhotoUrl(ev.target?.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   const addressee = answers[1] || "";
   const steps = getSteps(addressee);
   const currentStep = steps[screen - 1];
@@ -197,7 +209,7 @@ export default function BriefOefeningPage() {
       const res = await fetch("/api/oefeningen/send-brief", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ letter: letterBody, addressee }),
+        body: JSON.stringify({ letter: letterBody, addressee, photoUrl }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -216,10 +228,27 @@ export default function BriefOefeningPage() {
     if (saving || saved || !session?.userId) return;
     setSaving(true);
     try {
+      let imageStorageId: any;
+      if (photoUrl) {
+        try {
+          const blob = await fetch(photoUrl).then((r) => r.blob());
+          const uploadUrl = await generateUploadUrl();
+          const uploadRes = await fetch(uploadUrl, {
+            method: "POST",
+            headers: { "Content-Type": blob.type },
+            body: blob,
+          });
+          const { storageId } = await uploadRes.json();
+          imageStorageId = storageId;
+        } catch {
+          // foto upload mislukt — doorgaan zonder foto
+        }
+      }
       const text = `${addressee ? `Aan: ${addressee}\n\n` : ""}${letterBody}`;
       await addMemory({
         userId: session.userId as string,
         text,
+        imageStorageId,
         source: "manual",
         memoryDate: new Date().toISOString().slice(0, 10),
       });
@@ -279,14 +308,26 @@ export default function BriefOefeningPage() {
           <ArrowLeft size={15} />
           {screen === 1 ? "Terug" : "Vorige"}
         </button>
-        {/* Naam in topbalk */}
-        {screen > 1 && addressee && (
-          <span
-            className="text-sm text-center truncate mx-3 max-w-[160px] sm:max-w-xs"
-            style={{ color: "#a09088" }}
-          >
-            Brief aan {addressee}
-          </span>
+        {/* Naam + foto in topbalk */}
+        {screen > 1 && (addressee || photoUrl) && (
+          <div className="flex items-center gap-2 mx-3 min-w-0">
+            {photoUrl && (
+              <img
+                src={photoUrl}
+                alt=""
+                className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                style={{ border: "1.5px solid #e8dfd5" }}
+              />
+            )}
+            {addressee && (
+              <span
+                className="text-sm truncate max-w-[120px] sm:max-w-xs"
+                style={{ color: "#a09088" }}
+              >
+                Brief aan {addressee}
+              </span>
+            )}
+          </div>
         )}
         <button
           type="button"
@@ -303,6 +344,35 @@ export default function BriefOefeningPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="flex flex-col items-center justify-start min-h-full px-4 sm:px-6 pt-6 pb-10">
           <div className="w-full max-w-xl">
+            {/* Foto upload — alleen op stap 1 */}
+            {screen === 1 && (
+              <div className="flex justify-center mb-6">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative w-20 h-20 rounded-full overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80 flex-shrink-0"
+                  style={{
+                    backgroundColor: "#f0ebe4",
+                    border: photoUrl ? "none" : "2px dashed #d4cec8",
+                  }}
+                  title={photoUrl ? "Foto wijzigen" : "Foto toevoegen (optioneel)"}
+                >
+                  {photoUrl ? (
+                    <img src={photoUrl} alt="Foto" className="w-full h-full object-cover" />
+                  ) : (
+                    <Camera size={22} style={{ color: "#c5b8ae" }} />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoChange}
+                />
+              </div>
+            )}
+
             {/* Vraag */}
             <div className="mb-6">
               {screen === 1 ? (
@@ -461,10 +531,22 @@ export default function BriefOefeningPage() {
     <div className="space-y-5">
       {/* De brief */}
       <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-6">
-        <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Je brief</p>
-        <h2 className="text-xl font-semibold text-primary-900 mb-5">
-          {addressee ? `Aan: ${addressee}` : "Jouw brief"}
-        </h2>
+        <div className="flex items-center gap-4 mb-5">
+          {photoUrl && (
+            <img
+              src={photoUrl}
+              alt={addressee}
+              className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+              style={{ border: "2px solid #e8dfd5" }}
+            />
+          )}
+          <div>
+            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Je brief</p>
+            <h2 className="text-xl font-semibold text-primary-900">
+              {addressee ? `Aan: ${addressee}` : "Jouw brief"}
+            </h2>
+          </div>
+        </div>
         <div className="border-l-4 border-primary-100 pl-5 space-y-4">
           {[answers[2], answers[3], answers[4], answers[5], answers[6]]
             .filter(Boolean)
@@ -527,6 +609,7 @@ export default function BriefOefeningPage() {
           onClick={() => {
             setScreen(0);
             setAnswers({});
+            setPhotoUrl(null);
             setSent(false);
             setSaved(false);
             setSendError("");

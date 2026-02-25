@@ -464,7 +464,21 @@ export default function HerinneringenPage() {
                     />
                   )}
                   <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900 whitespace-pre-wrap line-clamp-3">{memory.text}</p>
+                  {memory.text.startsWith("Portret van ") ? (() => {
+                    const sections = memory.text.split("\n\n").slice(1).filter(Boolean);
+                    const first = sections[0];
+                    const nl = first ? first.indexOf("\n") : -1;
+                    const cat = nl >= 0 ? first.slice(0, nl) : first;
+                    const ans = nl >= 0 ? first.slice(nl + 1) : "";
+                    return (
+                      <div>
+                        <p className="text-xs uppercase tracking-widest text-gray-300 mb-0.5">{cat}</p>
+                        <p className="text-sm text-gray-900 line-clamp-2">{ans}</p>
+                      </div>
+                    );
+                  })() : (
+                    <p className="text-sm text-gray-900 whitespace-pre-wrap line-clamp-3">{memory.text}</p>
+                  )}
 
                   <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-gray-500">
                     {em && (
@@ -632,7 +646,23 @@ export default function HerinneringenPage() {
                 </>
               ) : (
                 <>
-                  <p className="text-sm sm:text-base text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedMemory.text}</p>
+                  {selectedMemory.text.startsWith("Portret van ") ? (
+                    <div className="space-y-5">
+                      {selectedMemory.text.split("\n\n").slice(1).filter(Boolean).map((section, i) => {
+                        const nl = section.indexOf("\n");
+                        const category = nl >= 0 ? section.slice(0, nl) : section;
+                        const answer = nl >= 0 ? section.slice(nl + 1) : "";
+                        return (
+                          <div key={i}>
+                            <p className="text-xs uppercase tracking-widest text-gray-300 mb-1">{category}</p>
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap border-l-4 border-primary-100 pl-4">{answer}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-900 whitespace-pre-wrap leading-relaxed">{selectedMemory.text}</p>
+                  )}
 
                   <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                     {(() => {

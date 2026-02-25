@@ -85,8 +85,8 @@ export async function POST(req: NextRequest) {
         <p style="font-size: 13px; color: #718096; margin: 0 0 36px 0;">Opgemaakt via Talk To Benji</p>
         ${entriesHtml}
         <p style="font-size: 13px; color: #a0aec0; line-height: 1.6; margin-top: 36px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-          Dit portret is alleen voor jou. Je kunt het bewaren, uitprinten of delen met mensen die van ${name || "diegene"} hielden.<br/>
-          Met warmte, <strong>Benji</strong>
+          Dit portret is alleen voor jou. Je kunt het bewaren, uitprinten of delen met mensen die van je houden.<br/><br/>
+          Met warme groet,<br/><strong>Benji</strong>
         </p>
       </div>
     `;
