@@ -466,7 +466,7 @@ export default function HerinneringenPage() {
 
                 {/* Tekst + metadata */}
                 <div className="p-4">
-                  {/* Inspiratie: alleen de kaarttitel tonen */}
+                  {/* Inspiratie: kaarttitel + reflectietekst */}
                   {memory.source === "inspiratie" ? (
                     <div className="flex items-start gap-3">
                       {memory.imageUrl && (
@@ -478,11 +478,10 @@ export default function HerinneringenPage() {
                         />
                       )}
                       <div className="min-w-0">
-                        {memory.title ? (
-                          <p className="text-xs uppercase tracking-widest text-gray-400 leading-snug line-clamp-2">{memory.title}</p>
-                        ) : (
-                          <p className="text-sm text-gray-900 line-clamp-2">{memory.text}</p>
+                        {memory.title && (
+                          <p className="text-xs uppercase tracking-widest text-gray-400 leading-snug mb-1">{memory.title}</p>
                         )}
+                        <p className="text-sm text-gray-900 line-clamp-2">{memory.text}</p>
                       </div>
                     </div>
                   ) : memory.source === "handreikingen" ? (

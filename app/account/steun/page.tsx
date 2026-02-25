@@ -81,8 +81,7 @@ export default function AccountSteunPage() {
     }
   }, []);
 
-  // Items 4-10 (de nieuwste 3 staan al op Mijn plek)
-  const steunItems = onderwegItems?.slice(3);
+  const steunItems = onderwegItems;
 
   // Mini-carousel handlers
   const totalOnderwegItems = steunItems?.length ?? 0;
@@ -496,10 +495,10 @@ export default function AccountSteunPage() {
                         }}
                         onClick={() => { if (!isActive && isVisible) goToOnderwegItem(index); }}
                       >
-                        <article className="rounded-lg bg-white border border-primary-100 overflow-hidden hover:border-primary-200 transition-colors aspect-square flex flex-col">
-                          <Link href="/account/onderweg" className="flex-1 flex flex-col">
+                        <article className="rounded-lg bg-white border border-primary-100 overflow-hidden hover:border-primary-200 transition-colors flex flex-col">
+                          <Link href="/account/onderweg" className="flex flex-col">
                             {item.imageUrl && (
-                              <div className="flex-1 overflow-hidden flex items-center justify-center bg-white p-3">
+                              <div className="h-32 overflow-hidden flex items-center justify-center bg-white p-2">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={item.imageUrl}
@@ -509,23 +508,21 @@ export default function AccountSteunPage() {
                               </div>
                             )}
 
-                            {(item.title || item.content || item.priceCents) && (
-                              <div className="p-3 flex flex-col items-center justify-center gap-1.5">
-                                <div className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg border border-primary-200 bg-white w-full">
-                                  {item.title && (
-                                    <h4 className="text-xs font-semibold text-primary-900 line-clamp-1 text-center">{item.title}</h4>
-                                  )}
-                                  {item.priceCents != null && item.priceCents > 0 && (
-                                    <span className="text-xs font-semibold text-primary-600">
-                                      €{(item.priceCents / 100).toFixed(2)}
-                                    </span>
-                                  )}
-                                </div>
+                            {(item.title || item.priceCents) && (
+                              <div className="px-3 py-2 border-t border-gray-50 text-center">
+                                {item.title && (
+                                  <h4 className="text-xs font-semibold text-primary-900 line-clamp-2 text-center">{item.title}</h4>
+                                )}
+                                {item.priceCents != null && item.priceCents > 0 && (
+                                  <span className="text-xs font-semibold text-primary-600 block mt-0.5">
+                                    €{(item.priceCents / 100).toFixed(2)}
+                                  </span>
+                                )}
                               </div>
                             )}
                           </Link>
                           {item.paymentUrl && (
-                            <div className="px-3 pb-3">
+                            <div className="px-3 pb-3 pt-1">
                               <a
                                 href={item.paymentUrl}
                                 target="_blank"
@@ -533,7 +530,7 @@ export default function AccountSteunPage() {
                                 onClick={(e) => e.stopPropagation()}
                                 className="inline-flex items-center justify-center gap-1.5 w-full px-3 py-1.5 bg-primary-600 text-white rounded-lg text-xs font-medium hover:bg-primary-700 transition-colors"
                               >
-                                Bestellen
+                                {(item as any).buttonLabel || "Bestellen"}
                               </a>
                             </div>
                           )}

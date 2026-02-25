@@ -106,7 +106,7 @@ export default function AdminInspiratiePage() {
         const { storageId: imageStorageId } = await imageRes.json();
         await createItem({
           title: form.title.trim(),
-          content: form.content.trim() || form.title,
+          content: form.content.trim(),
           type: "pdf",
           order: form.order,
           pdfStorageId,
@@ -161,7 +161,7 @@ export default function AdminInspiratiePage() {
       const updates: Parameters<typeof updateItem>[0] = {
         id: editingId,
         title: form.title.trim(),
-        content: form.content.trim() || form.title,
+        content: form.content.trim(),
         type: form.type,
         order: form.order,
         publishFrom: form.publishFromDate ? new Date(form.publishFromDate).getTime() : null,

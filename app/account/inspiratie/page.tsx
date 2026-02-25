@@ -231,7 +231,7 @@ export default function AccountInspiratiePage() {
 
                         {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0)) && (
                         <div className="p-5 flex-1 flex flex-col items-center">
-                          <div className="w-full max-w-sm">
+                          <div className="w-full max-w-sm text-center">
                             {item.title && (
                               <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
                             )}
