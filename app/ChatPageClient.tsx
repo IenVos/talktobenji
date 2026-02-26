@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { Send, Mic, Square, Gem, ThumbsDown, Check } from "lucide-react";
+import { Send, Mic, Square, Gem, ThumbsDown, ThumbsUp, Check } from "lucide-react";
 import { WelcomeScreen, WelcomeScreenInfoIcons } from "@/components/chat/WelcomeScreen";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
@@ -616,19 +616,33 @@ export default function ChatPageClient({
                         )}
                       </div>
                       <div className="flex justify-start pl-1">
-                        {msg.feedback === "not_helpful" ? (
+                        {msg.feedback === "helpful" ? (
+                          <span className="flex items-center gap-1 text-xs text-green-500">
+                            <ThumbsUp size={12} />
+                            Fijn om te horen
+                          </span>
+                        ) : msg.feedback === "not_helpful" ? (
                           <span className="flex items-center gap-1 text-xs text-gray-400">
                             <Check size={12} />
                             Bedankt voor je terugkoppeling
                           </span>
                         ) : (
-                          <button
-                            onClick={() => submitMessageFeedback({ messageId: msg._id, feedback: "not_helpful" })}
-                            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                            title="Dit antwoord was niet behulpzaam"
-                          >
-                            <ThumbsDown size={13} />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => submitMessageFeedback({ messageId: msg._id, feedback: "helpful" })}
+                              className="flex items-center gap-1 text-xs text-gray-400 hover:text-green-500 transition-colors"
+                              title="Dit antwoord was behulpzaam"
+                            >
+                              <ThumbsUp size={13} />
+                            </button>
+                            <button
+                              onClick={() => submitMessageFeedback({ messageId: msg._id, feedback: "not_helpful" })}
+                              className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                              title="Dit antwoord was niet behulpzaam"
+                            >
+                              <ThumbsDown size={13} />
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -659,9 +673,9 @@ export default function ChatPageClient({
         </div>
       </main>
 
-      {/* Zachte nudge voor gasten bij 3–4 gesprekken */}
-      {!session?.userId && anonymousCount >= 3 && anonymousCount < 5 && (
-        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3 bg-primary-50 border-t border-primary-200 text-primary-800 text-sm">
+      {/* Zachte nudge voor gasten bij 3–4 gesprekken — verdwijnt zodra ze beginnen te chatten */}
+      {!session?.userId && anonymousCount >= 3 && anonymousCount < 5 && !(messages && messages.length > 0) && (
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3 rounded-xl bg-primary-50 border border-primary-200 text-primary-800 text-sm mx-3 mb-1">
           <span>Je hebt {anonymousCount} van 5 gratis gesprekken gebruikt.</span>
           <Link href="/registreren" className="flex-shrink-0 text-xs font-medium underline hover:text-primary-900 transition-colors">
             Maak een gratis account →
@@ -709,6 +723,15 @@ export default function ChatPageClient({
               </div>
               {isRecording && <p className="text-xs text-red-300 mt-2 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
             </form>
+            {sessionId && (
+              <p className="text-center text-xs text-primary-400 mt-2">
+                Benji leert van elk gesprek.{" "}
+                <a href="mailto:contactmetien@talktobenji.com" className="underline hover:text-primary-200 transition-colors">
+                  Deel je ervaring
+                </a>{" "}
+                en help mee.
+              </p>
+            )}
           </div>
         )}
       </footer>
