@@ -150,52 +150,46 @@ export default function AccountHandreikingenPage() {
             {items.map((item) => (
               <article key={item._id} className="rounded-xl overflow-hidden">
                 {item.imageUrl ? (
-                  <div className="relative w-full aspect-[3/2]">
-                    <button
-                      type="button"
-                      onClick={() => setLightboxImage({ url: item.imageUrl!, alt: item.title || "" })}
-                      className="w-full h-full cursor-pointer"
-                      title="Afbeelding vergroten"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
-                    </button>
-                    <div className="absolute inset-0 flex flex-col pointer-events-none">
-                      <div className="flex-1 flex flex-col items-center justify-center px-6">
-                        <div className="max-w-xs w-full bg-white/75 rounded-xl px-5 py-4 flex flex-col gap-2 text-center pointer-events-auto">
-                          {item.title && (
-                            <h3 className="text-base font-semibold leading-snug text-balance" style={{ color: "var(--account-accent, #38465e)" }}>
-                              {item.title}
-                            </h3>
+                  <div
+                    className="min-h-[200px] flex items-center justify-center py-6 px-6"
+                    style={{
+                      backgroundImage: `url(${item.imageUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  >
+                    <div className="w-full max-w-sm bg-white/75 rounded-xl px-5 py-4 flex flex-col gap-2 text-center">
+                      {item.title && (
+                        <h3 className="text-base font-semibold leading-snug text-balance" style={{ color: "var(--account-accent, #38465e)" }}>
+                          {item.title}
+                        </h3>
+                      )}
+                      {item.content && item.content.trim() !== item.title?.trim() && (
+                        <p className="text-sm leading-relaxed text-balance whitespace-pre-wrap" style={{ color: "var(--account-accent, #38465e)" }}>
+                          {renderRichText(item.content)}
+                        </p>
+                      )}
+                      {((item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug) && (
+                        <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                          {item.priceCents != null && item.priceCents > 0 && (
+                            <a href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`} className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                              Bestellen €{(item.priceCents / 100).toFixed(2)}
+                            </a>
                           )}
-                          {item.content && item.content.trim() !== item.title?.trim() && (
-                            <p className="text-sm leading-relaxed text-balance whitespace-pre-wrap" style={{ color: "var(--account-accent, #38465e)" }}>
-                              {renderRichText(item.content)}
-                            </p>
+                          {item.pdfUrl && (
+                            <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                              <FileDown size={14} /> Download
+                            </a>
                           )}
-                          {((item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug) && (
-                            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                              {item.priceCents != null && item.priceCents > 0 && (
-                                <a href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`} className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
-                                  Bestellen €{(item.priceCents / 100).toFixed(2)}
-                                </a>
-                              )}
-                              {item.pdfUrl && (
-                                <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
-                                  <FileDown size={14} /> Download
-                                </a>
-                              )}
-                              {(item as any).exerciseSlug && (
-                                <Link href={`/account/handreikingen/${(item as any).exerciseSlug}`} className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
-                                  <CardIcon name={(item as any).icon} size={13} />
-                                  {!(item as any).icon && <Pencil size={13} />}
-                                  {(item as any).exerciseButtonLabel || "Begin oefening"}
-                                </Link>
-                              )}
-                            </div>
+                          {(item as any).exerciseSlug && (
+                            <Link href={`/account/handreikingen/${(item as any).exerciseSlug}`} className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                              <CardIcon name={(item as any).icon} size={13} />
+                              {!(item as any).icon && <Pencil size={13} />}
+                              {(item as any).exerciseButtonLabel || "Begin oefening"}
+                            </Link>
                           )}
                         </div>
-                      </div>
+                      )}
                     </div>
                   </div>
                 ) : (
