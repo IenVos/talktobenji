@@ -6,7 +6,6 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Heart, Euro, Compass, MessageCircleHeart, Mic, Square, ImagePlus, X, Star } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 const FIXED_AMOUNTS = [5, 10, 25];
 
@@ -27,18 +26,16 @@ export default function AccountSteunPage() {
   // Load onderweg items for mini-carousel
   const onderwegItems = useQuery(api.onderweg.listActiveWithUrls, {});
 
-  const searchParams = useSearchParams();
-
   const [customAmount, setCustomAmount] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Open feedback popup direct als ?feedback=open in de URL staat
   useEffect(() => {
-    if (searchParams?.get("feedback") === "open") {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("feedback") === "open") {
       setFeedbackOpen(true);
     }
-  }, [searchParams]);
+  }, []);
 
   // Feedback state
   const [feedbackType, setFeedbackType] = useState<typeof FEEDBACK_TYPES[number]["value"]>("suggestion");
