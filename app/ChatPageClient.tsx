@@ -9,6 +9,7 @@ import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { Send, Mic, Square, Gem, ThumbsDown, ThumbsUp, Check } from "lucide-react";
 import { WelcomeScreen, WelcomeScreenInfoIcons } from "@/components/chat/WelcomeScreen";
+import { FeedbackModal } from "@/components/chat/FeedbackModal";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
 import { hexToDarker } from "@/lib/utils";
@@ -159,6 +160,7 @@ export default function ChatPageClient({
     }
   };
   const [showTopicButtons, setShowTopicButtons] = useState(true);
+  const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [input, setInput] = useState("");
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
@@ -726,9 +728,13 @@ export default function ChatPageClient({
             {sessionId && (
               <p className="text-center text-xs text-primary-400 mt-2">
                 Benji leert van elk gesprek.{" "}
-                <Link href="/account/steun?feedback=open" className="underline hover:text-primary-200 transition-colors">
+                <button
+                  type="button"
+                  onClick={() => setFeedbackModalOpen(true)}
+                  className="underline hover:text-primary-200 transition-colors"
+                >
                   Deel je ervaring
-                </Link>{" "}
+                </button>{" "}
                 en help mee.
               </p>
             )}
@@ -736,6 +742,13 @@ export default function ChatPageClient({
         )}
       </footer>
       </ConversationLimitGate>
+
+      <FeedbackModal
+        isOpen={feedbackModalOpen}
+        onClose={() => setFeedbackModalOpen(false)}
+        userId={session?.userId ?? undefined}
+        userEmail={session?.user?.email ?? undefined}
+      />
     </div>
   );
 }
