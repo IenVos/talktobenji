@@ -293,24 +293,22 @@ export const handleUserMessage = action({
       });
       const messageCount = (allMessagesForCount || []).length;
       
-      // Dynamische limieten: ingelogde gebruikers krijgen meer context voor diepere gesprekken
-      const isLoggedIn = !!chatSession?.userId;
-      const historyLimit = messageCount > 10 ? (isLoggedIn ? 4 : 2) : (isLoggedIn ? 6 : 3);
-      const charLimit = messageCount > 10 ? (isLoggedIn ? 600 : 500) : (isLoggedIn ? 1000 : 800);
-      
-      const messages = await ctx.runQuery(api.chat.getMessages, {
-        sessionId: args.sessionId,
-        limit: historyLimit + 1, // +1 omdat we het laatste bericht excluden
-      });
+      // Gebruik de al opgehaalde berichten voor de history
+      // Altijd eerste 2 berichten meenemen (stelt context in: wie/wat verloren)
+      // + laatste 12 berichten voor de recente gespreksflow
+      const charLimit = 2000;
+      const allMsgs = (allMessagesForCount || []).slice(0, -1); // Exclude het laatste bericht
+      const firstMsgs = allMsgs.slice(0, 2);
+      const recentMsgs = allMsgs.slice(-12);
+      // Korte gesprekken: alles meenemen; lange gesprekken: begin + recente context
+      const historyMsgs = allMsgs.length <= 14 ? allMsgs : [...firstMsgs, ...recentMsgs];
 
-      // Converteer naar Claude formaat en limiter lengte per bericht
-      const conversationHistory: ClaudeMessage[] = messages
-        .slice(0, -1) // Exclude het laatste bericht (dat is de nieuwe user message)
+      const conversationHistory: ClaudeMessage[] = historyMsgs
         .map((m: { role: string; content: string }) => ({
           role: (m.role === "user" ? "user" : "assistant") as "user" | "assistant",
-          content: m.content.slice(0, charLimit), // Dynamische karakter limiet
+          content: m.content.slice(0, charLimit),
         }))
-        .filter((m: ClaudeMessage) => m.content.trim().length > 0); // Verwijder lege berichten
+        .filter((m: ClaudeMessage) => m.content.trim().length > 0);
 
       // STAP 4: Filter relevante knowledge base vragen - ALLEEN als er een goede match is
       const userMessageLower = args.userMessage.toLowerCase().trim();
