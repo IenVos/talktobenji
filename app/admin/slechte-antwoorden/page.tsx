@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "convex/react";
 import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
-import { ThumbsDown, ChevronDown, ChevronUp, Sparkles, Check, BookOpen, ScrollText, Loader2, Archive } from "lucide-react";
+import { ThumbsDown, ChevronDown, ChevronUp, Sparkles, Check, BookOpen, ScrollText, Loader2, Archive, Trash2 } from "lucide-react";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("nl-NL", {
@@ -49,6 +50,40 @@ function ConversationBubbles({ messages, flaggedContent }: {
   );
 }
 
+function ExistingKnowledgeWarning({ category, question }: { category: string; question: string }) {
+  const entries = useQuery(
+    api.knowledgeBase.getAllQuestions,
+    category ? { category, isActive: true } : "skip"
+  );
+  if (!entries || entries.length === 0) return null;
+
+  // Filter licht op gelijkenis met voorgestelde vraag (simpele substring check)
+  const lower = question.toLowerCase();
+  const similar = entries.filter((e: any) =>
+    e.question.toLowerCase().includes(lower.slice(0, 20)) ||
+    lower.includes(e.question.toLowerCase().slice(0, 20))
+  );
+  const toShow = similar.length > 0 ? similar.slice(0, 3) : entries.slice(0, 3);
+
+  return (
+    <div className="text-xs bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 space-y-1.5">
+      <p className="font-medium text-amber-700">
+        Al {entries.length} item{entries.length !== 1 ? "s" : ""} in categorie &quot;{category}&quot; — check op duplicaten:
+      </p>
+      <ul className="space-y-1">
+        {toShow.map((e: any) => (
+          <li key={e._id} className="text-amber-800 leading-snug">
+            <span className="font-medium">V:</span> {e.question}
+          </li>
+        ))}
+        {entries.length > 3 && (
+          <li className="text-amber-500">+{entries.length - 3} meer in deze categorie</li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
 function SlechteAntwoordItem({ item }: { item: any }) {
   const [showConversation, setShowConversation] = useState(false);
   const [analysing, setAnalysing] = useState(false);
@@ -65,7 +100,10 @@ function SlechteAntwoordItem({ item }: { item: any }) {
   const appendToRules = useAdminMutation(api.admin.appendToRules);
   const addKnowledge = useAdminMutation(api.admin.addKnowledgeEntryFromAdmin);
   const markHandled = useAdminMutation(api.admin.markFeedbackHandled);
+  const deleteMessage = useAdminMutation(api.admin.deleteChatMessage);
   const [archived, setArchived] = useState(false);
+  const [deleted, setDeleted] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const handleAnalyse = async () => {
     setAnalysing(true);
@@ -101,7 +139,7 @@ function SlechteAntwoordItem({ item }: { item: any }) {
     }
   };
 
-  if (archived) return null;
+  if (archived || deleted) return null;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -142,7 +180,7 @@ function SlechteAntwoordItem({ item }: { item: any }) {
         </button>
 
         {/* Archiveren */}
-        {!archived && (
+        {!archived && !confirmDelete && (
           <button
             onClick={async () => { await markHandled({ messageId: item._id }); setArchived(true); }}
             className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
@@ -150,6 +188,30 @@ function SlechteAntwoordItem({ item }: { item: any }) {
           >
             <Archive size={13} /> Archiveren
           </button>
+        )}
+
+        {/* Definitief verwijderen */}
+        {!confirmDelete ? (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-600 border border-red-200 rounded-lg px-3 py-1.5 transition-colors"
+            title="Definitief verwijderen uit de database"
+          >
+            <Trash2 size={13} /> Verwijderen
+          </button>
+        ) : (
+          <span className="flex items-center gap-2 text-xs text-red-600 border border-red-300 rounded-lg px-3 py-1.5 bg-red-50">
+            <span className="font-medium">Definitief verwijderen?</span>
+            <button
+              onClick={async () => { await deleteMessage({ messageId: item._id }); setDeleted(true); }}
+              className="underline hover:no-underline font-semibold"
+            >
+              Ja
+            </button>
+            <button onClick={() => setConfirmDelete(false)} className="underline hover:no-underline text-gray-500">
+              Nee
+            </button>
+          </span>
         )}
 
         {/* Analyseer knop */}
@@ -254,6 +316,9 @@ function SlechteAntwoordItem({ item }: { item: any }) {
                     className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-400"
                   />
                 </div>
+                {editedCategory && (
+                  <ExistingKnowledgeWarning category={editedCategory} question={editedQuestion} />
+                )}
               </>
             )}
 
