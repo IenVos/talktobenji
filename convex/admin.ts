@@ -9,8 +9,9 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, action } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
+import { api } from "./_generated/api";
 
 // ============================================================================
 // CHAT HISTORY QUERIES (voor admin overzicht)
@@ -888,10 +889,125 @@ export const getNotHelpfulMessages = query({
           createdAt: msg.createdAt,
           sessionId: msg.sessionId,
           userId: session?.userId ?? null,
+          fullConversation: sessionMsgs.map((m) => ({
+            role: m.role,
+            content: m.content,
+            isFlagged: m._id === msg._id,
+          })),
         };
       })
     );
 
     return result;
+  },
+});
+
+/**
+ * Voeg een toevoeging toe aan de bestaande rules in botSettings.
+ */
+export const appendToRules = mutation({
+  args: { adminToken: v.string(), addition: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const settings = await ctx.db.query("botSettings").first();
+    const current = settings?.rules ?? "";
+    const updated = current.trimEnd() + "\n\n" + args.addition.trim();
+    if (settings) {
+      await ctx.db.patch(settings._id, { rules: updated, updatedAt: Date.now() });
+    } else {
+      await ctx.db.insert("botSettings", { rules: updated, knowledge: "", updatedAt: Date.now() });
+    }
+  },
+});
+
+/**
+ * Voeg een nieuwe knowledge base entry toe vanuit de admin feedback flow.
+ */
+export const addKnowledgeEntryFromAdmin = mutation({
+  args: {
+    adminToken: v.string(),
+    question: v.string(),
+    answer: v.string(),
+    category: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return await ctx.db.insert("knowledgeBase", {
+      question: args.question,
+      answer: args.answer,
+      category: args.category,
+      tags: [],
+      isActive: true,
+      usageCount: 0,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Analyseer een slecht gesprek en stel een concrete verbetering voor via Claude.
+ */
+export const suggestFix = action({
+  args: {
+    adminToken: v.string(),
+    conversation: v.array(v.object({ role: v.string(), content: v.string() })),
+    badResponse: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
+
+    const conversationText = args.conversation
+      .map((m) => `${m.role === "user" ? "Bezoeker" : "Benji"}: ${m.content}`)
+      .join("\n");
+
+    const prompt = `Je bent een kwaliteitscontroleur voor Benji, een empathische rouw-chatbot. Analyseer dit gesprek waarbij Benji een antwoord gaf dat als slecht werd beoordeeld.
+
+GESPREK:
+${conversationText}
+
+SLECHT BEOORDEELD ANTWOORD VAN BENJI:
+${args.badResponse}
+
+Bepaal wat er fout ging en stel een concrete verbetering voor. Kies één van twee opties:
+- "rules": als het een gedragsfout is (verkeerde toon, herhaalde vragen, iets vergeten uit het gesprek, te snel advies, etc.)
+- "knowledge": als Benji ontbrekende of verkeerde inhoudelijke kennis had over een onderwerp
+
+Antwoord ALLEEN in dit JSON formaat, geen tekst erbuiten:
+{
+  "probleem": "één zin wat er fout ging",
+  "type": "rules" of "knowledge",
+  "reden": "één zin waarom deze keuze",
+  "toevoeging": "de concrete tekst die toegevoegd moet worden (bij rules: een bullet point stijl regel; bij knowledge: leeg laten)",
+  "knowledge_question": "bij knowledge: de vraag in de knowledge base",
+  "knowledge_answer": "bij knowledge: het antwoord voor Benji",
+  "knowledge_category": "bij knowledge: de categorie (bijv. Rouw en verlies)"
+}`;
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 600,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text ?? "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch {
+        return { probleem: "Kon niet analyseren", type: "rules", reden: "", toevoeging: text, knowledge_question: "", knowledge_answer: "", knowledge_category: "" };
+      }
+    }
+    return { probleem: "Geen analyse beschikbaar", type: "rules", reden: "", toevoeging: "", knowledge_question: "", knowledge_answer: "", knowledge_category: "" };
   },
 });
