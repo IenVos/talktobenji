@@ -1010,6 +1010,40 @@ export const addKnowledgeEntryFromAdmin = mutation({
 });
 
 /**
+ * Haal alle onbeantwoorde vragen op, gegroepeerd en gesorteerd op frequentie.
+ */
+export const getUnansweredQuestions = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const all = await ctx.db.query("unansweredQuestions").order("desc").collect();
+    const map: Record<string, { question: string; count: number; lastAt: number; ids: string[] }> = {};
+    for (const u of all) {
+      const key = u.userQuestion.trim().toLowerCase().slice(0, 150);
+      if (!key) continue;
+      if (!map[key]) map[key] = { question: u.userQuestion.trim(), count: 0, lastAt: u.createdAt, ids: [] };
+      map[key].count += 1;
+      map[key].lastAt = Math.max(map[key].lastAt, u.createdAt);
+      map[key].ids.push(u._id);
+    }
+    return Object.values(map).sort((a, b) => b.count - a.count);
+  },
+});
+
+/**
+ * Verwijder alle onbeantwoorde-vraag-entries voor een specifieke vraagsleutel (dismiss).
+ */
+export const dismissUnansweredQuestion = mutation({
+  args: { adminToken: v.string(), ids: v.array(v.id("unansweredQuestions")) },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    for (const id of args.ids) {
+      await ctx.db.delete(id);
+    }
+  },
+});
+
+/**
  * Analyseer een slecht gesprek en stel een concrete verbetering voor via Claude.
  */
 export const suggestFix = action({

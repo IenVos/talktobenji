@@ -32,6 +32,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { type: "item", href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
     { type: "item", href: "/admin/goede-antwoorden", label: "Goede antwoorden", icon: ThumbsUp, badge: helpfulCount },
     { type: "item", href: "/admin/slechte-antwoorden", label: "Slechte antwoorden", icon: ThumbsDown, badge: notHelpfulCount },
+    { type: "item", href: "/admin/onbeantwoorde-vragen", label: "Onbeantwoorde vragen", icon: HelpCircle, badge: 0 },
     { type: "item", href: "/admin/wensen", label: "Wensen", icon: MessageCircleHeart, badge: 0 },
     { type: "separator" },
     { type: "item", href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
