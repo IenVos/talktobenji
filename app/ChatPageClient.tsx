@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { Send, Mic, Square, Gem } from "lucide-react";
+import { Send, Mic, Square, Gem, ThumbsDown, Check } from "lucide-react";
 import { WelcomeScreen, WelcomeScreenInfoIcons } from "@/components/chat/WelcomeScreen";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
@@ -234,6 +234,7 @@ export default function ChatPageClient({
   const addPersonalizedOpenerToSession = useMutation(api.chat.addPersonalizedOpenerToSession);
   const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
   const handleUserMessage = useAction(api.ai.handleUserMessage);
+  const submitMessageFeedback = useMutation(api.chat.submitMessageFeedback);
 
   const welcomeFromAccountHandled = useRef(false);
 
@@ -597,15 +598,35 @@ export default function ChatPageClient({
               const displayContent = parsed ? parsed.cleanContent : msg.content;
               return (
                 <div key={msg._id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-                  <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${isUser ? "max-w-[85%] sm:max-w-[80%] bg-primary-900 text-white rounded-br-md" : "max-w-sm bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
-                    <MessageContent content={displayContent} isUser={isUser} />
-                    {parsed?.memoryText && session?.userId && (
-                      <MemorySaveButton
-                        memoryText={parsed.memoryText}
-                        emotion={parsed.emotion || "warm"}
-                        userId={session.userId as string}
-                        accent={accent}
-                      />
+                  <div className="flex flex-col gap-1 max-w-sm">
+                    <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${isUser ? "max-w-[85%] sm:max-w-[80%] bg-primary-900 text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
+                      <MessageContent content={displayContent} isUser={isUser} />
+                      {parsed?.memoryText && session?.userId && (
+                        <MemorySaveButton
+                          memoryText={parsed.memoryText}
+                          emotion={parsed.emotion || "warm"}
+                          userId={session.userId as string}
+                          accent={accent}
+                        />
+                      )}
+                    </div>
+                    {!isUser && (
+                      <div className="flex justify-start pl-1">
+                        {msg.feedback === "not_helpful" ? (
+                          <span className="flex items-center gap-1 text-xs text-gray-400">
+                            <Check size={12} />
+                            Bedankt voor je terugkoppeling
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => submitMessageFeedback({ messageId: msg._id, feedback: "not_helpful" })}
+                            className="flex items-center gap-1 text-xs text-gray-300 hover:text-gray-500 transition-colors"
+                            title="Dit antwoord was niet behulpzaam"
+                          >
+                            <ThumbsDown size={12} />
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

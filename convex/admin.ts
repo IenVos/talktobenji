@@ -845,3 +845,53 @@ export const exportAllData = query({
     };
   },
 });
+
+// ============================================================================
+// ONBEVREDIGENDE ANTWOORDEN
+// ============================================================================
+
+/**
+ * Haal alle berichten op die als "not_helpful" zijn gemarkeerd, met context.
+ */
+export const getNotHelpfulMessages = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    checkAdmin(args.adminToken);
+
+    const flagged = await ctx.db
+      .query("chatMessages")
+      .filter((q) => q.eq(q.field("feedback"), "not_helpful"))
+      .order("desc")
+      .take(200);
+
+    const result = await Promise.all(
+      flagged.map(async (msg) => {
+        // Haal alle berichten van deze sessie op om context te geven
+        const sessionMsgs = await ctx.db
+          .query("chatMessages")
+          .withIndex("by_session", (q) => q.eq("sessionId", msg.sessionId))
+          .order("asc")
+          .collect();
+
+        // Zoek het laatste gebruikersbericht voor dit bot-bericht
+        const msgIndex = sessionMsgs.findIndex((m) => m._id === msg._id);
+        const prevUser = msgIndex > 0
+          ? sessionMsgs.slice(0, msgIndex).reverse().find((m) => m.role === "user")
+          : null;
+
+        const session = await ctx.db.get(msg.sessionId);
+
+        return {
+          _id: msg._id,
+          botResponse: msg.content,
+          userMessage: prevUser?.content ?? null,
+          createdAt: msg.createdAt,
+          sessionId: msg.sessionId,
+          userId: session?.userId ?? null,
+        };
+      })
+    );
+
+    return result;
+  },
+});

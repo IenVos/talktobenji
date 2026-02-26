@@ -8,7 +8,7 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { AdminAuthProvider, useAdminQuery } from "./AdminAuthContext";
-import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell, ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp } from "lucide-react";
+import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell, ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 
 type NavItem =
   | { type: "item"; href: string; label: string; icon: React.ElementType; badge: number }
@@ -18,6 +18,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const allFeedback = useAdminQuery(api.admin.getAllFeedback, {});
   const newFeedbackCount = allFeedback?.filter((f: any) => f.status === "new").length ?? 0;
+  const notHelpful = useAdminQuery(api.admin.getNotHelpfulMessages, {});
+  const notHelpfulCount = notHelpful?.length ?? 0;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems: NavItem[] = [
@@ -25,6 +27,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { type: "item", href: "/admin/support-faq", label: "Support FAQ", icon: HelpCircle, badge: 0 },
     { type: "separator" },
     { type: "item", href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
+    { type: "item", href: "/admin/slechte-antwoorden", label: "Slechte antwoorden", icon: ThumbsDown, badge: notHelpfulCount },
     { type: "item", href: "/admin/wensen", label: "Wensen", icon: ThumbsUp, badge: 0 },
     { type: "separator" },
     { type: "item", href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
