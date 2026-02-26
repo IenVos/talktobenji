@@ -173,7 +173,7 @@ export const getMessageCount = query({
 });
 
 /**
- * Tel aantal anonieme gesprekken (voor limiet van 10)
+ * Tel aantal anonieme gesprekken (voor limiet van 5)
  */
 export const countAnonymousSessions = query({
   args: { anonymousId: v.string() },

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -175,6 +176,16 @@ export default function ChatPageClient({
     api.chat.getMessages,
     sessionId ? { sessionId } : "skip"
   );
+
+  // Anonieme sessie-teller (alleen voor niet-ingelogde gebruikers)
+  const [anonymousId, setAnonymousId] = useState<string>("");
+  useEffect(() => {
+    if (!session?.userId) setAnonymousId(getOrCreateAnonymousId());
+  }, [session?.userId]);
+  const anonymousCount = useQuery(
+    api.chat.countAnonymousSessions,
+    !session?.userId && anonymousId ? { anonymousId } : "skip"
+  ) ?? 0;
   const preferencesData = useQuery(
     api.preferences.getPreferencesWithUrl,
     session?.userId ? { userId: session.userId } : "skip"
@@ -525,6 +536,7 @@ export default function ChatPageClient({
       <ConversationLimitGate
         userId={session?.userId as string | undefined}
         email={session?.user?.email || undefined}
+        anonymousCount={!session?.userId ? anonymousCount : undefined}
       >
         <main ref={mainRef} className="flex-1 overflow-y-auto relative min-h-0">
         {/* Chat-inhoud */}
@@ -616,6 +628,16 @@ export default function ChatPageClient({
           </div>
         </div>
       </main>
+
+      {/* Zachte nudge voor gasten bij 3–4 gesprekken */}
+      {!session?.userId && anonymousCount >= 3 && anonymousCount < 5 && (
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3 bg-primary-50 border-t border-primary-200 text-primary-800 text-sm">
+          <span>Je hebt {anonymousCount} van 5 gratis gesprekken gebruikt.</span>
+          <Link href="/registreren" className="flex-shrink-0 text-xs font-medium underline hover:text-primary-900 transition-colors">
+            Maak een gratis account →
+          </Link>
+        </div>
+      )}
 
       {chatError && (
         <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3 bg-amber-50 border-t border-amber-200 text-amber-800 text-sm">

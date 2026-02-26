@@ -144,16 +144,16 @@
   color: white !important;
 }
 
-/* Handreikingen-knop: iets donkerder dan accentkleur, hover: donkerdere achtergrond + wit */
+/* Handreikingen-knop: donkerblauw, hover: accentkleur */
 .account-theme .darker-btn {
   background-color: transparent !important;
-  border: 1px solid color-mix(in srgb, var(--account-accent, #38465e) 70%, #000) !important;
-  color: color-mix(in srgb, var(--account-accent, #38465e) 70%, #000) !important;
+  border: 1px solid #1e3a5f !important;
+  color: #1e3a5f !important;
   transition: background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 .account-theme .darker-btn:hover {
-  background-color: color-mix(in srgb, var(--account-accent, #38465e) 70%, #000) !important;
-  border-color: color-mix(in srgb, var(--account-accent, #38465e) 70%, #000) !important;
+  background-color: var(--account-accent) !important;
+  border-color: var(--account-accent) !important;
   color: white !important;
 }
 

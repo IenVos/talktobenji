@@ -250,7 +250,7 @@ export const handleUserMessage = action({
         }
       }
 
-      const isEnglish = /^[A-Za-z]/.test(args.userMessage.trim());
+      const isEnglish = false; // Benji is altijd Nederlands — nooit overschakelen naar Engels
       const emptyKbMessage = isEnglish
         ? "There is no information in the knowledge base yet. Add Knowledge and Q&As via the admin panel (/admin) to answer questions."
         : "Er is nog geen kennis geconfigureerd. Voeg Knowledge en Q&A's toe via het admin panel (/admin) om vragen te kunnen beantwoorden.";
@@ -486,9 +486,9 @@ export const handleUserMessage = action({
         ? "IMPORTANT: Use the knowledge base below first to answer. If the answer is not in the knowledge base, you may use the additional sources (PDFs, URLs) to distill an answer. If neither contains the answer, say clearly that you cannot answer and suggest adding the topic. In that case only, end your response with exactly [UNANSWERED] (nothing else after it) so we can track these questions."
         : "BELANGRIJK: Gebruik eerst de knowledge base hieronder om te antwoorden. Als het antwoord niet in de knowledge base staat, mag je de aanvullende bronnen (PDF's, websites) gebruiken om een antwoord te destilleren. Als geen van beide het antwoord bevat, zeg dan duidelijk dat je het niet kunt beantwoorden en stel voor het onderwerp toe te voegen. In dat geval alleen: eindig je antwoord met exact [UNANSWERED] (niets anders erna) zodat we deze vragen kunnen bijhouden.";
 
-      const dutchLanguageRule = isEnglish
-        ? ""
-        : `TAALKWALITEIT: Gebruik altijd correct, natuurlijk Nederlands. Elke zin moet grammaticaal perfect zijn.
+      const dutchLanguageRule = `TAAL: Antwoord ALTIJD in het Nederlands. Nooit in het Engels, zelfs niet als de gebruiker iets in het Engels schrijft. Reageer dan gewoon in het Nederlands.
+
+TAALKWALITEIT: Gebruik altijd correct, natuurlijk Nederlands. Elke zin moet grammaticaal perfect zijn.
 
 BELANGRIJKE GRAMMATICALE REGELS:
 - Werkwoordvolgorde: scheidbare werkwoorden moeten correct gescheiden worden
@@ -540,6 +540,18 @@ BELANGRIJKE GRAMMATICALE REGELS:
 - Gebruik correcte zinsconstructies met "kunnen" en "beide"
   FOUT: "Dat kunnen beide dingen tegelijk waar zijn"
   GOED: "Beide dingen kunnen tegelijk waar zijn" of "Dat kan allebei waar zijn"
+
+- Vermijd onnatuurlijke constructies met "vandaan gaan"
+  FOUT: "Wat voelde je bij hem vandaan gaan?"
+  GOED: "Wat voelde je toen hij er niet meer was?" of "Hoe was het voor je toen hij wegging?"
+
+- Vermijd onnatuurlijke constructies met "aan die kletsen" / "aan dat kletsen"
+  FOUT: "Wat miste je het meest aan die kletsen?"
+  GOED: "Wat miste je het meest aan jullie gesprekken?" of "Wat mis je het meest aan die gesprekken samen?"
+
+- Vermijd "Sorry" als opener — klinkt te afstandelijk en vertaald
+  FOUT: "Sorry, ik was niet duidelijk."
+  GOED: "Je hebt gelijk, dat was niet duidelijk." of "Dat heb ik onhandig verwoord."
 
 - Maak altijd volledige, goed lopende zinnen
   FOUT: "Die leegte, wat voelt dat als." (onvolledige zin)
