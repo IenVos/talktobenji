@@ -856,7 +856,7 @@ export const exportAllData = query({
 export const getNotHelpfulMessages = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
-    checkAdmin(args.adminToken);
+    await checkAdmin(ctx, args.adminToken);
 
     const flagged = await ctx.db
       .query("chatMessages")
