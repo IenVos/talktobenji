@@ -726,9 +726,9 @@ export default function ChatPageClient({
             {sessionId && (
               <p className="text-center text-xs text-primary-400 mt-2">
                 Benji leert van elk gesprek.{" "}
-                <a href="mailto:contactmetien@talktobenji.com" className="underline hover:text-primary-200 transition-colors">
+                <Link href="/account/steun?feedback=open" className="underline hover:text-primary-200 transition-colors">
                   Deel je ervaring
-                </a>{" "}
+                </Link>{" "}
                 en help mee.
               </p>
             )}
