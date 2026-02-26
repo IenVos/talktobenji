@@ -425,7 +425,7 @@ export default function ChatPageClient({
         setSessionId(activeSessionId);
         if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
       }
-      
+
       // Verstuur bericht en genereer antwoord (gebruikersbericht staat al via pendingUserMessage)
       setIsLoading(true);
       const result = await handleUserMessage({ sessionId: activeSessionId, userMessage: messageText });
@@ -435,14 +435,18 @@ export default function ChatPageClient({
         setChatError(result.error);
         return;
       }
-      
+
       // Minimum 5 seconden: bolletjes langer zichtbaar, rustiger tempo als een echt gesprek
       const elapsed = Date.now() - startTime;
       const minDelay = 5000;
       if (elapsed < minDelay) {
         await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
       }
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.message?.includes("GUEST_LIMIT_REACHED")) {
+        // Gate toont automatisch via anonymousCount — geen foutmelding nodig
+        return;
+      }
       console.error(e);
       setChatError("Er ging iets mis. Probeer het opnieuw of start een nieuw gesprek via het menu.");
     }
@@ -475,7 +479,8 @@ export default function ChatPageClient({
       if (elapsed < minDelay) {
         await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
       }
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.message?.includes("GUEST_LIMIT_REACHED")) return;
       console.error(e);
       setChatError("Er ging iets mis bij het starten. Probeer het opnieuw.");
     }

@@ -165,6 +165,17 @@ export const handleUserMessage = action({
             error: "Je hebt je gespreksmaandlimiet bereikt. Upgrade je abonnement voor onbeperkte gesprekken.",
           };
         }
+      } else if (chatSession?.anonymousId) {
+        // Anonieme bezoeker: max 5 gesprekken
+        const anonCount = await ctx.runQuery(api.chat.countAnonymousSessions, {
+          anonymousId: chatSession.anonymousId,
+        });
+        if (anonCount > 5) {
+          return {
+            success: false,
+            error: "Je hebt je 5 gratis gesprekken gebruikt. Maak een gratis account aan om verder te gaan.",
+          };
+        }
       }
 
       // STAP 1: Sla gebruikersbericht op

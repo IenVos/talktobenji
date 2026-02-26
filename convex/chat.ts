@@ -212,6 +212,18 @@ export const startSession = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
+    // Anonieme bezoeker: blokkeer nieuwe sessie als limiet van 5 bereikt is
+    if (!args.userId && args.anonymousId) {
+      const sessions = await ctx.db
+        .query("chatSessions")
+        .withIndex("by_anonymous", (q) => q.eq("anonymousId", args.anonymousId!))
+        .collect();
+      const anonCount = sessions.filter((s) => !s.userId).length;
+      if (anonCount >= 5) {
+        throw new Error("GUEST_LIMIT_REACHED");
+      }
+    }
+
     // Track conversation count voor logged-in users (niet voor admin)
     const exemptEmail = process.env.ADMIN_EXEMPT_EMAIL;
     if (args.userId && (!exemptEmail || args.userEmail !== exemptEmail)) {
