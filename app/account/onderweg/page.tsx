@@ -20,6 +20,65 @@ function circularOffset(index: number, active: number, total: number) {
   return d;
 }
 
+function OnderwegCard({ item, onLightbox }: { item: any; onLightbox: (url: string, alt: string) => void }) {
+  return (
+    <article className="rounded-xl overflow-hidden">
+      <div className="relative w-full aspect-[3/2]">
+        {item.imageUrl ? (
+          <button
+            type="button"
+            onClick={() => onLightbox(item.imageUrl!, item.title || "")}
+            className="w-full h-full cursor-pointer hover:opacity-90 transition-opacity"
+            title="Afbeelding vergroten"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+          </button>
+        ) : (
+          <div className="w-full h-full bg-primary-50 flex items-center justify-center">
+            <ShoppingBag size={40} className="text-primary-200" />
+          </div>
+        )}
+        <div className="absolute inset-0 flex flex-col bg-black/25 pointer-events-none">
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 px-6">
+            {item.title && (
+              <h3 className="text-base font-semibold text-white text-center leading-snug drop-shadow-md text-balance">
+                {item.title}
+              </h3>
+            )}
+            {item.content && item.content.trim() !== item.title?.trim() && (
+              <p className="text-sm text-white/90 text-center leading-relaxed drop-shadow-sm text-balance whitespace-pre-wrap">
+                {renderRichText(item.content)}
+              </p>
+            )}
+          </div>
+          {(item.paymentUrl || (item.priceCents != null && item.priceCents > 0)) && (
+            <div className="flex flex-col items-center gap-1.5 px-4 pb-4 pointer-events-auto">
+              {item.priceCents != null && item.priceCents > 0 && (
+                <span className="text-xs text-white/80 font-medium drop-shadow-sm">
+                  €{(item.priceCents / 100).toFixed(2)}
+                </span>
+              )}
+              {item.paymentUrl && (
+                <a
+                  href={item.paymentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-5 py-2 bg-white/90 text-primary-800 rounded-lg text-sm font-medium hover:bg-primary-100 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {item.buttonLabel || "Bestellen"}
+                  <ExternalLink size={14} />
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function OnderwegContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -127,6 +186,20 @@ function OnderwegContent() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-primary-200 py-6">
+
+          {/* Mobiel: verticale lijst met zelfde overlay-design */}
+          <div className="sm:hidden flex flex-col gap-3 px-4">
+            {items.map((item) => (
+              <OnderwegCard
+                key={item._id}
+                item={item}
+                onLightbox={(url, alt) => setLightboxImage({ url, alt })}
+              />
+            ))}
+          </div>
+
+          {/* Desktop: carousel */}
+          <div className="hidden sm:block">
           <div
             className="relative"
             onTouchStart={handleTouchStart}
@@ -272,6 +345,7 @@ function OnderwegContent() {
               ))}
             </div>
           )}
+          </div>{/* einde hidden sm:block */}
         </div>
       )}
 
