@@ -1,0 +1,743 @@
+[
+  {
+    "question": "Hoe ga ik om met een scheiding?",
+    "answer": "Een scheiding is een van de ingrijpendste vormen van verlies die er zijn. Je verliest niet alleen een partner, maar ook een gedeelde toekomst, gewoontes, een thuis, soms vrienden en een stuk van jezelf. Het verdriet na een scheiding is echte rouw, ook al begrijpt niet iedereen dat. Geef jezelf toestemming om te rouwen. Dat betekent niet dat je er fout aan deed of dat je zwak bent. Het betekent dat de relatie ertoe deed. Wat nu helpt: niet proberen alles tegelijk te regelen. Kleine stappen. Één dag. En eerlijk zijn over hoe zwaar het is, ook tegenover jezelf.",
+    "category": "Scheiding en relatieverlies",
+    "tags": ["scheiding", "relatieverlies", "verlies-partner", "rouw-scheiding", "toekomst-verloren", "nieuwe-start", "identiteit", "eenzaamheid", "verwerken", "zelfzorg"],
+    "alternativeQuestions": [
+      "Mijn relatie is voorbij, hoe verwerk ik dat?",
+      "Ik ga scheiden, hoe kom ik hier doorheen?",
+      "Het voelt alsof ik rouw na mijn scheiding, is dat normaal?",
+      "Hoe ga ik verder na het einde van mijn relatie?",
+      "Mijn partner heeft me verlaten, hoe ga ik hier mee om?",
+      "Is het normaal zo veel verdriet te hebben na een scheiding?",
+      "Hoe verwerk ik het einde van mijn huwelijk?"
+    ],
+    "alternativeAnswers": [
+      "Scheiden is rouwen. Je verliest een persoon, een toekomst en een stuk van wie je was in die relatie. Dat is zwaar, ook als de scheiding de juiste beslissing was. Geef jezelf de ruimte om te rouwen zonder dat je het hoeft te rechtvaardigen tegenover anderen.",
+      "Na een scheiding mag je verdrietig zijn, ook als jij degene was die de relatie beëindigde. Rouw kent geen kant. Het helpt om dit te benoemen: 'Ik rouw om wat we hadden en om de toekomst die er niet meer zal zijn.' Dat is geen zwakte, dat is eerlijkheid.",
+      "Een scheiding raakt alles tegelijk: je dagelijkse leven, je zelfbeeld, je sociale kring, je plannen. Geen wonder dat het overweldigend voelt. Begin niet met 'hoe gaat het worden', maar met 'hoe is het nu'. Dat is genoeg."
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Ik voel me schuldig over de scheiding",
+    "answer": "Schuldgevoel na een scheiding is heel gewoon, zeker als je degene bent die de stap heeft gezet, maar ook als dat niet zo was. Je vraagt je af: had ik meer mijn best moeten doen? Had ik eerder moeten ingrijpen? Had ik anders moeten reageren? Die vragen zijn begrijpelijk, maar ze houden je gevangen in het verleden. Een relatie eindigt nooit door slechts één persoon. En soms eindigt iets ook gewoon, zonder dat er een schuldige is.",
+    "category": "Scheiding en relatieverlies",
+    "tags": ["schuld-scheiding", "schuldgevoel", "zelfverwijt", "verwerken", "verantwoordelijkheid", "relatie-einde", "zelfcompassie", "rouw"],
+    "alternativeQuestions": [
+      "Ik heb de relatie beëindigd maar voel me vreselijk schuldig",
+      "Is het mijn schuld dat onze relatie stuk is gegaan?",
+      "Ik blijf mezelf de schuld geven van de scheiding",
+      "Waarom voel ik me zo schuldig terwijl ik weet dat scheiden de juiste keuze was?",
+      "Mijn partner geeft mij de schuld van de scheiding"
+    ],
+    "alternativeAnswers": [
+      "Schuldgevoel na een scheiding is een van de meest pijnlijke emoties, ook als de beslissing juist was. Soms is een relatie ten einde zelfs als niemand iets fout heeft gedaan. Schuldgevoel betekent dat je het serieus nam, niet dat je tekort schoot.",
+      "Het gevoel dat jij verantwoordelijk bent voor het einde van de relatie is begrijpelijk, maar zelden de volledige waarheid. Relaties zijn altijd van twee mensen. Wat hielp je eerder om met schuldgevoel om te gaan?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met de eenzaamheid na een scheiding?",
+    "answer": "Eenzaamheid na een scheiding is anders dan gewone eenzaamheid. Je mist niet zomaar 'iemand', je mist een specifiek iemand, specifieke gewoontes en de vertrouwdheid van samen zijn. Die leegte is echt. Tegelijk is die leegte ook ruimte die je nog moet leren kennen. Niet meteen invullen. Niet vluchten in afleiding of een nieuwe relatie. Maar ook niet alleen zitten met de pijn zonder hulp te vragen. Praat met mensen die je echt kennen. Of schrijf op wat je mist.",
+    "category": "Scheiding en relatieverlies",
+    "tags": ["eenzaamheid-scheiding", "leegte", "alleen-wonen", "verlies-gezelschap", "nieuwe-start", "verbinding", "schrijven", "verwerken"],
+    "alternativeQuestions": [
+      "Het huis voelt zo leeg na de scheiding",
+      "Ik ben zo eenzaam nu ik alleen woon",
+      "Hoe ga ik om met het alleen zijn na mijn scheiding?",
+      "Ik mis gewoon iemand om mee te praten thuis"
+    ],
+    "alternativeAnswers": [
+      "Die leegte thuis na een scheiding is een van de moeilijkste dingen. Je bent gewend aan aanwezigheid, geluid, iemand die er is. Nu is dat weg. Dat went, maar het duurt even. Wat helpt is structuur aanbrengen in je dag, zodat de stilte minder overweldigend is.",
+      "Eenzaamheid na een scheiding is rouwen om aanwezigheid. Het is normaal en het vraagt tijd. Waar voel je de leegte het meest?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe praat ik met mijn kinderen over de scheiding?",
+    "answer": "Kinderen hebben eerlijkheid nodig, maar op hun niveau. Ze hoeven niet alles te weten, maar ze moeten wel weten dat zij niet de oorzaak zijn. Dat is de belangrijkste boodschap: dit is niet jouw schuld. Zeg ook dat beide ouders van ze houden en dat dat niet verandert. Gebruik geen grote woorden, maar ga niet te veel om de hete brij heen. Kinderen voelen spanning aan, ook als je niets zegt. Geef ze ruimte om vragen te stellen, en accepteer ook als ze (nog) geen vragen hebben.",
+    "category": "Scheiding en relatieverlies",
+    "tags": ["scheiding-kinderen", "uitleggen-kinderen", "ouderschap-na-scheiding", "communicatie", "eerlijkheid", "geruststellen", "co-ouderschap"],
+    "alternativeQuestions": [
+      "Hoe leg ik mijn kinderen uit dat we gaan scheiden?",
+      "Mijn kinderen lijden onder de scheiding, wat doe ik?",
+      "Hoe bescherm ik mijn kinderen tijdens de scheiding?",
+      "Wat zeg ik tegen mijn kind als we uit elkaar gaan?"
+    ],
+    "alternativeAnswers": [
+      "Kinderen begrijpen meer dan we denken, maar hebben simpele, eerlijke antwoorden nodig. Het allerbelangrijkste: 'dit is niet jouw schuld'. Zeg het meer dan eens. En zorg dat ze weten dat ze van beide ouders blijven houden worden.",
+      "Er is geen perfecte manier om dit te vertellen. Maar eerlijk en rustig is altijd beter dan vermijden. Hoe oud zijn je kinderen?"
+    ],
+    "priority": 6
+  },
+  {
+    "question": "Ik wil mijn ex terug maar ik weet dat het niet goed voor me is",
+    "answer": "Dat is een van de pijnlijkste plekken om in te zitten: je hoofd weet iets wat je hart niet wil horen. Verlangen naar iemand die niet goed voor je is, betekent niet dat je zwak bent. Het betekent dat er echte verbinding was, echte momenten, echte liefde ook. Die rouw is reëel. Tegelijk: wat jou miste in die relatie, dat mis je nu ook. En dat verdien je wel. Het helpt om concreet te benoemen wat je mist aan de persoon zelf, versus wat je mist aan het hebben van iemand.",
+    "category": "Scheiding en relatieverlies",
+    "tags": ["ex-terug-willen", "verwarring-na-scheiding", "verlangen", "rouw-relatie", "grenzen", "hoofd-versus-hart", "zelfrespect"],
+    "alternativeQuestions": [
+      "Ik weet dat de scheiding goed was maar ik mis mijn ex zo",
+      "Ik twijfel of ik de juiste keuze heb gemaakt",
+      "Hoe stop ik met denken aan mijn ex?",
+      "Ik wil contact zoeken met mijn ex, maar weet dat het niet goed is"
+    ],
+    "alternativeAnswers": [
+      "Iemand missen die niet goed voor je was, is normaal. Je mist niet alleen de persoon, je mist ook de hoop die je had, de momenten die echt waren, de nabijheid. Dat rouwproces is even reëel als elk ander.",
+      "Het gevoel van twijfel hoort bij rouw, ook bij rouw om een relatie. Wat mis je het meest aan hem of haar?"
+    ],
+    "priority": 6
+  },
+  {
+    "question": "Hoe ga ik om met een scheiding als er nog gevoelens zijn?",
+    "answer": "Uit elkaar gaan terwijl je nog van iemand houdt is een van de zwaarste vormen van verlies. Er is geen kwaadheid die het makkelijker maakt, geen reden die het pijn wegneemt. Alleen het besef dat iets wat er was, nu voorbij is. Dat mag lang duren. En het mag pijn doen. Probeer niet te snel door die pijn heen te lopen.",
+    "category": "Scheiding en relatieverlies",
+    "tags": ["nog-gevoelens", "scheiding-pijn", "rouw-relatie", "verlies-liefde", "verwerken", "tijd-nodig"],
+    "alternativeQuestions": [
+      "Ik hou nog van mijn ex maar we zijn toch uit elkaar",
+      "Waarom doet een scheiding zo veel pijn als je er zelf voor kiest?",
+      "Ik heb hem verlaten maar ik mis hem vreselijk"
+    ],
+    "alternativeAnswers": [
+      "Houden van iemand en toch bij hen weggaan is geen tegenstrijdigheid, het is heel menselijk. Soms kies je voor jezelf terwijl je hart ergens anders is. Die pijn is reëel.",
+      "Gevoelens gaan niet weg op het moment dat de relatie stopt. Dat is precies waarom het zo zwaar is. Wat helpt je op dit moment om door de dag te komen?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met een ernstig zieke naaste?",
+    "answer": "Als iemand van wie je houdt ernstig ziek is, leef je in twee werelden tegelijk: de wereld van het dagelijks leven die gewoon doorgaat, en de wereld van angst, hoop en onzekerheid die alles kleurt. Dat is uitputtend. Je bent er voor de ander, maar wie er is voor jou? Vergeet niet dat jouw verdriet, jouw angst en jouw vermoeidheid ook tellen. Je hoeft niet sterk te zijn. Je mag ook gewoon bang zijn.",
+    "category": "Ziekte en zorgverlies",
+    "tags": ["mantelzorg", "ernstige-ziekte", "zorg-voor-naaste", "onzekerheid", "angst", "uitputting", "verdriet-naaste", "hoop-en-vrees"],
+    "alternativeQuestions": [
+      "Mijn moeder heeft kanker, hoe ga ik hiermee om?",
+      "Mijn partner is ernstig ziek, ik weet niet wat ik moet doen",
+      "Ik ben zo bang dat ik iemand verlies die ziek is",
+      "Hoe zorg ik goed voor iemand die ziek is zonder mezelf te verliezen?",
+      "Wat doe ik met mijn angst nu mijn vader zo ziek is?"
+    ],
+    "alternativeAnswers": [
+      "De ziekte van een naaste is een bijzonder soort verlies: je rouwt al terwijl de persoon er nog is. Die anticipatoire rouw is heel reëel en heel zwaar. Praat er over, ook als je het moeilijk vindt woorden te geven.",
+      "Zorgen voor iemand die ziek is put je uit, ook als je het met liefde doet. Zelfzorg is geen luxe in zo'n situatie, het is noodzaak. Wat kost jou op dit moment de meeste energie?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Ik ben zo moe van zorgen voor mijn zieke partner of ouder",
+    "answer": "Mantelzorg is zwaar. Veel zwaarder dan de meeste mensen van buitenaf zien. Je doet het met liefde, maar liefde maakt je niet onvermoeibaar. Je verliest stukken van je eigen leven: vrije tijd, plannen, soms ook je gevoel van identiteit buiten de zorgrol. Moe zijn is geen teken dat je het niet aankunt. Het is een teken dat je al heel lang heel veel draagt. Je mag dat zeggen. Je mag ook hulp vragen.",
+    "category": "Ziekte en zorgverlies",
+    "tags": ["mantelzorgmoeheid", "uitputting-zorg", "zorgverlener", "overbelasting", "grenzen-stellen", "hulp-vragen", "zelfzorg-mantelzorger"],
+    "alternativeQuestions": [
+      "Ik doe alles voor mijn zieke moeder maar ik ben er kapot van",
+      "Hoe houd ik dit vol als mantelzorger?",
+      "Ik voel me schuldig dat ik het even niet meer kan",
+      "Wanneer is het genoeg als mantelzorger?",
+      "Ik zorgt al jaren voor mijn man, ik ben zo moe"
+    ],
+    "alternativeAnswers": [
+      "Mantelzorgmoeheid is een erkend fenomeen. Je kunt niet blijven geven als je eigen tank leeg is. Het vraagt moed om te zeggen: ik heb het even nodig voor mezelf. Dat is geen liefdeloosheid, dat is overleven.",
+      "Wat zou jij nodig hebben om even bij te komen? Zelfs een kleine pauze, iemand die het overneemt voor een middag, kan al helpen."
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met de onzekerheid van een zieke naaste?",
+    "answer": "Onzekerheid is misschien wel het moeilijkste aan ernstige ziekte: je weet niet hoe het gaat lopen. Niet wat de behandeling doet. Niet hoeveel tijd er is. Je leeft van uitslag naar uitslag, van gesprek naar gesprek. Dat vergt enorm veel van je. Probeer niet te ver vooruit te denken als je hoofd daar niet bij kan. Soms is één dag, één moment genoeg om op te richten.",
+    "category": "Ziekte en zorgverlies",
+    "tags": ["onzekerheid-ziekte", "wachten-op-uitslag", "angst-voor-verlies", "leven-met-ziekte", "hier-en-nu", "coping"],
+    "alternativeQuestions": [
+      "Hoe leef je met de angst dat iemand doodgaat aan een ziekte?",
+      "Ik kan niet stoppen met mij zorgen maken over de ziekte van mijn vader",
+      "Hoe ga je om met niet weten hoe lang iemand nog heeft?",
+      "De onzekerheid rondom de ziekte van mijn moeder maakt me gek"
+    ],
+    "alternativeAnswers": [
+      "Onzekerheid over hoe het afloopt met iemand die je liefhebt is ondraaglijk voelend. Je hoofd wil weten, plannen, voorbereid zijn, maar dat kan niet. Dat gevoel van controleverlies is uitputtend.",
+      "Wat helpt jou om de onzekerheid even te verdragen, al is het maar voor een dag?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Mijn naaste is terminaal ziek, hoe ga ik hiermee om?",
+    "answer": "Als je weet dat iemand van wie je houdt gaat sterven, verander je al van binnen voordat het verlies er is. Je rouwt al, terwijl de persoon er nog is. Dat is anticipatoire rouw en die is net zo reëel als de rouw daarna. Je wilt aanwezig zijn, maar je weet niet hoe. Je wilt iets zeggen, maar de woorden schieten tekort. Er is geen goed script voor dit. Wat helpt: aanwezig zijn zonder dat het hoeft. Zwijgen mag. Huilen mag. Gewoon er zijn.",
+    "category": "Ziekte en zorgverlies",
+    "tags": ["terminale-ziekte", "afscheid-nemen", "anticipatoire-rouw", "rouw-voor-dood", "aanwezig-zijn", "loslaten", "nabijheid"],
+    "alternativeQuestions": [
+      "Mijn moeder gaat sterven, ik weet niet hoe ik afscheid neem",
+      "Hoe zorg je goed voor iemand die stervende is?",
+      "Wat zeg je tegen iemand die nog maar kort te leven heeft?",
+      "Ik ben zo bang voor het moment dat mijn vader er niet meer is"
+    ],
+    "alternativeAnswers": [
+      "Er is niets wat dit makkelijk maakt. Maar aanwezig zijn zonder woorden is ook een vorm van liefde. Je hoeft het niet op te lossen. Gewoon er zijn is genoeg.",
+      "Wat wil jij hem of haar nog laten weten of vragen? Soms helpt het om dat hardop te benoemen, ook als je het nog niet kunt zeggen."
+    ],
+    "priority": 9
+  },
+  {
+    "question": "Ik ben zelf ziek en moet omgaan met verlies van gezondheid",
+    "answer": "Ziek worden is ook een verlies: van gezondheid, van energie, van wie je was en wat je kon. Het leven zoals je het kende verandert. Plannen vallen weg. Rollen veranderen. Je lichaam voelt vreemd aan. Dat is rouw, ook al noemen mensen het zelden zo. En net als bij rouw is er geen tijdlijn, geen 'je zou toch al verder moeten zijn'. Jij bepaalt hoe jouw herstel of aanpassing eruitziet.",
+    "category": "Ziekte en zorgverlies",
+    "tags": ["eigen-ziekte", "verlies-gezondheid", "chronische-ziekte", "identiteit-ziekte", "aanpassen", "rouw-om-gezondheid", "acceptatie"],
+    "alternativeQuestions": [
+      "Ik heb een ernstige diagnose gekregen en weet niet hoe ik verder moet",
+      "Hoe ga ik om met chronische ziekte?",
+      "Mijn leven is compleet veranderd door mijn ziekte",
+      "Ik rouw om wie ik was voordat ik ziek werd"
+    ],
+    "alternativeAnswers": [
+      "Ziek worden is ook rouwen om een versie van jezelf. Om wat je kon, om wat je plande, om wie je was. Die rouw verdient erkenning, ook al zie je er van buiten misschien gezond uit.",
+      "Hoe voelt het nu, op dit moment, met de ziekte?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met een burn-out?",
+    "answer": "Een burn-out is meer dan 'opgebrand zijn'. Het is ook verlies: verlies van energie, van plezier in werk, van wie je dacht dat je was. Veel mensen voelen schaamte, want ze hadden 'nee' moeten zeggen. Maar burn-out overkomt mensen die te lang te veel gaven, vaak uit toewijding, betrokkenheid of het gevoel dat ze niet anders konden. Erken dat dit een pijnlijk verlies is. En begin klein: niet met herstel, maar met rust.",
+    "category": "Burn-out en werkgerelateerd verlies",
+    "tags": ["burn-out", "uitputting", "herstel", "verlies-energie", "werk-verlies", "schaamte", "grenzen", "rust", "identiteit"],
+    "alternativeQuestions": [
+      "Ik ben in een burn-out, hoe kom ik hier ooit uit?",
+      "Hoe verwerk ik mijn burn-out?",
+      "Ik schaam me zo voor mijn burn-out",
+      "Hoe ga ik om met de gevolgen van mijn burn-out voor mijn werk en leven?",
+      "Ik voel me zo nutteloos door mijn burn-out",
+      "Wanneer word ik weer de oude na een burn-out?"
+    ],
+    "alternativeAnswers": [
+      "Burn-out is ook verlies: van jezelf, van energie, van de versie van jou die altijd door kon gaan. Die rouw is reëel. Herstel begint niet met presteren, maar met ruimte geven aan wat er is.",
+      "Schaamte bij burn-out is heel gewoon, maar zelden terecht. Burn-out overkomt mensen die lang heel hard hun best hebben gedaan. Wat heb je nodig op dit moment?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Ik mis mezelf sinds mijn burn-out",
+    "answer": "Dat gevoel van 'ik weet niet meer wie ik ben' is een van de meest verwarrende kanten van een burn-out. Je was gewend aan jezelf: je energie, je doen, je tempo. Nu is dat er allemaal niet meer. En dat voelt als verlies, soms zelfs als rouw. Wie ben je als je niet meer presteert? Die vraag mag er zijn. Het antwoord hoeft niet snel te komen.",
+    "category": "Burn-out en werkgerelateerd verlies",
+    "tags": ["identiteitsverlies-burn-out", "zelfverlies", "wie-ben-ik", "herstel", "prestatie-identiteit", "zelfontdekking"],
+    "alternativeQuestions": [
+      "Ik herken mezelf niet meer na mijn burn-out",
+      "Mijn identiteit was mijn werk en nu ben ik burn-out",
+      "Ik weet niet meer wie ik ben zonder mijn werk",
+      "Hoe vind ik mezelf terug na een burn-out?"
+    ],
+    "alternativeAnswers": [
+      "Veel mensen die burn-out raken, hadden hun identiteit sterk verbonden aan hun werk of prestaties. Als dat wegvalt, valt er ook iets van jezelf weg. Dat is een echte vorm van rouw.",
+      "Wie was jij buiten je werk? Dat is misschien een goede vraag om nu bij te zitten."
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Ik heb mijn baan verloren, hoe ga ik hiermee om?",
+    "answer": "Baanverlies is meer dan het verliezen van inkomen. Je verliest ook structuur, collega's, zingeving, je dagelijkse ritme en soms een groot deel van je identiteit. Dat is echt verlies en het mag pijn doen. Geef jezelf toestemming om niet meteen in actie te komen. Je hoeft niet direct te solliciteren om de pijn te verdoezelen. Eerst voelen wat er is. Daarna verder.",
+    "category": "Burn-out en werkgerelateerd verlies",
+    "tags": ["baanverlies", "ontslag", "werk-verlies", "identiteit-werk", "financiële-zorgen", "structuur", "zingeving", "nieuwe-start"],
+    "alternativeQuestions": [
+      "Ik ben ontslagen, hoe kom ik hier overheen?",
+      "Mijn bedrijf is failliet en ik weet niet hoe ik verder moet",
+      "Ik ben mijn baan kwijt en voel me een mislukkeling",
+      "Hoe ga ik om met de leegte na het verliezen van mijn werk?"
+    ],
+    "alternativeAnswers": [
+      "Baanverlies raakt aan zoveel meer dan alleen inkomen. Het gaat ook over structuur, zingeving, de mensen om je heen en wie je dacht te zijn. Die rouw verdient erkenning.",
+      "Wat verlies je het meest nu je baan er niet meer is?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met de schaamte van mijn burn-out of baanverlies?",
+    "answer": "Schaamte bij burn-out of baanverlies is heel herkenbaar maar zelden eerlijk. Je bent niet 'te zwak' of 'niet goed genoeg'. Je bent menselijk. Mensen om je heen begrijpen niet altijd hoe zwaar het is, of ze zeggen dingen die het erger maken. Wat helpt: één of twee mensen in vertrouwen nemen die het wél begrijpen. En jezelf de ruimte geven om te herstellen zonder dat je je daarvoor hoeft te verantwoorden.",
+    "category": "Burn-out en werkgerelateerd verlies",
+    "tags": ["schaamte-burn-out", "schaamte-baanverlies", "oordeel-anderen", "zelfcompassie", "vertrouwen", "herstel", "stigma"],
+    "alternativeQuestions": [
+      "Ik durf het niet te zeggen dat ik burn-out ben",
+      "Ik schaam me zo dat ik mijn baan ben kwijtgeraakt",
+      "Wat denken anderen van mij nu ik thuis zit?",
+      "Hoe vertel ik anderen over mijn burn-out zonder me te schamen?"
+    ],
+    "alternativeAnswers": [
+      "Schaamte maakt alles zwaarder. Je draagt al zoveel, en dan ook nog de last van wat anderen denken. Hoe erg speelt die schaamte mee in je dagelijkse leven?",
+      "Je hoeft je niet te verantwoorden voor een burn-out of baanverlies. Dat is makkelijker gezegd dan gevoeld. Wie in jouw omgeving begrijpt het wél een beetje?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met een onvervulde kinderwens?",
+    "answer": "Een onvervulde kinderwens is een bijzondere vorm van verlies: je rouwt om iemand die nooit heeft bestaan, om een toekomst die je je had voorgesteld maar nooit werkelijkheid werd. Geen babykamer, geen eerste stap, geen kleinkind later. Dat verdriet is diep en wordt vaak onderschat door mensen om je heen. Het is reëel. Het is zwaar. En het hoeft niet opgelost te worden met 'je kunt ook adopteren' of 'misschien lukt het later nog'.",
+    "category": "Onvervulde kinderwens",
+    "tags": ["kinderwens", "onvruchtbaarheid", "verlies-toekomst", "rouw-kinderwens", "IVF", "zwangerschap-mislukt", "erkenning", "verdriet"],
+    "alternativeQuestions": [
+      "Ik kan geen kinderen krijgen en weet niet hoe ik verder moet",
+      "Hoe verwerk ik het verdriet om geen moeder te kunnen worden?",
+      "IVF is niet gelukt, ik rouw om de kinderen die er niet zijn",
+      "Mijn kinderwens zal nooit worden vervuld, hoe leef ik daarmee?",
+      "Ik ben de enige in mijn vriendinnengroep zonder kinderen en dat doet zo veel pijn",
+      "Hoe ga ik om met de rouw om kinderen die ik nooit zal hebben?"
+    ],
+    "alternativeAnswers": [
+      "De pijn van een onvervulde kinderwens is een rouw die veel mensen niet zien. Maar het is een verlies van een heel leven dat je voor je zag. Dat verdient erkenning.",
+      "Je rouwt om iemand die er nooit was, en toch is het verlies van die toekomst even reëel als elk ander verlies. Hoe lang draag je dit al met je mee?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Ik voel me buitengesloten omdat iedereen om me heen kinderen heeft",
+    "answer": "Als mensen om je heen kinderen krijgen terwijl dat voor jou niet lukt of niet mogelijk is, kan dat elke keer opnieuw als een steek voelen. Geboortekaartjes, zwangerschapsaankondigingen, verjaarsdagen van kindjes. Het is geen jaloezie die je bent, het is pijn die toevallig de vorm van een ander aanneemt. Je gun die mensen het geluk, maar het verdriet om je eigen situatie is even groot.",
+    "category": "Onvervulde kinderwens",
+    "tags": ["jaloezie-kinderwens", "buitengesloten-gevoel", "zwangerschapsaankondiging", "erkenning", "pijn", "vergelijken", "verdriet"],
+    "alternativeQuestions": [
+      "Hoe ga ik om met de zwangerschap van vriendinnen als ik zelf geen kinderen kan krijgen?",
+      "Ik kan er niet meer tegen om geboorteberichten te ontvangen",
+      "Ik voel me zo alleen in mijn verdriet om mijn kinderwens",
+      "Iedereen begrijpt het niet want ze hebben allemaal kinderen"
+    ],
+    "alternativeAnswers": [
+      "Dat gevoel van buitengesloten zijn terwijl iedereen om je heen verder lijkt te gaan met een leven dat jij ook wilde, is pijnlijk en eenzaam. En tegelijk gun je die mensen het geluk. Beide dingen kunnen tegelijk waar zijn.",
+      "Hoe ga je er mee om als je weer zo'n bericht krijgt?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Wanneer stop ik met behandelingen voor mijn kinderwens?",
+    "answer": "Er is geen goed moment. En er is geen foute beslissing. Stoppen met behandelingen voelt als loslaten van de hoop, en dat is een van de pijnlijkste dingen die er zijn. Maar doorvechten wanneer je lichaam of geest het niet meer aankan, is ook verlies. Jij alleen weet wanneer het genoeg is. En welke keuze je ook maakt: je bent niet zwak en je geeft niet op.",
+    "category": "Onvervulde kinderwens",
+    "tags": ["stoppen-behandeling", "IVF-stoppen", "loslaten-kinderwens", "beslissing", "grens", "acceptatie", "veerkracht"],
+    "alternativeQuestions": [
+      "Hoe weet ik wanneer ik moet stoppen met IVF?",
+      "Ik wil stoppen met de behandelingen maar durf het niet",
+      "Mijn partner wil stoppen maar ik niet, hoe gaan we hiermee om?"
+    ],
+    "alternativeAnswers": [
+      "Stoppen met behandelingen is ook een daad van zelfliefde, ook al voelt het als opgeven. Er is geen goed of fout antwoord.",
+      "Hoe voelt het om aan stoppen te denken?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met de verjaardag van het kindje dat we verloren?",
+    "answer": "De datum van een miskraam of een kindje dat te vroeg is gestorven, blijft bestaan. Elk jaar weer. Sommige mensen kiezen om die dag te herdenken: een kaarsje, een bloem, naar een bepaalde plek gaan. Anderen willen het liever niet markeren. Beide is goed. Er is geen verplichte manier om met zo'n dag om te gaan. Wat helpt is vooraf nadenken: wat heb ik nodig op die dag?",
+    "category": "Onvervulde kinderwens",
+    "tags": ["miskraam-herdenken", "verlies-baby", "verjaardag-overlijden", "herdenking", "ritueel", "verdriet-baby"],
+    "alternativeQuestions": [
+      "Hoe herdenk ik mijn miskraam?",
+      "De datum van onze miskraam komt eraan en ik zie er zo tegenop",
+      "Hoe ga ik om met de verjaardag van ons kindje dat doodgeboren werd?"
+    ],
+    "alternativeAnswers": [
+      "Die datum blijft bestaan, ook als de wereld om je heen verder gaat. Er is geen goede manier om ermee om te gaan, alleen de manier die voor jou klopt.",
+      "Wat zou jij nodig hebben op die dag?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Ik woon ver van mijn familie en voel me eenzaam in mijn verdriet",
+    "answer": "Ver wonen van de mensen van wie je houdt maakt verdriet anders. Je kunt niet even aanbellen. Je kunt niet zomaar samen zijn. De afstand vergroot het gevoel van alleen staan met wat je draagt. Dat is een heel specifieke eenzaamheid: je mist mensen, maar ook de nabijheid, de vanzelfsprekendheid van samen zijn. En tegelijk is er niemand die dat helemaal begrijpt, want voor mensen in de buurt is het anders.",
+    "category": "Afstand en eenzaamheid",
+    "tags": ["afstand-familie", "emigratie-verdriet", "ver-wonen", "eenzaamheid-afstand", "verbinding-op-afstand", "heimwee", "rouw-afstand"],
+    "alternativeQuestions": [
+      "Ik woon in het buitenland en mis mijn familie heel erg",
+      "Hoe ga ik om met heimwee en verdriet?",
+      "Ik voel me zo alleen met mijn verdriet omdat mijn familie ver weg is",
+      "Hoe houd ik contact met familie als de afstand groot is?",
+      "Ik woon in een ander land en kan er niet bij zijn als het moeilijk is"
+    ],
+    "alternativeAnswers": [
+      "Die combinatie van afstand en verdriet is zwaar. Je mist de mensen, maar ook de mogelijkheid om er gewoon bij te zijn. Dat zijn twee verliezen tegelijk.",
+      "Hoe lang woon je al ver van je familie? En wat mis je het meest?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Hoe zorg ik voor verbinding met mensen van wie ik ver weg woon?",
+    "answer": "Verbinding op afstand vraagt meer bewuste moeite dan verbinding van dichtbij. Een telefoontje op het goede moment, een berichtje dat ertoe doet, soms gewoon samen zijn via een scherm. Maar het echte verschil zit niet in de frequentie van contact: het zit in de kwaliteit. Één gesprek waarbij je echt iets zegt is meer waard dan tien berichtjes over koetjes en kalfjes. Zeg wat je voelt. Vraag hoe het echt gaat.",
+    "category": "Afstand en eenzaamheid",
+    "tags": ["afstand-contact", "verbinding-op-afstand", "videobellen", "relaties-op-afstand", "family-far", "communicatie"],
+    "alternativeQuestions": [
+      "Hoe blijf ik verbonden met mijn familie als ik ver weg woon?",
+      "Hoe onderhoud ik mijn vriendschappen als we ver van elkaar wonen?",
+      "Tips voor contact houden met mensen op afstand"
+    ],
+    "alternativeAnswers": [
+      "Afstandsrelaties vragen bewuste investering. Maar de kwaliteit van contact is belangrijker dan de frequentie. Wat werkt voor jou om echt verbinding te voelen?",
+      "Wanneer voelt het contact met mensen thuis het meest echt voor jou?"
+    ],
+    "priority": 6
+  },
+  {
+    "question": "Ik woon ver weg en kan er niet bij zijn bij een sterfgeval of moeilijk moment",
+    "answer": "Niet aanwezig kunnen zijn bij een overlijden, een uitvaart of een moeilijk moment van iemand van wie je houdt, is een pijnlijke extra laag bovenop het verdriet. Je voelt je machteloos en soms ook schuldig. Maar aanwezig zijn betekent niet altijd fysiek zijn. Een persoonlijk bericht, een brief, een telefoongesprek: die dingen tellen ook. En laat het zeggen als je er niet bij kunt zijn: soms is de eerlijkheid al een vorm van nabijheid.",
+    "category": "Afstand en eenzaamheid",
+    "tags": ["afwezig-bij-uitvaart", "niet-aanwezig", "schuldgevoel-afstand", "steun-op-afstand", "machteloosheid", "uitvaart-missen"],
+    "alternativeQuestions": [
+      "Ik was er niet bij toen mijn vader stierf omdat ik in het buitenland woon",
+      "Ik kon de uitvaart niet bijwonen en voel me daar zo schuldig over",
+      "Hoe steun ik iemand op afstand die iemand heeft verloren?",
+      "Ik kan er niet bij zijn terwijl mijn moeder zo ziek is"
+    ],
+    "alternativeAnswers": [
+      "Er niet bij kunnen zijn op zo'n moment is een bijzonder soort pijn. Je voelt de afstand dan het sterkst. Hoe heb je dat ervaren?",
+      "Aanwezig zijn hoeft niet altijd fysiek te zijn. Maar de pijn van niet er zijn is reëel. Hoe draag je dat?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Ik voel me eenzaam, ook al ben ik omringd door mensen",
+    "answer": "Eenzaamheid heeft niet altijd te maken met alleen zijn. Soms voel je je het meest eenzaam in een ruimte vol mensen, omdat niemand lijkt te begrijpen wat er echt in je omgaat. Die eenzaamheid is dieper dan de eenzaamheid van alleen zijn: het is de eenzaamheid van niet gezien worden. En dat is pijnlijk. Je hebt het recht om dat te benoemen, ook al ziet het er van buiten niet zo uit.",
+    "category": "Afstand en eenzaamheid",
+    "tags": ["eenzaamheid-midden-mensen", "niet-gezien-worden", "oppervlakkig-contact", "diepgang", "verdriet-eenzaamheid", "verbinding"],
+    "alternativeQuestions": [
+      "Ik heb genoeg mensen om me heen maar voel me toch zo eenzaam",
+      "Niemand begrijpt echt wat ik doormaak",
+      "Ik kan het niet met iemand delen, iedereen heeft zijn eigen leven",
+      "Hoe ga ik om met het gevoel dat ik er echt alleen voor sta?"
+    ],
+    "alternativeAnswers": [
+      "Eenzaamheid temidden van mensen is een van de zwaarste vormen van alleen zijn. Je bent er wel, maar je bent er niet echt. Hoe lang heb je dit gevoel al?",
+      "Wat zou je nodig hebben om je minder alleen te voelen?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Ik voel me een last voor anderen met mijn verdriet",
+    "answer": "Dat gevoel 'ik mag er niet te veel mee komen' herken heel veel mensen in verdriet. Je bent bang de ander te vermoeiden, te veel te vragen, te zwaar te zijn. Maar de mensen die van je houden willen er voor je zijn. Jij zou ook voor hen klaarstaan, toch? Jezelf terugtrekken uit angst een last te zijn, beschermt de ander niet — het isoleert jouzelf. Wat als je eens probeerde te zeggen hoe het echt met je gaat?"
+    ,
+    "category": "Afstand en eenzaamheid",
+    "tags": ["last-voelen", "anderen-niet-belasten", "isolatie", "hulp-vragen-moeilijk", "verbinding", "zelfzorg", "kwetsbaarheid"],
+    "alternativeQuestions": [
+      "Ik wil anderen niet belasten met mijn verdriet",
+      "Ik vind het moeilijk om hulp te vragen",
+      "Ik durf niet te zeggen hoe het echt met me gaat",
+      "Ik trek me terug omdat ik anderen niet tot last wil zijn",
+      "Iedereen heeft genoeg aan zichzelf, ik moet dit zelf oplossen"
+    ],
+    "alternativeAnswers": [
+      "Jezelf terugtrekken om de ander te beschermen is een daad van liefde, maar het isoleert jou. De mensen van wie je houdt willen er waarschijnlijk voor je zijn.",
+      "Wat zou er gebeuren als je wél eerlijk was over hoe het met je gaat?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Ik schaam me voor mijn verdriet",
+    "answer": "Verdriet verdient geen schaamte, maar toch voelen heel veel mensen die schaamte. Je hebt het gevoel dat je al te lang treurt, dat anderen het zwaarder hebben gehad, dat je sterker zou moeten zijn. Maar verdriet heeft geen maat. Het vergelijkt niet. Jouw pijn is jouw pijn, los van wat een ander doormaakt of hoe lang het al duurt. Schaamte maakt verdriet zwaarder. Zelfcompassie maakt het draaglijker.",
+    "category": "Schuld en schaamte",
+    "tags": ["schaamte-verdriet", "schuldgevoel", "te-lang-treuren", "vergelijken", "zelfcompassie", "toestemming-geven", "erkenning"],
+    "alternativeQuestions": [
+      "Ik voel me schuldig dat ik nog steeds zo verdrietig ben",
+      "Anderen hebben het erger meegemaakt, ik mag niet klagen",
+      "Ik ben zo moe van mezelf met mijn verdriet",
+      "Ik zou toch al verder moeten zijn met rouwen?",
+      "Ik vind mezelf zwak omdat ik maar blijf huilen"
+    ],
+    "alternativeAnswers": [
+      "Verdriet vergelijkt niet. Jouw pijn is jouw pijn. Je hoeft niet te verantwoorden waarom het zo zwaar is.",
+      "Schaamte bij verdriet is heel gewoon maar zelden terecht. Wat zou jij zeggen tegen een vriendin die dit zei?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Ik voel me schuldig dat ik soms ook gewoon lach of blij kan zijn",
+    "answer": "Dat gevoel van 'hoe kan ik lachen terwijl...' is heel herkenbaar. Het voelt alsof je de ander of je verdriet verraadt door een moment van opluchting of vreugde. Maar dat is niet zo. Blije momenten naast verdriet zijn geen verraad. Ze zijn geen bewijs dat het verlies minder was. Ze zijn gewoon menselijk. Je kunt beiden tegelijk dragen: het verdriet en het leven dat doorgaat.",
+    "category": "Schuld en schaamte",
+    "tags": ["schuldgevoel-lachen", "verraad-voelen", "vreugde-naast-verdriet", "normaal-leven", "toestemming", "rouw-en-leven"],
+    "alternativeQuestions": [
+      "Mag ik lachen als ik tegelijk ook zo veel verdriet heb?",
+      "Ik voelde me even gelukkig en dat geeft me een vreselijk schuldgevoel",
+      "Hoe kan ik gewoon doorgaan met leven terwijl ik zoveel verlies heb?",
+      "Is het normaal dat ik ook nog kan genieten terwijl ik rouw?"
+    ],
+    "alternativeAnswers": [
+      "Vreugde naast verdriet is geen verraad. Je kunt beiden dragen. Dat lachen is ook een stukje leven dat doorgaat, en dat is goed.",
+      "Wat denk je dat die lichte momenten over je verdriet zeggen?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Ik voel me schuldig tegenover mensen die het erger hebben",
+    "answer": "Vergelijken van verdriet is een valkuil die bijna iedereen in stapt. 'Er zijn mensen die het veel erger hebben.' Dat klopt misschien. Maar pijn is niet relatief. Jij hebt jouw leven, jouw verlies, jouw gevoel. Dat staat los van wat een ander doormaakt. Door je verdriet klein te maken, geef je het niet de ruimte die het nodig heeft. En dat maakt het niet kleiner, alleen moeilijker te dragen.",
+    "category": "Schuld en schaamte",
+    "tags": ["vergelijken-verdriet", "relativeren", "schuldgevoel", "erkenning-eigen-pijn", "zelfcompassie"],
+    "alternativeQuestions": [
+      "Er zijn mensen met veel grotere problemen, ik mag eigenlijk niet klagen",
+      "Mijn verdriet stelt niets voor vergeleken met wat anderen meemaken",
+      "Ik voel me niet gerechtigd om zo verdrietig te zijn"
+    ],
+    "alternativeAnswers": [
+      "Pijn vergelijkt niet. Er is altijd iemand die het 'erger' heeft en toch heeft niemand daarmee gezegd dat jouw verdriet er niet mag zijn.",
+      "Wat zou je zeggen als een goede vriendin dit tegen jou zei?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Ik voel me schuldig tegenover de persoon die er niet meer is",
+    "answer": "Schuldgevoel na verlies is bijna universeel. Je denkt terug aan dingen die je anders had willen doen, woorden die je niet hebt gezegd, momenten die je hebt gemist. Maar herinner je ook alles wat je wél hebt gegeven. En weet: de mensen die we verliezen willen ons geen schuldgevoel meegeven. Ze wilden geliefd worden, en dat waren ze.",
+    "category": "Schuld en schaamte",
+    "tags": ["schuldgevoel-overledene", "spijt", "onafgemaakte-zaken", "vergeving", "verdriet-schuld", "loslaten-schuld"],
+    "alternativeQuestions": [
+      "Ik had er meer voor hem moeten zijn",
+      "Ik heb niet genoeg gedaan voordat ze stierf",
+      "Ik schaam me voor hoe onze relatie was voor haar dood",
+      "Had ik haar maar niet alleen gelaten op dat moment",
+      "Ik heb dingen gezegd die ik nooit meer terug kan nemen"
+    ],
+    "alternativeAnswers": [
+      "Schuldgevoel na verlies is een van de pijnlijkste emoties, en ook een van de meest menselijke. Je hebt liefgehad op de manier die je kon op dat moment.",
+      "Wat zou jij die persoon nu willen zeggen?"
+    ],
+    "priority": 9
+  },
+  {
+    "question": "Hoe ga ik om met verdriet dat niemand begrijpt?",
+    "answer": "Er zijn vormen van verdriet die moeilijk te delen zijn, omdat mensen ze niet herkennen of serieus nemen. Rouw om een miskraam. Verdriet om een scheiding. Verlies van een huisdier. Pijn om een kinderwens. Of gewoon: een gevoel van verdriet zonder duidelijke oorzaak. Dat je verdriet niet erkend wordt, maakt het zwaarder. Maar het maakt het niet minder reëel. Jij weet wat je draagt.",
+    "category": "Schuld en schaamte",
+    "tags": ["onerkend-verdriet", "niet-begrepen-worden", "disenfranchised-grief", "isolatie", "validatie", "erkenning"],
+    "alternativeQuestions": [
+      "Niemand neemt mijn verdriet serieus",
+      "Iedereen zegt dat ik er overheen moet komen",
+      "Mijn verdriet is niet 'groot' genoeg voor anderen",
+      "Mensen begrijpen niet waarom ik hier nog mee zit"
+    ],
+    "alternativeAnswers": [
+      "Verdriet dat niet erkend wordt is dubbel zwaar. Je draagt het verlies én het gevoel van niet gezien worden. Ik begrijp waarom dat zo uitputtend is.",
+      "Wat zou het voor jou betekenen als iemand het wél begreep?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Ik heb moeite met loslaten",
+    "answer": "Loslaten is een woord dat mensen makkelijk gebruiken maar wat eigenlijk niemand wil. Loslaten voelt als verliezen voor de tweede keer. Alsof je zegt: dit deed er niet toe. Maar dat is niet wat loslaten betekent. Loslaten betekent niet vergeten. Het betekent: de plek die dit inneemt in je leven wordt iets anders. Niet kleiner, anders. Niemand hoeft zichzelf te dwingen los te laten. Het gebeurt in zijn eigen tijd.",
+    "category": "Schuld en schaamte",
+    "tags": ["loslaten", "vasthouden", "rouwproces", "tijd", "vergeten-angst", "verandering", "acceptatie"],
+    "alternativeQuestions": [
+      "Ik wil niet loslaten, hoe kan ik toch verder?",
+      "Iedereen zegt dat ik moet loslaten maar ik kan dat niet",
+      "Is het zwak om niet te kunnen loslaten?",
+      "Hoe laat ik iemand los zonder hem of haar te vergeten?"
+    ],
+    "alternativeAnswers": [
+      "Je hoeft niet los te laten. Je mag houden van wat er was. Loslaten betekent niet vergeten, het betekent dat je er anders mee leert omgaan.",
+      "Wat houdt je vast aan dit moment of aan deze persoon?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met het verlies van mijn rol als partner of ouder?",
+    "answer": "Als je iemand verliest, verlies je soms ook een deel van wie je was. Je was partner, ouder, mantelzorger, echtgenoot. En nu? Wie ben je zonder die rol? Dat is een stille vorm van verlies die vaak onopgemerkt blijft naast het grote verdriet. Je identiteit was verweven met de ander. Nu moet je opnieuw ontdekken wie je bent. Dat duurt. En dat is normaal.",
+    "category": "Identiteitsverlies",
+    "tags": ["identiteitsverlies", "rol-verlies", "wie-ben-ik", "partner-verloren", "ouder-verloren", "zelfontdekking", "rouw-identiteit"],
+    "alternativeQuestions": [
+      "Ik weet niet meer wie ik ben na het verlies van mijn partner",
+      "Mijn leven draaide om hem of haar, nu weet ik niet hoe ik verder moet",
+      "Ik was altijd de mantelzorger, nu is die rol er niet meer",
+      "Ik mis niet alleen hem, ik mis ook wie ik was toen hij er nog was"
+    ],
+    "alternativeAnswers": [
+      "Verlies van een geliefde is ook verlies van een stuk van jezelf, van wie je was in die relatie. Dat rouwproces wordt zelden benoemd maar is heel reëel.",
+      "Wie was jij in die relatie of rol? Wat mis je daar het meest van?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Ik weet niet hoe ik over mijn verdriet moet praten",
+    "answer": "Niet iedereen vindt het makkelijk om over verdriet te praten. Soms ontbreken de woorden. Soms is het te groot voor woorden. Soms ben je bang voor de reactie. En soms weet je gewoon niet waar je moet beginnen. Dat hoeft ook niet perfect te zijn. Een zin als 'het gaat niet zo goed' of 'ik zit even in een moeilijke periode' is al genoeg als opening. Je hoeft het verhaal niet volledig te vertellen om te voelen dat je niet alleen staat.",
+    "category": "Afstand en eenzaamheid",
+    "tags": ["praten-over-verdriet", "woorden-vinden", "openen", "kwetsbaarheid", "hulp-vragen", "communicatie", "verbinding"],
+    "alternativeQuestions": [
+      "Ik weet niet wat ik moet zeggen als mensen vragen hoe het gaat",
+      "Hoe begin ik een gesprek over wat ik doormaak?",
+      "Ik vind het moeilijk om te praten over mijn verdriet",
+      "De woorden schieten me tekort als ik wil uitleggen hoe ik me voel"
+    ],
+    "alternativeAnswers": [
+      "Je hoeft het niet volledig te verwoorden. Soms is 'het is zwaar' al genoeg als begin.",
+      "Wat zou je willen zeggen als je de woorden had?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met verdriet dat in golven komt?",
+    "answer": "Verdriet is zelden een rechte lijn. Het komt en gaat, soms zonder aanleiding, soms om een geur, een liedje of een plek. Die golven kunnen voelen als teruggang: je dacht dat het beter ging, en dan ineens overspoelt het je weer. Maar dat is niet achteruitgang. Het is rouw die zijn werk doet. Die golven worden in de loop van de tijd niet minder echt, maar wel minder verrassend. Je leert er mee leven.",
+    "category": "Emoties",
+    "tags": ["rouwgolven", "golven-verdriet", "terugval", "emoties", "onverwacht-verdriet", "rouwproces", "acceptatie"],
+    "alternativeQuestions": [
+      "Het gaat goed en dan ineens ben ik weer ontroostbaar",
+      "Ik dacht dat ik erover heen was maar het verdriet komt terug",
+      "Waarom overvalt het verdriet me soms opeens zo?",
+      "Ik begrijp niet waarom ik nu pas zo verdrietig ben"
+    ],
+    "alternativeAnswers": [
+      "Rouw kent geen rechte lijn. Die golven zijn niet achteruitgang, ze zijn het bewijs dat je aan het verwerken bent.",
+      "Wat bracht het verdriet nu omhoog?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met boosheid als onderdeel van mijn verdriet?",
+    "answer": "Boosheid en verdriet gaan hand in hand. Je kunt boos zijn op de persoon die je verloor, op het leven, op God of het lot, op jezelf, op mensen die het niet begrijpen. Die boosheid is een gezond onderdeel van rouw. Het is energie die ergens naartoe moet. Onderdruk het niet, maar knal het ook niet puur op anderen uit. Schrijven, bewegen, hardop zeggen wat je voelt: dat helpt de boosheid een plek te geven.",
+    "category": "Emoties",
+    "tags": ["boosheid-rouw", "woede-verdriet", "emoties-uiten", "frustatie", "rouwfasen", "energy-uiten", "verwerken"],
+    "alternativeQuestions": [
+      "Ik ben zo kwaad en ik weet niet waarom",
+      "Is het normaal dat ik boos ben op de persoon die is gestorven?",
+      "Hoe ga ik om met mijn woede na het verlies?",
+      "Ik ben kwaad op het leven en op iedereen"
+    ],
+    "alternativeAnswers": [
+      "Boosheid in verdriet is heel normaal. Het is een manier van de ziel om zich te verzetten tegen wat er is. Waar ben je precies boos over?",
+      "Wat wil je liefst kapotsmijten of uitschreeuwen als je er aan denkt?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Ik voel helemaal niets, is dat normaal?",
+    "answer": "Gevoelloosheid na verlies is heel normaal. Het is een beschermingsmechanisme van je lichaam en geest: als de pijn te groot is, dempt het systeem eerst de emoties. Je bent niet koud of hard. Je bent beschermd. Die verdoving gaat voorbij. Soms opeens, soms geleidelijk. Vertrouw het proces, ook al begrijp je het niet.",
+    "category": "Emoties",
+    "tags": ["gevoelloosheid", "verdoofd", "shock", "afweer", "bescherming", "normale-rouw", "emoties-later"],
+    "alternativeQuestions": [
+      "Ik heb nog niet gehuild na het overlijden, is er iets mis met mij?",
+      "Waarom voel ik niets terwijl er zoveel is gebeurd?",
+      "Ik ben verdoofd, wanneer voelt het echt?",
+      "Is het normaal dat ik zo kalm ben na zo'n groot verlies?"
+    ],
+    "alternativeAnswers": [
+      "Niets voelen is ook iets voelen. Het is de manier waarop je lichaam je beschermt. Het komt, als het zover is.",
+      "Hoe lang heb je dit al?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met de angst dat ik nooit meer gelukkig word?",
+    "answer": "Die angst is begrijpelijk als je midden in verdriet zit. Het voelt alsof dit altijd zo blijft. Maar verdriet en geluk sluiten elkaar niet permanent uit. Ze bestaan naast elkaar. Op dit moment overweegt het verdriet. Dat verandert. Niet door te vergeten wat er was, maar door het verdriet een plek te geven zodat er ruimte ontstaat voor andere dingen. Dat is geen verraad. Dat is leven.",
+    "category": "Emoties",
+    "tags": ["angst-geluk", "ooit-beter", "toekomst", "hoop", "rouwproces", "leven-na-verlies", "vertrouwen"],
+    "alternativeQuestions": [
+      "Wordt het ooit nog beter?",
+      "Ik geloof niet dat ik hier ooit overheen kom",
+      "Hoe ga ik verder als alles zo zwaar voelt?",
+      "Zie ik ooit nog licht aan het einde van de tunnel?"
+    ],
+    "alternativeAnswers": [
+      "Het voelt nu alsof dit altijd zo blijft. Maar verdriet en vreugde kunnen naast elkaar bestaan. Je hoeft het verdriet niet weg te doen om ook andere dingen te voelen.",
+      "Wat hield jij vroeger het meest van het leven?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met gemengde gevoelens na een verlies?",
+    "answer": "Verlies brengt zelden één gevoel. Je kunt tegelijk verdrietig zijn én opgelucht, kwaad én dankbaar, je missen én ook bevrijd voelen. Die tegenstrijdige gevoelens zijn geen teken van een gebrek aan liefde. Ze zijn menselijk en eerlijk. Je hoeft ze niet met elkaar te verzoenen. Ze mogen allebei er zijn.",
+    "category": "Emoties",
+    "tags": ["gemengde-gevoelens", "opluchting-verdriet", "tegenstrijdige-emoties", "ambivalentie", "complexe-rouw", "eerlijkheid"],
+    "alternativeQuestions": [
+      "Ik voel me opgelucht dat het voorbij is, maar ook verdrietig, klopt dat?",
+      "Ik mis hem maar ik ben ook boos op hem",
+      "Is het normaal dat ik zo veel verschillende gevoelens tegelijk heb?",
+      "Ik heb een gevoel van bevrijding na het verlies, maar ook schuld daarvoor"
+    ],
+    "alternativeAnswers": [
+      "Gemengde gevoelens bij verlies zijn eerlijker dan één helder gevoel. Verdriet is zelden simpel.",
+      "Welk gevoel verrast jou het meest?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met het verlies van een vriend of vriendschap?",
+    "answer": "Het verlies van een vriendschap kan net zo pijnlijk zijn als andere vormen van verlies, maar wordt vaak niet zo erkend. Of het nu door een ruzie is, een geleidelijk uiteengaan of een overlijden: vriendschappen zijn een thuis. Als die er niet meer is, mis je niet alleen de persoon maar ook de plek die je bij hen had. Die rouw verdient even veel ruimte.",
+    "category": "Rouw en verlies",
+    "tags": ["verlies-vriendschap", "ruzie-vriend", "uiteengaan", "rouw-vriendschap", "erkenning", "eenzaamheid"],
+    "alternativeQuestions": [
+      "Mijn beste vriendin wil geen contact meer, hoe ga ik hier mee om?",
+      "Ik heb een waardevolle vriendschap verloren en dat doet zo veel pijn",
+      "Is het normaal dat ik rouw om een vriendschap die voorbij is?",
+      "Hoe verwerk ik het einde van een langdurige vriendschap?"
+    ],
+    "alternativeAnswers": [
+      "Vriendschapsverlies wordt vaak onderschat, maar het raakt net zo diep. Jij had een thuis bij die persoon en dat is er nu niet meer.",
+      "Hoe was die vriendschap voor jou?"
+    ],
+    "priority": 6
+  },
+  {
+    "question": "Hoe ga ik om met het verdriet om mijn jeugd of een verloren kindertijd?",
+    "answer": "Rouwen om een jeugd die er niet was, of om dingen die je als kind hebt gemist, is een bijzondere maar heel reële vorm van verlies. Je kunt niet terug. Je kunt het niet overdoen. Maar je kunt wel erkennen dat je miste wat je nodig had, en van daaruit gaan begrijpen hoe dat je heeft gevormd. Dat is geen zwakte. Dat is zelfkennis.",
+    "category": "Rouw en verlies",
+    "tags": ["verlies-jeugd", "kindertijd-gemist", "oud-verdriet", "trauma-rouw", "zelfcompassie", "verwerken", "identiteit"],
+    "alternativeQuestions": [
+      "Ik rouw om mijn jeugd die ik nooit heb gehad",
+      "Ik mis wat andere kinderen wel hadden",
+      "Hoe verwerk ik een moeilijke jeugd?",
+      "Ik heb nooit echt een thuis gehad, hoe ga ik daarmee om?"
+    ],
+    "alternativeAnswers": [
+      "Rouw om een jeugd die pijn deed of gemis bracht is reëel. Het kind dat jij was, verdiende meer. Dat erkennen is een begin.",
+      "Wat mis je het meest van wat je als kind niet hebt gekregen?"
+    ],
+    "priority": 6
+  },
+  {
+    "question": "Hoe ga ik om met verlies tijdens de feestdagen als ik ver van huis ben?",
+    "answer": "Feestdagen zijn moeilijk in rouw, maar ze zijn extra moeilijk als je ook nog ver van de mensen bent die je graag zou willen zien. Die dubbele lading: het gemis van de overledene én het gemis van nabijheid van mensen die je kent. Probeer die dagen niet te forceren. Ze hoeven niet zoals vroeger. Ze mogen anders zijn. Maak er iets van dat voor jou klopt, ook als dat stilte is.",
+    "category": "Afstand en eenzaamheid",
+    "tags": ["feestdagen-ver-van-huis", "kerst-alleen", "verlies-feestdag", "afstand", "gemis", "nieuwe-tradities"],
+    "alternativeQuestions": [
+      "Het is kerst en ik ben ver van mijn familie en mis ook iemand die er niet meer is",
+      "Hoe overleef ik de feestdagen alleen in het buitenland?",
+      "Feestdagen zijn ondraaglijk nu ik zo ver van iedereen woon"
+    ],
+    "alternativeAnswers": [
+      "Feestdagen zijn zwaar genoeg in rouw, en de afstand maakt het dubbel zwaar. Je mist mensen op twee manieren tegelijk.",
+      "Hoe wil jij die dag doorkomen? Wat zou jou helpen?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met een miskraam?",
+    "answer": "Een miskraam is een verlies dat door de buitenwereld vaak wordt onderschat. Jij had al een band, al een toekomst, al een kind in gedachten. Dat is er nu niet meer. De rouw die daarmee gepaard gaat is reëel, ook al was de zwangerschap vroeg. Je hoeft je niet te verantwoorden voor de diepte van je verdriet. Er is geen maat voor verlies.",
+    "category": "Rouw en verlies",
+    "tags": ["miskraam", "zwangerschapsverlies", "rouw-miskraam", "onerkend-verlies", "erkenning", "verdriet-baby"],
+    "alternativeQuestions": [
+      "Ik heb een miskraam gehad en niemand begrijpt hoe zwaar dat is",
+      "Hoe verwerk ik het verlies van mijn zwangerschap?",
+      "Mijn miskraam was vroeg maar het doet toch zo veel pijn",
+      "Wanneer word ik weer de oude na mijn miskraam?"
+    ],
+    "alternativeAnswers": [
+      "Een miskraam is een verlies, ongeacht hoe vroeg. Jouw verdriet heeft een reden en verdient ruimte.",
+      "Hoe lang geleden was het? En hoe is het nu voor je?"
+    ],
+    "priority": 8
+  },
+  {
+    "question": "Hoe ga ik om met de vermoeidheid van lang rouwen?",
+    "answer": "Rouwen kost energie. Niet alleen mentaal maar ook lichamelijk. Na een lange periode van verdriet ben je moe van het moe zijn. Je bent moe van het steeds opnieuw voelen. Dat is begrijpelijk. Die vermoeidheid is geen teken dat je het niet goed aanpakt. Het is het lichaam dat zegt: ik heb rust nodig. Niet actie. Niet oplossingen. Rust.",
+    "category": "Dagelijks leven",
+    "tags": ["rouwmoeheid", "uitputting-rouw", "lang-rouwen", "rust", "herstel", "zelfzorg", "vermoeidheid"],
+    "alternativeQuestions": [
+      "Ik ben zo moe van mijn eigen verdriet",
+      "Hoe houd ik dit nog vol?",
+      "Ik rouw al zo lang, wanneer houdt het op?",
+      "Ik heb geen energie meer voor dit verdriet"
+    ],
+    "alternativeAnswers": [
+      "Rouwmoeheid is reëel. Je systeem heeft alles gegeven en heeft pauze nodig. Wat zou rust voor jou op dit moment betekenen?",
+      "Wat had je nodig dat je jezelf nu niet geeft?"
+    ],
+    "priority": 7
+  },
+  {
+    "question": "Hoe ga ik om met het verlies van mijn gezondheid door een chronische aandoening?",
+    "answer": "Een chronische ziekte verandert je leven op manieren die van buiten niet altijd zichtbaar zijn. Je verliest energie, mogelijkheden, plannen en soms ook relaties. Je past je leven steeds aan terwijl de wereld om je heen gewoon doorgaat. Dat is een stille, voortdurende vorm van rouw. Rouw om wie je was, wat je kon en wat je had gewild.",
+    "category": "Ziekte en zorgverlies",
+    "tags": ["chronische-ziekte", "verlies-gezondheid", "aanpassen", "rouw-gezondheid", "onzichtbaar-ziek", "beperking", "identiteit"],
+    "alternativeQuestions": [
+      "Ik ben chronisch ziek en rouw om het leven dat ik had",
+      "Mijn aandoening bepaalt mijn leven en ik ben er zo moe van",
+      "Hoe accepteer ik mijn chronische ziekte?",
+      "Ik voel me zo beperkt door mijn ziekte"
+    ],
+    "alternativeAnswers": [
+      "Chronisch ziek zijn is ook chronisch rouwen: om energie, om mogelijkheden, om wie je was. Dat verdient erkenning.",
+      "Wat mis je het meest aan het leven van voor je ziekte?"
+    ],
+    "priority": 7
+  }
+]

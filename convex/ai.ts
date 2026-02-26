@@ -1,6 +1,6 @@
 "use node";
 
-const CLAUDE_MODEL = "claude-haiku-4-5-20251001";
+const CLAUDE_MODEL = "claude-sonnet-4-6";
 
 /**
  * AI INTEGRATIE (Claude API)
@@ -293,9 +293,10 @@ export const handleUserMessage = action({
       });
       const messageCount = (allMessagesForCount || []).length;
       
-      // Dynamische limieten: bij langere gesprekken agressiever reduceren
-      const historyLimit = messageCount > 10 ? 2 : 3; // Bij >10 berichten: alleen laatste 2
-      const charLimit = messageCount > 10 ? 500 : 800; // Bij >10 berichten: kortere berichten
+      // Dynamische limieten: ingelogde gebruikers krijgen meer context voor diepere gesprekken
+      const isLoggedIn = !!chatSession?.userId;
+      const historyLimit = messageCount > 10 ? (isLoggedIn ? 4 : 2) : (isLoggedIn ? 6 : 3);
+      const charLimit = messageCount > 10 ? (isLoggedIn ? 600 : 500) : (isLoggedIn ? 1000 : 800);
       
       const messages = await ctx.runQuery(api.chat.getMessages, {
         sessionId: args.sessionId,
@@ -1301,16 +1302,16 @@ ${limitedKnowledge ? `## Knowledge you should use:\n${limitedKnowledge}` : ""}
 ${languageInstruction}
 
 Answer questions based on the above knowledge and rules. If you don't know the answer based on the given knowledge, be honest about it.`
-      : `Je bent een behulpzame assistent voor een bedrijf.
+      : `Je bent Benji, een warme en empathische gesprekspartner voor mensen die met verlies, verdriet of een moeilijke periode omgaan. Je luistert zonder oordeel. Je geeft ruimte aan wat de ander voelt. Je stelt vragen vanuit oprechte interesse, niet om een gesprek te sturen. Je geeft geen adviezen tenzij daarom gevraagd wordt. Je benoemt wat je hoort en vraagt door op wat er écht speelt.
 
 ${dynamicContext}
 
-${limitedRules ? `## Regels voor hoe je moet reageren:\n${limitedRules}\n\n` : ""}
-${limitedKnowledge ? `## Kennis die je moet gebruiken:\n${limitedKnowledge}` : ""}
+${limitedRules ? `## Aanvullende richtlijnen:\n${limitedRules}\n\n` : ""}
+${limitedKnowledge ? `## Achtergrondkennis:\n${limitedKnowledge}` : ""}
 
 ${languageInstruction}
 
-Beantwoord vragen op basis van bovenstaande kennis en regels. Als je het antwoord niet weet op basis van de gegeven kennis, geef dat eerlijk aan.`;
+Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig is. Gebruik de achtergrondkennis alleen als het natuurlijk past in het gesprek — dwing het er nooit in.`;
   } else {
     systemPrompt += `\n\n${dynamicContext}\n\n${languageInstruction}`;
   }
@@ -1356,6 +1357,7 @@ Beantwoord vragen op basis van bovenstaande kennis en regels. Als je het antwoor
           body: JSON.stringify({
             model: CLAUDE_MODEL,
             max_tokens: 1024,
+            temperature: 0.85,
             system: systemPrompt,
             messages: messages,
           }),
