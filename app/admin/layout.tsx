@@ -10,6 +10,7 @@ import { api } from "@/convex/_generated/api";
 import { AdminAuthProvider, useAdminQuery } from "./AdminAuthContext";
 import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell, ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp, ThumbsDown } from "lucide-react";
 
+
 type NavItem =
   | { type: "item"; href: string; label: string; icon: React.ElementType; badge: number }
   | { type: "separator"; thin?: boolean };
@@ -20,6 +21,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const newFeedbackCount = allFeedback?.filter((f: any) => f.status === "new").length ?? 0;
   const notHelpful = useAdminQuery(api.admin.getNotHelpfulMessages, {});
   const notHelpfulCount = notHelpful?.length ?? 0;
+  const helpful = useAdminQuery(api.admin.getHelpfulMessages, {});
+  const helpfulCount = helpful?.length ?? 0;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems: NavItem[] = [
@@ -27,8 +30,9 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     { type: "item", href: "/admin/support-faq", label: "Support FAQ", icon: HelpCircle, badge: 0 },
     { type: "separator" },
     { type: "item", href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
+    { type: "item", href: "/admin/goede-antwoorden", label: "Goede antwoorden", icon: ThumbsUp, badge: helpfulCount },
     { type: "item", href: "/admin/slechte-antwoorden", label: "Slechte antwoorden", icon: ThumbsDown, badge: notHelpfulCount },
-    { type: "item", href: "/admin/wensen", label: "Wensen", icon: ThumbsUp, badge: 0 },
+    { type: "item", href: "/admin/wensen", label: "Wensen", icon: MessageCircleHeart, badge: 0 },
     { type: "separator" },
     { type: "item", href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
     { type: "item", href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping, badge: 0 },

@@ -65,6 +65,7 @@ export default defineSchema({
     feedback: v.optional(
       v.union(v.literal("helpful"), v.literal("not_helpful"))
     ),
+    feedbackHandled: v.optional(v.boolean()),
     isAiGenerated: v.boolean(),
     generationMetadata: v.optional(
       v.object({

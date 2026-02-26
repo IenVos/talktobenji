@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
-import { ThumbsDown, ChevronDown, ChevronUp, Sparkles, Check, BookOpen, ScrollText, Loader2 } from "lucide-react";
+import { ThumbsDown, ChevronDown, ChevronUp, Sparkles, Check, BookOpen, ScrollText, Loader2, Archive } from "lucide-react";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("nl-NL", {
@@ -64,6 +64,8 @@ function SlechteAntwoordItem({ item }: { item: any }) {
   const suggestFix = useAdminAction(api.admin.suggestFix);
   const appendToRules = useAdminMutation(api.admin.appendToRules);
   const addKnowledge = useAdminMutation(api.admin.addKnowledgeEntryFromAdmin);
+  const markHandled = useAdminMutation(api.admin.markFeedbackHandled);
+  const [archived, setArchived] = useState(false);
 
   const handleAnalyse = async () => {
     setAnalysing(true);
@@ -98,6 +100,8 @@ function SlechteAntwoordItem({ item }: { item: any }) {
       setSaving(false);
     }
   };
+
+  if (archived) return null;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -137,8 +141,19 @@ function SlechteAntwoordItem({ item }: { item: any }) {
           {showConversation ? "Verberg gesprek" : "Toon volledig gesprek"}
         </button>
 
+        {/* Archiveren */}
+        {!archived && (
+          <button
+            onClick={async () => { await markHandled({ messageId: item._id }); setArchived(true); }}
+            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+            title="Archiveer — verdwijnt uit de lijst"
+          >
+            <Archive size={13} /> Archiveren
+          </button>
+        )}
+
         {/* Analyseer knop */}
-        {!suggestion && !saved && (
+        {!suggestion && !saved && !archived && (
           <button
             onClick={handleAnalyse}
             disabled={analysing}
