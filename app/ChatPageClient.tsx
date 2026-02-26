@@ -598,19 +598,23 @@ export default function ChatPageClient({
               const displayContent = parsed ? parsed.cleanContent : msg.content;
               return (
                 <div key={msg._id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-                  <div className="flex flex-col gap-1 max-w-sm">
-                    <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl ${isUser ? "max-w-[85%] sm:max-w-[80%] bg-primary-900 text-white rounded-br-md" : "bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"}`}>
+                  {isUser ? (
+                    <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
                       <MessageContent content={displayContent} isUser={isUser} />
-                      {parsed?.memoryText && session?.userId && (
-                        <MemorySaveButton
-                          memoryText={parsed.memoryText}
-                          emotion={parsed.emotion || "warm"}
-                          userId={session.userId as string}
-                          accent={accent}
-                        />
-                      )}
                     </div>
-                    {!isUser && (
+                  ) : (
+                    <div className="flex flex-col gap-1 max-w-sm">
+                      <div className="px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm">
+                        <MessageContent content={displayContent} isUser={false} />
+                        {parsed?.memoryText && session?.userId && (
+                          <MemorySaveButton
+                            memoryText={parsed.memoryText}
+                            emotion={parsed.emotion || "warm"}
+                            userId={session.userId as string}
+                            accent={accent}
+                          />
+                        )}
+                      </div>
                       <div className="flex justify-start pl-1">
                         {msg.feedback === "not_helpful" ? (
                           <span className="flex items-center gap-1 text-xs text-gray-400">
@@ -620,15 +624,15 @@ export default function ChatPageClient({
                         ) : (
                           <button
                             onClick={() => submitMessageFeedback({ messageId: msg._id, feedback: "not_helpful" })}
-                            className="flex items-center gap-1 text-xs text-gray-300 hover:text-gray-500 transition-colors"
+                            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
                             title="Dit antwoord was niet behulpzaam"
                           >
-                            <ThumbsDown size={12} />
+                            <ThumbsDown size={13} />
                           </button>
                         )}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
