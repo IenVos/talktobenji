@@ -144,6 +144,72 @@ export default function AccountHandreikingenPage() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-primary-200 py-6">
+
+          {/* Mobiel: verticale lijst met overlay-design */}
+          <div className="sm:hidden flex flex-col gap-3 px-4">
+            {items.map((item) => (
+              <article key={item._id} className="rounded-xl overflow-hidden">
+                {item.imageUrl ? (
+                  <div className="relative w-full aspect-[3/2]">
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage({ url: item.imageUrl!, alt: item.title || "" })}
+                      className="w-full h-full cursor-pointer"
+                      title="Afbeelding vergroten"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                    </button>
+                    <div className="absolute inset-0 flex flex-col pointer-events-none">
+                      <div className="flex-1 flex flex-col items-center justify-center px-6">
+                        <div className="max-w-xs w-full bg-white/75 rounded-xl px-5 py-4 flex flex-col gap-2 text-center pointer-events-auto">
+                          {item.title && (
+                            <h3 className="text-base font-semibold leading-snug text-balance" style={{ color: "var(--account-accent, #38465e)" }}>
+                              {item.title}
+                            </h3>
+                          )}
+                          {item.content && item.content.trim() !== item.title?.trim() && (
+                            <p className="text-sm leading-relaxed text-balance whitespace-pre-wrap" style={{ color: "var(--account-accent, #38465e)" }}>
+                              {renderRichText(item.content)}
+                            </p>
+                          )}
+                          {((item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug) && (
+                            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                              {item.priceCents != null && item.priceCents > 0 && (
+                                <a href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`} className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                                  Bestellen €{(item.priceCents / 100).toFixed(2)}
+                                </a>
+                              )}
+                              {item.pdfUrl && (
+                                <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                                  <FileDown size={14} /> Download
+                                </a>
+                              )}
+                              {(item as any).exerciseSlug && (
+                                <Link href={`/account/handreikingen/${(item as any).exerciseSlug}`} className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                                  <CardIcon name={(item as any).icon} size={13} />
+                                  {!(item as any).icon && <Pencil size={13} />}
+                                  {(item as any).exerciseButtonLabel || "Begin oefening"}
+                                </Link>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-5 flex flex-col bg-white border border-primary-100 rounded-xl">
+                    {item.title && <h3 className="text-base font-semibold mb-2" style={{ color: "var(--account-accent, #38465e)" }}>{item.title}</h3>}
+                    {item.content && <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{renderRichText(item.content)}</p>}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+
+          {/* Desktop: carousel */}
+          <div className="hidden sm:block">
           <div
             className="relative"
             onTouchStart={handleTouchStart}
@@ -198,11 +264,9 @@ export default function AccountHandreikingenPage() {
                       }}
                       onClick={() => { if (!isActive && isVisible) goTo(index); }}
                     >
-                      <article
-                        className="rounded-xl overflow-hidden flex flex-col"
-                      >
+                      <article className="rounded-xl overflow-hidden flex flex-col">
                         {item.imageUrl ? (
-                          /* Kaart met afbeelding — titel + tekst als overlay */
+                          /* Kaart met afbeelding — overlay design */
                           <div className="relative w-full aspect-[3/2]">
                             <button
                               type="button"
@@ -212,20 +276,13 @@ export default function AccountHandreikingenPage() {
                               tabIndex={isActive ? 0 : -1}
                             >
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={item.imageUrl}
-                                alt={item.title}
-                                className="w-full h-full object-cover"
-                              />
+                              <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
                             </button>
                             <div className="absolute inset-0 flex flex-col pointer-events-none">
                               <div className="flex-1 flex flex-col items-center justify-center px-6">
                                 <div className="max-w-xs w-full bg-white/75 rounded-xl px-5 py-4 flex flex-col gap-2 text-center pointer-events-auto">
                                   {item.title && (
-                                    <h3
-                                      className="text-base font-semibold leading-snug text-balance"
-                                      style={{ color: "var(--account-accent, #38465e)" }}
-                                    >
+                                    <h3 className="text-base font-semibold leading-snug text-balance" style={{ color: "var(--account-accent, #38465e)" }}>
                                       {item.title}
                                     </h3>
                                   )}
@@ -237,33 +294,17 @@ export default function AccountHandreikingenPage() {
                                   {((item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug) && (
                                     <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                                       {item.priceCents != null && item.priceCents > 0 && (
-                                        <a
-                                          href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
-                                          className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap"
-                                          tabIndex={isActive ? 0 : -1}
-                                        >
+                                        <a href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`} className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
                                           Bestellen €{(item.priceCents / 100).toFixed(2)}
                                         </a>
                                       )}
                                       {item.pdfUrl && (
-                                        <a
-                                          href={item.pdfUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap"
-                                          title="PDF downloaden"
-                                          tabIndex={isActive ? 0 : -1}
-                                        >
-                                          <FileDown size={14} />
-                                          Download
+                                        <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
+                                          <FileDown size={14} /> Download
                                         </a>
                                       )}
                                       {(item as any).exerciseSlug && (
-                                        <Link
-                                          href={`/account/handreikingen/${(item as any).exerciseSlug}`}
-                                          className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap"
-                                          tabIndex={isActive ? 0 : -1}
-                                        >
+                                        <Link href={`/account/handreikingen/${(item as any).exerciseSlug}`} className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
                                           <CardIcon name={(item as any).icon} size={13} />
                                           {!(item as any).icon && <Pencil size={13} />}
                                           {(item as any).exerciseButtonLabel || "Begin oefening"}
@@ -355,6 +396,7 @@ export default function AccountHandreikingenPage() {
               ))}
             </div>
           )}
+        </div>
         </div>
       )}
 
