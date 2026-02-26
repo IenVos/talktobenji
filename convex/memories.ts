@@ -103,11 +103,11 @@ export const updateMemory = mutation({
     if (args.memoryDate !== undefined) updates.memoryDate = args.memoryDate;
 
     if (args.removeImage && memory.imageStorageId) {
-      await ctx.storage.delete(memory.imageStorageId);
+      try { await ctx.storage.delete(memory.imageStorageId); } catch {}
       updates.imageStorageId = undefined;
     } else if (args.imageStorageId) {
       if (memory.imageStorageId) {
-        await ctx.storage.delete(memory.imageStorageId);
+        try { await ctx.storage.delete(memory.imageStorageId); } catch {}
       }
       updates.imageStorageId = args.imageStorageId;
     }
@@ -125,7 +125,11 @@ export const deleteMemory = mutation({
     const memory = await ctx.db.get(args.memoryId);
     if (!memory || memory.userId !== args.userId) return;
     if (memory.imageStorageId) {
-      await ctx.storage.delete(memory.imageStorageId);
+      try {
+        await ctx.storage.delete(memory.imageStorageId);
+      } catch {
+        // Bestand bestaat niet meer — gewoon doorgaan met verwijderen
+      }
     }
     await ctx.db.delete(args.memoryId);
   },

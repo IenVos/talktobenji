@@ -74,25 +74,27 @@ export default function AccountPage() {
               <Link
                 key={item._id}
                 href={`/account/onderweg?index=${i}`}
-                className="group flex flex-col gap-2"
+                className="group relative flex flex-col"
               >
-                {(item as any).imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={(item as any).imageUrl}
-                    alt={item.title || ""}
-                    className="w-full aspect-square object-cover rounded-lg bg-primary-50 group-hover:opacity-90 transition-opacity"
-                  />
-                ) : (
-                  <div className="w-full aspect-square rounded-lg bg-primary-50 flex items-center justify-center">
-                    <ShoppingBag size={24} className="text-primary-200" />
-                  </div>
-                )}
-                <div>
+                <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-primary-50">
+                  {(item as any).imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={(item as any).imageUrl}
+                      alt={item.title || ""}
+                      className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ShoppingBag size={24} className="text-primary-200" />
+                    </div>
+                  )}
                   {item.title && (
-                    <p className="text-xs font-medium text-gray-700 leading-snug line-clamp-2 group-hover:text-primary-700 transition-colors">
-                      {item.title}
-                    </p>
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-lg">
+                      <p className="text-[11px] sm:text-xs font-semibold text-white text-center leading-snug line-clamp-3 px-2 drop-shadow-md text-balance">
+                        {item.title}
+                      </p>
+                    </div>
                   )}
                 </div>
               </Link>

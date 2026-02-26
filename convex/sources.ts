@@ -88,7 +88,7 @@ export const deleteSource = mutation({
     await checkAdmin(ctx, args.adminToken);
     const doc = await ctx.db.get(args.id);
     if (doc?.storageId) {
-      await ctx.storage.delete(doc.storageId);
+      try { await ctx.storage.delete(doc.storageId); } catch {}
     }
     await ctx.db.delete(args.id);
     return args.id;

@@ -9,7 +9,7 @@ import { ShoppingBag, ChevronLeft, ChevronRight, ExternalLink } from "lucide-rea
 import { renderRichText } from "@/lib/renderRichText";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 
-const CARD_PCT = 75;
+const CARD_PCT = 60;
 const SIDE_PCT = (100 - CARD_PCT) / 2;
 const GAP_PX = 16;
 
@@ -183,58 +183,70 @@ function OnderwegContent() {
                     >
                       <article
                         ref={(el) => { articleRefs.current[index] = el; }}
-                        className="rounded-xl bg-white border border-primary-100 overflow-hidden flex flex-col aspect-square"
-                        style={{ minHeight: maxCardHeight > 0 ? `${maxCardHeight}px` : undefined }}
+                        className="rounded-xl bg-white border border-primary-100 overflow-hidden flex flex-col"
                       >
-                        {item.imageUrl && (
-                          <button
-                            type="button"
-                            onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
-                            className="flex-1 overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center bg-white p-6"
-                            title="Afbeelding vergroten"
-                            tabIndex={isActive ? 0 : -1}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={item.imageUrl}
-                              alt={item.title}
-                              className="w-full h-full object-contain"
-                              onLoad={() => setImagesLoaded((c) => c + 1)}
-                            />
-                          </button>
-                        )}
-
-                        {(item.title || item.content || item.paymentUrl || (item.priceCents != null && item.priceCents > 0)) && (
-                        <div className="p-5 flex flex-col items-center justify-center gap-3">
-                          <div className="flex flex-col items-center justify-center gap-2 px-4 py-3 rounded-lg border border-primary-200 bg-white w-full">
-                            {item.title && (
-                              <h3 className="text-sm font-semibold text-primary-900 text-center">{item.title}</h3>
-                            )}
-                            {item.content && (
-                              <p className="text-sm text-gray-600 leading-relaxed text-center whitespace-pre-wrap">
-                                {renderRichText(item.content)}
-                              </p>
-                            )}
-                            {item.priceCents != null && item.priceCents > 0 && (
-                              <span className="text-base font-semibold text-primary-600">
-                                €{(item.priceCents / 100).toFixed(2)}
-                              </span>
-                            )}
-                          </div>
-                          {item.paymentUrl && (
-                            <a
-                              href={item.paymentUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+                        {/* Afbeelding met titel + content als overlay */}
+                        <div className="relative w-full aspect-[3/2]">
+                          {item.imageUrl ? (
+                            <button
+                              type="button"
+                              onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
+                              className="w-full h-full cursor-pointer hover:opacity-90 transition-opacity"
+                              title="Afbeelding vergroten"
                               tabIndex={isActive ? 0 : -1}
                             >
-                              {(item as any).buttonLabel || "Bestellen"}
-                              <ExternalLink size={14} />
-                            </a>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={item.imageUrl}
+                                alt={item.title}
+                                className="w-full h-full object-cover"
+                                onLoad={() => setImagesLoaded((c) => c + 1)}
+                              />
+                            </button>
+                          ) : (
+                            <div className="w-full h-full bg-primary-50 flex items-center justify-center">
+                              <ShoppingBag size={40} className="text-primary-200" />
+                            </div>
                           )}
+                          <div className="absolute inset-0 flex flex-col bg-black/25 pointer-events-none">
+                            {/* Titel + content gecentreerd */}
+                            <div className="flex-1 flex flex-col items-center justify-center gap-2 px-6">
+                              {item.title && (
+                                <h3 className="text-base font-semibold text-white text-center leading-snug drop-shadow-md text-balance">
+                                  {item.title}
+                                </h3>
+                              )}
+                              {item.content && item.content.trim() !== item.title?.trim() && (
+                                <p className="text-sm text-white/90 text-center leading-relaxed drop-shadow-sm text-balance whitespace-pre-wrap">
+                                  {renderRichText(item.content)}
+                                </p>
+                              )}
+                            </div>
+                            {/* Prijs + knop onderaan de afbeelding */}
+                            {(item.paymentUrl || (item.priceCents != null && item.priceCents > 0)) && (
+                              <div className="flex flex-col items-center gap-1.5 px-4 pb-4 pointer-events-auto">
+                                {item.priceCents != null && item.priceCents > 0 && (
+                                  <span className="text-xs text-white/80 font-medium drop-shadow-sm">
+                                    €{(item.priceCents / 100).toFixed(2)}
+                                  </span>
+                                )}
+                                {item.paymentUrl && (
+                                  <a
+                                    href={item.paymentUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-5 py-2 bg-white/90 text-primary-800 rounded-lg text-sm font-medium hover:bg-primary-100 transition-colors"
+                                    tabIndex={isActive ? 0 : -1}
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {(item as any).buttonLabel || "Bestellen"}
+                                    <ExternalLink size={14} />
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        )}
                       </article>
                     </div>
                   );

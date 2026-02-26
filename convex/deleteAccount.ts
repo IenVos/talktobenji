@@ -34,7 +34,7 @@ export const deleteAccount = mutation({
       .unique();
     if (prefs) {
       if (prefs.backgroundImageStorageId) {
-        await ctx.storage.delete(prefs.backgroundImageStorageId);
+        try { await ctx.storage.delete(prefs.backgroundImageStorageId); } catch {}
       }
       await ctx.db.delete(prefs._id);
     }
@@ -46,7 +46,7 @@ export const deleteAccount = mutation({
       .collect();
     for (const memory of memories) {
       if (memory.imageStorageId) {
-        await ctx.storage.delete(memory.imageStorageId);
+        try { await ctx.storage.delete(memory.imageStorageId); } catch {}
       }
       await ctx.db.delete(memory._id);
     }

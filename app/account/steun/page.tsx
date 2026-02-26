@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Heart, Euro, Compass, MessageCircleHeart, Mic, Square, ImagePlus, X, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, Euro, Compass, MessageCircleHeart, Mic, Square, ImagePlus, X, Star } from "lucide-react";
 import Link from "next/link";
 
 const FIXED_AMOUNTS = [5, 10, 25];
@@ -17,17 +17,6 @@ const FEEDBACK_TYPES = [
   { value: "complaint" as const, label: "Klacht" },
 ];
 
-// Mini-carousel constants (smaller than handreikingen)
-const CARD_PCT = 50;
-const SIDE_PCT = (100 - CARD_PCT) / 2;
-const GAP_PX = 12;
-
-function circularOffset(index: number, active: number, total: number) {
-  let d = index - active;
-  if (d > total / 2) d -= total;
-  if (d < -total / 2) d += total;
-  return d;
-}
 
 export default function AccountSteunPage() {
   const { data: session } = useSession();
@@ -40,12 +29,6 @@ export default function AccountSteunPage() {
   const [customAmount, setCustomAmount] = useState("");
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-
-  // Mini-carousel state
-  const [activeOnderwegIndex, setActiveOnderwegIndex] = useState(0);
-  const onderwegTouchStartX = useRef(0);
-  const onderwegTouchDeltaX = useRef(0);
-  const [isOnderwegDragging, setIsOnderwegDragging] = useState(false);
 
   // Feedback state
   const [feedbackType, setFeedbackType] = useState<typeof FEEDBACK_TYPES[number]["value"]>("suggestion");
@@ -82,33 +65,6 @@ export default function AccountSteunPage() {
   }, []);
 
   const steunItems = onderwegItems;
-
-  // Mini-carousel handlers
-  const totalOnderwegItems = steunItems?.length ?? 0;
-
-  const goToOnderwegItem = useCallback((index: number) => {
-    if (totalOnderwegItems === 0) return;
-    setActiveOnderwegIndex(((index % totalOnderwegItems) + totalOnderwegItems) % totalOnderwegItems);
-  }, [totalOnderwegItems]);
-
-  const handleOnderwegTouchStart = useCallback((e: React.TouchEvent) => {
-    onderwegTouchStartX.current = e.touches[0].clientX;
-    onderwegTouchDeltaX.current = 0;
-    setIsOnderwegDragging(true);
-  }, []);
-
-  const handleOnderwegTouchMove = useCallback((e: React.TouchEvent) => {
-    onderwegTouchDeltaX.current = e.touches[0].clientX - onderwegTouchStartX.current;
-  }, []);
-
-  const handleOnderwegTouchEnd = useCallback(() => {
-    setIsOnderwegDragging(false);
-    if (Math.abs(onderwegTouchDeltaX.current) > 50) {
-      if (onderwegTouchDeltaX.current < 0) goToOnderwegItem(activeOnderwegIndex + 1);
-      else goToOnderwegItem(activeOnderwegIndex - 1);
-    }
-    onderwegTouchDeltaX.current = 0;
-  }, [activeOnderwegIndex, goToOnderwegItem]);
 
   const toggleRecording = () => {
     if (!recognitionRef.current) return;
@@ -435,130 +391,55 @@ export default function AccountSteunPage() {
           </div>
         ) : !steunItems || steunItems.length === 0 ? (
           <div className="p-3 rounded-lg bg-primary-50 border border-primary-100">
-            <p className="text-sm text-primary-800">
-              Binnenkort beschikbaar.
-            </p>
+            <p className="text-sm text-primary-800">Binnenkort beschikbaar.</p>
           </div>
         ) : (
-          <div>
-            <div
-              className="relative"
-              onTouchStart={handleOnderwegTouchStart}
-              onTouchMove={handleOnderwegTouchMove}
-              onTouchEnd={handleOnderwegTouchEnd}
-            >
-              {totalOnderwegItems > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => goToOnderwegItem(activeOnderwegIndex - 1)}
-                    className="absolute top-1/2 -translate-y-1/2 z-10 p-1 rounded-full bg-white border border-primary-200 text-primary-600 hover:bg-primary-50 transition-colors shadow-sm"
-                    style={{ left: `calc(${SIDE_PCT / 2}% - 12px)` }}
-                    aria-label="Vorige"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => goToOnderwegItem(activeOnderwegIndex + 1)}
-                    className="absolute top-1/2 -translate-y-1/2 z-10 p-1 rounded-full bg-white border border-primary-200 text-primary-600 hover:bg-primary-50 transition-colors shadow-sm"
-                    style={{ right: `calc(${SIDE_PCT / 2}% - 12px)` }}
-                    aria-label="Volgende"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </>
-              )}
-
-              <div className="overflow-hidden">
-                <div className="relative" style={{ width: `${CARD_PCT}%`, marginLeft: `${SIDE_PCT}%` }}>
-                  {steunItems!.map((item, index) => {
-                    const offset = circularOffset(index, activeOnderwegIndex, totalOnderwegItems);
-                    const isActive = offset === 0;
-                    const isNeighbor = Math.abs(offset) === 1;
-                    const isVisible = Math.abs(offset) <= 1;
-
-                    return (
-                      <div
-                        key={item._id}
-                        style={{
-                          position: isActive ? "relative" : "absolute",
-                          top: 0,
-                          left: 0,
-                          width: "100%",
-                          transform: `translateX(calc(${offset} * (100% + ${GAP_PX}px))) scale(${isActive ? 1 : 0.92})`,
-                          opacity: isActive ? 1 : isNeighbor ? 0.3 : 0,
-                          transition: isOnderwegDragging ? "none" : "transform 0.4s ease, opacity 0.4s ease",
-                          zIndex: isActive ? 2 : 1,
-                          pointerEvents: isActive ? "auto" : "none",
-                          cursor: isActive ? "pointer" : "default",
-                        }}
-                        onClick={() => { if (!isActive && isVisible) goToOnderwegItem(index); }}
-                      >
-                        <article className="rounded-lg bg-white border border-primary-100 overflow-hidden hover:border-primary-200 transition-colors flex flex-col">
-                          <Link href={`/account/onderweg?title=${encodeURIComponent(item.title || "")}`} className="flex flex-col">
-                            {item.imageUrl && (
-                              <div className="h-32 overflow-hidden flex items-center justify-center bg-white p-2">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  src={item.imageUrl}
-                                  alt={item.title}
-                                  className="w-full h-full object-contain"
-                                />
-                              </div>
-                            )}
-
-                            {(item.title || item.priceCents) && (
-                              <div className="px-3 py-2 border-t border-gray-50 text-center">
-                                {item.title && (
-                                  <h4 className="text-xs font-semibold text-primary-900 line-clamp-2 text-center">{item.title}</h4>
-                                )}
-                                {item.priceCents != null && item.priceCents > 0 && (
-                                  <span className="text-xs font-semibold text-primary-600 block mt-0.5">
-                                    €{(item.priceCents / 100).toFixed(2)}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </Link>
-                          {item.paymentUrl && (
-                            <div className="px-3 pb-3 pt-1 flex justify-center">
-                              <a
-                                href={item.paymentUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-primary-600 text-white rounded-lg text-xs font-medium hover:bg-primary-700 transition-colors"
-                              >
-                                {(item as any).buttonLabel || "Bestellen"}
-                              </a>
-                            </div>
-                          )}
-                        </article>
+          <div className="grid grid-cols-3 gap-3">
+            {steunItems.slice(0, 3).map((item) => (
+              <Link
+                key={item._id}
+                href={`/account/onderweg?title=${encodeURIComponent(item.title || "")}`}
+                className="group relative"
+              >
+                <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-primary-50">
+                  {item.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:opacity-90 transition-opacity"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Compass size={20} className="text-primary-200" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 flex flex-col bg-black/20 rounded-lg">
+                    <div className="flex-1 flex items-center justify-center px-2">
+                      {item.title && (
+                        <p className="text-[11px] sm:text-xs font-semibold text-white text-center leading-snug drop-shadow-md text-balance">
+                          {item.title}
+                        </p>
+                      )}
+                    </div>
+                    {(item.paymentUrl || (item.priceCents != null && item.priceCents > 0)) && (
+                      <div className="flex flex-col items-center gap-0.5 px-2 pb-2">
+                        {item.priceCents != null && item.priceCents > 0 && (
+                          <span className="text-[10px] text-white/80 font-medium drop-shadow-sm">
+                            €{(item.priceCents / 100).toFixed(2)}
+                          </span>
+                        )}
+                        {item.paymentUrl && (
+                          <span className="inline-flex items-center px-2 py-0.5 bg-white/90 text-primary-800 rounded text-[9px] font-medium">
+                            {(item as any).buttonLabel || "Bestellen"}
+                          </span>
+                        )}
                       </div>
-                    );
-                  })}
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            {totalOnderwegItems > 1 && (
-              <div className="flex justify-center gap-1.5 mt-3">
-                {steunItems!.map((item, index) => (
-                  <button
-                    key={item._id}
-                    type="button"
-                    onClick={() => goToOnderwegItem(index)}
-                    className={`rounded-full transition-all ${
-                      index === activeOnderwegIndex
-                        ? "w-2.5 h-2.5 bg-primary-600"
-                        : "w-2 h-2 bg-primary-300 hover:bg-primary-400"
-                    }`}
-                    aria-label={`Ga naar item ${index + 1}`}
-                  />
-                ))}
-              </div>
-            )}
+              </Link>
+            ))}
           </div>
         )}
       </div>

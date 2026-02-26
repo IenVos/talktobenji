@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -78,30 +78,8 @@ export default function AccountHandreikingenPage() {
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
-  const articleRefs = useRef<(HTMLElement | null)[]>([]);
-  const [maxCardHeight, setMaxCardHeight] = useState(0);
-  const [imagesLoaded, setImagesLoaded] = useState(0);
 
   const total = items?.length ?? 0;
-
-  // Meet alle article-elementen en stel hoogte in op de langste
-  useEffect(() => {
-    if (!items || items.length === 0) return;
-    const raf = requestAnimationFrame(() => {
-      let max = 0;
-      articleRefs.current.forEach((el) => {
-        if (el) {
-          // Tijdelijk minHeight resetten om natuurlijke hoogte te meten
-          const prev = el.style.minHeight;
-          el.style.minHeight = "0";
-          max = Math.max(max, el.scrollHeight);
-          el.style.minHeight = prev;
-        }
-      });
-      if (max > 0) setMaxCardHeight(max);
-    });
-    return () => cancelAnimationFrame(raf);
-  }, [items, imagesLoaded]);
 
   const goTo = useCallback((index: number) => {
     if (total === 0) return;
@@ -221,38 +199,99 @@ export default function AccountHandreikingenPage() {
                       onClick={() => { if (!isActive && isVisible) goTo(index); }}
                     >
                       <article
-                        ref={(el) => { articleRefs.current[index] = el; }}
-                        className="rounded-xl bg-primary-50/50 border border-primary-100 overflow-hidden flex flex-col"
-                        style={{ minHeight: maxCardHeight > 0 ? `${maxCardHeight}px` : undefined }}
+                        className="rounded-xl overflow-hidden flex flex-col"
                       >
-                        {item.imageUrl && (
-                          <button
-                            type="button"
-                            onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
-                            className="w-full overflow-hidden cursor-pointer hover:opacity-90 transition-opacity flex-shrink-0"
-                            title="Afbeelding vergroten"
-                            tabIndex={isActive ? 0 : -1}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={item.imageUrl}
-                              alt={item.title}
-                              className="w-full max-h-96 object-cover"
-                              onLoad={() => setImagesLoaded((c) => c + 1)}
-                            />
-                          </button>
-                        )}
-                        {(item.title || item.content || item.pdfUrl || (item.priceCents != null && item.priceCents > 0) || (item as any).exerciseSlug || (item as any).icon) && (
-                          <div className="p-5 flex-1 flex flex-col bg-white">
+                        {item.imageUrl ? (
+                          /* Kaart met afbeelding — titel + tekst als overlay */
+                          <div className="relative w-full aspect-[3/2]">
+                            <button
+                              type="button"
+                              onClick={(e) => { if (isActive) { e.stopPropagation(); setLightboxImage({ url: item.imageUrl!, alt: item.title || "" }); } }}
+                              className="w-full h-full cursor-pointer"
+                              title="Afbeelding vergroten"
+                              tabIndex={isActive ? 0 : -1}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={item.imageUrl}
+                                alt={item.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </button>
+                            <div className="absolute inset-0 flex flex-col pointer-events-none">
+                              <div className="flex-1 flex flex-col items-center justify-center px-6">
+                                <div className="max-w-xs w-full bg-white/75 rounded-xl px-5 py-4 flex flex-col gap-2 text-center pointer-events-auto">
+                                  {item.title && (
+                                    <h3
+                                      className="text-base font-semibold leading-snug text-balance"
+                                      style={{ color: "var(--account-accent, #38465e)" }}
+                                    >
+                                      {item.title}
+                                    </h3>
+                                  )}
+                                  {item.content && item.content.trim() !== item.title?.trim() && (
+                                    <p className="text-sm leading-relaxed text-balance whitespace-pre-wrap" style={{ color: "var(--account-accent, #38465e)" }}>
+                                      {renderRichText(item.content)}
+                                    </p>
+                                  )}
+                                  {((item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug) && (
+                                    <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                                      {item.priceCents != null && item.priceCents > 0 && (
+                                        <a
+                                          href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
+                                          className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap"
+                                          tabIndex={isActive ? 0 : -1}
+                                        >
+                                          Bestellen €{(item.priceCents / 100).toFixed(2)}
+                                        </a>
+                                      )}
+                                      {item.pdfUrl && (
+                                        <a
+                                          href={item.pdfUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap"
+                                          title="PDF downloaden"
+                                          tabIndex={isActive ? 0 : -1}
+                                        >
+                                          <FileDown size={14} />
+                                          Download
+                                        </a>
+                                      )}
+                                      {(item as any).exerciseSlug && (
+                                        <Link
+                                          href={`/account/handreikingen/${(item as any).exerciseSlug}`}
+                                          className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap"
+                                          tabIndex={isActive ? 0 : -1}
+                                        >
+                                          <CardIcon name={(item as any).icon} size={13} />
+                                          {!(item as any).icon && <Pencil size={13} />}
+                                          {(item as any).exerciseButtonLabel || "Begin oefening"}
+                                        </Link>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          /* Kaart zonder afbeelding — wit vlak met accent titel */
+                          <div className="p-5 flex-1 flex flex-col bg-white border border-primary-100 rounded-xl">
                             {item.title && (
-                              <h3 className="text-base font-semibold text-primary-900 mb-2">{item.title}</h3>
+                              <h3
+                                className="text-base font-semibold mb-2"
+                                style={{ color: "var(--account-accent, #38465e)" }}
+                              >
+                                {item.title}
+                              </h3>
                             )}
                             <div className="flex-1 text-sm text-gray-600 leading-relaxed">
                               {item.content && (
                                 <p className="whitespace-pre-wrap">{renderRichText(item.content)}</p>
                               )}
                             </div>
-                            {(item.pdfUrl || (item.priceCents != null && item.priceCents > 0) || (item as any).exerciseSlug) && (
+                            {((item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug) && (
                               <div className="mt-4 flex flex-wrap items-center gap-2">
                                 {item.priceCents != null && item.priceCents > 0 && (
                                   <a

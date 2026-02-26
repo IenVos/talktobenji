@@ -5,6 +5,8 @@
 @layer base {
   html {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-y: scroll; /* Voorkomt layout shift door scrollbar verschijnen/verdwijnen */
+    scrollbar-gutter: stable;
   }
 
   body {
@@ -139,6 +141,19 @@
 .account-theme .bestellen-btn:hover {
   background-color: var(--account-accent) !important;
   border-color: var(--account-accent) !important;
+  color: white !important;
+}
+
+/* Handreikingen-knop: iets donkerder dan accentkleur, hover: donkerdere achtergrond + wit */
+.account-theme .darker-btn {
+  background-color: transparent !important;
+  border: 1px solid color-mix(in srgb, var(--account-accent, #38465e) 70%, #000) !important;
+  color: color-mix(in srgb, var(--account-accent, #38465e) 70%, #000) !important;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.account-theme .darker-btn:hover {
+  background-color: color-mix(in srgb, var(--account-accent, #38465e) 70%, #000) !important;
+  border-color: color-mix(in srgb, var(--account-accent, #38465e) 70%, #000) !important;
   color: white !important;
 }
 

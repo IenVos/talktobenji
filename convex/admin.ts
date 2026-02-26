@@ -414,7 +414,7 @@ export const deleteFeedback = mutation({
     const feedback = await ctx.db.get(args.feedbackId);
     if (!feedback) return;
     if (feedback.imageStorageId) {
-      await ctx.storage.delete(feedback.imageStorageId);
+      try { await ctx.storage.delete(feedback.imageStorageId); } catch {}
     }
     await ctx.db.delete(args.feedbackId);
   },
@@ -429,7 +429,7 @@ export const deleteFeedbackImage = mutation({
     await checkAdmin(ctx, args.adminToken);
     const feedback = await ctx.db.get(args.feedbackId);
     if (!feedback?.imageStorageId) return;
-    await ctx.storage.delete(feedback.imageStorageId);
+    try { await ctx.storage.delete(feedback.imageStorageId); } catch {}
     await ctx.db.patch(args.feedbackId, { imageStorageId: undefined });
   },
 });
