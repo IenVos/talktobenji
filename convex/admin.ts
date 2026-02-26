@@ -1062,7 +1062,7 @@ Antwoord ALLEEN in dit JSON formaat, geen tekst erbuiten:
       }),
     });
 
-    const data = await response.json();
+    const data = await response.json() as { content?: { type: string; text: string }[] };
     const text = data.content?.[0]?.text ?? "";
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
