@@ -98,6 +98,10 @@ export default function WaaromBenjiPage() {
           </p>
 
           <p>
+            Ik woon zelf in Zweden, ver van familie en vrienden in Nederland. Die afstand voegt iets extra's toe aan verdriet. Je bent niet bij de mensen van wie je houdt als het moeilijk is. Je kunt niet even langsgaan, niet zomaar samen zijn. Dat gevoel van ver weg zijn midden in verdriet heeft mede Benji doen ontstaan.
+          </p>
+
+          <p>
             Vanuit die overtuiging begon ik vier jaar geleden Beterschap-cadeau.nl, een plek voor mensen die iemand willen steunen die iets moeilijks meemaakt. Dat werd meer gebruikt dan ik had verwacht.
           </p>
 
@@ -165,7 +169,7 @@ export default function WaaromBenjiPage() {
           </div>
 
           <p className="text-sm sm:text-base text-gray-500 leading-relaxed">
-            <span className="italic">P.S.</span> Benji is niet gratis, omdat bouwen en onderhouden nu eenmaal iets kost. Maar toegankelijkheid vind ik belangrijk. Daarom houd ik de drempel zo laag mogelijk, zodat zoveel mogelijk mensen er gebruik van kunnen maken wanneer ze het nodig hebben. Je kunt Benji altijd <Link href="/prijzen" className="text-primary-600 hover:text-primary-700 underline">gratis gebruiken</Link>.
+            <span className="italic">P.S.</span> Als je een account aanmaakt, heb je de eerste 7 dagen gratis toegang tot alles wat Benji te bieden heeft. Daarna kies je zelf hoe je verdergaat.
           </p>
 
           {/* Start je eerste gesprek button */}

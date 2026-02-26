@@ -5,23 +5,25 @@ import Image from "next/image";
 import Link from "next/link";
 
 const AFSCHEIDSGROETEN = [
-  "Pas goed op jezelf.\nJe bent het waard.",
-  "Tot de volgende keer.\nBenji is er altijd voor je.",
-  "Neem de rust die je nodig hebt.\nJe doet het goed.",
-  "Fijn dat je er was.\nTot snel!",
-  "Vergeet niet: je bent niet alleen.\nTot de volgende keer.",
-  "Ga lief voor jezelf zijn.\nTot gauw!",
-  "Bedankt voor dit gesprek.\nJe mag er zijn.",
-  "Tot ziens!\nOnthoud: elke stap telt, hoe klein ook.",
-  "Wees zacht voor jezelf vandaag.\nTot de volgende keer.",
-  "Je bent sterker dan je denkt.\nTot snel, lief mens.",
+  (naam: string) => `Pas goed op jezelf${naam ? `, ${naam}` : ""}.\nJe bent het waard.`,
+  (naam: string) => `Tot de volgende keer${naam ? `, ${naam}` : ""}.\nBenji is er altijd voor je.`,
+  (_naam: string) => `Neem de rust die je nodig hebt.\nJe doet het goed.`,
+  (naam: string) => `Fijn dat je er was${naam ? `, ${naam}` : ""}.\nTot snel!`,
+  (_naam: string) => `Vergeet niet: je bent niet alleen.\nTot de volgende keer.`,
+  (naam: string) => `Ga lief voor jezelf zijn${naam ? `, ${naam}` : ""}.\nTot gauw!`,
+  (_naam: string) => `Bedankt voor dit gesprek.\nJe mag er zijn.`,
+  (_naam: string) => `Tot ziens!\nOnthoud: elke stap telt, hoe klein ook.`,
+  (_naam: string) => `Wees zacht voor jezelf vandaag.\nTot de volgende keer.`,
+  (naam: string) => `Je bent sterker dan je denkt.\nTot snel, ${naam ? naam : "lief mens"}.`,
 ];
 
 export default function AfscheidPage() {
   const [groet, setGroet] = useState("");
 
   useEffect(() => {
-    setGroet(AFSCHEIDSGROETEN[Math.floor(Math.random() * AFSCHEIDSGROETEN.length)]);
+    const naam = (() => { try { return localStorage.getItem("benji_user_name") ?? ""; } catch { return ""; } })();
+    const fn = AFSCHEIDSGROETEN[Math.floor(Math.random() * AFSCHEIDSGROETEN.length)];
+    setGroet(fn(naam));
     // Clear all user data so homepage shows the original welcome screen after logout
     try {
       localStorage.removeItem("benji_session_id");
@@ -33,16 +35,16 @@ export default function AfscheidPage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-b from-white to-primary-50">
+    <div
+      className="relative min-h-screen flex flex-col items-center justify-center p-6"
+      style={{
+        backgroundImage: "url(/images/afscheid-bg.png)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <div className="text-center max-w-sm">
-        <Image
-          src="/images/benji-logo-2.png"
-          alt="Benji"
-          width={64}
-          height={64}
-          className="mx-auto object-contain mb-6"
-          style={{ width: "auto", height: "auto" }}
-        />
         <p className="text-lg text-gray-700 leading-relaxed mb-8 italic whitespace-pre-line">
           &ldquo;{groet}&rdquo;
         </p>
@@ -52,6 +54,18 @@ export default function AfscheidPage() {
         >
           Terug naar startpagina
         </Link>
+      </div>
+
+      {/* Logo rechtsonder op de donkere steen */}
+      <div className="absolute bottom-6 right-6">
+        <Image
+          src="/images/benji-logo-2.png"
+          alt="Benji"
+          width={48}
+          height={48}
+          className="object-contain opacity-80"
+          style={{ width: "auto", height: "auto" }}
+        />
       </div>
     </div>
   );

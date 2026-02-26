@@ -59,7 +59,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
           <section>
             <h3 className="font-semibold text-gray-900 mb-2">Wie heeft Benji gemaakt en waarom?</h3>
             <p>
-              Benji is ontwikkeld door <FounderLink label="Ien" onClick={onClose} />, uit persoonlijke ervaring met verlies en het besef dat verdriet niet altijd past in kantooruren of beschikbaarheid van vrienden en familie. We merkten dat algemene chatbots niet de zachtheid en het begrip boden die nodig zijn bij rouw, daarom maakten we Benji: een plek waar je verhaal er altijd toe doet.
+              Benji is ontwikkeld door <FounderLink label="Ien" onClick={onClose} />, vanuit persoonlijke ervaring met verlies. Ien woont in Zweden, ver van familie en vrienden in Nederland. Die afstand maakt verdriet anders. Je kunt niet even bellen als het te laat is, niet zomaar langsgaan als je het zwaar hebt. Dat gevoel van ver weg zijn midden in verdriet was een van de redenen waarom Benji er moest komen. Gewone chatbots boden niet de zachtheid en het begrip die nodig zijn bij rouw. Benji wel: een plek waar je verhaal er altijd toe doet.
             </p>
           </section>
 
@@ -76,6 +76,23 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
               Benji luistert. Je kunt schrijven wat je voelt, wat je mist, waar je mee zit. Benji reageert met empathie en begrip, gebaseerd op duizenden gesprekken over verlies en rouw. Geen standaard antwoorden, maar aandacht voor jouw specifieke verhaal.
             </p>
             <p>Je gesprekken zijn volledig privé. Niemand leest mee. Het is jouw ruimte.</p>
+          </section>
+
+          <section>
+            <h3 className="font-semibold text-gray-900 mb-2">Wat krijg je met een account?</h3>
+            <p className="mb-2">
+              Met een account is Benji meer dan een gesprek. Je hebt een persoonlijke plek waar alles bij elkaar komt.
+            </p>
+            <div className="space-y-1.5">
+              <div className="flex gap-2"><SoftCheck /><span>Reflecties en dagelijkse check-ins bijhouden</span></div>
+              <div className="flex gap-2"><SoftCheck /><span>Persoonlijke doelen bewaren en volgen</span></div>
+              <div className="flex gap-2"><SoftCheck /><span>Mooie herinneringen opslaan in Memories</span></div>
+              <div className="flex gap-2"><SoftCheck /><span>Troostende gedichten en citaten lezen</span></div>
+              <div className="flex gap-2"><SoftCheck /><span>Praktische handreikingen voor moeilijke momenten</span></div>
+            </div>
+            <p className="mt-2 text-gray-600">
+              De eerste 7 dagen heb je gratis toegang tot alles. Daarna kies je zelf of en hoe je verdergaat.
+            </p>
           </section>
 
           <section>
@@ -121,7 +138,7 @@ export function AboutBenjiModal({ open, onClose }: AboutBenjiModalProps) {
           <section>
             <h3 className="font-semibold text-gray-900 mb-2">Wat kost het?</h3>
             <p>
-              Momenteel kun je Benji kosteloos gebruiken. We werken aan een duurzaam model zodat Benji beschikbaar blijft. Je hoeft nu niets te betalen om te starten.
+              Als bezoeker kun je altijd 5 gratis gesprekken voeren. Met een account heb je de eerste 7 dagen volledige toegang tot alles. Daarna kun je elke maand 10 gesprekken voeren, of kiezen voor een betaald abonnement voor onbeperkte toegang.
             </p>
           </section>
 
