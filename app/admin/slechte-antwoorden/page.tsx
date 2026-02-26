@@ -55,9 +55,15 @@ function ExistingKnowledgeWarning({ category, question }: { category: string; qu
     api.knowledgeBase.getAllQuestions,
     category ? { category, isActive: true } : "skip"
   );
+  const updateEntry = useAdminMutation(api.knowledgeBase.updateQuestion);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editQ, setEditQ] = useState("");
+  const [editA, setEditA] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<string | null>(null);
+
   if (!entries || entries.length === 0) return null;
 
-  // Filter licht op gelijkenis met voorgestelde vraag (simpele substring check)
   const lower = question.toLowerCase();
   const similar = entries.filter((e: any) =>
     e.question.toLowerCase().includes(lower.slice(0, 20)) ||
@@ -65,21 +71,91 @@ function ExistingKnowledgeWarning({ category, question }: { category: string; qu
   );
   const toShow = similar.length > 0 ? similar.slice(0, 3) : entries.slice(0, 3);
 
+  const startEdit = (e: any) => {
+    setEditingId(e._id);
+    setEditQ(e.question);
+    setEditA(e.answer);
+    setSavedId(null);
+  };
+
+  const handleSave = async (id: string) => {
+    setSaving(true);
+    try {
+      await updateEntry({ id, question: editQ, answer: editA });
+      setSavedId(id);
+      setEditingId(null);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="text-xs bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 space-y-1.5">
-      <p className="font-medium text-amber-700">
-        Al {entries.length} item{entries.length !== 1 ? "s" : ""} in categorie &quot;{category}&quot; — check op duplicaten:
-      </p>
-      <ul className="space-y-1">
+    <div className="bg-amber-50 border border-amber-200 rounded-lg overflow-hidden">
+      <div className="px-3 py-2 border-b border-amber-200">
+        <p className="text-xs font-medium text-amber-700">
+          Al {entries.length} item{entries.length !== 1 ? "s" : ""} in categorie &quot;{category}&quot; — check op duplicaten:
+        </p>
+      </div>
+      <div className="divide-y divide-amber-100">
         {toShow.map((e: any) => (
-          <li key={e._id} className="text-amber-800 leading-snug">
-            <span className="font-medium">V:</span> {e.question}
-          </li>
+          <div key={e._id} className="px-3 py-2.5">
+            {editingId === e._id ? (
+              <div className="space-y-2">
+                <input
+                  value={editQ}
+                  onChange={(ev) => setEditQ(ev.target.value)}
+                  className="w-full text-xs border border-amber-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary-400 bg-white"
+                  placeholder="Vraag"
+                />
+                <textarea
+                  value={editA}
+                  onChange={(ev) => setEditA(ev.target.value)}
+                  rows={3}
+                  className="w-full text-xs border border-amber-300 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary-400 bg-white"
+                  placeholder="Antwoord voor Benji"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleSave(e._id)}
+                    disabled={saving || !editQ.trim() || !editA.trim()}
+                    className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                  >
+                    {saving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                    {saving ? "Opslaan..." : "Opslaan"}
+                  </button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="text-xs px-2.5 py-1.5 border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors"
+                  >
+                    Annuleren
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-amber-800 leading-snug">V: {e.question}</p>
+                  <p className="text-xs text-amber-600 leading-snug mt-0.5 line-clamp-2">A: {e.answer}</p>
+                  {savedId === e._id && (
+                    <p className="text-xs text-green-600 mt-0.5 font-medium">✓ Opgeslagen</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => startEdit(e)}
+                  className="flex-shrink-0 text-xs text-amber-600 hover:text-amber-900 border border-amber-300 rounded-lg px-2 py-1 hover:bg-amber-100 transition-colors"
+                >
+                  Bewerken
+                </button>
+              </div>
+            )}
+          </div>
         ))}
         {entries.length > 3 && (
-          <li className="text-amber-500">+{entries.length - 3} meer in deze categorie</li>
+          <div className="px-3 py-1.5">
+            <p className="text-xs text-amber-500">+{entries.length - 3} meer in deze categorie</p>
+          </div>
         )}
-      </ul>
+      </div>
     </div>
   );
 }
@@ -95,7 +171,9 @@ function SlechteAntwoordItem({ item }: { item: any }) {
   const [editedCategory, setEditedCategory] = useState("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
+  const currentSettings = useQuery(api.settings.get);
   const suggestFix = useAdminAction(api.admin.suggestFix);
   const appendToRules = useAdminMutation(api.admin.appendToRules);
   const addKnowledge = useAdminMutation(api.admin.addKnowledgeEntryFromAdmin);
@@ -278,14 +356,28 @@ function SlechteAntwoordItem({ item }: { item: any }) {
           {/* Bewerkbaar veld */}
           <div className="px-4 py-3 space-y-3">
             {editedType === "rules" ? (
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1.5">Toe te voegen regel</label>
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-gray-500">Toe te voegen regel</label>
                 <textarea
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
                   rows={4}
                   className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-400"
                 />
+                {/* Huidige rules inklapbaar */}
+                <button
+                  type="button"
+                  onClick={() => setShowRules(!showRules)}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showRules ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                  {showRules ? "Verberg huidige rules" : "Bekijk huidige rules"}
+                </button>
+                {showRules && currentSettings?.rules && (
+                  <pre className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 whitespace-pre-wrap max-h-48 overflow-y-auto font-sans leading-relaxed">
+                    {currentSettings.rules}
+                  </pre>
+                )}
               </div>
             ) : (
               <>
