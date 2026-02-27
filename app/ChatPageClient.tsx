@@ -675,8 +675,8 @@ export default function ChatPageClient({
         </div>
       </main>
 
-      {/* Zachte nudge voor gasten bij 3–4 gesprekken — verdwijnt zodra ze beginnen te chatten */}
-      {!session?.userId && anonymousCount >= 3 && anonymousCount < 5 && !(messages && messages.length > 0) && (
+      {/* Zachte nudge voor gasten bij 3–4 gesprekken */}
+      {!session?.userId && anonymousCount >= 3 && anonymousCount < 5 && (
         <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3 rounded-xl bg-primary-50 border border-primary-200 text-primary-800 text-sm mx-3 mb-1">
           <span>Je hebt {anonymousCount} van 5 gratis gesprekken gebruikt.</span>
           <Link href="/registreren" className="flex-shrink-0 text-xs font-medium underline hover:text-primary-900 transition-colors">
