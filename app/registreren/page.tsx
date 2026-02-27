@@ -170,7 +170,7 @@ function RegistrerenForm() {
               type="checkbox"
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300 accent-green-600"
             />
             <span className="text-sm text-gray-600 leading-snug">
               Ik ga akkoord met de{" "}
