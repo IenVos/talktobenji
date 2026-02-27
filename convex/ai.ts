@@ -132,9 +132,10 @@ export const handleUserMessage = action({
 
     try {
       // RATE LIMIT: max 4 berichten per 30 seconden per sessie (beschermt tegen spam/kosten)
+      // Laad ruim genoeg berichten om ook de berichtenlimiet te kunnen controleren
       const recentMessages = await ctx.runQuery(api.chat.getMessages, {
         sessionId: args.sessionId,
-        limit: 20,
+        limit: 100,
       });
       const thirtySecondsAgo = Date.now() - 30 * 1000;
       const recentUserCount = (recentMessages || []).filter(
@@ -153,12 +154,18 @@ export const handleUserMessage = action({
       // Haal sessie op voor subscription check (vóór opslaan bericht)
       const chatSession = await ctx.runQuery(api.chat.getSession, { sessionId: args.sessionId });
 
-      // BACKEND GESPREKSLIMIET CHECK — voorkomt omzeilen van de frontend paywall
+      // BACKEND GESPREKSLIMIET CHECK + bepaal account type
+      let isPaid = false;
+      let isFreeUser = false;
+      const isGuest = !chatSession?.userId;
+
       if (chatSession?.userId) {
         const convCount = await ctx.runQuery(api.subscriptions.getConversationCount, {
           userId: chatSession.userId,
           email: chatSession.userEmail ?? undefined,
         });
+        isPaid = convCount.hasUnlimited;
+        isFreeUser = !convCount.hasUnlimited;
         if (!convCount.hasUnlimited && convCount.limit !== null && convCount.count > convCount.limit) {
           return {
             success: false,
@@ -176,6 +183,16 @@ export const handleUserMessage = action({
             error: "Je hebt je 5 gratis gesprekken gebruikt. Maak een gratis account aan om verder te gaan.",
           };
         }
+      }
+
+      // BERICHTENLIMIET PER SESSIE — voorkomt open laten staan van chat
+      const sessionUserMsgCount = (recentMessages || []).filter((m: any) => m.role === "user").length;
+      const msgLimit = isGuest ? 15 : isFreeUser ? 40 : Infinity;
+      if (sessionUserMsgCount >= msgLimit) {
+        return {
+          success: false,
+          error: isGuest ? "GUEST_MESSAGE_LIMIT" : "USER_MESSAGE_LIMIT",
+        };
       }
 
       // STAP 1: Sla gebruikersbericht op
@@ -294,14 +311,18 @@ export const handleUserMessage = action({
       const messageCount = (allMessagesForCount || []).length;
       
       // Gebruik de al opgehaalde berichten voor de history
-      // Altijd eerste 2 berichten meenemen (stelt context in: wie/wat verloren)
-      // + laatste 12 berichten voor de recente gespreksflow
+      // Geheugen op basis van account type:
+      //   Gast:    eerste 2 + laatste 8  (korte gesprekken)
+      //   Gratis:  eerste 2 + laatste 14
+      //   Betaald: eerste 4 + laatste 20 (beste continuïteit)
       const charLimit = 2000;
+      const firstCount = isPaid ? 4 : 2;
+      const recentCount = isGuest ? 8 : isFreeUser ? 14 : 20;
       const allMsgs = (allMessagesForCount || []).slice(0, -1); // Exclude het laatste bericht
-      const firstMsgs = allMsgs.slice(0, 2);
-      const recentMsgs = allMsgs.slice(-12);
+      const firstMsgs = allMsgs.slice(0, firstCount);
+      const recentMsgs = allMsgs.slice(-recentCount);
       // Korte gesprekken: alles meenemen; lange gesprekken: begin + recente context
-      const historyMsgs = allMsgs.length <= 14 ? allMsgs : [...firstMsgs, ...recentMsgs];
+      const historyMsgs = allMsgs.length <= (firstCount + recentCount) ? allMsgs : [...firstMsgs, ...recentMsgs];
 
       const conversationHistory: ClaudeMessage[] = historyMsgs
         .map((m: { role: string; content: string }) => ({

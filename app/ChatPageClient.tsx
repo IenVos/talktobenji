@@ -164,6 +164,7 @@ export default function ChatPageClient({
   const [input, setInput] = useState("");
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
+  const [messageLimitType, setMessageLimitType] = useState<"guest" | "free" | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAddingOpener, setIsAddingOpener] = useState(false);
   const lastMessageCountRef = useRef<number>(0);
@@ -452,6 +453,14 @@ export default function ChatPageClient({
 
       // Rate limit of andere zachte fout
       if (result && !result.success && result.error) {
+        if (result.error === "GUEST_MESSAGE_LIMIT") {
+          setMessageLimitType("guest");
+          return;
+        }
+        if (result.error === "USER_MESSAGE_LIMIT") {
+          setMessageLimitType("free");
+          return;
+        }
         setChatError(result.error);
         return;
       }
@@ -703,6 +712,51 @@ export default function ChatPageClient({
           <Link href="/registreren" className="flex-shrink-0 text-xs font-medium underline hover:text-primary-900 transition-colors">
             Maak een gratis account →
           </Link>
+        </div>
+      )}
+
+      {/* Berichtenlimiet popup */}
+      {messageLimitType && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center">
+            {messageLimitType === "guest" ? (
+              <>
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 mb-4">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">Je hebt het maximum bereikt</h2>
+                <p className="text-sm text-gray-600 leading-relaxed mb-4">
+                  Je hebt 15 berichten verstuurd in dit gesprek. Maak een gratis account aan om verder te gaan en je gesprekken te bewaren.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <Link href="/registreren" className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+                    Gratis account aanmaken
+                  </Link>
+                  <Link href="/inloggen" className="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium transition-colors">
+                    Ik heb al een account
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 mb-4">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">Gesprek is ten einde</h2>
+                <p className="text-sm text-gray-600 leading-relaxed mb-2">
+                  Je hebt het maximum van 40 berichten in dit gesprek bereikt. Start een nieuw gesprek of upgrade voor onbeperkt chatten.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  <Link href="/account/abonnement?upgrade=true" className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+                    Mijn abonnement
+                  </Link>
+                  <button onClick={() => setMessageLimitType(null)} className="inline-flex items-center justify-center px-4 py-2.5 bg-white border border-gray-300 hover:border-gray-400 text-gray-700 rounded-lg text-sm font-medium transition-colors">
+                    Nieuw gesprek
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 
