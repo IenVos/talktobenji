@@ -16,6 +16,7 @@ function RegistrerenForm() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,13 +165,33 @@ function RegistrerenForm() {
             />
           </div>
 
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <span className="text-sm text-gray-600 leading-snug">
+              Ik ga akkoord met de{" "}
+              <a href="https://www.talktobenji.com/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">
+                Algemene Voorwaarden
+              </a>{" "}
+              en heb het{" "}
+              <a href="https://www.talktobenji.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">
+                Privacybeleid
+              </a>{" "}
+              gelezen.
+            </span>
+          </label>
+
           {error && (
             <p className="text-red-600 text-sm">{error}</p>
           )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !termsAccepted}
             className="w-full py-3 btn btn-primary rounded-lg disabled:opacity-50"
           >
             {loading ? "Bezig..." : "Account aanmaken"}
@@ -196,6 +217,13 @@ function RegistrerenForm() {
           </svg>
           Doorgaan met Google
         </button>
+
+        <p className="text-center text-xs text-gray-400 mt-3 leading-snug px-2">
+          Door verder te gaan ga je akkoord met de{" "}
+          <a href="https://www.talktobenji.com/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Algemene Voorwaarden</a>
+          {" "}en het{" "}
+          <a href="https://www.talktobenji.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Privacybeleid</a>.
+        </p>
 
         <p className="text-center text-sm text-gray-600 mt-4">
           Heb je al een account?{" "}
