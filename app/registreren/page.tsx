@@ -165,23 +165,18 @@ function RegistrerenForm() {
             />
           </div>
 
-          <label className="flex items-start gap-3 cursor-pointer">
+          <label className="flex items-center gap-2.5 cursor-pointer py-1">
             <input
               type="checkbox"
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
-              className="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-gray-300 accent-green-600"
+              className="h-4 w-4 flex-shrink-0 rounded border-gray-300 accent-green-600"
             />
             <span className="text-sm text-gray-600 leading-snug">
               Ik ga akkoord met de{" "}
-              <a href="https://www.talktobenji.com/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">
-                Algemene Voorwaarden
-              </a>{" "}
-              en heb het{" "}
-              <a href="https://www.talktobenji.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">
-                Privacybeleid
-              </a>{" "}
-              gelezen.
+              <a href="https://www.talktobenji.com/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">Algemene Voorwaarden</a>
+              {" "}en het{" "}
+              <a href="https://www.talktobenji.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline font-medium">Privacybeleid</a>.
             </span>
           </label>
 
@@ -218,11 +213,11 @@ function RegistrerenForm() {
           Doorgaan met Google
         </button>
 
-        <p className="text-center text-xs text-gray-400 mt-3 leading-snug px-2">
+        <p className="text-center text-xs text-gray-400 mt-2.5 leading-relaxed max-w-xs mx-auto">
           Door verder te gaan ga je akkoord met de{" "}
-          <a href="https://www.talktobenji.com/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Algemene Voorwaarden</a>
+          <a href="https://www.talktobenji.com/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 whitespace-nowrap">Algemene Voorwaarden</a>
           {" "}en het{" "}
-          <a href="https://www.talktobenji.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Privacybeleid</a>.
+          <a href="https://www.talktobenji.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600 whitespace-nowrap">Privacybeleid</a>.
         </p>
 
         <p className="text-center text-sm text-gray-600 mt-4">
