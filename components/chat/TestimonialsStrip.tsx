@@ -1,19 +1,17 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
-function Stars({ count }: { count: number }) {
+function Stars({ count, size = 10 }: { count: number; size?: number }) {
   return (
-    <div className="flex gap-0.5">
+    <div className="flex gap-px">
       {[1, 2, 3, 4, 5].map((i) => (
-        <svg
-          key={i}
-          width="11"
-          height="11"
-          viewBox="0 0 24 24"
-          fill={i <= count ? "#d4a84b" : "none"}
-          stroke={i <= count ? "#d4a84b" : "#d1d5db"}
+        <svg key={i} width={size} height={size} viewBox="0 0 24 24"
+          fill={i <= count ? "#c9972c" : "none"}
+          stroke={i <= count ? "#c9972c" : "#d1d5db"}
           strokeWidth="2"
         >
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -23,32 +21,211 @@ function Stars({ count }: { count: number }) {
   );
 }
 
+function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button key={i} type="button" onClick={() => onChange(i)} className="p-0.5">
+          <svg width="20" height="20" viewBox="0 0 24 24"
+            fill={i <= value ? "#c9972c" : "none"}
+            stroke={i <= value ? "#c9972c" : "#9ca3af"}
+            strokeWidth="2"
+          >
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function TestimonialsStrip() {
   const items = useQuery(api.testimonials.listActive, {});
+  const submitReview = useMutation(api.testimonials.submitPending);
+
+  const [page, setPage] = useState(0);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ name: "", quote: "", stars: 5 });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [formError, setFormError] = useState("");
 
   if (!items || items.length === 0) return null;
 
+  const totalPages = Math.ceil(items.length / 3);
+  const visible = items.slice(page * 3, (page + 1) * 3);
+  const expandedItem = items.find((i) => i._id === expandedId);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.quote.trim()) {
+      setFormError("Vul je naam en review in.");
+      return;
+    }
+    setSubmitting(true);
+    setFormError("");
+    try {
+      await submitReview({ name: form.name.trim(), quote: form.quote.trim(), stars: form.stars });
+      setSubmitted(true);
+      setForm({ name: "", quote: "", stars: 5 });
+    } catch {
+      setFormError("Er ging iets mis. Probeer het opnieuw.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="w-full mt-5">
-      <div
-        className="flex gap-2.5 overflow-x-auto pb-1"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {items.map((item) => (
-          <div
-            key={item._id}
-            className="flex-shrink-0 w-48 bg-white/65 backdrop-blur-sm rounded-xl px-3.5 py-3 flex flex-col gap-2"
-          >
-            <Stars count={item.stars} />
-            <p className="text-[11px] leading-relaxed text-gray-700 line-clamp-4">
-              &ldquo;{item.quote}&rdquo;
-            </p>
-            <p className="text-[10px] text-gray-500 font-medium mt-auto">
-              — {item.name}
-            </p>
-          </div>
+    <div className="w-full max-w-sm mx-auto px-3 py-2">
+      {/* 3-kaartjes grid */}
+      <div className="grid grid-cols-3 gap-1.5">
+        {visible.map((item) => {
+          const isExpanded = expandedId === item._id;
+          return (
+            <button
+              key={item._id}
+              type="button"
+              onClick={() => setExpandedId(isExpanded ? null : item._id)}
+              className={`text-left rounded-lg px-2 py-2 flex flex-col gap-1 transition-all ${
+                isExpanded
+                  ? "bg-white/80 ring-1 ring-primary-300/50"
+                  : "bg-white/55 hover:bg-white/70"
+              }`}
+            >
+              <Stars count={item.stars} size={9} />
+              <p className="text-[9px] leading-relaxed text-gray-700 line-clamp-2">
+                &ldquo;{item.quote}&rdquo;
+              </p>
+              <p className="text-[9px] text-gray-500 font-medium truncate">— {item.name}</p>
+            </button>
+          );
+        })}
+        {/* Opvulkaartje als minder dan 3 op de pagina */}
+        {visible.length < 3 && Array.from({ length: 3 - visible.length }).map((_, i) => (
+          <div key={`empty-${i}`} />
         ))}
       </div>
+
+      {/* Uitgebreide view bij klik */}
+      {expandedItem && (
+        <div className="mt-1.5 bg-white/80 rounded-lg px-3 py-2.5 relative">
+          <button
+            type="button"
+            onClick={() => setExpandedId(null)}
+            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+          >
+            <X size={13} />
+          </button>
+          <Stars count={expandedItem.stars} size={12} />
+          <p className="text-xs leading-relaxed text-gray-700 mt-1.5 pr-4">
+            &ldquo;{expandedItem.quote}&rdquo;
+          </p>
+          <p className="text-[10px] text-gray-500 font-medium mt-1.5">— {expandedItem.name}</p>
+        </div>
+      )}
+
+      {/* Paginering */}
+      <div className="flex items-center justify-between mt-1.5">
+        <div className="flex gap-1 items-center">
+          {totalPages > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => { setPage((p) => Math.max(0, p - 1)); setExpandedId(null); }}
+                disabled={page === 0}
+                className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+              >
+                <ChevronLeft size={14} />
+              </button>
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => { setPage(i); setExpandedId(null); }}
+                    className={`rounded-full transition-all ${
+                      i === page ? "w-3 h-1.5 bg-gray-500" : "w-1.5 h-1.5 bg-gray-300"
+                    }`}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => { setPage((p) => Math.min(totalPages - 1, p + 1)); setExpandedId(null); }}
+                disabled={page === totalPages - 1}
+                className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+              >
+                <ChevronRight size={14} />
+              </button>
+            </>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => { setShowForm((v) => !v); setSubmitted(false); }}
+          className="text-[10px] text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          ✏ Deel jouw ervaring
+        </button>
+      </div>
+
+      {/* Review-formulier voor klant */}
+      {showForm && (
+        <div className="mt-2 bg-white/80 rounded-lg px-3 py-3">
+          {submitted ? (
+            <div className="text-center py-1">
+              <p className="text-xs text-primary-700 font-medium">Bedankt voor je review!</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">We beoordelen hem zo snel mogelijk.</p>
+              <button
+                type="button"
+                onClick={() => { setShowForm(false); setSubmitted(false); }}
+                className="mt-2 text-[10px] text-gray-400 hover:text-gray-600 underline"
+              >
+                Sluiten
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-2">
+              <p className="text-[10px] font-medium text-gray-700">Jouw ervaring met Benji</p>
+              <input
+                type="text"
+                placeholder="Je naam (bijv. Anne of Thomas, 34)"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                maxLength={60}
+                className="w-full px-2 py-1.5 text-[11px] border border-gray-200 rounded-lg bg-white outline-none focus:ring-1 focus:ring-primary-400"
+              />
+              <textarea
+                placeholder="Wat wil je anderen laten weten over Benji?"
+                value={form.quote}
+                onChange={(e) => setForm((f) => ({ ...f, quote: e.target.value }))}
+                maxLength={500}
+                rows={3}
+                className="w-full px-2 py-1.5 text-[11px] border border-gray-200 rounded-lg bg-white outline-none focus:ring-1 focus:ring-primary-400 resize-none"
+              />
+              <StarPicker value={form.stars} onChange={(n) => setForm((f) => ({ ...f, stars: n }))} />
+              {formError && <p className="text-[10px] text-red-500">{formError}</p>}
+              <div className="flex gap-2 items-center">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-[11px] font-medium hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {submitting ? "Versturen…" : "Verstuur"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="text-[10px] text-gray-400 hover:text-gray-600"
+                >
+                  Annuleren
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      )}
     </div>
   );
 }

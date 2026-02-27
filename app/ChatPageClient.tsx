@@ -9,6 +9,7 @@ import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { Send, Mic, Square, Gem, ThumbsDown, ThumbsUp, Check } from "lucide-react";
 import { WelcomeScreen, WelcomeScreenInfoIcons } from "@/components/chat/WelcomeScreen";
+import { TestimonialsStrip } from "@/components/chat/TestimonialsStrip";
 import { FeedbackModal } from "@/components/chat/FeedbackModal";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
@@ -795,6 +796,9 @@ export default function ChatPageClient({
           </button>
         </div>
       )}
+
+      {/* Review-strip: alleen zichtbaar op welkomstscherm, net boven de balk */}
+      {!sessionId && !isAddingOpener && <TestimonialsStrip />}
 
       <footer className="bg-primary-900 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
         {!sessionId && !isAddingOpener ? (

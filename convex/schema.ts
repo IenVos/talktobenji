@@ -500,6 +500,8 @@ export default defineSchema({
     stars: v.number(),      // 1–5
     order: v.number(),
     isActive: v.boolean(),
+    // Status: "approved" = zichtbaar, "pending" = wacht op goedkeuring, "rejected" = afgewezen
+    status: v.optional(v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected"))),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_active_order", ["isActive", "order"]),
