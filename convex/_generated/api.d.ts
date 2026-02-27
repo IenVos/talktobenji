@@ -42,6 +42,7 @@ import type * as settings from "../settings.js";
 import type * as sources from "../sources.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as supportFaq from "../supportFaq.js";
+import type * as testimonials from "../testimonials.js";
 import type * as trials from "../trials.js";
 import type * as user from "../user.js";
 
@@ -86,6 +87,7 @@ declare const fullApi: ApiFromModules<{
   sources: typeof sources;
   subscriptions: typeof subscriptions;
   supportFaq: typeof supportFaq;
+  testimonials: typeof testimonials;
   trials: typeof trials;
   user: typeof user;
 }>;

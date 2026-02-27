@@ -492,4 +492,15 @@ export default defineSchema({
     }),
     generatedAt: v.number(),
   }).index("by_date", ["date"]),
+
+  // Reviews / testimonials (beheerbaar via admin, zichtbaar op homepage)
+  testimonials: defineTable({
+    name: v.string(),       // Weergavenaam, bijv. "Anne" of "Thomas, 34"
+    quote: v.string(),      // De reviewtekst
+    stars: v.number(),      // 1–5
+    order: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_active_order", ["isActive", "order"]),
 });

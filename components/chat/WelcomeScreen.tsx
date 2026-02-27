@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Lock, AlertTriangle } from "lucide-react";
 import { TopicButtons, type TopicId } from "./TopicButtons";
+import { TestimonialsStrip } from "./TestimonialsStrip";
 
 type WelcomeScreenProps = {
   showTopicButtons: boolean;
@@ -66,6 +67,7 @@ export function WelcomeScreen({
             <TopicButtons onSelect={onTopicSelect} />
           </div>
         )}
+        <TestimonialsStrip />
       </div>
     </div>
   );
