@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
-  HandHelping, FileDown, ChevronLeft, ChevronRight, Pencil,
+  HandHelping, FileDown, ChevronLeft, ChevronRight, Pencil, Lock,
   Waves, BookOpen, Heart, Leaf, Sun, Feather, Star,
   Anchor, Wind, Sparkles, Flame, Music, Compass, Cloud, MessageCircle,
   Flower2, Coffee, Umbrella, Bird, type LucideIcon,
@@ -13,7 +13,6 @@ import {
 import Link from "next/link";
 import { renderRichText } from "@/lib/renderRichText";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
-import { Paywall } from "@/components/Paywall";
 import { ComingSoonSection } from "@/components/ComingSoonSection";
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -105,7 +104,7 @@ export default function AccountHandreikingenPage() {
     touchDeltaX.current = 0;
   }, [activeIndex, goTo]);
 
-  const content = (
+  return (
     <div className="space-y-6">
       {/* Introductie — eigen kaart */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
@@ -147,7 +146,10 @@ export default function AccountHandreikingenPage() {
 
           {/* Mobiel: verticale lijst met overlay-design */}
           <div className="sm:hidden flex flex-col gap-3 px-4">
-            {items.map((item) => (
+            {items.map((item) => {
+              const itemLocked = !(item as any).isFree && hasAccess !== true;
+              const hasAction = (item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug;
+              return (
               <article key={item._id} className="rounded-xl overflow-hidden">
                 {item.imageUrl ? (
                   <div
@@ -169,24 +171,32 @@ export default function AccountHandreikingenPage() {
                           {renderRichText(item.content)}
                         </p>
                       )}
-                      {((item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug) && (
+                      {(hasAction || itemLocked) && (
                         <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                          {item.priceCents != null && item.priceCents > 0 && (
-                            <a href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`} className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
-                              Bestellen €{(item.priceCents / 100).toFixed(2)}
-                            </a>
-                          )}
-                          {item.pdfUrl && (
-                            <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
-                              <FileDown size={14} /> Download
-                            </a>
-                          )}
-                          {(item as any).exerciseSlug && (
-                            <Link href={`/account/handreikingen/${(item as any).exerciseSlug}`} className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
-                              <CardIcon name={(item as any).icon} size={13} />
-                              {!(item as any).icon && <Pencil size={13} />}
-                              {(item as any).exerciseButtonLabel || "Begin oefening"}
+                          {itemLocked ? (
+                            <Link href="/account/abonnement" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                              <Lock size={12} /> Benji Alles in 1
                             </Link>
+                          ) : (
+                            <>
+                              {item.priceCents != null && item.priceCents > 0 && (
+                                <a href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`} className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                                  Bestellen €{(item.priceCents / 100).toFixed(2)}
+                                </a>
+                              )}
+                              {item.pdfUrl && (
+                                <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                                  <FileDown size={14} /> Download
+                                </a>
+                              )}
+                              {(item as any).exerciseSlug && (
+                                <Link href={`/account/handreikingen/${(item as any).exerciseSlug}`} className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap">
+                                  <CardIcon name={(item as any).icon} size={13} />
+                                  {!(item as any).icon && <Pencil size={13} />}
+                                  {(item as any).exerciseButtonLabel || "Begin oefening"}
+                                </Link>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
@@ -196,10 +206,18 @@ export default function AccountHandreikingenPage() {
                   <div className="p-5 flex flex-col bg-white border border-primary-100 rounded-xl">
                     {item.title && <h3 className="text-base font-semibold mb-2" style={{ color: "var(--account-accent, #38465e)" }}>{item.title}</h3>}
                     {item.content && <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{renderRichText(item.content)}</p>}
+                    {itemLocked && hasAction && (
+                      <div className="mt-3">
+                        <Link href="/account/abonnement" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                          <Lock size={12} /> Benji Alles in 1
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 )}
               </article>
-            ))}
+              );
+            })}
           </div>
 
           {/* Desktop: carousel */}
@@ -240,6 +258,9 @@ export default function AccountHandreikingenPage() {
                   const isActive = offset === 0;
                   const isNeighbor = Math.abs(offset) === 1;
                   const isVisible = Math.abs(offset) <= 1;
+
+                  const itemLocked = !(item as any).isFree && hasAccess !== true;
+                  const hasAction = (item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug;
 
                   return (
                     <div
@@ -285,24 +306,32 @@ export default function AccountHandreikingenPage() {
                                       {renderRichText(item.content)}
                                     </p>
                                   )}
-                                  {((item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug) && (
+                                  {(hasAction || itemLocked) && (
                                     <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                                      {item.priceCents != null && item.priceCents > 0 && (
-                                        <a href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`} className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
-                                          Bestellen €{(item.priceCents / 100).toFixed(2)}
-                                        </a>
-                                      )}
-                                      {item.pdfUrl && (
-                                        <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
-                                          <FileDown size={14} /> Download
-                                        </a>
-                                      )}
-                                      {(item as any).exerciseSlug && (
-                                        <Link href={`/account/handreikingen/${(item as any).exerciseSlug}`} className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
-                                          <CardIcon name={(item as any).icon} size={13} />
-                                          {!(item as any).icon && <Pencil size={13} />}
-                                          {(item as any).exerciseButtonLabel || "Begin oefening"}
+                                      {itemLocked ? (
+                                        <Link href="/account/abonnement" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
+                                          <Lock size={12} /> Benji Alles in 1
                                         </Link>
+                                      ) : (
+                                        <>
+                                          {item.priceCents != null && item.priceCents > 0 && (
+                                            <a href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`} className="darker-btn inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
+                                              Bestellen €{(item.priceCents / 100).toFixed(2)}
+                                            </a>
+                                          )}
+                                          {item.pdfUrl && (
+                                            <a href={item.pdfUrl} target="_blank" rel="noopener noreferrer" className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
+                                              <FileDown size={14} /> Download
+                                            </a>
+                                          )}
+                                          {(item as any).exerciseSlug && (
+                                            <Link href={`/account/handreikingen/${(item as any).exerciseSlug}`} className="darker-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap" tabIndex={isActive ? 0 : -1}>
+                                              <CardIcon name={(item as any).icon} size={13} />
+                                              {!(item as any).icon && <Pencil size={13} />}
+                                              {(item as any).exerciseButtonLabel || "Begin oefening"}
+                                            </Link>
+                                          )}
+                                        </>
                                       )}
                                     </div>
                                   )}
@@ -326,40 +355,52 @@ export default function AccountHandreikingenPage() {
                                 <p className="whitespace-pre-wrap">{renderRichText(item.content)}</p>
                               )}
                             </div>
-                            {((item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug) && (
+                            {(hasAction || itemLocked) && (
                               <div className="mt-4 flex flex-wrap items-center gap-2">
-                                {item.priceCents != null && item.priceCents > 0 && (
-                                  <a
-                                    href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
-                                    className="bestellen-btn inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
-                                    tabIndex={isActive ? 0 : -1}
-                                  >
-                                    Bestellen €{(item.priceCents / 100).toFixed(2)}
-                                  </a>
-                                )}
-                                {item.pdfUrl && (
-                                  <a
-                                    href={item.pdfUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 px-3 py-2 border border-primary-300 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-50 transition-colors"
-                                    title="PDF downloaden"
-                                    tabIndex={isActive ? 0 : -1}
-                                  >
-                                    <FileDown size={16} />
-                                    Download
-                                  </a>
-                                )}
-                                {(item as any).exerciseSlug && (
+                                {itemLocked ? (
                                   <Link
-                                    href={`/account/handreikingen/${(item as any).exerciseSlug}`}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+                                    href="/account/abonnement"
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap"
                                     tabIndex={isActive ? 0 : -1}
                                   >
-                                    <CardIcon name={(item as any).icon} size={15} />
-                                    {!(item as any).icon && <Pencil size={15} />}
-                                    {(item as any).exerciseButtonLabel || "Begin oefening"}
+                                    <Lock size={14} /> Benji Alles in 1
                                   </Link>
+                                ) : (
+                                  <>
+                                    {item.priceCents != null && item.priceCents > 0 && (
+                                      <a
+                                        href={`/account/steun?item=${encodeURIComponent(item.title || "")}&price=${item.priceCents}`}
+                                        className="bestellen-btn inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
+                                        tabIndex={isActive ? 0 : -1}
+                                      >
+                                        Bestellen €{(item.priceCents / 100).toFixed(2)}
+                                      </a>
+                                    )}
+                                    {item.pdfUrl && (
+                                      <a
+                                        href={item.pdfUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 px-3 py-2 border border-primary-300 text-primary-600 rounded-lg text-sm font-medium hover:bg-primary-50 transition-colors"
+                                        title="PDF downloaden"
+                                        tabIndex={isActive ? 0 : -1}
+                                      >
+                                        <FileDown size={16} />
+                                        Download
+                                      </a>
+                                    )}
+                                    {(item as any).exerciseSlug && (
+                                      <Link
+                                        href={`/account/handreikingen/${(item as any).exerciseSlug}`}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+                                        tabIndex={isActive ? 0 : -1}
+                                      >
+                                        <CardIcon name={(item as any).icon} size={15} />
+                                        {!(item as any).icon && <Pencil size={15} />}
+                                        {(item as any).exerciseButtonLabel || "Begin oefening"}
+                                      </Link>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             )}
@@ -405,18 +446,4 @@ export default function AccountHandreikingenPage() {
       )}
     </div>
   );
-
-  // Show paywall overlay if no access
-  if (hasAccess === false) {
-    return (
-      <Paywall
-        title="Upgrade naar Benji Alles in 1"
-        message="Handreikingen zijn beschikbaar in Benji Alles in 1. Krijg praktische tips en ideeën voor moeilijke momenten."
-      >
-        {content}
-      </Paywall>
-    );
-  }
-
-  return content;
 }

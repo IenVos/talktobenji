@@ -348,6 +348,8 @@ export default defineSchema({
     exerciseButtonLabel: v.optional(v.string()),
     // Icoonnaam (lucide-react) voor de kaart; bijv. "pencil", "waves", "heart"
     icon: v.optional(v.string()),
+    // Gratis voor iedereen (geen abonnement nodig); standaard false = alleen Alles in 1
+    isFree: v.optional(v.boolean()),
   })
     .index("by_active_order", ["isActive", "order"]),
 

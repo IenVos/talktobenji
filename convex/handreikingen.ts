@@ -103,6 +103,7 @@ export const create = mutation({
     exerciseSlug: v.optional(v.string()),
     exerciseButtonLabel: v.optional(v.string()),
     icon: v.optional(v.string()),
+    isFree: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -118,6 +119,7 @@ export const create = mutation({
       exerciseSlug: args.exerciseSlug,
       exerciseButtonLabel: args.exerciseButtonLabel,
       icon: args.icon,
+      isFree: args.isFree,
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -140,6 +142,7 @@ export const update = mutation({
     exerciseSlug: v.optional(v.union(v.string(), v.null())),
     exerciseButtonLabel: v.optional(v.union(v.string(), v.null())),
     icon: v.optional(v.union(v.string(), v.null())),
+    isFree: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

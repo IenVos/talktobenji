@@ -57,6 +57,7 @@ export default function AdminHandreikingenPage() {
     exerciseSlug: "",
     exerciseButtonLabel: "",
     icon: "",
+    isFree: false,
   });
   const [extractingCover, setExtractingCover] = useState(false);
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
@@ -107,6 +108,7 @@ export default function AdminHandreikingenPage() {
       exerciseSlug: "",
       exerciseButtonLabel: "",
       icon: "",
+      isFree: false,
     });
     setEditingId(null);
     setEditingImageUrl(null);
@@ -148,6 +150,7 @@ export default function AdminHandreikingenPage() {
           exerciseSlug: form.exerciseSlug.trim() || undefined,
           exerciseButtonLabel: form.exerciseButtonLabel.trim() || undefined,
           icon: form.icon || undefined,
+          isFree: form.isFree || undefined,
         });
         resetForm();
       } finally {
@@ -178,6 +181,7 @@ export default function AdminHandreikingenPage() {
           exerciseSlug: form.exerciseSlug.trim() || undefined,
           exerciseButtonLabel: form.exerciseButtonLabel.trim() || undefined,
           icon: form.icon || undefined,
+          isFree: form.isFree || undefined,
         });
         resetForm();
       } finally {
@@ -205,6 +209,7 @@ export default function AdminHandreikingenPage() {
         exerciseSlug: form.exerciseSlug.trim() || null,
         exerciseButtonLabel: form.exerciseButtonLabel.trim() || null,
         icon: form.icon || null,
+        isFree: form.isFree || undefined,
       };
       if (isPdf && form.pdfFile) {
         const url = await generateUploadUrl();
@@ -252,6 +257,7 @@ export default function AdminHandreikingenPage() {
       exerciseSlug: (item as any).exerciseSlug ?? "",
       exerciseButtonLabel: (item as any).exerciseButtonLabel ?? "",
       icon: (item as any).icon ?? "",
+      isFree: (item as any).isFree ?? false,
     });
     setEditingImageUrl(item.imageUrl ?? null);
     setEditingId(item._id);
@@ -315,6 +321,15 @@ export default function AdminHandreikingenPage() {
                   onChange={() => setForm((f) => ({ ...f, kind: "pdf" }))}
                 />
                 PDF / eboek
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none ml-2">
+                <input
+                  type="checkbox"
+                  checked={form.isFree}
+                  onChange={(e) => setForm((f) => ({ ...f, isFree: e.target.checked }))}
+                  className="h-4 w-4 rounded accent-green-600"
+                />
+                <span className="text-sm text-gray-700">Gratis voor iedereen</span>
               </label>
               <input
                 type="number"
@@ -519,6 +534,16 @@ export default function AdminHandreikingenPage() {
                       ) : null}
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
+                          {(item as any).isFree && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-800 font-medium">
+                              Gratis
+                            </span>
+                          )}
+                          {!(item as any).isFree && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-orange-100 text-orange-700">
+                              Alles in 1
+                            </span>
+                          )}
                           {item.publishFrom && item.publishFrom > Date.now() && (
                             <span className="text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">
                               Zichtbaar vanaf {new Date(item.publishFrom).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}
