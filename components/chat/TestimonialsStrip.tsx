@@ -9,6 +9,7 @@ export function TestimonialsStrip() {
   const items = useQuery(api.testimonials.listActive, {});
   const submitReview = useMutation(api.testimonials.submitPending);
 
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -44,6 +45,31 @@ export function TestimonialsStrip() {
 
   return (
     <div className="w-full max-w-sm mx-auto px-3 py-2">
+
+      {/* Mobiel: ingeklapt tonen als link */}
+      <div className="sm:hidden">
+        {!mobileOpen ? (
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            className="w-full text-left text-[10px] text-gray-500 hover:text-gray-700 transition-colors py-0.5"
+          >
+            Wat anderen zeggen ›
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setMobileOpen(false); setExpandedId(null); setShowForm(false); }}
+            className="text-[10px] text-gray-400 hover:text-gray-600 transition-colors mb-1.5"
+          >
+            ‹ Sluiten
+          </button>
+        )}
+      </div>
+
+      {/* Kaartjes: altijd zichtbaar op desktop, alleen na klik op mobiel */}
+      <div className={`${mobileOpen ? "block" : "hidden"} sm:block`}>
+
       {/* 3-kaartjes grid */}
       <div className="grid grid-cols-3 gap-1.5">
         {visible.map((item) => {
@@ -189,6 +215,8 @@ export function TestimonialsStrip() {
           )}
         </div>
       )}
+
+      </div>{/* einde mobiel-toggle wrapper */}
     </div>
   );
 }
