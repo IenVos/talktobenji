@@ -59,17 +59,18 @@ function circularOffset(index: number, active: number, total: number) {
 export default function AccountHandreikingenPage() {
   const { data: session } = useSession();
 
-  // Check feature access
-  const hasAccess = useQuery(
-    api.subscriptions.hasFeatureAccess,
+  // Volledige toegang: alleen admin of actief alles_in_1 abonnement (trial telt niet)
+  const userSub = useQuery(
+    api.subscriptions.getUserSubscription,
     session?.userId
-      ? {
-          userId: session.userId as string,
-          email: session.user?.email || undefined,
-          feature: "handreikingen",
-        }
+      ? { userId: session.userId as string, email: session.user?.email || undefined }
       : "skip"
   );
+  const hasAccess =
+    userSub?.isAdmin === true ||
+    (userSub?.subscriptionType === "alles_in_1" &&
+      (userSub?.status === "active" ||
+        (userSub?.status === "cancelled" && (userSub as any)?.expiresAt != null && (userSub as any).expiresAt > Date.now())));
 
   const items = useQuery(api.handreikingen.listActiveWithUrls, {});
   const [lightboxImage, setLightboxImage] = useState<{ url: string; alt: string } | null>(null);
