@@ -302,6 +302,27 @@ export default function ChatPageClient({
     }).catch(console.error);
   }, [session?.userId, session?.user?.email, session?.user?.name, sessionId, storedSession, linkSessionToUser]);
 
+  // iOS Safari: toetsenbord herschaalt de viewport niet — gebruik visualViewport om de layout mee te laten krimpen
+  useEffect(() => {
+    const vv = (window as any).visualViewport;
+    if (!vv) return;
+    const update = () => {
+      document.documentElement.style.setProperty("--vvh", `${Math.round(vv.height)}px`);
+      // Scroll naar beneden na layout-aanpassing (toetsenbord open/dicht)
+      requestAnimationFrame(() => {
+        if (mainRef.current) {
+          const { scrollHeight, scrollTop, clientHeight } = mainRef.current;
+          if (scrollHeight - scrollTop - clientHeight < 300) {
+            mainRef.current.scrollTo({ top: scrollHeight, behavior: "smooth" });
+          }
+        }
+      });
+    };
+    update();
+    vv.addEventListener("resize", update);
+    return () => vv.removeEventListener("resize", update);
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -555,9 +576,10 @@ export default function ChatPageClient({
 
   return (
     <div
-      className="h-[100dvh] flex flex-col chat-theme bg-cover bg-center bg-no-repeat"
+      className="flex flex-col chat-theme bg-cover bg-center bg-no-repeat"
       style={
         {
+          height: "var(--vvh, 100dvh)",
           "--chat-accent": accent,
           "--chat-accent-hover": accentHover,
           "--chat-accent-dark": accentDark,
