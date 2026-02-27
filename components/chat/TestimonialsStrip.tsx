@@ -62,7 +62,7 @@ export function TestimonialsStrip() {
               <p className="text-[9px] leading-relaxed text-gray-700 line-clamp-2">
                 &ldquo;{item.quote}&rdquo;
               </p>
-              <p className="text-[9px] text-gray-500 font-medium truncate">— {item.name}</p>
+              <p className="text-[9px] text-gray-500 italic truncate">{item.name}</p>
             </button>
           );
         })}
@@ -85,7 +85,7 @@ export function TestimonialsStrip() {
           <p className="text-xs leading-relaxed text-gray-700 pr-4">
             &ldquo;{expandedItem.quote}&rdquo;
           </p>
-          <p className="text-[10px] text-gray-500 font-medium mt-1.5">— {expandedItem.name}</p>
+          <p className="text-[10px] text-gray-500 italic mt-1.5">{expandedItem.name}</p>
         </div>
       )}
 
