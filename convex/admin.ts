@@ -872,7 +872,12 @@ export const getHelpfulMessages = query({
 
     const flagged = await ctx.db
       .query("chatMessages")
-      .filter((q) => q.eq(q.field("feedback"), "helpful"))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("feedback"), "helpful"),
+          q.neq(q.field("feedbackHandled"), true)
+        )
+      )
       .order("desc")
       .take(200);
 

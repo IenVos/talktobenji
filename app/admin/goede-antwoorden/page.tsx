@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
-import { ThumbsUp, ChevronDown, ChevronUp, Archive } from "lucide-react";
+import { ThumbsUp, ChevronDown, ChevronUp, Archive, Trash2 } from "lucide-react";
 
 function formatDate(ts: number) {
   return new Date(ts).toLocaleDateString("nl-NL", {
@@ -57,6 +57,18 @@ function GoedeAntwoordItem({ item }: { item: any }) {
           title="Archiveer — verdwijnt uit de lijst"
         >
           <Archive size={13} /> Archiveren
+        </button>
+        <button
+          onClick={async () => {
+            if (confirm("Verwijderen?")) {
+              await markHandled({ messageId: item._id });
+              setArchived(true);
+            }
+          }}
+          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          title="Verwijderen"
+        >
+          <Trash2 size={14} />
         </button>
       </div>
 
