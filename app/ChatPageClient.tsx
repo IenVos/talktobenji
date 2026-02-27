@@ -181,6 +181,8 @@ export default function ChatPageClient({
 
   // Anonieme sessie-teller (alleen voor niet-ingelogde gebruikers)
   const [anonymousId, setAnonymousId] = useState<string>("");
+  const nudgeTimerFired = useRef(false);
+  const [hideInitialNudge, setHideInitialNudge] = useState(false);
   useEffect(() => {
     if (!session?.userId) setAnonymousId(getOrCreateAnonymousId());
   }, [session?.userId]);
@@ -188,6 +190,21 @@ export default function ChatPageClient({
     api.chat.countAnonymousSessions,
     !session?.userId && anonymousId ? { anonymousId } : "skip"
   ) ?? 0;
+
+  // Initiële nudge bij eerste bezoek (count 0): toon 5 seconden dan verbergen
+  useEffect(() => {
+    if (!session?.userId && anonymousCount === 0 && !nudgeTimerFired.current) {
+      nudgeTimerFired.current = true;
+      const t = setTimeout(() => setHideInitialNudge(true), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [anonymousCount, session?.userId]);
+
+  const showNudgeBanner = !session?.userId && (
+    (anonymousCount === 0 && !hideInitialNudge) ||
+    (anonymousCount >= 3 && anonymousCount < 5)
+  );
+
   const preferencesData = useQuery(
     api.preferences.getPreferencesWithUrl,
     session?.userId ? { userId: session.userId } : "skip"
@@ -675,10 +692,14 @@ export default function ChatPageClient({
         </div>
       </main>
 
-      {/* Zachte nudge voor gasten bij 3–4 gesprekken */}
-      {!session?.userId && anonymousCount >= 3 && anonymousCount < 5 && (
+      {/* Zachte nudge: eerste bezoek (5s), gesprek 3 en gesprek 4 */}
+      {showNudgeBanner && (
         <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3 rounded-xl bg-primary-50 border border-primary-200 text-primary-800 text-sm mx-3 mb-1">
-          <span>Je hebt {anonymousCount} van 5 gratis gesprekken gebruikt.</span>
+          <span>
+            {anonymousCount === 0
+              ? "Benji is gratis te proberen — maak een account om je gesprekken te bewaren."
+              : `Je hebt ${anonymousCount} van 5 gratis gesprekken gebruikt.`}
+          </span>
           <Link href="/registreren" className="flex-shrink-0 text-xs font-medium underline hover:text-primary-900 transition-colors">
             Maak een gratis account →
           </Link>
