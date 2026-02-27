@@ -5,40 +5,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
-function Stars({ count, size = 10 }: { count: number; size?: number }) {
-  return (
-    <div className="flex gap-px">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <svg key={i} width={size} height={size} viewBox="0 0 24 24"
-          fill={i <= count ? "#c9972c" : "none"}
-          stroke={i <= count ? "#c9972c" : "#d1d5db"}
-          strokeWidth="2"
-        >
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ))}
-    </div>
-  );
-}
-
-function StarPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
-  return (
-    <div className="flex gap-1">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <button key={i} type="button" onClick={() => onChange(i)} className="p-0.5">
-          <svg width="20" height="20" viewBox="0 0 24 24"
-            fill={i <= value ? "#c9972c" : "none"}
-            stroke={i <= value ? "#c9972c" : "#9ca3af"}
-            strokeWidth="2"
-          >
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export function TestimonialsStrip() {
   const items = useQuery(api.testimonials.listActive, {});
   const submitReview = useMutation(api.testimonials.submitPending);
@@ -93,7 +59,6 @@ export function TestimonialsStrip() {
                   : "bg-white/55 hover:bg-white/70"
               }`}
             >
-              <Stars count={item.stars} size={9} />
               <p className="text-[9px] leading-relaxed text-gray-700 line-clamp-2">
                 &ldquo;{item.quote}&rdquo;
               </p>
@@ -117,8 +82,7 @@ export function TestimonialsStrip() {
           >
             <X size={13} />
           </button>
-          <Stars count={expandedItem.stars} size={12} />
-          <p className="text-xs leading-relaxed text-gray-700 mt-1.5 pr-4">
+          <p className="text-xs leading-relaxed text-gray-700 pr-4">
             &ldquo;{expandedItem.quote}&rdquo;
           </p>
           <p className="text-[10px] text-gray-500 font-medium mt-1.5">— {expandedItem.name}</p>
@@ -204,7 +168,6 @@ export function TestimonialsStrip() {
                 rows={3}
                 className="w-full px-2 py-1.5 text-[11px] border border-gray-200 rounded-lg bg-white outline-none focus:ring-1 focus:ring-primary-400 resize-none"
               />
-              <StarPicker value={form.stars} onChange={(n) => setForm((f) => ({ ...f, stars: n }))} />
               {formError && <p className="text-[10px] text-red-500">{formError}</p>}
               <div className="flex gap-2 items-center">
                 <button
