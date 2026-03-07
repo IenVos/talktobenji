@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Heart, ArrowRight } from "lucide-react";
@@ -8,6 +9,12 @@ import { HeaderBar } from "@/components/chat/HeaderBar";
 export default function BetaaldPage() {
   const { data: session } = useSession();
   const naam = session?.user?.name?.split(" ")[0] || null;
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+      (window as any).fbq("track", "Subscribe");
+    }
+  }, []);
 
   return (
     <div
