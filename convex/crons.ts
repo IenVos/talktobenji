@@ -1,5 +1,5 @@
 import { cronJobs } from "convex/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 const crons = cronJobs();
 
@@ -13,7 +13,7 @@ crons.daily(
 crons.daily(
   "process niet alleen",
   { hourUTC: 8, minuteUTC: 0 },
-  api.nietAlleen.processNietAlleenUsers,
+  internal.nietAlleen.processNietAlleenUsers,
   {}
 );
 
