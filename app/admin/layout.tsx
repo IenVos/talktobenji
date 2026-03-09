@@ -147,7 +147,7 @@ function CollapsibleGroup({
 }
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const allFeedback = useAdminQuery(api.admin.getAllFeedback, {});
   const newFeedbackCount = allFeedback?.filter((f: any) => f.status === "new").length ?? 0;
   const notHelpful = useAdminQuery(api.admin.getNotHelpfulMessages, {});
