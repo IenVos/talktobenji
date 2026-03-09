@@ -102,7 +102,7 @@ function TemplateEditor({
         <label className="block text-xs font-semibold text-gray-600 mb-1">
           Inhoud{" "}
           <span className="font-normal text-gray-400">
-            (lege regel = nieuwe alinea — de aanhef &quot;Lieve [naam],&quot; en de handtekening worden automatisch toegevoegd)
+            (lege regel = nieuwe alinea — de aanhef &quot;Hi [naam],&quot; en de handtekening worden automatisch toegevoegd)
           </span>
         </label>
         <textarea
