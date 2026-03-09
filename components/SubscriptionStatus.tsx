@@ -26,6 +26,7 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
   const planNames = {
     free: "Gratis account",
     trial: "Gratis proefperiode",
+    niet_alleen: "Niet Alleen",
     uitgebreid: "Benji Uitgebreid",
     alles_in_1: "Benji Alles in 1",
   };
@@ -33,6 +34,7 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
   const planColors = {
     free: "bg-green-50 text-green-700 border-green-200",
     trial: "bg-amber-50 text-amber-700 border-amber-200",
+    niet_alleen: "bg-blue-50 text-blue-700 border-blue-200",
     uitgebreid: "bg-amber-50 text-amber-700 border-amber-200",
     alles_in_1: "bg-purple-50 text-purple-700 border-purple-200",
   };
@@ -40,6 +42,7 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
   const iconColors = {
     free: "text-green-600",
     trial: "text-amber-500",
+    niet_alleen: "text-blue-600",
     uitgebreid: "text-amber-500",
     alles_in_1: "text-purple-600",
   };
@@ -47,6 +50,7 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
   const planIcons = {
     free: Check,
     trial: Sparkles,
+    niet_alleen: Sparkles,
     uitgebreid: Sparkles,
     alles_in_1: Star,
   };

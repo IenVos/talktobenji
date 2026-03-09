@@ -117,21 +117,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ received: true, warning: "Onbekend product-ID" });
     }
 
-    // Niet Alleen — aparte activatie flow
+    // Niet Alleen — aparte activatie flow (profiel + welkomstmail via eigen route)
     if (subscriptionType === "niet_alleen") {
       const naam: string = data?.customer_name ?? data?.name ?? email;
       const userId: string = data?.user_id ?? email;
 
-      await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
-        webhookSecret,
-        email,
-        subscriptionType: "niet_alleen",
-        billingPeriod: "monthly",
-        externalSubscriptionId: externalId,
-        paymentProvider: "kennisshop",
-      });
-
-      // Niet Alleen profiel aanmaken + welkomstmail
       await fetch(`${process.env.NEXTAUTH_URL}/api/niet-alleen/activate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

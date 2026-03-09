@@ -299,7 +299,7 @@ export default function NietAlleenPage() {
 
           <div className="space-y-2">
             <button
-              onClick={handleBeginnen}
+              onClick={() => { void handleBeginnen(); }}
               disabled={bezig}
               className="w-full py-3 rounded-xl font-medium text-white transition-all text-sm"
               style={{
@@ -310,7 +310,7 @@ export default function NietAlleenPage() {
               {bezig ? "Even geduld..." : "Begin mijn 30 dagen"}
             </button>
             <button
-              onClick={() => handleBeginnen("")}
+              onClick={() => { void handleBeginnen(""); }}
               className="w-full py-2 text-sm text-center"
               style={{ color: "#b0a8a0" }}
             >
