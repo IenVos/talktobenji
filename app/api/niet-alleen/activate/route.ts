@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
-import { internal } from "@/convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -21,19 +21,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Profiel aanmaken
-    await convex.mutation(internal.nietAlleen.activateNietAlleen, {
-      userId,
-      email,
-      naam,
-    });
-
-    // Welkomstmail sturen
-    await convex.action(internal.nietAlleenEmails.sendWelkomstMail, {
-      email,
-      naam,
-    });
-
+    await convex.action(api.nietAlleen.activeerEnStuurWelkom, { userId, email, naam });
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("[niet-alleen/activate] Fout:", err?.message);

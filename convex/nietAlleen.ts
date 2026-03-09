@@ -3,6 +3,7 @@
  * Queries, mutations en de dagelijkse cron-verwerker.
  */
 import {
+  action,
   internalAction,
   internalMutation,
   internalQuery,
@@ -121,6 +122,22 @@ export const saveDagPrompt = mutation({
         { dag: args.dag, tekst: args.tekst, ingevuldOp: Date.now() },
       ],
       updatedAt: Date.now(),
+    });
+  },
+});
+
+// ─────────────────────────────────────────
+// PUBLIC ACTION — aangeroepen vanuit API route (webhook)
+// ─────────────────────────────────────────
+
+/** Activeer Niet Alleen account + stuur welkomstmail. Wordt aangeroepen vanuit /api/niet-alleen/activate. */
+export const activeerEnStuurWelkom = action({
+  args: { userId: v.string(), email: v.string(), naam: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.runMutation(internal.nietAlleen.activateNietAlleen, args);
+    await ctx.runAction(internal.nietAlleenEmails.sendWelkomstMail, {
+      email: args.email,
+      naam: args.naam,
     });
   },
 });
