@@ -15,7 +15,7 @@
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import { ConvexHttpClient } from "convex/browser";
-import { api } from "@/convex/_generated/api";
+import { api, internal } from "@/convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -57,10 +57,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Geen e-mail gevonden in payload" });
   }
 
-  function getSubscriptionType(prodId?: string): "uitgebreid" | "alles_in_1" | null {
+  function getSubscriptionType(prodId?: string): "uitgebreid" | "alles_in_1" | "niet_alleen" | null {
     if (!prodId) return null;
     if (prodId === process.env.KENNISSHOP_PRODUCT_UITGEBREID) return "uitgebreid";
     if (prodId === process.env.KENNISSHOP_PRODUCT_ALLES_IN_1) return "alles_in_1";
+    // TODO: stel KENNISSHOP_PRODUCT_NIET_ALLEEN in als env var zodra het product-ID bekend is
+    if (prodId === process.env.KENNISSHOP_PRODUCT_NIET_ALLEEN) return "niet_alleen";
     return null;
   }
 
@@ -89,6 +91,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!subscriptionType) {
       console.warn("[KennisShop webhook] Onbekend product-ID:", productId);
       return res.status(200).json({ received: true, warning: "Onbekend product-ID" });
+    }
+
+    // Niet Alleen — aparte activatie flow
+    if (subscriptionType === "niet_alleen") {
+      const naam: string = data?.customer_name ?? data?.name ?? email;
+      const userId: string = data?.user_id ?? email;
+
+      await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
+        webhookSecret,
+        email,
+        subscriptionType: "niet_alleen",
+        billingPeriod: "monthly",
+        externalSubscriptionId: externalId,
+        paymentProvider: "kennisshop",
+      });
+
+      // Niet Alleen profiel aanmaken + welkomstmail
+      await fetch(`${process.env.NEXTAUTH_URL}/api/niet-alleen/activate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, naam, userId, webhookSecret }),
+      });
+
+      console.log(`[KennisShop webhook] Niet Alleen geactiveerd: ${email}`);
+      return res.status(200).json({ received: true, action: "niet_alleen_activated" });
     }
 
     await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {

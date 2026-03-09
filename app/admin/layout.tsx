@@ -8,12 +8,143 @@ import { usePathname } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { AdminAuthProvider, useAdminQuery } from "./AdminAuthContext";
-import { Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3, MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell, ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp, ThumbsDown, Quote } from "lucide-react";
+import {
+  Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3,
+  MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell,
+  ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp,
+  ThumbsDown, Quote, ChevronDown, ChevronRight,
+} from "lucide-react";
 
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  badge?: number;
+};
 
-type NavItem =
-  | { type: "item"; href: string; label: string; icon: React.ElementType; badge: number }
-  | { type: "separator"; thin?: boolean };
+type NavGroup = {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+  items: NavItem[];
+};
+
+type NavEntry =
+  | { type: "group"; group: NavGroup }
+  | { type: "item"; item: NavItem }
+  | { type: "separator" };
+
+function NavLink({
+  item,
+  isActive,
+  dark,
+  onClick,
+}: {
+  item: NavItem;
+  isActive: boolean;
+  dark?: boolean;
+  onClick?: () => void;
+}) {
+  const Icon = item.icon;
+  if (dark) {
+    return (
+      <Link
+        href={item.href}
+        onClick={onClick}
+        className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors border text-sm ${
+          isActive
+            ? "bg-white/10 text-white border-primary-700"
+            : "text-gray-300 hover:bg-white/5 border-transparent"
+        }`}
+      >
+        <Icon size={17} className="flex-shrink-0" />
+        <span className="flex-1">{item.label}</span>
+        {(item.badge ?? 0) > 0 && (
+          <span className="inline-flex items-center justify-center min-w-[18px] h-4.5 px-1.5 rounded-full text-xs font-bold bg-red-500 text-white">
+            {item.badge}
+          </span>
+        )}
+      </Link>
+    );
+  }
+  return (
+    <Link
+      href={item.href}
+      onClick={onClick}
+      className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors text-sm ${
+        isActive ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"
+      }`}
+    >
+      <Icon size={17} className="flex-shrink-0" />
+      <span className="flex-1">{item.label}</span>
+      {(item.badge ?? 0) > 0 && (
+        <span className="inline-flex items-center justify-center min-w-[18px] px-1.5 rounded-full text-xs font-bold bg-red-500 text-white">
+          {item.badge}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+function CollapsibleGroup({
+  group,
+  pathname,
+  dark,
+  onItemClick,
+}: {
+  group: NavGroup;
+  pathname: string;
+  dark?: boolean;
+  onItemClick?: () => void;
+}) {
+  const hasActive = group.items.some((i) => pathname === i.href);
+  const [open, setOpen] = useState(hasActive);
+  const Icon = group.icon;
+
+  // Auto-open als een pagina binnen deze groep actief wordt
+  useEffect(() => {
+    if (hasActive) setOpen(true);
+  }, [hasActive]);
+
+  const headerBase = dark
+    ? `flex items-center gap-3 w-full px-4 py-2.5 rounded-lg transition-colors text-sm border ${
+        hasActive
+          ? "text-white border-primary-700 bg-white/5"
+          : "text-gray-300 hover:bg-white/5 border-transparent"
+      }`
+    : `flex items-center gap-3 w-full px-4 py-2.5 rounded-lg transition-colors text-sm ${
+        hasActive ? "text-primary-600" : "text-gray-600 hover:bg-gray-50"
+      }`;
+
+  return (
+    <div>
+      <button onClick={() => setOpen((o) => !o)} className={headerBase}>
+        <Icon size={17} className="flex-shrink-0" />
+        <span className="flex-1 text-left">{group.label}</span>
+        {open ? (
+          <ChevronDown size={14} className="opacity-60" />
+        ) : (
+          <ChevronRight size={14} className="opacity-60" />
+        )}
+      </button>
+
+      {open && (
+        <ul className="mt-0.5 ml-3 space-y-0.5 border-l pl-3" style={{ borderColor: dark ? "rgba(255,255,255,0.1)" : "#e5e7eb" }}>
+          {group.items.map((item) => (
+            <li key={item.href}>
+              <NavLink
+                item={item}
+                isActive={pathname === item.href}
+                dark={dark}
+                onClick={onItemClick}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -25,32 +156,110 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const helpfulCount = helpful?.length ?? 0;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems: NavItem[] = [
-    { type: "item", href: "/admin/klantbeheer", label: "Klantbeheer", icon: Users, badge: 0 },
-    { type: "item", href: "/admin/support-faq", label: "Support FAQ", icon: HelpCircle, badge: 0 },
+  const entries: NavEntry[] = [
+    {
+      type: "group",
+      group: {
+        id: "klanten",
+        label: "Klanten",
+        icon: Users,
+        items: [
+          { href: "/admin/klantbeheer", label: "Klantbeheer", icon: Users },
+          { href: "/admin/support-faq", label: "Support FAQ", icon: HelpCircle },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
+        id: "feedback",
+        label: "Feedback",
+        icon: MessageCircleHeart,
+        items: [
+          { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
+          { href: "/admin/goede-antwoorden", label: "Goede antwoorden", icon: ThumbsUp, badge: helpfulCount },
+          { href: "/admin/slechte-antwoorden", label: "Slechte antwoorden", icon: ThumbsDown, badge: notHelpfulCount },
+          { href: "/admin/onbeantwoorde-vragen", label: "Onbeantwoorde vragen", icon: HelpCircle },
+          { href: "/admin/wensen", label: "Wensen", icon: MessageCircleHeart },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
+        id: "content",
+        label: "Content",
+        icon: Sparkles,
+        items: [
+          { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
+          { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping },
+          { href: "/admin/testimonials", label: "Reviews", icon: Quote },
+          { href: "/admin/onderweg", label: "Iets voor onderweg", icon: ShoppingBag },
+          { href: "/admin/notificaties", label: "Notificaties", icon: Bell },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
+        id: "data",
+        label: "Data & AI",
+        icon: BarChart3,
+        items: [
+          { href: "/admin/chat-history", label: "Chat history", icon: MessageSquare },
+          { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+          { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen },
+          { href: "/admin/bronnen", label: "Bronnen", icon: FileStack },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
+        id: "trials",
+        label: "Trials",
+        icon: FlaskConical,
+        items: [
+          { href: "/admin/trial-test", label: "Trial testen", icon: FlaskConical },
+          { href: "/admin/trial-emails", label: "Trial e-mails", icon: Mail },
+        ],
+      },
+    },
     { type: "separator" },
-    { type: "item", href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
-    { type: "item", href: "/admin/goede-antwoorden", label: "Goede antwoorden", icon: ThumbsUp, badge: helpfulCount },
-    { type: "item", href: "/admin/slechte-antwoorden", label: "Slechte antwoorden", icon: ThumbsDown, badge: notHelpfulCount },
-    { type: "item", href: "/admin/onbeantwoorde-vragen", label: "Onbeantwoorde vragen", icon: HelpCircle, badge: 0 },
-    { type: "item", href: "/admin/wensen", label: "Wensen", icon: MessageCircleHeart, badge: 0 },
-    { type: "separator" },
-    { type: "item", href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles, badge: 0 },
-    { type: "item", href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping, badge: 0 },
-    { type: "item", href: "/admin/testimonials", label: "Reviews", icon: Quote, badge: 0 },
-    { type: "item", href: "/admin/onderweg", label: "Iets voor onderweg", icon: ShoppingBag, badge: 0 },
-    { type: "item", href: "/admin/notificaties", label: "Notificaties", icon: Bell, badge: 0 },
-    { type: "separator" },
-    { type: "item", href: "/admin/chat-history", label: "Chat history", icon: MessageSquare, badge: 0 },
-    { type: "item", href: "/admin/analytics", label: "Analytics", icon: BarChart3, badge: 0 },
-    { type: "item", href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen, badge: 0 },
-    { type: "item", href: "/admin/bronnen", label: "Bronnen", icon: FileStack, badge: 0 },
-    { type: "separator" },
-    { type: "item", href: "/admin/trial-test", label: "Trial testen", icon: FlaskConical, badge: 0 },
-    { type: "item", href: "/admin/trial-emails", label: "Trial e-mails", icon: Mail, badge: 0 },
-    { type: "separator" },
-    { type: "item", href: "/admin", label: "Instellingen", icon: Settings, badge: 0 },
+    { type: "item", item: { href: "/admin", label: "Instellingen", icon: Settings } },
   ];
+
+  function renderEntries(dark: boolean, onItemClick?: () => void) {
+    return entries.map((entry, i) => {
+      if (entry.type === "separator") {
+        return (
+          <li key={`sep-${i}`} className="border-t my-2" style={{ borderColor: dark ? "rgba(255,255,255,0.12)" : "#e5e7eb" }} />
+        );
+      }
+      if (entry.type === "group") {
+        return (
+          <li key={entry.group.id}>
+            <CollapsibleGroup
+              group={entry.group}
+              pathname={pathname}
+              dark={dark}
+              onItemClick={onItemClick}
+            />
+          </li>
+        );
+      }
+      return (
+        <li key={entry.item.href}>
+          <NavLink
+            item={entry.item}
+            isActive={pathname === entry.item.href}
+            dark={dark}
+            onClick={onItemClick}
+          />
+        </li>
+      );
+    });
+  }
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-white">
@@ -74,126 +283,67 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       </header>
 
       {mobileMenuOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setMobileMenuOpen(false)}
-        />
+        <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setMobileMenuOpen(false)} />
       )}
 
-      <div
-        className={`lg:hidden fixed top-0 right-0 h-full w-64 bg-white z-50 transform transition-transform ${
-          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-      >
+      {/* Mobile slide-in menu */}
+      <div className={`lg:hidden fixed top-0 right-0 h-full w-64 bg-white z-50 transform transition-transform ${mobileMenuOpen ? "translate-x-0" : "translate-x-full"}`}>
         <div className="p-4 border-b border-gray-200 flex items-center justify-between">
           <span className="font-semibold text-gray-900">Menu</span>
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-          >
+          <button onClick={() => setMobileMenuOpen(false)} className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
             <X size={20} />
           </button>
         </div>
-        <nav className="p-4">
-          <ul className="space-y-1">
-            {navItems.map((item, i) => {
-              if (item.type === "separator") {
-                return <li key={i} className={`${item.thin ? "border-t border-gray-200/60 my-1" : "border-t border-gray-200 my-2"}`} />;
-              }
-              const isActive = pathname === item.href;
-              const Icon = item.icon;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive ? "bg-primary-50 text-primary-600" : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    <Icon size={20} />
-                    <span className="flex-1">{item.label}</span>
-                    {item.badge > 0 && (
-                      <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold bg-red-500 text-white">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
+        <nav className="p-4 overflow-y-auto h-[calc(100%-120px)]">
+          <ul className="space-y-0.5">
+            {renderEntries(false, () => setMobileMenuOpen(false))}
           </ul>
         </nav>
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 space-y-2">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
           <Link
             href="/"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+            className="flex items-center gap-3 px-4 py-2.5 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors text-sm"
           >
-            <Home size={20} />
+            <Home size={17} />
             Naar chat
           </Link>
         </div>
       </div>
 
       <div className="flex">
-        <aside className="hidden lg:flex w-64 bg-primary-900 flex-col fixed h-screen">
-          <div className="p-6 border-b border-primary-700">
+        {/* Desktop sidebar */}
+        <aside className="hidden lg:flex w-60 bg-primary-900 flex-col fixed h-screen">
+          <div className="p-5 border-b border-primary-700">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-lg">
-                <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={40} height={40} className="object-contain h-full w-auto" style={{ width: "auto", height: "auto" }} />
+              <div className="w-9 h-9 flex-shrink-0 flex items-center justify-center overflow-hidden rounded-lg">
+                <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={36} height={36} className="object-contain h-full w-auto" style={{ width: "auto", height: "auto" }} />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Talk To Benji</h1>
-                <p className="text-sm text-gray-300">Admin Panel</p>
+                <h1 className="text-lg font-bold text-white">Talk To Benji</h1>
+                <p className="text-xs text-gray-300">Admin Panel</p>
               </div>
             </div>
           </div>
 
-          <nav className="flex-1 p-4">
-            <ul className="space-y-1">
-              {navItems.map((item, i) => {
-                if (item.type === "separator") {
-                  return <li key={i} className={`${item.thin ? "border-t border-primary-800/30 my-1" : "border-t border-primary-700 my-2"}`} />;
-                }
-                const isActive = pathname === item.href;
-                const Icon = item.icon;
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors border ${
-                        isActive
-                          ? "bg-white/10 text-white border-primary-700"
-                          : "text-gray-300 hover:bg-white/5 border-transparent"
-                      }`}
-                    >
-                      <Icon size={20} />
-                      <span className="flex-1">{item.label}</span>
-                      {item.badge > 0 && (
-                        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-xs font-bold bg-red-500 text-white">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
+          <nav className="flex-1 p-4 overflow-y-auto">
+            <ul className="space-y-0.5">
+              {renderEntries(true)}
             </ul>
           </nav>
 
-          <div className="p-4 border-t border-primary-700 space-y-2">
+          <div className="p-4 border-t border-primary-700">
             <Link
               href="/"
-              className="flex items-center gap-3 px-4 py-3 text-gray-300 hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-primary-700"
+              className="flex items-center gap-3 px-4 py-2.5 text-gray-300 hover:bg-white/5 rounded-lg transition-colors border border-transparent hover:border-primary-700 text-sm"
             >
-              <Home size={20} />
+              <Home size={17} />
               Naar chat
             </Link>
           </div>
         </aside>
 
-        <main className="flex-1 lg:ml-64 min-h-screen bg-primary-50">
+        <main className="flex-1 lg:ml-60 min-h-screen bg-primary-50">
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>
         </main>
       </div>
@@ -201,11 +351,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [adminToken, setAdminToken] = useState<string | null>(null);
 
@@ -244,7 +390,7 @@ export default function AdminLayout({
   if (isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-primary-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
       </div>
     );
   }
@@ -256,7 +402,6 @@ export default function AdminLayout({
   return (
     <AdminAuthProvider adminToken={adminToken}>
       <AdminLayoutInner>{children}</AdminLayoutInner>
-      {/* Floating logout button */}
       <button
         onClick={handleLogout}
         className="fixed bottom-4 right-4 lg:bottom-6 lg:right-6 z-50 flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-500 rounded-full shadow hover:bg-gray-300 transition-colors text-sm"

@@ -220,6 +220,7 @@ export default defineSchema({
     subscriptionType: v.union(
       v.literal("free"),
       v.literal("trial"),
+      v.literal("niet_alleen"),
       v.literal("uitgebreid"),
       v.literal("alles_in_1")
     ),
@@ -492,6 +493,34 @@ export default defineSchema({
     }),
     generatedAt: v.number(),
   }).index("by_date", ["date"]),
+
+  // Niet Alleen — 30-daagse begeleidingscursus
+  nietAlleenProfiles: defineTable({
+    userId: v.string(),
+    email: v.string(),
+    naam: v.string(),
+    startDatum: v.number(),
+    verliesType: v.optional(v.union(
+      v.literal("persoon"),
+      v.literal("huisdier"),
+      v.literal("relatie"),
+      v.literal("gezondheid"),
+      v.literal("anders")
+    )),
+    dagPrompts: v.array(v.object({
+      dag: v.number(),
+      tekst: v.string(),
+      ingevuldOp: v.number(),
+    })),
+    dag28MailVerzonden: v.optional(v.boolean()),
+    dag30MailVerzonden: v.optional(v.boolean()),
+    dag37Verwerkt: v.optional(v.boolean()),
+    accountGesloten: v.optional(v.boolean()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_email", ["email"]),
 
   // Reviews / testimonials (beheerbaar via admin, zichtbaar op homepage)
   testimonials: defineTable({

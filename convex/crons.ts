@@ -10,4 +10,11 @@ crons.daily(
   {}
 );
 
+crons.daily(
+  "process niet alleen",
+  { hourUTC: 8, minuteUTC: 0 },
+  api.nietAlleen.processNietAlleenUsers,
+  {}
+);
+
 export default crons;
