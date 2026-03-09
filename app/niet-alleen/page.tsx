@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { getNietAlleenPrompt } from "@/lib/nietAlleenPrompts";
+import { getDagInhoud } from "@/convex/nietAlleenContent";
 import Image from "next/image";
 import Link from "next/link";
+import { ImagePlus, X } from "lucide-react";
 
 type Scherm = "laden" | "geen_toegang" | "onboarding" | "dag" | "afgerond" | "gesloten";
+type StapOnboarding = "verlies" | "naam";
 
 const VERLIES_TYPES = [
   { key: "persoon" as const, label: "Een dierbare persoon" },
@@ -18,13 +20,23 @@ const VERLIES_TYPES = [
   { key: "anders" as const, label: "Iets anders" },
 ];
 
+const NAAM_PLACEHOLDER: Record<string, string> = {
+  persoon: "Bijv. Oma, Floris, Mam…",
+  huisdier: "Bijv. Luna, Appie, Boris…",
+};
+
 export default function NietAlleenPage() {
   const { data: session, status } = useSession();
   const [scherm, setScherm] = useState<Scherm>("laden");
+  const [stapOnboarding, setStapOnboarding] = useState<StapOnboarding>("verlies");
   const [geselecteerdType, setGeselecteerdType] = useState<string | null>(null);
+  const [verliesNaamInput, setVerliesNaamInput] = useState("");
   const [tekst, setTekst] = useState("");
   const [opgeslagen, setOpgeslagen] = useState(false);
   const [bezig, setBezig] = useState(false);
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
+  const [fotoUploaden, setFotoUploaden] = useState(false);
+  const fotoInputRef = useRef<HTMLInputElement>(null);
 
   const userId = (session?.user as any)?.id ?? session?.user?.email ?? "";
 
@@ -34,11 +46,20 @@ export default function NietAlleenPage() {
   );
 
   const setVerliesType = useMutation(api.nietAlleen.setVerliesType);
+  const setVerliesNaam = useMutation(api.nietAlleen.setVerliesNaam);
   const saveDagPrompt = useMutation(api.nietAlleen.saveDagPrompt);
+  const generateUploadUrl = useMutation(api.nietAlleen.generateUploadUrl);
+  const saveDagFoto = useMutation(api.nietAlleen.saveDagFoto);
 
   const dagNummer = profiel?.startDatum
     ? Math.min(30, Math.floor((Date.now() - profiel.startDatum) / 86400000) + 1)
     : 1;
+
+  const huidigeStorageId = profiel?.dagFotos?.find((f) => f.dag === dagNummer)?.storageId;
+  const fotoUrl = useQuery(
+    api.nietAlleen.getDagFotoUrl,
+    huidigeStorageId ? { storageId: huidigeStorageId } : { storageId: undefined }
+  );
 
   // Scherm bepalen
   useEffect(() => {
@@ -72,11 +93,29 @@ export default function NietAlleenPage() {
     setScherm("dag");
   }, [status, profiel, dagNummer]);
 
-  async function handleVerliesTypeKiezen() {
+  async function handleVerliesTypeVerder() {
+    if (!geselecteerdType || bezig) return;
+    if (geselecteerdType === "persoon" || geselecteerdType === "huisdier") {
+      setStapOnboarding("naam");
+    } else {
+      setBezig(true);
+      try {
+        await setVerliesType({ userId, verliesType: geselecteerdType as any });
+      } finally {
+        setBezig(false);
+      }
+    }
+  }
+
+  async function handleBeginnen(naamOverride?: string) {
     if (!geselecteerdType || !userId || bezig) return;
+    const naam = naamOverride !== undefined ? naamOverride : verliesNaamInput.trim();
     setBezig(true);
     try {
       await setVerliesType({ userId, verliesType: geselecteerdType as any });
+      if (naam) {
+        await setVerliesNaam({ userId, verliesNaam: naam });
+      }
     } finally {
       setBezig(false);
     }
@@ -91,6 +130,30 @@ export default function NietAlleenPage() {
       setTimeout(() => setOpgeslagen(false), 3000);
     } finally {
       setBezig(false);
+    }
+  }
+
+  async function handleFotoKiezen(e: React.ChangeEvent<HTMLInputElement>) {
+    const bestand = e.target.files?.[0];
+    if (!bestand || !userId) return;
+
+    setFotoUploaden(true);
+    try {
+      const preview = URL.createObjectURL(bestand);
+      setFotoPreview(preview);
+
+      const uploadUrl = await generateUploadUrl();
+      const res = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": bestand.type },
+        body: bestand,
+      });
+      const { storageId } = await res.json();
+      await saveDagFoto({ userId, dag: dagNummer, storageId });
+    } catch {
+      setFotoPreview(null);
+    } finally {
+      setFotoUploaden(false);
     }
   }
 
@@ -135,8 +198,8 @@ export default function NietAlleenPage() {
     );
   }
 
-  // ── Onboarding — verliestype kiezen ────────────────────────
-  if (scherm === "onboarding") {
+  // ── Onboarding — stap 1: verliestype kiezen ────────────────
+  if (scherm === "onboarding" && stapOnboarding === "verlies") {
     return (
       <div className="min-h-screen" style={{ background: "#fdf9f4" }}>
         <div className="px-6 pt-6">
@@ -183,7 +246,7 @@ export default function NietAlleenPage() {
           </div>
 
           <button
-            onClick={handleVerliesTypeKiezen}
+            onClick={handleVerliesTypeVerder}
             disabled={!geselecteerdType || bezig}
             className="w-full py-3 rounded-xl font-medium text-white transition-all text-sm"
             style={{
@@ -191,8 +254,69 @@ export default function NietAlleenPage() {
               cursor: geselecteerdType && !bezig ? "pointer" : "default",
             }}
           >
-            {bezig ? "Even geduld..." : "Begin mijn 30 dagen"}
+            {bezig ? "Even geduld..." : "Verder"}
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Onboarding — stap 2: naam invullen ─────────────────────
+  if (scherm === "onboarding" && stapOnboarding === "naam") {
+    const typeLabel = geselecteerdType === "huisdier" ? "je huisdier" : "deze persoon";
+    return (
+      <div className="min-h-screen" style={{ background: "#fdf9f4" }}>
+        <div className="px-6 pt-6">
+          <button onClick={() => setStapOnboarding("verlies")} className="opacity-40 hover:opacity-60 transition-opacity">
+            <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={34} height={34} />
+          </button>
+        </div>
+
+        <div className="max-w-md mx-auto px-6 py-14 space-y-8">
+          <div className="space-y-3">
+            <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>
+              Hoe heette {typeLabel}?
+            </h1>
+            <p className="text-base leading-relaxed" style={{ color: "#6b6460" }}>
+              Als je een naam invult, gebruiken we die in de dagelijkse berichten.
+              Je kunt dit ook overslaan.
+            </p>
+          </div>
+
+          <input
+            type="text"
+            value={verliesNaamInput}
+            onChange={(e) => setVerliesNaamInput(e.target.value)}
+            placeholder={NAAM_PLACEHOLDER[geselecteerdType ?? ""] ?? "Naam…"}
+            className="w-full px-4 py-3 rounded-xl border-2 text-base focus:outline-none transition-all"
+            style={{
+              borderColor: verliesNaamInput ? "#6d84a8" : "#e8e0d8",
+              color: "#3d3530",
+              background: "white",
+            }}
+            autoFocus
+          />
+
+          <div className="space-y-2">
+            <button
+              onClick={handleBeginnen}
+              disabled={bezig}
+              className="w-full py-3 rounded-xl font-medium text-white transition-all text-sm"
+              style={{
+                background: !bezig ? "#6d84a8" : "#c4cdd8",
+                cursor: !bezig ? "pointer" : "default",
+              }}
+            >
+              {bezig ? "Even geduld..." : "Begin mijn 30 dagen"}
+            </button>
+            <button
+              onClick={() => handleBeginnen("")}
+              className="w-full py-2 text-sm text-center"
+              style={{ color: "#b0a8a0" }}
+            >
+              Overslaan
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -237,11 +361,12 @@ export default function NietAlleenPage() {
   }
 
   // ── Dag X — dagelijkse prompt ──────────────────────────────
-  const prompt = getNietAlleenPrompt(profiel?.verliesType ?? "anders", dagNummer);
+  const dagInhoud = getDagInhoud(dagNummer, profiel?.verliesType ?? "anders");
   const isVolledigeGebruiker =
-    profiel === null ||
-    (profiel as any).subscriptionType === "uitgebreid" ||
-    (profiel as any).subscriptionType === "alles_in_1";
+    (profiel as any)?.subscriptionType === "uitgebreid" ||
+    (profiel as any)?.subscriptionType === "alles_in_1";
+
+  const huidigeFotoUrl = fotoPreview ?? fotoUrl ?? null;
 
   return (
     <div className="min-h-screen" style={{ background: "#fdf9f4" }}>
@@ -284,11 +409,16 @@ export default function NietAlleenPage() {
         {/* Dagprompt */}
         <div className="space-y-2 pt-2">
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>
-            De vraag van vandaag
+            Dag {dagNummer} — {dagInhoud?.thema ?? ""}
           </p>
           <p className="text-lg leading-relaxed font-medium" style={{ color: "#3d3530" }}>
-            {prompt}
+            {dagInhoud?.inHetAccount ?? ""}
           </p>
+          {dagInhoud?.alsjewilt && (
+            <p className="text-sm leading-relaxed" style={{ color: "#8a8078" }}>
+              Als je wilt: {dagInhoud.alsjewilt}
+            </p>
+          )}
         </div>
 
         {/* Schrijfveld */}
@@ -304,6 +434,56 @@ export default function NietAlleenPage() {
             color: "#3d3530",
           }}
         />
+
+        {/* Foto toevoegen */}
+        <div>
+          <input
+            ref={fotoInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFotoKiezen}
+          />
+          {huidigeFotoUrl ? (
+            <div className="relative rounded-xl overflow-hidden border" style={{ borderColor: "#e8e0d8" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={huidigeFotoUrl} alt="Jouw foto" className="w-full object-cover max-h-64" />
+              <button
+                onClick={() => fotoInputRef.current?.click()}
+                className="absolute top-2 right-2 rounded-full p-1.5 text-white"
+                style={{ background: "rgba(0,0,0,0.45)" }}
+                title="Foto vervangen"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => fotoInputRef.current?.click()}
+              disabled={fotoUploaden}
+              className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl border transition-colors"
+              style={{
+                borderColor: "#e8e0d8",
+                color: "#8a8078",
+                background: "white",
+              }}
+            >
+              <ImagePlus size={16} />
+              {fotoUploaden ? "Bezig met uploaden…" : "Voeg een foto toe"}
+            </button>
+          )}
+        </div>
+
+        {/* Doedingetje */}
+        {dagInhoud?.doedingetje && (
+          <div
+            className="rounded-xl px-4 py-3 text-sm leading-relaxed"
+            style={{ background: "#f5f0ea", color: "#6b6460" }}
+          >
+            <span className="font-medium" style={{ color: "#3d3530" }}>Klein doedingetje: </span>
+            {dagInhoud.doedingetje}
+          </div>
+        )}
 
         {/* Opslaan */}
         <button

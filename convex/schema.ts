@@ -507,11 +507,17 @@ export default defineSchema({
       v.literal("gezondheid"),
       v.literal("anders")
     )),
+    verliesNaam: v.optional(v.string()), // naam van wie/wat er gemist wordt
     dagPrompts: v.array(v.object({
       dag: v.number(),
       tekst: v.string(),
       ingevuldOp: v.number(),
     })),
+    dagFotos: v.optional(v.array(v.object({
+      dag: v.number(),
+      storageId: v.id("_storage"),
+      uploadedAt: v.number(),
+    }))),
     dag28MailVerzonden: v.optional(v.boolean()),
     dag30MailVerzonden: v.optional(v.boolean()),
     dag37Verwerkt: v.optional(v.boolean()),

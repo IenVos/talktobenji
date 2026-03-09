@@ -1,0 +1,206 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { api } from "@/convex/_generated/api";
+import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
+import { Mail, Save, CheckCircle, RotateCcw } from "lucide-react";
+import { DEFAULT_TEMPLATES } from "@/convex/emailTemplates";
+
+type TemplateKey = "niet_alleen_welkom" | "niet_alleen_dag" | "niet_alleen_dag28" | "niet_alleen_dag30";
+
+const TEMPLATE_META: Record<TemplateKey, { title: string; subtitle: string; knopUrl: string }> = {
+  niet_alleen_welkom: {
+    title: "Welkomstmail",
+    subtitle: "Verstuurd direct na aankoop van Niet Alleen",
+    knopUrl: "https://talktobenji.com/niet-alleen",
+  },
+  niet_alleen_dag: {
+    title: "Dagelijkse herinneringsmail",
+    subtitle: "Verstuurd elke ochtend op dag 1 t/m 30 — {dag} wordt vervangen door het dagnummer",
+    knopUrl: "https://talktobenji.com/niet-alleen",
+  },
+  niet_alleen_dag28: {
+    title: "Dag 28 — voorbereidingsmail",
+    subtitle: "Verstuurd op dag 28 (2 dagen voor het einde)",
+    knopUrl: "https://talktobenji.com/niet-alleen/ontdek",
+  },
+  niet_alleen_dag30: {
+    title: "Dag 30 — afsluitmail",
+    subtitle: "Verstuurd op dag 30 — {dagen} wordt vervangen door het aantal ingevulde dagen",
+    knopUrl: "https://talktobenji.com/niet-alleen/ontdek",
+  },
+};
+
+function TemplateEditor({
+  templateKey,
+  savedSubject,
+  savedBodyText,
+  onSave,
+}: {
+  templateKey: TemplateKey;
+  savedSubject: string | undefined;
+  savedBodyText: string | undefined;
+  onSave: (key: TemplateKey, subject: string, bodyText: string) => Promise<void>;
+}) {
+  const meta = TEMPLATE_META[templateKey];
+  const defaults = DEFAULT_TEMPLATES[templateKey];
+
+  const [subject, setSubject] = useState(savedSubject ?? defaults.subject);
+  const [bodyText, setBodyText] = useState(savedBodyText ?? defaults.bodyText);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (savedSubject !== undefined) setSubject(savedSubject);
+    if (savedBodyText !== undefined) setBodyText(savedBodyText);
+  }, [savedSubject, savedBodyText]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved(false);
+    try {
+      await onSave(templateKey, subject, bodyText);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleReset = () => {
+    setSubject(defaults.subject);
+    setBodyText(defaults.bodyText);
+  };
+
+  const isDirty =
+    subject !== (savedSubject ?? defaults.subject) ||
+    bodyText !== (savedBodyText ?? defaults.bodyText);
+
+  return (
+    <div className="bg-white rounded-xl border border-primary-200 p-5 sm:p-6 shadow-sm space-y-4">
+      <div className="flex items-start gap-3">
+        <div className="w-9 h-9 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0 border border-primary-200">
+          <Mail className="w-4 h-4 text-primary-600" />
+        </div>
+        <div>
+          <h2 className="text-base font-semibold text-primary-900">{meta.title}</h2>
+          <p className="text-xs text-primary-600">{meta.subtitle}</p>
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-600 mb-1">Onderwerp</label>
+        <input
+          type="text"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-semibold text-gray-600 mb-1">
+          Inhoud{" "}
+          <span className="font-normal text-gray-400">
+            (lege regel = nieuwe alinea — de aanhef &quot;Lieve [naam],&quot; en de handtekening worden automatisch toegevoegd)
+          </span>
+        </label>
+        <textarea
+          value={bodyText}
+          onChange={(e) => setBodyText(e.target.value)}
+          rows={8}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 resize-y font-mono"
+        />
+      </div>
+
+      {/* Voorbeeld */}
+      <details className="group">
+        <summary className="text-xs font-semibold text-primary-600 cursor-pointer hover:text-primary-800 select-none">
+          Voorbeeld e-mail
+        </summary>
+        <div className="mt-3 border border-gray-200 rounded-lg p-4 bg-gray-50 text-sm text-gray-800 space-y-3">
+          <p className="text-base">Hi [naam],</p>
+          {bodyText.split(/\n\n+/).map((para, i) => (
+            <p key={i} className="leading-relaxed text-gray-600">{para}</p>
+          ))}
+          <div className="my-4">
+            <span className="inline-block bg-[#6d84a8] text-white px-6 py-2 rounded-lg text-sm font-semibold">
+              {templateKey === "niet_alleen_welkom" ? "Begin dag 1" :
+               templateKey === "niet_alleen_dag" ? "Schrijf vandaag" : "Bekijk wat er meer is"}
+            </span>
+          </div>
+          {templateKey === "niet_alleen_dag" ? (
+            <p className="font-medium text-gray-500">Benji</p>
+          ) : (
+            <>
+              <p className="text-gray-600">Met warme groet,</p>
+              <p className="font-semibold">Ien</p>
+              <p className="text-xs text-gray-400">Founder van TalkToBenji</p>
+            </>
+          )}
+        </div>
+      </details>
+
+      <div className="flex items-center gap-3 pt-1">
+        <button
+          onClick={handleSave}
+          disabled={saving || !isDirty}
+          className="flex items-center gap-2 px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+        >
+          <Save size={15} />
+          {saving ? "Opslaan..." : "Opslaan"}
+        </button>
+        <button
+          onClick={handleReset}
+          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <RotateCcw size={14} />
+          Standaard
+        </button>
+        {saved && (
+          <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+            <CheckCircle size={15} />
+            Opgeslagen
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default function NietAlleenEmailsPage() {
+  const templates = useAdminQuery(api.emailTemplates.listTemplates, {});
+  const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
+
+  const getTemplate = (key: TemplateKey) => templates?.find((t: any) => t.key === key);
+
+  const handleSave = async (key: TemplateKey, subject: string, bodyText: string) => {
+    await upsertTemplate({ key, subject, bodyText });
+  };
+
+  const keys: TemplateKey[] = ["niet_alleen_welkom", "niet_alleen_dag", "niet_alleen_dag28", "niet_alleen_dag30"];
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Niet Alleen e-mails</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Pas de inhoud aan van de automatische e-mails tijdens de 30 dagen begeleiding
+        </p>
+      </div>
+
+      {keys.map((key) => {
+        const t = getTemplate(key);
+        return (
+          <TemplateEditor
+            key={key}
+            templateKey={key}
+            savedSubject={t?.subject}
+            savedBodyText={t?.bodyText}
+            onSave={handleSave}
+          />
+        );
+      })}
+    </div>
+  );
+}

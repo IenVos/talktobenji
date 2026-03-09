@@ -225,6 +225,17 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         ],
       },
     },
+    {
+      type: "group",
+      group: {
+        id: "niet-alleen",
+        label: "Niet Alleen",
+        icon: Mail,
+        items: [
+          { href: "/admin/niet-alleen-emails", label: "E-mails", icon: Mail },
+        ],
+      },
+    },
     { type: "separator" },
     { type: "item", item: { href: "/admin", label: "Instellingen", icon: Settings } },
   ];

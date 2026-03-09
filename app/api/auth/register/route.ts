@@ -68,6 +68,24 @@ export async function POST(request: NextRequest) {
       { url: convexUrl }
     );
 
+    // MailerLite — voeg toe aan groep Gratis-gebruikers
+    const mailerLiteKey = process.env.MAILERLITE_API_KEY;
+    const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
+    if (mailerLiteKey && mailerLiteGroep) {
+      fetch("https://connect.mailerlite.com/api/subscribers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${mailerLiteKey}`,
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          fields: { name: (name || "").trim() || email.trim().split("@")[0] },
+          groups: [mailerLiteGroep],
+        }),
+      }).catch((err) => console.error("[MailerLite] Fout bij registratie:", err));
+    }
+
     return NextResponse.json({
       success: true,
       userId,

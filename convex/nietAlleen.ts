@@ -27,6 +27,51 @@ export const getProfile = query({
   },
 });
 
+/** Sla de naam op van wie/wat er gemist wordt. */
+export const setVerliesNaam = mutation({
+  args: { userId: v.string(), verliesNaam: v.string() },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+    if (!profiel) throw new Error("Profiel niet gevonden");
+    await ctx.db.patch(profiel._id, { verliesNaam: args.verliesNaam, updatedAt: Date.now() });
+  },
+});
+
+/** Genereer een upload-URL voor een dagfoto. */
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => ctx.storage.generateUploadUrl(),
+});
+
+/** Sla de storageId op voor een foto van een specifieke dag. */
+export const saveDagFoto = mutation({
+  args: { userId: v.string(), dag: v.number(), storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+    if (!profiel) throw new Error("Profiel niet gevonden");
+    const andereFotos = (profiel.dagFotos ?? []).filter((f) => f.dag !== args.dag);
+    await ctx.db.patch(profiel._id, {
+      dagFotos: [...andereFotos, { dag: args.dag, storageId: args.storageId, uploadedAt: Date.now() }],
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/** Haal de URL op van een opgeslagen foto. */
+export const getDagFotoUrl = query({
+  args: { storageId: v.optional(v.id("_storage")) },
+  handler: async (ctx, args) => {
+    if (!args.storageId) return null;
+    return await ctx.storage.getUrl(args.storageId);
+  },
+});
+
 /** Sla het verliestype op bij de eerste bezoek (onboarding). */
 export const setVerliesType = mutation({
   args: {
@@ -226,6 +271,7 @@ export const processNietAlleenUsers = internalAction({
           naam: profiel.naam,
           dagNummer,
           verliesType: profiel.verliesType ?? "anders",
+          verliesNaam: profiel.verliesNaam,
         });
       }
 

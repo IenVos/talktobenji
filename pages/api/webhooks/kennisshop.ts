@@ -66,6 +66,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return null;
   }
 
+  const naam: string = data?.customer_name ?? data?.name ?? "";
+
+  async function voegToeAanMailerLite(groepId: string) {
+    const apiKey = process.env.MAILERLITE_API_KEY;
+    if (!apiKey) return;
+    try {
+      await fetch("https://connect.mailerlite.com/api/subscribers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          email,
+          fields: { name: naam },
+          groups: [groepId],
+        }),
+      });
+      console.log(`[MailerLite] ${email} toegevoegd aan groep ${groepId}`);
+    } catch (err) {
+      console.error("[MailerLite] Fout bij toevoegen:", err);
+    }
+  }
+
   const webhookSecret = process.env.KENNISSHOP_WEBHOOK_SECRET!;
 
   try {
@@ -126,6 +150,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       externalSubscriptionId: externalId,
       paymentProvider: "kennisshop",
     });
+
+    // MailerLite — voeg toe aan de juiste groep
+    if (subscriptionType === "uitgebreid") {
+      await voegToeAanMailerLite(process.env.MAILERLITE_GROUP_UITGEBREID!);
+    } else if (subscriptionType === "alles_in_1") {
+      await voegToeAanMailerLite(process.env.MAILERLITE_GROUP_ALLES_IN_1!);
+    }
 
     console.log(`[KennisShop webhook] Abonnement geactiveerd: ${email} → ${subscriptionType}`);
     return res.status(200).json({ received: true, action: "activated" });
