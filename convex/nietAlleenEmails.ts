@@ -223,7 +223,7 @@ export const stuurAlleEmailsTest = internalAction({
   handler: async (ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY niet ingesteld");
-    const wacht = () => new Promise((r) => setTimeout(r, 600));
+    const wacht = () => new Promise((r) => setTimeout(r, 1200));
 
     const voornaam = args.naam.split(" ")[0];
     const vType = args.verliesType;
