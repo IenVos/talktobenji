@@ -173,7 +173,7 @@ function TemplateEditor({
 const VERLIES_TYPES_TEST = [
   { key: "persoon", label: "Persoon" },
   { key: "huisdier", label: "Huisdier" },
-  { key: "scheiding", label: "Scheiding / relatie" },
+  { key: "relatie", label: "Scheiding / relatie" },
 ];
 
 function TestProfielBlok() {
