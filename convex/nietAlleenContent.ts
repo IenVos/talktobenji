@@ -32,45 +32,46 @@ export const NIET_ALLEEN_CONTENT: DagInhoud[] = [
   // ─────────────── WEEK 1 — AANWEZIG ZIJN ───────────────
   {
     dag: 1,
-    thema: "Wie of wat je mist",
+    thema: "Hoe het voelt om hier te zijn",
     subject: "Je hoeft vandaag maar één ding te doen",
     mail: {
-      persoon: `Vandaag is dag één.
-Niet van een programma of een cursus. Maar van jou, die besloot iets voor zichzelf te doen in een tijd waarin alles al genoeg vraagt. Dat is meer dan je misschien denkt.
+      persoon: `Jij bent er. Op dag één. Dat vraagt moed, ook al voelt het misschien niet zo.
 
-Er is geen goede of foute manier om dit te doen. Je hoeft niets op te lossen, niets te begrijpen, niets te verwerken. Je mag gewoon hier zijn, met alles wat je voelt.
+Je hebt iemand verloren die er niet meer is. En toch ben jij hier, klaar om iets voor jezelf te doen. Dat is niet vanzelfsprekend.
 
-De vraag voor vandaag is simpel.
+De vraag voor vandaag is simpel: hoe voel je je nu, op dit moment? Niet zoals je denkt te moeten voelen. Maar wat er echt is.
 
-Schrijf de naam op van wie je mist. En schrijf daarna één zin: wie was deze persoon voor jou? Niet een omschrijving voor buitenstaanders, maar gewoon de eerste zin die in je opkomt.
-
-{link}
-
-Benji is er.`,
-
-      huisdier: `Vandaag is dag één.
-Het huis klinkt anders. Misschien mis je een geluid, een gewicht op de bank, iemand die je altijd begroette. Die leegte is echt, ook al begrijpt niet iedereen dat.
-
-Je hoeft vandaag niets te verwerken of te begrijpen. Je mag gewoon hier zijn.
-
-Schrijf de naam op van wie je mist. En schrijf daarna één zin: wie was hij of zij voor jou? Niet een omschrijving voor buitenstaanders, maar gewoon de eerste zin die in je opkomt.
+Schrijf het op. Een zin, een woord, een paar regels. Meer hoeft niet.
 
 {link}
 
 Benji is er.`,
 
-      scheiding: `Vandaag is dag één.
-Er is een soort verlies dat niemand ziet omdat er geen afscheid was, geen moment waarop iedereen stil stond. Toch is het er. En jij draagt het.
+      huisdier: `Jij bent er. Op dag één. Dat vraagt moed, ook al voelt het misschien niet zo.
 
-Je hoeft vandaag niets te verwerken. Geen uitleg, geen analyse. Gewoon hier zijn.
+Het gemis van een dier is echt, ook als anderen dat niet altijd begrijpen. Je hoeft het niet uit te leggen. Het is gewoon zo.
 
-Schrijf op wie je mist. Niet wie hij of zij was voor anderen, maar wie hij of zij was voor jou, in jullie leven samen.
+De vraag voor vandaag is simpel: hoe voel je je nu, op dit moment? Niet zoals je denkt te moeten voelen. Maar wat er echt is.
+
+Schrijf het op. Een zin, een woord, een paar regels. Meer hoeft niet.
+
+{link}
+
+Benji is er.`,
+
+      scheiding: `Jij bent er. Op dag één. Dat vraagt moed, ook al voelt het misschien niet zo.
+
+Een relatie die eindigt laat een leegte achter die moeilijk te beschrijven is. Je hoeft het vandaag niet op te lossen.
+
+De vraag voor vandaag is simpel: hoe voel je je nu, op dit moment? Niet zoals je denkt te moeten voelen. Maar wat er echt is.
+
+Schrijf het op. Een zin, een woord, een paar regels. Meer hoeft niet.
 
 {link}
 
 Benji is er.`,
     },
-    inHetAccount: "Schrijf de naam van wie je mist. En één zin: wie was hij, zij of dit dier voor jou? Meer hoeft niet.",
+    inHetAccount: "Hoe voel je je nu, op dit moment? Niet zoals je denkt te moeten voelen. Schrijf op wat er echt is. Een zin is genoeg.",
   },
 
   {

@@ -259,7 +259,7 @@ export default function NietAlleenWelkomPage() {
           className="block w-full py-3.5 rounded-xl font-medium text-white text-sm text-center transition-all disabled:opacity-50"
           style={{ background: "#6d84a8" }}
         >
-          {bezig ? "Even geduld..." : "Begin dag 1"}
+          {bezig ? "Even geduld..." : "Vandaag beginnen"}
         </button>
 
         <p className="text-xs text-center" style={{ color: "#b0a8a0" }}>
