@@ -9,7 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Camera, CheckCircle2 } from "lucide-react";
 
-const VERLIES_TYPES = [
+const VERLIES_TYPES: { key: "persoon" | "huisdier" | "relatie"; label: string }[] = [
   { key: "persoon", label: "Een dierbare persoon" },
   { key: "huisdier", label: "Een huisdier" },
   { key: "relatie", label: "Een relatie of scheiding" },
@@ -25,7 +25,7 @@ export default function NietAlleenWelkomPage() {
   const { data: session, status } = useSession();
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [geselecteerd, setGeselecteerd] = useState<string | null>(null);
+  const [geselecteerd, setGeselecteerd] = useState<"persoon" | "huisdier" | "relatie" | "gezondheid" | "anders" | null>(null);
   const [naamInput, setNaamInput] = useState("");
   const [bezig, setBezig] = useState(false);
   const fotoInputRef = useRef<HTMLInputElement>(null);
@@ -51,7 +51,7 @@ export default function NietAlleenWelkomPage() {
   const huidigeFotoUrl = fotoPreview ?? profielFotoUrl ?? null;
 
   // Pre-fill from existing profile
-  const huidigVerliesType = geselecteerd ?? profiel?.verliesType ?? null;
+  const huidigVerliesType = geselecteerd ?? (profiel?.verliesType as "persoon" | "huisdier" | "relatie" | "gezondheid" | "anders" | undefined) ?? null;
   const toonNaamVeld = huidigVerliesType === "persoon" || huidigVerliesType === "huisdier";
 
   async function handleFotoKiezen(e: React.ChangeEvent<HTMLInputElement>) {
