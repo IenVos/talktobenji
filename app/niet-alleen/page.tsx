@@ -47,6 +47,7 @@ function NietAlleenPageInner() {
   const [opname, setOpname] = useState(false);
   const [bekijkDag, setBekijkDag] = useState<number | null>(null);
   const fotoInputRef = useRef<HTMLInputElement>(null);
+  const tekstRef = useRef<HTMLTextAreaElement>(null);
   const herkenningRef = useRef<any>(null);
 
   const userId = (session?.user as any)?.id ?? session?.user?.email ?? "";
@@ -443,6 +444,7 @@ function NietAlleenPageInner() {
         {/* Schrijfveld + microfoon */}
         <div className="relative">
           <textarea
+            ref={tekstRef}
             value={tekst}
             onChange={(e) => setTekst(e.target.value)}
             placeholder="Schrijf hier wat er in je opkomt — er is geen goed of fout."
@@ -491,11 +493,30 @@ function NietAlleenPageInner() {
         )}
 
         {/* Opslaan */}
-        <button onClick={handleOpslaan} disabled={!tekst.trim() || bezig}
-          className="w-full py-3 rounded-xl font-medium text-white text-sm transition-all"
-          style={{ background: tekst.trim() && !bezig ? "#6d84a8" : "#c4cdd8", cursor: tekst.trim() && !bezig ? "pointer" : "default" }}>
-          {opgeslagen ? "Opgeslagen ✓" : bezig ? "Even geduld..." : "Opslaan"}
-        </button>
+        <div className="space-y-2">
+          <button onClick={handleOpslaan} disabled={!tekst.trim() || bezig}
+            className="w-full py-3 rounded-xl font-medium text-white text-sm transition-all"
+            style={{ background: tekst.trim() && !bezig ? "#6d84a8" : "#c4cdd8", cursor: tekst.trim() && !bezig ? "pointer" : "default" }}>
+            {opgeslagen ? "Opgeslagen ✓" : bezig ? "Even geduld..." : "Opslaan"}
+          </button>
+          {opgeslagen && (
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setTekst((prev) => prev + "\n\n");
+                  setTimeout(() => {
+                    tekstRef.current?.focus();
+                    tekstRef.current?.setSelectionRange(9999, 9999);
+                  }, 0);
+                }}
+                className="text-sm"
+                style={{ color: "#b0a8a0" }}
+              >
+                Ik wil nog iets toevoegen...
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Vorige dagen terugkijken */}
         {ingevuldeDagen.length > 0 && (
