@@ -283,6 +283,26 @@ export const markMailVerzonden = internalMutation({
   },
 });
 
+/** Sla een anker op voor de gebruiker (overschrijft vorig anker). */
+export const saveAnker = mutation({
+  args: { userId: v.string(), tekst: v.string(), dag: v.number() },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+    if (!profiel) throw new Error("Profiel niet gevonden");
+    await ctx.db.patch(profiel._id, {
+      nietAlleenAnker: {
+        tekst: args.tekst,
+        opgeslagenOpDag: args.dag,
+        opgeslagenOp: Date.now(),
+      },
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 /** Geeft alle dag-foto-URL's terug voor een gebruiker (voor de dagboek-pagina). */
 export const getAllDagFotoUrls = query({
   args: { userId: v.string() },

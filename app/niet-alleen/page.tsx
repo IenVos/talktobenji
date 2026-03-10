@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { getDagInhoud } from "@/convex/nietAlleenContent";
+import { ANKER_DAGEN } from "@/convex/nietAlleenAnkerContent";
 import Image from "next/image";
 import Link from "next/link";
 import { ImagePlus, X, Mic, MicOff, ChevronLeft } from "lucide-react";
@@ -550,6 +551,13 @@ function NietAlleenPageInner() {
         </div>
       </div>
 
+      {/* Opgeslagen anker — klein, italic, onder header */}
+      {profiel?.nietAlleenAnker?.tekst && (
+        <p className="text-center text-xs italic px-6" style={{ color: "#b0a8a0" }}>
+          &ldquo;{profiel.nietAlleenAnker.tekst}&rdquo;
+        </p>
+      )}
+
       <div className="max-w-lg mx-auto px-6 py-8 space-y-6">
 
         {/* Dagprompt */}
@@ -587,7 +595,7 @@ function NietAlleenPageInner() {
           </button>
         </div>
 
-        {/* Foto */}
+        {/* Foto + anker-knop */}
         <div>
           <input ref={fotoInputRef} type="file" accept="image/*" className="hidden" onChange={handleFotoKiezen} />
           {huidigeFotoUrl ? (
@@ -601,12 +609,26 @@ function NietAlleenPageInner() {
               </button>
             </div>
           ) : (
-            <button onClick={() => fotoInputRef.current?.click()} disabled={fotoUploaden}
-              className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl border transition-colors"
-              style={{ borderColor: "#e8e0d8", color: "#8a8078", background: "white" }}>
-              <ImagePlus size={16} />
-              {fotoUploaden ? "Bezig met uploaden…" : "Voeg een foto toe"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => fotoInputRef.current?.click()} disabled={fotoUploaden}
+                className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl border transition-colors"
+                style={{ borderColor: "#e8e0d8", color: "#8a8078", background: "white" }}>
+                <ImagePlus size={16} />
+                {fotoUploaden ? "Bezig met uploaden…" : "Voeg een foto toe"}
+              </button>
+
+              {/* ✨ Anker-knop — alleen op dag 4, 7, 14, 21 en nog niet opgeslagen */}
+              {ANKER_DAGEN.includes(activeDag as any) &&
+                profiel?.nietAlleenAnker?.opgeslagenOpDag !== activeDag && (
+                <Link
+                  href={`/niet-alleen/anker?dag=${activeDag}`}
+                  className="flex items-center justify-center w-10 h-10 rounded-xl border text-base transition-all hover:opacity-70"
+                  style={{ borderColor: "#e8e0d8", background: "white" }}
+                  title="Er is iets voor je">
+                  ✨
+                </Link>
+              )}
+            </div>
           )}
         </div>
 

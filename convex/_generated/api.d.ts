@@ -33,6 +33,7 @@ import type * as klantbeheer from "../klantbeheer.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
 import type * as memories from "../memories.js";
 import type * as nietAlleen from "../nietAlleen.js";
+import type * as nietAlleenAnkerContent from "../nietAlleenAnkerContent.js";
 import type * as nietAlleenContent from "../nietAlleenContent.js";
 import type * as nietAlleenEmails from "../nietAlleenEmails.js";
 import type * as notes from "../notes.js";
@@ -82,6 +83,7 @@ declare const fullApi: ApiFromModules<{
   knowledgeBase: typeof knowledgeBase;
   memories: typeof memories;
   nietAlleen: typeof nietAlleen;
+  nietAlleenAnkerContent: typeof nietAlleenAnkerContent;
   nietAlleenContent: typeof nietAlleenContent;
   nietAlleenEmails: typeof nietAlleenEmails;
   notes: typeof notes;

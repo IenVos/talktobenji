@@ -76,9 +76,8 @@ export default function DagboekPage() {
           {/* Titelblok */}
           <div className="text-center space-y-1 pb-6 border-b" style={{ borderColor: "#e8e0d8" }}>
             <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>
-              Jouw 30 dagen
+              Jouw 30 dagen, {voornaam}
             </h1>
-            <p className="text-sm" style={{ color: "#8a8078" }}>{profiel.naam}</p>
             <p className="text-xs" style={{ color: "#b0a8a0" }}>
               {dagItems.length} van 30 dagen ingevuld
             </p>
