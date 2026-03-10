@@ -77,6 +77,12 @@ export default function NietAlleenPage() {
     bekijkStorageId ? { storageId: bekijkStorageId } : { storageId: undefined }
   );
 
+  const profielFotoStorageId = profiel?.profielFoto;
+  const profielFotoUrl = useQuery(
+    api.nietAlleen.getDagFotoUrl,
+    profielFotoStorageId ? { storageId: profielFotoStorageId } : { storageId: undefined }
+  );
+
   // Scherm bepalen
   useEffect(() => {
     if (status === "loading" || profiel === undefined) return;
@@ -315,11 +321,6 @@ export default function NietAlleenPage() {
     (profiel as any)?.subscriptionType === "alles_in_1";
   const toonSideMenu = MENU_DAGEN.includes(dagNummer) && !isVolledigeGebruiker;
   const toonUpsellOnder = UPSELL_DAGEN.includes(dagNummer) && !isVolledigeGebruiker;
-  const profielFotoStorageId = profiel?.profielFoto;
-  const profielFotoUrl = useQuery(
-    api.nietAlleen.getDagFotoUrl,
-    profielFotoStorageId ? { storageId: profielFotoStorageId } : { storageId: undefined }
-  );
   const huidigeFotoUrl = fotoPreview ?? fotoUrl ?? null;
 
   // Terugkijken: ingevulde dagen sorteren
