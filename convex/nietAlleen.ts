@@ -19,7 +19,7 @@ import { v } from "convex/values";
 
 /** Haal het Niet Alleen profiel op voor de ingelogde gebruiker. */
 export const getProfile = query({
-  args: { userId: v.string() },
+  args: { userId: v.string(), email: v.optional(v.string()) },
   handler: async (ctx, args) => {
     // Zoek op userId
     const byUserId = await ctx.db
@@ -27,11 +27,15 @@ export const getProfile = query({
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .first();
     if (byUserId) return byUserId;
-    // Fallback: zoek op e-mail (userId kan ook een e-mailadres zijn)
-    return await ctx.db
-      .query("nietAlleenProfiles")
-      .withIndex("by_email", (q) => q.eq("email", args.userId))
-      .first() ?? null;
+    // Fallback: zoek op e-mail
+    const lookupEmail = args.email ?? (args.userId.includes("@") ? args.userId : null);
+    if (lookupEmail) {
+      return await ctx.db
+        .query("nietAlleenProfiles")
+        .withIndex("by_email", (q) => q.eq("email", lookupEmail))
+        .first() ?? null;
+    }
+    return null;
   },
 });
 

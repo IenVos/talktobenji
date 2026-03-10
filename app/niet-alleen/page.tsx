@@ -58,10 +58,11 @@ function NietAlleenPageInner() {
   const opnameActiefRef = useRef(false);
 
   const userId = (session?.user as any)?.id ?? session?.user?.email ?? "";
+  const userEmail = session?.user?.email ?? "";
 
   const profiel = useQuery(
     api.nietAlleen.getProfile,
-    userId ? { userId } : "skip"
+    userId ? { userId, email: userEmail } : "skip"
   );
 
   const setVerliesType = useMutation(api.nietAlleen.setVerliesType);
