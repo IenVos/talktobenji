@@ -406,7 +406,19 @@ function NietAlleenPageInner() {
           <button onClick={() => setBekijkDag(null)} className="flex items-center gap-1.5 text-sm" style={{ color: "#8a8078" }}>
             <ChevronLeft size={16} /> Terug naar vandaag
           </button>
-          <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {bekijkDag} van 30</span>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => navigeerNaarDag(Math.max(1, bekijkDag - 1))} disabled={bekijkDag <= 1}
+              className="w-6 h-6 flex items-center justify-center rounded text-base transition-all disabled:opacity-20"
+              style={{ color: "#8a8078" }}>
+              ‹
+            </button>
+            <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {bekijkDag} van 30</span>
+            <button onClick={() => navigeerNaarDag(bekijkDag + 1)} disabled={bekijkDag >= dagNummer}
+              className="w-6 h-6 flex items-center justify-center rounded text-base transition-all disabled:opacity-20"
+              style={{ color: "#8a8078" }}>
+              ›
+            </button>
+          </div>
         </div>
         <div className="max-w-lg mx-auto px-6 py-6 space-y-5">
           <div className="space-y-2">
@@ -484,20 +496,6 @@ function NietAlleenPageInner() {
             </>
           )}
 
-          {/* Dag-navigatie */}
-          <div className="flex items-center justify-end gap-3 pt-1">
-            <button onClick={() => navigeerNaarDag(Math.max(1, bekijkDag - 1))} disabled={bekijkDag <= 1}
-              className="w-8 h-8 flex items-center justify-center rounded-full border text-sm transition-all disabled:opacity-30"
-              style={{ borderColor: "#d4ccc4", color: "#6b6460" }}>
-              ‹
-            </button>
-            <span className="text-sm font-medium" style={{ color: "#6b6460" }}>{bekijkDag}</span>
-            <button onClick={() => navigeerNaarDag(bekijkDag + 1)} disabled={bekijkDag >= dagNummer}
-              className="w-8 h-8 flex items-center justify-center rounded-full border text-sm transition-all disabled:opacity-30"
-              style={{ borderColor: "#d4ccc4", color: "#6b6460" }}>
-              ›
-            </button>
-          </div>
         </div>
       </div>
     );
