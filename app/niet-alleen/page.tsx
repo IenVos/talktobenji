@@ -100,9 +100,9 @@ function NietAlleenPageInner() {
 
   // Scherm bepalen
   useEffect(() => {
-    if (status === "loading" || profiel === undefined) return;
-
+    if (status === "loading") return;
     if (status === "unauthenticated") { setScherm("geen_toegang"); return; }
+    if (profiel === undefined) return;
 
     if (!profiel || profiel.accountGesloten) {
       setScherm(profiel?.accountGesloten ? "gesloten" : "geen_toegang");
