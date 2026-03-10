@@ -191,6 +191,8 @@ export const maakTestProfiel = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
     const startDatum = now - args.dagOffset * 86400000;
+    // "scheiding" is een oud label — normaliseer naar "relatie"
+    const verliesType = (args.verliesType === "scheiding" ? "relatie" : args.verliesType) as any;
 
     const bestaand = await ctx.db
       .query("nietAlleenProfiles")
@@ -201,7 +203,7 @@ export const maakTestProfiel = mutation({
       await ctx.db.patch(bestaand._id, {
         userId: args.userId,
         naam: args.naam,
-        verliesType: args.verliesType as any,
+        verliesType,
         startDatum,
         accountGesloten: false,
         updatedAt: now,
@@ -213,7 +215,7 @@ export const maakTestProfiel = mutation({
       userId: args.userId,
       email: args.email,
       naam: args.naam,
-      verliesType: args.verliesType as any,
+      verliesType,
       startDatum,
       dagPrompts: [],
       createdAt: now,
