@@ -175,6 +175,54 @@ export const activeerEnStuurWelkom = action({
 });
 
 // ─────────────────────────────────────────
+// ─────────────────────────────────────────
+// Testprofiel aanmaken (admin)
+// ─────────────────────────────────────────
+
+/** Maak een testprofiel voor een bestaand account — alleen voor testing. */
+export const maakTestProfiel = mutation({
+  args: {
+    userId: v.string(),
+    email: v.string(),
+    naam: v.string(),
+    verliesType: v.string(),
+    dagOffset: v.number(), // 0 = vandaag dag 1, 5 = 5 dagen geleden gestart (dag 6 nu)
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const startDatum = now - args.dagOffset * 86400000;
+
+    const bestaand = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (bestaand) {
+      await ctx.db.patch(bestaand._id, {
+        userId: args.userId,
+        naam: args.naam,
+        verliesType: args.verliesType as any,
+        startDatum,
+        accountGesloten: false,
+        updatedAt: now,
+      });
+      return "bijgewerkt";
+    }
+
+    await ctx.db.insert("nietAlleenProfiles", {
+      userId: args.userId,
+      email: args.email,
+      naam: args.naam,
+      verliesType: args.verliesType as any,
+      startDatum,
+      dagPrompts: [],
+      createdAt: now,
+      updatedAt: now,
+    });
+    return "aangemaakt";
+  },
+});
+
 // INTERNAL — voor webhook en cron
 // ─────────────────────────────────────────
 

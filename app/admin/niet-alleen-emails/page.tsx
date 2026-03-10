@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
-import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical } from "lucide-react";
+import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus } from "lucide-react";
+import { useMutation } from "convex/react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
 
 type TemplateKey = "niet_alleen_welkom" | "niet_alleen_dag" | "niet_alleen_dag28" | "niet_alleen_dag30";
@@ -175,6 +176,93 @@ const VERLIES_TYPES_TEST = [
   { key: "scheiding", label: "Scheiding / relatie" },
 ];
 
+function TestProfielBlok() {
+  const maakTestProfiel = useMutation(api.nietAlleen.maakTestProfiel);
+  const [userId, setUserId] = useState("");
+  const [email, setEmail] = useState("");
+  const [naam, setNaam] = useState("");
+  const [verliesType, setVerliesType] = useState("persoon");
+  const [dagOffset, setDagOffset] = useState(0);
+  const [bezig, setBezig] = useState(false);
+  const [resultaat, setResultaat] = useState("");
+  const [fout, setFout] = useState("");
+
+  const handleMaak = async () => {
+    if (!userId || !email || !naam || bezig) return;
+    setBezig(true);
+    setResultaat("");
+    setFout("");
+    try {
+      const res = await maakTestProfiel({ userId, email, naam, verliesType, dagOffset });
+      setResultaat(`Profiel ${res}! Ga naar talktobenji.com/niet-alleen om te testen.`);
+    } catch (e: any) {
+      setFout(e?.message ?? "Onbekende fout");
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-4">
+      <div className="flex items-center gap-2">
+        <UserPlus className="w-4 h-4 text-blue-600" />
+        <h2 className="text-sm font-semibold text-blue-800">Testprofiel aanmaken</h2>
+      </div>
+      <p className="text-xs text-blue-700">
+        Maak een Niet Alleen profiel aan voor een bestaand account. Als het profiel al bestaat wordt het bijgewerkt.
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">UserId (uit NextAuth)</label>
+          <input type="text" value={userId} onChange={(e) => setUserId(e.target.value)}
+            placeholder="user_id of email" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">E-mailadres</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+            placeholder="jouw@email.nl" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Naam</label>
+          <input type="text" value={naam} onChange={(e) => setNaam(e.target.value)}
+            placeholder="Voornaam" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Startdag simuleren</label>
+          <select value={dagOffset} onChange={(e) => setDagOffset(Number(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none">
+            {[0,1,2,3,4,5,6,7,10,13,14,15,17,18,20,21,25,27,28,29].map(d => (
+              <option key={d} value={d}>Dag {d + 1} (gestart {d} dagen geleden)</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-gray-600 mb-1">Verliestype</label>
+        <div className="flex gap-2">
+          {VERLIES_TYPES_TEST.map((t) => (
+            <button key={t.key} onClick={() => setVerliesType(t.key)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+              style={{ background: verliesType === t.key ? "#3b82f6" : "white", color: verliesType === t.key ? "white" : "#6b7280", borderColor: verliesType === t.key ? "#3b82f6" : "#d1d5db" }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <button onClick={handleMaak} disabled={!userId || !email || !naam || bezig}
+          className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
+          style={{ background: "#3b82f6" }}>
+          <UserPlus size={14} />
+          {bezig ? "Bezig…" : "Maak testprofiel"}
+        </button>
+        {resultaat && <span className="text-sm text-green-600">{resultaat}</span>}
+        {fout && <span className="text-sm text-red-600">{fout}</span>}
+      </div>
+    </div>
+  );
+}
+
 function TestEmailBlok() {
   const stuurTestEmails = useAction(api.nietAlleen.stuurTestEmails);
   const [email, setEmail] = useState("");
@@ -292,6 +380,7 @@ export default function NietAlleenEmailsPage() {
         </p>
       </div>
 
+      <TestProfielBlok />
       <TestEmailBlok />
 
       {keys.map((key) => {
