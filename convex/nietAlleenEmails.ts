@@ -142,7 +142,7 @@ export const sendDagMail = internalAction({
     mailTekst = vervangVerliesNaam(mailTekst, args.verliesNaam, args.verliesType);
 
     const voornaam = args.naam.split(" ")[0];
-    const knopHtml = knop("Schrijf vandaag", `https://talktobenji.com/niet-alleen?dag=${args.dagNummer}`);
+    const knopHtml = knop("Deel vandaag", `https://talktobenji.com/niet-alleen?dag=${args.dagNummer}`);
 
     const html = wrapperBenji(`
       <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
@@ -257,7 +257,7 @@ export const stuurAlleEmailsTest = internalAction({
       const subject = inhoud?.subject ?? `Dag ${dag}`;
       let mailTekst = getMailTekst(dag, vType);
       mailTekst = vervangVerliesNaam(mailTekst, undefined, vType);
-      const knopHtml = knop("Schrijf vandaag", `https://talktobenji.com/niet-alleen?dag=${dag}`);
+      const knopHtml = knop("Deel vandaag", `https://talktobenji.com/niet-alleen?dag=${dag}`);
 
       await verstuurEmail({
         to: args.email,
