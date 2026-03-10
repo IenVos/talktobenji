@@ -1072,7 +1072,7 @@ Over twee dagen zijn je 30 dagen klaar. Benji`,
     mail: {
       persoon: `Nog één dag.
 
-Verlies hoeft geen plek te zijn die je achter je laat. Het wordt een deel van wie je bent — niet als gewicht, maar als verhaal.
+Verlies hoeft geen plek te zijn die je achter je laat. Het wordt een deel van wie je bent, niet als gewicht, maar als verhaal.
 
 Je hebt de afgelopen weken woorden gegeven aan iets wat moeilijk te verwoorden is. Dat verandert je. Niet zodat je voorbij het verlies gaat, maar zodat je ermee verder kunt.
 
@@ -1084,9 +1084,9 @@ Morgen de laatste dag. Benji`,
 
       huisdier: `Nog één dag.
 
-De afwezigheid van hem of haar wordt een deel van wie je bent — niet als pijn die je meesjouwt, maar als herinnering die bij je hoort.
+De afwezigheid van hem of haar wordt een deel van wie je bent, niet als pijn die je meesjouwt, maar als herinnering die bij je hoort.
 
-Je hebt de afgelopen weken stilgestaan bij wat er was. Dat is niet niets.
+Je hebt de afgelopen weken stilgestaan bij wat er was. Dat is niet niks.
 
 Hoe ga jij verder met dit gemis als deel van je? Wat neem je mee?
 

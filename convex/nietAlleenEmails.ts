@@ -155,6 +155,31 @@ export const sendDagMail = internalAction({
 });
 
 // ─────────────────────────────────────────
+// Dag 15 — halverwege check-in (Benji-ondertekening)
+// ─────────────────────────────────────────
+
+export const sendHalverwegeMail = internalAction({
+  args: { email: v.string(), naam: v.string() },
+  handler: async (ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) return;
+
+    const template = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "niet_alleen_dag15" });
+    const subject = template?.subject ?? DEFAULT_TEMPLATES.niet_alleen_dag15.subject;
+    const bodyText = template?.bodyText ?? DEFAULT_TEMPLATES.niet_alleen_dag15.bodyText;
+    const voornaam = args.naam.split(" ")[0];
+
+    const html = wrapperBenji(`
+      <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
+      ${alineaHtml(bodyText)}
+      ${knop("Bekijk wat er meer is", "https://talktobenji.com/niet-alleen/ontdek")}
+    `);
+
+    await verstuurEmail({ to: args.email, subject, html, apiKey: RESEND_API_KEY });
+  },
+});
+
+// ─────────────────────────────────────────
 // Dag 28 — voorbereidingsmail (Ien-ondertekening)
 // ─────────────────────────────────────────
 
@@ -229,8 +254,9 @@ export const stuurAlleEmailsTest = internalAction({
     const vType = args.verliesType;
 
     // Templates ophalen
-    const [tWelkom, tDag28, tDag30] = await Promise.all([
+    const [tWelkom, tDag15, tDag28, tDag30] = await Promise.all([
       ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "niet_alleen_welkom" }),
+      ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "niet_alleen_dag15" }),
       ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "niet_alleen_dag28" }),
       ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "niet_alleen_dag30" }),
     ]);
@@ -270,6 +296,23 @@ export const stuurAlleEmailsTest = internalAction({
         apiKey: RESEND_API_KEY,
       });
       await wacht();
+
+      // Dag 15: halverwege check-in
+      if (dag === 15) {
+        const dag15Subject = tDag15?.subject ?? DEFAULT_TEMPLATES.niet_alleen_dag15.subject;
+        const dag15Body = tDag15?.bodyText ?? DEFAULT_TEMPLATES.niet_alleen_dag15.bodyText;
+        await verstuurEmail({
+          to: args.email,
+          subject: dag15Subject,
+          html: wrapperBenji(`
+            <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
+            ${alineaHtml(dag15Body)}
+            ${knop("Bekijk wat er meer is", "https://talktobenji.com/niet-alleen/ontdek")}
+          `),
+          apiKey: RESEND_API_KEY,
+        });
+        await wacht();
+      }
 
       // Dag 28: ook voorbereidingsmail
       if (dag === 28) {

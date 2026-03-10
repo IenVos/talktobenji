@@ -270,14 +270,34 @@ export const getAllActieveProfielen = internalQuery({
 export const markMailVerzonden = internalMutation({
   args: {
     profileId: v.id("nietAlleenProfiles"),
-    dag: v.union(v.literal(28), v.literal(30)),
+    dag: v.union(v.literal(15), v.literal(28), v.literal(30)),
   },
   handler: async (ctx, args) => {
     const patch =
-      args.dag === 28
+      args.dag === 15
+        ? { dag15MailVerzonden: true }
+        : args.dag === 28
         ? { dag28MailVerzonden: true }
         : { dag30MailVerzonden: true };
     await ctx.db.patch(args.profileId, { ...patch, updatedAt: Date.now() });
+  },
+});
+
+/** Geeft alle dag-foto-URL's terug voor een gebruiker (voor de dagboek-pagina). */
+export const getAllDagFotoUrls = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+    if (!profiel) return [];
+    const result: { dag: number; url: string | null }[] = [];
+    for (const foto of profiel.dagFotos ?? []) {
+      const url = await ctx.storage.getUrl(foto.storageId);
+      result.push({ dag: foto.dag, url });
+    }
+    return result;
   },
 });
 
@@ -321,6 +341,18 @@ export const processNietAlleenUsers = internalAction({
           dagNummer,
           verliesType: profiel.verliesType ?? "anders",
           verliesNaam: profiel.verliesNaam,
+        });
+      }
+
+      // Dag 15: halverwege check-in (eenmalig)
+      if (dagNummer === 15 && !profiel.dag15MailVerzonden) {
+        await ctx.runAction(internal.nietAlleenEmails.sendHalverwegeMail, {
+          email: profiel.email,
+          naam: profiel.naam,
+        });
+        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, {
+          profileId: profiel._id,
+          dag: 15,
         });
       }
 

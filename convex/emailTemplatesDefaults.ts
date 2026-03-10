@@ -20,13 +20,34 @@ export const DEFAULT_TEMPLATES = {
     subject: "Dag {dag}, jouw moment van vandaag",
     bodyText: `Geen zin vandaag? Dat is ook goed. De pagina blijft open staan.`,
   },
+  niet_alleen_dag15: {
+    subject: "Je bent halverwege — hoe gaat het?",
+    bodyText: `Je bent nu halverwege je 30 dagen. Dat is al zoveel.
+
+We wilden even vragen: hoe gaat het? Niet hoe je denkt te moeten gaan. Maar echt.
+
+De afgelopen twee weken heb je elke dag een klein stukje geopend. Dat is niet vanzelfsprekend als je in verdriet zit.
+
+Wist je trouwens dat er naast Niet Alleen nog meer is bij TalkToBenji? Je kunt er gesprekken voeren met Benji, herinneringen bewaren, en altijd terugkijken op wat je hebt geschreven. Geen druk, maar we wilden je het laten weten — het is er als je het ooit nodig hebt.
+
+Tot morgen,
+Benji`,
+  },
   niet_alleen_dag28: {
     subject: "Nog twee dagen en wat er daarna is",
     bodyText: `Over twee dagen zijn je 30 dagen klaar. Wat je hebt geschreven, is van jou. Het verdwijnt niet zomaar.\n\nOp dag 30 sturen we je een overzicht van alles wat je hebt ingevuld, zodat je het kunt bewaren. Wil je daarna gewoon verdergaan? Dan kun je je account omzetten naar een volledig abonnement.`,
   },
   niet_alleen_dag30: {
-    subject: "Je 30 dagen zijn klaar, bewaar wat je hebt geschreven",
-    bodyText: `Je hebt het gedaan. 30 dagen. Dat is iets om bij stil te staan.\n\nJe kunt alles wat je hebt geschreven downloaden of printen als persoonlijke herinnering. Je kunt ook alles bewaren door een volledig account te nemen. Je hebt daar nog 7 dagen de tijd voor.`,
+    subject: "Je 30 dagen zijn klaar — dit is voor jou",
+    bodyText: `Je hebt het gedaan. 30 dagen lang ben je er geweest voor jezelf. Dat is meer dan het klinkt.
+
+Alles wat je hebt geschreven kun je nu bekijken en downloaden als persoonlijk dagboek, een herinnering die helemaal van jou is.
+
+En als je verder wilt: TalkToBenji is er voor als je behoefte hebt aan een luisterend oor. Je kunt er gesprekken voeren met Benji, herinneringen bewaren in je eigen vault, en altijd terugkijken op wat je hebt geschreven. Geen verplichting, maar de deur staat open.
+
+Je hebt nog 7 dagen om alles te bewaren en te beslissen wat je wilt.
+
+We zijn blij dat je er was.`,
   },
 } as const;
 

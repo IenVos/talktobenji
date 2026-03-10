@@ -519,6 +519,7 @@ export default defineSchema({
       storageId: v.id("_storage"),
       uploadedAt: v.number(),
     }))),
+    dag15MailVerzonden: v.optional(v.boolean()),
     dag28MailVerzonden: v.optional(v.boolean()),
     dag30MailVerzonden: v.optional(v.boolean()),
     dag37Verwerkt: v.optional(v.boolean()),

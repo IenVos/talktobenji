@@ -54,6 +54,7 @@ function NietAlleenPageInner() {
   const bekijkFotoInputRef = useRef<HTMLInputElement>(null);
   const tekstRef = useRef<HTMLTextAreaElement>(null);
   const herkenningRef = useRef<any>(null);
+  const opnameActiefRef = useRef(false);
 
   const userId = (session?.user as any)?.id ?? session?.user?.email ?? "";
 
@@ -118,27 +119,43 @@ function NietAlleenPageInner() {
   }, [status, profiel, activeDag]);
 
   // Microfoon
+  function stopOpname() {
+    opnameActiefRef.current = false;
+    herkenningRef.current?.stop();
+    setOpname(false);
+  }
+
   function toggleOpname() {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return;
 
     if (opname) {
-      herkenningRef.current?.stop();
-      setOpname(false);
+      stopOpname();
     } else {
       const h = new SR();
       h.lang = "nl-NL";
       h.continuous = true;
       h.interimResults = false;
       h.onresult = (e: any) => {
-        const transcript = Array.from(e.results as any[])
-          .map((r: any) => r[0].transcript)
-          .join(" ");
-        setTekst((prev) => prev + (prev ? " " : "") + transcript);
+        // Alleen nieuwe segmenten toevoegen via resultIndex
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
+            const nieuw = e.results[i][0].transcript.trim();
+            if (nieuw) setTekst((prev) => prev + (prev.trim() ? " " : "") + nieuw);
+          }
+        }
       };
-      h.onend = () => setOpname(false);
+      // Herstart automatisch na stilte zodat opname doorgaat tot gebruiker stopt
+      h.onend = () => {
+        if (opnameActiefRef.current) {
+          try { h.start(); } catch {}
+        } else {
+          setOpname(false);
+        }
+      };
       h.start();
       herkenningRef.current = h;
+      opnameActiefRef.current = true;
       setOpname(true);
     }
   }
@@ -166,6 +183,7 @@ function NietAlleenPageInner() {
 
   async function handleOpslaan() {
     if (!userId || !tekst.trim() || bezig) return;
+    if (opname) stopOpname();
     setBezig(true);
     try {
       await saveDagPrompt({ userId, dag: activeDag, tekst });
@@ -221,7 +239,11 @@ function NietAlleenPageInner() {
   }
 
   function navigeerNaarDag(dag: number) {
-    setBekijkDag(dag);
+    if (dag >= dagNummer) {
+      setBekijkDag(null);
+    } else {
+      setBekijkDag(dag);
+    }
     setBekijkBewerkModus(false);
     setBekijkOpgeslagen(false);
   }
@@ -469,7 +491,7 @@ function NietAlleenPageInner() {
               ‹
             </button>
             <span className="text-sm font-medium" style={{ color: "#6b6460" }}>{bekijkDag}</span>
-            <button onClick={() => navigeerNaarDag(Math.min(activeDag, bekijkDag + 1))} disabled={bekijkDag >= activeDag}
+            <button onClick={() => navigeerNaarDag(bekijkDag + 1)} disabled={bekijkDag >= dagNummer}
               className="w-8 h-8 flex items-center justify-center rounded-full border text-sm transition-all disabled:opacity-30"
               style={{ borderColor: "#d4ccc4", color: "#6b6460" }}>
               ›
@@ -513,7 +535,19 @@ function NietAlleenPageInner() {
           </div>
         </Link>
 
-        <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {activeDag} van 30</span>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => { setBekijkDag(dagNummer - 1); setBekijkBewerkModus(false); setBekijkOpgeslagen(false); }}
+            disabled={dagNummer <= 1}
+            className="w-6 h-6 flex items-center justify-center rounded text-base transition-all disabled:opacity-20"
+            style={{ color: "#8a8078" }}>
+            ‹
+          </button>
+          <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {activeDag} van 30</span>
+          <button disabled className="w-6 h-6 flex items-center justify-center rounded text-base opacity-20" style={{ color: "#8a8078" }}>
+            ›
+          </button>
+        </div>
       </div>
 
       <div className="max-w-lg mx-auto px-6 py-8 space-y-6">
@@ -623,6 +657,19 @@ function NietAlleenPageInner() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Download dagboek — alleen op dag 30 */}
+        {activeDag === 30 && (
+          <div className="rounded-xl border px-4 py-4 space-y-2" style={{ background: "#f5f0ea", borderColor: "#e2d9cf" }}>
+            <p className="text-sm font-medium" style={{ color: "#3d3530" }}>Je bent bij de laatste dag.</p>
+            <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+              Bekijk en download alles wat je hebt geschreven als persoonlijk dagboek.
+            </p>
+            <Link href="/niet-alleen/dagboek" className="inline-block text-sm font-medium" style={{ color: "#6d84a8" }}>
+              Bekijk jouw dagboek →
+            </Link>
           </div>
         )}
 
