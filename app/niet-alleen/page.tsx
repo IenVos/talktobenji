@@ -354,7 +354,7 @@ function NietAlleenPageInner() {
               {oudeInhoud?.inHetAccount ?? ""}
             </p>
           </div>
-          <div className="w-full rounded-2xl p-4 text-base leading-relaxed border min-h-[200px] whitespace-pre-wrap"
+          <div className="w-full rounded-2xl p-4 text-base leading-relaxed border min-h-[200px] whitespace-pre-wrap break-words overflow-hidden"
             style={{ background: "white", borderColor: "#e8e0d8", color: "#3d3530" }}>
             {oudePrompt?.tekst ?? <span style={{ color: "#c4bdb6" }}>Niets ingevuld op deze dag.</span>}
           </div>
