@@ -361,6 +361,27 @@ function NietAlleenPageInner() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={bekijkFotoUrl} alt={`Foto dag ${bekijkDag}`} className="w-full rounded-xl object-cover max-h-64 border" style={{ borderColor: "#e8e0d8" }} />
           )}
+
+          {/* Dag-navigatie */}
+          <div className="flex items-center justify-end gap-3 pt-2">
+            <button
+              onClick={() => setBekijkDag(Math.max(1, bekijkDag - 1))}
+              disabled={bekijkDag <= 1}
+              className="w-8 h-8 flex items-center justify-center rounded-full border text-sm transition-all disabled:opacity-30"
+              style={{ borderColor: "#d4ccc4", color: "#6b6460" }}
+            >
+              ‹
+            </button>
+            <span className="text-sm font-medium" style={{ color: "#6b6460" }}>{bekijkDag}</span>
+            <button
+              onClick={() => setBekijkDag(Math.min(activeDag, bekijkDag + 1))}
+              disabled={bekijkDag >= activeDag}
+              className="w-8 h-8 flex items-center justify-center rounded-full border text-sm transition-all disabled:opacity-30"
+              style={{ borderColor: "#d4ccc4", color: "#6b6460" }}
+            >
+              ›
+            </button>
+          </div>
         </div>
       </div>
     );
