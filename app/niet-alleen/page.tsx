@@ -46,7 +46,12 @@ function NietAlleenPageInner() {
   const [fotoUploaden, setFotoUploaden] = useState(false);
   const [opname, setOpname] = useState(false);
   const [bekijkDag, setBekijkDag] = useState<number | null>(null);
+  const [bekijkBewerkModus, setBekijkBewerkModus] = useState(false);
+  const [bekijkTekstEdit, setBekijkTekstEdit] = useState("");
+  const [bekijkOpgeslagen, setBekijkOpgeslagen] = useState(false);
+  const [bekijkFotoUploaden, setBekijkFotoUploaden] = useState(false);
   const fotoInputRef = useRef<HTMLInputElement>(null);
+  const bekijkFotoInputRef = useRef<HTMLInputElement>(null);
   const tekstRef = useRef<HTMLTextAreaElement>(null);
   const herkenningRef = useRef<any>(null);
 
@@ -185,6 +190,40 @@ function NietAlleenPageInner() {
       await saveDagFoto({ userId, dag: activeDag, storageId });
     } catch { setFotoPreview(null); }
     finally { setFotoUploaden(false); }
+  }
+
+  async function handleBekijkOpslaan() {
+    if (!userId || !bekijkTekstEdit.trim() || bekijkDag === null) return;
+    try {
+      await saveDagPrompt({ userId, dag: bekijkDag, tekst: bekijkTekstEdit });
+      setBekijkOpgeslagen(true);
+      setBekijkBewerkModus(false);
+      setTimeout(() => setBekijkOpgeslagen(false), 3000);
+    } catch {}
+  }
+
+  async function handleBekijkFotoKiezen(e: React.ChangeEvent<HTMLInputElement>) {
+    const bestand = e.target.files?.[0];
+    if (!bestand || !userId || bekijkDag === null) return;
+    setBekijkFotoUploaden(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const res = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": bestand.type }, body: bestand });
+      const { storageId } = await res.json();
+      await saveDagFoto({ userId, dag: bekijkDag, storageId });
+    } catch {}
+    finally { setBekijkFotoUploaden(false); }
+  }
+
+  function startBewerkModus(tekst: string) {
+    setBekijkTekstEdit(tekst);
+    setBekijkBewerkModus(true);
+  }
+
+  function navigeerNaarDag(dag: number) {
+    setBekijkDag(dag);
+    setBekijkBewerkModus(false);
+    setBekijkOpgeslagen(false);
   }
 
   // ── Laden
@@ -337,6 +376,7 @@ function NietAlleenPageInner() {
   if (bekijkDag !== null) {
     const oudePrompt = profiel?.dagPrompts.find((p) => p.dag === bekijkDag);
     const oudeInhoud = getDagInhoud(bekijkDag, profiel?.verliesType ?? "anders");
+
     return (
       <div className="min-h-screen" style={{ background: "#fdf9f4" }}>
         <div className="flex items-center justify-between px-6 pt-6 pb-2">
@@ -354,32 +394,84 @@ function NietAlleenPageInner() {
               {oudeInhoud?.inHetAccount ?? ""}
             </p>
           </div>
-          <div className="w-full rounded-2xl p-4 text-base leading-relaxed border min-h-[200px] whitespace-pre-wrap break-words overflow-hidden"
-            style={{ background: "white", borderColor: "#e8e0d8", color: "#3d3530" }}>
-            {oudePrompt?.tekst ?? <span style={{ color: "#c4bdb6" }}>Niets ingevuld op deze dag.</span>}
-          </div>
-          {bekijkFotoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={bekijkFotoUrl} alt={`Foto dag ${bekijkDag}`} className="w-full rounded-xl object-cover max-h-64 border" style={{ borderColor: "#e8e0d8" }} />
+
+          {bekijkBewerkModus ? (
+            <>
+              <div className="relative">
+                <textarea
+                  value={bekijkTekstEdit}
+                  onChange={(e) => setBekijkTekstEdit(e.target.value)}
+                  rows={9}
+                  autoFocus
+                  className="w-full rounded-2xl p-4 text-base leading-relaxed resize-none focus:outline-none border"
+                  style={{ background: "white", borderColor: "#6d84a8", color: "#3d3530" }}
+                />
+              </div>
+              <div>
+                <input ref={bekijkFotoInputRef} type="file" accept="image/*" className="hidden" onChange={handleBekijkFotoKiezen} />
+                {bekijkFotoUrl ? (
+                  <div className="relative rounded-xl overflow-hidden border" style={{ borderColor: "#e8e0d8" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={bekijkFotoUrl} alt={`Foto dag ${bekijkDag}`} className="w-full object-cover max-h-64" />
+                    <button onClick={() => bekijkFotoInputRef.current?.click()}
+                      className="absolute top-2 right-2 rounded-full p-1.5 text-white"
+                      style={{ background: "rgba(0,0,0,0.45)" }}>
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <button onClick={() => bekijkFotoInputRef.current?.click()} disabled={bekijkFotoUploaden}
+                    className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl border transition-colors"
+                    style={{ borderColor: "#e8e0d8", color: "#8a8078", background: "white" }}>
+                    <ImagePlus size={16} />
+                    {bekijkFotoUploaden ? "Bezig…" : "Voeg een foto toe"}
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <button onClick={handleBekijkOpslaan} disabled={!bekijkTekstEdit.trim()}
+                  className="px-5 py-2.5 rounded-xl text-sm font-medium text-white"
+                  style={{ background: "#6d84a8" }}>
+                  Opslaan
+                </button>
+                <button onClick={() => setBekijkBewerkModus(false)} className="text-sm" style={{ color: "#b0a8a0" }}>
+                  Annuleren
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-full rounded-2xl p-4 text-base leading-relaxed border min-h-[120px] whitespace-pre-wrap break-words overflow-hidden"
+                style={{ background: "white", borderColor: "#e8e0d8", color: "#3d3530" }}>
+                {oudePrompt?.tekst ?? <span style={{ color: "#c4bdb6" }}>Niets ingevuld op deze dag.</span>}
+              </div>
+              {bekijkFotoUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={bekijkFotoUrl} alt={`Foto dag ${bekijkDag}`} className="w-full rounded-xl object-cover max-h-64 border" style={{ borderColor: "#e8e0d8" }} />
+              )}
+              <div className="flex justify-end">
+                {bekijkOpgeslagen ? (
+                  <span className="text-sm" style={{ color: "#6d84a8" }}>Opgeslagen ✓</span>
+                ) : (
+                  <button onClick={() => startBewerkModus(oudePrompt?.tekst ?? "")} className="text-sm" style={{ color: "#b0a8a0" }}>
+                    Ik wil nog iets wijzigen...
+                  </button>
+                )}
+              </div>
+            </>
           )}
 
           {/* Dag-navigatie */}
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              onClick={() => setBekijkDag(Math.max(1, bekijkDag - 1))}
-              disabled={bekijkDag <= 1}
+          <div className="flex items-center justify-end gap-3 pt-1">
+            <button onClick={() => navigeerNaarDag(Math.max(1, bekijkDag - 1))} disabled={bekijkDag <= 1}
               className="w-8 h-8 flex items-center justify-center rounded-full border text-sm transition-all disabled:opacity-30"
-              style={{ borderColor: "#d4ccc4", color: "#6b6460" }}
-            >
+              style={{ borderColor: "#d4ccc4", color: "#6b6460" }}>
               ‹
             </button>
             <span className="text-sm font-medium" style={{ color: "#6b6460" }}>{bekijkDag}</span>
-            <button
-              onClick={() => setBekijkDag(Math.min(activeDag, bekijkDag + 1))}
-              disabled={bekijkDag >= activeDag}
+            <button onClick={() => navigeerNaarDag(Math.min(activeDag, bekijkDag + 1))} disabled={bekijkDag >= activeDag}
               className="w-8 h-8 flex items-center justify-center rounded-full border text-sm transition-all disabled:opacity-30"
-              style={{ borderColor: "#d4ccc4", color: "#6b6460" }}
-            >
+              style={{ borderColor: "#d4ccc4", color: "#6b6460" }}>
               ›
             </button>
           </div>
@@ -499,23 +591,21 @@ function NietAlleenPageInner() {
             style={{ background: tekst.trim() && !bezig ? "#6d84a8" : "#c4cdd8", cursor: tekst.trim() && !bezig ? "pointer" : "default" }}>
             {opgeslagen ? "Opgeslagen ✓" : bezig ? "Even geduld..." : "Opslaan"}
           </button>
-          {opgeslagen && (
-            <div className="flex justify-end">
-              <button
-                onClick={() => {
-                  setTekst((prev) => prev + "\n\n");
-                  setTimeout(() => {
-                    tekstRef.current?.focus();
-                    tekstRef.current?.setSelectionRange(9999, 9999);
-                  }, 0);
-                }}
-                className="text-sm"
-                style={{ color: "#b0a8a0" }}
-              >
-                Ik wil nog iets toevoegen...
-              </button>
-            </div>
-          )}
+          <div className="flex justify-end">
+            <button
+              onClick={() => {
+                setTekst((prev) => prev + "\n\n");
+                setTimeout(() => {
+                  tekstRef.current?.focus();
+                  tekstRef.current?.setSelectionRange(9999, 9999);
+                }, 0);
+              }}
+              className="text-sm"
+              style={{ color: "#b0a8a0" }}
+            >
+              Ik wil nog iets toevoegen...
+            </button>
+          </div>
         </div>
 
         {/* Vorige dagen terugkijken */}
