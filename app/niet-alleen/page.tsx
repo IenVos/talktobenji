@@ -547,14 +547,18 @@ function NietAlleenPageInner() {
 
         <div className="flex items-center gap-1.5">
           <button
-            onClick={() => { setBekijkDag(dagNummer - 1); setBekijkBewerkModus(false); setBekijkOpgeslagen(false); }}
-            disabled={dagNummer <= 1}
+            onClick={() => navigeerNaarDag(activeDag - 1)}
+            disabled={activeDag <= 1}
             className="w-6 h-6 flex items-center justify-center rounded text-base transition-all disabled:opacity-20"
             style={{ color: "#8a8078" }}>
             ‹
           </button>
           <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {activeDag} van 30</span>
-          <button disabled className="w-6 h-6 flex items-center justify-center rounded text-base opacity-20" style={{ color: "#8a8078" }}>
+          <button
+            onClick={() => navigeerNaarDag(activeDag + 1)}
+            disabled={activeDag >= dagNummer}
+            className="w-6 h-6 flex items-center justify-center rounded text-base transition-all disabled:opacity-20"
+            style={{ color: "#8a8078" }}>
             ›
           </button>
         </div>
