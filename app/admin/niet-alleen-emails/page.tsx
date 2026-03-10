@@ -5,7 +5,7 @@ import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical } from "lucide-react";
-import { DEFAULT_TEMPLATES } from "@/convex/emailTemplates";
+import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
 
 type TemplateKey = "niet_alleen_welkom" | "niet_alleen_dag" | "niet_alleen_dag28" | "niet_alleen_dag30";
 

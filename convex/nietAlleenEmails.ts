@@ -6,7 +6,7 @@
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-import { DEFAULT_TEMPLATES } from "./emailTemplates";
+import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
 import { getDagInhoud, getMailTekst, vervangVerliesNaam } from "./nietAlleenContent";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
@@ -207,5 +207,99 @@ export const sendAfsluitMail = internalAction({
     `);
 
     await verstuurEmail({ to: args.email, subject, html, apiKey: RESEND_API_KEY });
+  },
+});
+
+// ─────────────────────────────────────────
+// Test — stuur alle 32 emails in één action (geen sub-actions)
+// ─────────────────────────────────────────
+
+export const stuurAlleEmailsTest = internalAction({
+  args: {
+    email: v.string(),
+    naam: v.string(),
+    verliesType: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY niet ingesteld");
+
+    const voornaam = args.naam.split(" ")[0];
+    const vType = args.verliesType;
+
+    // Templates ophalen
+    const [tWelkom, tDag28, tDag30] = await Promise.all([
+      ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "niet_alleen_welkom" }),
+      ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "niet_alleen_dag28" }),
+      ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "niet_alleen_dag30" }),
+    ]);
+
+    // 1. Welkomstmail
+    const welkomSubject = tWelkom?.subject ?? DEFAULT_TEMPLATES.niet_alleen_welkom.subject;
+    const welkomBody = tWelkom?.bodyText ?? DEFAULT_TEMPLATES.niet_alleen_welkom.bodyText;
+    await verstuurEmail({
+      to: args.email,
+      subject: welkomSubject,
+      html: wrapperIen(`
+        <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
+        ${alineaHtml(welkomBody)}
+        ${knop("Begin dag 1", "https://talktobenji.com/niet-alleen/welkom")}
+        <p style="font-size: 14px; color: #718096;">Heb je vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color: #6d84a8;">contactmetien@talktobenji.com</a>.</p>
+      `),
+      apiKey: RESEND_API_KEY,
+    });
+
+    // 2. Dag 1 t/m 30
+    for (let dag = 1; dag <= 30; dag++) {
+      const inhoud = getDagInhoud(dag, vType);
+      const subject = inhoud?.subject ?? `Dag ${dag}`;
+      let mailTekst = getMailTekst(dag, vType);
+      mailTekst = vervangVerliesNaam(mailTekst, undefined, vType);
+      const knopHtml = knop("Schrijf vandaag", "https://talktobenji.com/niet-alleen");
+
+      await verstuurEmail({
+        to: args.email,
+        subject,
+        html: wrapperBenji(`
+          <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
+          <p style="font-size: 13px; color: #a0aec0; margin-bottom: 4px;">Dag ${dag} van 30</p>
+          ${renderMailTekst(mailTekst, knopHtml)}
+        `),
+        apiKey: RESEND_API_KEY,
+      });
+
+      // Dag 28: ook voorbereidingsmail
+      if (dag === 28) {
+        const dag28Subject = tDag28?.subject ?? DEFAULT_TEMPLATES.niet_alleen_dag28.subject;
+        const dag28Body = tDag28?.bodyText ?? DEFAULT_TEMPLATES.niet_alleen_dag28.bodyText;
+        await verstuurEmail({
+          to: args.email,
+          subject: dag28Subject,
+          html: wrapperIen(`
+            <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
+            ${alineaHtml(dag28Body)}
+            ${knop("Bekijk wat er meer is", "https://talktobenji.com/niet-alleen/ontdek")}
+          `),
+          apiKey: RESEND_API_KEY,
+        });
+      }
+
+      // Dag 30: ook afsluitmail
+      if (dag === 30) {
+        const dag30Subject = tDag30?.subject ?? DEFAULT_TEMPLATES.niet_alleen_dag30.subject;
+        const dag30Body = (tDag30?.bodyText ?? DEFAULT_TEMPLATES.niet_alleen_dag30.bodyText).replace("{dagen}", "25");
+        await verstuurEmail({
+          to: args.email,
+          subject: dag30Subject,
+          html: wrapperIen(`
+            <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
+            ${alineaHtml(dag30Body)}
+            ${knop("Alles bewaren", "https://talktobenji.com/niet-alleen/ontdek")}
+            <p style="font-size: 14px; color: #718096;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color: #6d84a8;">contactmetien@talktobenji.com</a>.</p>
+          `),
+          apiKey: RESEND_API_KEY,
+        });
+      }
+    }
   },
 });

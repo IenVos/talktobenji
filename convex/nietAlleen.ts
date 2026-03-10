@@ -154,36 +154,11 @@ export const stuurTestEmails = action({
     verliesType: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const vType = args.verliesType ?? "persoon";
-
-    await ctx.runAction(internal.nietAlleenEmails.sendWelkomstMail, {
+    await ctx.runAction(internal.nietAlleenEmails.stuurAlleEmailsTest, {
       email: args.email,
       naam: args.naam,
+      verliesType: args.verliesType ?? "persoon",
     });
-
-    for (let dag = 1; dag <= 30; dag++) {
-      await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
-        email: args.email,
-        naam: args.naam,
-        dagNummer: dag,
-        verliesType: vType,
-      });
-
-      if (dag === 28) {
-        await ctx.runAction(internal.nietAlleenEmails.sendVoorbereidingsMail, {
-          email: args.email,
-          naam: args.naam,
-        });
-      }
-
-      if (dag === 30) {
-        await ctx.runAction(internal.nietAlleenEmails.sendAfsluitMail, {
-          email: args.email,
-          naam: args.naam,
-          aantalDagenIngevuld: 25,
-        });
-      }
-    }
   },
 });
 
