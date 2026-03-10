@@ -127,8 +127,52 @@ export const saveDagPrompt = mutation({
 });
 
 // ─────────────────────────────────────────
-// PUBLIC ACTION — aangeroepen vanuit API route (webhook)
+// PUBLIC ACTIONS
 // ─────────────────────────────────────────
+
+/**
+ * Stuur alle Niet Alleen emails naar een testadres — alleen voor admin testing.
+ * Verstuurt: welkomst + dag 1 t/m 30 + dag28 voorbereiding + dag30 afsluiting.
+ */
+export const stuurTestEmails = action({
+  args: {
+    email: v.string(),
+    naam: v.string(),
+    verliesType: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const vType = args.verliesType ?? "persoon";
+
+    await ctx.runAction(internal.nietAlleenEmails.sendWelkomstMail, {
+      email: args.email,
+      naam: args.naam,
+    });
+
+    for (let dag = 1; dag <= 30; dag++) {
+      await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
+        email: args.email,
+        naam: args.naam,
+        dagNummer: dag,
+        verliesType: vType,
+      });
+
+      if (dag === 28) {
+        await ctx.runAction(internal.nietAlleenEmails.sendVoorbereidingsMail, {
+          email: args.email,
+          naam: args.naam,
+        });
+      }
+
+      if (dag === 30) {
+        await ctx.runAction(internal.nietAlleenEmails.sendAfsluitMail, {
+          email: args.email,
+          naam: args.naam,
+          aantalDagenIngevuld: 25,
+        });
+      }
+    }
+  },
+});
 
 /** Activeer Niet Alleen account + stuur welkomstmail. Wordt aangeroepen vanuit /api/niet-alleen/activate. */
 export const activeerEnStuurWelkom = action({

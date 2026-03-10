@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
-import { Mail, Save, CheckCircle, RotateCcw } from "lucide-react";
+import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical } from "lucide-react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplates";
 
 type TemplateKey = "niet_alleen_welkom" | "niet_alleen_dag" | "niet_alleen_dag28" | "niet_alleen_dag30";
@@ -168,6 +168,108 @@ function TemplateEditor({
   );
 }
 
+const VERLIES_TYPES_TEST = [
+  { key: "persoon", label: "Persoon" },
+  { key: "huisdier", label: "Huisdier" },
+  { key: "scheiding", label: "Scheiding / relatie" },
+];
+
+function TestEmailBlok() {
+  const stuurTestEmails = useAdminMutation(api.nietAlleen.stuurTestEmails as any);
+  const [email, setEmail] = useState("");
+  const [naam, setNaam] = useState("");
+  const [verliesType, setVerliesType] = useState("persoon");
+  const [bezig, setBezig] = useState(false);
+  const [klaar, setKlaar] = useState(false);
+  const [fout, setFout] = useState("");
+
+  const handleTest = async () => {
+    if (!email || !naam || bezig) return;
+    setBezig(true);
+    setKlaar(false);
+    setFout("");
+    try {
+      await stuurTestEmails({ email, naam, verliesType });
+      setKlaar(true);
+      setTimeout(() => setKlaar(false), 5000);
+    } catch (e: any) {
+      setFout(e?.message ?? "Onbekende fout");
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-4">
+      <div className="flex items-center gap-2">
+        <FlaskConical className="w-4 h-4 text-amber-600" />
+        <h2 className="text-sm font-semibold text-amber-800">Test — stuur alle 32 emails naar je inbox</h2>
+      </div>
+      <p className="text-xs text-amber-700">
+        Verstuurt de welkomstmail + alle 30 dagelijkse emails + dag 28 voorbereiding + dag 30 afsluiting.
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">E-mailadres</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="jouw@email.nl"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">Naam</label>
+          <input
+            type="text"
+            value={naam}
+            onChange={(e) => setNaam(e.target.value)}
+            placeholder="Voornaam"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-semibold text-gray-600 mb-1">Verliestype</label>
+        <div className="flex gap-2">
+          {VERLIES_TYPES_TEST.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setVerliesType(t.key)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+              style={{
+                background: verliesType === t.key ? "#f59e0b" : "white",
+                color: verliesType === t.key ? "white" : "#6b7280",
+                borderColor: verliesType === t.key ? "#f59e0b" : "#d1d5db",
+              }}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleTest}
+          disabled={!email || !naam || bezig}
+          className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50"
+          style={{ background: "#f59e0b" }}
+        >
+          <Send size={14} />
+          {bezig ? "Bezig met versturen (even geduld)…" : "Stuur alle 32 emails"}
+        </button>
+        {klaar && (
+          <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+            <CheckCircle size={15} /> Verstuurd!
+          </span>
+        )}
+        {fout && <span className="text-sm text-red-600">{fout}</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function NietAlleenEmailsPage() {
   const templates = useAdminQuery(api.emailTemplates.listTemplates, {});
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
@@ -188,6 +290,8 @@ export default function NietAlleenEmailsPage() {
           Pas de inhoud aan van de automatische e-mails tijdens de 30 dagen begeleiding
         </p>
       </div>
+
+      <TestEmailBlok />
 
       {keys.map((key) => {
         const t = getTemplate(key);
