@@ -16,21 +16,21 @@ export const DEFAULT_TEMPLATES = {
 
   // ── Niet Alleen ────────────────────────────────────────────
   niet_alleen_welkom: {
-    subject: "Welkom bij Niet Alleen — dag 1 begint vandaag",
-    bodyText: `Fijn dat je er bent. De komende 30 dagen lopen we samen met je mee — één dag tegelijk.\n\nElke ochtend ontvang je een kleine vraag. Geen druk, geen goed of fout — gewoon ruimte voor wat er in je leeft.`,
+    subject: "Welkom bij Niet Alleen, dag 1 begint vandaag",
+    bodyText: `Fijn dat je er bent. De komende 30 dagen lopen we samen met je mee, één dag tegelijk.\n\nElke ochtend ontvang je een kleine vraag. Geen druk, geen goed of fout. Gewoon ruimte voor wat er in je leeft.`,
   },
   niet_alleen_dag: {
-    // {dag} wordt vervangen door het dagnummer (1–30)
-    subject: "Dag {dag} — jouw moment van vandaag",
+    // {dag} wordt vervangen door het dagnummer (1 t/m 30)
+    subject: "Dag {dag}, jouw moment van vandaag",
     bodyText: `Geen zin vandaag? Dat is ook goed. De pagina blijft open staan.`,
   },
   niet_alleen_dag28: {
-    subject: "Nog twee dagen — wat er daarna is",
-    bodyText: `Over twee dagen zijn je 30 dagen klaar. Wat je hebt geschreven, is van jou — en het verdwijnt niet zomaar.\n\nOp dag 30 sturen we je een overzicht van alles wat je hebt ingevuld, zodat je het kunt bewaren. Wil je daarna gewoon verdergaan? Dan kun je je account omzetten naar een volledig abonnement.`,
+    subject: "Nog twee dagen en wat er daarna is",
+    bodyText: `Over twee dagen zijn je 30 dagen klaar. Wat je hebt geschreven, is van jou. Het verdwijnt niet zomaar.\n\nOp dag 30 sturen we je een overzicht van alles wat je hebt ingevuld, zodat je het kunt bewaren. Wil je daarna gewoon verdergaan? Dan kun je je account omzetten naar een volledig abonnement.`,
   },
   niet_alleen_dag30: {
-    subject: "Je 30 dagen zijn klaar — bewaar wat je hebt geschreven",
-    bodyText: `Je hebt het gedaan. 30 dagen. Dat is iets om bij stil te staan.\n\nJe kunt alles wat je hebt geschreven bewaren als je een volledig account neemt. Je hebt daar nog 7 dagen de tijd voor — daarna sluit je gratis account.`,
+    subject: "Je 30 dagen zijn klaar, bewaar wat je hebt geschreven",
+    bodyText: `Je hebt het gedaan. 30 dagen. Dat is iets om bij stil te staan.\n\nJe kunt alles wat je hebt geschreven downloaden of printen als persoonlijke herinnering. Je kunt ook alles bewaren door een volledig account te nemen. Je hebt daar nog 7 dagen de tijd voor.`,
   },
 } as const;
 
