@@ -69,6 +69,7 @@ function NietAlleenPageInner() {
   const saveDagPrompt = useMutation(api.nietAlleen.saveDagPrompt);
   const generateUploadUrl = useMutation(api.nietAlleen.generateUploadUrl);
   const saveDagFoto = useMutation(api.nietAlleen.saveDagFoto);
+  const sluitOefening = useMutation(api.nietAlleen.sluitOefening);
 
   const dagNummer = profiel?.startDatum
     ? Math.min(30, Math.floor((Date.now() - profiel.startDatum) / 86400000) + 1)
@@ -383,6 +384,14 @@ function NietAlleenPageInner() {
     );
   }
 
+  // ── Luisteroefeningen (dag 2, 12, 18) ───────────────────
+  const OEFENING_DAGEN = [2, 12, 18];
+  const OEFENING_TEKSTEN: Record<number, string> = {
+    2: "Ga zitten zoals je zit. Je hoeft niets te veranderen.\n\nLeg een hand op je borst als dat goed voelt. Voel hoe je ademhaalt — niet om het te veranderen, alleen om het te merken.\n\nEr is een moment dat je vandaag gaat aanraken. Dat vraagt iets van je. Je lichaam weet dat al, ook voor je begint.\n\nAdem één keer langzaam in. Gewoon een ademhaling die iets ruimer is dan de vorige.\n\nEn terwijl je uitademt: je hoeft dit moment niet te dragen alsof het te zwaar is om aan te raken. Je mag er gewoon naar kijken. Van een kleine afstand. Het is van jou, het gaat nergens heen.\n\nNog één ademhaling. En dan begin je, als je er klaar voor bent.",
+    12: "Er zijn dingen die we met ons meedragen zonder dat we ze een naam geven. Onuitgesproken woorden. Gemiste momenten. Dingen die er niet van zijn gekomen.\n\nDat gewicht zit ergens in je lichaam. Misschien in je keel. Misschien in je schouders. Misschien dieper.\n\nLeg je handen in je schoot. Voel het gewicht van je eigen handen.\n\nAdem in — en stel je voor dat je even ruimte maakt voor wat er is. Niet om het op te lossen. Alleen om het een plek te geven naast je, in plaats van in je.\n\nAdem uit — en laat je schouders zakken, ook als ze maar een millimeter zakken.\n\nWat onafgemaakt is gebleven hoeft vandaag niet af te worden. Je schrijft het alleen op. Dat is genoeg.",
+    18: "Boosheid heeft een slechte reputatie. We leren vroeg dat we hem moeten inslikken, ombuigen, verklaren. Maar boosheid is informatie. Het vertelt je wat je belangrijk vond. Wat je pijn heeft gedaan. Wat er niet klopte.\n\nVoordat je schrijft: laat de boosheid er even gewoon zijn, zonder er iets mee te doen.\n\nAdem in door je neus. Voel of er spanning zit in je kaak, je handen, je buik. Je hoeft het niet weg te ademen.\n\nAdem uit door je mond, iets langzamer dan normaal.\n\nZeg in jezelf, of hardop als je dat wilt: het is logisch dat ik boos ben.\n\nNiet als oordeel. Niet als excuus. Gewoon als erkenning.\n\nNog één keer. En dan schrijf je.",
+  };
+
   // ── Dag weergave ──────────────────────────────────────────
   const dagInhoud = getDagInhoud(activeDag, profiel?.verliesType ?? "anders");
   const isVolledigeGebruiker =
@@ -391,6 +400,8 @@ function NietAlleenPageInner() {
   const toonSideMenu = MENU_DAGEN.includes(activeDag) && !isVolledigeGebruiker;
   const toonUpsellOnder = UPSELL_DAGEN.includes(activeDag) && !isVolledigeGebruiker;
   const huidigeFotoUrl = fotoPreview ?? fotoUrl ?? null;
+  const oefeningGesloten = profiel?.nietAlleenOefeningGesloten ?? [];
+  const toonOefening = OEFENING_DAGEN.includes(activeDag) && !oefeningGesloten.includes(activeDag);
 
   // Terugkijken: ingevulde dagen sorteren
   const ingevuldeDagen = [...(profiel?.dagPrompts ?? [])].sort((a, b) => a.dag - b.dag);
@@ -572,6 +583,59 @@ function NietAlleenPageInner() {
             </p>
           )}
         </div>
+
+        {/* Luisteroefening — alleen op dag 2, 12, 18 als niet gesloten */}
+        {toonOefening && (
+          <>
+            <style>{`
+              @keyframes adem {
+                0%   { width: 60px; height: 60px; opacity: 0.55; }
+                33%  { width: 110px; height: 110px; opacity: 0.75; }
+                41%  { width: 110px; height: 110px; opacity: 0.75; }
+                91%  { width: 60px; height: 60px; opacity: 0.55; }
+                100% { width: 60px; height: 60px; opacity: 0.55; }
+              }
+            `}</style>
+            <div className="rounded-2xl border relative" style={{ background: "#f0ebe4", borderColor: "#e8e0d8", padding: "1.25rem 1rem 1.5rem" }}>
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>
+                  Even landen voordat je schrijft
+                </p>
+                <button
+                  onClick={async () => {
+                    if (!userId) return;
+                    try { await sluitOefening({ userId, dag: activeDag }); } catch {}
+                  }}
+                  className="text-base leading-none ml-2 flex-shrink-0"
+                  style={{ color: "#b0a8a0", lineHeight: 1 }}
+                  title="Sluit oefening"
+                >
+                  ×
+                </button>
+              </div>
+              <div className="space-y-2 text-sm leading-relaxed mb-4" style={{ color: "#6b6460" }}>
+                {OEFENING_TEKSTEN[activeDag]?.split("\n\n").map((alinea, i) => (
+                  <p key={i}>{alinea}</p>
+                ))}
+              </div>
+              <p className="text-sm italic mb-5" style={{ color: "#8a8078" }}>
+                Volg de cirkel met je adem — hij ademt voor je.
+              </p>
+              <div className="flex justify-center">
+                <div
+                  style={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: "50%",
+                    background: "rgba(109, 132, 168, 0.4)",
+                    boxShadow: "0 0 24px 8px rgba(109, 132, 168, 0.18)",
+                    animation: "adem 12s ease-in-out infinite",
+                  }}
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Schrijfveld + microfoon */}
         <div className="relative">

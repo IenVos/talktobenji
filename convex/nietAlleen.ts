@@ -303,6 +303,46 @@ export const saveAnker = mutation({
   },
 });
 
+/** Sla een terugblik op voor een specifieke dag (append of replace voor die dag). */
+export const saveTerugblik = mutation({
+  args: { userId: v.string(), dag: v.number(), tekst: v.string() },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+    if (!profiel) throw new Error("Profiel niet gevonden");
+    const andereTerugblikken = (profiel.nietAlleenTerugblik ?? []).filter(
+      (t) => t.dag !== args.dag
+    );
+    await ctx.db.patch(profiel._id, {
+      nietAlleenTerugblik: [
+        ...andereTerugblikken,
+        { dag: args.dag, tekst: args.tekst, opgeslagenOp: Date.now() },
+      ],
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/** Voeg een dagnummer toe aan de gesloten oefeningen array. */
+export const sluitOefening = mutation({
+  args: { userId: v.string(), dag: v.number() },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+    if (!profiel) throw new Error("Profiel niet gevonden");
+    const huidig = profiel.nietAlleenOefeningGesloten ?? [];
+    if (huidig.includes(args.dag)) return;
+    await ctx.db.patch(profiel._id, {
+      nietAlleenOefeningGesloten: [...huidig, args.dag],
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 /** Geeft alle dag-foto-URL's terug voor een gebruiker (voor de dagboek-pagina). */
 export const getAllDagFotoUrls = query({
   args: { userId: v.string() },

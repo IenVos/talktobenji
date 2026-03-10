@@ -20,9 +20,11 @@ function AnkerPageInner() {
 
   const profiel = useQuery(api.nietAlleen.getProfile, userId ? { userId } : "skip");
   const saveAnker = useMutation(api.nietAlleen.saveAnker);
+  const saveTerugblik = useMutation(api.nietAlleen.saveTerugblik);
 
   const [geselecteerd, setGeselecteerd] = useState<string | null>(null);
   const [eigenTekst, setEigenTekst] = useState("");
+  const [terugblikTekst, setTerugblikTekst] = useState("");
   const [opgeslagen, setOpgeslagen] = useState(false);
   const [bezig, setBezig] = useState(false);
 
@@ -42,11 +44,22 @@ function AnkerPageInner() {
   const alOpgeslagen = profiel?.nietAlleenAnker?.opgeslagenOpDag === dag;
   const gekozenTekst = eigenTekst.trim() || geselecteerd;
 
+  const TERUGBLIK_DAGEN = [7, 14, 21];
+  const TERUGBLIK_VRAGEN: Record<number, string> = {
+    7: "Een week geleden begon je hier. Je hebt zeven dagen woorden gegeven aan iets wat moeilijk te verwoorden is. Wat heeft deze week je gebracht? Niet wat je had verwacht of gehoopt. Maar wat er echt was — een inzicht, een gevoel, een moment van herkenning, of juist een dag waarop het zwaarder was dan de andere.",
+    14: "Twee weken. Je hebt herinneringen aangeraakt die je misschien al een tijdje niet had durven aanraken. Wat heeft deze week je het meest geraakt? En is er iets wat je anders ziet dan een week geleden — over het verlies, over jezelf, of over wat je nodig hebt?",
+    21: "Drie weken. Je bent veranderd in deze tijd, ook als je dat van binnenuit misschien niet zo voelt. Kijk terug op de afgelopen week. Wat was zwaar? Wat was onverwacht licht? En wat neem je mee naar de laatste negen dagen?",
+  };
+  const toonTerugblik = dag !== null && TERUGBLIK_DAGEN.includes(dag);
+
   async function handleOpslaan() {
     if (!gekozenTekst || !userId || bezig) return;
     setBezig(true);
     try {
       await saveAnker({ userId, tekst: gekozenTekst, dag: dag! });
+      if (terugblikTekst.trim() && dag !== null) {
+        await saveTerugblik({ userId, dag, tekst: terugblikTekst.trim() });
+      }
       setOpgeslagen(true);
       setTimeout(() => router.push("/niet-alleen"), 1800);
     } finally {
@@ -80,6 +93,26 @@ function AnkerPageInner() {
             <span key={i}>{regel}{i < inhoud.tekst.split("\n").length - 1 && <br />}</span>
           ))}
         </p>
+
+        {/* Terugblikvraag — alleen op dag 7, 14, 21 */}
+        {toonTerugblik && !alOpgeslagen && !opgeslagen && (
+          <>
+            <div className="space-y-3">
+              <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+                {TERUGBLIK_VRAGEN[dag!]}
+              </p>
+              <textarea
+                value={terugblikTekst}
+                onChange={(e) => setTerugblikTekst(e.target.value)}
+                placeholder="Schrijf hier je terugblik... (optioneel)"
+                rows={5}
+                className="w-full rounded-2xl p-4 text-base leading-relaxed resize-none focus:outline-none border"
+                style={{ background: "white", borderColor: terugblikTekst ? "#6d84a8" : "#e8e0d8", color: "#3d3530" }}
+              />
+            </div>
+            <hr style={{ borderColor: "#e8e0d8", borderTopWidth: 1 }} />
+          </>
+        )}
 
         {alOpgeslagen && !opgeslagen ? (
           /* Al opgeslagen — toon bevestiging */

@@ -524,6 +524,12 @@ export default defineSchema({
       opgeslagenOpDag: v.number(),
       opgeslagenOp: v.number(),
     })),
+    nietAlleenTerugblik: v.optional(v.array(v.object({
+      dag: v.number(),
+      tekst: v.string(),
+      opgeslagenOp: v.number(),
+    }))),
+    nietAlleenOefeningGesloten: v.optional(v.array(v.number())),
     dag15MailVerzonden: v.optional(v.boolean()),
     dag28MailVerzonden: v.optional(v.boolean()),
     dag30MailVerzonden: v.optional(v.boolean()),
