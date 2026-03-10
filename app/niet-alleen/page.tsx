@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { getDagInhoud } from "@/convex/nietAlleenContent";
@@ -30,8 +31,10 @@ const MENU_DAGEN = [10, 18, 24, 28, 29, 30];
 // Dagen waarop het upsell-blok onderaan zichtbaar is
 const UPSELL_DAGEN = [24, 28, 30];
 
-export default function NietAlleenPage() {
+function NietAlleenPageInner() {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
+  const dagParam = searchParams?.get("dag");
   const [scherm, setScherm] = useState<Scherm>("laden");
   const [stapOnboarding, setStapOnboarding] = useState<StapOnboarding>("verlies");
   const [geselecteerdType, setGeselecteerdType] = useState<string | null>(null);
@@ -63,7 +66,10 @@ export default function NietAlleenPage() {
     ? Math.min(30, Math.floor((Date.now() - profiel.startDatum) / 86400000) + 1)
     : 1;
 
-  const huidigeStorageId = profiel?.dagFotos?.find((f) => f.dag === dagNummer)?.storageId;
+  // Als er een ?dag=X param in de URL staat (vanuit email-link), gebruik die dag
+  const activeDag = dagParam ? Math.min(30, Math.max(1, parseInt(dagParam))) : dagNummer;
+
+  const huidigeStorageId = profiel?.dagFotos?.find((f) => f.dag === activeDag)?.storageId;
   const fotoUrl = useQuery(
     api.nietAlleen.getDagFotoUrl,
     huidigeStorageId ? { storageId: huidigeStorageId } : { storageId: undefined }
@@ -99,11 +105,11 @@ export default function NietAlleenPage() {
     const dag = Math.floor((Date.now() - profiel.startDatum) / 86400000) + 1;
     if (dag > 30) { setScherm("afgerond"); return; }
 
-    const vandaag = profiel.dagPrompts.find((p) => p.dag === dagNummer);
+    const vandaag = profiel.dagPrompts.find((p) => p.dag === activeDag);
     if (vandaag) setTekst(vandaag.tekst);
 
     setScherm("dag");
-  }, [status, profiel, dagNummer]);
+  }, [status, profiel, activeDag]);
 
   // Microfoon
   function toggleOpname() {
@@ -156,7 +162,7 @@ export default function NietAlleenPage() {
     if (!userId || !tekst.trim() || bezig) return;
     setBezig(true);
     try {
-      await saveDagPrompt({ userId, dag: dagNummer, tekst });
+      await saveDagPrompt({ userId, dag: activeDag, tekst });
       setOpgeslagen(true);
       setTimeout(() => setOpgeslagen(false), 3000);
     } finally { setBezig(false); }
@@ -175,7 +181,7 @@ export default function NietAlleenPage() {
         body: bestand,
       });
       const { storageId } = await res.json();
-      await saveDagFoto({ userId, dag: dagNummer, storageId });
+      await saveDagFoto({ userId, dag: activeDag, storageId });
     } catch { setFotoPreview(null); }
     finally { setFotoUploaden(false); }
   }
@@ -315,12 +321,12 @@ export default function NietAlleenPage() {
   }
 
   // ── Dag weergave ──────────────────────────────────────────
-  const dagInhoud = getDagInhoud(dagNummer, profiel?.verliesType ?? "anders");
+  const dagInhoud = getDagInhoud(activeDag, profiel?.verliesType ?? "anders");
   const isVolledigeGebruiker =
     (profiel as any)?.subscriptionType === "uitgebreid" ||
     (profiel as any)?.subscriptionType === "alles_in_1";
-  const toonSideMenu = MENU_DAGEN.includes(dagNummer) && !isVolledigeGebruiker;
-  const toonUpsellOnder = UPSELL_DAGEN.includes(dagNummer) && !isVolledigeGebruiker;
+  const toonSideMenu = MENU_DAGEN.includes(activeDag) && !isVolledigeGebruiker;
+  const toonUpsellOnder = UPSELL_DAGEN.includes(activeDag) && !isVolledigeGebruiker;
   const huidigeFotoUrl = fotoPreview ?? fotoUrl ?? null;
 
   // Terugkijken: ingevulde dagen sorteren
@@ -393,7 +399,7 @@ export default function NietAlleenPage() {
           </div>
         </Link>
 
-        <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {dagNummer} van 30</span>
+        <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {activeDag} van 30</span>
       </div>
 
       <div className="max-w-lg mx-auto px-6 py-8 space-y-6">
@@ -401,7 +407,7 @@ export default function NietAlleenPage() {
         {/* Dagprompt */}
         <div className="space-y-2 pt-2">
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>
-            Dag {dagNummer} — {dagInhoud?.thema ?? ""}
+            Dag {activeDag} — {dagInhoud?.thema ?? ""}
           </p>
           <p className="text-lg leading-relaxed font-medium" style={{ color: "#3d3530" }}>
             {dagInhoud?.inHetAccount ?? ""}
@@ -502,5 +508,13 @@ export default function NietAlleenPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function NietAlleenPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#fdf9f4" }} />}>
+      <NietAlleenPageInner />
+    </Suspense>
   );
 }
