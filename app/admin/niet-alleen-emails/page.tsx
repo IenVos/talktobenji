@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical } from "lucide-react";
@@ -175,7 +176,7 @@ const VERLIES_TYPES_TEST = [
 ];
 
 function TestEmailBlok() {
-  const stuurTestEmails = useAdminMutation(api.nietAlleen.stuurTestEmails as any);
+  const stuurTestEmails = useAction(api.nietAlleen.stuurTestEmails);
   const [email, setEmail] = useState("");
   const [naam, setNaam] = useState("");
   const [verliesType, setVerliesType] = useState("persoon");

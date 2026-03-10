@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -8,10 +9,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { Camera, CheckCircle2 } from "lucide-react";
 
+const VERLIES_TYPES = [
+  { key: "persoon", label: "Een dierbare persoon" },
+  { key: "huisdier", label: "Een huisdier" },
+  { key: "relatie", label: "Een relatie of scheiding" },
+];
+
+const NAAM_PLACEHOLDER: Record<string, string> = {
+  persoon: "Bijv. Oma, Floris, Mam...",
+  huisdier: "Bijv. Luna, Appie, Boris...",
+};
+
 export default function NietAlleenWelkomPage() {
+  const router = useRouter();
   const { data: session, status } = useSession();
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [geselecteerd, setGeselecteerd] = useState<string | null>(null);
+  const [naamInput, setNaamInput] = useState("");
+  const [bezig, setBezig] = useState(false);
   const fotoInputRef = useRef<HTMLInputElement>(null);
 
   const userId = (session?.user as any)?.id ?? session?.user?.email ?? "";
@@ -23,6 +39,8 @@ export default function NietAlleenWelkomPage() {
 
   const generateUploadUrl = useMutation(api.nietAlleen.generateUploadUrl);
   const saveProfielFoto = useMutation(api.nietAlleen.saveProfielFoto);
+  const setVerliesType = useMutation(api.nietAlleen.setVerliesType);
+  const setVerliesNaam = useMutation(api.nietAlleen.setVerliesNaam);
 
   const profielFotoStorageId = profiel?.profielFoto;
   const profielFotoUrl = useQuery(
@@ -31,6 +49,10 @@ export default function NietAlleenWelkomPage() {
   );
 
   const huidigeFotoUrl = fotoPreview ?? profielFotoUrl ?? null;
+
+  // Pre-fill from existing profile
+  const huidigVerliesType = geselecteerd ?? profiel?.verliesType ?? null;
+  const toonNaamVeld = huidigVerliesType === "persoon" || huidigVerliesType === "huisdier";
 
   async function handleFotoKiezen(e: React.ChangeEvent<HTMLInputElement>) {
     const bestand = e.target.files?.[0];
@@ -50,6 +72,22 @@ export default function NietAlleenWelkomPage() {
       setFotoPreview(null);
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function handleBeginnen() {
+    if (!userId || bezig) return;
+    const type = huidigVerliesType;
+    if (!type) return;
+    setBezig(true);
+    try {
+      await setVerliesType({ userId, verliesType: type });
+      if ((type === "persoon" || type === "huisdier") && naamInput.trim()) {
+        await setVerliesNaam({ userId, verliesNaam: naamInput.trim() });
+      }
+      router.push("/niet-alleen");
+    } finally {
+      setBezig(false);
     }
   }
 
@@ -120,6 +158,48 @@ export default function NietAlleenWelkomPage() {
           </p>
         </div>
 
+        {/* Verliestype keuze */}
+        <div className="space-y-3">
+          <p className="text-base font-semibold" style={{ color: "#3d3530" }}>Wie of wat mis je?</p>
+          <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+            Dit helpt ons de dagelijkse teksten persoonlijker te maken.
+          </p>
+          <div className="flex flex-col gap-2">
+            {VERLIES_TYPES.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setGeselecteerd(t.key)}
+                className="w-full px-4 py-3 rounded-xl text-sm font-medium text-left transition-all border"
+                style={{
+                  background: huidigVerliesType === t.key ? "#6d84a8" : "white",
+                  color: huidigVerliesType === t.key ? "white" : "#4a5568",
+                  borderColor: huidigVerliesType === t.key ? "#6d84a8" : "#e2d9cf",
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Naam invoer */}
+          {toonNaamVeld && (
+            <div className="space-y-1 pt-1">
+              <label className="block text-sm" style={{ color: "#6b6460" }}>
+                {huidigVerliesType === "huisdier" ? "Hoe heette je huisdier?" : "Hoe heette hij of zij?"}
+                <span className="ml-1 font-normal" style={{ color: "#b0a8a0" }}>(optioneel)</span>
+              </label>
+              <input
+                type="text"
+                value={naamInput || (profiel.verliesNaam ?? "")}
+                onChange={(e) => setNaamInput(e.target.value)}
+                placeholder={NAAM_PLACEHOLDER[huidigVerliesType!] ?? ""}
+                className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none"
+                style={{ borderColor: "#e2d9cf", background: "white", color: "#3d3530" }}
+              />
+            </div>
+          )}
+        </div>
+
         {/* Hoe het werkt */}
         <div className="space-y-4">
           <p className="text-base font-semibold" style={{ color: "#3d3530" }}>Zo werkt het</p>
@@ -161,8 +241,8 @@ export default function NietAlleenWelkomPage() {
           <div className="space-y-2.5">
             {[
               "Voeg hierboven een foto toe die jou elke dag een warm gevoel geeft",
-              "Op de volgende pagina kies je wie of wat je mist. Dat helpt ons de teksten persoonlijker te maken.",
-              "Zorg dat je e-mailmeldingen aan hebt, zodat je de dagelijkse mail niet mist.",
+              "Kies hierboven wie of wat je mist, zodat de teksten bij jou passen",
+              "Zorg dat je e-mailmeldingen aan hebt, zodat je de dagelijkse mail niet mist",
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-2">
                 <CheckCircle2 size={15} className="flex-shrink-0 mt-0.5" style={{ color: "#6d84a8" }} />
@@ -173,13 +253,14 @@ export default function NietAlleenWelkomPage() {
         </div>
 
         {/* Start knop */}
-        <Link
-          href="/niet-alleen"
-          className="block w-full py-3.5 rounded-xl font-medium text-white text-sm text-center transition-all"
+        <button
+          onClick={handleBeginnen}
+          disabled={!huidigVerliesType || bezig}
+          className="block w-full py-3.5 rounded-xl font-medium text-white text-sm text-center transition-all disabled:opacity-50"
           style={{ background: "#6d84a8" }}
         >
-          Begin dag 1
-        </Link>
+          {bezig ? "Even geduld..." : "Begin dag 1"}
+        </button>
 
         <p className="text-xs text-center" style={{ color: "#b0a8a0" }}>
           Vragen? Mail naar{" "}
