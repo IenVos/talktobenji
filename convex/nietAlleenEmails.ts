@@ -223,6 +223,7 @@ export const stuurAlleEmailsTest = internalAction({
   handler: async (ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY niet ingesteld");
+    const wacht = () => new Promise((r) => setTimeout(r, 600));
 
     const voornaam = args.naam.split(" ")[0];
     const vType = args.verliesType;
@@ -248,6 +249,7 @@ export const stuurAlleEmailsTest = internalAction({
       `),
       apiKey: RESEND_API_KEY,
     });
+    await wacht();
 
     // 2. Dag 1 t/m 30
     for (let dag = 1; dag <= 30; dag++) {
@@ -267,6 +269,7 @@ export const stuurAlleEmailsTest = internalAction({
         `),
         apiKey: RESEND_API_KEY,
       });
+      await wacht();
 
       // Dag 28: ook voorbereidingsmail
       if (dag === 28) {
@@ -282,6 +285,7 @@ export const stuurAlleEmailsTest = internalAction({
           `),
           apiKey: RESEND_API_KEY,
         });
+        await wacht();
       }
 
       // Dag 30: ook afsluitmail
@@ -299,6 +303,7 @@ export const stuurAlleEmailsTest = internalAction({
           `),
           apiKey: RESEND_API_KEY,
         });
+        await wacht();
       }
     }
   },
