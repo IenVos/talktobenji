@@ -21,6 +21,7 @@ import type * as crons from "../crons.js";
 import type * as dataExport from "../dataExport.js";
 import type * as deleteAccount from "../deleteAccount.js";
 import type * as emailTemplates from "../emailTemplates.js";
+import type * as emailTemplatesDefaults from "../emailTemplatesDefaults.js";
 import type * as emails from "../emails.js";
 import type * as exampleData from "../exampleData.js";
 import type * as featureVotes from "../featureVotes.js";
@@ -69,6 +70,7 @@ declare const fullApi: ApiFromModules<{
   dataExport: typeof dataExport;
   deleteAccount: typeof deleteAccount;
   emailTemplates: typeof emailTemplates;
+  emailTemplatesDefaults: typeof emailTemplatesDefaults;
   emails: typeof emails;
   exampleData: typeof exampleData;
   featureVotes: typeof featureVotes;
