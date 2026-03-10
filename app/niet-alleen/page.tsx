@@ -315,6 +315,11 @@ export default function NietAlleenPage() {
     (profiel as any)?.subscriptionType === "alles_in_1";
   const toonSideMenu = MENU_DAGEN.includes(dagNummer) && !isVolledigeGebruiker;
   const toonUpsellOnder = UPSELL_DAGEN.includes(dagNummer) && !isVolledigeGebruiker;
+  const profielFotoStorageId = profiel?.profielFoto;
+  const profielFotoUrl = useQuery(
+    api.nietAlleen.getDagFotoUrl,
+    profielFotoStorageId ? { storageId: profielFotoStorageId } : { storageId: undefined }
+  );
   const huidigeFotoUrl = fotoPreview ?? fotoUrl ?? null;
 
   // Terugkijken: ingevulde dagen sorteren
@@ -373,6 +378,20 @@ export default function NietAlleenPage() {
           <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={38} height={38}
             className="hover:opacity-70 transition-opacity" />
         </Link>
+
+        {/* Profielfoto cirkel */}
+        <Link href="/niet-alleen/welkom" title="Jouw profiel">
+          <div className="w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center"
+            style={{ borderColor: profielFotoUrl ? "#6d84a8" : "#d4ccc4", background: "#f0ebe4" }}>
+            {profielFotoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profielFotoUrl} alt="Jouw foto" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs" style={{ color: "#b0a8a0" }}>👤</span>
+            )}
+          </div>
+        </Link>
+
         <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {dagNummer} van 30</span>
       </div>
 

@@ -108,7 +108,7 @@ export const sendWelkomstMail = internalAction({
     const html = wrapperIen(`
       <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
       ${alineaHtml(bodyText)}
-      ${knop("Begin dag 1", "https://talktobenji.com/niet-alleen")}
+      ${knop("Begin dag 1", "https://talktobenji.com/niet-alleen/welkom")}
       <p style="font-size: 14px; color: #718096;">
         Heb je vragen? Stuur een mail naar
         <a href="mailto:contactmetien@talktobenji.com" style="color: #6d84a8;">contactmetien@talktobenji.com</a>.

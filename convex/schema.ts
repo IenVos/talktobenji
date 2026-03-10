@@ -508,6 +508,7 @@ export default defineSchema({
       v.literal("anders")
     )),
     verliesNaam: v.optional(v.string()), // naam van wie/wat er gemist wordt
+    profielFoto: v.optional(v.id("_storage")), // profielfoto van de gebruiker
     dagPrompts: v.array(v.object({
       dag: v.number(),
       tekst: v.string(),

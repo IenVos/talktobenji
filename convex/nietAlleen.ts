@@ -64,6 +64,19 @@ export const saveDagFoto = mutation({
   },
 });
 
+/** Sla de profielfoto op. */
+export const saveProfielFoto = mutation({
+  args: { userId: v.string(), storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+    if (!profiel) throw new Error("Profiel niet gevonden");
+    await ctx.db.patch(profiel._id, { profielFoto: args.storageId, updatedAt: Date.now() });
+  },
+});
+
 /** Haal de URL op van een opgeslagen foto. */
 export const getDagFotoUrl = query({
   args: { storageId: v.optional(v.id("_storage")) },
