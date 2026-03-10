@@ -213,9 +213,9 @@ function TestProfielBlok() {
       </p>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">UserId (uit NextAuth)</label>
+          <label className="block text-xs font-semibold text-gray-600 mb-1">UserId <span className="font-normal text-gray-400">(vul hier je e-mailadres in)</span></label>
           <input type="text" value={userId} onChange={(e) => setUserId(e.target.value)}
-            placeholder="user_id of email" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
+            placeholder="jouw@email.nl" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
         </div>
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">E-mailadres</label>

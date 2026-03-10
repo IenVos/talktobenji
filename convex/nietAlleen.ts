@@ -21,10 +21,17 @@ import { v } from "convex/values";
 export const getProfile = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    return await ctx.db
+    // Zoek op userId
+    const byUserId = await ctx.db
       .query("nietAlleenProfiles")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .first();
+    if (byUserId) return byUserId;
+    // Fallback: zoek op e-mail (userId kan ook een e-mailadres zijn)
+    return await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", args.userId))
+      .first() ?? null;
   },
 });
 
