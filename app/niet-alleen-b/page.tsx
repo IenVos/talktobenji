@@ -65,13 +65,13 @@ export default function NietAlleenBPage() {
             <p className="text-xs uppercase tracking-widest mb-5 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
               Voor wie iemand of iets mist
             </p>
-            <h1 className="text-4xl sm:text-5xl font-semibold mb-4" style={{ color: "#3d3530" }}>
+            <h1 className="text-4xl sm:text-5xl font-semibold mb-4" style={{ color: "#3d3530", textWrap: "balance" } as any}>
               Niet alleen.
             </h1>
-            <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460" }}>
+            <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460", textWrap: "balance" } as any}>
               30 dagen. Elke dag één vraag. Een plek die van jou is.
             </p>
-            <p className="text-sm leading-relaxed mb-8" style={{ color: "#8a8078" }}>
+            <p className="text-sm leading-relaxed mb-8" style={{ color: "#8a8078", textWrap: "balance" } as any}>
               Voor €37 ontvang je 30 dagen lang elke ochtend een persoonlijk bericht.
               Eenmalig, geen abonnement.
             </p>
@@ -176,7 +176,7 @@ export default function NietAlleenBPage() {
               className="rounded-2xl px-6 sm:px-8 py-10"
               style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 2px 24px rgba(0,0,0,0.09)" }}
             >
-              <p className="text-base leading-relaxed mb-7" style={{ color: "#6b6460" }}>
+              <p className="text-base leading-relaxed mb-7" style={{ color: "#6b6460", textWrap: "balance" } as any}>
                 Je hoeft het niet alleen te dragen.
               </p>
               <a

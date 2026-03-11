@@ -118,13 +118,13 @@ export default function NietAlleenAPage() {
             <p className="text-xs uppercase tracking-widest mb-5 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
               30 dagen begeleiding bij verlies en gemis
             </p>
-            <h1 className="text-3xl sm:text-4xl font-semibold mb-4 leading-snug" style={{ color: "#3d3530" }}>
+            <h1 className="text-3xl sm:text-4xl font-semibold mb-4 leading-snug" style={{ color: "#3d3530", textWrap: "balance" } as any}>
               Je hoeft dit niet alleen te dragen.
             </h1>
-            <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460" }}>
+            <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460", textWrap: "balance" } as any}>
               Elke dag een kleine vraag. Een plek om te schrijven. Iemand die er is.
             </p>
-            <p className="text-sm leading-relaxed mb-8" style={{ color: "#8a8078" }}>
+            <p className="text-sm leading-relaxed mb-8" style={{ color: "#8a8078", textWrap: "balance" } as any}>
               Voor €37 ontvang je 30 dagen lang elke ochtend een persoonlijk bericht in je inbox.
               Eenmalig, geen abonnement, geen verplichtingen.
             </p>
@@ -280,10 +280,10 @@ export default function NietAlleenAPage() {
               className="rounded-2xl px-6 sm:px-10 py-10"
               style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 2px 24px rgba(0,0,0,0.09)" }}
             >
-              <h2 className="text-2xl font-semibold mb-3 leading-snug" style={{ color: "#3d3530" }}>
+              <h2 className="text-2xl font-semibold mb-3 leading-snug" style={{ color: "#3d3530", textWrap: "balance" } as any}>
                 Je hoeft het niet alleen te dragen.
               </h2>
-              <p className="text-sm leading-relaxed mb-7" style={{ color: "#6b6460" }}>
+              <p className="text-sm leading-relaxed mb-7" style={{ color: "#6b6460", textWrap: "balance" } as any}>
                 30 dagen. Elke dag één kleine stap. Een plek die van jou is.
                 Voor €37 eenmalig, zonder abonnement of verdere verplichtingen.
               </p>
