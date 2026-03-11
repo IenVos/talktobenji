@@ -17,4 +17,11 @@ crons.daily(
   {}
 );
 
+crons.daily(
+  "process niet alleen avond",
+  { hourUTC: 18, minuteUTC: 0 },
+  internal.nietAlleen.processNietAlleenAvondMails,
+  {}
+);
+
 export default crons;

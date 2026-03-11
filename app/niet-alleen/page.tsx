@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { getDagInhoud } from "@/convex/nietAlleenContent";
@@ -35,6 +35,7 @@ const UPSELL_DAGEN = [24, 28, 30];
 function NietAlleenPageInner() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const dagParam = searchParams?.get("dag");
   const [scherm, setScherm] = useState<Scherm>("laden");
   const [stapOnboarding, setStapOnboarding] = useState<StapOnboarding>("verlies");
@@ -431,7 +432,7 @@ function NietAlleenPageInner() {
     return (
       <div className="min-h-screen" style={{ background: "#fdf9f4" }}>
         <div className="flex items-center justify-between px-6 pt-6 pb-2">
-          <button onClick={() => setBekijkDag(null)} className="flex items-center gap-1.5 text-sm" style={{ color: "#8a8078" }}>
+          <button onClick={() => { setBekijkDag(null); router.push("/niet-alleen"); }} className="flex items-center gap-1.5 text-sm" style={{ color: "#8a8078" }}>
             <ChevronLeft size={16} /> Terug naar vandaag
           </button>
           <div className="flex items-center gap-1.5">
@@ -551,18 +552,17 @@ function NietAlleenPageInner() {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => navigeerNaarDag(activeDag - 1)}
-            disabled={activeDag <= 1}
+            onClick={() => navigeerNaarDag(dagNummer - 1)}
+            disabled={dagNummer <= 1}
             className="w-8 h-8 flex items-center justify-center rounded-lg border text-base transition-all disabled:opacity-20"
-            style={{ color: "#6b6460", borderColor: activeDag > 1 ? "#d4ccc4" : "transparent", background: activeDag > 1 ? "white" : "transparent" }}>
+            style={{ color: "#6b6460", borderColor: dagNummer > 1 ? "#d4ccc4" : "transparent", background: dagNummer > 1 ? "white" : "transparent" }}>
             ‹
           </button>
-          <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {activeDag} van 30</span>
+          <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {dagNummer} van 30</span>
           <button
-            onClick={() => navigeerNaarDag(activeDag + 1)}
-            disabled={activeDag >= dagNummer}
-            className="w-8 h-8 flex items-center justify-center rounded-lg border text-base transition-all disabled:opacity-20"
-            style={{ color: "#6b6460", borderColor: activeDag < dagNummer ? "#d4ccc4" : "transparent", background: activeDag < dagNummer ? "white" : "transparent" }}>
+            disabled
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-base disabled:opacity-20"
+            style={{ color: "#6b6460" }}>
             ›
           </button>
         </div>
@@ -760,31 +760,23 @@ function NietAlleenPageInner() {
         {/* Vorige dagen terugkijken */}
         {ingevuldeDagen.length > 0 && (
           <div className="space-y-2 pt-2">
-            <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>
-              Vorige dagen
-            </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>
+                Vorige dagen
+              </p>
+              <Link href="/niet-alleen/dagboek" className="text-xs" style={{ color: "#6d84a8" }}>
+                Bekijk dagboek →
+              </Link>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "8px" }}>
               {ingevuldeDagen.map((p) => (
                 <button key={p.dag} onClick={() => setBekijkDag(p.dag)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                  className="py-1.5 rounded-lg text-xs font-medium border transition-colors"
                   style={{ background: "white", borderColor: "#e8e0d8", color: "#6b6460" }}>
                   Dag {p.dag}
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Download dagboek — alleen op dag 30 */}
-        {activeDag === 30 && (
-          <div className="rounded-xl border px-4 py-4 space-y-2" style={{ background: "#f5f0ea", borderColor: "#e2d9cf" }}>
-            <p className="text-sm font-medium" style={{ color: "#3d3530" }}>Je bent bij de laatste dag.</p>
-            <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-              Bekijk en download alles wat je hebt geschreven als persoonlijk dagboek.
-            </p>
-            <Link href="/niet-alleen/dagboek" className="inline-block text-sm font-medium" style={{ color: "#6d84a8" }}>
-              Bekijk jouw dagboek →
-            </Link>
           </div>
         )}
 

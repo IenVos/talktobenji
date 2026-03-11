@@ -452,17 +452,14 @@ export const sluitAccount = internalMutation({
  * Wordt dagelijks om 08:00 UTC aangeroepen vanuit crons.ts.
  * Stuurt dagelijkse e-mails en verwerkt dag 28 / 30 / 37 acties.
  */
+// Ochtend (09:00 NL): dagelijkse herinneringsmails + account sluiten
 export const processNietAlleenUsers = internalAction({
   args: {},
   handler: async (ctx) => {
-    const profielen = await ctx.runQuery(
-      internal.nietAlleen.getAllActieveProfielen,
-      {}
-    );
+    const profielen = await ctx.runQuery(internal.nietAlleen.getAllActieveProfielen, {});
 
     for (const profiel of profielen) {
-      const dagNummer =
-        Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
+      const dagNummer = Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
 
       // Dagelijkse herinneringsmail (dag 1 t/m 30)
       if (dagNummer >= 1 && dagNummer <= 30) {
@@ -475,16 +472,30 @@ export const processNietAlleenUsers = internalAction({
         });
       }
 
+      // Dag 37: account sluiten (7 dagen na einde, zonder upgrade)
+      if (dagNummer >= 37 && !profiel.dag37Verwerkt) {
+        await ctx.runMutation(internal.nietAlleen.sluitAccount, { profileId: profiel._id });
+      }
+    }
+  },
+});
+
+// Avond (19:00 NL): speciale mails op dag 15, 28 en 30
+export const processNietAlleenAvondMails = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const profielen = await ctx.runQuery(internal.nietAlleen.getAllActieveProfielen, {});
+
+    for (const profiel of profielen) {
+      const dagNummer = Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
+
       // Dag 15: halverwege check-in (eenmalig)
       if (dagNummer === 15 && !profiel.dag15MailVerzonden) {
         await ctx.runAction(internal.nietAlleenEmails.sendHalverwegeMail, {
           email: profiel.email,
           naam: profiel.naam,
         });
-        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, {
-          profileId: profiel._id,
-          dag: 15,
-        });
+        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: profiel._id, dag: 15 });
       }
 
       // Dag 28: voorbereidingsmail (eenmalig)
@@ -493,10 +504,7 @@ export const processNietAlleenUsers = internalAction({
           email: profiel.email,
           naam: profiel.naam,
         });
-        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, {
-          profileId: profiel._id,
-          dag: 28,
-        });
+        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: profiel._id, dag: 28 });
       }
 
       // Dag 30: afsluitmail met download (eenmalig)
@@ -506,17 +514,7 @@ export const processNietAlleenUsers = internalAction({
           naam: profiel.naam,
           aantalDagenIngevuld: profiel.dagPrompts.length,
         });
-        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, {
-          profileId: profiel._id,
-          dag: 30,
-        });
-      }
-
-      // Dag 37: account sluiten (7 dagen na einde, zonder upgrade)
-      if (dagNummer >= 37 && !profiel.dag37Verwerkt) {
-        await ctx.runMutation(internal.nietAlleen.sluitAccount, {
-          profileId: profiel._id,
-        });
+        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: profiel._id, dag: 30 });
       }
     }
   },
