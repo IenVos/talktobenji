@@ -47,7 +47,7 @@ const VRAGEN = [
 const VOOR_WIE = [
   "je iemand hebt verloren en niet weet hoe je verder moet",
   "je rouwt om een relatie, een huisdier, een miskraam of een gezondheid en het gevoel hebt dat niemand het begrijpt",
-  "je niet in therapie wilt maar wel een plek wilt om te schrijven en te voelen",
+  "je een plek wilt om te schrijven en te voelen",
   "je 's nachts wakker ligt met gedachten die nergens heen kunnen",
   "je merkt dat je verdriet wegstopt omdat het leven doorgaat, maar het er wel is",
   "je gewoon iemand nodig hebt die er is, zonder oordeel, op het moment dat jij er klaar voor bent",
@@ -181,8 +181,8 @@ export default function NietAlleenAPage() {
                   Je kunt ook inspreken, of een foto toevoegen.
                 </p>
                 <p>
-                  Alles wordt bewaard. Na 30 dagen heb je een archief van jouw eigen woorden,
-                  jouw verhaal, opgebouwd in jouw tempo.
+                  Alles wordt bewaard. Na 30 dagen heb je jouw eigen verhaal op papier,
+                  opgebouwd in jouw tempo.
                 </p>
                 <p>
                   Op sommige dagen is er iets extra's. Een korte oefening om even te landen.

@@ -61,7 +61,7 @@ export default function NietAlleenBPage() {
 
         {/* HERO */}
         <section className="flex items-center justify-center px-5 pt-12 pb-16">
-          <div className="w-full max-w-sm text-center">
+          <div className="w-full max-w-md text-center">
             <p className="text-xs uppercase tracking-widest mb-5 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
               Voor wie iemand of iets mist
             </p>
@@ -106,7 +106,7 @@ export default function NietAlleenBPage() {
               Je schrijft wat je wilt schrijven. Zoveel of zo weinig als je kunt.
             </p>
             <p>
-              Alles wordt bewaard. Op dag 30 heb je je eigen archief, jouw woorden, jouw verhaal.
+              Alles wordt bewaard. Op dag 30 heb je jouw eigen verhaal, in jouw woorden, op jouw tempo.
               En als je wilt, schrijf je een brief aan jezelf.
             </p>
             <p style={{ color: "#3d3530" }}>
