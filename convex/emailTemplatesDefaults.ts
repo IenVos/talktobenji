@@ -21,14 +21,14 @@ export const DEFAULT_TEMPLATES = {
     bodyText: `Geen zin vandaag? Dat is ook goed. De pagina blijft open staan.`,
   },
   niet_alleen_dag15: {
-    subject: "Je bent halverwege — hoe gaat het?",
-    bodyText: `Je bent nu halverwege je 30 dagen. Dat is al zoveel.
+    subject: "Je bent halverwege. Hoe gaat het?",
+    bodyText: `Je bent nu halverwege. Vijftien dagen. Dat is niet niks.
 
-We wilden even vragen: hoe gaat het? Niet hoe je denkt te moeten gaan. Maar echt.
+Hoe gaat het echt? Niet hoe je denkt dat het zou moeten gaan. Maar wat er nu in je leeft.
 
-De afgelopen twee weken heb je elke dag een klein stukje geopend. Dat is niet vanzelfsprekend als je in verdriet zit.
+De afgelopen twee weken heb je elke dag iets in jezelf aangekeken. Dat vraagt moed, ook al voelt het van binnenuit misschien gewoon als doorgaan.
 
-Wist je trouwens dat er naast Niet Alleen nog meer is bij TalkToBenji? Je kunt er gesprekken voeren met Benji, herinneringen bewaren, en altijd terugkijken op wat je hebt geschreven. Geen druk, maar we wilden je het laten weten — het is er als je het ooit nodig hebt.
+En als je merkt dat je soms meer nodig hebt: bij TalkToBenji kun je ook gewoon praten met Benji. Herinneringen bewaren. Altijd terugkijken op wat je hebt geschreven. Het is er als je het ooit nodig hebt, zonder verplichtingen.
 
 Tot morgen,
 Benji`,
