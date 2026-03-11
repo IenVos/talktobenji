@@ -1,13 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import Script from "next/script";
 
 const KOOP_LINK = "#";
 
 const ERVARINGEN = [
   {
-    tekst: "Ik dacht dat ik het wel alleen kon. Maar elke ochtend dat bericht — het gaf me het gevoel dat iemand aan me dacht. Dat was genoeg.",
+    tekst: "Ik dacht dat ik het wel alleen kon. Maar elke ochtend dat bericht gaf me het gevoel dat iemand aan me dacht. Dat was genoeg.",
     naam: "[Naam]",
   },
   {
@@ -29,60 +28,43 @@ const GERUSTSTELLING = [
 
 export default function NietAlleenBPage() {
   return (
-    <>
-      {/* Meta Pixel */}
-      <Script id="meta-pixel" strategy="afterInteractive">{`
-        !function(f,b,e,v,n,t,s)
-        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-        n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s)}(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '2054062258501361');
-        fbq('track', 'PageView');
-      `}</Script>
+    <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>
 
-      <div style={{ background: "#fdf9f4", minHeight: "100vh", fontFamily: "inherit" }}>
+      {/* Vaste achtergrond doorlopend zichtbaar */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 0 }}>
+        <Image
+          src="/images/achtergrond.png"
+          alt=""
+          fill
+          className="object-cover"
+          priority
+        />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(253,249,244,0.82)" }} />
+      </div>
+
+      {/* Alle content boven de achtergrond */}
+      <div style={{ position: "relative", zIndex: 1 }}>
+
+        {/* Logo */}
+        <div className="px-6 pt-6 pb-2">
+          <a href="https://talktobenji.com">
+            <Image
+              src="/images/benji-logo-2.png"
+              alt="Talk To Benji"
+              width={32}
+              height={32}
+              className="opacity-60 hover:opacity-80 transition-opacity"
+            />
+          </a>
+        </div>
 
         {/* HERO */}
-        <section
-          className="relative flex flex-col items-center justify-center"
-          style={{ minHeight: "100svh" }}
-        >
-          <Image
-            src="/images/achtergrond.png"
-            alt=""
-            fill
-            className="object-cover"
-            priority
-            style={{ zIndex: 0 }}
-          />
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.18)", zIndex: 1 }} />
-
-          {/* Logo */}
-          <div className="absolute top-5 left-5" style={{ zIndex: 2 }}>
-            <a href="https://talktobenji.com">
-              <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={34} height={34} />
-            </a>
-          </div>
-
-          {/* Card */}
-          <div
-            className="relative mx-4 rounded-2xl px-8 py-10 text-center max-w-sm w-full"
-            style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(8px)", zIndex: 2 }}
-          >
-            <p
-              className="text-xs uppercase tracking-widest mb-5"
-              style={{ color: "#7B5EA7", fontWeight: 600, letterSpacing: "0.12em" }}
-            >
+        <section className="flex items-center justify-center px-6 pt-16 pb-20">
+          <div className="max-w-sm w-full text-center">
+            <p className="text-xs uppercase tracking-widest mb-5 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
               Voor wie iemand of iets mist
             </p>
-            <h1
-              className="text-4xl font-semibold mb-4 leading-tight"
-              style={{ color: "#2D2D2D", fontFamily: "Georgia, serif" }}
-            >
+            <h1 className="text-4xl font-semibold mb-4" style={{ color: "#3d3530" }}>
               Niet alleen.
             </h1>
             <p className="text-base leading-relaxed mb-8" style={{ color: "#6b6460" }}>
@@ -90,58 +72,42 @@ export default function NietAlleenBPage() {
             </p>
             <a
               href={KOOP_LINK}
-              className="inline-block w-full py-3.5 rounded-xl font-medium text-white text-sm mb-2"
-              style={{ background: "#7B5EA7" }}
+              className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm mb-2"
+              style={{ background: "#6d84a8" }}
             >
               Ik wil dit — €37
             </a>
-            <p className="text-xs" style={{ color: "#888888" }}>
+            <p className="text-xs" style={{ color: "#b0a8a0" }}>
               Eenmalig. Geen abonnement.
             </p>
           </div>
         </section>
 
-        {/* DE KERN */}
-        <section className="py-20 px-6">
-          <div className="max-w-lg mx-auto space-y-6 text-base leading-relaxed" style={{ color: "#6b6460" }}>
-            <p>
-              Er is een soort verdriet dat geen naam heeft in de buitenwereld. Geen rouwkaarten, geen bloemen,
-              geen moment waarop iedereen even stil staat.
-            </p>
-            <p style={{ color: "#2D2D2D", fontWeight: 500 }}>Maar het is er wel. En jij draagt het.</p>
-            <p>
-              Misschien heb je iemand verloren. Misschien een relatie, een huisdier, een gezondheid, een
-              toekomst die je voor je zag. Elk verlies is echt. Ook als de mensen om je heen niet weten wat
-              te zeggen.
-            </p>
-            <p>
-              Niet Alleen is een plek voor de komende 30 dagen. Elke ochtend een klein bericht — een vraag,
-              een gedachte, een moment van stilte. Je schrijft wat je wilt schrijven. Zoveel of zo weinig als
-              je kunt.
-            </p>
-            <p>
-              Alles wordt bewaard. Op dag 30 heb je je eigen archief — jouw woorden, jouw verhaal. En als je
-              wilt, schrijf je een brief aan jezelf.
-            </p>
-            <p style={{ color: "#2D2D2D" }}>
-              Benji is er. Elke dag. Zonder oordeel. Zonder haast.
-            </p>
+        {/* DE KERN — verhalend, geen kopje */}
+        <section className="px-6 pb-20">
+          <div className="max-w-lg mx-auto space-y-5 text-base leading-relaxed" style={{ color: "#6b6460" }}>
+            <p>Er is een soort verdriet dat geen naam heeft in de buitenwereld. Geen rouwkaarten, geen bloemen, geen moment waarop iedereen even stil staat.</p>
+            <p style={{ color: "#3d3530", fontWeight: 500 }}>Maar het is er wel. En jij draagt het.</p>
+            <p>Misschien heb je iemand verloren. Misschien een relatie, een huisdier, een gezondheid, een toekomst die je voor je zag. Elk verlies is echt. Ook als de mensen om je heen niet weten wat te zeggen.</p>
+            <p>Niet Alleen is een plek voor de komende 30 dagen. Elke ochtend een klein bericht — een vraag, een gedachte, een moment van stilte. Je schrijft wat je wilt schrijven. Zoveel of zo weinig als je kunt.</p>
+            <p>Alles wordt bewaard. Op dag 30 heb je je eigen archief — jouw woorden, jouw verhaal. En als je wilt, schrijf je een brief aan jezelf.</p>
+            <p style={{ color: "#3d3530" }}>Benji is er. Elke dag. Zonder oordeel. Zonder haast.</p>
           </div>
         </section>
 
         {/* ERVARINGEN */}
-        <section className="py-4 pb-16 px-6" style={{ background: "#f5f1ec" }}>
-          <div className="max-w-lg mx-auto pt-12 space-y-4">
+        <section className="px-6 pb-20">
+          <div className="max-w-lg mx-auto space-y-4">
             {ERVARINGEN.map((e, i) => (
               <div
                 key={i}
                 className="rounded-2xl p-6"
-                style={{ background: "white", boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
+                style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}
               >
-                <p className="text-sm leading-relaxed mb-3" style={{ color: "#2D2D2D" }}>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: "#3d3530" }}>
                   "{e.tekst}"
                 </p>
-                <p className="text-xs" style={{ color: "#888888" }}>
+                <p className="text-xs" style={{ color: "#b0a8a0" }}>
                   — {e.naam}
                 </p>
               </div>
@@ -149,14 +115,14 @@ export default function NietAlleenBPage() {
           </div>
         </section>
 
-        {/* GERUSTSTELLING */}
-        <section className="py-20 px-6">
-          <div className="max-w-lg mx-auto space-y-10">
+        {/* GERUSTSTELLING — vier losse zinnen */}
+        <section className="px-6 pb-20">
+          <div className="max-w-lg mx-auto space-y-8">
             {GERUSTSTELLING.map((zin, i) => (
               <p
                 key={i}
                 className="text-base leading-relaxed"
-                style={{ color: i % 2 === 0 ? "#6b6460" : "#2D2D2D" }}
+                style={{ color: "#6b6460" }}
               >
                 {zin}
               </p>
@@ -165,66 +131,54 @@ export default function NietAlleenBPage() {
         </section>
 
         {/* FINALE CTA */}
-        <section
-          className="relative flex flex-col items-center justify-center py-24 px-6"
-          style={{ minHeight: "60svh" }}
-        >
-          <Image
-            src="/images/achtergrond.png"
-            alt=""
-            fill
-            className="object-cover"
-            style={{ zIndex: 0 }}
-          />
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.18)", zIndex: 1 }} />
-          <div
-            className="relative mx-auto rounded-2xl px-8 py-10 text-center max-w-sm w-full"
-            style={{ background: "rgba(255,255,255,0.88)", backdropFilter: "blur(8px)", zIndex: 2 }}
-          >
-            <p
-              className="text-base leading-relaxed mb-7"
-              style={{ color: "#6b6460", fontFamily: "Georgia, serif" }}
+        <section className="px-6 pb-20">
+          <div className="max-w-sm mx-auto text-center">
+            <div
+              className="rounded-2xl px-8 py-10"
+              style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 24px rgba(0,0,0,0.09)" }}
             >
-              Je hoeft het niet alleen te dragen.
-            </p>
-            <a
-              href={KOOP_LINK}
-              className="inline-block w-full py-3.5 rounded-xl font-medium text-white text-sm mb-2"
-              style={{ background: "#7B5EA7" }}
-            >
-              Ik wil dit — €37
-            </a>
-            <p className="text-xs mb-6" style={{ color: "#888888" }}>
-              Eenmalig. Geen abonnement. Geen verplichtingen.
-            </p>
-            <p className="text-xs leading-relaxed" style={{ color: "#888888" }}>
-              Na aankoop ontvang je direct een bericht van Ien. Je eerste dag begint de volgende ochtend.
-            </p>
+              <p className="text-base leading-relaxed mb-7" style={{ color: "#6b6460" }}>
+                Je hoeft het niet alleen te dragen.
+              </p>
+              <a
+                href={KOOP_LINK}
+                className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm mb-2"
+                style={{ background: "#6d84a8" }}
+              >
+                Ik wil dit — €37
+              </a>
+              <p className="text-xs mb-6" style={{ color: "#b0a8a0" }}>
+                Eenmalig. Geen abonnement. Geen verplichtingen.
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: "#b0a8a0" }}>
+                Na aankoop ontvang je direct een bericht van Ien. Je eerste dag begint de volgende ochtend.
+              </p>
+            </div>
           </div>
         </section>
 
         {/* FOOTER */}
-        <footer className="py-10 px-6 text-center" style={{ borderTop: "1px solid #e8e0d8" }}>
+        <footer className="px-6 py-10 text-center" style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}>
           <div className="max-w-lg mx-auto space-y-3">
-            <p className="text-xs" style={{ color: "#888888" }}>
+            <p className="text-xs" style={{ color: "#8a8078" }}>
               Vragen?{" "}
-              <a href="mailto:contactmetien@talktobenji.com" style={{ color: "#7B5EA7" }}>
+              <a href="mailto:contactmetien@talktobenji.com" style={{ color: "#6d84a8" }}>
                 contactmetien@talktobenji.com
               </a>
             </p>
-            <p className="text-xs leading-relaxed" style={{ color: "#888888" }}>
-              Niet Alleen is onderdeel van Talk To Benji. Als je na 30 dagen verder wilt, kun je een
-              abonnement afsluiten. Alles wat je hebt opgebouwd blijft dan bewaard.
+            <p className="text-xs leading-relaxed" style={{ color: "#b0a8a0" }}>
+              Niet Alleen is onderdeel van Talk To Benji. Als je na 30 dagen verder wilt, kun je een abonnement afsluiten. Alles wat je hebt opgebouwd blijft dan bewaard.
             </p>
-            <p className="text-xs" style={{ color: "#aaa" }}>
+            <p className="text-xs" style={{ color: "#c4bdb6" }}>
               Gesprekken zijn privé en beveiligd. Benji is geen vervanging van professionele hulp.
             </p>
-            <p className="text-xs" style={{ color: "#ccc" }}>
+            <p className="text-xs" style={{ color: "#d4ccc4" }}>
               © Talk To Benji — talktobenji.com
             </p>
           </div>
         </footer>
+
       </div>
-    </>
+    </div>
   );
 }
