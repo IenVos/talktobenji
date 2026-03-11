@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Heart, ArrowRight } from "lucide-react";
+import { Heart } from "lucide-react";
 import Image from "next/image";
 
 export default function NietAlleenBetaaldPage() {
@@ -54,70 +53,17 @@ export default function NietAlleenBetaaldPage() {
           </div>
 
           {/* Titel */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h1 className="text-2xl sm:text-3xl font-semibold" style={{ color: "#3d3530" }}>
-              {naam ? `Fijn dat je er bent, ${naam}.` : "Fijn dat je er bent."}
+              {naam ? `Goed dat je er bent, ${naam}.` : "Goed dat je er bent."}
             </h1>
             <p className="text-base leading-relaxed" style={{ color: "#6b6460", textWrap: "balance" } as any}>
-              Je eerste dag begint morgenochtend. Je ontvangt dan een bericht van Ien
-              met alles wat je nodig hebt om te beginnen.
+              Je betaling is gelukt. Je ontvangt binnen enkele minuten een mail van Ien
+              met alles wat je nodig hebt.
             </p>
-          </div>
-
-          {/* Card */}
-          <div
-            className="rounded-2xl p-6 text-left space-y-2"
-            style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 16px rgba(0,0,0,0.07)" }}
-          >
-            <p className="text-sm font-medium mb-3" style={{ color: "#6d84a8" }}>
-              Wat je nu kunt doen:
+            <p className="text-sm leading-relaxed" style={{ color: "#8a8078", textWrap: "balance" } as any}>
+              Je hoeft nu niets te doen. Laat het maar even landen.
             </p>
-            <ul className="text-sm space-y-2" style={{ color: "#6b6460" }}>
-              <li className="flex items-start gap-2">
-                <span style={{ color: "#6d84a8", marginTop: 1, flexShrink: 0 }}>→</span>
-                Maak vast een account aan zodat je morgen direct kunt beginnen
-              </li>
-              <li className="flex items-start gap-2">
-                <span style={{ color: "#6d84a8", marginTop: 1, flexShrink: 0 }}>→</span>
-                Check je inbox — je ontvangt een bevestiging van Ien
-              </li>
-              <li className="flex items-start gap-2">
-                <span style={{ color: "#6d84a8", marginTop: 1, flexShrink: 0 }}>→</span>
-                Morgenochtend start dag 1 van jouw 30 dagen
-              </li>
-            </ul>
-          </div>
-
-          {/* Knoppen */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            {session ? (
-              <Link
-                href="/niet-alleen"
-                className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-medium text-white transition-colors"
-                style={{ background: "#6d84a8" }}
-              >
-                Naar mijn pagina
-                <ArrowRight size={17} />
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/registreren"
-                  className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-medium text-white transition-colors"
-                  style={{ background: "#6d84a8" }}
-                >
-                  Account aanmaken
-                  <ArrowRight size={17} />
-                </Link>
-                <Link
-                  href="/inloggen"
-                  className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl font-medium border transition-colors"
-                  style={{ color: "#6b6460", borderColor: "#d4ccc4", background: "white" }}
-                >
-                  Al een account? Inloggen
-                </Link>
-              </>
-            )}
           </div>
 
           <p className="text-xs" style={{ color: "#8a8078" }}>
