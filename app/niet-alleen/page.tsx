@@ -121,10 +121,19 @@ function NietAlleenPageInner() {
 
     const vandaag = profiel.dagPrompts.find((p) => p.dag === activeDag);
     if (vandaag) setTekst(vandaag.tekst);
-    setOpgeslagen(false);
+    // NIET setOpgeslagen(false) hier — dat reset de save direct na Convex update
 
     setScherm("dag");
   }, [status, profiel, activeDag]);
+
+  // Reset opgeslagen alleen als de dag wisselt (niet bij profiel-updates na save)
+  const prevActiveDagRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (prevActiveDagRef.current !== null && prevActiveDagRef.current !== activeDag) {
+      setOpgeslagen(false);
+    }
+    prevActiveDagRef.current = activeDag;
+  }, [activeDag]);
 
   // Microfoon
   function stopOpname() {
@@ -261,8 +270,8 @@ function NietAlleenPageInner() {
 
   function navigeerNaarDag(dag: number) {
     window.scrollTo({ top: 0, behavior: "instant" as any });
-    if (dag >= dagNummer) {
-      setBekijkDag(null);
+    if (dag >= dagNummer && dag > maxIngevuldeDag) {
+      setBekijkDag(null); // terug naar hoofdweergave
     } else {
       setBekijkDag(dag);
     }
@@ -430,6 +439,8 @@ function NietAlleenPageInner() {
 
   // Terugkijken: ingevulde dagen sorteren
   const ingevuldeDagen = [...(profiel?.dagPrompts ?? [])].sort((a, b) => a.dag - b.dag);
+  // Hoogste dag met inhoud — gebruikt als bovengrens bij terugkijken
+  const maxIngevuldeDag = ingevuldeDagen.length > 0 ? ingevuldeDagen[ingevuldeDagen.length - 1].dag : dagNummer;
 
   // ── Terugkijken: bekijk een vorige dag ──────────────────
   if (bekijkDag !== null) {
@@ -449,7 +460,7 @@ function NietAlleenPageInner() {
               ‹
             </button>
             <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {bekijkDag} van 30</span>
-            <button onClick={() => navigeerNaarDag(bekijkDag + 1)} disabled={bekijkDag >= dagNummer}
+            <button onClick={() => navigeerNaarDag(bekijkDag + 1)} disabled={bekijkDag >= maxIngevuldeDag}
               className="w-6 h-6 flex items-center justify-center rounded text-base transition-all disabled:opacity-20"
               style={{ color: "#8a8078" }}>
               ›
