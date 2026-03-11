@@ -11,8 +11,9 @@ import { Printer } from "lucide-react";
 export default function DagboekPage() {
   const { data: session, status } = useSession();
   const userId = (session?.user as any)?.id ?? session?.user?.email ?? "";
+  const userEmail = session?.user?.email ?? "";
 
-  const profiel = useQuery(api.nietAlleen.getProfile, userId ? { userId } : "skip");
+  const profiel = useQuery(api.nietAlleen.getProfile, userId ? { userId, email: userEmail } : "skip");
   const fotoUrls = useQuery(api.nietAlleen.getAllDagFotoUrls, userId ? { userId } : "skip");
 
   if (status === "loading" || profiel === undefined || fotoUrls === undefined) {

@@ -121,6 +121,7 @@ function NietAlleenPageInner() {
 
     const vandaag = profiel.dagPrompts.find((p) => p.dag === activeDag);
     if (vandaag) setTekst(vandaag.tekst);
+    setOpgeslagen(false);
 
     setScherm("dag");
   }, [status, profiel, activeDag]);
@@ -195,7 +196,7 @@ function NietAlleenPageInner() {
     try {
       await saveDagPrompt({ userId, dag: activeDag, tekst });
       setOpgeslagen(true);
-      setTimeout(() => setOpgeslagen(false), 3000);
+      // geen auto-reset: opgeslagen blijft staan totdat gebruiker "Ik wil nog iets wijzigen" klikt
     } finally { setBezig(false); }
   }
 
@@ -259,6 +260,7 @@ function NietAlleenPageInner() {
   }
 
   function navigeerNaarDag(dag: number) {
+    window.scrollTo({ top: 0, behavior: "instant" as any });
     if (dag >= dagNummer) {
       setBekijkDag(null);
     } else {
@@ -391,12 +393,17 @@ function NietAlleenPageInner() {
           <div className="space-y-3">
             <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>Je 30 dagen zijn klaar</h1>
             <p className="text-base leading-relaxed" style={{ color: "#6b6460" }}>
-              Je hebt iets bijzonders gedaan — 30 dagen lang bij jezelf zijn. Wil je alles bewaren en verder gaan?
+              Dertig dagen lang ben je er geweest voor jezelf. Alles wat je hebt geschreven is van jou.
             </p>
           </div>
-          <Link href="/niet-alleen/ontdek" className="inline-block px-6 py-3 rounded-xl font-medium text-white text-sm" style={{ background: "#6d84a8" }}>
-            Ontdek wat er meer is
-          </Link>
+          <div className="space-y-3">
+            <Link href="/niet-alleen/dagboek" className="block px-6 py-3 rounded-xl font-medium text-white text-sm" style={{ background: "#6d84a8" }}>
+              Bekijk en bewaar jouw dagboek
+            </Link>
+            <Link href="/niet-alleen/ontdek" className="block px-6 py-3 rounded-xl font-medium text-sm border" style={{ color: "#6b6460", borderColor: "#d4ccc4", background: "white" }}>
+              Ga verder met TalkToBenji
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -735,26 +742,34 @@ function NietAlleenPageInner() {
 
         {/* Opslaan */}
         <div className="space-y-2">
-          <button onClick={handleOpslaan} disabled={!tekst.trim() || bezig}
-            className="w-full py-3 rounded-xl font-medium text-white text-sm transition-all"
-            style={{ background: tekst.trim() && !bezig ? "#6d84a8" : "#c4cdd8", cursor: tekst.trim() && !bezig ? "pointer" : "default" }}>
-            {opgeslagen ? "Opgeslagen ✓" : bezig ? "Even geduld..." : "Opslaan"}
-          </button>
-          <div className="flex justify-end">
-            <button
-              onClick={() => {
-                setTekst((prev) => prev + "\n\n");
-                setTimeout(() => {
-                  tekstRef.current?.focus();
-                  tekstRef.current?.setSelectionRange(9999, 9999);
-                }, 0);
-              }}
-              className="text-sm"
-              style={{ color: "#b0a8a0" }}
-            >
-              Ik wil nog iets toevoegen...
+          {opgeslagen ? (
+            <div className="w-full py-3 rounded-xl text-center text-sm font-medium" style={{ background: "#eef1f6", color: "#6d84a8" }}>
+              Opgeslagen ✓
+            </div>
+          ) : (
+            <button onClick={handleOpslaan} disabled={!tekst.trim() || bezig}
+              className="w-full py-3 rounded-xl font-medium text-white text-sm transition-all"
+              style={{ background: tekst.trim() && !bezig ? "#6d84a8" : "#c4cdd8", cursor: tekst.trim() && !bezig ? "pointer" : "default" }}>
+              {bezig ? "Even geduld..." : "Opslaan"}
             </button>
-          </div>
+          )}
+          {opgeslagen && (
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setOpgeslagen(false);
+                  setTimeout(() => {
+                    tekstRef.current?.focus();
+                    tekstRef.current?.setSelectionRange(9999, 9999);
+                  }, 0);
+                }}
+                className="text-sm"
+                style={{ color: "#b0a8a0" }}
+              >
+                Ik wil nog iets wijzigen...
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Vorige dagen terugkijken */}
