@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
 
 const KOOP_LINK = "https://talktobenji.kennis.shop/pay/niet-alleen";
 
@@ -44,6 +42,8 @@ const VRAGEN = [
   },
 ];
 
+// Geen VraagItem component nodig — vragen staan open
+
 const VOOR_WIE = [
   "je iemand hebt verloren en niet weet hoe je verder moet",
   "je rouwt om een relatie, een huisdier, een miskraam of een gezondheid en het gevoel hebt dat niemand het begrijpt",
@@ -53,32 +53,6 @@ const VOOR_WIE = [
   "je gewoon iemand nodig hebt die er is, zonder oordeel, op het moment dat jij er klaar voor bent",
 ];
 
-function VraagItem({ vraag, antwoord }: { vraag: string; antwoord: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div
-      className="border-b last:border-0 cursor-pointer"
-      style={{ borderColor: "#e8e0d8" }}
-      onClick={() => setOpen((v) => !v)}
-    >
-      <div className="flex items-center justify-between py-4 gap-4">
-        <p className="text-sm font-medium" style={{ color: "#3d3530" }}>{vraag}</p>
-        <ChevronDown
-          size={16}
-          style={{
-            color: "#8a8078",
-            flexShrink: 0,
-            transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform 0.2s",
-          }}
-        />
-      </div>
-      {open && (
-        <p className="text-sm leading-relaxed pb-4" style={{ color: "#6b6460" }}>{antwoord}</p>
-      )}
-    </div>
-  );
-}
 
 export default function NietAlleenAPage() {
   return (
@@ -138,6 +112,20 @@ export default function NietAlleenAPage() {
           </div>
         </section>
 
+        {/* PRODUCTAFBEELDING */}
+        <section className="px-5 pb-10">
+          <div className="max-w-lg mx-auto">
+            <Image
+              src="/images/niet-alleen-product.png"
+              alt="Zo ziet 'Niet Alleen' eruit"
+              width={600}
+              height={420}
+              className="w-full rounded-2xl"
+              style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}
+            />
+          </div>
+        </section>
+
         {/* ERKENNING */}
         <section className="px-5 pb-12">
           <div className="max-w-lg mx-auto">
@@ -181,7 +169,7 @@ export default function NietAlleenAPage() {
                   Je kunt ook inspreken, of een foto toevoegen.
                 </p>
                 <p>
-                  Alles wordt bewaard. Na 30 dagen heb je jouw eigen verhaal op papier,
+                  Alles wordt bewaard. Na 30 dagen heb je jouw eigen woorden bewaard,
                   opgebouwd in jouw tempo.
                 </p>
                 <p>
@@ -242,8 +230,8 @@ export default function NietAlleenAPage() {
               </h2>
               <p className="text-sm leading-relaxed mb-4" style={{ color: "#6b6460" }}>
                 Ien is de oprichter van TalkToBenji, het platform waar "Niet Alleen" onderdeel van is.
-                Ze ontwikkelde dit programma vanuit haar eigen ervaring met verlies en de behoefte
-                aan een plek die er gewoon is, zonder verwachtingen.
+                Ze weet hoe zwaar het is als verdriet geen plek krijgt.
+                "Niet Alleen" is wat ze zelf had willen hebben.
               </p>
               <Link
                 href="/waarom-benji"
@@ -256,18 +244,21 @@ export default function NietAlleenAPage() {
           </div>
         </section>
 
-        {/* VRAGEN */}
+        {/* VRAGEN — open, geen accordion */}
         <section className="px-5 pb-12">
           <div className="max-w-lg mx-auto">
             <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>
               Misschien vraag je je af...
             </h2>
             <div
-              className="rounded-2xl px-5 sm:px-6"
+              className="rounded-2xl p-6 sm:p-7 space-y-6"
               style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}
             >
               {VRAGEN.map((v, i) => (
-                <VraagItem key={i} vraag={v.vraag} antwoord={v.antwoord} />
+                <div key={i}>
+                  <p className="text-sm font-semibold mb-1" style={{ color: "#3d3530" }}>{v.vraag}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{v.antwoord}</p>
+                </div>
               ))}
             </div>
           </div>

@@ -85,6 +85,20 @@ export default function NietAlleenBPage() {
           </div>
         </section>
 
+        {/* PRODUCTAFBEELDING */}
+        <section className="px-5 pb-10">
+          <div className="max-w-lg mx-auto">
+            <Image
+              src="/images/niet-alleen-product.png"
+              alt="Zo ziet 'Niet Alleen' eruit"
+              width={600}
+              height={420}
+              className="w-full rounded-2xl"
+              style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}
+            />
+          </div>
+        </section>
+
         {/* DE KERN */}
         <section className="px-5 pb-16">
           <div className="max-w-lg mx-auto space-y-5 text-base leading-relaxed" style={{ color: "#6b6460" }}>
@@ -155,8 +169,8 @@ export default function NietAlleenBPage() {
               </h2>
               <p className="text-sm leading-relaxed mb-4" style={{ color: "#6b6460" }}>
                 Ien is de oprichter van TalkToBenji, het platform waar "Niet Alleen" onderdeel van is.
-                Ze ontwikkelde dit programma vanuit haar eigen ervaring met verlies en de behoefte
-                aan een plek die er gewoon is, zonder verwachtingen.
+                Ze weet hoe zwaar het is als verdriet geen plek krijgt.
+                "Niet Alleen" is wat ze zelf had willen hebben.
               </p>
               <Link
                 href="/waarom-benji"
