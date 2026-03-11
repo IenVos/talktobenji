@@ -46,8 +46,8 @@ function AnkerPageInner() {
 
   const TERUGBLIK_DAGEN = [7, 14, 21];
   const TERUGBLIK_VRAGEN: Record<number, string> = {
-    7: "Een week geleden begon je hier. Je hebt zeven dagen woorden gegeven aan iets wat moeilijk te verwoorden is. Wat heeft deze week je gebracht? Niet wat je had verwacht of gehoopt. Maar wat er echt was — een inzicht, een gevoel, een moment van herkenning, of juist een dag waarop het zwaarder was dan de andere.",
-    14: "Twee weken. Je hebt herinneringen aangeraakt die je misschien al een tijdje niet had durven aanraken. Wat heeft deze week je het meest geraakt? En is er iets wat je anders ziet dan een week geleden — over het verlies, over jezelf, of over wat je nodig hebt?",
+    7: "Een week geleden begon je hier. Je hebt zeven dagen woorden gegeven aan iets wat moeilijk te verwoorden is. Wat heeft deze week je gebracht? Niet wat je had verwacht of gehoopt. Maar wat er echt was: een inzicht, een gevoel, een moment van herkenning, of juist een dag waarop het zwaarder was dan de andere.",
+    14: "Twee weken. Je hebt herinneringen aangeraakt die je misschien al een tijdje niet had durven aanraken. Wat heeft deze week je het meest geraakt? En is er iets wat je anders ziet dan een week geleden, over het verlies, over jezelf, of over wat je nodig hebt?",
     21: "Drie weken. Je bent veranderd in deze tijd, ook als je dat van binnenuit misschien niet zo voelt. Kijk terug op de afgelopen week. Wat was zwaar? Wat was onverwacht licht? En wat neem je mee naar de laatste negen dagen?",
   };
   const toonTerugblik = dag !== null && TERUGBLIK_DAGEN.includes(dag);

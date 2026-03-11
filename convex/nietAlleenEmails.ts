@@ -224,7 +224,7 @@ export const sendAfsluitMail = internalAction({
     const html = wrapperIen(`
       <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
       ${alineaHtml(bodyTextMet)}
-      ${knop("Alles bewaren", "https://talktobenji.com/niet-alleen/ontdek")}
+      ${knop("Bekijk jouw dagboek", "https://talktobenji.com/niet-alleen/dagboek")}
       <p style="font-size: 14px; color: #718096;">
         Vragen? Stuur een mail naar
         <a href="mailto:contactmetien@talktobenji.com" style="color: #6d84a8;">contactmetien@talktobenji.com</a>.
@@ -341,7 +341,7 @@ export const stuurAlleEmailsTest = internalAction({
           html: wrapperIen(`
             <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
             ${alineaHtml(dag30Body)}
-            ${knop("Alles bewaren", "https://talktobenji.com/niet-alleen/ontdek")}
+            ${knop("Bekijk jouw dagboek", "https://talktobenji.com/niet-alleen/dagboek")}
             <p style="font-size: 14px; color: #718096;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color: #6d84a8;">contactmetien@talktobenji.com</a>.</p>
           `),
           apiKey: RESEND_API_KEY,

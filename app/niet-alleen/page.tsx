@@ -53,6 +53,8 @@ function NietAlleenPageInner() {
   const [bekijkFotoUploaden, setBekijkFotoUploaden] = useState(false);
   const fotoInputRef = useRef<HTMLInputElement>(null);
   const bekijkFotoInputRef = useRef<HTMLInputElement>(null);
+  const profielFotoInputRef = useRef<HTMLInputElement>(null);
+  const [profielFotoUploaden, setProfielFotoUploaden] = useState(false);
   const tekstRef = useRef<HTMLTextAreaElement>(null);
   const herkenningRef = useRef<any>(null);
   const opnameActiefRef = useRef(false);
@@ -70,6 +72,7 @@ function NietAlleenPageInner() {
   const saveDagPrompt = useMutation(api.nietAlleen.saveDagPrompt);
   const generateUploadUrl = useMutation(api.nietAlleen.generateUploadUrl);
   const saveDagFoto = useMutation(api.nietAlleen.saveDagFoto);
+  const saveProfielFoto = useMutation(api.nietAlleen.saveProfielFoto);
   const sluitOefening = useMutation(api.nietAlleen.sluitOefening);
 
   const dagNummer = profiel?.startDatum
@@ -241,6 +244,19 @@ function NietAlleenPageInner() {
     setBekijkBewerkModus(true);
   }
 
+  async function handleProfielFotoKiezen(e: React.ChangeEvent<HTMLInputElement>) {
+    const bestand = e.target.files?.[0];
+    if (!bestand || !userId) return;
+    setProfielFotoUploaden(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const res = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": bestand.type }, body: bestand });
+      const { storageId } = await res.json();
+      await saveProfielFoto({ userId, storageId });
+    } catch {}
+    finally { setProfielFotoUploaden(false); }
+  }
+
   function navigeerNaarDag(dag: number) {
     if (dag >= dagNummer) {
       setBekijkDag(null);
@@ -388,8 +404,8 @@ function NietAlleenPageInner() {
   // ── Luisteroefeningen (dag 2, 12, 18) ───────────────────
   const OEFENING_DAGEN = [2, 12, 18];
   const OEFENING_TEKSTEN: Record<number, string> = {
-    2: "Ga zitten zoals je zit. Je hoeft niets te veranderen.\n\nLeg een hand op je borst als dat goed voelt. Voel hoe je ademhaalt — niet om het te veranderen, alleen om het te merken.\n\nEr is een moment dat je vandaag gaat aanraken. Dat vraagt iets van je. Je lichaam weet dat al, ook voor je begint.\n\nAdem één keer langzaam in. Gewoon een ademhaling die iets ruimer is dan de vorige.\n\nEn terwijl je uitademt: je hoeft dit moment niet te dragen alsof het te zwaar is om aan te raken. Je mag er gewoon naar kijken. Van een kleine afstand. Het is van jou, het gaat nergens heen.\n\nNog één ademhaling. En dan begin je, als je er klaar voor bent.",
-    12: "Er zijn dingen die we met ons meedragen zonder dat we ze een naam geven. Onuitgesproken woorden. Gemiste momenten. Dingen die er niet van zijn gekomen.\n\nDat gewicht zit ergens in je lichaam. Misschien in je keel. Misschien in je schouders. Misschien dieper.\n\nLeg je handen in je schoot. Voel het gewicht van je eigen handen.\n\nAdem in — en stel je voor dat je even ruimte maakt voor wat er is. Niet om het op te lossen. Alleen om het een plek te geven naast je, in plaats van in je.\n\nAdem uit — en laat je schouders zakken, ook als ze maar een millimeter zakken.\n\nWat onafgemaakt is gebleven hoeft vandaag niet af te worden. Je schrijft het alleen op. Dat is genoeg.",
+    2: "Ga zitten zoals je zit. Je hoeft niets te veranderen.\n\nLeg een hand op je borst als dat goed voelt. Voel hoe je ademhaalt, niet om het te veranderen, alleen om het te merken.\n\nEr is een moment dat je vandaag gaat aanraken. Dat vraagt iets van je. Je lichaam weet dat al, ook voor je begint.\n\nAdem één keer langzaam in. Gewoon een ademhaling die iets ruimer is dan de vorige.\n\nEn terwijl je uitademt: je hoeft dit moment niet te dragen alsof het te zwaar is om aan te raken. Je mag er gewoon naar kijken. Van een kleine afstand. Het is van jou, het gaat nergens heen.\n\nNog één ademhaling. En dan begin je, als je er klaar voor bent.",
+    12: "Er zijn dingen die we met ons meedragen zonder dat we ze een naam geven. Onuitgesproken woorden. Gemiste momenten. Dingen die er niet van zijn gekomen.\n\nDat gewicht zit ergens in je lichaam. Misschien in je keel. Misschien in je schouders. Misschien dieper.\n\nLeg je handen in je schoot. Voel het gewicht van je eigen handen.\n\nAdem in, en stel je voor dat je even ruimte maakt voor wat er is. Niet om het op te lossen. Alleen om het een plek te geven naast je, in plaats van in je.\n\nAdem uit, en laat je schouders zakken, ook als ze maar een millimeter zakken.\n\nWat onafgemaakt is gebleven hoeft vandaag niet af te worden. Je schrijft het alleen op. Dat is genoeg.",
     18: "Boosheid heeft een slechte reputatie. We leren vroeg dat we hem moeten inslikken, ombuigen, verklaren. Maar boosheid is informatie. Het vertelt je wat je belangrijk vond. Wat je pijn heeft gedaan. Wat er niet klopte.\n\nVoordat je schrijft: laat de boosheid er even gewoon zijn, zonder er iets mee te doen.\n\nAdem in door je neus. Voel of er spanning zit in je kaak, je handen, je buik. Je hoeft het niet weg te ademen.\n\nAdem uit door je mond, iets langzamer dan normaal.\n\nZeg in jezelf, of hardop als je dat wilt: het is logisch dat ik boos ben.\n\nNiet als oordeel. Niet als excuus. Gewoon als erkenning.\n\nNog één keer. En dan schrijf je.",
   };
 
@@ -435,7 +451,7 @@ function NietAlleenPageInner() {
         <div className="max-w-lg mx-auto px-6 py-6 space-y-5">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>
-              Dag {bekijkDag} — {oudeInhoud?.thema ?? ""}
+              Dag {bekijkDag} · {oudeInhoud?.thema ?? ""}
             </p>
             <p className="text-lg leading-relaxed font-medium" style={{ color: "#3d3530" }}>
               {oudeInhoud?.inHetAccount ?? ""}
@@ -533,51 +549,61 @@ function NietAlleenPageInner() {
             className="hover:opacity-70 transition-opacity" />
         </Link>
 
-        {/* Profielfoto cirkel */}
-        <Link href="/niet-alleen/welkom" title="Jouw profiel">
-          <div className="w-10 h-10 rounded-full border-2 overflow-hidden flex items-center justify-center"
-            style={{ borderColor: profielFotoUrl ? "#6d84a8" : "#d4ccc4", background: "#f0ebe4" }}>
-            {profielFotoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profielFotoUrl} alt="Jouw foto" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-xs" style={{ color: "#b0a8a0" }}>👤</span>
-            )}
-          </div>
-        </Link>
-
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => navigeerNaarDag(activeDag - 1)}
             disabled={activeDag <= 1}
-            className="w-6 h-6 flex items-center justify-center rounded text-base transition-all disabled:opacity-20"
-            style={{ color: "#8a8078" }}>
+            className="w-8 h-8 flex items-center justify-center rounded-lg border text-base transition-all disabled:opacity-20"
+            style={{ color: "#6b6460", borderColor: activeDag > 1 ? "#d4ccc4" : "transparent", background: activeDag > 1 ? "white" : "transparent" }}>
             ‹
           </button>
           <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {activeDag} van 30</span>
           <button
             onClick={() => navigeerNaarDag(activeDag + 1)}
             disabled={activeDag >= dagNummer}
-            className="w-6 h-6 flex items-center justify-center rounded text-base transition-all disabled:opacity-20"
-            style={{ color: "#8a8078" }}>
+            className="w-8 h-8 flex items-center justify-center rounded-lg border text-base transition-all disabled:opacity-20"
+            style={{ color: "#6b6460", borderColor: activeDag < dagNummer ? "#d4ccc4" : "transparent", background: activeDag < dagNummer ? "white" : "transparent" }}>
             ›
           </button>
         </div>
       </div>
 
-      {/* Opgeslagen anker — klein, italic, onder header */}
-      {profiel?.nietAlleenAnker?.tekst && (
-        <p className="text-center text-xs italic px-6" style={{ color: "#b0a8a0" }}>
-          &ldquo;{profiel.nietAlleenAnker.tekst}&rdquo;
-        </p>
-      )}
+      {/* Profielfoto — gecentreerd, klikbaar om te uploaden */}
+      <div className="flex flex-col items-center pt-3 pb-1 gap-1.5">
+        <input ref={profielFotoInputRef} type="file" accept="image/*" className="hidden" onChange={handleProfielFotoKiezen} />
+        <button
+          onClick={() => profielFotoInputRef.current?.click()}
+          disabled={profielFotoUploaden}
+          title={profielFotoUrl ? "Foto wijzigen" : "Voeg een profielfoto toe"}
+          className="relative w-14 h-14 rounded-full border-2 overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
+          style={{ borderColor: profielFotoUrl ? "#6d84a8" : "#d4ccc4", background: "#f0ebe4" }}>
+          {profielFotoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={profielFotoUrl} alt="Jouw foto" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-lg" style={{ color: "#b0a8a0" }}>👤</span>
+          )}
+          {profielFotoUploaden && (
+            <div className="absolute inset-0 flex items-center justify-center rounded-full" style={{ background: "rgba(255,255,255,0.7)" }}>
+              <span className="text-xs" style={{ color: "#6d84a8" }}>…</span>
+            </div>
+          )}
+        </button>
+
+        {/* Opgeslagen anker — klein, italic */}
+        {profiel?.nietAlleenAnker?.tekst && (
+          <p className="text-xs italic text-center px-6" style={{ color: "#b0a8a0" }}>
+            &ldquo;{profiel.nietAlleenAnker.tekst}&rdquo;
+          </p>
+        )}
+      </div>
 
       <div className="max-w-lg mx-auto px-6 py-8 space-y-6">
 
         {/* Dagprompt */}
         <div className="space-y-2 pt-2">
           <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>
-            Dag {activeDag} — {dagInhoud?.thema ?? ""}
+            Dag {activeDag} · {dagInhoud?.thema ?? ""}
           </p>
           <p className="text-lg leading-relaxed font-medium" style={{ color: "#3d3530" }}>
             {dagInhoud?.inHetAccount ?? ""}
@@ -594,11 +620,11 @@ function NietAlleenPageInner() {
           <>
             <style>{`
               @keyframes adem {
-                0%   { width: 60px; height: 60px; opacity: 0.55; }
-                33%  { width: 110px; height: 110px; opacity: 0.75; }
-                41%  { width: 110px; height: 110px; opacity: 0.75; }
-                91%  { width: 60px; height: 60px; opacity: 0.55; }
-                100% { width: 60px; height: 60px; opacity: 0.55; }
+                0%   { transform: scale(0.545); opacity: 0.55; }
+                33%  { transform: scale(1);     opacity: 0.75; }
+                41%  { transform: scale(1);     opacity: 0.75; }
+                91%  { transform: scale(0.545); opacity: 0.55; }
+                100% { transform: scale(0.545); opacity: 0.55; }
               }
             `}</style>
             <div className="rounded-2xl border relative" style={{ background: "#f0ebe4", borderColor: "#e8e0d8", padding: "1.25rem 1rem 1.5rem" }}>
@@ -624,13 +650,13 @@ function NietAlleenPageInner() {
                 ))}
               </div>
               <p className="text-sm italic mb-5" style={{ color: "#8a8078" }}>
-                Volg de cirkel met je adem — hij ademt voor je.
+                Volg de cirkel met je adem, hij ademt voor je.
               </p>
-              <div className="flex justify-center">
+              <div className="flex justify-center" style={{ height: 110 }}>
                 <div
                   style={{
-                    width: 60,
-                    height: 60,
+                    width: 110,
+                    height: 110,
                     borderRadius: "50%",
                     background: "rgba(109, 132, 168, 0.4)",
                     boxShadow: "0 0 24px 8px rgba(109, 132, 168, 0.18)",

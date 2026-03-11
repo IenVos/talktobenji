@@ -3,8 +3,8 @@ export type AnkerDag = (typeof ANKER_DAGEN)[number];
 
 export const ANKER_CONTENT: Record<AnkerDag, { label: string; tekst: string; zinnen: string[] }> = {
   4: {
-    label: "SPECIAAL VOOR JOU — DAG 4",
-    tekst: "Je bent vier dagen verder. Dat is iets.\nKies een zin die vandaag bij je past — of schrijf je eigen woorden. Deze zin blijft de komende dagen bij je zichtbaar.",
+    label: "SPECIAAL VOOR JOU · DAG 4",
+    tekst: "Je bent vier dagen verder. Dat is iets.\nKies een zin die vandaag bij je past, of schrijf je eigen woorden. Deze zin blijft de komende dagen bij je zichtbaar.",
     zinnen: [
       "Ik ben er nog.",
       "Het mag er zijn.",
@@ -13,8 +13,8 @@ export const ANKER_CONTENT: Record<AnkerDag, { label: string; tekst: string; zin
     ],
   },
   7: {
-    label: "SPECIAAL VOOR JOU — DAG 7",
-    tekst: "Een week. Je hebt een week gedaan.\nKies een zin die bij deze week past — of schrijf je eigen woorden.",
+    label: "SPECIAAL VOOR JOU · DAG 7",
+    tekst: "Je bent nu een week onderweg. Dat is niet niks.\nKies een zin die bij deze week past, of schrijf je eigen woorden.",
     zinnen: [
       "Ik draag het.",
       "Eén week.",
@@ -23,8 +23,8 @@ export const ANKER_CONTENT: Record<AnkerDag, { label: string; tekst: string; zin
     ],
   },
   14: {
-    label: "SPECIAAL VOOR JOU — DAG 14",
-    tekst: "Halverwege. Veertien dagen.\nKies een zin die bij dit moment past — of schrijf je eigen woorden.",
+    label: "SPECIAAL VOOR JOU · DAG 14",
+    tekst: "Halverwege. Veertien dagen verder.\nKies een zin die bij dit moment past, of schrijf je eigen woorden.",
     zinnen: [
       "Ik vergeet niet.",
       "Halverwege.",
@@ -33,8 +33,8 @@ export const ANKER_CONTENT: Record<AnkerDag, { label: string; tekst: string; zin
     ],
   },
   21: {
-    label: "SPECIAAL VOOR JOU — DAG 21",
-    tekst: "Nog negen dagen. Je bent er bijna.\nKies een zin die bij deze laatste week past — of schrijf je eigen woorden.",
+    label: "SPECIAAL VOOR JOU · DAG 21",
+    tekst: "Nog negen dagen. Je bent er bijna.\nKies een zin die bij deze laatste week past, of schrijf je eigen woorden.",
     zinnen: [
       "Ik ga door.",
       "Bijna daar.",
