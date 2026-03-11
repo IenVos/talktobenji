@@ -543,6 +543,29 @@ function NietAlleenPageInner() {
             </>
           )}
 
+        {/* Vorige dagen grid — ook in terugkijkweergave */}
+        {ingevuldeDagen.length > 1 && (
+          <div className="space-y-2 pt-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>Vorige dagen</p>
+              <Link href="/niet-alleen/dagboek" className="text-xs" style={{ color: "#6d84a8" }}>Bekijk dagboek →</Link>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "8px" }}>
+              {ingevuldeDagen.map((p) => (
+                <button key={p.dag} onClick={() => setBekijkDag(p.dag)}
+                  className="py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                  style={{
+                    background: p.dag === bekijkDag ? "#eef1f6" : "white",
+                    borderColor: p.dag === bekijkDag ? "#6d84a8" : "#e8e0d8",
+                    color: p.dag === bekijkDag ? "#6d84a8" : "#6b6460",
+                  }}>
+                  Dag {p.dag}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         </div>
       </div>
     );
