@@ -211,12 +211,22 @@ export const maakTestProfiel = mutation({
       .first();
 
     if (bestaand) {
+      // Volledig resetten — ook dagPrompts, anker, terugblik, etc.
       await ctx.db.patch(bestaand._id, {
         userId: args.userId,
         naam: args.naam,
         verliesType,
         startDatum,
         accountGesloten: false,
+        dagPrompts: [],
+        dagFotos: [],
+        verliesNaam: undefined,
+        nietAlleenAnker: undefined,
+        nietAlleenTerugblik: undefined,
+        nietAlleenOefeningGesloten: undefined,
+        dag15MailVerzonden: undefined,
+        dag28MailVerzonden: undefined,
+        dag30MailVerzonden: undefined,
         updatedAt: now,
       });
       return "bijgewerkt";

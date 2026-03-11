@@ -178,17 +178,17 @@ const VERLIES_TYPES_TEST = [
 
 function TestProfielBlok() {
   const maakTestProfiel = useMutation(api.nietAlleen.maakTestProfiel);
-  const [userId, setUserId] = useState("");
   const [email, setEmail] = useState("");
   const [naam, setNaam] = useState("");
   const [verliesType, setVerliesType] = useState("persoon");
-  const [dagOffset, setDagOffset] = useState(0);
+  const [dagOffset, setDagOffset] = useState(9);
   const [bezig, setBezig] = useState(false);
   const [resultaat, setResultaat] = useState("");
   const [fout, setFout] = useState("");
 
   const handleMaak = async () => {
-    if (!userId || !email || !naam || bezig) return;
+    if (!email || !naam || bezig) return;
+    const userId = email; // userId = email zodat getProfile het vindt via email fallback
     setBezig(true);
     setResultaat("");
     setFout("");
@@ -209,14 +209,9 @@ function TestProfielBlok() {
         <h2 className="text-sm font-semibold text-blue-800">Testprofiel aanmaken</h2>
       </div>
       <p className="text-xs text-blue-700">
-        Maak een Niet Alleen profiel aan voor een bestaand account. Als het profiel al bestaat wordt het bijgewerkt.
+        Vul je e-mailadres in. Als er al een profiel bestaat wordt het volledig gereset — dagboek, anker, alles begint opnieuw.
       </p>
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">UserId <span className="font-normal text-gray-400">(vul hier je e-mailadres in)</span></label>
-          <input type="text" value={userId} onChange={(e) => setUserId(e.target.value)}
-            placeholder="jouw@email.nl" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
-        </div>
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1">E-mailadres</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
@@ -250,7 +245,7 @@ function TestProfielBlok() {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <button onClick={handleMaak} disabled={!userId || !email || !naam || bezig}
+        <button onClick={handleMaak} disabled={!email || !naam || bezig}
           className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
           style={{ background: "#3b82f6" }}>
           <UserPlus size={14} />
