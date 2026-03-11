@@ -467,6 +467,33 @@ function NietAlleenPageInner() {
             </button>
           </div>
         </div>
+        {/* Profielfoto + ankertekst — ook in terugkijkweergave */}
+        <div className="flex flex-col items-center pt-2 pb-1 gap-1.5">
+          <button
+            onClick={() => profielFotoInputRef.current?.click()}
+            disabled={profielFotoUploaden}
+            title={profielFotoUrl ? "Foto wijzigen" : "Voeg een profielfoto toe"}
+            className="relative w-14 h-14 rounded-full border-2 overflow-hidden flex items-center justify-center transition-opacity hover:opacity-80"
+            style={{ borderColor: profielFotoUrl ? "#6d84a8" : "#d4ccc4", background: "#f0ebe4" }}>
+            {profielFotoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profielFotoUrl} alt="Jouw foto" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-lg" style={{ color: "#b0a8a0" }}>👤</span>
+            )}
+            {profielFotoUploaden && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-full" style={{ background: "rgba(255,255,255,0.7)" }}>
+                <span className="text-xs" style={{ color: "#6d84a8" }}>…</span>
+              </div>
+            )}
+          </button>
+          {profiel?.nietAlleenAnker?.tekst && (
+            <p className="text-xs italic text-center px-6" style={{ color: "#b0a8a0" }}>
+              &ldquo;{profiel.nietAlleenAnker.tekst}&rdquo;
+            </p>
+          )}
+        </div>
+
         <div className="max-w-lg mx-auto px-6 py-6 space-y-5">
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>
