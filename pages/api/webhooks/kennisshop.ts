@@ -66,7 +66,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return null;
   }
 
-  const naam: string = data?.customer_name ?? data?.name ?? "";
+  const naam: string = data?.customer_first_name
+    ? `${data.customer_first_name} ${data.customer_last_name ?? ""}`.trim()
+    : (data?.customer_name ?? data?.name ?? "");
 
   async function voegToeAanMailerLite(groepId: string) {
     const apiKey = process.env.MAILERLITE_API_KEY;
@@ -119,7 +121,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Niet Alleen — aparte activatie flow (profiel + welkomstmail via eigen route)
     if (subscriptionType === "niet_alleen") {
-      const naam: string = data?.customer_name ?? data?.name ?? email;
+      const naam: string = data?.customer_first_name
+        ? `${data.customer_first_name} ${data.customer_last_name ?? ""}`.trim()
+        : (data?.customer_name ?? data?.name ?? email);
       const userId: string = data?.user_id ?? email;
 
       await fetch(`${process.env.NEXTAUTH_URL}/api/niet-alleen/activate`, {

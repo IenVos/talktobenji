@@ -1010,6 +1010,86 @@ Schrijf beknopt en feitelijk. Geen inleiding of afsluiting.`,
 });
 
 /**
+ * Genereer een kwaliteitsrapport voor de beheerder.
+ * Leest de berichten maar schrijft GEEN citaten — alleen inzichten.
+ * Wordt automatisch getriggerd als een sessie eindigt.
+ */
+export const analyzeSessionAdmin = action({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey || apiKey === "your-api-key-here") return;
+
+    const messages = await ctx.runQuery(api.chat.getMessages, {
+      sessionId: args.sessionId,
+      limit: 60,
+    });
+
+    const session = await ctx.runQuery(api.chat.getSession, {
+      sessionId: args.sessionId,
+    });
+
+    if (!messages || messages.length < 2) return;
+
+    const aantalGebruiker = messages.filter((m: any) => m.role === "user").length;
+    const aantalBenji = messages.filter((m: any) => m.role !== "user").length;
+    const status = session?.status ?? "onbekend";
+    const beoordeling = session?.rating ? `${session.rating}/5` : "geen";
+
+    // Transcript voor analyse — geanonimiseerd, enkel inhoud niet naam/email
+    const transcript = messages
+      .filter((m: any) => m.content?.trim())
+      .map((m: any) => `${m.role === "user" ? "G" : "B"}: ${m.content.slice(0, 400)}`)
+      .join("\n");
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: CLAUDE_MODEL,
+        max_tokens: 500,
+        system: `Je analyseert gesprekken tussen gebruikers (G) en Benji (B), een empathische chatbot voor rouwverwerking van TalkToBenji.nl.
+
+Schrijf een beknopt kwaliteitsrapport voor de beheerder. Gebruik GEEN citaten of persoonlijke details.
+
+Geef in 4 punten:
+1. Onderwerp: wat speelde er globaal? (max 8 woorden, geen namen)
+2. Verloop: hoe ging het gesprek? Was Benji behulpzaam, herhaalde hij zichzelf, haakte de gebruiker gefrustreerd af?
+3. Aandachtspunt: wat ging er mis of kon beter? (of "geen" als het goed ging)
+4. Actie: moet er iets worden toegevoegd aan de kennisbank, of een aanpassing aan Benji? (of "geen")
+
+Schrijf strak en zakelijk. Max 100 woorden totaal.`,
+        messages: [
+          {
+            role: "user",
+            content: `Status: ${status} | Berichten: ${aantalGebruiker} van gebruiker, ${aantalBenji} van Benji | Beoordeling: ${beoordeling}\n\nGesprek:\n${transcript.slice(0, 8000)}`,
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error(`[analyzeSessionAdmin] API error: ${response.status}`);
+      return;
+    }
+
+    const data = (await response.json()) as ClaudeAPIResponse;
+    const rapport = data.content?.[0]?.text?.trim() ?? "";
+
+    if (rapport) {
+      await ctx.runMutation(api.chat.setAdminRapport, {
+        sessionId: args.sessionId,
+        rapport,
+      });
+    }
+  },
+});
+
+/**
  * Genereer 5-10 alternatieve manieren om een vraag te stellen.
  * Vermijdt duplicaten op basis van bestaande vragen.
  */

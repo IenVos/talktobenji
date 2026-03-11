@@ -9,6 +9,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
@@ -617,6 +618,11 @@ export const endSession = mutation({
       lastActivityAt: now,
     });
 
+    // Genereer kwaliteitsrapport voor beheerder op de achtergrond
+    await ctx.scheduler.runAfter(5000, api.ai.analyzeSessionAdmin, {
+      sessionId: args.sessionId,
+    });
+
     return args.sessionId;
   },
 });
@@ -643,12 +649,15 @@ export const markSessionsAsAbandoned = mutation({
       (s) => s.lastActivityAt < cutoffTime
     );
 
-    // Update ze naar abandoned
+    // Update ze naar abandoned + trigger kwaliteitsrapport
     for (const session of abandoned) {
       await ctx.db.patch(session._id, {
         status: "abandoned",
         wasResolved: false,
         endedAt: Date.now(),
+      });
+      await ctx.scheduler.runAfter(0, api.ai.analyzeSessionAdmin, {
+        sessionId: session._id,
       });
     }
 
@@ -709,6 +718,16 @@ export const setSessionSummary = mutation({
     await ctx.db.patch(args.sessionId, {
       summary: args.summary,
       summarizedAt: Date.now(),
+    });
+  },
+});
+
+export const setAdminRapport = mutation({
+  args: { sessionId: v.id("chatSessions"), rapport: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.sessionId, {
+      adminRapport: args.rapport,
+      adminRapportAt: Date.now(),
     });
   },
 });

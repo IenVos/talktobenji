@@ -39,6 +39,8 @@ export default defineSchema({
     feedbackComment: v.optional(v.string()),
     summary: v.optional(v.string()),
     summarizedAt: v.optional(v.number()), // Tijdstip AI-samenvatting gegenereerd
+    adminRapport: v.optional(v.string()), // Kwaliteitsrapport voor beheerder (geen citaten)
+    adminRapportAt: v.optional(v.number()), // Tijdstip rapport gegenereerd
     metadata: v.optional(
       v.object({
         browser: v.optional(v.string()),
