@@ -85,20 +85,6 @@ export default function NietAlleenBPage() {
           </div>
         </section>
 
-        {/* PRODUCTAFBEELDING */}
-        <section className="px-5 pb-10">
-          <div className="max-w-lg mx-auto">
-            <Image
-              src="/images/niet-alleen-product.png"
-              alt="Zo ziet 'Niet Alleen' eruit"
-              width={600}
-              height={420}
-              className="w-full rounded-2xl"
-              style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}
-            />
-          </div>
-        </section>
-
         {/* DE KERN */}
         <section className="px-5 pb-16">
           <div className="max-w-lg mx-auto space-y-5 text-base leading-relaxed" style={{ color: "#6b6460" }}>
@@ -123,6 +109,15 @@ export default function NietAlleenBPage() {
               Alles wordt bewaard. Op dag 30 heb je jouw eigen verhaal, in jouw woorden, op jouw tempo.
               En als je wilt, schrijf je een brief aan jezelf.
             </p>
+            <div className="py-2">
+              <Image
+                src="/images/niet-alleen-product.png"
+                alt="Zo ziet 'Niet Alleen' eruit"
+                width={600}
+                height={420}
+                className="w-full rounded-2xl"
+              />
+            </div>
             <p style={{ color: "#3d3530" }}>
               Benji is er. Elke dag. Zonder oordeel. Zonder haast.
             </p>

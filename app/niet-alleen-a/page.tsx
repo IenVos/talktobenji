@@ -112,20 +112,6 @@ export default function NietAlleenAPage() {
           </div>
         </section>
 
-        {/* PRODUCTAFBEELDING */}
-        <section className="px-5 pb-10">
-          <div className="max-w-lg mx-auto">
-            <Image
-              src="/images/niet-alleen-product.png"
-              alt="Zo ziet 'Niet Alleen' eruit"
-              width={600}
-              height={420}
-              className="w-full rounded-2xl"
-              style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.10)" }}
-            />
-          </div>
-        </section>
-
         {/* ERKENNING */}
         <section className="px-5 pb-12">
           <div className="max-w-lg mx-auto">
@@ -179,6 +165,19 @@ export default function NietAlleenAPage() {
                 <p>Op dag 30 schrijf je een brief aan jezelf. Van nu, voor later.</p>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* PRODUCTAFBEELDING — zwevend, na Hoe het werkt */}
+        <section className="px-5 pb-12">
+          <div className="max-w-lg mx-auto">
+            <Image
+              src="/images/niet-alleen-product.png"
+              alt="Zo ziet 'Niet Alleen' eruit"
+              width={600}
+              height={420}
+              className="w-full rounded-2xl"
+            />
           </div>
         </section>
 
