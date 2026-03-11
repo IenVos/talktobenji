@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 
-const KOOP_LINK = "#";
+const KOOP_LINK = "https://talktobenji.kennis.shop/pay/niet-alleen";
 
 const ERVARINGEN = [
   {
