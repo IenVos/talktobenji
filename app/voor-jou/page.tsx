@@ -19,11 +19,11 @@ const ICON_MAP: Record<string, LucideIcon> = {
   flower2: Flower2, coffee: Coffee, umbrella: Umbrella, bird: Bird,
 };
 
-function CardIcon({ name }: { name?: string | null }) {
+function CardIcon({ name, size = 18 }: { name?: string | null; size?: number }) {
   if (!name) return null;
   const Icon = ICON_MAP[name];
   if (!Icon) return null;
-  return <Icon size={18} style={{ color: "#6d84a8" }} className="flex-shrink-0" />;
+  return <Icon size={size} style={{ color: "#6d84a8" }} className="flex-shrink-0" />;
 }
 
 export default function VoorJouPage() {
@@ -101,13 +101,13 @@ export default function VoorJouPage() {
                         className="w-full flex items-center justify-center"
                         style={{ aspectRatio: "1/1", background: "linear-gradient(135deg, #e8eef5 0%, #f5f0eb 100%)" }}
                       >
-                        <CardIcon name={(item as any).icon} />
+                        <CardIcon name={(item as any).icon} size={48} />
                       </div>
                     )}
                     <div className="p-4 flex flex-col flex-1">
                       {item.title && (
-                        <div className="flex items-start gap-1.5 mb-1.5">
-                          {item.imageUrl ? null : null}
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                          {item.imageUrl && <CardIcon name={(item as any).icon} size={14} />}
                           <h2 className="text-sm font-semibold leading-snug" style={{ color: "#3d3530" }}>
                             {item.title}
                           </h2>
