@@ -25,12 +25,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Controleer webhook secret (KennisShop stuurt dit mee als header of query param)
-  // Pas aan naar wat KennisShop exact stuurt — check hun documentatie
+  // Controleer webhook secret via header (nooit via query param — wordt gelogd)
   const secret =
     (req.headers["x-webhook-secret"] as string) ||
-    (req.headers["x-kennisshop-secret"] as string) ||
-    (req.query.secret as string);
+    (req.headers["x-kennisshop-secret"] as string);
 
   if (!secret || secret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
     console.warn("[KennisShop webhook] Ongeldig secret ontvangen");
@@ -61,7 +59,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!prodId) return null;
     if (prodId === process.env.KENNISSHOP_PRODUCT_UITGEBREID) return "uitgebreid";
     if (prodId === process.env.KENNISSHOP_PRODUCT_ALLES_IN_1) return "alles_in_1";
-    // TODO: stel KENNISSHOP_PRODUCT_NIET_ALLEEN in als env var zodra het product-ID bekend is
     if (prodId === process.env.KENNISSHOP_PRODUCT_NIET_ALLEEN) return "niet_alleen";
     return null;
   }

@@ -177,11 +177,14 @@ export const stuurTestEmails = action({
 export const activeerEnStuurWelkom = action({
   args: { userId: v.string(), email: v.string(), naam: v.string() },
   handler: async (ctx, args) => {
-    await ctx.runMutation(internal.nietAlleen.activateNietAlleen, args);
-    await ctx.runAction(internal.nietAlleenEmails.sendWelkomstMail, {
-      email: args.email,
-      naam: args.naam,
-    });
+    const result = await ctx.runMutation(internal.nietAlleen.activateNietAlleen, args);
+    // Stuur welkomstmail alleen als dit een nieuw profiel is (voorkomt dubbele mails)
+    if (result?.isNieuw) {
+      await ctx.runAction(internal.nietAlleenEmails.sendWelkomstMail, {
+        email: args.email,
+        naam: args.naam,
+      });
+    }
   },
 });
 
@@ -301,7 +304,10 @@ export const activateNietAlleen = internalMutation({
         createdAt: now,
         updatedAt: now,
       });
+      return { isNieuw: true };
     }
+
+    return { isNieuw: false };
   },
 });
 

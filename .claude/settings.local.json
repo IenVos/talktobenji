@@ -9,7 +9,9 @@
       "Bash(npx tsc:*)",
       "Bash(npx convex deploy:*)",
       "Bash(npx vercel:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(find convex:*)",
+      "Bash(cp:*)"
     ]
   }
 }

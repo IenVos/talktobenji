@@ -280,7 +280,13 @@ export default function ChatPageClient({
           userName,
         });
         setSessionId(newSessionId);
-        if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
+        if (typeof window !== "undefined") {
+          if (!sessionStorage.getItem("benji_start_chat_fired") && typeof (window as any).fbq === "function") {
+            (window as any).fbq("trackCustom", "StartChat");
+            sessionStorage.setItem("benji_start_chat_fired", "1");
+          }
+          localStorage.setItem(HAS_CHATTED_KEY, "1");
+        }
       } catch (e) {
         console.error(e);
         welcomeFromAccountHandled.current = false;
@@ -563,7 +569,13 @@ export default function ChatPageClient({
         const newSessionId = await startSession(startArgs);
         await addOpenerToSession({ sessionId: newSessionId, topicId: topicFromUrl });
         setSessionId(newSessionId);
-        if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
+        if (typeof window !== "undefined") {
+          if (!sessionStorage.getItem("benji_start_chat_fired") && typeof (window as any).fbq === "function") {
+            (window as any).fbq("trackCustom", "StartChat");
+            sessionStorage.setItem("benji_start_chat_fired", "1");
+          }
+          localStorage.setItem(HAS_CHATTED_KEY, "1");
+        }
       } catch (e) { console.error(e); }
       finally {
         setIsLoading(false);

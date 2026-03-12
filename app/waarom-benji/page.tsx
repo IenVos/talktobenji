@@ -105,9 +105,29 @@ export default function WaaromBenjiPage() {
             Vanuit die overtuiging begon ik vier jaar geleden Beterschap-cadeau.nl, een plek voor mensen die iemand willen steunen die iets moeilijks meemaakt. Dat werd meer gebruikt dan ik had verwacht.
           </p>
 
+          <div className="rounded-xl overflow-hidden">
+            <Image
+              src="/images/beterschap-cadeau.png"
+              alt="Beterschap-cadeau.nl"
+              width={800}
+              height={500}
+              className="w-full object-cover"
+            />
+          </div>
+
           <p>
             Er volgde een <Link href="/account/onderweg?title=Troostende+woorden" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">troostwoordenboekje</Link>, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen.
           </p>
+
+          <div className="flex justify-center">
+            <Image
+              src="/images/troostende-woorden-cover.png"
+              alt="Troostende woorden"
+              width={280}
+              height={400}
+              className="rounded-xl shadow-sm"
+            />
+          </div>
 
           <p>
             En langzaamaan groeide de vraag die me al die tijd bezighield:
