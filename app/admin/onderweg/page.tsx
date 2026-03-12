@@ -140,6 +140,7 @@ export default function AdminOnderwegPage() {
     priceCents?: number | null;
     paymentUrl?: string | null;
     buttonLabel?: string | null;
+    toonOpVoorJou?: boolean;
   }) => {
     setForm({
       title: item.title ?? "",
