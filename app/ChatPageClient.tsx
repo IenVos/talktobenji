@@ -466,7 +466,13 @@ export default function ChatPageClient({
           : { anonymousId: getOrCreateAnonymousId() };
         activeSessionId = await startSession(startArgs);
         setSessionId(activeSessionId);
-        if (typeof window !== "undefined") localStorage.setItem(HAS_CHATTED_KEY, "1");
+        if (typeof window !== "undefined") {
+          // Eerste chat ooit — fire pixel event (eenmalig per browser)
+          if (!localStorage.getItem(HAS_CHATTED_KEY) && typeof (window as any).fbq === "function") {
+            (window as any).fbq("trackCustom", "StartChat");
+          }
+          localStorage.setItem(HAS_CHATTED_KEY, "1");
+        }
       }
 
       // Verstuur bericht en genereer antwoord (gebruikersbericht staat al via pendingUserMessage)

@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   description: "Altijd iemand die luistert, ook 's nachts. Benji is er voor je als je verdriet hebt, rouwt of gewoon je gedachten kwijt wilt. Veilig, persoonlijk en altijd beschikbaar.",
   keywords: ["AI chatbot", "rouw", "verlies", "verdriet", "luisterend oor", "Benji", "TalkToBenji", "mentale steun"],
   manifest: "/manifest.webmanifest",
+  other: {
+    "facebook-domain-verification": "mwdw3hxjopt4qlk7ntu262qtertejz",
+  },
   openGraph: {
     title: "Talk To Benji | Altijd een luisterend oor, wanneer jij het nodig hebt",
     description: "Altijd iemand die luistert, ook 's nachts. Benji is er voor je als je verdriet hebt, rouwt of gewoon je gedachten kwijt wilt. Veilig, persoonlijk en altijd beschikbaar.",
