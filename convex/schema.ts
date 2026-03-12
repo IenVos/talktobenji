@@ -547,6 +547,43 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_email", ["email"]),
 
+  // Landingspagina's (beheerbaar via admin, publiek zichtbaar via /lp/[slug])
+  landingPages: defineTable({
+    slug: v.string(),           // URL slug, e.g. "niet-alleen-a"
+    pageTitle: v.string(),      // Browser tab title
+    isLive: v.boolean(),
+    // Hero
+    heroLabel: v.optional(v.string()),    // small text above h1, e.g. "30 dagen begeleiding"
+    heroTitle: v.string(),
+    heroSubtitle: v.optional(v.string()),
+    heroBody: v.optional(v.string()),
+    ctaText: v.optional(v.string()),
+    ctaUrl: v.optional(v.string()),
+    // Body sections (up to 2 text sections)
+    section1Title: v.optional(v.string()),
+    section1Text: v.optional(v.string()),
+    section2Title: v.optional(v.string()),
+    section2Text: v.optional(v.string()),
+    // Product image (public path like "/images/niet-alleen-product.png")
+    productImagePath: v.optional(v.string()),
+    // "Voor wie" bullets — one item per line
+    voorWieBullets: v.optional(v.string()),
+    // Reviews JSON: [{"tekst":"...","naam":"...","context":"..."}]
+    ervaringenJson: v.optional(v.string()),
+    // FAQ JSON: [{"vraag":"...","antwoord":"..."}]
+    vragenJson: v.optional(v.string()),
+    // "Wie is Ien" section
+    wieIsTitle: v.optional(v.string()),
+    wieIsText: v.optional(v.string()),
+    // Final CTA block
+    finalCtaTitle: v.optional(v.string()),
+    finalCtaBody: v.optional(v.string()),
+    // Footer
+    footerText: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),
+
   // Reviews / testimonials (beheerbaar via admin, zichtbaar op homepage)
   testimonials: defineTable({
     name: v.string(),       // Weergavenaam, bijv. "Anne" of "Thomas, 34"
