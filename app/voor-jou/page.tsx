@@ -5,8 +5,85 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ExternalLink } from "lucide-react";
 
+const VASTE_ITEMS = [
+  {
+    id: "niet-alleen",
+    title: "Niet Alleen",
+    omschrijving: "30 dagen. Elke dag één vraag. Een plek die van jou is. Voor wie iemand of iets mist.",
+    prijs: "€37",
+    knop: "Start mijn reis",
+    link: "https://talktobenji.kennis.shop/pay/niet-alleen",
+    afbeelding: "/images/niet-alleen-meer.png",
+  },
+  {
+    id: "troostende-woorden",
+    title: "Troostende woorden",
+    omschrijving: "Een boekje vol woorden van bemoediging. Voor als je niet weet wat je zeggen moet — aan jezelf of aan een ander.",
+    prijs: null,
+    knop: "Aanschaffen",
+    link: "https://talktobenji.kennis.shop/pay/troostende-woorden",
+    afbeelding: "/images/troostende-woorden-cover.png",
+  },
+  {
+    id: "woorden-die-omarmen",
+    title: "Woorden die omarmen",
+    omschrijving: "Een gratis verzameling van troostende en steunende woorden. Gewoon om te lezen, te bewaren, of door te sturen.",
+    prijs: "Gratis",
+    knop: "Lees het hier",
+    link: "https://heyzine.com/flip-book/1b15e11883.html",
+    afbeelding: null,
+  },
+];
+
+function ProductKaart({ item }: { item: typeof VASTE_ITEMS[0] }) {
+  return (
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 16px rgba(0,0,0,0.07)" }}
+    >
+      {item.afbeelding && (
+        <div className="w-full overflow-hidden" style={{ maxHeight: "200px" }}>
+          <Image
+            src={item.afbeelding}
+            alt={item.title}
+            width={600}
+            height={200}
+            className="w-full object-cover"
+            style={{ maxHeight: "200px" }}
+          />
+        </div>
+      )}
+      <div className="p-5">
+        <h2 className="text-base font-semibold mb-1" style={{ color: "#3d3530" }}>
+          {item.title}
+        </h2>
+        <p className="text-sm leading-relaxed mb-4" style={{ color: "#6b6460" }}>
+          {item.omschrijving}
+        </p>
+        <div className="flex items-center gap-3">
+          {item.prijs && (
+            <span className="text-sm font-medium" style={{ color: "#3d3530" }}>
+              {item.prijs}
+            </span>
+          )}
+          <a
+            href={item.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white"
+            style={{ background: "#6d84a8" }}
+          >
+            {item.knop}
+            <ExternalLink size={13} />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function VoorJouPage() {
-  const items = useQuery(api.onderweg.listVoorJou, {});
+  const dynamischeItems = useQuery(api.onderweg.listVoorJou, {});
 
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>
@@ -51,36 +128,27 @@ export default function VoorJouPage() {
         <section className="px-5 pb-20">
           <div className="max-w-lg mx-auto space-y-4">
 
-            {items === undefined && (
-              <div className="flex justify-center py-12">
-                <div className="w-6 h-6 rounded-full border-2 border-[#6d84a8] border-t-transparent animate-spin" />
-              </div>
-            )}
+            {/* Vaste producten */}
+            {VASTE_ITEMS.map((item) => (
+              <ProductKaart key={item.id} item={item} />
+            ))}
 
-            {items?.length === 0 && (
-              <p className="text-center text-sm py-12" style={{ color: "#b0a8a0" }}>
-                Er worden binnenkort producten toegevoegd.
-              </p>
-            )}
-
-            {items?.map((item) => (
+            {/* Dynamische items via admin */}
+            {dynamischeItems?.map((item) => (
               <div
                 key={item._id}
                 className="rounded-2xl overflow-hidden"
                 style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 16px rgba(0,0,0,0.07)" }}
               >
-                {/* Afbeelding */}
                 {item.imageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={item.imageUrl}
                     alt={item.title ?? ""}
                     className="w-full object-cover"
-                    style={{ maxHeight: "220px" }}
+                    style={{ maxHeight: "200px" }}
                   />
                 )}
-
-                {/* Tekst */}
                 <div className="p-5">
                   {item.title && (
                     <h2 className="text-base font-semibold mb-1" style={{ color: "#3d3530" }}>
@@ -92,8 +160,6 @@ export default function VoorJouPage() {
                       {item.content}
                     </p>
                   )}
-
-                  {/* Prijs + knop */}
                   {item.paymentUrl && (
                     <div className="flex items-center gap-3">
                       {item.priceCents != null && item.priceCents > 0 && (
@@ -116,6 +182,7 @@ export default function VoorJouPage() {
                 </div>
               </div>
             ))}
+
           </div>
         </section>
 
