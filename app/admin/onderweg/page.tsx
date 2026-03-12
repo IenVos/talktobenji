@@ -4,7 +4,35 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { ShoppingBag, Plus, Edit, Trash2, Save, X } from "lucide-react";
+import {
+  ShoppingBag, Plus, Edit, Trash2, Save, X,
+  Pencil, Waves, BookOpen, Heart, Leaf, Sun, Feather, Star,
+  Anchor, Wind, Sparkles, Flame, Music, Compass, Cloud, MessageCircle,
+  Flower2, Coffee, Umbrella, Bird,
+} from "lucide-react";
+
+const ICON_OPTIONS = [
+  { name: "pencil",        label: "Pen",       Icon: Pencil },
+  { name: "waves",         label: "Golven",    Icon: Waves },
+  { name: "bookOpen",      label: "Boek",      Icon: BookOpen },
+  { name: "heart",         label: "Hart",      Icon: Heart },
+  { name: "leaf",          label: "Blad",      Icon: Leaf },
+  { name: "sun",           label: "Zon",       Icon: Sun },
+  { name: "feather",       label: "Veer",      Icon: Feather },
+  { name: "star",          label: "Ster",      Icon: Star },
+  { name: "anchor",        label: "Anker",     Icon: Anchor },
+  { name: "wind",          label: "Wind",      Icon: Wind },
+  { name: "sparkles",      label: "Vonken",    Icon: Sparkles },
+  { name: "flame",         label: "Vlam",      Icon: Flame },
+  { name: "music",         label: "Muziek",    Icon: Music },
+  { name: "compass",       label: "Kompas",    Icon: Compass },
+  { name: "cloud",         label: "Wolk",      Icon: Cloud },
+  { name: "messageCircle", label: "Gesprek",   Icon: MessageCircle },
+  { name: "flower2",       label: "Bloem",     Icon: Flower2 },
+  { name: "coffee",        label: "Koffie",    Icon: Coffee },
+  { name: "umbrella",      label: "Paraplu",   Icon: Umbrella },
+  { name: "bird",          label: "Vogel",     Icon: Bird },
+];
 
 export default function AdminOnderwegPage() {
   const items = useAdminQuery(api.onderweg.listWithUrls, {});
@@ -26,6 +54,7 @@ export default function AdminOnderwegPage() {
     paymentUrl: "",
     buttonLabel: "",
     toonOpVoorJou: false,
+    icon: "",
   });
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -52,6 +81,7 @@ export default function AdminOnderwegPage() {
       paymentUrl: "",
       buttonLabel: "",
       toonOpVoorJou: false,
+      icon: "",
     });
     setEditingId(null);
     setEditingImageUrl(null);
@@ -85,6 +115,7 @@ export default function AdminOnderwegPage() {
         paymentUrl: form.paymentUrl.trim() || undefined,
         buttonLabel: form.buttonLabel.trim() || undefined,
         toonOpVoorJou: form.toonOpVoorJou,
+        icon: form.icon || undefined,
       });
       resetForm();
     } finally {
@@ -111,6 +142,7 @@ export default function AdminOnderwegPage() {
         paymentUrl: form.paymentUrl.trim() || null,
         buttonLabel: form.buttonLabel.trim() || null,
         toonOpVoorJou: form.toonOpVoorJou,
+        icon: form.icon || null,
       };
       if (form.imageFile) {
         const url = await generateUploadUrl();
@@ -141,6 +173,7 @@ export default function AdminOnderwegPage() {
     paymentUrl?: string | null;
     buttonLabel?: string | null;
     toonOpVoorJou?: boolean;
+    icon?: string | null;
   }) => {
     setForm({
       title: item.title ?? "",
@@ -152,6 +185,7 @@ export default function AdminOnderwegPage() {
       paymentUrl: item.paymentUrl ?? "",
       buttonLabel: item.buttonLabel ?? "",
       toonOpVoorJou: item.toonOpVoorJou ?? false,
+      icon: item.icon ?? "",
     });
     setEditingImageUrl(item.imageUrl ?? null);
     setEditingId(item._id);
@@ -258,6 +292,30 @@ export default function AdminOnderwegPage() {
             <p className="text-xs text-gray-400">
               Link toevoegen: <code className="bg-gray-100 px-1 rounded">[link tekst](https://url.com)</code>
             </p>
+            {/* Icon picker */}
+            <div>
+              <label className="block text-xs text-gray-600 mb-2">Icoontje voor de kaart (optioneel)</label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, icon: "" }))}
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-xs transition-colors ${form.icon === "" ? "bg-primary-100 border-primary-400 text-primary-800 font-medium" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+                >
+                  <X size={13} /> Geen
+                </button>
+                {ICON_OPTIONS.map(({ name, label, Icon: IconComp }) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, icon: name }))}
+                    className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-xs transition-colors ${form.icon === name ? "bg-primary-100 border-primary-400 text-primary-800 font-medium" : "border-gray-200 text-gray-500 hover:bg-gray-50"}`}
+                  >
+                    <IconComp size={13} /> {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Afbeelding (optioneel)</label>
               <input

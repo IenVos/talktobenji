@@ -1,92 +1,36 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { ExternalLink } from "lucide-react";
+import {
+  ExternalLink,
+  Pencil, Waves, BookOpen, Heart, Leaf, Sun, Feather, Star,
+  Anchor, Wind, Sparkles, Flame, Music, Compass, Cloud, MessageCircle,
+  Flower2, Coffee, Umbrella, Bird, type LucideIcon,
+} from "lucide-react";
 
-const VASTE_ITEMS = [
-  {
-    id: "niet-alleen",
-    title: "Niet Alleen",
-    omschrijving: "30 dagen. Elke dag één vraag. Een plek die van jou is. Voor wie iemand of iets mist.",
-    prijs: "€37",
-    knop: "Start mijn reis",
-    link: "https://talktobenji.kennis.shop/pay/niet-alleen",
-    afbeelding: "/images/niet-alleen-meer.png",
-  },
-  {
-    id: "troostende-woorden",
-    title: "Troostende woorden",
-    omschrijving: "Een boekje vol woorden van bemoediging. Voor als je niet weet wat je zeggen moet — aan jezelf of aan een ander.",
-    prijs: null,
-    knop: "Aanschaffen",
-    link: "https://talktobenji.kennis.shop/pay/troostende-woorden",
-    afbeelding: "/images/troostende-woorden-cover.png",
-  },
-  {
-    id: "woorden-die-omarmen",
-    title: "Woorden die omarmen",
-    omschrijving: "Een gratis verzameling van troostende en steunende woorden. Gewoon om te lezen, te bewaren, of door te sturen.",
-    prijs: "Gratis",
-    knop: "Lees het hier",
-    link: "https://heyzine.com/flip-book/1b15e11883.html",
-    afbeelding: null,
-  },
-];
+const ICON_MAP: Record<string, LucideIcon> = {
+  pencil: Pencil, waves: Waves, bookOpen: BookOpen, heart: Heart,
+  leaf: Leaf, sun: Sun, feather: Feather, star: Star, anchor: Anchor,
+  wind: Wind, sparkles: Sparkles, flame: Flame, music: Music,
+  compass: Compass, cloud: Cloud, messageCircle: MessageCircle,
+  flower2: Flower2, coffee: Coffee, umbrella: Umbrella, bird: Bird,
+};
 
-function ProductKaart({ item }: { item: typeof VASTE_ITEMS[0] }) {
-  return (
-    <div
-      className="rounded-2xl overflow-hidden"
-      style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 16px rgba(0,0,0,0.07)" }}
-    >
-      {item.afbeelding && (
-        <div className="w-full overflow-hidden" style={{ maxHeight: "200px" }}>
-          <Image
-            src={item.afbeelding}
-            alt={item.title}
-            width={600}
-            height={200}
-            className="w-full object-cover"
-            style={{ maxHeight: "200px" }}
-          />
-        </div>
-      )}
-      <div className="p-5">
-        <h2 className="text-base font-semibold mb-1" style={{ color: "#3d3530" }}>
-          {item.title}
-        </h2>
-        <p className="text-sm leading-relaxed mb-4" style={{ color: "#6b6460" }}>
-          {item.omschrijving}
-        </p>
-        <div className="flex items-center gap-3">
-          {item.prijs && (
-            <span className="text-sm font-medium" style={{ color: "#3d3530" }}>
-              {item.prijs}
-            </span>
-          )}
-          <a
-            href={item.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white"
-            style={{ background: "#6d84a8" }}
-          >
-            {item.knop}
-            <ExternalLink size={13} />
-          </a>
-        </div>
-      </div>
-    </div>
-  );
+function CardIcon({ name }: { name?: string | null }) {
+  if (!name) return null;
+  const Icon = ICON_MAP[name];
+  if (!Icon) return null;
+  return <Icon size={18} style={{ color: "#6d84a8" }} className="flex-shrink-0" />;
 }
 
 export default function VoorJouPage() {
-  const dynamischeItems = useQuery(api.onderweg.listVoorJou, {});
+  const items = useQuery(api.onderweg.listVoorJou, {});
 
   return (
-    <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>
+    <div style={{ minHeight: "100vh", background: "#fdf9f4", display: "flex", flexDirection: "column" }}>
 
       {/* Achtergrond */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0 }}>
@@ -94,7 +38,7 @@ export default function VoorJouPage() {
         <div style={{ position: "absolute", inset: 0, background: "rgba(253,249,244,0.82)" }} />
       </div>
 
-      <div style={{ position: "relative", zIndex: 1 }}>
+      <div style={{ position: "relative", zIndex: 1, flex: 1 }}>
 
         {/* Logo */}
         <div className="px-5 pt-6 pb-2">
@@ -110,12 +54,12 @@ export default function VoorJouPage() {
         </div>
 
         {/* Header */}
-        <section className="px-5 pt-10 pb-8 text-center">
-          <div className="max-w-md mx-auto">
+        <section className="px-5 pt-8 pb-6 text-center">
+          <div className="max-w-xl mx-auto">
             <p className="text-xs uppercase tracking-widest mb-3 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
               Van Talk To Benji
             </p>
-            <h1 className="text-3xl sm:text-4xl font-semibold mb-3" style={{ color: "#3d3530" }}>
+            <h1 className="text-2xl sm:text-3xl font-semibold mb-2" style={{ color: "#3d3530" }}>
               Voor jou
             </h1>
             <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
@@ -124,79 +68,98 @@ export default function VoorJouPage() {
           </div>
         </section>
 
-        {/* Kaders */}
-        <section className="px-5 pb-20">
-          <div className="max-w-lg mx-auto space-y-4">
-
-            {/* Vaste producten */}
-            {VASTE_ITEMS.map((item) => (
-              <ProductKaart key={item.id} item={item} />
-            ))}
-
-            {/* Dynamische items via admin */}
-            {dynamischeItems?.map((item) => (
-              <div
-                key={item._id}
-                className="rounded-2xl overflow-hidden"
-                style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 16px rgba(0,0,0,0.07)" }}
-              >
-                {item.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title ?? ""}
-                    className="w-full object-cover"
-                    style={{ maxHeight: "200px" }}
-                  />
-                )}
-                <div className="p-5">
-                  {item.title && (
-                    <h2 className="text-base font-semibold mb-1" style={{ color: "#3d3530" }}>
-                      {item.title}
-                    </h2>
-                  )}
-                  {item.content && (
-                    <p className="text-sm leading-relaxed mb-4" style={{ color: "#6b6460" }}>
-                      {item.content}
-                    </p>
-                  )}
-                  {item.paymentUrl && (
-                    <div className="flex items-center gap-3">
-                      {item.priceCents != null && item.priceCents > 0 && (
-                        <span className="text-sm font-medium" style={{ color: "#3d3530" }}>
-                          €{(item.priceCents / 100).toFixed(2).replace(".", ",")}
-                        </span>
-                      )}
-                      <a
-                        href={item.paymentUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white"
-                        style={{ background: "#6d84a8" }}
+        {/* Productkaarten */}
+        <section className="px-2 sm:px-4 pb-20">
+          <div className="max-w-xl mx-auto">
+            {items === undefined ? (
+              <div className="py-12 text-center text-sm" style={{ color: "#8a8078" }}>Laden…</div>
+            ) : items.length === 0 ? (
+              <div className="py-12 text-center text-sm" style={{ color: "#8a8078" }}>Binnenkort meer hier.</div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                {items.map((item) => (
+                  <div
+                    key={item._id}
+                    className="rounded-2xl overflow-hidden flex flex-col"
+                    style={{
+                      background: "rgba(255,255,255,0.95)",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.14)",
+                      border: "1px solid rgba(109,132,168,0.18)",
+                    }}
+                  >
+                    {item.imageUrl ? (
+                      <div className="w-full overflow-hidden" style={{ aspectRatio: "1/1" }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title ?? ""}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        className="w-full flex items-center justify-center"
+                        style={{ aspectRatio: "1/1", background: "linear-gradient(135deg, #e8eef5 0%, #f5f0eb 100%)" }}
                       >
-                        {item.buttonLabel ?? "Bekijken"}
-                        <ExternalLink size={13} />
-                      </a>
+                        <CardIcon name={(item as any).icon} />
+                      </div>
+                    )}
+                    <div className="p-4 flex flex-col flex-1">
+                      {item.title && (
+                        <div className="flex items-start gap-1.5 mb-1.5">
+                          {item.imageUrl ? null : null}
+                          <h2 className="text-sm font-semibold leading-snug" style={{ color: "#3d3530" }}>
+                            {item.title}
+                          </h2>
+                        </div>
+                      )}
+                      {item.content && (
+                        <p className="text-xs leading-relaxed mb-3 flex-1" style={{ color: "#6b6460" }}>
+                          {item.content}
+                        </p>
+                      )}
+                      {item.paymentUrl && (
+                        <a
+                          href={item.paymentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 self-start px-3 py-1.5 rounded-xl text-xs font-medium text-white"
+                          style={{ background: "#6d84a8" }}
+                        >
+                          {item.buttonLabel ?? "Bekijken"}
+                          <ExternalLink size={11} />
+                        </a>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
-
+            )}
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="px-5 py-8 text-center" style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}>
-          <p className="text-xs" style={{ color: "#8a8078" }}>
-            Vragen?{" "}
-            <a href="mailto:contactmetien@talktobenji.com" style={{ color: "#6d84a8" }}>
-              contactmetien@talktobenji.com
-            </a>
-          </p>
-        </footer>
-
       </div>
+
+      {/* Blauwe footer */}
+      <footer className="bg-primary-900 text-white py-6 sm:py-8" style={{ position: "relative", zIndex: 1 }}>
+        <div className="w-full max-w-xl mx-auto px-4">
+          <div className="flex flex-wrap justify-center gap-x-4 sm:gap-x-6 gap-y-2 text-xs sm:text-sm text-primary-200">
+            <Link href="/faq" className="hover:text-white transition-colors">
+              Veelgestelde vragen
+            </Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">
+              Privacy
+            </Link>
+            <Link href="/algemene-voorwaarden" className="hover:text-white transition-colors">
+              Algemene voorwaarden
+            </Link>
+            <a href="mailto:contactmetien@talktobenji.com" className="hover:text-white transition-colors">
+              Contact
+            </a>
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }

@@ -146,7 +146,7 @@ export default function AccountHandreikingenPage() {
         <div className="bg-white rounded-xl border border-primary-200 py-6">
 
           {/* Mobiel: verticale lijst met overlay-design */}
-          <div className="sm:hidden flex flex-col gap-3 px-4">
+          <div className="sm:hidden flex flex-col gap-5 px-4">
             {items.map((item) => {
               const itemLocked = !(item as any).isFree && hasAccess !== true;
               const hasAction = (item.priceCents != null && item.priceCents > 0) || item.pdfUrl || (item as any).exerciseSlug;

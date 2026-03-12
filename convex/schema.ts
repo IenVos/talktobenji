@@ -376,6 +376,8 @@ export default defineSchema({
     buttonLabel: v.optional(v.union(v.string(), v.null())),
     // Toon ook op de publieke 'Voor jou' pagina
     toonOpVoorJou: v.optional(v.boolean()),
+    // Icoontje (lucide icon name, bijv. "heart")
+    icon: v.optional(v.string()),
   })
     .index("by_active_order", ["isActive", "order"]),
 
