@@ -467,9 +467,10 @@ export default function ChatPageClient({
         activeSessionId = await startSession(startArgs);
         setSessionId(activeSessionId);
         if (typeof window !== "undefined") {
-          // Eerste chat ooit — fire pixel event (eenmalig per browser)
-          if (!localStorage.getItem(HAS_CHATTED_KEY) && typeof (window as any).fbq === "function") {
+          // Eerste chat in deze sessie — fire pixel event (eenmalig per sessie)
+          if (!sessionStorage.getItem("benji_start_chat_fired") && typeof (window as any).fbq === "function") {
             (window as any).fbq("trackCustom", "StartChat");
+            sessionStorage.setItem("benji_start_chat_fired", "1");
           }
           localStorage.setItem(HAS_CHATTED_KEY, "1");
         }
