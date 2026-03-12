@@ -25,6 +25,7 @@ export default function AdminOnderwegPage() {
     priceEuro: "",
     paymentUrl: "",
     buttonLabel: "",
+    toonOpVoorJou: false,
   });
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -50,6 +51,7 @@ export default function AdminOnderwegPage() {
       priceEuro: "",
       paymentUrl: "",
       buttonLabel: "",
+      toonOpVoorJou: false,
     });
     setEditingId(null);
     setEditingImageUrl(null);
@@ -82,6 +84,7 @@ export default function AdminOnderwegPage() {
         })(),
         paymentUrl: form.paymentUrl.trim() || undefined,
         buttonLabel: form.buttonLabel.trim() || undefined,
+        toonOpVoorJou: form.toonOpVoorJou,
       });
       resetForm();
     } finally {
@@ -107,6 +110,7 @@ export default function AdminOnderwegPage() {
         })(),
         paymentUrl: form.paymentUrl.trim() || null,
         buttonLabel: form.buttonLabel.trim() || null,
+        toonOpVoorJou: form.toonOpVoorJou,
       };
       if (form.imageFile) {
         const url = await generateUploadUrl();
@@ -146,6 +150,7 @@ export default function AdminOnderwegPage() {
       priceEuro: item.priceCents ? (item.priceCents / 100).toString() : "",
       paymentUrl: item.paymentUrl ?? "",
       buttonLabel: item.buttonLabel ?? "",
+      toonOpVoorJou: item.toonOpVoorJou ?? false,
     });
     setEditingImageUrl(item.imageUrl ?? null);
     setEditingId(item._id);
@@ -271,6 +276,15 @@ export default function AdminOnderwegPage() {
             {(editingId && !form.imageFile) && (
               <p className="text-xs text-gray-500">Laat leeg om bestaande afbeelding te behouden.</p>
             )}
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.toonOpVoorJou}
+                onChange={(e) => setForm((f) => ({ ...f, toonOpVoorJou: e.target.checked }))}
+                className="rounded border-primary-300 text-primary-600"
+              />
+              <span className="text-sm text-gray-700">Toon op publieke <strong>'Voor jou'</strong> pagina</span>
+            </label>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -329,6 +343,11 @@ export default function AdminOnderwegPage() {
                           {item.paymentUrl && (
                             <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">
                               📎 Link
+                            </span>
+                          )}
+                          {item.toonOpVoorJou && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">
+                              Voor jou
                             </span>
                           )}
                         </div>

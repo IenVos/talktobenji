@@ -89,6 +89,27 @@ export const listWithUrls = query({
   },
 });
 
+/** Publieke pagina 'Voor jou' — geen auth vereist, toont items met toonOpVoorJou=true */
+export const listVoorJou = query({
+  args: {},
+  handler: async (ctx) => {
+    const items = await ctx.db.query("onderwegItems").collect();
+    const now = Date.now();
+    const visible = items.filter(
+      (i) => i.isActive && i.toonOpVoorJou && (!i.publishFrom || i.publishFrom <= now)
+    ).sort((a, b) => a.order - b.order);
+    const result = [];
+    for (const item of visible) {
+      let imageUrl: string | null = null;
+      try {
+        if (item.imageStorageId) imageUrl = await ctx.storage.getUrl(item.imageStorageId);
+      } catch { /* negeer */ }
+      result.push({ ...item, imageUrl });
+    }
+    return result;
+  },
+});
+
 export const generateUploadUrl = mutation({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
@@ -108,6 +129,7 @@ export const create = mutation({
     priceCents: v.optional(v.number()),
     paymentUrl: v.optional(v.string()),
     buttonLabel: v.optional(v.string()),
+    toonOpVoorJou: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -121,6 +143,7 @@ export const create = mutation({
       priceCents: args.priceCents,
       paymentUrl: args.paymentUrl,
       buttonLabel: args.buttonLabel,
+      toonOpVoorJou: args.toonOpVoorJou ?? false,
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -141,6 +164,7 @@ export const update = mutation({
     priceCents: v.optional(v.union(v.number(), v.null())),
     paymentUrl: v.optional(v.union(v.string(), v.null())),
     buttonLabel: v.optional(v.union(v.string(), v.null())),
+    toonOpVoorJou: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

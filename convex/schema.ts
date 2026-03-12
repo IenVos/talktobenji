@@ -374,6 +374,8 @@ export default defineSchema({
     paymentUrl: v.optional(v.union(v.string(), v.null())),
     // Tekst op de bestelknop (standaard "Bestellen")
     buttonLabel: v.optional(v.union(v.string(), v.null())),
+    // Toon ook op de publieke 'Voor jou' pagina
+    toonOpVoorJou: v.optional(v.boolean()),
   })
     .index("by_active_order", ["isActive", "order"]),
 

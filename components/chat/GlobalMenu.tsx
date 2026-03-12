@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck, House, Gem } from "lucide-react";
+import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck, House, Gem, Sparkles } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
 import { hexToDarker } from "@/lib/utils";
 
@@ -71,6 +71,15 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       onClick: () => {
         setOpen(false);
         setShowAbout(true);
+      },
+    },
+    {
+      label: "Voor jou",
+      icon: Sparkles,
+      highlight: true,
+      onClick: () => {
+        setOpen(false);
+        router.push("/voor-jou");
       },
     },
     {
@@ -208,8 +217,9 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
             const Icon = item.icon;
             const showDividerBefore = index === 3 || index === 5;
             const locked = "requiresAuth" in item && item.requiresAuth && !isLoggedIn;
+            const isHighlight = "highlight" in item && item.highlight;
             const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-all duration-200 ${
-              locked ? "text-gray-400 cursor-default" : "text-gray-800 hover:bg-gray-100"
+              locked ? "text-gray-400 cursor-default" : isHighlight ? "text-[#6d84a8] font-medium hover:bg-blue-50" : "text-gray-800 hover:bg-gray-100"
             } ${index === 0 ? "rounded-t-xl" : ""} ${index === menuItems.length - 1 ? "rounded-b-xl" : ""}`;
             if ("href" in item && item.href) {
               return (
@@ -225,7 +235,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
                     className={`block ${itemClass}`}
                     role="menuitem"
                   >
-                    <Icon size={18} strokeWidth={2} className={`flex-shrink-0 ${locked ? "text-gray-400" : "text-primary-600"}`} />
+                    <Icon size={18} strokeWidth={2} className={`flex-shrink-0 ${locked ? "text-gray-400" : isHighlight ? "text-[#6d84a8]" : "text-primary-600"}`} />
                     <span className="truncate">{item.label}</span>
                   </a>
                 </div>
@@ -246,7 +256,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
                   className={itemClass}
                   role="menuitem"
                 >
-                  <Icon size={18} strokeWidth={2} className={`flex-shrink-0 ${locked ? "text-gray-400" : "text-primary-600"}`} />
+                  <Icon size={18} strokeWidth={2} className={`flex-shrink-0 ${locked ? "text-gray-400" : isHighlight ? "text-[#6d84a8]" : "text-primary-600"}`} />
                   <span className="truncate">{item.label}</span>
                 </button>
                 {locked && (
