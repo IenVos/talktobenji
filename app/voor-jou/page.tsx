@@ -23,7 +23,7 @@ function CardIcon({ name, size = 18 }: { name?: string | null; size?: number }) 
   if (!name) return null;
   const Icon = ICON_MAP[name];
   if (!Icon) return null;
-  return <Icon size={size} style={{ color: "#6d84a8" }} className="flex-shrink-0" />;
+  return <Icon size={size} className="flex-shrink-0" />;
 }
 
 export default function VoorJouPage() {
@@ -98,20 +98,15 @@ export default function VoorJouPage() {
                       </div>
                     ) : (
                       <div
-                        className="w-full flex items-center justify-center"
+                        className="w-full"
                         style={{ aspectRatio: "1/1", background: "linear-gradient(135deg, #e8eef5 0%, #f5f0eb 100%)" }}
-                      >
-                        <CardIcon name={(item as any).icon} size={48} />
-                      </div>
+                      />
                     )}
                     <div className="p-4 flex flex-col flex-1">
                       {item.title && (
-                        <div className="flex items-center gap-1.5 mb-1.5">
-                          {item.imageUrl && <CardIcon name={(item as any).icon} size={14} />}
-                          <h2 className="text-sm font-semibold leading-snug" style={{ color: "#3d3530" }}>
-                            {item.title}
-                          </h2>
-                        </div>
+                        <h2 className="text-sm font-semibold leading-snug mb-1.5" style={{ color: "#3d3530" }}>
+                          {item.title}
+                        </h2>
                       )}
                       {item.content && (
                         <p className="text-xs leading-relaxed mb-3 flex-1" style={{ color: "#6b6460" }}>
@@ -123,9 +118,10 @@ export default function VoorJouPage() {
                           href={item.paymentUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 self-start px-3 py-1.5 rounded-xl text-xs font-medium text-white"
+                          className="inline-flex items-center gap-1.5 self-start px-3 py-1.5 rounded-xl text-xs font-medium text-white"
                           style={{ background: "#6d84a8" }}
                         >
+                          <CardIcon name={(item as any).icon} size={13} />
                           {item.buttonLabel ?? "Bekijken"}
                           <ExternalLink size={11} />
                         </a>
