@@ -564,8 +564,11 @@ export default defineSchema({
     section1Text: v.optional(v.string()),
     section2Title: v.optional(v.string()),
     section2Text: v.optional(v.string()),
-    // Product image (public path like "/images/niet-alleen-product.png")
+    // Product image — upload (storageId) of public path
+    productImageStorageId: v.optional(v.id("_storage")),
     productImagePath: v.optional(v.string()),
+    // Achtergrondafbeelding — upload (storageId) of gebruik standaard achtergrond
+    bgImageStorageId: v.optional(v.id("_storage")),
     // "Voor wie" bullets — one item per line
     voorWieBullets: v.optional(v.string()),
     // Reviews JSON: [{"tekst":"...","naam":"...","context":"..."}]

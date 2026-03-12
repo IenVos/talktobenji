@@ -31,6 +31,7 @@ import type * as http from "../http.js";
 import type * as inspiratie from "../inspiratie.js";
 import type * as klantbeheer from "../klantbeheer.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
+import type * as landingPages from "../landingPages.js";
 import type * as memories from "../memories.js";
 import type * as nietAlleen from "../nietAlleen.js";
 import type * as nietAlleenAnkerContent from "../nietAlleenAnkerContent.js";
@@ -81,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   inspiratie: typeof inspiratie;
   klantbeheer: typeof klantbeheer;
   knowledgeBase: typeof knowledgeBase;
+  landingPages: typeof landingPages;
   memories: typeof memories;
   nietAlleen: typeof nietAlleen;
   nietAlleenAnkerContent: typeof nietAlleenAnkerContent;

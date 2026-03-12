@@ -70,13 +70,12 @@ export default function LandingPage() {
 
       {/* Vaste achtergrond doorlopend zichtbaar */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0 }}>
-        <Image
-          src="/images/achtergrond.png"
-          alt=""
-          fill
-          className="object-cover"
-          priority
-        />
+        {(page as any).bgImageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={(page as any).bgImageUrl} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <Image src="/images/achtergrond.png" alt="" fill className="object-cover" priority />
+        )}
         <div style={{ position: "absolute", inset: 0, background: "rgba(253,249,244,0.82)" }} />
       </div>
 
@@ -168,16 +167,15 @@ export default function LandingPage() {
         )}
 
         {/* PRODUCTAFBEELDING */}
-        {page.productImagePath && (
+        {((page as any).productImageUrl || page.productImagePath) && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <Image
-                src={page.productImagePath}
-                alt="Productafbeelding"
-                width={600}
-                height={420}
-                className="w-full rounded-2xl"
-              />
+              {(page as any).productImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={(page as any).productImageUrl} alt="Productafbeelding" className="w-full rounded-2xl" />
+              ) : (
+                <Image src={page.productImagePath!} alt="Productafbeelding" width={600} height={420} className="w-full rounded-2xl" />
+              )}
             </div>
           </section>
         )}

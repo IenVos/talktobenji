@@ -24,7 +24,24 @@ export const getBySlug = query({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
     if (!page || !page.isLive) return null;
-    return page;
+    let productImageUrl: string | null = null;
+    let bgImageUrl: string | null = null;
+    try {
+      if (page.productImageStorageId) productImageUrl = await ctx.storage.getUrl(page.productImageStorageId);
+    } catch { /* negeer */ }
+    try {
+      if (page.bgImageStorageId) bgImageUrl = await ctx.storage.getUrl(page.bgImageStorageId);
+    } catch { /* negeer */ }
+    return { ...page, productImageUrl, bgImageUrl };
+  },
+});
+
+/** Admin: genereer upload URL voor afbeeldingen */
+export const generateUploadUrl = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.generateUploadUrl();
   },
 });
 
@@ -45,7 +62,9 @@ export const create = mutation({
     section1Text: v.optional(v.string()),
     section2Title: v.optional(v.string()),
     section2Text: v.optional(v.string()),
+    productImageStorageId: v.optional(v.id("_storage")),
     productImagePath: v.optional(v.string()),
+    bgImageStorageId: v.optional(v.id("_storage")),
     voorWieBullets: v.optional(v.string()),
     ervaringenJson: v.optional(v.string()),
     vragenJson: v.optional(v.string()),
@@ -85,7 +104,9 @@ export const update = mutation({
     section1Text: v.optional(v.string()),
     section2Title: v.optional(v.string()),
     section2Text: v.optional(v.string()),
+    productImageStorageId: v.optional(v.union(v.id("_storage"), v.null())),
     productImagePath: v.optional(v.string()),
+    bgImageStorageId: v.optional(v.union(v.id("_storage"), v.null())),
     voorWieBullets: v.optional(v.string()),
     ervaringenJson: v.optional(v.string()),
     vragenJson: v.optional(v.string()),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -23,7 +23,9 @@ type LandingPage = {
   section1Text?: string;
   section2Title?: string;
   section2Text?: string;
+  productImageStorageId?: Id<"_storage">;
   productImagePath?: string;
+  bgImageStorageId?: Id<"_storage">;
   voorWieBullets?: string;
   ervaringenJson?: string;
   vragenJson?: string;
@@ -50,7 +52,9 @@ type FormState = {
   section1Text: string;
   section2Title: string;
   section2Text: string;
+  productImageFile: File | null;
   productImagePath: string;
+  bgImageFile: File | null;
   voorWieBullets: string;
   ervaringenJson: string;
   vragenJson: string;
@@ -75,7 +79,9 @@ const EMPTY_FORM: FormState = {
   section1Text: "",
   section2Title: "",
   section2Text: "",
+  productImageFile: null,
   productImagePath: "",
+  bgImageFile: null,
   voorWieBullets: "",
   ervaringenJson: "",
   vragenJson: "",
@@ -98,12 +104,22 @@ export default function AdminLandingspaginasPage() {
   const duplicatePage = useAdminMutation(api.landingPages.duplicate);
   const toggleLive = useAdminMutation(api.landingPages.toggleLive);
   const seedPages = useAdminMutation(api.landingPages.seed);
+  const generateUploadUrl = useAdminMutation(api.landingPages.generateUploadUrl);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"landingPages"> | null>(null);
   const [saving, setSaving] = useState(false);
   const [seedStatus, setSeedStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [editingProductImageUrl, setEditingProductImageUrl] = useState<string | null>(null);
+  const [editingBgImageUrl, setEditingBgImageUrl] = useState<string | null>(null);
+  const productImageRef = useRef<HTMLInputElement>(null);
+  const bgImageRef = useRef<HTMLInputElement>(null);
+
+  const productPreviewUrl = useMemo(() => form.productImageFile ? URL.createObjectURL(form.productImageFile) : null, [form.productImageFile]);
+  const bgPreviewUrl = useMemo(() => form.bgImageFile ? URL.createObjectURL(form.bgImageFile) : null, [form.bgImageFile]);
+  useEffect(() => { return () => { if (productPreviewUrl) URL.revokeObjectURL(productPreviewUrl); }; }, [productPreviewUrl]);
+  useEffect(() => { return () => { if (bgPreviewUrl) URL.revokeObjectURL(bgPreviewUrl); }; }, [bgPreviewUrl]);
 
   const set = (field: keyof FormState) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -116,7 +132,11 @@ export default function AdminLandingspaginasPage() {
   const resetForm = () => {
     setForm(EMPTY_FORM);
     setEditingId(null);
+    setEditingProductImageUrl(null);
+    setEditingBgImageUrl(null);
     setShowForm(false);
+    if (productImageRef.current) productImageRef.current.value = "";
+    if (bgImageRef.current) bgImageRef.current.value = "";
   };
 
   const startEdit = (page: LandingPage) => {
@@ -134,7 +154,9 @@ export default function AdminLandingspaginasPage() {
       section1Text: page.section1Text ?? "",
       section2Title: page.section2Title ?? "",
       section2Text: page.section2Text ?? "",
+      productImageFile: null,
       productImagePath: page.productImagePath ?? "",
+      bgImageFile: null,
       voorWieBullets: page.voorWieBullets ?? "",
       ervaringenJson: page.ervaringenJson ?? "",
       vragenJson: page.vragenJson ?? "",
@@ -144,15 +166,29 @@ export default function AdminLandingspaginasPage() {
       finalCtaBody: page.finalCtaBody ?? "",
       footerText: page.footerText ?? "",
     });
+    setEditingProductImageUrl(null); // wordt geladen via aparte query als nodig
+    setEditingBgImageUrl(null);
     setEditingId(page._id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const uploadFile = async (file: File): Promise<Id<"_storage">> => {
+    const url = await generateUploadUrl();
+    const res = await fetch(url, { method: "POST", body: file, headers: { "Content-Type": file.type } });
+    const { storageId } = await res.json();
+    return storageId as Id<"_storage">;
   };
 
   const handleSave = async () => {
     if (!form.slug.trim() || !form.heroTitle.trim() || !form.pageTitle.trim()) return;
     setSaving(true);
     try {
+      let productImageStorageId: Id<"_storage"> | undefined;
+      let bgImageStorageId: Id<"_storage"> | undefined;
+      if (form.productImageFile) productImageStorageId = await uploadFile(form.productImageFile);
+      if (form.bgImageFile) bgImageStorageId = await uploadFile(form.bgImageFile);
+
       const payload = {
         slug: form.slug.trim(),
         pageTitle: form.pageTitle.trim(),
@@ -167,7 +203,9 @@ export default function AdminLandingspaginasPage() {
         section1Text: opt(form.section1Text),
         section2Title: opt(form.section2Title),
         section2Text: opt(form.section2Text),
+        productImageStorageId,
         productImagePath: opt(form.productImagePath),
+        bgImageStorageId,
         voorWieBullets: opt(form.voorWieBullets),
         ervaringenJson: opt(form.ervaringenJson),
         vragenJson: opt(form.vragenJson),
@@ -329,12 +367,53 @@ export default function AdminLandingspaginasPage() {
               </div>
             </div>
 
-            {/* Productafbeelding */}
+            {/* Afbeeldingen */}
             <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Productafbeelding</p>
-              <div>
-                <label className={labelSmClass}>Pad naar afbeelding (bijv. /images/niet-alleen-product.png)</label>
-                <input type="text" placeholder="/images/niet-alleen-product.png" value={form.productImagePath} onChange={set("productImagePath")} className={inputClass} />
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Afbeeldingen</p>
+              <div className="space-y-4">
+                {/* Productafbeelding */}
+                <div>
+                  <label className={labelClass}>Productafbeelding</label>
+                  <input
+                    ref={productImageRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setForm((f) => ({ ...f, productImageFile: e.target.files?.[0] ?? null }))}
+                    className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-800"
+                  />
+                  {(productPreviewUrl || form.productImagePath) && (
+                    <div className="mt-2 flex items-start gap-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={productPreviewUrl || form.productImagePath} alt="Preview" className="w-24 h-24 object-cover rounded-lg border border-primary-200" />
+                      <p className="text-xs text-gray-400 mt-1">{productPreviewUrl ? "Nieuwe upload" : "Huidig pad"}</p>
+                    </div>
+                  )}
+                  {!form.productImageFile && (
+                    <div className="mt-2">
+                      <label className="block text-xs text-gray-400 mb-1">Of gebruik een pad (bijv. /images/niet-alleen-product.png)</label>
+                      <input type="text" placeholder="/images/..." value={form.productImagePath} onChange={set("productImagePath")} className={inputClass} />
+                    </div>
+                  )}
+                  {editingId && !form.productImageFile && <p className="text-xs text-gray-400 mt-1">Laat leeg om bestaande afbeelding te behouden.</p>}
+                </div>
+                {/* Achtergrondafbeelding */}
+                <div>
+                  <label className={labelClass}>Achtergrondafbeelding <span className="font-normal text-gray-400 text-xs">(optioneel — standaard: achtergrond.png)</span></label>
+                  <input
+                    ref={bgImageRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setForm((f) => ({ ...f, bgImageFile: e.target.files?.[0] ?? null }))}
+                    className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-800"
+                  />
+                  {bgPreviewUrl && (
+                    <div className="mt-2">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={bgPreviewUrl} alt="Achtergrond preview" className="w-full max-h-32 object-cover rounded-lg border border-primary-200" />
+                    </div>
+                  )}
+                  {editingId && !form.bgImageFile && <p className="text-xs text-gray-400 mt-1">Laat leeg om bestaande achtergrond te behouden.</p>}
+                </div>
               </div>
             </div>
 
