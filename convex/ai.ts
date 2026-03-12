@@ -139,7 +139,7 @@ export const handleUserMessage = action({
       });
       const thirtySecondsAgo = Date.now() - 30 * 1000;
       const recentUserCount = (recentMessages || []).filter(
-        (m: any) => m.role === "user" && m._creationTime > thirtySecondsAgo
+        (m: any) => m.role === "user" && m.createdAt > thirtySecondsAgo
       ).length;
       if (recentUserCount >= 4) {
         return {
@@ -187,7 +187,7 @@ export const handleUserMessage = action({
 
       // BERICHTENLIMIET PER SESSIE — voorkomt open laten staan van chat
       const sessionUserMsgCount = (recentMessages || []).filter((m: any) => m.role === "user").length;
-      const msgLimit = isGuest ? 15 : isFreeUser ? 40 : Infinity;
+      const msgLimit = isGuest ? 15 : isFreeUser ? 20 : Infinity;
       if (sessionUserMsgCount >= msgLimit) {
         return {
           success: false,

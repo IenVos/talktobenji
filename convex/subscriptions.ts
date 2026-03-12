@@ -188,10 +188,10 @@ export const getConversationCount = query({
       };
     }
 
-    // Free tier: 10 gesprekken per maand
+    // Free tier: 5 gesprekken per maand
     return {
       count,
-      limit: 10,
+      limit: 5,
       hasUnlimited: false,
     };
   },
