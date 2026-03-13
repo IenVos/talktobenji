@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useAdminQuery } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import {
@@ -266,6 +266,13 @@ export default function AdminAnalytics() {
   const to = Date.now();
 
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
+  const [loadTimeout, setLoadTimeout] = useState(false);
+
+  useEffect(() => {
+    setLoadTimeout(false);
+    const t = setTimeout(() => setLoadTimeout(true), 8000);
+    return () => clearTimeout(t);
+  }, [days]);
 
   // Lijn-toggle states
   const [viewsActive, setViewsActive] = useState(true);
@@ -373,6 +380,23 @@ export default function AdminAnalytics() {
 
   // Laadscherm
   if (stats === undefined) {
+    if (loadTimeout) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[300px] gap-4 text-center px-4">
+          <BarChart3 size={32} className="text-primary-300" />
+          <p className="text-primary-700 font-medium">Analytics konden niet worden geladen</p>
+          <p className="text-sm text-primary-500 max-w-sm">
+            Zorg dat de Convex dev-server draait: <code className="bg-primary-100 px-1.5 py-0.5 rounded text-xs">npx convex dev</code>
+          </p>
+          <button
+            onClick={() => { setLoadTimeout(false); window.location.reload(); }}
+            className="px-4 py-2 bg-primary-800 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors"
+          >
+            Opnieuw proberen
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="flex items-center justify-center min-h-[300px]">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
