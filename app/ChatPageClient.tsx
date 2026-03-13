@@ -616,7 +616,7 @@ export default function ChatPageClient({
       >
         <main ref={mainRef} className="flex-1 overflow-y-auto relative min-h-0">
         {/* Chat-inhoud */}
-        <div className="relative max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6 min-h-full w-full touch-manipulation">
+        <div className="relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation">
           {!sessionId && !isAddingOpener && (
             <>
               <WelcomeScreen

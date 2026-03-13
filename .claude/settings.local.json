@@ -11,7 +11,8 @@
       "Bash(npx vercel:*)",
       "Bash(ls:*)",
       "Bash(find convex:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(npx convex:*)"
     ]
   }
 }
