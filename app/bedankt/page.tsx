@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
@@ -34,6 +34,13 @@ function BedanktContent() {
   const isLoggedIn = !!session?.userId;
   const subType = subscription?.subscriptionType ?? "free";
   const hasFullAccess = subType === "uitgebreid" || subType === "alles_in_1";
+
+  // Facebook Pixel – Subscribe event bij aankoop
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "Subscribe");
+    }
+  }, []);
 
   return (
     <div
