@@ -25,10 +25,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Controleer webhook secret via header (nooit via query param — wordt gelogd)
+  // Controleer webhook secret — via header of query param
   const secret =
     (req.headers["x-webhook-secret"] as string) ||
-    (req.headers["x-kennisshop-secret"] as string);
+    (req.headers["x-kennisshop-secret"] as string) ||
+    (req.query.secret as string);
 
   if (!secret || secret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
     console.warn("[KennisShop webhook] Ongeldig secret ontvangen");

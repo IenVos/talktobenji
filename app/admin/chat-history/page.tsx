@@ -68,13 +68,22 @@ export default function AdminChatHistory() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-primary-900">
-          Gesprekskwaliteit
-        </h1>
-        <p className="text-sm text-primary-700 mt-1">
-          Automatische analyse van elk gesprek. Geen letterlijke berichten zichtbaar.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-primary-900">
+            Gesprekskwaliteit
+          </h1>
+          <p className="text-sm text-primary-700 mt-1">
+            Automatische analyse van elk gesprek. Geen letterlijke berichten zichtbaar.
+          </p>
+        </div>
+        <button
+          onClick={handleRetrigger}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-100 hover:bg-primary-200 text-primary-700 font-medium transition-colors text-sm flex-shrink-0"
+        >
+          <RefreshCw size={14} />
+          Genereer rapporten
+        </button>
       </div>
 
       {/* Filter */}
