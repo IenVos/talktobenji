@@ -278,6 +278,13 @@ function StatusActies({ session }: { session: any }) {
     }
   };
 
+  const ACTIES = [
+    { status: "resolved" as const, label: "Goed gesprek", icon: CheckCircle, cls: "bg-green-50 text-green-700 border-green-200 hover:bg-green-100" },
+    { status: "escalated" as const, label: "Opvolging nodig", icon: AlertCircle, cls: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100" },
+    { status: "abandoned" as const, label: "Afgehaakt", icon: Clock, cls: "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" },
+    { status: "reviewed" as const, label: "Bekeken", icon: Archive, cls: "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100" },
+  ];
+
   // Al gecategoriseerd — toon huidige status + corrigeeroptie
   if (isCategorised && !correcting) {
     const cfg = STATUS_CONFIG[localStatus as keyof typeof STATUS_CONFIG];
@@ -304,35 +311,22 @@ function StatusActies({ session }: { session: any }) {
         {correcting ? "Verplaats naar een andere categorie:" : "Na beoordeling verplaatsen naar:"}
       </p>
       <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => handle("resolved")}
-          disabled={!!loading || localStatus === "resolved"}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 disabled:opacity-40 transition-colors"
-        >
-          {loading === "resolved" ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle size={11} />}
-          Goed gesprek
-        </button>
-        <button
-          onClick={() => handle("escalated")}
-          disabled={!!loading || localStatus === "escalated"}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 disabled:opacity-40 transition-colors"
-        >
-          {loading === "escalated" ? <Loader2 size={11} className="animate-spin" /> : <AlertCircle size={11} />}
-          Opvolging nodig
-        </button>
-        <button
-          onClick={() => handle("reviewed")}
-          disabled={!!loading || localStatus === "reviewed"}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 disabled:opacity-40 transition-colors"
-        >
-          {loading === "reviewed" ? <Loader2 size={11} className="animate-spin" /> : <Archive size={11} />}
-          Bekeken
-        </button>
+        {ACTIES.map(({ status, label, icon: Icon, cls }) => (
+          <button
+            key={status}
+            onClick={() => handle(status)}
+            disabled={!!loading || localStatus === status}
+            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border disabled:opacity-40 transition-colors ${cls}`}
+          >
+            {loading === status ? <Loader2 size={11} className="animate-spin" /> : <Icon size={11} />}
+            {label}
+          </button>
+        ))}
         {correcting && (
           <button
             onClick={() => handle("abandoned", true)}
             disabled={!!loading}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-white text-gray-500 border border-gray-200 hover:bg-gray-50 disabled:opacity-40 transition-colors"
           >
             {loading === "abandoned" ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
             Zet terug naar Alle
