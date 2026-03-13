@@ -1116,6 +1116,62 @@ Antwoord ALLEEN in dit JSON formaat, geen tekst erbuiten:
 });
 
 
+/** Genereer een trainingsuggestie op basis van een kwaliteitsrapport (admin only). */
+export const suggestFixFromRapport = action({
+  args: { adminToken: v.string(), rapport: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
+
+    const prompt = `Je bent een kwaliteitscontroleur voor Benji, een empathische rouw-chatbot.
+Hieronder staat een kwaliteitsrapport over een gesprek. Het rapport bevat al een "Actie" punt.
+Vertaal die Actie naar een concrete verbetering voor Benji.
+
+RAPPORT:
+${args.rapport}
+
+Kies één van twee opties:
+- "rules": als het een gedragsregel is (toon, aanpak, wanneer iets te doen/laten, crisisprotocol)
+- "knowledge": als Benji specifieke inhoudelijke kennis mist over een onderwerp
+
+Antwoord ALLEEN in dit JSON formaat, geen tekst erbuiten:
+{
+  "probleem": "één zin wat er fout ging",
+  "type": "rules" of "knowledge",
+  "reden": "één zin waarom deze keuze",
+  "toevoeging": "de concrete tekst die toegevoegd moet worden aan de rules (bullet point stijl; bij knowledge leeg laten)",
+  "knowledge_question": "bij knowledge: de vraag in de knowledge base (bij rules leeg laten)",
+  "knowledge_answer": "bij knowledge: het antwoord voor Benji (bij rules leeg laten)",
+  "knowledge_category": "bij knowledge: de categorie bijv. Rouw en verlies (bij rules leeg laten)"
+}`;
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ANTHROPIC_API_KEY!,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 600,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    const data = await response.json() as { content?: { type: string; text: string }[] };
+    const text = data.content?.[0]?.text ?? "";
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[0]);
+      } catch {
+        return { probleem: "Kon niet analyseren", type: "rules", reden: "", toevoeging: text, knowledge_question: "", knowledge_answer: "", knowledge_category: "" };
+      }
+    }
+    return { probleem: "Geen analyse beschikbaar", type: "rules", reden: "", toevoeging: "", knowledge_question: "", knowledge_answer: "", knowledge_category: "" };
+  },
+});
+
 /** Heranalyse: plan rapporten in voor alle sessies zonder adminRapport (admin only). */
 export const retriggerRapporten = mutation({
   args: { adminToken: v.string() },

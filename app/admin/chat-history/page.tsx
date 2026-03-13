@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
+import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
@@ -15,7 +15,158 @@ import {
   ThumbsDown,
   Loader,
   RefreshCw,
+  Sparkles,
+  ScrollText,
+  BookOpen,
+  Check,
+  Loader2,
 } from "lucide-react";
+
+type SuggestResult = {
+  probleem: string;
+  type: "rules" | "knowledge";
+  reden: string;
+  toevoeging: string;
+  knowledge_question: string;
+  knowledge_answer: string;
+  knowledge_category: string;
+};
+
+function RapportSuggestie({ rapport }: { rapport: string }) {
+  const [analysing, setAnalysing] = useState(false);
+  const [suggestion, setSuggestion] = useState<SuggestResult | null>(null);
+  const [editedType, setEditedType] = useState<"rules" | "knowledge">("rules");
+  const [editedText, setEditedText] = useState("");
+  const [editedQuestion, setEditedQuestion] = useState("");
+  const [editedAnswer, setEditedAnswer] = useState("");
+  const [editedCategory, setEditedCategory] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const suggestFix = useAdminAction(api.admin.suggestFixFromRapport);
+  const appendToRules = useAdminMutation(api.admin.appendToRules);
+  const addKnowledge = useAdminMutation(api.admin.addKnowledgeEntryFromAdmin);
+
+  const handleAnalyse = async () => {
+    setAnalysing(true);
+    try {
+      const result = await suggestFix({ rapport }) as SuggestResult;
+      setSuggestion(result);
+      setEditedType(result.type);
+      setEditedText(result.toevoeging ?? "");
+      setEditedQuestion(result.knowledge_question ?? "");
+      setEditedAnswer(result.knowledge_answer ?? "");
+      setEditedCategory(result.knowledge_category ?? "");
+    } finally {
+      setAnalysing(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    setSaving(true);
+    try {
+      if (editedType === "rules") {
+        await appendToRules({ addition: editedText });
+      } else {
+        await addKnowledge({ question: editedQuestion, answer: editedAnswer, category: editedCategory || "Overig" });
+      }
+      setSaved(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (saved) {
+    return (
+      <div className="flex items-center gap-1.5 text-xs text-green-600 font-medium mt-2">
+        <Check size={13} /> Opgeslagen in {editedType === "rules" ? "rules" : "knowledge base"}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3">
+      {!suggestion && (
+        <button
+          onClick={handleAnalyse}
+          disabled={analysing}
+          className="flex items-center gap-1.5 text-xs bg-primary-600 text-white rounded-lg px-3 py-1.5 hover:bg-primary-700 disabled:opacity-60 transition-colors"
+        >
+          {analysing ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+          {analysing ? "Analyseren..." : "Stel verbetering voor"}
+        </button>
+      )}
+
+      {suggestion && (
+        <div className="border border-primary-200 rounded-xl overflow-hidden">
+          <div className="px-4 py-3 bg-primary-50 border-b border-primary-100">
+            <p className="text-xs font-semibold text-primary-800 mb-0.5">Analyse</p>
+            <p className="text-sm text-primary-700">{suggestion.probleem}</p>
+            <p className="text-xs text-primary-500 mt-1">{suggestion.reden}</p>
+          </div>
+
+          <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+            <p className="text-xs font-medium text-gray-500 mr-1">Toevoegen aan:</p>
+            <button
+              onClick={() => setEditedType("rules")}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${editedType === "rules" ? "bg-primary-600 text-white border-primary-600" : "text-gray-600 border-gray-200 hover:border-primary-300"}`}
+            >
+              <ScrollText size={12} /> Rules
+            </button>
+            <button
+              onClick={() => setEditedType("knowledge")}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-colors ${editedType === "knowledge" ? "bg-primary-600 text-white border-primary-600" : "text-gray-600 border-gray-200 hover:border-primary-300"}`}
+            >
+              <BookOpen size={12} /> Knowledge base
+            </button>
+          </div>
+
+          <div className="px-4 py-3 space-y-2">
+            {editedType === "rules" ? (
+              <textarea
+                value={editedText}
+                onChange={(e) => setEditedText(e.target.value)}
+                rows={3}
+                className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-400"
+                placeholder="Regel voor Benji..."
+              />
+            ) : (
+              <>
+                <input
+                  value={editedCategory}
+                  onChange={(e) => setEditedCategory(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-400"
+                  placeholder="Categorie"
+                />
+                <input
+                  value={editedQuestion}
+                  onChange={(e) => setEditedQuestion(e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-400"
+                  placeholder="Vraag"
+                />
+                <textarea
+                  value={editedAnswer}
+                  onChange={(e) => setEditedAnswer(e.target.value)}
+                  rows={3}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-400"
+                  placeholder="Antwoord voor Benji"
+                />
+              </>
+            )}
+            <button
+              onClick={handleApprove}
+              disabled={saving || (editedType === "rules" ? !editedText.trim() : !editedQuestion.trim() || !editedAnswer.trim())}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+              {saving ? "Opslaan..." : "Goedkeuren & opslaan"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function formatDate(ts: number) {
   const d = new Date(ts);
@@ -196,9 +347,12 @@ export default function AdminChatHistory() {
                 {/* Rapport */}
                 <div className="px-4 pb-4">
                   {session.adminRapport ? (
-                    <div className="bg-primary-50/60 rounded-lg p-3 text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">
-                      {session.adminRapport}
-                    </div>
+                    <>
+                      <div className="bg-primary-50/60 rounded-lg p-3 text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">
+                        {session.adminRapport}
+                      </div>
+                      <RapportSuggestie rapport={session.adminRapport} />
+                    </>
                   ) : session.status === "active" ? (
                     <p className="text-xs text-primary-400 italic">Gesprek is nog actief.</p>
                   ) : (

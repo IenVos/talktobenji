@@ -24,4 +24,12 @@ crons.daily(
   {}
 );
 
+// Markeer inactieve sessies als abandoned (elke 30 min) + genereer rapporten
+crons.interval(
+  "mark abandoned sessions",
+  { minutes: 30 },
+  api.chat.markSessionsAsAbandoned,
+  {}
+);
+
 export default crons;
