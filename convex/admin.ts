@@ -1207,12 +1207,20 @@ export const setSessionStatus = mutation({
       v.literal("abandoned"),
       v.literal("reviewed")
     ),
+    clearReviewed: v.optional(v.boolean()), // Zet terug naar inbox (Alle)
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    await ctx.db.patch(args.sessionId, {
-      status: args.status,
-      reviewedAt: Date.now(),
-    });
+    if (args.clearReviewed) {
+      await ctx.db.patch(args.sessionId, {
+        status: args.status,
+        reviewedAt: undefined,
+      });
+    } else {
+      await ctx.db.patch(args.sessionId, {
+        status: args.status,
+        reviewedAt: Date.now(),
+      });
+    }
   },
 });

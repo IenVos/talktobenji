@@ -260,58 +260,92 @@ const STATUS_CONFIG = {
 function StatusActies({ session }: { session: any }) {
   const setStatus = useAdminMutation(api.admin.setSessionStatus);
   const [loading, setLoading] = useState<string | null>(null);
-  const [saved, setSaved] = useState<string | null>(null);
+  const [localStatus, setLocalStatus] = useState<string>(session.status);
+  const [correcting, setCorrecting] = useState(false);
 
-  // Toon alleen als rapport beschikbaar is en status nog beoordeeld kan worden
   if (!session.adminRapport) return null;
-  if (saved) {
-    const cfg = STATUS_CONFIG[saved as keyof typeof STATUS_CONFIG];
-    return (
-      <div className="px-4 pb-3 pt-2 border-t border-gray-100 flex items-center gap-1.5 text-xs text-gray-500">
-        <Check size={12} className="text-green-500" />
-        Verplaatst naar <span className={`font-medium ${cfg?.color}`}>{cfg?.label ?? saved}</span>
-      </div>
-    );
-  }
 
-  const handle = async (status: "resolved" | "escalated" | "reviewed") => {
+  const isCategorised = localStatus === "resolved" || localStatus === "escalated" || localStatus === "reviewed";
+
+  const handle = async (status: "resolved" | "escalated" | "reviewed" | "abandoned", clearReviewed?: boolean) => {
     setLoading(status);
     try {
-      await setStatus({ sessionId: session._id, status });
-      setSaved(status);
+      await setStatus({ sessionId: session._id, status, clearReviewed });
+      setLocalStatus(status);
+      setCorrecting(false);
     } finally {
       setLoading(null);
     }
   };
 
+  // Al gecategoriseerd — toon huidige status + corrigeeroptie
+  if (isCategorised && !correcting) {
+    const cfg = STATUS_CONFIG[localStatus as keyof typeof STATUS_CONFIG];
+    return (
+      <div className="px-4 pb-3 pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <Check size={12} className="text-green-500" />
+          <span className={`font-medium ${cfg?.color}`}>{cfg?.label ?? localStatus}</span>
+        </div>
+        <button
+          onClick={() => setCorrecting(true)}
+          className="text-xs text-gray-400 hover:text-primary-600 underline transition-colors"
+        >
+          Wijzig
+        </button>
+      </div>
+    );
+  }
+
+  // Knoppen (nieuw of bij corrigeren)
   return (
     <div className="px-4 pb-3 pt-2 border-t border-gray-100">
-      <p className="text-xs text-gray-400 mb-2">Na beoordeling verplaatsen naar:</p>
+      <p className="text-xs text-gray-400 mb-2">
+        {correcting ? "Verplaats naar een andere categorie:" : "Na beoordeling verplaatsen naar:"}
+      </p>
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => handle("resolved")}
-          disabled={!!loading}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 disabled:opacity-50 transition-colors"
+          disabled={!!loading || localStatus === "resolved"}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 disabled:opacity-40 transition-colors"
         >
           {loading === "resolved" ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle size={11} />}
           Goed gesprek
         </button>
         <button
           onClick={() => handle("escalated")}
-          disabled={!!loading}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 disabled:opacity-50 transition-colors"
+          disabled={!!loading || localStatus === "escalated"}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 disabled:opacity-40 transition-colors"
         >
           {loading === "escalated" ? <Loader2 size={11} className="animate-spin" /> : <AlertCircle size={11} />}
           Opvolging nodig
         </button>
         <button
           onClick={() => handle("reviewed")}
-          disabled={!!loading}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 disabled:opacity-50 transition-colors"
+          disabled={!!loading || localStatus === "reviewed"}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 disabled:opacity-40 transition-colors"
         >
           {loading === "reviewed" ? <Loader2 size={11} className="animate-spin" /> : <Archive size={11} />}
-          Bekeken / archiveer
+          Bekeken
         </button>
+        {correcting && (
+          <button
+            onClick={() => handle("abandoned", true)}
+            disabled={!!loading}
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 disabled:opacity-40 transition-colors"
+          >
+            {loading === "abandoned" ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+            Zet terug naar Alle
+          </button>
+        )}
+        {correcting && (
+          <button
+            onClick={() => setCorrecting(false)}
+            className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5 transition-colors"
+          >
+            Annuleer
+          </button>
+        )}
       </div>
     </div>
   );
@@ -322,12 +356,16 @@ export default function AdminChatHistory() {
     "all" | "active" | "resolved" | "escalated" | "abandoned" | "reviewed"
   >("all");
 
-  const sessions = useAdminQuery(
-    api.admin.listChatHistory,
-    statusFilter === "all"
-      ? { limit: 100 }
-      : { limit: 100, status: statusFilter }
-  );
+  const allSessions = useAdminQuery(api.admin.listChatHistory, { limit: 200 });
+
+  const sessions = useMemo(() => {
+    if (!allSessions) return undefined;
+    if (statusFilter === "all") {
+      // Inbox: alleen sessies die nog niet handmatig beoordeeld zijn
+      return (allSessions as any[]).filter((s) => !s.reviewedAt);
+    }
+    return (allSessions as any[]).filter((s) => s.status === statusFilter);
+  }, [allSessions, statusFilter]);
 
   const deleteChatSession = useAdminMutation(api.admin.deleteChatSession);
   const retriggerRapporten = useAdminMutation(api.admin.retriggerRapporten);
@@ -519,10 +557,8 @@ export default function AdminChatHistory() {
                 {/* Rapport — inklapbaar */}
                 <RapportKaart session={session} />
 
-                {/* Status actieknoppen — alleen tonen als nog niet gecategoriseerd */}
-                {(session.status === "abandoned" || session.status === "active") && (
-                  <StatusActies session={session} />
-                )}
+                {/* Status actieknoppen — altijd tonen als rapport beschikbaar */}
+                <StatusActies session={session} />
                 </div>
             );
           })}
