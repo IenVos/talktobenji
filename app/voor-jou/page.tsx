@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
-  ExternalLink,
   Pencil, Waves, BookOpen, Heart, Leaf, Sun, Feather, Star,
   Anchor, Wind, Sparkles, Flame, Music, Compass, Cloud, MessageCircle,
   Flower2, Coffee, Umbrella, Bird, type LucideIcon,
@@ -123,7 +122,6 @@ export default function VoorJouPage() {
                         >
                           <CardIcon name={(item as any).icon} size={13} />
                           {item.buttonLabel ?? "Bekijken"}
-                          <ExternalLink size={11} />
                         </a>
                       )}
                     </div>

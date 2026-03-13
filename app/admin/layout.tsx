@@ -179,7 +179,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
           { href: "/admin/goede-antwoorden", label: "Goede antwoorden", icon: ThumbsUp, badge: helpfulCount },
           { href: "/admin/slechte-antwoorden", label: "Slechte antwoorden", icon: ThumbsDown, badge: notHelpfulCount },
-          { href: "/admin/onbeantwoorde-vragen", label: "Onbeantwoorde vragen", icon: HelpCircle },
           { href: "/admin/wensen", label: "Wensen", icon: MessageCircleHeart },
         ],
       },

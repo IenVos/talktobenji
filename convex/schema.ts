@@ -459,6 +459,17 @@ export default defineSchema({
     expiresAt: v.number(),
   }).index("by_token", ["token"]),
 
+  // Paginabezoeken (website analytics)
+  pageViews: defineTable({
+    path: v.string(),           // URL path, e.g. "/chat"
+    sessionId: v.string(),      // anonymous ID from localStorage
+    timestamp: v.number(),      // ms epoch
+    device: v.string(),         // "mobile" | "desktop"
+    duration: v.optional(v.number()), // seconds on page
+  })
+    .index("by_timestamp", ["timestamp"])
+    .index("by_session_timestamp", ["sessionId", "timestamp"]),
+
   // Aankomende functies (beheerbaar via admin)
   comingSoonFeatures: defineTable({
     featureId: v.string(),   // slug voor vote-tracking

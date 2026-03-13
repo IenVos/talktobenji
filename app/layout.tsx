@@ -10,6 +10,7 @@ import { CookieConsentBanner } from "@/components/chat/CookieConsentBanner";
 import { ConnectionBanner } from "@/components/chat/ConnectionBanner";
 import { SessionProvider } from "@/lib/SessionProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageViewTracker } from "@/components/analytics/PageViewTracker";
 
 export const metadata: Metadata = {
   title: {
@@ -101,6 +102,7 @@ fbq('init','2054062258501361');fbq('track','PageView');`}
               <Suspense fallback={<div className="min-h-screen" aria-hidden="true" />}>
                 <AboutModalProvider>
                   <ProfessionalHelpProvider>
+                    <PageViewTracker />
                     <LayoutMenu />
                     {children}
                     <CookieConsentBanner />
