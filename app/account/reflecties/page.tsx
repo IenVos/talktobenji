@@ -481,12 +481,12 @@ export default function AccountReflectiesPage() {
               {goals.slice(0, 1).map((g) => (
                 <li
                   key={g._id}
-                  className="flex items-center gap-2 p-3 rounded-lg bg-primary-50/50"
+                  className="flex items-center gap-2 p-3 rounded-lg bg-green-50/50 border border-green-100"
                 >
                   <button
                     type="button"
                     onClick={() => toggleGoal({ goalId: g._id, userId })}
-                    className="text-primary-600"
+                    className="text-green-600 hover:text-green-800 transition-colors"
                   >
                     {g.completed ? <CheckCircle2 size={20} /> : <Circle size={20} />}
                   </button>
@@ -604,23 +604,23 @@ export default function AccountReflectiesPage() {
 
         {/* Eerdere check-ins – max 3, rest via knop */}
         {checkInEntries && checkInEntries.length > 0 && (
-          <div className="mt-6 pt-6 border-t border-primary-100">
+          <div className="mt-6 pt-6 border-t border-green-100">
             <h3 className="flex items-center gap-2 text-base font-semibold text-primary-900 mb-3">
-              <History size={18} className="text-primary-500" />
+              <History size={18} className="text-green-600" />
               Eerdere check-ins
             </h3>
             <div className="space-y-2">
               {checkInEntries.slice(0, 1).map((entry) => {
                 const isExpanded = expandedCheckInId === entry._id;
                 return (
-                  <div key={entry._id} className="rounded-lg border border-primary-200 overflow-hidden">
+                  <div key={entry._id} className="rounded-lg border border-green-200 overflow-hidden">
                     <div className="flex items-center gap-2 px-4 py-3 bg-white">
                       <button
                         type="button"
                         onClick={() => setExpandedCheckInId(isExpanded ? null : entry._id)}
-                        className="flex items-center gap-2 text-left hover:bg-primary-50/50 rounded transition-colors flex-1 min-w-0"
+                        className="flex items-center gap-2 text-left hover:bg-green-50/50 rounded transition-colors flex-1 min-w-0"
                       >
-                        {isExpanded ? <ChevronDown size={18} className="text-primary-600 flex-shrink-0" /> : <ChevronRight size={18} className="text-primary-600 flex-shrink-0" />}
+                        {isExpanded ? <ChevronDown size={18} className="text-green-600 flex-shrink-0" /> : <ChevronRight size={18} className="text-green-600 flex-shrink-0" />}
                         <span className="font-medium text-primary-900 truncate">{formatDate(entry.createdAt)}</span>
                       </button>
                       <button type="button" onClick={() => handleDeleteCheckIn(entry._id)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg flex-shrink-0" aria-label="Verwijderen">
@@ -628,11 +628,11 @@ export default function AccountReflectiesPage() {
                       </button>
                     </div>
                     {isExpanded && (
-                      <div className="px-4 pb-4 pt-0 space-y-2 bg-primary-50/30">
+                      <div className="px-4 pb-4 pt-0 space-y-2 bg-green-50/30">
                         {(["hoe_voel", "wat_hielp", "waar_dankbaar"] as const).map((key) =>
                           entry[key] && entry[key] !== "-" && (
                             <div key={key}>
-                              <p className="text-xs font-medium text-primary-600 mb-0.5">{CHECK_IN_LABELS[key]}</p>
+                              <p className="text-xs font-medium text-green-700 mb-0.5">{CHECK_IN_LABELS[key]}</p>
                               <p className="text-sm text-primary-900">{entry[key]}</p>
                             </div>
                           )
