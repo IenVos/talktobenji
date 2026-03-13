@@ -9,6 +9,7 @@ import {
   Anchor, Wind, Sparkles, Flame, Music, Compass, Cloud, MessageCircle,
   Flower2, Coffee, Umbrella, Bird, type LucideIcon,
 } from "lucide-react";
+import { HeaderBar } from "@/components/chat/HeaderBar";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   pencil: Pencil, waves: Waves, bookOpen: BookOpen, heart: Heart,
@@ -39,18 +40,7 @@ export default function VoorJouPage() {
 
       <div style={{ position: "relative", zIndex: 1, flex: 1 }}>
 
-        {/* Logo */}
-        <div className="px-5 pt-6 pb-2">
-          <a href="https://talktobenji.com">
-            <Image
-              src="/images/benji-logo-2.png"
-              alt="Talk To Benji"
-              width={32}
-              height={32}
-              className="opacity-60 hover:opacity-80 transition-opacity"
-            />
-          </a>
-        </div>
+        <HeaderBar />
 
         {/* Header */}
         <section className="px-5 pt-8 pb-6 text-center">

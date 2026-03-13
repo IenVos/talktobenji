@@ -34,7 +34,7 @@ export default function TroostendeWoordenPage() {
             Troostende woorden
           </h1>
           <p className="text-base leading-relaxed mb-8" style={{ color: "#6b6460" }}>
-            Voor wie zelf niet de woorden kan vinden — maar ze wel wil geven.
+            Voor wie zelf niet de woorden kan vinden, maar ze wel wil geven.
           </p>
           <a
             href={ctaUrl}
@@ -67,7 +67,7 @@ export default function TroostendeWoordenPage() {
                 Soms wil je er voor iemand zijn, maar weet je niet wat je moet zeggen. De woorden schieten tekort, of komen gewoon niet.
               </p>
               <p>
-                Dit boekje bevat zinnen die je kunt geven — bij verlies, bij ziekte, bij verdriet dat geen naam heeft. Geen vaste recepten, maar echte woorden die troost bieden zonder te veel te willen zeggen.
+                Dit boekje bevat zinnen die je kunt geven: bij verlies, bij ziekte, bij verdriet dat geen naam heeft. Geen vaste recepten, maar echte woorden die troost bieden zonder te veel te willen zeggen.
               </p>
               <p>
                 Klein genoeg om mee te geven. Groot genoeg om iets te betekenen.
@@ -121,7 +121,7 @@ export default function TroostendeWoordenPage() {
               Geef troost een vorm
             </h2>
             <p className="text-sm leading-relaxed mb-7" style={{ color: "#6b6460" }}>
-              Het boekje wordt snel verzonden. Jij hoeft alleen maar te bestellen.
+              Na aankoop heb je direct digitaal toegang.
             </p>
             <a
               href={ctaUrl}
