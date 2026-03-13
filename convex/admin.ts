@@ -1114,3 +1114,25 @@ Antwoord ALLEEN in dit JSON formaat, geen tekst erbuiten:
     return { probleem: "Geen analyse beschikbaar", type: "rules", reden: "", toevoeging: "", knowledge_question: "", knowledge_answer: "", knowledge_category: "" };
   },
 });
+
+
+/** Heranalyse: plan rapporten in voor alle sessies zonder adminRapport (admin only). */
+export const retriggerRapporten = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const allSessions = await ctx.db.query("chatSessions").collect();
+    const pending = allSessions.filter(
+      (s) => !s.adminRapport && s.status !== "active"
+    );
+
+    for (const session of pending) {
+      await ctx.scheduler.runAfter(0, api.ai.analyzeSessionAdmin, {
+        sessionId: session._id,
+      });
+    }
+
+    return pending.length;
+  },
+});

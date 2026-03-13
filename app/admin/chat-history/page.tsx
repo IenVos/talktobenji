@@ -14,6 +14,7 @@ import {
   Clock,
   ThumbsDown,
   Loader,
+  RefreshCw,
 } from "lucide-react";
 
 function formatDate(ts: number) {
@@ -47,6 +48,14 @@ export default function AdminChatHistory() {
   );
 
   const deleteChatSession = useAdminMutation(api.admin.deleteChatSession);
+  const retriggerRapporten = useAdminMutation(api.admin.retriggerRapporten);
+  const [retriggerMsg, setRetriggerMsg] = useState<string | null>(null);
+
+  const handleRetrigger = async () => {
+    const n = await retriggerRapporten({});
+    setRetriggerMsg(`${n} rapport${n !== 1 ? "ten" : ""} ingepland.`);
+    setTimeout(() => setRetriggerMsg(null), 5000);
+  };
 
   const handleDeleteSession = async (sessionId: Id<"chatSessions">) => {
     if (!confirm("Dit gesprek verwijderen?")) return;
@@ -86,11 +95,25 @@ export default function AdminChatHistory() {
         ))}
       </div>
 
-      {/* Melding nog te analyseren */}
+      {/* Melding nog te analyseren + knop */}
       {sessionsZonderRapport > 0 && (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
-          <Loader size={15} className="animate-spin flex-shrink-0" />
-          {sessionsZonderRapport} gesprek{sessionsZonderRapport > 1 ? "ken worden" : " wordt"} nog geanalyseerd...
+        <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
+          <div className="flex items-center gap-2">
+            <Loader size={15} className="animate-spin flex-shrink-0" />
+            {sessionsZonderRapport} gesprek{sessionsZonderRapport > 1 ? "ken zonder" : " zonder"} rapport
+          </div>
+          <button
+            onClick={handleRetrigger}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium transition-colors text-xs"
+          >
+            <RefreshCw size={13} />
+            Genereer rapporten
+          </button>
+        </div>
+      )}
+      {retriggerMsg && (
+        <div className="px-4 py-3 rounded-xl bg-green-50 border border-green-200 text-sm text-green-800">
+          ✓ {retriggerMsg} Rapporten verschijnen binnen een minuut.
         </div>
       )}
 
