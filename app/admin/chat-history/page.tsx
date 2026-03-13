@@ -415,14 +415,7 @@ export default function AdminChatHistory() {
                 <RapportKaart session={session} />
 
                   {/* Feedback comment apart tonen als het er is */}
-                  {session.feedbackComment && (
-                    <div className="mt-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-xs text-amber-800">
-                      <span className="font-medium">Feedback van gebruiker: </span>
-                      {session.feedbackComment}
-                    </div>
-                  )}
                 </div>
-              </div>
             );
           })}
         </div>
