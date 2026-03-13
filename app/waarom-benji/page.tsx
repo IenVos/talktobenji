@@ -116,7 +116,7 @@ export default function WaaromBenjiPage() {
           </div>
 
           <p>
-            Er volgde een <Link href="/account/onderweg?title=Troostende+woorden" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">troostwoordenboekje</Link>, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen.
+            Er volgde een <Link href="/lp/troostende-woorden" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">troostwoordenboekje</Link>, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen.
           </p>
 
           <div className="flex justify-center">
@@ -126,6 +126,24 @@ export default function WaaromBenjiPage() {
               width={280}
               height={400}
               className="rounded-xl shadow-sm"
+            />
+          </div>
+
+          <p>
+            En voor mensen die dat verdriet zelf dragen, en er niet alleen mee willen zijn, ontwikkelde ik het{" "}
+            <Link href="/lp/niet-alleen-a" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">
+              Niet Alleen programma
+            </Link>
+            {" "}— begeleiding via dagelijkse gesprekken met Benji, speciaal voor wie rouwt en dat niet langer alleen wil doen.
+          </p>
+
+          <div className="rounded-xl overflow-hidden">
+            <Image
+              src="/images/niet-alleen-product.png"
+              alt="Niet Alleen programma"
+              width={800}
+              height={500}
+              className="w-full object-cover"
             />
           </div>
 
