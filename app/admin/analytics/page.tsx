@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useAdminQuery } from "../AdminAuthContext";
+import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import {
   BarChart3,
@@ -11,6 +11,10 @@ import {
   Smartphone,
   Monitor,
   Calendar,
+  Trash2,
+  Shield,
+  Plus,
+  X,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -270,7 +274,18 @@ export default function AdminAnalytics() {
   }), [days]);
 
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
+  const excludedIps = useAdminQuery(api.siteAnalytics.listExcludedIps, {});
+  const addExcludedIp = useAdminMutation(api.siteAnalytics.addExcludedIp);
+  const removeExcludedIp = useAdminMutation(api.siteAnalytics.removeExcludedIp);
+  const deleteOldViews = useAdminMutation(api.siteAnalytics.deleteOldViews);
+
   const [loadTimeout, setLoadTimeout] = useState(false);
+  const [myIp, setMyIp] = useState<string | null>(null);
+  const [cleanupMsg, setCleanupMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/my-ip").then(r => r.json()).then(d => setMyIp(d.ip ?? null)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     setLoadTimeout(false);
@@ -651,6 +666,88 @@ export default function AdminAnalytics() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Sectie 5: Beheer */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+        {/* IP uitsluiting */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-1 flex items-center gap-2">
+            <Shield size={16} className="text-primary-500" />
+            Uitgesloten IP-adressen
+          </h2>
+          <p className="text-xs text-primary-500 mb-4">Bezoeken van deze IPs worden niet geteld.</p>
+
+          {/* Mijn huidige IP */}
+          {myIp && (
+            <div className="flex items-center justify-between bg-primary-50 rounded-lg px-3 py-2 mb-3 text-xs">
+              <span className="text-primary-600">Mijn huidige IP: <span className="font-mono font-semibold text-primary-800">{myIp}</span></span>
+              {excludedIps && !excludedIps.some((e: any) => e.ip === myIp) && (
+                <button
+                  onClick={() => addExcludedIp({ ip: myIp, label: "Mijn IP" }).catch(() => {})}
+                  className="flex items-center gap-1 text-primary-600 hover:text-primary-900 transition-colors"
+                >
+                  <Plus size={12} /> Uitsluiten
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Lijst */}
+          <div className="space-y-2">
+            {(excludedIps ?? []).map((entry: any) => (
+              <div key={entry._id} className="flex items-center justify-between text-xs bg-primary-50 rounded-lg px-3 py-2">
+                <div>
+                  <span className="font-mono text-primary-800">{entry.ip}</span>
+                  {entry.label && <span className="text-primary-500 ml-2">({entry.label})</span>}
+                </div>
+                <button
+                  onClick={() => removeExcludedIp({ id: entry._id }).catch(() => {})}
+                  className="text-red-400 hover:text-red-600 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+            {excludedIps?.length === 0 && (
+              <p className="text-xs text-primary-400">Nog geen IPs uitgesloten.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Data opruimen */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-1 flex items-center gap-2">
+            <Trash2 size={16} className="text-primary-500" />
+            Data opruimen
+          </h2>
+          <p className="text-xs text-primary-500 mb-4">Verwijder testbezoeken van vóór de advertentiestart.</p>
+
+          <div className="space-y-3">
+            {[
+              { label: "Vóór 7 maart 2026 (advertentiestart)", before: new Date("2026-03-07").getTime() },
+            ].map(({ label, before }) => (
+              <div key={before} className="flex items-center justify-between bg-primary-50 rounded-lg px-3 py-2.5">
+                <span className="text-xs text-primary-700">{label}</span>
+                <button
+                  onClick={async () => {
+                    if (!confirm(`Alle bezoeken vóór 7 maart verwijderen?`)) return;
+                    const n = await deleteOldViews({ before }).catch(() => 0);
+                    setCleanupMsg(`${n} bezoeken verwijderd.`);
+                  }}
+                  className="text-xs text-red-500 hover:text-red-700 font-medium transition-colors"
+                >
+                  Verwijderen
+                </button>
+              </div>
+            ))}
+            {cleanupMsg && (
+              <p className="text-xs text-green-600 font-medium">{cleanupMsg}</p>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

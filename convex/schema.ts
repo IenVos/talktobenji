@@ -461,14 +461,22 @@ export default defineSchema({
 
   // Paginabezoeken (website analytics)
   pageViews: defineTable({
-    path: v.string(),           // URL path, e.g. "/chat"
-    sessionId: v.string(),      // anonymous ID from localStorage
-    timestamp: v.number(),      // ms epoch
-    device: v.string(),         // "mobile" | "desktop"
-    duration: v.optional(v.number()), // seconds on page
+    path: v.string(),
+    sessionId: v.string(),
+    timestamp: v.number(),
+    device: v.string(),
+    duration: v.optional(v.number()),
+    ip: v.optional(v.string()),
   })
     .index("by_timestamp", ["timestamp"])
     .index("by_session_timestamp", ["sessionId", "timestamp"]),
+
+  // Uitgesloten IP-adressen voor analytics
+  analyticsExcludedIps: defineTable({
+    ip: v.string(),
+    label: v.optional(v.string()),
+    createdAt: v.number(),
+  }),
 
   // Aankomende functies (beheerbaar via admin)
   comingSoonFeatures: defineTable({

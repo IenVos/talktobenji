@@ -12,10 +12,11 @@ export function PageViewTracker() {
 
   const sessionIdRef = useRef<string | null>(null);
   const deviceRef = useRef<string>("desktop");
+  const ipRef = useRef<string | undefined>(undefined);
   const pageLoadTimeRef = useRef<number>(Date.now());
   const lastPathRef = useRef<string | null>(null);
 
-  // Initialiseer sessionId en device eenmalig
+  // Initialiseer sessionId, device en IP eenmalig
   useEffect(() => {
     const stored = localStorage.getItem("ttb_sid");
     if (stored) {
@@ -26,6 +27,11 @@ export function PageViewTracker() {
       sessionIdRef.current = newId;
     }
     deviceRef.current = window.innerWidth < 768 ? "mobile" : "desktop";
+    // Haal IP op voor uitsluiting
+    fetch("/api/my-ip")
+      .then((r) => r.json())
+      .then((d) => { if (d.ip && d.ip !== "unknown") ipRef.current = d.ip; })
+      .catch(() => {});
   }, []);
 
   // Track paginabezoek bij pathname-wijziging
@@ -40,6 +46,7 @@ export function PageViewTracker() {
       path: pathname ?? "/",
       sessionId: sessionIdRef.current ?? "",
       device: deviceRef.current,
+      ip: ipRef.current,
     }).catch(() => {
       // Negeer fouten – analytics mogen de app nooit breken
     });

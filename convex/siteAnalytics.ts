@@ -5,30 +5,80 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
-/** Eenvoudige test query om te controleren of dit module bereikbaar is. */
-export const ping = query({
-  args: {},
-  handler: async () => "pong",
-});
-
 /** Sla een paginabezoek op (publiek, geen auth vereist). */
 export const trackPageView = mutation({
   args: {
     path: v.string(),
     sessionId: v.string(),
     device: v.string(),
+    ip: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Skip admin- en API-paden
     if (args.path.startsWith("/admin") || args.path.startsWith("/api")) {
       return null;
     }
+    // Skip uitgesloten IP-adressen
+    if (args.ip) {
+      const excluded = await ctx.db
+        .query("analyticsExcludedIps")
+        .collect();
+      if (excluded.some((e) => e.ip === args.ip)) return null;
+    }
     return await ctx.db.insert("pageViews", {
       path: args.path,
       sessionId: args.sessionId,
       timestamp: Date.now(),
       device: args.device,
+      ip: args.ip,
     });
+  },
+});
+
+/** IP-adressen beheren voor analytics uitsluiting (admin only). */
+export const listExcludedIps = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return await ctx.db.query("analyticsExcludedIps").collect();
+  },
+});
+
+export const addExcludedIp = mutation({
+  args: { adminToken: v.string(), ip: v.string(), label: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const existing = await ctx.db.query("analyticsExcludedIps").collect();
+    if (existing.some((e) => e.ip === args.ip)) return null;
+    return await ctx.db.insert("analyticsExcludedIps", {
+      ip: args.ip,
+      label: args.label,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const removeExcludedIp = mutation({
+  args: { adminToken: v.string(), id: v.id("analyticsExcludedIps") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    await ctx.db.delete(args.id);
+  },
+});
+
+/** Verwijder paginabezoeken vóór een bepaalde datum (admin only). */
+export const deleteOldViews = mutation({
+  args: { adminToken: v.string(), before: v.number() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const old = await ctx.db
+      .query("pageViews")
+      .withIndex("by_timestamp", (q) => q.lt("timestamp", args.before))
+      .collect();
+    for (const view of old) {
+      await ctx.db.delete(view._id);
+    }
+    return old.length;
   },
 });
 
