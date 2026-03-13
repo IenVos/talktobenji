@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -22,6 +22,9 @@ import {
   Loader2,
   ChevronDown,
   ChevronRight,
+  Archive,
+  Eye,
+  TrendingUp,
 } from "lucide-react";
 
 type SuggestResult = {
@@ -247,15 +250,76 @@ function formatDate(ts: number) {
 }
 
 const STATUS_CONFIG = {
-  resolved: { label: "Opgelost", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50 border-green-200" },
-  escalated: { label: "Geëscaleerd", icon: AlertCircle, color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
+  resolved: { label: "Goed gesprek", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50 border-green-200" },
+  escalated: { label: "Opvolging nodig", icon: AlertCircle, color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
   abandoned: { label: "Afgehaakt", icon: Clock, color: "text-red-500", bg: "bg-red-50 border-red-200" },
   active: { label: "Actief", icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50 border-blue-200" },
+  reviewed: { label: "Bekeken", icon: Eye, color: "text-gray-500", bg: "bg-gray-50 border-gray-200" },
 };
+
+function StatusActies({ session }: { session: any }) {
+  const setStatus = useAdminMutation(api.admin.setSessionStatus);
+  const [loading, setLoading] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
+
+  // Toon alleen als rapport beschikbaar is en status nog beoordeeld kan worden
+  if (!session.adminRapport) return null;
+  if (saved) {
+    const cfg = STATUS_CONFIG[saved as keyof typeof STATUS_CONFIG];
+    return (
+      <div className="px-4 pb-3 pt-2 border-t border-gray-100 flex items-center gap-1.5 text-xs text-gray-500">
+        <Check size={12} className="text-green-500" />
+        Verplaatst naar <span className={`font-medium ${cfg?.color}`}>{cfg?.label ?? saved}</span>
+      </div>
+    );
+  }
+
+  const handle = async (status: "resolved" | "escalated" | "reviewed") => {
+    setLoading(status);
+    try {
+      await setStatus({ sessionId: session._id, status });
+      setSaved(status);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  return (
+    <div className="px-4 pb-3 pt-2 border-t border-gray-100">
+      <p className="text-xs text-gray-400 mb-2">Na beoordeling verplaatsen naar:</p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => handle("resolved")}
+          disabled={!!loading}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 disabled:opacity-50 transition-colors"
+        >
+          {loading === "resolved" ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle size={11} />}
+          Goed gesprek
+        </button>
+        <button
+          onClick={() => handle("escalated")}
+          disabled={!!loading}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 disabled:opacity-50 transition-colors"
+        >
+          {loading === "escalated" ? <Loader2 size={11} className="animate-spin" /> : <AlertCircle size={11} />}
+          Opvolging nodig
+        </button>
+        <button
+          onClick={() => handle("reviewed")}
+          disabled={!!loading}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100 disabled:opacity-50 transition-colors"
+        >
+          {loading === "reviewed" ? <Loader2 size={11} className="animate-spin" /> : <Archive size={11} />}
+          Bekeken / archiveer
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminChatHistory() {
   const [statusFilter, setStatusFilter] = useState<
-    "all" | "active" | "resolved" | "escalated" | "abandoned"
+    "all" | "active" | "resolved" | "escalated" | "abandoned" | "reviewed"
   >("all");
 
   const sessions = useAdminQuery(
@@ -284,6 +348,25 @@ export default function AdminChatHistory() {
     (s: any) => !s.adminRapport && s.status !== "active"
   ).length;
 
+  // Patroondetectie: groepeer terugkerende problemen uit rapport-suggesties
+  const patronen = useMemo(() => {
+    if (!sessions) return [];
+    const counts: Record<string, { count: number; type: string }> = {};
+    for (const s of sessions as any[]) {
+      if (!s.rapportSuggestie) continue;
+      try {
+        const parsed = JSON.parse(s.rapportSuggestie);
+        const key = (parsed.probleem as string)?.slice(0, 80) ?? "onbekend";
+        if (!counts[key]) counts[key] = { count: 0, type: parsed.type ?? "rules" };
+        counts[key].count++;
+      } catch { /* skip */ }
+    }
+    return Object.entries(counts)
+      .filter(([, v]) => v.count >= 2)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 6);
+  }, [sessions]);
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -292,7 +375,7 @@ export default function AdminChatHistory() {
             Gesprekskwaliteit
           </h1>
           <p className="text-sm text-primary-700 mt-1">
-            Automatische analyse van elk gesprek. Geen letterlijke berichten zichtbaar.
+            Bekijk elk rapport en categoriseer handmatig. Geen letterlijke berichten zichtbaar.
           </p>
         </div>
         <button
@@ -304,10 +387,32 @@ export default function AdminChatHistory() {
         </button>
       </div>
 
+      {/* Terugkerende patronen */}
+      {patronen.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp size={15} className="text-amber-600" />
+            <p className="text-sm font-semibold text-amber-800">Terugkerende patronen</p>
+            <span className="text-xs text-amber-600 ml-1">— hetzelfde probleem meerdere keren gesignaleerd</span>
+          </div>
+          <div className="space-y-1.5">
+            {patronen.map(([probleem, info]) => (
+              <div key={probleem} className="flex items-start gap-2 text-xs text-amber-800">
+                <span className="flex-shrink-0 mt-0.5 w-5 h-5 rounded-full bg-amber-200 text-amber-800 font-bold flex items-center justify-center text-[10px]">
+                  {info.count}×
+                </span>
+                <span>{probleem}</span>
+                <span className="ml-auto flex-shrink-0 text-amber-500 italic">{info.type === "knowledge" ? "knowledge base" : "rules"}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Filter */}
       <div className="flex flex-wrap gap-2 items-center">
         <span className="text-sm text-primary-700">Filter:</span>
-        {(["all", "abandoned", "escalated", "resolved", "active"] as const).map((s) => (
+        {(["all", "abandoned", "escalated", "resolved", "reviewed", "active"] as const).map((s) => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
@@ -414,7 +519,10 @@ export default function AdminChatHistory() {
                 {/* Rapport — inklapbaar */}
                 <RapportKaart session={session} />
 
-                  {/* Feedback comment apart tonen als het er is */}
+                {/* Status actieknoppen — alleen tonen als nog niet gecategoriseerd */}
+                {(session.status === "abandoned" || session.status === "active") && (
+                  <StatusActies session={session} />
+                )}
                 </div>
             );
           })}

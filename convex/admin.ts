@@ -29,7 +29,8 @@ export const listChatHistory = query({
         v.literal("active"),
         v.literal("resolved"),
         v.literal("escalated"),
-        v.literal("abandoned")
+        v.literal("abandoned"),
+        v.literal("reviewed")
       )
     ),
   },
@@ -1190,5 +1191,28 @@ export const retriggerRapporten = mutation({
     }
 
     return pending.length;
+  },
+});
+
+/**
+ * Zet de status van een sessie handmatig (door admin na beoordeling).
+ */
+export const setSessionStatus = mutation({
+  args: {
+    adminToken: v.string(),
+    sessionId: v.id("chatSessions"),
+    status: v.union(
+      v.literal("resolved"),
+      v.literal("escalated"),
+      v.literal("abandoned"),
+      v.literal("reviewed")
+    ),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    await ctx.db.patch(args.sessionId, {
+      status: args.status,
+      reviewedAt: Date.now(),
+    });
   },
 });

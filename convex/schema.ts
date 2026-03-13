@@ -32,8 +32,10 @@ export default defineSchema({
       v.literal("active"),
       v.literal("resolved"),
       v.literal("escalated"),
-      v.literal("abandoned")
+      v.literal("abandoned"),
+      v.literal("reviewed")
     ),
+    reviewedAt: v.optional(v.number()), // Tijdstip admin het gesprek heeft beoordeeld
     wasResolved: v.boolean(),
     rating: v.optional(v.number()),
     feedbackComment: v.optional(v.string()),
