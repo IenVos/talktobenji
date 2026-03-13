@@ -26,6 +26,10 @@ type LineConfig = {
   active: boolean;
 };
 
+type DailyView = { date: string; views: number; unique: number };
+type DailyConversion = { date: string; freeAccounts: number; paid: number; nietAlleen: number };
+type TopPage = { path: string; count: number };
+
 // ---------------------------------------------------------------------------
 // SimpleLine – SVG lijngrafiek zonder externe libraries
 // ---------------------------------------------------------------------------
@@ -274,7 +278,7 @@ export default function AdminAnalytics() {
   const totalConversions = useMemo(() => {
     if (!stats) return 0;
     return stats.dailyConversions.reduce(
-      (sum, d) => sum + d.freeAccounts + d.paid + d.nietAlleen,
+      (sum: number, d: DailyConversion) => sum + d.freeAccounts + d.paid + d.nietAlleen,
       0
     );
   }, [stats]);
@@ -287,13 +291,13 @@ export default function AdminAnalytics() {
         label: "Bezoeken",
         color: "#6d84a8",
         active: viewsActive,
-        data: stats.dailyViews.map((d) => ({ date: d.date, value: d.views })),
+        data: stats.dailyViews.map((d: DailyView) => ({ date: d.date, value: d.views })),
       },
       {
         label: "Uniek",
         color: "#68a87a",
         active: uniqueActive,
-        data: stats.dailyViews.map((d) => ({ date: d.date, value: d.unique })),
+        data: stats.dailyViews.map((d: DailyView) => ({ date: d.date, value: d.unique })),
       },
     ];
   }, [stats, viewsActive, uniqueActive]);
@@ -306,7 +310,7 @@ export default function AdminAnalytics() {
         label: "Gratis accounts",
         color: "#6d84a8",
         active: freeActive,
-        data: stats.dailyConversions.map((d) => ({
+        data: stats.dailyConversions.map((d: DailyConversion) => ({
           date: d.date,
           value: d.freeAccounts,
         })),
@@ -315,7 +319,7 @@ export default function AdminAnalytics() {
         label: "Betaald abo",
         color: "#68a87a",
         active: paidActive,
-        data: stats.dailyConversions.map((d) => ({
+        data: stats.dailyConversions.map((d: DailyConversion) => ({
           date: d.date,
           value: d.paid,
         })),
@@ -324,7 +328,7 @@ export default function AdminAnalytics() {
         label: "Niet Alleen",
         color: "#e8934a",
         active: naActive,
-        data: stats.dailyConversions.map((d) => ({
+        data: stats.dailyConversions.map((d: DailyConversion) => ({
           date: d.date,
           value: d.nietAlleen,
         })),
@@ -466,7 +470,7 @@ export default function AdminAnalytics() {
             <p className="text-primary-400 text-sm">Geen data</p>
           ) : (
             <div className="space-y-2">
-              {stats.topPages.slice(0, 8).map(({ path, count }) => (
+              {stats.topPages.slice(0, 8).map(({ path, count }: TopPage) => (
                 <div key={path}>
                   <div className="flex items-center justify-between text-xs mb-0.5">
                     <span className="text-primary-700 truncate max-w-[70%]">{path}</span>
@@ -596,7 +600,7 @@ export default function AdminAnalytics() {
                 <td className="py-2 text-primary-600">Gratis accounts</td>
                 <td className="py-2 text-right font-semibold text-primary-900">
                   {stats.dailyConversions
-                    .reduce((s, d) => s + d.freeAccounts, 0)
+                    .reduce((s: number, d: DailyConversion) => s + d.freeAccounts, 0)
                     .toLocaleString("nl-NL")}
                 </td>
               </tr>
@@ -604,7 +608,7 @@ export default function AdminAnalytics() {
                 <td className="py-2 text-primary-600">Betaald abonnement</td>
                 <td className="py-2 text-right font-semibold text-primary-900">
                   {stats.dailyConversions
-                    .reduce((s, d) => s + d.paid, 0)
+                    .reduce((s: number, d: DailyConversion) => s + d.paid, 0)
                     .toLocaleString("nl-NL")}
                 </td>
               </tr>
@@ -612,7 +616,7 @@ export default function AdminAnalytics() {
                 <td className="py-2 text-primary-600">Niet Alleen</td>
                 <td className="py-2 text-right font-semibold text-primary-900">
                   {stats.dailyConversions
-                    .reduce((s, d) => s + d.nietAlleen, 0)
+                    .reduce((s: number, d: DailyConversion) => s + d.nietAlleen, 0)
                     .toLocaleString("nl-NL")}
                 </td>
               </tr>

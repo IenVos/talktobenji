@@ -37,8 +37,8 @@ export function PageViewTracker() {
     lastPathRef.current = pathname;
 
     trackPageView({
-      path: pathname,
-      sessionId: sessionIdRef.current,
+      path: pathname ?? "/",
+      sessionId: sessionIdRef.current ?? "",
       device: deviceRef.current,
     }).catch(() => {
       // Negeer fouten – analytics mogen de app nooit breken
