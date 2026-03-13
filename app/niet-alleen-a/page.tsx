@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { X } from "lucide-react";
+import { HeaderBar } from "@/components/chat/HeaderBar";
 
 const KOOP_LINK = "https://talktobenji.kennis.shop/pay/niet-alleen";
 
@@ -77,18 +78,7 @@ export default function NietAlleenAPage() {
       {/* Alle content boven de achtergrond */}
       <div style={{ position: "relative", zIndex: 1 }}>
 
-        {/* Logo */}
-        <div className="px-5 pt-6 pb-2">
-          <a href="https://talktobenji.com">
-            <Image
-              src="/images/benji-logo-2.png"
-              alt="Talk To Benji"
-              width={32}
-              height={32}
-              className="opacity-60 hover:opacity-80 transition-opacity"
-            />
-          </a>
-        </div>
+        <HeaderBar />
 
         {/* HERO */}
         <section className="flex items-center justify-center px-5 pt-12 pb-16">

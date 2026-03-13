@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { usePathname } from "next/navigation";
@@ -15,6 +15,8 @@ export function PageViewTracker() {
   const ipRef = useRef<string | undefined>(undefined);
   const pageLoadTimeRef = useRef<number>(Date.now());
   const lastPathRef = useRef<string | null>(null);
+  // ipReady wordt true zodra de IP-fetch klaar is (succes of fout)
+  const [ipReady, setIpReady] = useState(false);
 
   // Initialiseer sessionId, device en IP eenmalig
   useEffect(() => {
@@ -27,16 +29,17 @@ export function PageViewTracker() {
       sessionIdRef.current = newId;
     }
     deviceRef.current = window.innerWidth < 768 ? "mobile" : "desktop";
-    // Haal IP op voor uitsluiting
+    // Haal IP op voor uitsluiting – track pas nadat dit klaar is
     fetch("/api/my-ip")
       .then((r) => r.json())
       .then((d) => { if (d.ip && d.ip !== "unknown") ipRef.current = d.ip; })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setIpReady(true));
   }, []);
 
-  // Track paginabezoek bij pathname-wijziging
+  // Track paginabezoek bij pathname-wijziging, maar wacht op IP
   useEffect(() => {
-    if (!sessionIdRef.current) return;
+    if (!ipReady || !sessionIdRef.current) return;
 
     // Reset paginalaadtijd bij elke routewijziging
     pageLoadTimeRef.current = Date.now();
@@ -50,7 +53,7 @@ export function PageViewTracker() {
     }).catch(() => {
       // Negeer fouten – analytics mogen de app nooit breken
     });
-  }, [pathname, trackPageView]);
+  }, [pathname, trackPageView, ipReady]);
 
   // Sla verblijfsduur op bij het verlaten van de pagina
   useEffect(() => {
