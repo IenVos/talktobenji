@@ -1085,6 +1085,39 @@ Schrijf strak en zakelijk. Max 100 woorden totaal.`,
         sessionId: args.sessionId,
         rapport,
       });
+
+      // Auto-genereer trainingsuggestie op basis van het rapport (Haiku = snel & goedkoop)
+      try {
+        const suggestPrompt = `Je bent een kwaliteitscontroleur voor Benji, een empathische rouw-chatbot.
+Hieronder staat een kwaliteitsrapport. Vertaal het "Actie" punt naar een concrete verbetering.
+Kies "rules" voor gedragsregels/aanpak/crisisprotocol, of "knowledge" voor ontbrekende inhoudelijke kennis.
+
+RAPPORT:
+${rapport}
+
+Antwoord ALLEEN in dit JSON formaat:
+{"probleem":"één zin","type":"rules","reden":"één zin","toevoeging":"concrete rules-tekst (of leeg bij knowledge)","knowledge_question":"(of leeg)","knowledge_answer":"(of leeg)","knowledge_category":"(of leeg)"}`;
+
+        const suggestResp = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+          body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 400, messages: [{ role: "user", content: suggestPrompt }] }),
+        });
+        if (suggestResp.ok) {
+          const suggestData = (await suggestResp.json()) as ClaudeAPIResponse;
+          const suggestText = suggestData.content?.[0]?.text?.trim() ?? "";
+          const match = suggestText.match(/\{[\s\S]*\}/);
+          if (match) {
+            await ctx.runMutation(api.chat.setAdminRapport, {
+              sessionId: args.sessionId,
+              rapport,
+              suggestie: match[0],
+            });
+          }
+        }
+      } catch {
+        // Suggestie falen is niet kritiek
+      }
     }
   },
 });

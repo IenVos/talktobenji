@@ -20,6 +20,8 @@ import {
   BookOpen,
   Check,
   Loader2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 type SuggestResult = {
@@ -32,7 +34,11 @@ type SuggestResult = {
   knowledge_category: string;
 };
 
-function RapportSuggestie({ rapport }: { rapport: string }) {
+function stripMarkdown(text: string): string {
+  return text.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1");
+}
+
+function RapportSuggestie({ rapport, pregenerated }: { rapport: string; pregenerated?: string }) {
   const [analysing, setAnalysing] = useState(false);
   const [suggestion, setSuggestion] = useState<SuggestResult | null>(null);
   const [editedType, setEditedType] = useState<"rules" | "knowledge">("rules");
@@ -47,7 +53,21 @@ function RapportSuggestie({ rapport }: { rapport: string }) {
   const appendToRules = useAdminMutation(api.admin.appendToRules);
   const addKnowledge = useAdminMutation(api.admin.addKnowledgeEntryFromAdmin);
 
+  // Laad pre-gegenereerde suggestie direct in als die er is
+  const loadPregenerated = (json: string) => {
+    try {
+      const result = JSON.parse(json) as SuggestResult;
+      setSuggestion(result);
+      setEditedType(result.type);
+      setEditedText(result.toevoeging ?? "");
+      setEditedQuestion(result.knowledge_question ?? "");
+      setEditedAnswer(result.knowledge_answer ?? "");
+      setEditedCategory(result.knowledge_category ?? "");
+    } catch { /* negeer */ }
+  };
+
   const handleAnalyse = async () => {
+    if (pregenerated && !suggestion) { loadPregenerated(pregenerated); return; }
     setAnalysing(true);
     try {
       const result = await suggestFix({ rapport }) as SuggestResult;
@@ -162,6 +182,53 @@ function RapportSuggestie({ rapport }: { rapport: string }) {
               {saving ? "Opslaan..." : "Goedkeuren & opslaan"}
             </button>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RapportKaart({ session }: { session: any }) {
+  const [open, setOpen] = useState(false);
+  if (!session.adminRapport) {
+    return (
+      <div className="px-4 pb-3">
+        {session.status === "active"
+          ? <p className="text-xs text-primary-400 italic">Gesprek is nog actief.</p>
+          : <div className="flex items-center gap-2 text-xs text-primary-400 italic"><Loader size={12} className="animate-spin" />Rapport wordt gegenereerd...</div>
+        }
+        {session.feedbackComment && (
+          <div className="mt-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-xs text-amber-800">
+            <span className="font-medium">Feedback: </span>{session.feedbackComment}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-4 pb-4">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 text-xs font-medium text-primary-600 hover:text-primary-800 mb-2 transition-colors"
+      >
+        {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+        {open ? "Rapport verbergen" : "Rapport bekijken"}
+        {session.rapportSuggestie && !open && (
+          <span className="ml-1 flex items-center gap-1 text-amber-600"><Sparkles size={11} /> suggestie klaar</span>
+        )}
+      </button>
+      {open && (
+        <>
+          <div className="bg-primary-50/60 rounded-lg p-3 text-sm leading-relaxed text-primary-800 whitespace-pre-wrap mb-2">
+            {stripMarkdown(session.adminRapport)}
+          </div>
+          <RapportSuggestie rapport={session.adminRapport} pregenerated={session.rapportSuggestie} />
+        </>
+      )}
+      {session.feedbackComment && (
+        <div className="mt-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-xs text-amber-800">
+          <span className="font-medium">Feedback: </span>{session.feedbackComment}
         </div>
       )}
     </div>
@@ -344,23 +411,8 @@ export default function AdminChatHistory() {
                   </button>
                 </div>
 
-                {/* Rapport */}
-                <div className="px-4 pb-4">
-                  {session.adminRapport ? (
-                    <>
-                      <div className="bg-primary-50/60 rounded-lg p-3 text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">
-                        {session.adminRapport}
-                      </div>
-                      <RapportSuggestie rapport={session.adminRapport} />
-                    </>
-                  ) : session.status === "active" ? (
-                    <p className="text-xs text-primary-400 italic">Gesprek is nog actief.</p>
-                  ) : (
-                    <div className="flex items-center gap-2 text-xs text-primary-400 italic">
-                      <Loader size={12} className="animate-spin" />
-                      Rapport wordt gegenereerd...
-                    </div>
-                  )}
+                {/* Rapport — inklapbaar */}
+                <RapportKaart session={session} />
 
                   {/* Feedback comment apart tonen als het er is */}
                   {session.feedbackComment && (

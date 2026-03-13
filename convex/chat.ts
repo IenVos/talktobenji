@@ -723,11 +723,12 @@ export const setSessionSummary = mutation({
 });
 
 export const setAdminRapport = mutation({
-  args: { sessionId: v.id("chatSessions"), rapport: v.string() },
+  args: { sessionId: v.id("chatSessions"), rapport: v.string(), suggestie: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.sessionId, {
       adminRapport: args.rapport,
       adminRapportAt: Date.now(),
+      ...(args.suggestie ? { rapportSuggestie: args.suggestie } : {}),
     });
   },
 });
