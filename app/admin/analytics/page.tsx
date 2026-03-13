@@ -262,8 +262,12 @@ function formatDuration(seconds: number): string {
 export default function AdminAnalytics() {
   const [days, setDays] = useState(30);
 
-  const from = Date.now() - days * 86_400_000;
-  const to = Date.now();
+  // Memoize timestamps – Date.now() verandert elke render, waardoor de
+  // Convex subscription telkens herstart en nooit een antwoord krijgt.
+  const { from, to } = useMemo(() => ({
+    from: Date.now() - days * 86_400_000,
+    to: Date.now(),
+  }), [days]);
 
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
   const [loadTimeout, setLoadTimeout] = useState(false);
@@ -386,7 +390,7 @@ export default function AdminAnalytics() {
           <BarChart3 size={32} className="text-primary-300" />
           <p className="text-primary-700 font-medium">Analytics konden niet worden geladen</p>
           <p className="text-sm text-primary-500 max-w-sm">
-            Zorg dat de Convex dev-server draait: <code className="bg-primary-100 px-1.5 py-0.5 rounded text-xs">npx convex dev</code>
+            Kon geen verbinding maken met de database. Ververs de pagina of log opnieuw in.
           </p>
           <button
             onClick={() => { setLoadTimeout(false); window.location.reload(); }}

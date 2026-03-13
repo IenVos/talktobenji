@@ -68,14 +68,14 @@ export default function VoorJouPage() {
         </section>
 
         {/* Productkaarten */}
-        <section className="px-2 sm:px-4 pb-20">
+        <section className="px-4 sm:px-4 pb-20">
           <div className="max-w-xl mx-auto">
             {items === undefined ? (
               <div className="py-12 text-center text-sm" style={{ color: "#8a8078" }}>Laden…</div>
             ) : items.length === 0 ? (
               <div className="py-12 text-center text-sm" style={{ color: "#8a8078" }}>Binnenkort meer hier.</div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-5">
                 {items.map((item) => (
                   <div
                     key={item._id}
@@ -87,7 +87,7 @@ export default function VoorJouPage() {
                     }}
                   >
                     {item.imageUrl ? (
-                      <div className="w-full overflow-hidden" style={{ aspectRatio: "1/1" }}>
+                      <div className="w-full overflow-hidden" style={{ aspectRatio: "4/3" }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.imageUrl}
@@ -98,10 +98,10 @@ export default function VoorJouPage() {
                     ) : (
                       <div
                         className="w-full"
-                        style={{ aspectRatio: "1/1", background: "linear-gradient(135deg, #e8eef5 0%, #f5f0eb 100%)" }}
+                        style={{ aspectRatio: "4/3", background: "linear-gradient(135deg, #e8eef5 0%, #f5f0eb 100%)" }}
                       />
                     )}
-                    <div className="p-4 flex flex-col flex-1">
+                    <div className="p-5 flex flex-col flex-1">
                       {item.title && (
                         <h2 className="text-sm font-semibold leading-snug mb-1.5" style={{ color: "#3d3530" }}>
                           {item.title}

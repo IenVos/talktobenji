@@ -5,6 +5,12 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
+/** Eenvoudige test query om te controleren of dit module bereikbaar is. */
+export const ping = query({
+  args: {},
+  handler: async () => "pong",
+});
+
 /** Sla een paginabezoek op (publiek, geen auth vereist). */
 export const trackPageView = mutation({
   args: {
