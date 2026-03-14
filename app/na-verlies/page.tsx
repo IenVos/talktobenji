@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { VerhaalTrigger } from "@/components/VerhaalPopup";
 
 export const metadata: Metadata = {
   title: "Als je iemand hebt verloren · Talk To Benji",
@@ -137,12 +138,7 @@ export default function NaVerliesPage() {
               <p className="text-sm text-primary-700 leading-relaxed">
                 Benji is gemaakt door Ien, vanuit de overtuiging dat verdriet ruimte verdient, ook als je niemand wilt belasten. Verlies raakt iedereen, maar te veel mensen dragen het in stilte.
               </p>
-              <Link
-                href="/waarom-benji"
-                className="text-xs text-primary-600 hover:text-primary-700 underline underline-offset-2 mt-2 inline-block"
-              >
-                Lees het verhaal achter Benji
-              </Link>
+              <VerhaalTrigger className="text-xs text-primary-600 hover:text-primary-700 underline underline-offset-2 mt-2 inline-block text-left" />
             </div>
           </div>
         </div>

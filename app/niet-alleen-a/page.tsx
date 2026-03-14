@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { X } from "lucide-react";
 import { HeaderBar } from "@/components/chat/HeaderBar";
+import { VerhaalPopup } from "@/components/VerhaalPopup";
 
 const KOOP_LINK = "https://talktobenji.kennis.shop/pay/niet-alleen";
 
@@ -310,54 +310,7 @@ export default function NietAlleenAPage() {
 
       </div>
 
-      {/* Ien popup */}
-      {showIen && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-          style={{ background: "rgba(0,0,0,0.45)" }}
-          onClick={() => setShowIen(false)}
-        >
-          <div
-            className="relative w-full sm:max-w-lg max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl"
-            style={{ background: "#fdf9f4" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 flex justify-end px-5 pt-4 pb-2" style={{ background: "#fdf9f4" }}>
-              <button onClick={() => setShowIen(false)} className="p-1.5 rounded-full" style={{ color: "#8a8078" }}>
-                <X size={20} />
-              </button>
-            </div>
-            <div className="px-6 pb-10 space-y-4 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-              <h2 className="text-lg font-semibold" style={{ color: "#3d3530" }}>Waarom ik Talk To Benji ben gestart</h2>
-              <p>Verlies is iets wat iedereen meemaakt.</p>
-              <p>Iemand die ziek is en midden in zware behandelingen zit. Van uitslag naar uitslag, van controle naar controle. Het leven dat op pauze lijkt te staan, terwijl de zorgen zich opstapelen en de onzekerheid constant aan je trekt.</p>
-              <p>Een scheiding die een relatie doet eindigen. Niet alleen het verlies van een partner, maar ook van een gedeelde toekomst, van plannen, van een thuis zoals je het kende.</p>
-              <p>De één verliest een dierbare, iemand die er altijd was en er nu opeens niet meer is.</p>
-              <p>Verdriet heeft geen vaste vorm. Het past niet altijd in een categorie, en het volgt zeker geen planning.</p>
-              <p>Maar er is iets wat ik keer op keer zie, al jaren.<br />Verdriet wordt heel vaak alleen gedragen.</p>
-              <p>Niet omdat er niemand is. Maar omdat je niemand wilt belasten. Omdat iedereen het druk heeft. Omdat je je misschien al te veel voelt.</p>
-              <p>Ik weet hoe dat voelt. Ik zag het van dichtbij toen mijn schoonzus ziek werd en overleed. Het verdriet van haar man, haar kinderen, haar broers en zussen, iedereen op zijn eigen manier, en iedereen ergens ook alleen.</p>
-              <p>Ik woon zelf in Zweden, ver van familie en vrienden in Nederland. Die afstand voegt iets extra's toe aan verdriet. Dat gevoel van ver weg zijn midden in verdriet heeft mede Benji doen ontstaan.</p>
-              <p>Vanuit die overtuiging begon ik vier jaar geleden Beterschap-cadeau.nl, een plek voor mensen die iemand willen steunen die iets moeilijks meemaakt.</p>
-              <Image src="/images/beterschap-cadeau.png" alt="Beterschap-cadeau.nl" width={600} height={380} className="w-full rounded-xl" />
-              <p>Er volgde een troostwoordenboekje, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen.</p>
-              <div className="flex justify-center">
-                <Image src="/images/troostende-woorden-cover.png" alt="Troostende woorden" width={200} height={280} className="rounded-xl shadow-sm" />
-              </div>
-              <p>En langzaamaan groeide de vraag die me al die tijd bezighield: hoe kan ik mensen direct helpen, op het moment dat ze er zelf mee zitten?</p>
-              <p>Benji is het antwoord op die vraag.</p>
-              <p>Ik hoop dat het voor jou kan zijn wat ik zelf graag had gehad: een plek waar je verhaal ertoe doet, ook als je het (nog) niet hardop durft te zeggen.</p>
-              <div className="flex items-center gap-3 pt-2">
-                <Image src="/images/ien-founder.png" alt="Ien" width={48} height={48} className="rounded-full flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-sm" style={{ color: "#3d3530" }}>Ien</p>
-                  <p className="text-xs" style={{ color: "#8a8078" }}>Founder, Talk To Benji</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {showIen && <VerhaalPopup onClose={() => setShowIen(false)} />}
     </div>
   );
 }

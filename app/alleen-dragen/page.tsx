@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { VerhaalTrigger } from "@/components/VerhaalPopup";
 
 export const metadata: Metadata = {
   title: "Als je het niet kwijt kunt · Talk To Benji",
@@ -146,12 +147,7 @@ export default function AlleenDragenPage() {
             <p className="text-sm text-gray-600 leading-relaxed">
               Benji is gemaakt door Ien. Vanuit de overtuiging dat verdriet ruimte verdient, ook als je het liever stilhoudt.
             </p>
-            <Link
-              href="/waarom-benji"
-              className="text-xs text-primary-600 hover:text-primary-700 underline underline-offset-2 mt-1 inline-block"
-            >
-              Lees het verhaal achter Benji
-            </Link>
+            <VerhaalTrigger className="text-xs text-primary-600 hover:text-primary-700 underline underline-offset-2 mt-1 inline-block text-left" />
           </div>
         </div>
 
