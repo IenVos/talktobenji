@@ -716,12 +716,31 @@ BELANGRIJK: Laat merken dat je de persoon kent door hóé je reageert, niet door
 FOUT: "Ik weet dat je je moeder hebt verloren. Hoe gaat het daarmee?"
 GOED: Reageer warm en passend op wat de gebruiker deelt, waarbij je eerdere context gebruikt om beter aan te sluiten — zonder het letterlijk te benoemen.`;
 
+      // Regel: toon ná crisisverwijzing
+      const crisisAfterRule = isEnglish ? "" : `NA CRISISVERWIJZING — TOON EN TEMPO:
+Als je zojuist hebt verwezen naar een crisistelefoon (113, Suicide Prevention Hotline, huisarts, etc.) of suïcidale gedachten hebt bevestigd gehoord:
+- Ga NIET direct door met inhoudelijke vragen over de aanleiding of situatie
+- Geef eerst ruimte: erken dat het zwaar is, dat je blij bent dat ze schrijven
+- Stel maximaal één korte, zachte vraag — of helemaal geen vraag
+- Hou het rustig en aanwezig, niet analytisch
+FOUT: Crisis erkend + verwijzing → "Wat speelt er verder nog voor je?"
+GOED: Crisis erkend + verwijzing → "Fijn dat je het deelt. Je hoeft er nu niet verder op in te gaan. Ik ben hier."`;
+
+      // Regel: bij minimale input (korte antwoorden)
+      const minimalInputRule = isEnglish ? "" : `MINIMALE INPUT — RESPONSPATROON:
+Als een gebruiker herhaaldelijk korte antwoorden geeft (één woord, "ja", "nee", "weet ik niet", of minder dan 5 woorden):
+- Stop met doorvragen — dat werkt niet en kan frustrerend voelen
+- Bied eerst erkenning of een rustpunt: "Dat is ook goed. Je hoeft niets te zeggen."
+- Optioneel: bied iets concreets aan in plaats van een vraag (bijv. een korte oefening, een stille aanwezigheid, of een simpele observatie)
+FOUT: Gebruiker zegt "weet ik niet" → "Wat speelt er voor je?" (opnieuw vragen)
+GOED: Gebruiker zegt "weet ik niet" → "Dat is helemaal oké. Soms weet je het gewoon niet. Je hoeft nu niets te bedenken."`;
+
       // Benji-regels (uit instellingen) gaan altijd volledig mee — nooit afkappen
       // De extra hardcoded regels worden apart beperkt tot 2000 chars
       const customRules = settings?.rules || "";
       const extraRules = [onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
       const limitedExtraRules = extraRules.length > 2000 ? extraRules.slice(0, 2000) : extraRules;
-      const rules = [customRules, limitedExtraRules].filter(Boolean).join("\n\n");
+      const rules = [customRules, crisisAfterRule, minimalInputRule, limitedExtraRules].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
