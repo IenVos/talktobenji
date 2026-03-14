@@ -108,6 +108,7 @@ export const update = mutation({
     productImagePath: v.optional(v.string()),
     bgImageStorageId: v.optional(v.union(v.id("_storage"), v.null())),
     voorWieBullets: v.optional(v.string()),
+    voorWieTitle: v.optional(v.string()),
     ervaringenJson: v.optional(v.string()),
     vragenJson: v.optional(v.string()),
     wieIsTitle: v.optional(v.string()),
