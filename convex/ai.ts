@@ -1453,8 +1453,9 @@ Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig 
     systemPrompt += `\n\n${dynamicContext}\n\n${languageInstruction}`;
   }
   
-  // Totale limiet voor system prompt: max 18000 karakters
-  const maxSystemPromptLength = 18000;
+  // Totale limiet voor system prompt: 26000 chars
+  // (rules ~16400 + kennis ~8000 + preamble/context ~1000 = ~25400)
+  const maxSystemPromptLength = 26000;
   if (systemPrompt.length > maxSystemPromptLength) {
     systemPrompt = systemPrompt.slice(0, maxSystemPromptLength) + " [System prompt ingekort...]";
   }
