@@ -49,13 +49,13 @@ export default function ErZijnPage() {
           <p className="text-xs uppercase tracking-widest mb-4 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
             een digitaal boekje
           </p>
-          <h1 className="text-3xl sm:text-4xl font-semibold mb-5 leading-snug" style={{ color: "#3d3530" }}>
+          <h1 className="text-3xl sm:text-4xl font-semibold mb-5 leading-snug text-balance" style={{ color: "#3d3530" }}>
             Je wilt er zijn.<br />Maar je weet niet hoe.
           </h1>
-          <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460" }}>
+          <p className="text-base leading-relaxed mb-3 text-pretty" style={{ color: "#6b6460" }}>
             Je kent iemand die verdriet heeft. Je denkt aan ze. Je wilt iets doen, iets zeggen, maar de woorden komen niet. Of je zegt iets en het voelt meteen niet goed.
           </p>
-          <p className="text-base leading-relaxed mb-8" style={{ color: "#6b6460" }}>
+          <p className="text-base leading-relaxed mb-8 text-pretty" style={{ color: "#6b6460" }}>
             Dat maakt je niet tot een slechte vriend. Het maakt je menselijk.
           </p>
           <a
@@ -70,7 +70,7 @@ export default function ErZijnPage() {
         {/* INTRO */}
         <section>
           <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-            <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+            <p className="text-sm leading-relaxed text-pretty" style={{ color: "#6b6460" }}>
               <span className="font-semibold" style={{ color: "#3d3530" }}>Er Zijn</span> is een boekje voor mensen zoals jij. Voor wie naast iemand staat in verdriet en dat goed wil doen, zonder de perfecte woorden te hoeven hebben.
             </p>
           </div>
@@ -79,7 +79,7 @@ export default function ErZijnPage() {
         {/* WAT JE ERIN VINDT */}
         <section>
           <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-            <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>
+            <h2 className="text-lg font-semibold mb-5 text-balance" style={{ color: "#3d3530" }}>
               Wat je erin vindt
             </h2>
             <ul className="space-y-3">
@@ -105,7 +105,7 @@ export default function ErZijnPage() {
         {/* VOOR WIE */}
         <section>
           <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-            <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>
+            <h2 className="text-lg font-semibold mb-5 text-balance" style={{ color: "#3d3530" }}>
               Voor wie is dit
             </h2>
             <ul className="space-y-3">
@@ -122,14 +122,14 @@ export default function ErZijnPage() {
         {/* WAT VERDRIET IS */}
         <section>
           <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-            <h2 className="text-lg font-semibold mb-4" style={{ color: "#3d3530" }}>
+            <h2 className="text-lg font-semibold mb-4 text-balance" style={{ color: "#3d3530" }}>
               Wat verdriet is, en wat het niet is
             </h2>
             <div className="space-y-3 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-              <p>
+              <p className="text-pretty">
                 Verdriet is niet alleen iets wat mensen voelen als iemand sterft. Het is alles wat je draagt als je iets verliest wat er echt toe deed. Een relatie. Een huisdier. Een toekomst die er anders uitziet dan gehoopt. Een gezondheid. Een rol.
               </p>
-              <p>
+              <p className="text-pretty">
                 Al die vormen van verlies zijn echt. En al die mensen hebben iemand nodig die niet wegloopt.
               </p>
               <p className="font-medium" style={{ color: "#3d3530" }}>
@@ -145,7 +145,7 @@ export default function ErZijnPage() {
             className="rounded-2xl p-6 sm:p-8"
             style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}
           >
-            <p className="text-base leading-relaxed mb-3 italic" style={{ color: "#3d3530" }}>
+            <p className="text-base leading-relaxed mb-3 italic text-pretty" style={{ color: "#3d3530" }}>
               "Je hoeft de perfecte woorden niet te hebben. Dat is nieuws."
             </p>
             <p className="text-xs" style={{ color: "#8a8078" }}>— uit Er Zijn</p>
@@ -155,14 +155,14 @@ export default function ErZijnPage() {
         {/* WAT JE KRIJGT */}
         <section>
           <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-            <h2 className="text-lg font-semibold mb-4" style={{ color: "#3d3530" }}>
+            <h2 className="text-lg font-semibold mb-4 text-balance" style={{ color: "#3d3530" }}>
               Wat je krijgt
             </h2>
             <div className="space-y-3 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-              <p>
+              <p className="text-pretty">
                 Een digitaal boekje van 69 pagina's, direct te downloaden na aankoop. Warm vormgegeven, rustig om te lezen. Niet als een cursus, maar als een gids die je pakt wanneer je het nodig hebt.
               </p>
-              <p>
+              <p className="text-pretty">
                 Inclusief spiekbriefje: één pagina met de kern, los te bewaren op je telefoon of te printen.
               </p>
             </div>
@@ -175,10 +175,10 @@ export default function ErZijnPage() {
             className="rounded-2xl px-6 sm:px-10 py-10 text-center"
             style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 2px 24px rgba(0,0,0,0.09)" }}
           >
-            <h2 className="text-xl sm:text-2xl font-semibold mb-3 leading-snug" style={{ color: "#3d3530" }}>
+            <h2 className="text-xl sm:text-2xl font-semibold mb-3 leading-snug text-balance" style={{ color: "#3d3530" }}>
               Dat jij dit zoekt, zegt al iets.
             </h2>
-            <p className="text-sm leading-relaxed mb-7" style={{ color: "#6b6460" }}>
+            <p className="text-sm leading-relaxed mb-7 text-pretty" style={{ color: "#6b6460" }}>
               De persoon die jou nodig heeft, heeft geluk met jou.
             </p>
             <a
@@ -205,7 +205,7 @@ export default function ErZijnPage() {
             </div>
             <div className="pt-0.5">
               <p className="text-xs mb-1" style={{ color: "#8a8078" }}>Over de maker</p>
-              <p className="text-sm leading-relaxed mb-2" style={{ color: "#6b6460" }}>
+              <p className="text-sm leading-relaxed mb-2 text-pretty" style={{ color: "#6b6460" }}>
                 Er Zijn is gemaakt door Ien, oprichter van Talk To Benji. Vanuit de overtuiging dat je geen therapeut hoeft te zijn om er te zijn voor iemand.
               </p>
               <VerhaalTrigger className="text-xs text-primary-600 hover:text-primary-700 underline underline-offset-2 text-left" />
