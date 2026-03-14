@@ -26,8 +26,10 @@ const testimonials = [
 export default function MiddenInDeNachtPage() {
   return (
     <div
-      className="min-h-screen flex flex-col"
-      style={{ background: "linear-gradient(160deg, #0d1b2e 0%, #152d48 55%, #0a1520 100%)" }}
+      className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: "linear-gradient(rgba(10,20,35,0.72), rgba(10,20,35,0.72)), url('/images/midden-in-de-nacht-bg.png')",
+      }}
     >
       <ScrollToTop />
 
