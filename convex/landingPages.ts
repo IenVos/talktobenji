@@ -255,6 +255,39 @@ export const seed = mutation({
       });
     }
 
+    const existingErZijn = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", "er-zijn"))
+      .first();
+
+    if (!existingErZijn) {
+      await ctx.db.insert("landingPages", {
+        slug: "er-zijn",
+        pageTitle: "Er Zijn · Talk To Benji",
+        isLive: true,
+        heroLabel: "een digitaal boekje",
+        heroTitle: "Je wilt er zijn. Maar je weet niet hoe.",
+        heroSubtitle: "Je kent iemand die verdriet heeft. Je denkt aan ze. Je wilt iets doen, iets zeggen, maar de woorden komen niet. Of je zegt iets en het voelt meteen niet goed.",
+        heroBody: "Dat maakt je niet tot een slechte vriend. Het maakt je menselijk.",
+        ctaText: "Ik wil dit — €17",
+        ctaUrl: "https://talktobenji.kennis.shop/pay/er-zijn",
+        productImagePath: "/images/er-zijn-cover.png",
+        section1Title: "Voor wie is dit",
+        section1Text: "Voor de vriend die niet weet wat te zeggen bij een begrafenis.\n\nVoor de partner die naast iemand staat die rouwt om een ouder, een kind, een huisdier.\n\nVoor de collega die merkt dat iemand het zwaar heeft maar niet weet hoe ze dat moeten aankaarten.\n\nVoor de moeder die haar kind ziet rouwen en niet weet hoe ze dichterbij kan komen.\n\nVoor iedereen die iemand verliest aan verdriet. Niet aan de dood, maar aan de afstand die ontstaat omdat niemand weet wat te zeggen.",
+        section2Title: "Wat verdriet is, en wat het niet is",
+        section2Text: "Verdriet is niet alleen iets wat mensen voelen als iemand sterft. Het is alles wat je draagt als je iets verliest wat er echt toe deed. Een relatie. Een huisdier. Een toekomst die er anders uitziet dan gehoopt. Een gezondheid. Een rol.\n\nAl die vormen van verlies zijn echt. En al die mensen hebben iemand nodig die niet wegloopt.\n\nDat ben jij.",
+        voorWieTitle: "Wat je erin vindt",
+        voorWieBullets: "Wat er écht in iemand omgaat als ze rouwen, zodat je begrijpt waarom ze doen wat ze doen.\nWelke goedbedoelde zinnen averechts werken en waarom. Zonder schuldgevoel, met uitleg.\nWat wél helpt. Concreet. Klein. Haalbaar. Dingen die je vandaag al kunt doen.\nZinnen die je letterlijk kunt gebruiken. Voor het eerste moment, de weken daarna, de moeilijke dagen.\nHoe je omgaat met bijzondere vormen van verlies: een huisdier, een scheiding, een miskraam, anticiperende rouw.\nHoe je voor jezelf zorgt als het ook zwaar wordt voor jou.\nEen spiekbriefje dat je kunt bewaren, voor als je er even niet uitkomt.",
+        wieIsTitle: "Over de maker",
+        wieIsText: "Er Zijn is geschreven door Ien, oprichter van Talk to Benji. Ze zag steeds opnieuw hoe mensen zich terugtrokken — niet omdat ze het niet wilden, maar omdat ze niet wisten hoe. Dit boekje is haar antwoord daarop.",
+        finalCtaTitle: "Je hoeft de perfecte woorden niet te hebben. Dat is het goede nieuws.",
+        finalCtaBody: "De persoon die jou nodig heeft, heeft geluk met jou.\n\nEen digitaal boekje van 69 pagina's, direct te downloaden na aankoop. Warm vormgegeven, rustig om te lezen. Inclusief spiekbriefje: één pagina met de kern, los te bewaren op je telefoon of te printen.",
+        footerText: "Gemaakt met zorg, voor mensen die er willen zijn.",
+        createdAt: now + 2,
+        updatedAt: now + 2,
+      });
+    }
+
     return { seeded: true };
   },
 });

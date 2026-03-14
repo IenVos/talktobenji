@@ -593,6 +593,7 @@ export default defineSchema({
     bgImageStorageId: v.optional(v.id("_storage")),
     // "Voor wie" bullets — one item per line
     voorWieBullets: v.optional(v.string()),
+    voorWieTitle: v.optional(v.string()),   // Custom title for bullet section, default "Dit is voor jou als..."
     // Reviews JSON: [{"tekst":"...","naam":"...","context":"..."}]
     ervaringenJson: v.optional(v.string()),
     // FAQ JSON: [{"vraag":"...","antwoord":"..."}]

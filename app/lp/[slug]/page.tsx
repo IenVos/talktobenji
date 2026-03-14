@@ -180,7 +180,7 @@ export default function LandingPage() {
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>
-                  Dit is voor jou als...
+                  {(page as any).voorWieTitle || "Dit is voor jou als..."}
                 </h2>
                 <ul className="space-y-3">
                   {voorWieBullets.map((item, i) => (

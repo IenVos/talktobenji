@@ -27,6 +27,7 @@ type LandingPage = {
   productImagePath?: string;
   bgImageStorageId?: Id<"_storage">;
   voorWieBullets?: string;
+  voorWieTitle?: string;
   ervaringenJson?: string;
   vragenJson?: string;
   wieIsTitle?: string;
@@ -56,6 +57,7 @@ type FormState = {
   productImagePath: string;
   bgImageFile: File | null;
   voorWieBullets: string;
+  voorWieTitle: string;
   ervaringenJson: string;
   vragenJson: string;
   wieIsTitle: string;
@@ -83,6 +85,7 @@ const EMPTY_FORM: FormState = {
   productImagePath: "",
   bgImageFile: null,
   voorWieBullets: "",
+  voorWieTitle: "",
   ervaringenJson: "",
   vragenJson: "",
   wieIsTitle: "",
@@ -158,6 +161,7 @@ export default function AdminLandingspaginasPage() {
       productImagePath: page.productImagePath ?? "",
       bgImageFile: null,
       voorWieBullets: page.voorWieBullets ?? "",
+      voorWieTitle: page.voorWieTitle ?? "",
       ervaringenJson: page.ervaringenJson ?? "",
       vragenJson: page.vragenJson ?? "",
       wieIsTitle: page.wieIsTitle ?? "",
@@ -207,6 +211,7 @@ export default function AdminLandingspaginasPage() {
         productImagePath: opt(form.productImagePath),
         bgImageStorageId,
         voorWieBullets: opt(form.voorWieBullets),
+        voorWieTitle: opt(form.voorWieTitle),
         ervaringenJson: opt(form.ervaringenJson),
         vragenJson: opt(form.vragenJson),
         wieIsTitle: opt(form.wieIsTitle),
@@ -457,6 +462,16 @@ export default function AdminLandingspaginasPage() {
                   value={form.voorWieBullets}
                   onChange={set("voorWieBullets")}
                   rows={6}
+                  className={inputClass}
+                />
+              </div>
+              <div className="mt-3">
+                <label className={labelSmClass}>Titel boven de bullets (standaard: "Dit is voor jou als...")</label>
+                <input
+                  type="text"
+                  placeholder="Dit is voor jou als..."
+                  value={form.voorWieTitle}
+                  onChange={set("voorWieTitle")}
                   className={inputClass}
                 />
               </div>
