@@ -12,13 +12,13 @@ export const metadata: Metadata = {
 const KOOP_LINK = "#"; // TODO: vervang door betaallink
 
 const WAT_ERIN_VINDT = [
-  "Wat er écht in iemand omgaat als ze rouwen — zodat je begrijpt waarom ze doen wat ze doen.",
-  "Welke goedbedoelde zinnen averechts werken, en waarom — zonder schuldgevoel, met uitleg.",
+  "Wat er écht in iemand omgaat als ze rouwen, zodat je begrijpt waarom ze doen wat ze doen.",
+  "Welke goedbedoelde zinnen averechts werken en waarom. Zonder schuldgevoel, met uitleg.",
   "Wat wél helpt. Concreet. Klein. Haalbaar. Dingen die je vandaag al kunt doen.",
-  "Zinnen die je letterlijk kunt gebruiken — voor het eerste moment, de weken daarna, de moeilijke dagen.",
+  "Zinnen die je letterlijk kunt gebruiken. Voor het eerste moment, de weken daarna, de moeilijke dagen.",
   "Hoe je omgaat met bijzondere vormen van verlies: een huisdier, een scheiding, een miskraam, anticiperende rouw.",
   "Hoe je voor jezelf zorgt als het ook zwaar wordt voor jou.",
-  "Een spiekbriefje dat je kunt bewaren — voor als je er even niet uitkomt.",
+  "Een spiekbriefje dat je kunt bewaren, voor als je er even niet uitkomt.",
 ];
 
 const VOOR_WIE = [
@@ -26,7 +26,7 @@ const VOOR_WIE = [
   "De partner die naast iemand staat die rouwt om een ouder, een kind, een huisdier.",
   "De collega die merkt dat iemand het zwaar heeft maar niet weet hoe ze dat moeten aankaarten.",
   "De moeder die haar kind ziet rouwen en niet weet hoe ze dichterbij kan komen.",
-  "Iedereen die iemand verliest aan verdriet — niet aan de dood, maar aan de afstand die ontstaat omdat niemand weet wat te zeggen.",
+  "Iedereen die iemand verliest aan verdriet. Niet aan de dood, maar aan de afstand die ontstaat omdat niemand weet wat te zeggen.",
 ];
 
 export default function ErZijnPage() {
@@ -53,7 +53,7 @@ export default function ErZijnPage() {
             Je wilt er zijn.<br />Maar je weet niet hoe.
           </h1>
           <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460" }}>
-            Je kent iemand die verdriet heeft. Je denkt aan ze. Je wilt iets doen, iets zeggen — maar de woorden komen niet. Of je zegt iets en het voelt meteen niet goed.
+            Je kent iemand die verdriet heeft. Je denkt aan ze. Je wilt iets doen, iets zeggen, maar de woorden komen niet. Of je zegt iets en het voelt meteen niet goed.
           </p>
           <p className="text-base leading-relaxed mb-8" style={{ color: "#6b6460" }}>
             Dat maakt je niet tot een slechte vriend. Het maakt je menselijk.
@@ -71,7 +71,7 @@ export default function ErZijnPage() {
         <section>
           <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
             <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-              <span className="font-semibold" style={{ color: "#3d3530" }}>Er Zijn</span> is een boekje voor mensen zoals jij. Voor wie naast iemand staat in verdriet en dat goed wil doen — zonder de perfecte woorden te hoeven hebben.
+              <span className="font-semibold" style={{ color: "#3d3530" }}>Er Zijn</span> is een boekje voor mensen zoals jij. Voor wie naast iemand staat in verdriet en dat goed wil doen, zonder de perfecte woorden te hoeven hebben.
             </p>
           </div>
         </section>
@@ -123,7 +123,7 @@ export default function ErZijnPage() {
         <section>
           <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
             <h2 className="text-lg font-semibold mb-4" style={{ color: "#3d3530" }}>
-              Wat verdriet is — en wat het niet is
+              Wat verdriet is, en wat het niet is
             </h2>
             <div className="space-y-3 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
               <p>
@@ -160,10 +160,10 @@ export default function ErZijnPage() {
             </h2>
             <div className="space-y-3 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
               <p>
-                Een digitaal boekje van 69 pagina's, direct te downloaden na aankoop. Warm vormgegeven, rustig om te lezen — niet als een cursus, maar als een gids die je pakt wanneer je het nodig hebt.
+                Een digitaal boekje van 69 pagina's, direct te downloaden na aankoop. Warm vormgegeven, rustig om te lezen. Niet als een cursus, maar als een gids die je pakt wanneer je het nodig hebt.
               </p>
               <p>
-                Inclusief spiekbriefje — één pagina met de kern, los te bewaren op je telefoon of te printen.
+                Inclusief spiekbriefje: één pagina met de kern, los te bewaren op je telefoon of te printen.
               </p>
             </div>
           </div>
