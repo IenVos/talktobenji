@@ -28,7 +28,7 @@ export default function MiddenInDeNachtPage() {
     <div
       className="min-h-screen flex flex-col bg-cover bg-center bg-no-repeat"
       style={{
-        backgroundImage: "linear-gradient(rgba(10,20,35,0.72), rgba(10,20,35,0.72)), url('/images/midden-in-de-nacht-bg.png')",
+        backgroundImage: "linear-gradient(rgba(10,20,35,0.88), rgba(10,20,35,0.88)), url('/images/midden-in-de-nacht-bg.png')",
       }}
     >
       <ScrollToTop />
@@ -132,17 +132,19 @@ export default function MiddenInDeNachtPage() {
             Benji is er nu
           </p>
           <p className="text-sm text-blue-100/70 leading-relaxed mb-6">
-            Je eerste gesprekken zijn gratis, zonder account. Je kunt nu meteen beginnen.
+            Maak een gratis account aan en krijg 7 dagen toegang tot alles. Of begin direct een gesprek, zonder account.
           </p>
           <Link
-            href="/"
+            href="/registreren"
             className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-primary-900 hover:bg-blue-50 rounded-2xl font-medium text-sm transition-colors"
           >
-            Begin een gesprek
+            Maak een gratis account aan
             <span aria-hidden>→</span>
           </Link>
-          <p className="mt-4 text-xs text-white/35">
-            Geen registratie vereist. Gratis te proberen.
+          <p className="mt-4">
+            <Link href="/" className="text-xs text-white/45 hover:text-white/70 italic transition-colors">
+              Of begin zonder account →
+            </Link>
           </p>
         </div>
 
@@ -174,7 +176,7 @@ export default function MiddenInDeNachtPage() {
 
         {/* Disclaimer */}
         <p className="mt-10 mb-8 text-xs text-white/35 leading-relaxed">
-          Benji is geen therapie en vervangt geen professionele hulp. Bij acute nood, bel 113 (zelfmoordpreventie) of 112.
+          Benji is geen therapie en vervangt geen professionele hulp.
         </p>
       </main>
     </div>
