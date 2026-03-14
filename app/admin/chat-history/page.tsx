@@ -25,6 +25,7 @@ import {
   Archive,
   Eye,
   TrendingUp,
+  ExternalLink,
 } from "lucide-react";
 
 type SuggestResult = {
@@ -146,13 +147,19 @@ function RapportSuggestie({ rapport, pregenerated }: { rapport: string; pregener
 
           <div className="px-4 py-3 space-y-2">
             {editedType === "rules" ? (
-              <textarea
-                value={editedText}
-                onChange={(e) => setEditedText(e.target.value)}
-                rows={3}
-                className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-400"
-                placeholder="Regel voor Benji..."
-              />
+              <div className="space-y-2">
+                <p className="text-xs text-gray-600 leading-relaxed">{editedText || suggestion?.toevoeging}</p>
+                <a
+                  href={`/admin?suggestion=${encodeURIComponent(editedText || suggestion?.toevoeging || "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  <ExternalLink size={12} />
+                  Open in rules editor
+                </a>
+                <p className="text-xs text-gray-400">Pas de relevante sectie aan in de editor. Niet plakken onderaan.</p>
+              </div>
             ) : (
               <>
                 <input
@@ -174,16 +181,16 @@ function RapportSuggestie({ rapport, pregenerated }: { rapport: string; pregener
                   className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-primary-400"
                   placeholder="Antwoord voor Benji"
                 />
+                <button
+                  onClick={handleApprove}
+                  disabled={saving || !editedQuestion.trim() || !editedAnswer.trim()}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                  {saving ? "Opslaan..." : "Toevoegen aan knowledge base"}
+                </button>
               </>
             )}
-            <button
-              onClick={handleApprove}
-              disabled={saving || (editedType === "rules" ? !editedText.trim() : !editedQuestion.trim() || !editedAnswer.trim())}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-            >
-              {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
-              {saving ? "Opslaan..." : "Goedkeuren & opslaan"}
-            </button>
           </div>
         </div>
       )}

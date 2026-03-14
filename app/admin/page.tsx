@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useQuery } from "convex/react";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { useAdminMutation } from "./AdminAuthContext";
-import { Save, BookOpen, ListChecks, AlertCircle, CheckCircle, Settings2, Key, FileText, Loader2 } from "lucide-react";
+import { Save, BookOpen, ListChecks, AlertCircle, CheckCircle, Settings2, Key, FileText, Loader2, Lightbulb, X } from "lucide-react";
 import { extractTextFromPdf } from "@/lib/extractPdfText";
 
-export default function AdminSettings() {
+function AdminSettingsInner() {
   const settings = useQuery(api.settings.get);
+  const searchParams = useSearchParams();
   const knowledgeBaseQuestions = useQuery(api.knowledgeBase.getAllQuestions, { isActive: true });
   const saveSettings = useAdminMutation(api.settings.save);
 
@@ -20,6 +22,17 @@ export default function AdminSettings() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const pdfInputRef = useRef<HTMLInputElement>(null);
+  const rulesRef = useRef<HTMLDivElement>(null);
+
+  // Suggestie vanuit chatgeschiedenis
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+  useEffect(() => {
+    const s = searchParams?.get("suggestion");
+    if (s) {
+      setSuggestion(decodeURIComponent(s));
+      setTimeout(() => rulesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+    }
+  }, [searchParams]);
 
   // Load settings when they arrive from database
   useEffect(() => {
@@ -185,7 +198,7 @@ Bijvoorbeeld voor TalkToBenji (rouw):
       </div>
 
       {/* Rules Section */}
-      <div className="bg-white rounded-xl border border-primary-200 p-4 sm:p-6 shadow-sm">
+      <div ref={rulesRef} className="bg-white rounded-xl border border-primary-200 p-4 sm:p-6 shadow-sm">
         <div className="flex items-start sm:items-center gap-3 mb-4">
           <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0 border border-primary-200">
             <ListChecks className="w-4 h-4 sm:w-5 sm:h-5 text-primary-600" />
@@ -195,6 +208,26 @@ Bijvoorbeeld voor TalkToBenji (rouw):
             <p className="text-xs sm:text-sm text-primary-700">Instructies voor hoe de chatbot moet reageren</p>
           </div>
         </div>
+
+        {/* Suggestie banner vanuit chatgeschiedenis */}
+        {suggestion && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2">
+                <Lightbulb size={16} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-semibold text-amber-800 mb-1">Verbetervoorstel vanuit chatrapport</p>
+                  <p className="text-sm text-amber-900 leading-relaxed whitespace-pre-wrap">{suggestion}</p>
+                  <p className="text-xs text-amber-600 mt-2">Pas de relevante sectie hieronder aan op basis van dit voorstel. Sla op als je klaar bent.</p>
+                </div>
+              </div>
+              <button onClick={() => setSuggestion(null)} className="text-amber-400 hover:text-amber-600 flex-shrink-0">
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
+
         <textarea
           value={rules}
           onChange={(e) => setRules(e.target.value)}
@@ -241,5 +274,13 @@ Bijvoorbeeld:
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminSettings() {
+  return (
+    <Suspense fallback={<div className="animate-pulse h-8 w-8 rounded-full border-b-2 border-primary-600 mx-auto mt-12" />}>
+      <AdminSettingsInner />
+    </Suspense>
   );
 }
