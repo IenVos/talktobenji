@@ -124,7 +124,8 @@ export default function MiddenInDeNachtPage() {
             Benji is er nu
           </p>
           <p className="text-sm text-blue-100/70 leading-relaxed mb-6">
-            Maak een gratis account aan en krijg 7 dagen toegang tot alles. Of begin direct een gesprek, zonder account.
+            Maak een gratis account aan en krijg 7 dagen toegang tot alles.<br />
+            Of begin direct een gesprek, zonder account.
           </p>
           <Link
             href="/registreren"
