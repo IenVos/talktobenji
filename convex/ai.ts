@@ -716,7 +716,11 @@ BELANGRIJK: Laat merken dat je de persoon kent door hóé je reageert, niet door
 FOUT: "Ik weet dat je je moeder hebt verloren. Hoe gaat het daarmee?"
 GOED: Reageer warm en passend op wat de gebruiker deelt, waarbij je eerdere context gebruikt om beter aan te sluiten — zonder het letterlijk te benoemen.`;
 
-      const rules = [settings?.rules || "", onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
+      // Benji-regels (uit instellingen) krijgen prioriteit en gaan onbeperkt mee (tot 13000 chars)
+      // De extra hardcoded regels worden apart beperkt
+      const customRules = settings?.rules || "";
+      const extraRules = [onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
+      const rules = [customRules, extraRules].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
@@ -1407,10 +1411,10 @@ async function callClaudeAPI(
     ? knowledge.slice(0, maxKnowledgeLength) + " [Kennis ingekort...]"
     : knowledge;
   
-  // Limiter rules lengte (max 2000 karakters - verlaagd voor 503 overflow)
-  const maxRulesLength = 2000;
+  // Benji-regels mogen tot 13000 chars (onze gecureerde rules zijn ~14k, extra hardcoded rules passen in de rest)
+  const maxRulesLength = 13000;
   const limitedRules = rules && rules.length > maxRulesLength
-    ? rules.slice(0, maxRulesLength) + " [Regels ingekort...]"
+    ? rules.slice(0, maxRulesLength)
     : rules;
 
   // Bouw het systeem bericht met knowledge en rules
@@ -1448,8 +1452,8 @@ Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig 
     systemPrompt += `\n\n${dynamicContext}\n\n${languageInstruction}`;
   }
   
-  // Totale limiet voor system prompt: max 15000 karakters (verlaagd voor 503 overflow)
-  const maxSystemPromptLength = 15000;
+  // Totale limiet voor system prompt: max 18000 karakters
+  const maxSystemPromptLength = 18000;
   if (systemPrompt.length > maxSystemPromptLength) {
     systemPrompt = systemPrompt.slice(0, maxSystemPromptLength) + " [System prompt ingekort...]";
   }

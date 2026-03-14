@@ -217,3 +217,32 @@ export const getStats = query({
     };
   },
 });
+
+/** Haal recente inschrijvingen op (admin only). */
+export const getRecentRegistrations = query({
+  args: { adminToken: v.string(), days: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const daysBack = args.days ?? 7;
+    const since = Date.now() - daysBack * 24 * 60 * 60 * 1000;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const users = await ctx.db
+      .query("users")
+      .order("desc")
+      .collect();
+
+    const recent = users.filter((u: any) => u._creationTime >= since);
+
+    return {
+      total: recent.length,
+      today: recent.filter((u: any) => u._creationTime >= todayStart.getTime()).length,
+      users: recent.slice(0, 20).map((u: any) => ({
+        name: u.name,
+        email: u.email,
+        createdAt: u._creationTime,
+      })),
+    };
+  },
+});

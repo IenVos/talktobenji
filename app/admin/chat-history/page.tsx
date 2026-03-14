@@ -193,12 +193,18 @@ function RapportSuggestie({ rapport, pregenerated }: { rapport: string; pregener
 
 function RapportKaart({ session }: { session: any }) {
   const [open, setOpen] = useState(false);
+  const rapportGenerating = !session.adminRapport && session.status !== "active" &&
+    session.endedAt && (Date.now() - session.endedAt) < 15 * 60 * 1000;
+  const rapportMislukt = !session.adminRapport && session.status !== "active" && !rapportGenerating;
+
   if (!session.adminRapport) {
     return (
       <div className="px-4 pb-3">
         {session.status === "active"
           ? <p className="text-xs text-primary-400 italic">Gesprek is nog actief.</p>
-          : <div className="flex items-center gap-2 text-xs text-primary-400 italic"><Loader size={12} className="animate-spin" />Rapport wordt gegenereerd...</div>
+          : rapportGenerating
+            ? <div className="flex items-center gap-2 text-xs text-primary-400 italic"><Loader size={12} className="animate-spin" />Rapport wordt gegenereerd...</div>
+            : <p className="text-xs text-red-400 italic">Rapport kon niet worden gegenereerd.</p>
         }
         {session.feedbackComment && (
           <div className="mt-2 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-xs text-amber-800">
