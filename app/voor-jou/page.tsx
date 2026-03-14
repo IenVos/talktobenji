@@ -77,26 +77,38 @@ export default function VoorJouPage() {
                     }}
                   >
                     {item.imageUrl ? (
-                      <div className="w-full overflow-hidden" style={{ aspectRatio: "4/3" }}>
+                      <div className="w-full overflow-hidden relative" style={{ aspectRatio: "4/3" }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={item.imageUrl}
                           alt={item.title ?? ""}
                           className="w-full h-full object-cover"
                         />
+                        {item.title && (
+                          <div className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-10"
+                            style={{ background: "linear-gradient(to top, rgba(30,25,20,0.72) 0%, transparent 100%)" }}
+                          >
+                            <h2 className="text-base font-bold leading-snug text-white drop-shadow">
+                              {item.title}
+                            </h2>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div
-                        className="w-full"
+                        className="w-full relative flex items-end"
                         style={{ aspectRatio: "4/3", background: "linear-gradient(135deg, #e8eef5 0%, #f5f0eb 100%)" }}
-                      />
+                      >
+                        {item.title && (
+                          <div className="absolute inset-x-0 bottom-0 px-4 pb-4">
+                            <h2 className="text-base font-bold leading-snug" style={{ color: "#3d3530" }}>
+                              {item.title}
+                            </h2>
+                          </div>
+                        )}
+                      </div>
                     )}
                     <div className="p-5 flex flex-col flex-1">
-                      {item.title && (
-                        <h2 className="text-sm font-semibold leading-snug mb-1.5" style={{ color: "#3d3530" }}>
-                          {item.title}
-                        </h2>
-                      )}
                       {item.content && (
                         <p className="text-xs leading-relaxed mb-3 flex-1" style={{ color: "#6b6460" }}>
                           {item.content}

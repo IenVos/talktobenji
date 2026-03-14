@@ -240,6 +240,18 @@ export default function AccountLayout({
       </li>
       <li>
         <Link
+          href="/voor-jou"
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+            pathname === "/voor-jou" ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
+          }`}
+          style={pathname === "/voor-jou" ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
+        >
+          <ShoppingBag size={18} className="flex-shrink-0" />
+          Voor jou
+        </Link>
+      </li>
+      <li>
+        <Link
           href="/?welcome=1"
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:text-primary-700 nav-hover"
         >
