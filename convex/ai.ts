@@ -716,11 +716,12 @@ BELANGRIJK: Laat merken dat je de persoon kent door hóé je reageert, niet door
 FOUT: "Ik weet dat je je moeder hebt verloren. Hoe gaat het daarmee?"
 GOED: Reageer warm en passend op wat de gebruiker deelt, waarbij je eerdere context gebruikt om beter aan te sluiten — zonder het letterlijk te benoemen.`;
 
-      // Benji-regels (uit instellingen) krijgen prioriteit en gaan onbeperkt mee (tot 13000 chars)
-      // De extra hardcoded regels worden apart beperkt
+      // Benji-regels (uit instellingen) gaan altijd volledig mee — nooit afkappen
+      // De extra hardcoded regels worden apart beperkt tot 2000 chars
       const customRules = settings?.rules || "";
       const extraRules = [onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
-      const rules = [customRules, extraRules].filter(Boolean).join("\n\n");
+      const limitedExtraRules = extraRules.length > 2000 ? extraRules.slice(0, 2000) : extraRules;
+      const rules = [customRules, limitedExtraRules].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
@@ -1411,8 +1412,8 @@ async function callClaudeAPI(
     ? knowledge.slice(0, maxKnowledgeLength) + " [Kennis ingekort...]"
     : knowledge;
   
-  // Benji-regels mogen tot 13000 chars (onze gecureerde rules zijn ~14k, extra hardcoded rules passen in de rest)
-  const maxRulesLength = 13000;
+  // Rules worden al goed beperkt vóór callClaudeAPI — hier alleen een veiligheidsnet van 18000 chars
+  const maxRulesLength = 18000;
   const limitedRules = rules && rules.length > maxRulesLength
     ? rules.slice(0, maxRulesLength)
     : rules;
