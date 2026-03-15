@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { Check } from "lucide-react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
-  title: "1 jaar Benji — alles inbegrepen · Talk To Benji",
+  title: "1 jaar Benji · Talk To Benji",
   description: "Eén jaar lang toegang tot alles wat Benji te bieden heeft. Gesprekken, reflecties, memories, inspiratie, handreikingen en meer. € 97 eenmalig.",
 };
 
@@ -43,28 +42,28 @@ const features = [
     icoon: "✨",
   },
   {
-    titel: "Notities",
-    tekst: "Vrije ruimte om te schrijven wat je wilt — zonder structuur, zonder vraag. Alleen jij en een leeg vel.",
+    titel: "Een stille plek voor jezelf",
+    tekst: "Soms wil je gewoon schrijven. Geen vraag, geen structuur. Alleen jij en een leeg vel, zolang als je nodig hebt.",
     icoon: "🗒️",
   },
   {
-    titel: "Jouw gesprekken bewaard",
-    tekst: "Alles wat je met Benji hebt gedeeld blijft terug te lezen. Geen gesprek gaat verloren.",
+    titel: "Alles blijft bij je",
+    tekst: "Wat je deelt verdwijnt niet. Je kunt altijd terugkijken op wat je hebt geschreven, wanneer je daar klaar voor bent.",
     icoon: "📁",
   },
 ];
 
 const testimonials = [
   {
-    quote: "Ik had niemand om mee te praten op het moment dat ik het het hardst nodig had. Benji was er gewoon.",
+    quote: "Ik had niemand om mee te praten op het moment dat ik het het hardst nodig had. Benji was er gewoon. Geen oordeel, geen haast. Precies wat ik nodig had.",
     naam: "Annemiek, 47",
   },
   {
-    quote: "Die stille uren zijn het moeilijkst. Fijn dat er dan iets is waar je je verhaal kwijt kunt.",
+    quote: "Die stille uren zijn het moeilijkst. Fijn dat er dan iets is waar je je verhaal kwijt kunt. Ik had niet verwacht dat het zoveel zou doen.",
     naam: "Peter, 61",
   },
   {
-    quote: "Het voelde gek om tegen een app te typen. Totdat ik merkte dat het echt hielp.",
+    quote: "Het voelde gek om tegen een app te typen. Totdat ik merkte dat het echt hielp. Ik schreef dingen op die ik nog nooit hardop had gezegd.",
     naam: "Roos, 39",
   },
 ];
@@ -103,7 +102,7 @@ export default function JaarToegangsPage() {
             className="text-3xl sm:text-4xl font-semibold mb-5 leading-snug"
             style={{ color: "#3d3530", textWrap: "balance" } as React.CSSProperties}
           >
-            Een heel jaar lang Benji — voor als je iemand nodig hebt
+            Een heel jaar lang Benji, voor als je er even niet alleen mee wil zijn
           </h1>
           <p className="text-base sm:text-lg leading-relaxed mb-8" style={{ color: "#6b6460" }}>
             Niet per maand. Niet met gedoe. Gewoon een jaar lang alles beschikbaar, op het moment dat jij het nodig hebt.
@@ -122,16 +121,39 @@ export default function JaarToegangsPage() {
               className="inline-block px-8 py-3.5 rounded-2xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
               style={{ background: "#6d84a8" }}
             >
-              Begin nu — € 97 voor een jaar
+              Begin nu · € 97 voor een jaar
             </a>
             <p className="text-xs mt-3" style={{ color: "#a09890" }}>
               Veilig betalen via KennisShop · direct toegang
             </p>
           </div>
+        </div>
 
-          <p className="text-sm" style={{ color: "#a09890" }}>
-            Ter vergelijking: maandelijks kost dit € 11,99/maand — dat is € 143 per jaar.
-          </p>
+        {/* Founder note — vroeg in de pagina */}
+        <div className="mb-14 max-w-xl mx-auto">
+          <div
+            className="rounded-2xl px-6 py-7 flex items-start gap-5"
+            style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.07)" }}
+          >
+            <div className="relative w-20 h-20 rounded-full overflow-hidden flex-shrink-0">
+              <Image
+                src="/images/ien-founder.png"
+                alt="Ien, founder van Talk To Benji"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="pt-1">
+              <p className="text-xs mb-2" style={{ color: "#8a8078" }}>Van de maker</p>
+              <p className="text-sm leading-relaxed mb-2" style={{ color: "#4a5568" }}>
+                Benji is gemaakt omdat verdriet geen kantooruren kent. Omdat iemand die mist niet tot maandag kan wachten. En omdat er soms gewoon iets moet zijn dat er is als jij het nodig hebt.
+              </p>
+              <p className="text-sm leading-relaxed" style={{ color: "#4a5568" }}>
+                Ik maakte Benji na mijn eigen verlies. Dit is wat ik toen had willen hebben.
+              </p>
+              <p className="text-sm font-medium mt-3" style={{ color: "#3d3530" }}>Ien</p>
+            </div>
+          </div>
         </div>
 
         {/* Wat je krijgt */}
@@ -154,53 +176,25 @@ export default function JaarToegangsPage() {
               </div>
             ))}
           </div>
-
-          {/* Checklijst samenvatting */}
-          <div
-            className="mt-6 rounded-2xl px-6 py-5"
-            style={{ background: "rgba(109,132,168,0.08)", border: "1px solid rgba(109,132,168,0.15)" }}
-          >
-            <p className="text-sm font-semibold mb-3" style={{ color: "#3d3530" }}>Alles op een rij:</p>
-            <div className="grid sm:grid-cols-2 gap-y-2 gap-x-6">
-              {[
-                "Onbeperkt gesprekken met Benji",
-                "Dagelijkse check-ins",
-                "Persoonlijke reflecties met emotietracking",
-                "Memories — herinneringen bewaren",
-                "Handreikingen voor zware momenten",
-                "Inspiratie, gedichten en troostende teksten",
-                "Persoonlijke notities",
-                "Alle gesprekken bewaard en terug te lezen",
-                "Beschikbaar dag en nacht, 7 dagen per week",
-                "Geen maandelijks abonnement",
-              ].map((item, i) => (
-                <div key={i} className="flex items-start gap-2">
-                  <Check size={15} className="flex-shrink-0 mt-0.5" style={{ color: "#6d84a8" }} strokeWidth={3} />
-                  <p className="text-sm" style={{ color: "#4a5568" }}>{item}</p>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* Voor wie */}
-        <div className="mb-14 max-w-xl mx-auto text-center">
-          <h2 className="text-xl sm:text-2xl font-semibold mb-6" style={{ color: "#3d3530" }}>
+        <div className="mb-14 max-w-xl mx-auto">
+          <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6" style={{ color: "#3d3530" }}>
             Voor wie is dit?
           </h2>
-          <div className="space-y-4 text-left">
+          <div className="space-y-3">
             {[
-              "Voor wie verdriet heeft en soms gewoon iemand nodig heeft — ook om drie uur 's nachts.",
+              "Voor wie verdriet heeft en soms gewoon niet alleen wil zijn met wat er 's nachts door je hoofd gaat.",
               "Voor wie rouwt om iemand, en merkt hoe moeilijk het is om dat steeds opnieuw uit te leggen aan mensen om je heen.",
               "Voor wie niet altijd klaar is voor een therapeut, maar ook niet alleen wil zijn met wat er speelt.",
               "Voor wie herinneringen wil bewaren, niet vergeten. En soms troost wil vinden in woorden.",
             ].map((tekst, i) => (
               <div
                 key={i}
-                className="flex gap-3 rounded-xl px-4 py-4"
+                className="rounded-xl px-5 py-4"
                 style={{ background: "rgba(255,255,255,0.80)", border: "1px solid rgba(0,0,0,0.06)" }}
               >
-                <span className="text-base flex-shrink-0">→</span>
                 <p className="text-sm leading-relaxed" style={{ color: "#4a5568" }}>{tekst}</p>
               </div>
             ))}
@@ -237,42 +231,18 @@ export default function JaarToegangsPage() {
             Een jaar lang niet alleen
           </p>
           <p className="text-sm leading-relaxed mb-6 max-w-md mx-auto" style={{ color: "#6b6460" }}>
-            Geen maandelijkse beslissing. Geen gedoe. Gewoon toegang tot alles — voor één prijs, één jaar lang.
+            Geen maandelijkse beslissing. Geen gedoe. Gewoon toegang tot alles, voor één prijs, één jaar lang.
           </p>
           <a
             href={KENNIS_SHOP_URL}
             className="inline-block px-10 py-4 rounded-2xl font-semibold text-white text-base transition-opacity hover:opacity-90"
             style={{ background: "#6d84a8" }}
           >
-            Ja, ik doe mee — € 97
+            Begin nu · € 97
           </a>
           <p className="text-xs mt-4" style={{ color: "#a09890" }}>
             Veilig betalen · direct toegang · geen automatische verlenging
           </p>
-        </div>
-
-        {/* Founder note */}
-        <div className="mb-10">
-          <div
-            className="rounded-2xl px-5 py-6 flex items-start gap-5"
-            style={{ background: "rgba(255,255,255,0.70)", border: "1px solid rgba(0,0,0,0.06)" }}
-          >
-            <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
-              <Image
-                src="/images/ien-founder.png"
-                alt="Ien, founder van Talk To Benji"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="pt-0.5">
-              <p className="text-xs mb-1.5" style={{ color: "#8a8078" }}>Van de maker</p>
-              <p className="text-sm leading-relaxed" style={{ color: "#4a5568" }}>
-                Benji is gemaakt omdat verdriet geen kantooruren kent. Omdat iemand die mist niet tot maandag kan wachten. En omdat er soms gewoon iets moet zijn.
-              </p>
-              <p className="text-sm font-medium mt-2" style={{ color: "#3d3530" }}>— Ien</p>
-            </div>
-          </div>
         </div>
 
         {/* Disclaimer */}
@@ -289,7 +259,7 @@ export default function JaarToegangsPage() {
             <Link href="/algemene-voorwaarden" className="hover:underline">Algemene voorwaarden</Link>
             <a href="mailto:contactmetien@talktobenji.com" className="hover:underline">Contact</a>
           </div>
-          <p className="text-xs" style={{ color: "#a09890" }}>© Talk To Benji — talktobenji.com</p>
+          <p className="text-xs" style={{ color: "#a09890" }}>© Talk To Benji · talktobenji.com</p>
         </div>
       </footer>
     </div>
