@@ -141,14 +141,11 @@ export default function JaarToegangsPage() {
           >
             Een heel jaar lang Benji, voor als je er niet alleen mee wil zijn
           </h1>
-          <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ color: "#6b6460" }}>
-            Benji is er voor jou, het hele jaar door. Voor de momenten dat het even te veel wordt, als je 's nachts niet kunt slapen, of wanneer je gewoon even wilt schrijven zonder dat iemand iets terug hoeft te zeggen.
+          <p className="text-base sm:text-lg leading-relaxed mb-6" style={{ color: "#6b6460" }}>
+            Voor de momenten dat het te veel wordt — 's nachts, midden op de dag, zonder afspraak of wachttijd. Benji luistert, stelt een vraag, is er gewoon. Het hele jaar door, voor één prijs, zonder gedoe.
           </p>
-          <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ color: "#6b6460" }}>
-            Voor € 97 krijg je directe toegang tot alles, voor een heel jaar. Geen gedoe met maandelijkse betalingen of abonnementen. Gewoon steun, wanneer jij het nodig hebt.
-          </p>
-          <p className="text-sm" style={{ color: "#a09890" }}>
-            Eenmalig betalen · Direct toegang · Geen abonnement
+          <p className="text-sm font-medium" style={{ color: "#6b6460" }}>
+            € 97 · Eenmalig · Direct toegang · Geen abonnement
           </p>
         </div>
 
