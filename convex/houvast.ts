@@ -76,12 +76,12 @@ export const sendWelkomstMailInternal = internalAction({
     const link = `https://talktobenji.com/houvast/gids?token=${args.token}`;
 
     const html = wrapperIen(`
-      <p style="font-size: 16px; margin-bottom: 20px;">Hoi,</p>
+      <p style="font-size: 16px; margin-bottom: 20px;">Hi,</p>
       <p style="font-size: 15px; line-height: 1.8; color: #4a5568;">
-        Houvast staat klaar voor je.
+        Houvast is er voor je.
       </p>
       <p style="font-size: 15px; line-height: 1.8; color: #4a5568;">
-        Het is een kleine gids, voor de momenten dat het extra zwaar voelt. Geen grote stappen, geen verplichtingen. Alleen iets wat je nu meteen kunt doen.
+        Een klein steuntje voor de momenten dat het even zwaar is. Geen grote stappen, geen druk. Alleen iets kleins dat je nu meteen kunt doen.
       </p>
       <p style="font-size: 15px; line-height: 1.8; color: #4a5568;">
         Klik op de knop hieronder om Houvast te openen. De link werkt altijd, je hoeft nergens in te loggen.
