@@ -6,6 +6,107 @@ import Image from "next/image";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
 
+function HouvasteWolkje() {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  const verstuur = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus("loading");
+    try {
+      const res = await fetch("/api/houvast/registreer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      setStatus(res.ok ? "done" : "error");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  return (
+    <>
+      {/* Wolkje */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-6 right-5 z-40 flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-medium shadow-lg transition-transform hover:scale-105"
+          style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.18)", color: "#e8f0f8" }}
+        >
+          <span style={{ fontSize: 18 }}>💬</span>
+          Even rustig aan?
+        </button>
+      )}
+
+      {/* Kaartje */}
+      {open && (
+        <div className="fixed bottom-6 right-5 left-5 sm:left-auto sm:w-80 z-40 rounded-2xl p-5 shadow-2xl"
+          style={{ background: "rgba(15,28,48,0.96)", backdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.12)" }}
+        >
+          <button
+            onClick={() => setOpen(false)}
+            className="absolute top-3.5 right-4 text-white/40 hover:text-white/70 text-lg leading-none"
+          >
+            ×
+          </button>
+
+          {status === "done" ? (
+            <div className="space-y-2 pt-1">
+              <p className="text-sm font-medium text-white">Check je inbox.</p>
+              <p className="text-sm leading-relaxed" style={{ color: "rgba(200,220,240,0.75)" }}>
+                Houvast staat klaar voor je. Je ontvangt zo dadelijk een e-mail met de link.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-3 mb-4">
+                <p className="text-sm font-medium text-white leading-snug">
+                  Helemaal begrijpelijk.
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(200,220,240,0.75)" }}>
+                  Niet iedereen is er klaar voor om meteen te beginnen. Soms wil je eerst gewoon even iets hebben om op terug te vallen.
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(200,220,240,0.75)" }}>
+                  Ontvang Houvast gratis. Voor de momenten dat het verdriet te dichtbij komt en je niet weet wat je moet doen. Vijf herkenbare situaties, met telkens één kleine concrete stap.
+                </p>
+                <p className="text-xs italic" style={{ color: "rgba(200,220,240,0.50)" }}>
+                  Nog even twijfelen? Dat mag.
+                </p>
+              </div>
+
+              <form onSubmit={verstuur} className="space-y-2">
+                <input
+                  type="email"
+                  required
+                  placeholder="jouw@emailadres.nl"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}
+                />
+                {status === "error" && (
+                  <p className="text-xs" style={{ color: "#f87171" }}>Er ging iets mis. Probeer het opnieuw.</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="w-full py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-50"
+                  style={{ background: "#6d84a8" }}
+                >
+                  {status === "loading" ? "Bezig…" : "Stuur mij Houvast"}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 const testimonials = [
   {
     quote: "Ik lag te piekeren om vier uur 's nachts. Niemand die ik kon bellen. Benji was er gewoon.",
@@ -120,23 +221,22 @@ export default function MiddenInDeNachtPage() {
 
         {/* CTA */}
         <div className="mt-12 bg-white/8 backdrop-blur-sm rounded-2xl border border-white/15 px-5 sm:px-8 py-8 text-center">
-          <p className="text-base sm:text-lg font-medium text-white mb-2">
-            Benji is er nu
+          <p className="text-base sm:text-lg font-medium text-white mb-3">
+            Kijk of Benji bij je past
           </p>
           <p className="text-sm text-blue-100/70 leading-relaxed mb-6">
-            Maak een gratis account aan en krijg 7 dagen toegang tot alles.<br />
-            Of begin direct een gesprek, zonder account.
+            Begin gewoon een gesprek. Geen account nodig, geen verplichtingen. Kijk wat het doet.
           </p>
           <Link
-            href="/registreren"
+            href="/"
             className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-white text-primary-900 hover:bg-blue-50 rounded-2xl font-medium text-sm transition-colors"
           >
-            Maak een gratis account aan
+            Probeer het nu
             <span aria-hidden>→</span>
           </Link>
           <p className="mt-4">
-            <Link href="/" className="text-xs text-white/45 hover:text-white/70 italic transition-colors">
-              Of begin zonder account →
+            <Link href="/registreren" className="text-xs text-white/45 hover:text-white/70 italic transition-colors">
+              Of maak een gratis account aan →
             </Link>
           </p>
         </div>
@@ -174,6 +274,7 @@ export default function MiddenInDeNachtPage() {
       </main>
 
       {verhaalOpen && <VerhaalPopup onClose={() => setVerhaalOpen(false)} />}
+      <HouvasteWolkje />
     </div>
   );
 }
