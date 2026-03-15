@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { HeaderBar } from "@/components/chat/HeaderBar";
 
 export default function HouvasteePage() {
   const [email, setEmail] = useState("");
@@ -33,7 +34,9 @@ export default function HouvasteePage() {
       </div>
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        <section className="flex items-center justify-center px-5 pt-16 pb-20">
+        <HeaderBar />
+
+        <section className="flex items-center justify-center px-5 pt-12 pb-16">
           <div className="w-full max-w-md text-center">
 
             <p
@@ -114,6 +117,21 @@ export default function HouvasteePage() {
             </p>
           </div>
         </section>
+
+        <footer className="px-5 py-8 text-center" style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}>
+          <div className="max-w-lg mx-auto space-y-2">
+            <p className="text-xs" style={{ color: "#6b6460" }}>
+              Vragen?{" "}
+              <a href="mailto:contactmetien@talktobenji.com" style={{ color: "#6d84a8" }}>
+                contactmetien@talktobenji.com
+              </a>
+            </p>
+            <p className="text-xs" style={{ color: "#a09890" }}>
+              © Talk To Benji — talktobenji.com
+            </p>
+          </div>
+        </footer>
+
       </div>
     </div>
   );

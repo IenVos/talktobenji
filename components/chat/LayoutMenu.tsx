@@ -9,6 +9,6 @@ const PAGES_WITH_OWN_MENU = ["/", "/privacy", "/algemene-voorwaarden", "/faq", "
 
 export function LayoutMenu() {
   const pathname = usePathname();
-  if (!pathname || PAGES_WITH_OWN_MENU.includes(pathname) || pathname.startsWith("/admin") || pathname.startsWith("/account") || pathname.startsWith("/niet-alleen")) return null;
+  if (!pathname || PAGES_WITH_OWN_MENU.includes(pathname) || pathname.startsWith("/admin") || pathname.startsWith("/account") || pathname.startsWith("/niet-alleen") || pathname.startsWith("/houvast") || pathname.startsWith("/lp/")) return null;
   return <GlobalMenu />;
 }
