@@ -11,8 +11,6 @@ import { hexToLightTint, hexToDarker } from "@/lib/utils";
 import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, ChevronLeft, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle, ShoppingBag } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ScrollIndicator } from "@/components/ScrollIndicator";
-import { UpgradeBadge } from "@/components/UpgradeBadge";
-import { TrialBanner } from "@/components/TrialBanner";
 
 const ORIGINAL_ACCENT = "#6d84a8";
 const ACCENT_CACHE_KEY = "benji_accent_color";
@@ -230,12 +228,6 @@ export default function AccountLayout({
             <House size={18} className="flex-shrink-0" />
             Mijn plek
           </Link>
-          {session?.userId && (
-            <UpgradeBadge
-              userId={session.userId as string}
-              email={session.user?.email || undefined}
-            />
-          )}
         </div>
       </li>
       <li>
@@ -586,14 +578,6 @@ export default function AccountLayout({
             {pageInfo.subtitle && <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>}
           </div>
         </div>
-
-        {/* Trial banner */}
-        {session?.userId && (
-          <TrialBanner
-            userId={session.userId as string}
-            email={session.user?.email || undefined}
-          />
-        )}
 
         {/* Mobiel menu overlay */}
         {mobileMenuOpen && (
