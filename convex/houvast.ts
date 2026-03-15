@@ -84,7 +84,7 @@ export const sendWelkomstMailInternal = internalAction({
         Een klein steuntje voor de momenten dat het even zwaar is. Geen grote stappen, geen druk. Alleen iets kleins dat je nu meteen kunt doen.
       </p>
       <p style="font-size: 15px; line-height: 1.8; color: #4a5568;">
-        Klik op de knop hieronder om Houvast te openen. De link werkt altijd, je hoeft nergens in te loggen.
+        Je staat er niet alleen voor. Een klein steuntje is altijd binnen handbereik.
       </p>
       <div style="margin: 28px 0;">
         <a href="${link}" style="background-color: #6d84a8; color: white; padding: 13px 26px;
