@@ -187,7 +187,6 @@ export default function HouvasteGidsPage() {
       </div>
 
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <HeaderBar />
 
         {/* Navigatie */}
         <nav className="px-5 pt-4 pb-2">
