@@ -128,7 +128,7 @@ const SECTIES = [
 
 export default function HouvasteGidsPage() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") ?? "";
+  const token = searchParams?.get("token") ?? "";
   const profiel = useQuery(api.houvast.getByToken, { token });
   const [stap, setStap] = useState(0);
 
