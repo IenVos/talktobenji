@@ -163,6 +163,10 @@ export default function HouvasteGidsPage() {
   const fotoInputRef = useRef<HTMLInputElement>(null);
   const [wachtwoord, setWachtwoord] = useState("");
   const [aanmeldStatus, setAanmeldStatus] = useState<"idle" | "loading" | "success" | "bestaand" | "error">("idle");
+  const [heeftSpeechSupport, setHeeftSpeechSupport] = useState(false);
+  useEffect(() => {
+    setHeeftSpeechSupport(!!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
+  }, []);
 
   // Laad opgeslagen antwoorden uit localStorage
   useEffect(() => {
@@ -287,8 +291,6 @@ export default function HouvasteGidsPage() {
   const isLaatste = stap === ALLE_STAPPEN.length - 1;
   const huidigMoment = MOMENTEN.find((m) => m.id === huidigStap);
 
-  const heeftSpeechSupport = typeof window !== "undefined" &&
-    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
   // ─── Loading ───────────────────────────────────────────────────────────────
 
