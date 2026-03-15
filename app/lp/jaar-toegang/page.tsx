@@ -110,7 +110,7 @@ export default function JaarToegangsPage() {
     <div
       className="min-h-screen flex flex-col"
       style={{
-        backgroundImage: "linear-gradient(rgba(253,249,244,0.92), rgba(253,249,244,0.92)), url(/images/achtergrond.png)",
+        backgroundImage: "linear-gradient(rgba(255,255,255,0.72), rgba(255,255,255,0.72)), url(/images/achtergrond.png)",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -164,7 +164,7 @@ export default function JaarToegangsPage() {
                 <div
                   key={i}
                   className="rounded-2xl px-5 py-5 flex gap-4"
-                  style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 1px 8px rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)" }}
+                  style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 1px 8px rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.18)" }}
                 >
                   <Icoon size={20} className="flex-shrink-0 mt-0.5" style={{ color: "#6d84a8" }} strokeWidth={1.5} />
                   <div>
@@ -200,7 +200,7 @@ export default function JaarToegangsPage() {
               <div
                 key={i}
                 className="rounded-xl px-5 py-4"
-                style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(0,0,0,0.10)" }}
+                style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(0,0,0,0.18)" }}
               >
                 <p className="text-sm leading-relaxed" style={{ color: "#4a5568" }}>{item.tekst}</p>
               </div>
@@ -212,7 +212,7 @@ export default function JaarToegangsPage() {
         <div className="mb-14 max-w-xl mx-auto">
           <div
             className="rounded-2xl px-6 py-7"
-            style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.10)" }}
+            style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.18)" }}
           >
             <div className="flex items-start gap-5 mb-5">
               <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
@@ -250,7 +250,7 @@ export default function JaarToegangsPage() {
               <div
                 key={i}
                 className="rounded-2xl px-5 py-5"
-                style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(0,0,0,0.10)" }}
+                style={{ background: "rgba(255,255,255,0.97)", border: "1px solid rgba(0,0,0,0.18)" }}
               >
                 <p className="text-sm leading-relaxed mb-3" style={{ color: "#4a5568" }}>
                   &ldquo;{t.quote}&rdquo;
@@ -271,7 +271,7 @@ export default function JaarToegangsPage() {
               <div
                 key={i}
                 className="rounded-2xl px-5 py-5"
-                style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(0,0,0,0.10)" }}
+                style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(0,0,0,0.18)" }}
               >
                 <p className="text-sm font-semibold mb-2" style={{ color: "#3d3530" }}>{item.vraag}</p>
                 <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{item.antwoord}</p>
@@ -283,7 +283,7 @@ export default function JaarToegangsPage() {
         {/* CTA herhaling */}
         <div
           className="rounded-2xl px-6 sm:px-10 py-10 text-center mb-14"
-          style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 24px rgba(0,0,0,0.07)", border: "1px solid rgba(0,0,0,0.10)" }}
+          style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 24px rgba(0,0,0,0.07)", border: "1px solid rgba(0,0,0,0.18)" }}
         >
           <p className="text-xl sm:text-2xl font-semibold mb-3" style={{ color: "#3d3530" }}>
             Een jaar lang niet alleen
