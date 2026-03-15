@@ -15,6 +15,13 @@ import {
   Shield,
   Plus,
   X,
+  PencilLine,
+  CalendarCheck,
+  Target,
+  Gem,
+  Heart,
+  Leaf,
+  ArrowRight,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -274,6 +281,7 @@ export default function AdminAnalytics() {
   }), [days]);
 
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
+  const featureStats = useAdminQuery(api.siteAnalytics.getFeatureStats, { from, to });
   const recentRegs = useAdminQuery(api.siteAnalytics.getRecentRegistrations, { days: 7 });
   const excludedIps = useAdminQuery(api.siteAnalytics.listExcludedIps, {});
   const addExcludedIp = useAdminMutation(api.siteAnalytics.addExcludedIp);
@@ -694,7 +702,112 @@ export default function AdminAnalytics() {
         </div>
       </div>
 
-      {/* Sectie 5: Beheer */}
+      {/* Sectie 5: Houvast trechter + Feature gebruik */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+        {/* Houvast trechter */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-1 flex items-center gap-2">
+            <Leaf size={16} className="text-green-600" />
+            Houvast trechter
+          </h2>
+          <p className="text-xs text-primary-500 mb-5">Van aanvraag tot account in geselecteerde periode.</p>
+          {featureStats ? (
+            <div className="space-y-4">
+              {/* Stap 1 */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-primary-600">Houvast aangevraagd</span>
+                  <span className="text-sm font-bold text-primary-900">{featureStats.houvast.total}</span>
+                </div>
+                <div className="h-2.5 bg-primary-50 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full bg-green-400" style={{ width: "100%" }} />
+                </div>
+              </div>
+              {/* Stap 2 */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5 text-xs text-primary-600">
+                    <ArrowRight size={10} className="text-primary-400" />
+                    Account aangemaakt
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-primary-900">{featureStats.houvast.converted}</span>
+                    {featureStats.houvast.total > 0 && (
+                      <span className="text-xs text-primary-400">
+                        {Math.round((featureStats.houvast.converted / featureStats.houvast.total) * 100)}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="h-2.5 bg-primary-50 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-green-600"
+                    style={{
+                      width: featureStats.houvast.total > 0
+                        ? `${Math.round((featureStats.houvast.converted / featureStats.houvast.total) * 100)}%`
+                        : "0%",
+                    }}
+                  />
+                </div>
+              </div>
+              <p className="text-xs text-primary-400 pt-1">
+                Totaal ooit aangevraagd: <span className="font-semibold text-primary-600">{featureStats.houvast.allTime}</span>
+              </p>
+            </div>
+          ) : (
+            <div className="text-xs text-primary-400">Laden…</div>
+          )}
+        </div>
+
+        {/* Feature gebruik */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-1 flex items-center gap-2">
+            <BarChart3 size={16} className="text-primary-500" />
+            Feature gebruik
+          </h2>
+          <p className="text-xs text-primary-500 mb-5">Nieuw aangemaakt in geselecteerde periode.</p>
+          {featureStats ? (
+            <div className="space-y-3">
+              {featureStats.features.map((f: { label: string; count: number; allTime: number }) => {
+                const maxCount = Math.max(...featureStats.features.map((x: { count: number }) => x.count), 1);
+                const Icon = f.label === "Reflecties" ? PencilLine
+                  : f.label === "Check-ins" ? CalendarCheck
+                  : f.label === "Doelen" ? Target
+                  : f.label === "Memories" ? Gem
+                  : Heart;
+                return (
+                  <div key={f.label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-1.5 text-xs text-primary-700">
+                        <Icon size={13} className="text-primary-400" />
+                        {f.label}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-primary-900">{f.count}</span>
+                        <span className="text-xs text-primary-400">/ {f.allTime} totaal</span>
+                      </div>
+                    </div>
+                    <div className="h-2 bg-primary-50 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${Math.round((f.count / maxCount) * 100)}%`,
+                          backgroundColor: "rgba(109,132,168,0.65)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-xs text-primary-400">Laden…</div>
+          )}
+        </div>
+      </div>
+
+      {/* Sectie 6: Beheer */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
         {/* IP uitsluiting */}

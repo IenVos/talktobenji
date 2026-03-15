@@ -218,6 +218,50 @@ export const getStats = query({
   },
 });
 
+/** Feature-gebruik statistieken (admin only). */
+export const getFeatureStats = query({
+  args: { adminToken: v.string(), from: v.number(), to: v.number() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const inRange = (ts: number) => ts >= args.from && ts <= args.to;
+
+    const [notes, emotions, checkIns, goals, memories, houvasteProfielen, users] = await Promise.all([
+      ctx.db.query("notes").collect(),
+      ctx.db.query("emotionEntries").collect(),
+      ctx.db.query("checkInEntries").collect(),
+      ctx.db.query("goals").collect(),
+      ctx.db.query("memories").collect(),
+      ctx.db.query("houvasteProfielen").collect(),
+      ctx.db.query("users").collect(),
+    ]);
+
+    const userEmails = new Set(users.map((u: any) => u.email));
+
+    // Houvast funnel
+    const houvasteInPeriod = houvasteProfielen.filter((h: any) => inRange(h.createdAt));
+    const houvasteConverted = houvasteInPeriod.filter((h: any) => userEmails.has(h.email));
+
+    // Feature gebruik in periode — gebruik _creationTime als fallback als createdAt ontbreekt
+    const ts = (item: any) => item.createdAt ?? item._creationTime ?? 0;
+
+    return {
+      houvast: {
+        total: houvasteInPeriod.length,
+        converted: houvasteConverted.length,
+        allTime: houvasteProfielen.length,
+      },
+      features: [
+        { label: "Reflecties", count: notes.filter((n: any) => inRange(ts(n))).length, allTime: notes.length },
+        { label: "Check-ins", count: checkIns.filter((c: any) => inRange(ts(c))).length, allTime: checkIns.length },
+        { label: "Doelen", count: goals.filter((g: any) => inRange(ts(g))).length, allTime: goals.length },
+        { label: "Memories", count: memories.filter((m: any) => inRange(ts(m))).length, allTime: memories.length },
+        { label: "Emoties gelogd", count: emotions.filter((e: any) => inRange(ts(e))).length, allTime: emotions.length },
+      ],
+    };
+  },
+});
+
 /** Haal recente inschrijvingen op (admin only). */
 export const getRecentRegistrations = query({
   args: { adminToken: v.string(), days: v.optional(v.number()) },
