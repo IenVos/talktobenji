@@ -272,13 +272,24 @@ function formatDuration(seconds: number): string {
 
 export default function AdminAnalytics() {
   const [days, setDays] = useState(30);
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+  const [showList, setShowList] = useState(false);
 
   // Memoize timestamps – Date.now() verandert elke render, waardoor de
   // Convex subscription telkens herstart en nooit een antwoord krijgt.
-  const { from, to } = useMemo(() => ({
-    from: Date.now() - days * 86_400_000,
-    to: Date.now(),
-  }), [days]);
+  const { from, to } = useMemo(() => {
+    if (customFrom && customTo) {
+      return {
+        from: new Date(customFrom).getTime(),
+        to: new Date(customTo + "T23:59:59").getTime(),
+      };
+    }
+    return {
+      from: Date.now() - days * 86_400_000,
+      to: Date.now(),
+    };
+  }, [days, customFrom, customTo]);
 
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
   const featureStats = useAdminQuery(api.siteAnalytics.getFeatureStats, { from, to });
@@ -447,7 +458,7 @@ export default function AdminAnalytics() {
         </div>
 
         {/* Tijdbereik knoppen */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Calendar size={16} className="text-primary-500" />
           {[
             { label: "30 dagen", value: 30 },
@@ -456,9 +467,9 @@ export default function AdminAnalytics() {
           ].map(({ label, value }) => (
             <button
               key={value}
-              onClick={() => setDays(value)}
+              onClick={() => { setDays(value); setCustomFrom(""); setCustomTo(""); }}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                days === value
+                days === value && !customFrom
                   ? "bg-primary-800 text-white"
                   : "bg-white border border-primary-200 text-primary-700 hover:bg-primary-50"
               }`}
@@ -466,6 +477,29 @@ export default function AdminAnalytics() {
               {label}
             </button>
           ))}
+          <div className="flex items-center gap-1.5 ml-1">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="px-2 py-1.5 rounded-lg text-sm border border-primary-200 text-primary-700 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
+            />
+            <span className="text-primary-400 text-xs">–</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="px-2 py-1.5 rounded-lg text-sm border border-primary-200 text-primary-700 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
+            />
+            {(customFrom || customTo) && (
+              <button
+                onClick={() => { setCustomFrom(""); setCustomTo(""); }}
+                className="text-primary-400 hover:text-primary-700 transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -757,25 +791,36 @@ export default function AdminAnalytics() {
 
               {/* Lijst aanvragers */}
               {featureStats.houvast.list.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-primary-100 space-y-2">
-                  {featureStats.houvast.list.map((h: { email: string; name: string | null; createdAt: number; heeftAccount: boolean }, i: number) => (
-                    <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-primary-50 last:border-0">
-                      <div>
-                        {h.name && <span className="font-medium text-primary-800 mr-1.5">{h.name}</span>}
-                        <span className="text-primary-500">{h.email}</span>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                        <span className="text-primary-400">
-                          {new Date(h.createdAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}
-                        </span>
-                        {h.heeftAccount ? (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700">account</span>
-                        ) : (
-                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-400">geen account</span>
-                        )}
-                      </div>
+                <div className="mt-4 pt-3 border-t border-primary-100">
+                  <button
+                    onClick={() => setShowList((v) => !v)}
+                    className="flex items-center gap-1.5 text-xs text-primary-500 hover:text-primary-800 transition-colors mb-2"
+                  >
+                    <ArrowRight size={11} className={`transition-transform ${showList ? "rotate-90" : ""}`} />
+                    {showList ? "Verberg" : "Toon"} {featureStats.houvast.list.length} aanvragers
+                  </button>
+                  {showList && (
+                    <div className="space-y-0">
+                      {featureStats.houvast.list.map((h: { email: string; name: string | null; createdAt: number; heeftAccount: boolean }, i: number) => (
+                        <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-primary-50 last:border-0">
+                          <div>
+                            {h.name && <span className="font-medium text-primary-800 mr-1.5">{h.name}</span>}
+                            <span className="text-primary-500">{h.email}</span>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                            <span className="text-primary-400">
+                              {new Date(h.createdAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}
+                            </span>
+                            {h.heeftAccount ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700">account</span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-400">geen account</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
             </div>
