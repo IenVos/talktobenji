@@ -237,7 +237,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       },
     },
     { type: "separator" },
-    { type: "item", item: { href: "/admin", label: "Instellingen", icon: Settings } },
+    { type: "item", item: { href: "/admin/instellingen", label: "Instellingen", icon: Settings } },
   ];
 
   function renderEntries(dark: boolean, onItemClick?: () => void) {
