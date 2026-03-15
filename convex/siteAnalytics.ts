@@ -120,12 +120,17 @@ export const getStats = query({
     await checkAdmin(ctx, args.adminToken);
 
     // Haal alle paginabezoeken op in het bereik
-    const allViews = await ctx.db
-      .query("pageViews")
-      .withIndex("by_timestamp", (q) =>
-        q.gte("timestamp", args.from).lte("timestamp", args.to)
-      )
-      .collect();
+    const [rawViews, excludedIps] = await Promise.all([
+      ctx.db
+        .query("pageViews")
+        .withIndex("by_timestamp", (q) =>
+          q.gte("timestamp", args.from).lte("timestamp", args.to)
+        )
+        .collect(),
+      ctx.db.query("analyticsExcludedIps").collect(),
+    ]);
+    const excludedSet = new Set(excludedIps.map((e) => e.ip));
+    const allViews = rawViews.filter((v) => !v.ip || !excludedSet.has(v.ip));
 
     // -- Dagelijkse bezoeken --
     const dayMap: Record<string, { sessions: Set<string>; count: number }> = {};
