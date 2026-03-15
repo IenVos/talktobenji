@@ -54,11 +54,10 @@ const withSecretMutation = customMutation(mutation, {
     email: v.string(),
     name: v.string(),
     hashedPassword: v.string(),
+    emailVerified: v.optional(v.boolean()),
   },
   input: async (_ctx, args) => {
-    // Gebruik dezelfde checkSecret functie die alle whitespace normaliseert
     checkSecret(args.secret);
-    // Return alle args behalve secret
     const { secret: _, ...rest } = args;
     return { ctx: {}, args: rest };
   },
@@ -67,7 +66,7 @@ const withSecretMutation = customMutation(mutation, {
 /** Maak een gebruiker aan met e-mail, naam en gehasht wachtwoord (voor registratie). */
 export const createUserWithPassword = withSecretMutation({
   args: {},
-  handler: async (ctx, { email, name, hashedPassword }) => {
+  handler: async (ctx, { email, name, hashedPassword, emailVerified }) => {
     const emailLower = email.toLowerCase().trim();
     
     // Check of email al bestaat in credentials tabel
@@ -98,9 +97,11 @@ export const createUserWithPassword = withSecretMutation({
     }
     
     // Maak nieuwe user en credential aan
+    const now2 = Date.now();
     const userId = await ctx.db.insert("users", {
       email: emailLower,
       name: name.trim(),
+      ...(emailVerified ? { emailVerified: now2 } : {}),
     });
     await ctx.db.insert("credentials", {
       userId,
@@ -118,6 +119,13 @@ export const createUserWithPassword = withSecretMutation({
       expiresAt: now + 7 * 24 * 60 * 60 * 1000,
       updatedAt: now,
     });
+    // Stuur welkomstmail als e-mail al geverifieerd is (bijv. via Houvast magic link)
+    if (emailVerified) {
+      await ctx.scheduler.runAfter(0, internal.emails.sendWelcomeEmail, {
+        email: emailLower,
+        name: name.trim(),
+      });
+    }
     return userId;
   },
 });

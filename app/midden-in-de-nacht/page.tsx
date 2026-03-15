@@ -8,6 +8,7 @@ import { VerhaalPopup } from "@/components/VerhaalPopup";
 
 function HouvasteWolkje() {
   const [open, setOpen] = useState(false);
+  const [naam, setNaam] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
@@ -19,7 +20,7 @@ function HouvasteWolkje() {
       const res = await fetch("/api/houvast/registreer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), name: naam.trim() || undefined }),
       });
       setStatus(res.ok ? "done" : "error");
     } catch {
@@ -84,6 +85,14 @@ function HouvasteWolkje() {
               </div>
 
               <form onSubmit={verstuur} className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Jouw voornaam"
+                  value={naam}
+                  onChange={(e) => setNaam(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+                  style={{ background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff" }}
+                />
                 <input
                   type="email"
                   required

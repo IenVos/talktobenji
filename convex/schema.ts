@@ -614,6 +614,7 @@ export default defineSchema({
   houvasteProfielen: defineTable({
     email: v.string(),
     token: v.string(),
+    name: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index("by_email", ["email"])

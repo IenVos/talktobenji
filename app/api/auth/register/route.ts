@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
   try {
-    const { email, password, name } = await request.json();
+    const { email, password, name, source } = await request.json();
 
     if (!email || typeof email !== "string" || !email.includes("@")) {
       return NextResponse.json(
@@ -57,13 +57,16 @@ export async function POST(request: NextRequest) {
 
     const cleanSecret = String(adapterSecret || "").trim();
 
+    const isHouvast = source === "houvast";
+
     const userId = await fetchMutation(
       api.credentials.createUserWithPassword,
       {
-        secret: cleanSecret, // Gebruik de cleaned secret
+        secret: cleanSecret,
         email: email.trim().toLowerCase(),
         name: (name || "").trim() || email.trim().split("@")[0],
         hashedPassword,
+        emailVerified: isHouvast ? true : undefined,
       },
       { url: convexUrl }
     );

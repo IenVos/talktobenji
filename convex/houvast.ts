@@ -57,26 +57,39 @@ export const getByEmailInternal = internalQuery({
 });
 
 export const createProfiel = internalMutation({
-  args: { email: v.string(), token: v.string() },
+  args: { email: v.string(), token: v.string(), name: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await ctx.db.insert("houvasteProfielen", {
       email: args.email,
       token: args.token,
+      name: args.name,
       createdAt: Date.now(),
     });
   },
 });
 
+export const updateNaamInternal = internalMutation({
+  args: { email: v.string(), name: v.string() },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.db
+      .query("houvasteProfielen")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+    if (profiel) await ctx.db.patch(profiel._id, { name: args.name });
+  },
+});
+
 export const sendWelkomstMailInternal = internalAction({
-  args: { email: v.string(), token: v.string() },
+  args: { email: v.string(), token: v.string(), name: v.optional(v.string()) },
   handler: async (_ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) return;
 
     const link = `https://talktobenji.com/houvast/gids?token=${args.token}`;
+    const aanhef = args.name ? `Hi ${args.name},` : "Hi,";
 
     const html = wrapperIen(`
-      <p style="font-size: 16px; margin-bottom: 20px;">Hi,</p>
+      <p style="font-size: 16px; margin-bottom: 20px;">${aanhef}</p>
       <p style="font-size: 15px; line-height: 1.8; color: #4a5568;">
         Houvast is er voor je.
       </p>
@@ -111,18 +124,23 @@ export const sendWelkomstMailInternal = internalAction({
 
 /** Registreer een nieuw Houvast profiel en stuur de welkomstmail. */
 export const registreer = action({
-  args: { email: v.string() },
+  args: { email: v.string(), name: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const email = args.email.trim().toLowerCase();
+    const name = args.name?.trim() || undefined;
     const existing = await ctx.runQuery(internal.houvast.getByEmailInternal, { email });
     let token: string;
     if (existing) {
       token = existing.token;
+      // Update naam als die er nog niet was
+      if (name && !existing.name) {
+        await ctx.runMutation(internal.houvast.updateNaamInternal, { email, name });
+      }
     } else {
       token = crypto.randomUUID();
-      await ctx.runMutation(internal.houvast.createProfiel, { email, token });
+      await ctx.runMutation(internal.houvast.createProfiel, { email, token, name });
     }
-    await ctx.runAction(internal.houvast.sendWelkomstMailInternal, { email, token });
+    await ctx.runAction(internal.houvast.sendWelkomstMailInternal, { email, token, name: name ?? existing?.name });
     return { success: true };
   },
 });

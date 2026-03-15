@@ -5,6 +5,7 @@ import { useState } from "react";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 
 export default function HouvasteePage() {
+  const [naam, setNaam] = useState("");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
@@ -16,7 +17,7 @@ export default function HouvasteePage() {
       const res = await fetch("/api/houvast/registreer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), name: naam.trim() || undefined }),
       });
       if (!res.ok) throw new Error("Fout");
       setStatus("done");
@@ -82,6 +83,19 @@ export default function HouvasteePage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Jouw voornaam"
+                  value={naam}
+                  onChange={(e) => setNaam(e.target.value)}
+                  className="w-full px-4 py-3.5 rounded-2xl text-sm outline-none"
+                  style={{
+                    background: "rgba(255,255,255,0.90)",
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                    color: "#3d3530",
+                    border: "1px solid rgba(0,0,0,0.08)",
+                  }}
+                />
                 <input
                   type="email"
                   required

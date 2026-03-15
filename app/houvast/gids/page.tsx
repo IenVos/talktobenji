@@ -248,7 +248,12 @@ export default function HouvasteGidsPage() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: profiel.email, password: wachtwoord, name: "" }),
+        body: JSON.stringify({
+          email: profiel.email,
+          password: wachtwoord,
+          name: profiel.name ?? "",
+          source: "houvast",
+        }),
       });
       const data = await res.json();
       if (res.status === 409 || data?.error?.toLowerCase().includes("bestaat")) {
@@ -385,7 +390,9 @@ export default function HouvasteGidsPage() {
                 className="rounded-2xl p-6 sm:p-8 space-y-4"
                 style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 24px rgba(0,0,0,0.08)" }}
               >
-                <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>Welkom</h2>
+                <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>
+                  {profiel?.name ? `Welkom, ${profiel.name}` : "Welkom"}
+                </h2>
                 {[
                   "Je bent hier omdat je iets draagt wat zwaar is.",
                   "Misschien weet je precies wat het is. Misschien ook niet. Misschien is het verdriet om iemand die er niet meer is, om iets wat anders liep dan je had gehoopt, om een leven dat er nu anders uitziet dan je had verwacht.",
