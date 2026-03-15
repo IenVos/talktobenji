@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
 import { api } from "@/convex/_generated/api";
-import { useAdminMutation } from "./AdminAuthContext";
+import { useAdminMutation } from "../AdminAuthContext";
 import { Save, BookOpen, ListChecks, AlertCircle, CheckCircle, Settings2, Key, FileText, Loader2, Lightbulb, X } from "lucide-react";
 import { extractTextFromPdf } from "@/lib/extractPdfText";
 
