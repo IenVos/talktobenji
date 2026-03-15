@@ -74,7 +74,7 @@ export default function NietAlleenBPage() {
               className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm"
               style={{ background: "#6d84a8" }}
             >
-              Start mijn reis
+              Laten we beginnen
             </a>
           </div>
         </section>
@@ -187,7 +187,7 @@ export default function NietAlleenBPage() {
                 className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm mb-4"
                 style={{ background: "#6d84a8" }}
               >
-                Start mijn reis
+                Laten we beginnen
               </a>
               <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
                 Voor €37 eenmalig. Geen abonnement, geen verplichtingen.

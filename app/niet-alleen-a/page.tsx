@@ -101,7 +101,7 @@ export default function NietAlleenAPage() {
               className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
               style={{ background: "#6d84a8" }}
             >
-              Start mijn reis
+              Laten we beginnen
             </a>
           </div>
         </section>
@@ -276,7 +276,7 @@ export default function NietAlleenAPage() {
                 className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm mb-4"
                 style={{ background: "#6d84a8" }}
               >
-                Start mijn reis
+                Laten we beginnen
               </a>
               <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
                 Na aankoop ontvang je direct een bericht van Ien.
