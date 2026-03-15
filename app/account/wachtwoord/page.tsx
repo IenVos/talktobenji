@@ -1027,7 +1027,6 @@ export default function InloggegevensPage() {
       <WachtwoordWijzigen isOpen={openSection === "wachtwoord"} onToggle={() => toggle("wachtwoord")} />
       <Hartverwarmers isOpen={openSection === "meldingen"} onToggle={() => toggle("meldingen")} />
       <AppInstalleren isOpen={openSection === "app"} onToggle={() => toggle("app")} />
-      <AbonnementAccordion isOpen={openSection === "abonnement"} onToggle={() => toggle("abonnement")} />
       <DataExport isOpen={openSection === "data"} onToggle={() => toggle("data")} />
       <AccountVerwijderen isOpen={openSection === "account"} onToggle={() => toggle("account")} />
     </div>
