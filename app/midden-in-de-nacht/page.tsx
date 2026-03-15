@@ -79,10 +79,7 @@ function HouvasteWolkje() {
                   Soms wil je eerst gewoon even iets hebben om op terug te vallen.
                 </p>
                 <p className="text-sm leading-relaxed" style={{ color: "rgba(200,220,240,0.80)" }}>
-                  Ontvang Houvast gratis. Voor de momenten dat het verdriet te dichtbij komt en je niet weet wat je moet doen. Vijf herkenbare situaties, met telkens één kleine concrete stap.
-                </p>
-                <p className="text-xs italic pt-1" style={{ color: "rgba(200,220,240,0.45)" }}>
-                  Nog even twijfelen? Dat mag.
+                  Ontvang &lsquo;Houvast&rsquo; gratis. Voor de momenten dat het verdriet te dichtbij komt en je niet weet wat je moet doen. Vijf herkenbare situaties, met telkens één kleine concrete stap.
                 </p>
               </div>
 
