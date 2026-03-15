@@ -131,71 +131,25 @@ export default function JaarToegangsPage() {
       <main className="flex-1 w-full max-w-3xl mx-auto px-5 sm:px-6 pb-20">
 
         {/* Hero */}
-        <div className="pt-8 sm:pt-12 pb-10 text-center max-w-xl mx-auto">
+        <div className="pt-8 sm:pt-12 pb-12 text-center max-w-xl mx-auto">
           <p className="text-xs uppercase tracking-widest font-medium mb-4" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
             1 jaar toegang · alles inbegrepen
           </p>
           <h1
-            className="text-3xl sm:text-4xl font-semibold mb-5 leading-snug"
+            className="text-3xl sm:text-4xl font-semibold mb-6 leading-snug"
             style={{ color: "#3d3530", textWrap: "balance" } as React.CSSProperties}
           >
             Een heel jaar lang Benji, voor als je er niet alleen mee wil zijn
           </h1>
-          <p className="text-base sm:text-lg leading-relaxed mb-8" style={{ color: "#6b6460" }}>
-            Niet per maand. Niet met gedoe. Gewoon een jaar lang alles beschikbaar, op het moment dat jij het nodig hebt.
+          <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ color: "#6b6460" }}>
+            Benji is er voor de momenten dat het te veel wordt. Als je midden in de nacht wakker ligt, als je het niet meer kunt uitleggen, als je gewoon even wil schrijven zonder dat iemand iets terug hoeft te zeggen.
           </p>
-
-          {/* Prijs */}
-          <div
-            className="inline-flex flex-col items-center rounded-2xl px-8 py-6 mb-8"
-            style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 24px rgba(0,0,0,0.07)", border: "1px solid rgba(0,0,0,0.10)" }}
-          >
-            <p className="text-xs uppercase tracking-widest font-medium mb-2" style={{ color: "#8a8078" }}>eenmalig</p>
-            <p className="text-5xl font-bold mb-1" style={{ color: "#3d3530" }}>€ 97</p>
-            <p className="text-sm mb-4" style={{ color: "#8a8078" }}>1 jaar · alles inbegrepen · geen abonnement</p>
-            <a
-              href={KENNIS_SHOP_URL}
-              className="inline-block px-8 py-3.5 rounded-2xl font-semibold text-white text-sm transition-opacity hover:opacity-90"
-              style={{ background: "#6d84a8" }}
-            >
-              Begin nu · € 97 voor een jaar
-            </a>
-            <p className="text-xs mt-3" style={{ color: "#a09890" }}>
-              Veilig betalen via KennisShop · direct toegang
-            </p>
-          </div>
-        </div>
-
-        {/* Founder note */}
-        <div className="mb-14 max-w-xl mx-auto">
-          <div
-            className="rounded-2xl px-6 py-7"
-            style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.10)" }}
-          >
-            <div className="flex items-start gap-5 mb-5">
-              <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
-                <Image
-                  src="/images/ien-founder.png"
-                  alt="Ien, founder van Talk To Benji"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="pt-1">
-                <p className="text-sm font-semibold" style={{ color: "#3d3530" }}>Ien</p>
-                <p className="text-xs mt-0.5" style={{ color: "#8a8078" }}>Founder van Talk To Benji</p>
-                <p className="text-sm leading-relaxed mt-2" style={{ color: "#4a5568" }}>
-                  Benji is gemaakt omdat verdriet geen kantooruren kent. Omdat iemand die mist niet tot maandag kan wachten.
-                </p>
-              </div>
-            </div>
-            <blockquote
-              className="text-base sm:text-lg font-medium leading-snug px-1 pt-1 border-l-2 pl-4"
-              style={{ color: "#3d3530", borderColor: "#6d84a8" }}
-            >
-              Dit is wat ik toen had willen hebben.
-            </blockquote>
-          </div>
+          <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ color: "#6b6460" }}>
+            Voor € 97 heb je een heel jaar lang toegang tot alles. Geen maandelijks gedoe, geen automatische verlenging. Gewoon er zijn, wanneer jij het nodig hebt.
+          </p>
+          <p className="text-sm" style={{ color: "#a09890" }}>
+            Eenmalig · direct toegang · geen abonnement
+          </p>
         </div>
 
         {/* Wat je krijgt */}
@@ -251,6 +205,38 @@ export default function JaarToegangsPage() {
                 <p className="text-sm leading-relaxed" style={{ color: "#4a5568" }}>{item.tekst}</p>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Founder note */}
+        <div className="mb-14 max-w-xl mx-auto">
+          <div
+            className="rounded-2xl px-6 py-7"
+            style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.10)" }}
+          >
+            <div className="flex items-start gap-5 mb-5">
+              <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                <Image
+                  src="/images/ien-founder.png"
+                  alt="Ien, founder van Talk To Benji"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="pt-1">
+                <p className="text-sm font-semibold" style={{ color: "#3d3530" }}>Ien</p>
+                <p className="text-xs mt-0.5" style={{ color: "#8a8078" }}>Founder van Talk To Benji</p>
+                <p className="text-sm leading-relaxed mt-2" style={{ color: "#4a5568" }}>
+                  Benji is gemaakt omdat verdriet geen kantooruren kent. Omdat iemand die mist niet tot maandag kan wachten.
+                </p>
+              </div>
+            </div>
+            <blockquote
+              className="text-base sm:text-lg font-medium leading-snug border-l-2 pl-4"
+              style={{ color: "#3d3530", borderColor: "#6d84a8" }}
+            >
+              Dit is wat ik toen had willen hebben.
+            </blockquote>
           </div>
         </div>
 
