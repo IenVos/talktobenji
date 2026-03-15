@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { MessageSquare, CalendarCheck, PencilLine, Gem, HandHelping, Sparkles, FileText, MessagesSquare } from "lucide-react";
+import { MessageSquare, CalendarCheck, PencilLine, Gem, HandHelping, Sparkles, FileText, MessagesSquare, Palette } from "lucide-react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
@@ -52,6 +52,11 @@ const features = [
     tekst: "Alles wat je hebt geschreven en gedeeld blijft staan. Soms is het fijn om te zien hoe je er eerder in stond.",
     icoon: MessagesSquare,
   },
+  {
+    titel: "Jouw kleur, jouw sfeer",
+    tekst: "Kies een accentkleur en achtergrond die bij jou passen. Benji voelt daardoor meteen als een plek van jezelf.",
+    icoon: Palette,
+  },
 ];
 
 const testimonials = [
@@ -92,7 +97,7 @@ const faq = [
   },
   {
     vraag: "Wat gebeurt er na een jaar?",
-    antwoord: "Je account blijft bestaan en alles wat je hebt opgeschreven blijft bewaard. Alleen de toegang tot de betaalde functies stopt. Je kunt dan kiezen of je wilt verlengen.",
+    antwoord: "Je account blijft bestaan en alles wat je hebt opgeschreven blijft bewaard. Je kunt alles altijd downloaden om te bewaren. Alleen de toegang tot de betaalde functies stopt. Je kunt dan kiezen of je wilt verlengen, of je account verwijderen als je dat wilt.",
   },
   {
     vraag: "Ik heb al een gratis account.",
