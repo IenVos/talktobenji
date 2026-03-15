@@ -233,7 +233,7 @@ export default function MiddenInDeNachtPage() {
           <p className="text-base sm:text-lg font-medium text-white mb-3">
             Kijk of Benji bij je past
           </p>
-          <p className="text-sm text-blue-100/70 leading-relaxed mb-6">
+          <p className="text-sm text-blue-100/70 leading-relaxed mb-6" style={{ textWrap: "balance" } as React.CSSProperties}>
             Begin gewoon een gesprek. Geen account nodig, geen verplichtingen. Kijk wat het doet.
           </p>
           <Link
