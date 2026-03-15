@@ -133,7 +133,7 @@ export default function JaarToegangsPage() {
         {/* Hero */}
         <div className="pt-8 sm:pt-12 pb-12 text-center max-w-xl mx-auto">
           <p className="text-xs uppercase tracking-widest font-medium mb-4" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
-            1 jaar toegang · alles inbegrepen
+            1 jaar toegang · Alles inbegrepen
           </p>
           <h1
             className="text-3xl sm:text-4xl font-semibold mb-6 leading-snug"
@@ -142,13 +142,13 @@ export default function JaarToegangsPage() {
             Een heel jaar lang Benji, voor als je er niet alleen mee wil zijn
           </h1>
           <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ color: "#6b6460" }}>
-            Benji is er voor de momenten dat het te veel wordt. Als je midden in de nacht wakker ligt, als je het niet meer kunt uitleggen, als je gewoon even wil schrijven zonder dat iemand iets terug hoeft te zeggen.
+            Benji is er voor jou, het hele jaar door. Voor de momenten dat het even te veel wordt, als je 's nachts niet kunt slapen, of wanneer je gewoon even wilt schrijven zonder dat iemand iets terug hoeft te zeggen.
           </p>
           <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ color: "#6b6460" }}>
-            Voor € 97 heb je een heel jaar lang toegang tot alles. Geen maandelijks gedoe, geen automatische verlenging. Gewoon er zijn, wanneer jij het nodig hebt.
+            Voor € 97 krijg je directe toegang tot alles, voor een heel jaar. Geen gedoe met maandelijkse betalingen of abonnementen. Gewoon steun, wanneer jij het nodig hebt.
           </p>
           <p className="text-sm" style={{ color: "#a09890" }}>
-            Eenmalig · direct toegang · geen abonnement
+            Eenmalig betalen · Direct toegang · Geen abonnement
           </p>
         </div>
 
