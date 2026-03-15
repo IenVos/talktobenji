@@ -610,6 +610,15 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),
 
+  // Houvast — gratis mini-gids (toegang via magic link token)
+  houvasteProfielen: defineTable({
+    email: v.string(),
+    token: v.string(),
+    createdAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_token", ["token"]),
+
   // Reviews / testimonials (beheerbaar via admin, zichtbaar op homepage)
   testimonials: defineTable({
     name: v.string(),       // Weergavenaam, bijv. "Anne" of "Thomas, 34"
