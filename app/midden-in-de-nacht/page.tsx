@@ -31,14 +31,22 @@ function HouvasteWolkje() {
     <>
       {/* Wolkje */}
       {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-5 z-40 flex items-center gap-2.5 px-4 py-3 rounded-2xl text-sm font-medium shadow-lg transition-transform hover:scale-105"
-          style={{ background: "rgba(255,255,255,0.12)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.18)", color: "#e8f0f8" }}
-        >
-          <span style={{ fontSize: 18 }}>💬</span>
-          Even rustig aan?
-        </button>
+        <div className="fixed bottom-6 right-5 z-40" style={{ filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.4))" }}>
+          <button
+            onClick={() => setOpen(true)}
+            className="relative flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-transform hover:scale-105"
+            style={{
+              background: "#7e9bbf",
+              borderRadius: "18px 18px 4px 18px",
+              color: "#fff",
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style={{ opacity: 0.9, flexShrink: 0 }}>
+              <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+            </svg>
+            Even rustig aan?
+          </button>
+        </div>
       )}
 
       {/* Kaartje */}
@@ -66,13 +74,16 @@ function HouvasteWolkje() {
                 <p className="text-sm font-medium text-white leading-snug">
                   Helemaal begrijpelijk.
                 </p>
-                <p className="text-sm leading-relaxed" style={{ color: "rgba(200,220,240,0.75)" }}>
-                  Niet iedereen is er klaar voor om meteen te beginnen. Soms wil je eerst gewoon even iets hebben om op terug te vallen.
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(200,220,240,0.80)" }}>
+                  Niet iedereen is er klaar voor om meteen te beginnen.
                 </p>
-                <p className="text-sm leading-relaxed" style={{ color: "rgba(200,220,240,0.75)" }}>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(200,220,240,0.80)" }}>
+                  Soms wil je eerst gewoon even iets hebben om op terug te vallen.
+                </p>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(200,220,240,0.80)" }}>
                   Ontvang Houvast gratis. Voor de momenten dat het verdriet te dichtbij komt en je niet weet wat je moet doen. Vijf herkenbare situaties, met telkens één kleine concrete stap.
                 </p>
-                <p className="text-xs italic" style={{ color: "rgba(200,220,240,0.50)" }}>
+                <p className="text-xs italic pt-1" style={{ color: "rgba(200,220,240,0.45)" }}>
                   Nog even twijfelen? Dat mag.
                 </p>
               </div>
