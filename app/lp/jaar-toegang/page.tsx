@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { MessageSquare, CalendarCheck, PencilLine, Gem, HandHelping, Sparkles, FileText, MessagesSquare } from "lucide-react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
@@ -14,42 +15,42 @@ const features = [
   {
     titel: "Praten met Benji",
     tekst: "Altijd iemand om je verhaal kwijt te kunnen. Benji luistert, stelt een vraag, laat je niet alleen met je gedachten. Dag en nacht beschikbaar.",
-    icoon: "💬",
+    icoon: MessageSquare,
   },
   {
     titel: "Dagelijkse check-ins",
     tekst: "Korte dagelijkse momenten om bij jezelf te landen. Hoe gaat het echt, op dit moment? Drie vragen, eerlijk antwoorden.",
-    icoon: "🌱",
+    icoon: CalendarCheck,
   },
   {
     titel: "Reflecties",
     tekst: "Schrijf op wat er in je leeft. Met emotietracking kun je zien hoe je je door de tijd heen hebt gevoeld.",
-    icoon: "📝",
+    icoon: PencilLine,
   },
   {
     titel: "Memories",
     tekst: "Een persoonlijke plek om herinneringen te bewaren aan wie of wat je mist. Met foto's, woorden en de datum die ertoe doet.",
-    icoon: "🌿",
+    icoon: Gem,
   },
   {
     titel: "Handreikingen",
     tekst: "Kleine, concrete oefeningen voor zware momenten. Afgestemd op wat jij nodig hebt, niet op wat anderen van je verwachten.",
-    icoon: "🤲",
+    icoon: HandHelping,
   },
   {
     titel: "Inspiratie & troost",
     tekst: "Gedichten, citaten en teksten die kunnen helpen als woorden van jezelf even niet komen. Bewaard voor als je ze nodig hebt.",
-    icoon: "✨",
+    icoon: Sparkles,
   },
   {
-    titel: "Een stille plek voor jezelf",
-    tekst: "Soms wil je gewoon schrijven. Geen vraag, geen structuur. Alleen jij en een leeg vel, zolang als je nodig hebt.",
-    icoon: "🗒️",
+    titel: "Schrijven zonder te hoeven uitleggen",
+    tekst: "Een leeg vel, geen vragen, geen structuur. Schrijf wat er is. Soms is dat het enige wat helpt.",
+    icoon: FileText,
   },
   {
-    titel: "Alles blijft bij je",
-    tekst: "Wat je deelt verdwijnt niet. Je kunt altijd terugkijken op wat je hebt geschreven, wanneer je daar klaar voor bent.",
-    icoon: "📁",
+    titel: "Terugkijken wanneer je er klaar voor bent",
+    tekst: "Alles wat je hebt geschreven en gedeeld blijft staan. Soms is het fijn om te zien hoe je er eerder in stond.",
+    icoon: MessagesSquare,
   },
 ];
 
@@ -59,12 +60,43 @@ const testimonials = [
     naam: "Annemiek, 47",
   },
   {
-    quote: "Die stille uren zijn het moeilijkst. Fijn dat er dan iets is waar je je verhaal kwijt kunt. Ik had niet verwacht dat het zoveel zou doen.",
+    quote: "Ik had niet verwacht dat het zoveel zou doen. Die stille uren zijn het moeilijkst, en fijn dat er dan iets is waar je je verhaal kwijt kunt.",
     naam: "Peter, 61",
   },
   {
     quote: "Het voelde gek om tegen een app te typen. Totdat ik merkte dat het echt hielp. Ik schreef dingen op die ik nog nooit hardop had gezegd.",
     naam: "Roos, 39",
+  },
+  {
+    quote: "Ik wilde eigenlijk niks. Geen therapie, geen praatgroep. Gewoon iets waarvoor ik niet hoefde uit te leggen wie ik ben. Benji is dat.",
+    naam: "Anoniem",
+  },
+];
+
+const faq = [
+  {
+    vraag: "Is dit een abonnement?",
+    antwoord: "Nee. Je betaalt eenmalig € 97 voor een vol jaar toegang. Geen automatische verlenging, geen verrassingen.",
+  },
+  {
+    vraag: "Hoe snel heb ik toegang?",
+    antwoord: "Direct na betaling. Je ontvangt een e-mail met een link om in te loggen of je account aan te maken.",
+  },
+  {
+    vraag: "Ik weet niet of het iets voor mij is.",
+    antwoord: "Je kunt Benji altijd eerst gratis proberen via de chat op de homepage, zonder account en zonder betaling. Kijk of het bij je past.",
+  },
+  {
+    vraag: "Is mijn verhaal veilig?",
+    antwoord: "Alles wat je schrijft is alleen voor jou. Je gesprekken en reflecties zijn privé en worden niet gedeeld.",
+  },
+  {
+    vraag: "Wat gebeurt er na een jaar?",
+    antwoord: "Je account blijft bestaan en alles wat je hebt opgeschreven blijft bewaard. Alleen de toegang tot de betaalde functies stopt. Je kunt dan kiezen of je wilt verlengen.",
+  },
+  {
+    vraag: "Ik heb al een gratis account.",
+    antwoord: "Geen probleem. Na betaling wordt je bestaande account direct geüpgraded. Je hoeft niks opnieuw in te stellen.",
   },
 ];
 
@@ -102,7 +134,7 @@ export default function JaarToegangsPage() {
             className="text-3xl sm:text-4xl font-semibold mb-5 leading-snug"
             style={{ color: "#3d3530", textWrap: "balance" } as React.CSSProperties}
           >
-            Een heel jaar lang Benji, voor als je er even niet alleen mee wil zijn
+            Een heel jaar lang Benji, voor als je er niet alleen mee wil zijn
           </h1>
           <p className="text-base sm:text-lg leading-relaxed mb-8" style={{ color: "#6b6460" }}>
             Niet per maand. Niet met gedoe. Gewoon een jaar lang alles beschikbaar, op het moment dat jij het nodig hebt.
@@ -111,7 +143,7 @@ export default function JaarToegangsPage() {
           {/* Prijs */}
           <div
             className="inline-flex flex-col items-center rounded-2xl px-8 py-6 mb-8"
-            style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 2px 24px rgba(0,0,0,0.07)", border: "1px solid rgba(0,0,0,0.07)" }}
+            style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 24px rgba(0,0,0,0.07)", border: "1px solid rgba(0,0,0,0.10)" }}
           >
             <p className="text-xs uppercase tracking-widest font-medium mb-2" style={{ color: "#8a8078" }}>eenmalig</p>
             <p className="text-5xl font-bold mb-1" style={{ color: "#3d3530" }}>€ 97</p>
@@ -129,30 +161,35 @@ export default function JaarToegangsPage() {
           </div>
         </div>
 
-        {/* Founder note — vroeg in de pagina */}
+        {/* Founder note */}
         <div className="mb-14 max-w-xl mx-auto">
           <div
-            className="rounded-2xl px-6 py-7 flex items-start gap-5"
-            style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.07)" }}
+            className="rounded-2xl px-6 py-7"
+            style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 20px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.10)" }}
           >
-            <div className="relative w-20 h-20 rounded-full overflow-hidden flex-shrink-0">
-              <Image
-                src="/images/ien-founder.png"
-                alt="Ien, founder van Talk To Benji"
-                fill
-                className="object-cover"
-              />
+            <div className="flex items-start gap-5 mb-5">
+              <div className="relative w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+                <Image
+                  src="/images/ien-founder.png"
+                  alt="Ien, founder van Talk To Benji"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="pt-1">
+                <p className="text-sm font-semibold" style={{ color: "#3d3530" }}>Ien</p>
+                <p className="text-xs mt-0.5" style={{ color: "#8a8078" }}>Founder van Talk To Benji</p>
+                <p className="text-sm leading-relaxed mt-2" style={{ color: "#4a5568" }}>
+                  Benji is gemaakt omdat verdriet geen kantooruren kent. Omdat iemand die mist niet tot maandag kan wachten.
+                </p>
+              </div>
             </div>
-            <div className="pt-1">
-              <p className="text-xs mb-2" style={{ color: "#8a8078" }}>Van de maker</p>
-              <p className="text-sm leading-relaxed mb-2" style={{ color: "#4a5568" }}>
-                Benji is gemaakt omdat verdriet geen kantooruren kent. Omdat iemand die mist niet tot maandag kan wachten. En omdat er soms gewoon iets moet zijn dat er is als jij het nodig hebt.
-              </p>
-              <p className="text-sm leading-relaxed" style={{ color: "#4a5568" }}>
-                Ik maakte Benji na mijn eigen verlies. Dit is wat ik toen had willen hebben.
-              </p>
-              <p className="text-sm font-medium mt-3" style={{ color: "#3d3530" }}>Ien</p>
-            </div>
+            <blockquote
+              className="text-base sm:text-lg font-medium leading-snug px-1 pt-1 border-l-2 pl-4"
+              style={{ color: "#3d3530", borderColor: "#6d84a8" }}
+            >
+              Dit is wat ik toen had willen hebben.
+            </blockquote>
           </div>
         </div>
 
@@ -162,19 +199,22 @@ export default function JaarToegangsPage() {
             Wat zit er allemaal in?
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
-            {features.map((f, i) => (
-              <div
-                key={i}
-                className="rounded-2xl px-5 py-5 flex gap-4"
-                style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 1px 12px rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.06)" }}
-              >
-                <span className="text-2xl flex-shrink-0 mt-0.5">{f.icoon}</span>
-                <div>
-                  <p className="text-sm font-semibold mb-1" style={{ color: "#3d3530" }}>{f.titel}</p>
-                  <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{f.tekst}</p>
+            {features.map((f, i) => {
+              const Icoon = f.icoon;
+              return (
+                <div
+                  key={i}
+                  className="rounded-2xl px-5 py-5 flex gap-4"
+                  style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 1px 8px rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.10)" }}
+                >
+                  <Icoon size={20} className="flex-shrink-0 mt-0.5" style={{ color: "#6d84a8" }} strokeWidth={1.5} />
+                  <div>
+                    <p className="text-sm font-semibold mb-1" style={{ color: "#3d3530" }}>{f.titel}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{f.tekst}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -185,17 +225,25 @@ export default function JaarToegangsPage() {
           </h2>
           <div className="space-y-3">
             {[
-              "Voor wie verdriet heeft en soms gewoon niet alleen wil zijn met wat er 's nachts door je hoofd gaat.",
-              "Voor wie rouwt om iemand, en merkt hoe moeilijk het is om dat steeds opnieuw uit te leggen aan mensen om je heen.",
-              "Voor wie niet altijd klaar is voor een therapeut, maar ook niet alleen wil zijn met wat er speelt.",
-              "Voor wie herinneringen wil bewaren, niet vergeten. En soms troost wil vinden in woorden.",
-            ].map((tekst, i) => (
+              {
+                tekst: "Je ligt wakker en het is te laat om iemand te bellen. Niet omdat er niemand is, maar omdat je hen niet wakker wilt maken met iets wat je zelf ook niet precies kunt uitleggen.",
+              },
+              {
+                tekst: "Je zegt 'gaat wel' als mensen vragen hoe het is. Niet omdat het waar is, maar omdat het echte antwoord te groot is voor tussendoor.",
+              },
+              {
+                tekst: "Je bent er misschien nog niet klaar voor om alles op te rakelen bij een therapeut. Maar volledig alleen laten gaan lukt ook niet.",
+              },
+              {
+                tekst: "Je wil niet vergeten. Wie iemand was, hoe iets voelde, wat er was. Je zoekt een plek waar herinneringen mogen bestaan.",
+              },
+            ].map((item, i) => (
               <div
                 key={i}
                 className="rounded-xl px-5 py-4"
-                style={{ background: "rgba(255,255,255,0.80)", border: "1px solid rgba(0,0,0,0.06)" }}
+                style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(0,0,0,0.10)" }}
               >
-                <p className="text-sm leading-relaxed" style={{ color: "#4a5568" }}>{tekst}</p>
+                <p className="text-sm leading-relaxed" style={{ color: "#4a5568" }}>{item.tekst}</p>
               </div>
             ))}
           </div>
@@ -206,12 +254,12 @@ export default function JaarToegangsPage() {
           <p className="text-xs uppercase tracking-widest text-center mb-6" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
             Wat anderen zeggen
           </p>
-          <div className="grid sm:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4">
             {testimonials.map((t, i) => (
               <div
                 key={i}
                 className="rounded-2xl px-5 py-5"
-                style={{ background: "rgba(255,255,255,0.80)", border: "1px solid rgba(0,0,0,0.06)" }}
+                style={{ background: "rgba(255,255,255,0.88)", border: "1px solid rgba(0,0,0,0.10)" }}
               >
                 <p className="text-sm leading-relaxed mb-3" style={{ color: "#4a5568" }}>
                   &ldquo;{t.quote}&rdquo;
@@ -222,16 +270,35 @@ export default function JaarToegangsPage() {
           </div>
         </div>
 
+        {/* FAQ */}
+        <div className="mb-14">
+          <h2 className="text-xl sm:text-2xl font-semibold text-center mb-8" style={{ color: "#3d3530" }}>
+            Veelgestelde vragen
+          </h2>
+          <div className="space-y-3 max-w-xl mx-auto">
+            {faq.map((item, i) => (
+              <div
+                key={i}
+                className="rounded-2xl px-5 py-5"
+                style={{ background: "rgba(255,255,255,0.95)", border: "1px solid rgba(0,0,0,0.10)" }}
+              >
+                <p className="text-sm font-semibold mb-2" style={{ color: "#3d3530" }}>{item.vraag}</p>
+                <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{item.antwoord}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* CTA herhaling */}
         <div
           className="rounded-2xl px-6 sm:px-10 py-10 text-center mb-14"
-          style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 2px 24px rgba(0,0,0,0.07)", border: "1px solid rgba(0,0,0,0.07)" }}
+          style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 24px rgba(0,0,0,0.07)", border: "1px solid rgba(0,0,0,0.10)" }}
         >
           <p className="text-xl sm:text-2xl font-semibold mb-3" style={{ color: "#3d3530" }}>
             Een jaar lang niet alleen
           </p>
           <p className="text-sm leading-relaxed mb-6 max-w-md mx-auto" style={{ color: "#6b6460" }}>
-            Geen maandelijkse beslissing. Geen gedoe. Gewoon toegang tot alles, voor één prijs, één jaar lang.
+            Voor één prijs, één jaar lang alles beschikbaar.
           </p>
           <a
             href={KENNIS_SHOP_URL}
