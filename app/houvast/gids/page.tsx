@@ -191,9 +191,20 @@ export default function HouvasteGidsPage() {
 
   const toggleOpname = (momentId: string) => {
     if (luistert === momentId) {
-      herkenningRef.current?.stop();
+      if (herkenningRef.current) {
+        herkenningRef.current.onend = null;
+        herkenningRef.current.onerror = null;
+        try { herkenningRef.current.stop(); } catch {}
+      }
       setLuistert(null);
       return;
+    }
+    // Stop en neutraliseer bestaande instantie zodat zijn onend de nieuwe state niet reset
+    if (herkenningRef.current) {
+      herkenningRef.current.onend = null;
+      herkenningRef.current.onerror = null;
+      try { herkenningRef.current.stop(); } catch {}
+      herkenningRef.current = null;
     }
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return;
@@ -208,10 +219,20 @@ export default function HouvasteGidsPage() {
         .join(" ");
       setAntwoorden((prev) => ({ ...prev, [momentId]: (prev[momentId] || "") + (prev[momentId] ? " " : "") + tekst }));
     };
-    herkenning.onend = () => setLuistert(null);
+    // Alleen state resetten als dit nog de actieve instantie is
+    herkenning.onend = () => {
+      if (herkenningRef.current === herkenning) setLuistert(null);
+    };
+    herkenning.onerror = () => {
+      if (herkenningRef.current === herkenning) setLuistert(null);
+    };
     herkenningRef.current = herkenning;
-    herkenning.start();
-    setLuistert(momentId);
+    try {
+      herkenning.start();
+      setLuistert(momentId);
+    } catch {
+      setLuistert(null);
+    }
   };
 
   const verwerkFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
