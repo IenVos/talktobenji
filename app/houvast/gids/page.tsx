@@ -161,6 +161,8 @@ export default function HouvasteGidsPage() {
   const [luistert, setLuistert] = useState<string | null>(null);
   const herkenningRef = useRef<any>(null);
   const fotoInputRef = useRef<HTMLInputElement>(null);
+  const [wachtwoord, setWachtwoord] = useState("");
+  const [aanmeldStatus, setAanmeldStatus] = useState<"idle" | "loading" | "success" | "bestaand" | "error">("idle");
 
   // Laad opgeslagen antwoorden uit localStorage
   useEffect(() => {
@@ -232,6 +234,28 @@ export default function HouvasteGidsPage() {
       setLuistert(momentId);
     } catch {
       setLuistert(null);
+    }
+  };
+
+  const registreer = async () => {
+    if (!profiel?.email || wachtwoord.length < 8) return;
+    setAanmeldStatus("loading");
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: profiel.email, password: wachtwoord, name: "" }),
+      });
+      const data = await res.json();
+      if (res.status === 409 || data?.error?.toLowerCase().includes("bestaat")) {
+        setAanmeldStatus("bestaand");
+      } else if (!res.ok) {
+        setAanmeldStatus("error");
+      } else {
+        setAanmeldStatus("success");
+      }
+    } catch {
+      setAanmeldStatus("error");
     }
   };
 
@@ -549,7 +573,7 @@ export default function HouvasteGidsPage() {
                 <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>En nu?</h2>
 
                 <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-                  Houvast is een begin. Als je merkt dat je vaker ergens mee wil, is Benji er voor de langere weg.
+                  'Houvast' is er voor de eerste stap. Voor de langere weg is Benji er.
                 </p>
 
                 <div className="space-y-3">
@@ -567,17 +591,70 @@ export default function HouvasteGidsPage() {
                   ))}
                 </div>
 
-                <Link
-                  href="/"
-                  className="block w-full text-center py-3.5 rounded-2xl font-medium text-white text-sm"
-                  style={{ background: "#6d84a8" }}
-                >
-                  Praat met Benji
-                </Link>
-
-                <p className="text-xs text-center" style={{ color: "#a09890" }}>
-                  Je eerste gesprekken zijn gratis, zonder account.
-                </p>
+                {/* Aanmeldformulier */}
+                {aanmeldStatus === "success" ? (
+                  <div className="rounded-xl px-5 py-5 text-center space-y-2" style={{ background: "rgba(109,132,168,0.08)" }}>
+                    <p className="text-sm font-medium" style={{ color: "#3d3530" }}>Account aangemaakt.</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+                      Je hebt 7 dagen gratis toegang tot alles. Log in om te beginnen.
+                    </p>
+                    <Link
+                      href="/inloggen"
+                      className="inline-block mt-2 w-full py-3 rounded-2xl font-medium text-white text-sm"
+                      style={{ background: "#6d84a8" }}
+                    >
+                      Inloggen bij Benji
+                    </Link>
+                  </div>
+                ) : aanmeldStatus === "bestaand" ? (
+                  <div className="rounded-xl px-5 py-5 space-y-3" style={{ background: "rgba(109,132,168,0.08)" }}>
+                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+                      Je hebt al een account met dit e-mailadres. Log direct in.
+                    </p>
+                    <Link
+                      href="/inloggen"
+                      className="block w-full text-center py-3 rounded-2xl font-medium text-white text-sm"
+                      style={{ background: "#6d84a8" }}
+                    >
+                      Inloggen bij Benji
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3 pt-1">
+                    <p className="text-sm font-medium" style={{ color: "#3d3530" }}>
+                      Start 7 dagen gratis
+                    </p>
+                    <input
+                      type="email"
+                      readOnly
+                      value={profiel?.email ?? ""}
+                      className="w-full px-4 py-3 rounded-xl text-sm outline-none opacity-60"
+                      style={{ background: "rgba(0,0,0,0.04)", border: "1px solid rgba(0,0,0,0.08)", color: "#3d3530" }}
+                    />
+                    <input
+                      type="password"
+                      placeholder="Kies een wachtwoord (min. 8 tekens)"
+                      value={wachtwoord}
+                      onChange={(e) => setWachtwoord(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                      style={{ background: "rgba(255,255,255,0.90)", border: "1px solid rgba(0,0,0,0.08)", color: "#3d3530" }}
+                    />
+                    {aanmeldStatus === "error" && (
+                      <p className="text-xs" style={{ color: "#c0392b" }}>Er ging iets mis. Probeer het opnieuw.</p>
+                    )}
+                    <button
+                      onClick={registreer}
+                      disabled={aanmeldStatus === "loading" || wachtwoord.length < 8}
+                      className="w-full py-3.5 rounded-2xl font-medium text-white text-sm disabled:opacity-50"
+                      style={{ background: "#6d84a8" }}
+                    >
+                      {aanmeldStatus === "loading" ? "Bezig…" : "Maak mijn account aan"}
+                    </button>
+                    <p className="text-xs text-center" style={{ color: "#a09890" }}>
+                      7 dagen gratis, daarna kun je kiezen of je verder wilt.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
