@@ -754,6 +754,30 @@ export default function AdminAnalytics() {
               <p className="text-xs text-primary-400 pt-1">
                 Totaal ooit aangevraagd: <span className="font-semibold text-primary-600">{featureStats.houvast.allTime}</span>
               </p>
+
+              {/* Lijst aanvragers */}
+              {featureStats.houvast.list.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-primary-100 space-y-2">
+                  {featureStats.houvast.list.map((h: { email: string; name: string | null; createdAt: number; heeftAccount: boolean }, i: number) => (
+                    <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-primary-50 last:border-0">
+                      <div>
+                        {h.name && <span className="font-medium text-primary-800 mr-1.5">{h.name}</span>}
+                        <span className="text-primary-500">{h.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                        <span className="text-primary-400">
+                          {new Date(h.createdAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}
+                        </span>
+                        {h.heeftAccount ? (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700">account</span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-400">geen account</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-xs text-primary-400">Laden…</div>

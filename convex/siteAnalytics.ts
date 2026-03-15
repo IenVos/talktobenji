@@ -245,11 +245,21 @@ export const getFeatureStats = query({
     // Feature gebruik in periode — gebruik _creationTime als fallback als createdAt ontbreekt
     const ts = (item: any) => item.createdAt ?? item._creationTime ?? 0;
 
+    const convertedEmails = new Set(houvasteConverted.map((h: any) => h.email));
+
     return {
       houvast: {
         total: houvasteInPeriod.length,
         converted: houvasteConverted.length,
         allTime: houvasteProfielen.length,
+        list: houvasteInPeriod
+          .sort((a: any, b: any) => b.createdAt - a.createdAt)
+          .map((h: any) => ({
+            email: h.email,
+            name: h.name ?? null,
+            createdAt: h.createdAt,
+            heeftAccount: convertedEmails.has(h.email),
+          })),
       },
       features: [
         { label: "Reflecties", count: notes.filter((n: any) => inRange(ts(n))).length, allTime: notes.length },
