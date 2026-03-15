@@ -601,7 +601,7 @@ export default function HouvasteGidsPage() {
                       Je hebt 7 dagen gratis toegang tot alles. Log in om te beginnen.
                     </p>
                     <Link
-                      href="/inloggen"
+                      href={`/inloggen?email=${encodeURIComponent(profiel?.email ?? "")}&registered=1`}
                       className="inline-block mt-2 w-full py-3 rounded-2xl font-medium text-white text-sm"
                       style={{ background: "#6d84a8" }}
                     >
@@ -614,7 +614,7 @@ export default function HouvasteGidsPage() {
                       Je hebt al een account met dit e-mailadres. Log direct in.
                     </p>
                     <Link
-                      href="/inloggen"
+                      href={`/inloggen?email=${encodeURIComponent(profiel?.email ?? "")}`}
                       className="block w-full text-center py-3 rounded-2xl font-medium text-white text-sm"
                       style={{ background: "#6d84a8" }}
                     >
