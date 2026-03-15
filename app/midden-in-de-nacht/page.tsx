@@ -42,7 +42,7 @@ function HouvasteWolkje() {
             }}
           >
             <span style={{ fontSize: 15 }}>🌿</span>
-            Even rustig aan?
+            Weet je het nog niet?
           </button>
         </div>
       )}
