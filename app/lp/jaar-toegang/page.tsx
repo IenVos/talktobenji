@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "Eén jaar lang toegang tot alles wat Benji te bieden heeft. Gesprekken, reflecties, memories, inspiratie, handreikingen en meer. € 97 eenmalig.",
 };
 
-const KENNIS_SHOP_URL = "#"; // vervangen zodra KS link beschikbaar is
+const KENNIS_SHOP_URL = "https://talktobenji.kennis.shop/pay/je-hoeft-het-niet-alleen-te-dragen";
 
 const features = [
   {
