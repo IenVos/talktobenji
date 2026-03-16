@@ -136,17 +136,21 @@ export const authOptions: AuthOptions = {
       }
 
       try {
-        // Normaliseer PEM: Vercel slaat \n op als letterlijke tekst, niet als newlines
-        let privateKeyPem = rawKey
-          .replace(/\\n/g, "\n")   // letterlijke \n → newline
-          .replace(/\r\n/g, "\n")  // Windows newlines → Unix
+        // Normaliseer PEM: herstel correcte PKCS8 structuur ongeacht hoe Vercel de key opslaat
+        const normalized = rawKey
+          .replace(/\\n/g, "\n")
+          .replace(/\r\n/g, "\n")
           .trim();
 
-        // Diagnose: log eerste 50 tekens (veilig, geen sleutelmateriaal)
-        const keyPrefix = privateKeyPem.substring(0, 50);
-        if (!privateKeyPem.includes("-----BEGIN PRIVATE KEY-----")) {
-          console.error("CONVEX_AUTH_PRIVATE_KEY heeft verkeerd formaat. Start met:", keyPrefix);
-        }
+        // Extraheer base64 body en bouw PEM opnieuw op met correcte regelafbrekingen
+        const pemHeader = "-----BEGIN PRIVATE KEY-----";
+        const pemFooter = "-----END PRIVATE KEY-----";
+        const base64Body = normalized
+          .replace(/-----BEGIN [A-Z ]+-----/g, "")
+          .replace(/-----END [A-Z ]+-----/g, "")
+          .replace(/\s+/g, "");
+        const wrappedBody = base64Body.match(/.{1,64}/g)?.join("\n") ?? base64Body;
+        const privateKeyPem = `${pemHeader}\n${wrappedBody}\n${pemFooter}`;
 
         const privateKey = await importPKCS8(privateKeyPem, "RS256");
         const convexToken = await new SignJWT({ sub: userId })
