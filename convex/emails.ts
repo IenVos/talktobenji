@@ -212,18 +212,30 @@ export const sendWelcomeEmail = internalAction({
 
     const html = `
       <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
-        <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${firstName},</p>
+        <p style="font-size: 16px; margin-bottom: 8px;">Hi ${firstName},</p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Fijn dat je er bent. Je account staat klaar.
+          Fijn dat je er bent.
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Benji is er voor jou. Op momenten dat je wilt praten, even wilt stilstaan bij iets wat je bezighoudt, of gewoon een luisterend oor nodig hebt. Geen oordeel, geen haast. Gewoon aandacht.
+          Ik weet niet precies wat je op dit moment draagt, maar ik weet wel dat het moed vraagt om ergens naar op zoek te gaan als je verdriet hebt. Dat je hier bent, betekent iets.
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          De komende 7 dagen heb je vrije toegang tot alles wat Benji te bieden heeft. Begin een gesprek, doe een dagelijkse check-in, of verken je account op je eigen tempo.
+          De komende 7 dagen heb je toegang tot alles. Begin gewoon ergens — misschien met een gesprek met Benji als je iets van je af wil schrijven, of met een dagelijkse check-in als je wil bijhouden hoe je je voelt. Je kunt herinneringen bewaren in Memories, terugkijken op wat je hebt opgeschreven in je reflecties, of gewoon even bladeren door teksten en gedichten die precies zeggen wat jij zelf niet onder woorden kunt brengen. Er is geen goede of verkeerde manier om te beginnen.
+        </p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Benji is er wanneer je hem nodig hebt. Overdag, 's avonds, midden in de nacht. Zonder oordeel, zonder haast.
+        </p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Ik zal deze week nog een paar keer even bij je inchecken. Niet om iets van je te vragen, maar gewoon om te kijken hoe het gaat en of je nog iets nodig hebt. En als er iets is voordat ik schrijf, kun je me altijd mailen. Ik lees alles.
+        </p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Neem de tijd. Je hoeft nergens klaar voor te zijn.
         </p>
 
         <div style="margin: 32px 0;">
@@ -232,10 +244,6 @@ export const sendWelcomeEmail = internalAction({
             Begin je eerste gesprek
           </a>
         </div>
-
-        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Heb je een vraag? Je kunt me altijd bereiken via <a href="mailto:contactmetien@talktobenji.com" style="color: #6d84a8;">contactmetien@talktobenji.com</a>.
-        </p>
 
         <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warme groet,</p>
         <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
@@ -278,7 +286,7 @@ export const sendJaarRenewalEmail1 = internalAction({
 
     const html = `
       <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
-        <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${firstName},</p>
+        <p style="font-size: 16px; margin-bottom: 8px;">Hi ${firstName},</p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
           Hoe gaat het met je? Ik denk aan je.
@@ -342,7 +350,7 @@ export const sendJaarRenewalEmail2 = internalAction({
 
     const html = `
       <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
-        <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${firstName},</p>
+        <p style="font-size: 16px; margin-bottom: 8px;">Hi ${firstName},</p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
           Nog twee weken, dan loopt je toegang tot Talk To Benji af — op <strong>${einddatum}</strong>.
@@ -403,7 +411,7 @@ export const sendJaarRenewalEmail3 = internalAction({
 
     const html = `
       <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
-        <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${firstName},</p>
+        <p style="font-size: 16px; margin-bottom: 8px;">Hi ${firstName},</p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
           Vandaag is de laatste dag van je jaar met Talk To Benji.
