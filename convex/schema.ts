@@ -484,6 +484,12 @@ export default defineSchema({
     createdAt: v.number(),
   }),
 
+  analyticsExcludedEmails: defineTable({
+    email: v.string(),
+    label: v.optional(v.string()),
+    createdAt: v.number(),
+  }),
+
   // Aankomende functies (beheerbaar via admin)
   comingSoonFeatures: defineTable({
     featureId: v.string(),   // slug voor vote-tracking

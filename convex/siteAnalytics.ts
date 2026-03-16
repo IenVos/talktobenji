@@ -66,6 +66,37 @@ export const removeExcludedIp = mutation({
   },
 });
 
+/** Email-adressen beheren voor uitsluiting van conversies (admin only). */
+export const listExcludedEmails = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return await ctx.db.query("analyticsExcludedEmails").collect();
+  },
+});
+
+export const addExcludedEmail = mutation({
+  args: { adminToken: v.string(), email: v.string(), label: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const existing = await ctx.db.query("analyticsExcludedEmails").collect();
+    if (existing.some((e) => e.email === args.email.toLowerCase())) return null;
+    return await ctx.db.insert("analyticsExcludedEmails", {
+      email: args.email.toLowerCase(),
+      label: args.label,
+      createdAt: Date.now(),
+    });
+  },
+});
+
+export const removeExcludedEmail = mutation({
+  args: { adminToken: v.string(), id: v.id("analyticsExcludedEmails") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    await ctx.db.delete(args.id);
+  },
+});
+
 /** Verwijder paginabezoeken vóór een bepaalde datum (admin only). */
 export const deleteOldViews = mutation({
   args: { adminToken: v.string(), before: v.number() },
@@ -184,9 +215,16 @@ export const getStats = query({
     };
 
     // -- Dagelijkse conversies (userSubscriptions) --
-    const allSubs = await ctx.db.query("userSubscriptions").collect();
+    const [allSubs, excludedEmails] = await Promise.all([
+      ctx.db.query("userSubscriptions").collect(),
+      ctx.db.query("analyticsExcludedEmails").collect(),
+    ]);
+    const excludedEmailSet = new Set(excludedEmails.map((e) => e.email.toLowerCase()));
     const subsInRange = allSubs.filter(
-      (s) => s.startedAt >= args.from && s.startedAt <= args.to
+      (s) =>
+        s.startedAt >= args.from &&
+        s.startedAt <= args.to &&
+        (!s.email || !excludedEmailSet.has(s.email.toLowerCase()))
     );
 
     const convMap: Record<

@@ -297,11 +297,15 @@ export default function AdminAnalytics() {
   const excludedIps = useAdminQuery(api.siteAnalytics.listExcludedIps, {});
   const addExcludedIp = useAdminMutation(api.siteAnalytics.addExcludedIp);
   const removeExcludedIp = useAdminMutation(api.siteAnalytics.removeExcludedIp);
+  const excludedEmails = useAdminQuery(api.siteAnalytics.listExcludedEmails, {});
+  const addExcludedEmail = useAdminMutation(api.siteAnalytics.addExcludedEmail);
+  const removeExcludedEmail = useAdminMutation(api.siteAnalytics.removeExcludedEmail);
   const deleteOldViews = useAdminMutation(api.siteAnalytics.deleteOldViews);
 
   const [loadTimeout, setLoadTimeout] = useState(false);
   const [myIp, setMyIp] = useState<string | null>(null);
   const [cleanupMsg, setCleanupMsg] = useState<string | null>(null);
+  const [newExcludedEmail, setNewExcludedEmail] = useState("");
 
   useEffect(() => {
     fetch("/api/my-ip").then(r => r.json()).then(d => setMyIp(d.ip ?? null)).catch(() => {});
@@ -716,7 +720,7 @@ export default function AdminAnalytics() {
                 </td>
               </tr>
               <tr>
-                <td className="py-2 text-primary-600">Betaald abonnement</td>
+                <td className="py-2 text-primary-600">1 jaar toegang</td>
                 <td className="py-2 text-right font-semibold text-primary-900">
                   {stats.dailyConversions
                     .reduce((s: number, d: DailyConversion) => s + d.paid, 0)
@@ -920,6 +924,57 @@ export default function AdminAnalytics() {
             ))}
             {excludedIps?.length === 0 && (
               <p className="text-xs text-primary-400">Nog geen IPs uitgesloten.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Email uitsluiting (testbetalingen) */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-1 flex items-center gap-2">
+            <Shield size={16} className="text-primary-500" />
+            Uitgesloten emails
+          </h2>
+          <p className="text-xs text-primary-500 mb-4">Betalingen van deze emails worden niet geteld als conversie.</p>
+
+          {/* Nieuw email toevoegen */}
+          <div className="flex gap-2 mb-3">
+            <input
+              type="email"
+              value={newExcludedEmail}
+              onChange={(e) => setNewExcludedEmail(e.target.value)}
+              placeholder="email@voorbeeld.nl"
+              className="flex-1 text-xs px-3 py-2 border border-primary-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-400"
+            />
+            <button
+              onClick={() => {
+                if (!newExcludedEmail.trim()) return;
+                addExcludedEmail({ email: newExcludedEmail.trim(), label: "Test" }).catch(() => {});
+                setNewExcludedEmail("");
+              }}
+              className="flex items-center gap-1 text-xs px-3 py-2 bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg transition-colors"
+            >
+              <Plus size={12} /> Toevoegen
+            </button>
+          </div>
+
+          {/* Lijst */}
+          <div className="space-y-2">
+            {(excludedEmails ?? []).map((entry: any) => (
+              <div key={entry._id} className="flex items-center justify-between text-xs bg-primary-50 rounded-lg px-3 py-2">
+                <div>
+                  <span className="text-primary-800">{entry.email}</span>
+                  {entry.label && <span className="text-primary-500 ml-2">({entry.label})</span>}
+                </div>
+                <button
+                  onClick={() => removeExcludedEmail({ id: entry._id }).catch(() => {})}
+                  className="text-red-400 hover:text-red-600 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+            {excludedEmails?.length === 0 && (
+              <p className="text-xs text-primary-400">Nog geen emails uitgesloten.</p>
             )}
           </div>
         </div>
