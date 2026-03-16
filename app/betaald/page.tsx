@@ -45,7 +45,7 @@ export default function BetaaldPage() {
               {naam ? `Fijn dat je er bent, ${naam}.` : "Fijn dat je er bent."}
             </h1>
             <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-              Je abonnement is geactiveerd. Benji is er nu volledig voor jou —
+              Het komende jaar kun je gebruik maken van Benji —
               wanneer je wilt praten, reflecteren of gewoon even wilt stilstaan.
             </p>
           </div>
@@ -79,12 +79,6 @@ export default function BetaaldPage() {
                 >
                   Naar mijn account
                   <ArrowRight size={18} />
-                </Link>
-                <Link
-                  href="/chat"
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-primary-300 text-primary-700 rounded-xl font-medium hover:border-primary-500 transition-colors"
-                >
-                  Gesprek starten
                 </Link>
               </>
             ) : (

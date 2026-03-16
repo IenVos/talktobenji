@@ -13,12 +13,17 @@ interface ConversationLimitGateProps {
   children: React.ReactNode;
 }
 
+// Tijdelijk uitgeschakeld voor jaar-toegang model — zet op true voor abo-model
+const GATING_ENABLED = false;
+
 export function ConversationLimitGate({
   userId,
   email,
   anonymousCount,
   children,
 }: ConversationLimitGateProps) {
+  if (!GATING_ENABLED) return <>{children}</>;
+
   const usage = useQuery(
     api.subscriptions.getConversationCount,
     userId ? { userId, email } : "skip"

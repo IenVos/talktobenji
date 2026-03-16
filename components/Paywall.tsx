@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { Lock } from "lucide-react";
 
+// Tijdelijk uitgeschakeld voor jaar-toegang model — zet op true voor abo-model
+const GATING_ENABLED = false;
+
 interface PaywallProps {
   title?: string;
   message: string;
@@ -18,6 +21,8 @@ export function Paywall({
   ctaLink = "/account/abonnement?upgrade=true",
   children,
 }: PaywallProps) {
+  if (!GATING_ENABLED) return <>{children}</>;
+
   return (
     <div className="relative min-h-[600px]">
       {/* Content achter de paywall - blurred */}

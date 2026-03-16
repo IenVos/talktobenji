@@ -61,7 +61,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (prodId === process.env.KENNISSHOP_PRODUCT_UITGEBREID) return "uitgebreid";
     if (prodId === process.env.KENNISSHOP_PRODUCT_ALLES_IN_1) return "alles_in_1";
     if (prodId === process.env.KENNISSHOP_PRODUCT_NIET_ALLEEN) return "niet_alleen";
+    if (prodId === process.env.KENNISSHOP_PRODUCT_JAAR_TOEGANG) return "alles_in_1";
     return null;
+  }
+
+  function isJaarToegang(prodId?: string): boolean {
+    return !!prodId && prodId === process.env.KENNISSHOP_PRODUCT_JAAR_TOEGANG;
   }
 
   const naam: string = data?.customer_first_name
@@ -134,11 +139,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(200).json({ received: true, action: "niet_alleen_activated" });
     }
 
+    const billingPeriod = isJaarToegang(productId) ? "yearly" : "monthly";
+
     await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
       webhookSecret,
       email,
       subscriptionType,
-      billingPeriod: "monthly",
+      billingPeriod,
       externalSubscriptionId: externalId,
       paymentProvider: "kennisshop",
     });
@@ -146,8 +153,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // MailerLite — voeg toe aan de juiste groep
     if (subscriptionType === "uitgebreid") {
       await voegToeAanMailerLite(process.env.MAILERLITE_GROUP_UITGEBREID!);
-    } else if (subscriptionType === "alles_in_1") {
+    } else if (subscriptionType === "alles_in_1" && !isJaarToegang(productId)) {
       await voegToeAanMailerLite(process.env.MAILERLITE_GROUP_ALLES_IN_1!);
+    } else if (isJaarToegang(productId) && process.env.MAILERLITE_GROUP_JAAR_TOEGANG) {
+      await voegToeAanMailerLite(process.env.MAILERLITE_GROUP_JAAR_TOEGANG);
     }
 
     console.log(`[KennisShop webhook] Abonnement geactiveerd: ${email} → ${subscriptionType}`);

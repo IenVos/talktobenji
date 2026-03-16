@@ -309,9 +309,9 @@ export default function AdminAnalytics() {
 
   useEffect(() => {
     setLoadTimeout(false);
-    const t = setTimeout(() => setLoadTimeout(true), 8000);
+    const t = setTimeout(() => setLoadTimeout(true), 20000);
     return () => clearTimeout(t);
-  }, [days]);
+  }, [days, from, to]);
 
   // Lijn-toggle states
   const [viewsActive, setViewsActive] = useState(true);

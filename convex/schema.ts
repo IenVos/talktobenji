@@ -242,6 +242,9 @@ export default defineSchema({
     externalSubscriptionId: v.optional(v.string()),
     reminderDay5Sent: v.optional(v.boolean()),
     reminderDay7Sent: v.optional(v.boolean()),
+    renewalEmail1SentAt: v.optional(v.number()), // 30 dagen voor einde jaar-toegang
+    renewalEmail2SentAt: v.optional(v.number()), // 15 dagen voor einde jaar-toegang
+    renewalEmail3SentAt: v.optional(v.number()), // laatste dag jaar-toegang
     cancellationReason: v.optional(v.string()),
     cancellationValuable: v.optional(v.string()),
     cancellationWouldRecommend: v.optional(v.string()),

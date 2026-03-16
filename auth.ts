@@ -137,7 +137,17 @@ export const authOptions: AuthOptions = {
 
       try {
         // Normaliseer PEM: Vercel slaat \n op als letterlijke tekst, niet als newlines
-        const privateKeyPem = rawKey.replace(/\\n/g, "\n");
+        let privateKeyPem = rawKey
+          .replace(/\\n/g, "\n")   // letterlijke \n → newline
+          .replace(/\r\n/g, "\n")  // Windows newlines → Unix
+          .trim();
+
+        // Diagnose: log eerste 50 tekens (veilig, geen sleutelmateriaal)
+        const keyPrefix = privateKeyPem.substring(0, 50);
+        if (!privateKeyPem.includes("-----BEGIN PRIVATE KEY-----")) {
+          console.error("CONVEX_AUTH_PRIVATE_KEY heeft verkeerd formaat. Start met:", keyPrefix);
+        }
+
         const privateKey = await importPKCS8(privateKeyPem, "RS256");
         const convexToken = await new SignJWT({ sub: userId })
           .setProtectedHeader({ alg: "RS256" })

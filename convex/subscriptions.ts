@@ -279,6 +279,12 @@ export const activateSubscriptionByEmail = mutation({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .first();
 
+    // Jaar-toegang: access loopt 365 dagen na aankoop af
+    const expiresAt =
+      args.billingPeriod === "yearly"
+        ? now + 365 * 24 * 60 * 60 * 1000
+        : undefined;
+
     const subscriptionData = {
       userId,
       email: emailLower,
@@ -289,8 +295,7 @@ export const activateSubscriptionByEmail = mutation({
       externalSubscriptionId: args.externalSubscriptionId,
       paymentProvider: args.paymentProvider || "kennisshop",
       updatedAt: now,
-      // Trial velden verwijderen bij upgrade
-      expiresAt: undefined,
+      expiresAt,
     };
 
     if (existing) {

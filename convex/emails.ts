@@ -261,6 +261,195 @@ export const sendWelcomeEmail = internalAction({
   },
 });
 
+export const sendJaarRenewalEmail1 = internalAction({
+  args: {
+    email: v.string(),
+    name: v.string(),
+    expiresAt: v.number(),
+  },
+  handler: async (_ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) return;
+
+    const firstName = args.name.split(" ")[0] || args.name;
+    const einddatum = new Date(args.expiresAt).toLocaleDateString("nl-NL", {
+      day: "numeric", month: "long", year: "numeric",
+    });
+
+    const html = `
+      <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
+        <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${firstName},</p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Hoe gaat het met je? Ik denk aan je.
+        </p>
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Het is bijna een jaar geleden dat je met Talk To Benji bent begonnen. Ik hoop dat het je heeft geholpen — op welke manier dan ook. Dat Benji er op de moeilijke momenten was, en op de gewone.
+        </p>
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Je toegang loopt op <strong>${einddatum}</strong> af. Als je nog een jaar samen wil gaan, is dat van harte welkom.
+        </p>
+
+        <div style="margin: 32px 0;">
+          <a href="https://talktobenji.kennis.shop/pay/je-hoeft-het-niet-alleen-te-dragen"
+             style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
+            Nog een jaar samen
+          </a>
+        </div>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Wil je liever stoppen? Dat is helemaal goed. Je kunt al je gegevens (gesprekken, reflecties, memories) downloaden via je account. En als je wilt, kun je je account ook zelf verwijderen. Je vindt beide opties onder <a href="https://talktobenji.com/account/wachtwoord" style="color: #6d84a8;">Instellingen, Account</a>.
+        </p>
+
+        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warme groet,</p>
+        <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
+          <tr>
+            <td style="padding-right: 14px; vertical-align: middle;">
+              <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="56" height="56" style="border-radius: 50%; display: block; width: 56px; height: 56px; object-fit: cover;" />
+            </td>
+            <td style="vertical-align: middle;">
+              <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0; padding: 0;">Ien</p>
+              <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0; padding: 0;">Founder van TalkToBenji</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
+
+    await sendEmail({
+      to: args.email,
+      subject: "Hoe gaat het met je? 💙",
+      html,
+      apiKey: RESEND_API_KEY,
+    });
+  },
+});
+
+export const sendJaarRenewalEmail2 = internalAction({
+  args: {
+    email: v.string(),
+    name: v.string(),
+    expiresAt: v.number(),
+  },
+  handler: async (_ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) return;
+
+    const firstName = args.name.split(" ")[0] || args.name;
+    const einddatum = new Date(args.expiresAt).toLocaleDateString("nl-NL", {
+      day: "numeric", month: "long", year: "numeric",
+    });
+
+    const html = `
+      <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
+        <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${firstName},</p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Nog twee weken, dan loopt je toegang tot Talk To Benji af — op <strong>${einddatum}</strong>.
+        </p>
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Alles wat je hebt opgebouwd — je gesprekken, reflecties, memories — blijft bewaard zolang je account bestaat. Maar Benji zal na die datum niet meer voor je beschikbaar zijn.
+        </p>
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Wil je nog een jaar verder? Je kunt je toegang verlengen via de knop hieronder.
+        </p>
+
+        <div style="margin: 32px 0;">
+          <a href="https://talktobenji.kennis.shop/pay/je-hoeft-het-niet-alleen-te-dragen"
+             style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
+            Toegang verlengen
+          </a>
+        </div>
+
+        <p style="font-size: 14px; line-height: 1.7; color: #718096; border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 20px;">
+          Wil je liever stoppen? Geen probleem. Je kunt al je gegevens downloaden of je account verwijderen via <a href="https://talktobenji.com/account/wachtwoord" style="color: #6d84a8;">Instellingen, Account</a>. Daar vind je ook de downloadknop voor al je gesprekken en reflecties.
+        </p>
+
+        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warme groet,</p>
+        <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
+          <tr>
+            <td style="padding-right: 14px; vertical-align: middle;">
+              <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="56" height="56" style="border-radius: 50%; display: block; width: 56px; height: 56px; object-fit: cover;" />
+            </td>
+            <td style="vertical-align: middle;">
+              <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0; padding: 0;">Ien</p>
+              <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0; padding: 0;">Founder van TalkToBenji</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
+
+    await sendEmail({
+      to: args.email,
+      subject: "Nog twee weken — wil je verder?",
+      html,
+      apiKey: RESEND_API_KEY,
+    });
+  },
+});
+
+export const sendJaarRenewalEmail3 = internalAction({
+  args: {
+    email: v.string(),
+    name: v.string(),
+    expiresAt: v.number(),
+  },
+  handler: async (_ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) return;
+
+    const firstName = args.name.split(" ")[0] || args.name;
+
+    const html = `
+      <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
+        <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${firstName},</p>
+
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Vandaag is de laatste dag van je jaar met Talk To Benji.
+        </p>
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Ik ben blij dat je er was. Ik hoop dat het jaar je iets heeft gegeven, al was het maar het gevoel dat je er niet alleen voor stond.
+        </p>
+        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
+          Als je nog een jaar verder wilt, kun je dat hieronder regelen. Benji staat voor je klaar.
+        </p>
+
+        <div style="margin: 32px 0;">
+          <a href="https://talktobenji.kennis.shop/pay/je-hoeft-het-niet-alleen-te-dragen"
+             style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
+            Nog een jaar samen
+          </a>
+        </div>
+
+        <p style="font-size: 14px; line-height: 1.7; color: #718096; border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 20px;">
+          Wil je stoppen? Je kunt al je gegevens (gesprekken, reflecties, memories) downloaden of je account verwijderen via <a href="https://talktobenji.com/account/wachtwoord" style="color: #6d84a8;">Instellingen, Account</a>.
+        </p>
+
+        <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warme groet,</p>
+        <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
+          <tr>
+            <td style="padding-right: 14px; vertical-align: middle;">
+              <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="56" height="56" style="border-radius: 50%; display: block; width: 56px; height: 56px; object-fit: cover;" />
+            </td>
+            <td style="vertical-align: middle;">
+              <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0; padding: 0;">Ien</p>
+              <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0; padding: 0;">Founder van TalkToBenji</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `;
+
+    await sendEmail({
+      to: args.email,
+      subject: "Vandaag is je laatste dag — tot ziens, of tot snel",
+      html,
+      apiKey: RESEND_API_KEY,
+    });
+  },
+});
+
 export const sendCancellationNotification = internalAction({
   args: {
     userEmail: v.string(),

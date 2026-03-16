@@ -10,7 +10,12 @@ interface ConversationLimitBannerProps {
   email?: string;
 }
 
+// Tijdelijk uitgeschakeld voor jaar-toegang model — zet op true voor abo-model
+const GATING_ENABLED = false;
+
 export function ConversationLimitBanner({ userId, email }: ConversationLimitBannerProps) {
+  if (!GATING_ENABLED) return null;
+
   const usage = useQuery(api.subscriptions.getConversationCount, {
     userId,
     email,
