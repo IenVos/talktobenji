@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ErvaringenPopup } from "@/components/ErvaringenPopup";
 
 export function TestimonialsStrip() {
   const items = useQuery(api.testimonials.listActive, {});
@@ -11,7 +12,7 @@ export function TestimonialsStrip() {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [page, setPage] = useState(0);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", quote: "", stars: 5 });
   const [submitting, setSubmitting] = useState(false);
@@ -22,7 +23,6 @@ export function TestimonialsStrip() {
 
   const totalPages = Math.ceil(items.length / 3);
   const visible = items.slice(page * 3, (page + 1) * 3);
-  const expandedItem = items.find((i) => i._id === expandedId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +44,7 @@ export function TestimonialsStrip() {
   };
 
   return (
+    <>
     <div className="w-full max-w-sm mx-auto px-3 py-2">
 
       {/* Mobiel: ingeklapt tonen als link */}
@@ -73,17 +74,12 @@ export function TestimonialsStrip() {
       {/* 3-kaartjes grid */}
       <div className="grid grid-cols-3 gap-1.5">
         {visible.map((item) => {
-          const isExpanded = expandedId === item._id;
           return (
             <button
               key={item._id}
               type="button"
-              onClick={() => setExpandedId(isExpanded ? null : item._id)}
-              className={`text-left rounded-lg px-2 py-2 flex flex-col gap-1 transition-all ${
-                isExpanded
-                  ? "bg-white/80 ring-1 ring-primary-300/50"
-                  : "bg-white/55 hover:bg-white/70"
-              }`}
+              onClick={() => setShowPopup(true)}
+              className="text-left rounded-lg px-2 py-2 flex flex-col gap-1 transition-all bg-white/55 hover:bg-white/70"
             >
               <p className="text-[9px] leading-relaxed text-gray-700 line-clamp-2">
                 &ldquo;{item.quote}&rdquo;
@@ -97,23 +93,6 @@ export function TestimonialsStrip() {
           <div key={`empty-${i}`} />
         ))}
       </div>
-
-      {/* Uitgebreide view bij klik */}
-      {expandedItem && (
-        <div className="mt-1.5 bg-white/80 rounded-lg px-3 py-2.5 relative">
-          <button
-            type="button"
-            onClick={() => setExpandedId(null)}
-            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
-          >
-            <X size={13} />
-          </button>
-          <p className="text-xs leading-relaxed text-gray-700 pr-4">
-            &ldquo;{expandedItem.quote}&rdquo;
-          </p>
-          <p className="text-[10px] text-gray-500 italic mt-1.5">{expandedItem.name}</p>
-        </div>
-      )}
 
       {/* Paginering */}
       <div className="flex items-center justify-between mt-1.5">
@@ -218,5 +197,8 @@ export function TestimonialsStrip() {
 
       </div>{/* einde mobiel-toggle wrapper */}
     </div>
+
+    {showPopup && <ErvaringenPopup onClose={() => setShowPopup(false)} />}
+    </>
   );
 }

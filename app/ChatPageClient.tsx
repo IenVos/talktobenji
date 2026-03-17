@@ -9,12 +9,12 @@ import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { Send, Mic, Square, Gem, ThumbsDown, ThumbsUp, Check } from "lucide-react";
 import { WelcomeScreen, WelcomeScreenInfoIcons } from "@/components/chat/WelcomeScreen";
-import { TestimonialsStrip } from "@/components/chat/TestimonialsStrip";
 import { FeedbackModal } from "@/components/chat/FeedbackModal";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
 import { hexToDarker } from "@/lib/utils";
 import { ConversationLimitGate } from "@/components/ConversationLimitGate";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[] };
 
@@ -816,12 +816,12 @@ export default function ChatPageClient({
         </div>
       )}
 
-      {/* Review-strip: alleen zichtbaar op welkomstscherm, net boven de balk */}
-      {!sessionId && !isAddingOpener && <TestimonialsStrip />}
-
-      <footer className="bg-primary-900 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
+<footer className="bg-primary-900 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
         {!sessionId && !isAddingOpener ? (
-          <WelcomeScreenInfoIcons variant="dark" />
+          <>
+            <WelcomeScreenInfoIcons variant="dark" />
+            <SiteFooter variant="dark" />
+          </>
         ) : (
           <div className="px-3 sm:px-4 py-4 sm:py-5">
             <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">

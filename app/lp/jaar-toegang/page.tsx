@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { MessageSquare, CalendarCheck, PencilLine, Gem, HandHelping, Sparkles, FileText, MessagesSquare, Palette } from "lucide-react";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "1 jaar Benji · Talk To Benji",
@@ -306,17 +307,7 @@ export default function JaarToegangsPage() {
         </p>
       </main>
 
-      <footer className="border-t px-5 py-8 text-center" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-        <div className="max-w-lg mx-auto space-y-2">
-          <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs" style={{ color: "#8a8078" }}>
-            <Link href="/faq" className="hover:underline">Veelgestelde vragen</Link>
-            <Link href="/privacy" className="hover:underline">Privacy</Link>
-            <Link href="/algemene-voorwaarden" className="hover:underline">Algemene voorwaarden</Link>
-            <a href="mailto:contactmetien@talktobenji.com" className="hover:underline">Contact</a>
-          </div>
-          <p className="text-xs" style={{ color: "#a09890" }}>© Talk To Benji · talktobenji.com</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
