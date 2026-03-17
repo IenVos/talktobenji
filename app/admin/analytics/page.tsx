@@ -569,15 +569,52 @@ export default function AdminAnalytics() {
         />
       </div>
 
-      {/* Sectie 2: Bezoeken lijngrafiek */}
+      {/* Sectie 2: Bezoeken lijngrafiek + uurgrafiek */}
       <div className="bg-white rounded-xl border border-primary-200">
         <button onClick={() => setOpenBezoeken(v => !v)} className="w-full flex items-center justify-between p-6 text-left">
           <h2 className="text-base font-semibold text-primary-900">Bezoeken</h2>
           <ChevronDown size={16} className={`text-primary-400 transition-transform ${openBezoeken ? "rotate-180" : ""}`} />
         </button>
-        {openBezoeken && <div className="px-6 pb-6">
-          <SimpleLine lines={visitLines} height={200} />
-          <ChartLegend lines={visitLines} onToggle={toggleVisitLine} />
+        {openBezoeken && <div className="px-6 pb-6 space-y-6">
+          <div>
+            <SimpleLine lines={visitLines} height={200} />
+            <ChartLegend lines={visitLines} onToggle={toggleVisitLine} />
+          </div>
+          {/* Uurgrafiek */}
+          <div>
+            <h3 className="text-sm font-semibold text-primary-800 mb-3">Bezoeken per uur van de dag</h3>
+            {stats.hourlyViews && stats.hourlyViews.some((h: { hour: number; count: number }) => h.count > 0) ? (
+              <div className="flex items-end gap-0.5 h-24">
+                {stats.hourlyViews.map((h: { hour: number; count: number }) => {
+                  const maxHour = Math.max(...stats.hourlyViews.map((x: { count: number }) => x.count), 1);
+                  const heightPct = Math.round((h.count / maxHour) * 100);
+                  const isDay = h.hour >= 7 && h.hour <= 22;
+                  return (
+                    <div key={h.hour} className="flex-1 flex flex-col items-center gap-0.5 group relative">
+                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-10 pointer-events-none">
+                        <div className="bg-primary-900 text-white text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap shadow">
+                          {h.hour}:00 — {h.count}×
+                        </div>
+                      </div>
+                      <div
+                        className="w-full rounded-t-sm transition-all"
+                        style={{
+                          height: `${heightPct}%`,
+                          minHeight: h.count > 0 ? "2px" : "0px",
+                          backgroundColor: isDay ? "rgba(109,132,168,0.75)" : "rgba(109,132,168,0.35)",
+                        }}
+                      />
+                      {(h.hour % 6 === 0) && (
+                        <span className="text-[9px] text-primary-400">{h.hour}u</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-primary-400">Geen data</p>
+            )}
+          </div>
         </div>}
       </div>
 

@@ -251,12 +251,21 @@ export const getStats = query({
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, counts]) => ({ date, ...counts }));
 
+    // -- Uurverdeling --
+    const hourMap: number[] = Array(24).fill(0);
+    for (const view of allViews) {
+      const hour = new Date(view.timestamp).getHours();
+      hourMap[hour]++;
+    }
+    const hourlyViews = hourMap.map((count, hour) => ({ hour, count }));
+
     return {
       dailyViews,
       dailyConversions,
       topPages,
       devices: { mobile, desktop },
       totals,
+      hourlyViews,
     };
   },
 });
