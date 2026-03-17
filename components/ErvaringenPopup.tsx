@@ -5,11 +5,11 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
-export function ErvaringenTrigger({ className, children }: { className?: string; children?: React.ReactNode }) {
+export function ErvaringenTrigger({ className, style, children }: { className?: string; style?: React.CSSProperties; children?: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button onClick={() => setOpen(true)} className={className}>
+      <button onClick={() => setOpen(true)} className={className} style={style}>
         {children ?? "Ervaringen"}
       </button>
       {open && <ErvaringenPopup onClose={() => setOpen(false)} />}
