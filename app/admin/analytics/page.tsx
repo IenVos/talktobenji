@@ -22,6 +22,8 @@ import {
   Heart,
   Leaf,
   ArrowRight,
+  ChevronDown,
+  Palette,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -307,6 +309,13 @@ export default function AdminAnalytics() {
   const [cleanupMsg, setCleanupMsg] = useState<string | null>(null);
   const [newExcludedEmail, setNewExcludedEmail] = useState("");
 
+  // Inklapbare secties
+  const [openBezoeken, setOpenBezoeken] = useState(true);
+  const [openConversies, setOpenConversies] = useState(true);
+  const [openApparaten, setOpenApparaten] = useState(true);
+  const [openHouvast, setOpenHouvast] = useState(true);
+  const [openBeheer, setOpenBeheer] = useState(true);
+
   useEffect(() => {
     fetch("/api/my-ip").then(r => r.json()).then(d => setMyIp(d.ip ?? null)).catch(() => {});
   }, []);
@@ -561,14 +570,25 @@ export default function AdminAnalytics() {
       </div>
 
       {/* Sectie 2: Bezoeken lijngrafiek */}
-      <div className="bg-white rounded-xl border border-primary-200 p-6">
-        <h2 className="text-base font-semibold text-primary-900 mb-4">Bezoeken</h2>
-        <SimpleLine lines={visitLines} height={200} />
-        <ChartLegend lines={visitLines} onToggle={toggleVisitLine} />
+      <div className="bg-white rounded-xl border border-primary-200">
+        <button onClick={() => setOpenBezoeken(v => !v)} className="w-full flex items-center justify-between p-6 text-left">
+          <h2 className="text-base font-semibold text-primary-900">Bezoeken</h2>
+          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openBezoeken ? "rotate-180" : ""}`} />
+        </button>
+        {openBezoeken && <div className="px-6 pb-6">
+          <SimpleLine lines={visitLines} height={200} />
+          <ChartLegend lines={visitLines} onToggle={toggleVisitLine} />
+        </div>}
       </div>
 
       {/* Sectie 3: Conversies + Populairste pagina's */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="bg-white rounded-xl border border-primary-200">
+        <button onClick={() => setOpenConversies(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+          <h2 className="text-base font-semibold text-primary-900">Conversies & Pagina's</h2>
+          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openConversies ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+      {openConversies && <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Conversies grafiek */}
         <div className="bg-white rounded-xl border border-primary-200 p-6">
           <h2 className="text-base font-semibold text-primary-900 mb-4">Conversies</h2>
@@ -605,10 +625,16 @@ export default function AdminAnalytics() {
             </div>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* Sectie 4: Apparaten + Totalen tabel */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="bg-white rounded-xl border border-primary-200">
+        <button onClick={() => setOpenApparaten(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+          <h2 className="text-base font-semibold text-primary-900">Apparaten & Samenvatting</h2>
+          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openApparaten ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+      {openApparaten && <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {/* Donut-grafiek apparaten */}
         <div className="bg-white rounded-xl border border-primary-200 p-6">
           <h2 className="text-base font-semibold text-primary-900 mb-4">Apparaten</h2>
@@ -738,10 +764,16 @@ export default function AdminAnalytics() {
             </tbody>
           </table>
         </div>
-      </div>
+      </div>}
 
       {/* Sectie 5: Houvast trechter + Feature gebruik */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="bg-white rounded-xl border border-primary-200">
+        <button onClick={() => setOpenHouvast(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+          <h2 className="text-base font-semibold text-primary-900">Houvast & Feature gebruik</h2>
+          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openHouvast ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+      {openHouvast && <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
         {/* Houvast trechter */}
         <div className="bg-white rounded-xl border border-primary-200 p-6">
@@ -878,10 +910,16 @@ export default function AdminAnalytics() {
             <div className="text-xs text-primary-400">Laden…</div>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* Sectie 6: Beheer */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div className="bg-white rounded-xl border border-primary-200">
+        <button onClick={() => setOpenBeheer(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+          <h2 className="text-base font-semibold text-primary-900">Beheer</h2>
+          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openBeheer ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+      {openBeheer && <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
         {/* IP uitsluiting */}
         <div className="bg-white rounded-xl border border-primary-200 p-6">
@@ -1011,7 +1049,7 @@ export default function AdminAnalytics() {
           </div>
         </div>
 
-      </div>
+      </div>}
     </div>
   );
 }

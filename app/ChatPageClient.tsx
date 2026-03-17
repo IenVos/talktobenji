@@ -15,6 +15,7 @@ import type { TopicId } from "@/components/chat/TopicButtons";
 import { hexToDarker } from "@/lib/utils";
 import { ConversationLimitGate } from "@/components/ConversationLimitGate";
 import { SiteFooter } from "@/components/SiteFooter";
+import { HouvastePopup } from "@/components/HouvastePopup";
 
 export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[] };
 
@@ -162,6 +163,7 @@ export default function ChatPageClient({
   };
   const [showTopicButtons, setShowTopicButtons] = useState(true);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [houvasteOpen, setHouvasteOpen] = useState(false);
   const [input, setInput] = useState("");
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
@@ -816,6 +818,19 @@ export default function ChatPageClient({
         </div>
       )}
 
+
+      {/* Houvast floating knop – alleen zichtbaar op homepage */}
+      {!sessionId && !isAddingOpener && (
+        <button
+          onClick={() => setHouvasteOpen(true)}
+          className="fixed bottom-6 right-4 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg text-white text-sm font-medium transition-all hover:opacity-90"
+          style={{ background: "rgba(45,58,79,0.92)", backdropFilter: "blur(8px)" }}
+          aria-label="Houvast mini-gids"
+        >
+          👋 Even Houvast
+        </button>
+      )}
+
 <footer className="bg-primary-900 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
         {!sessionId && !isAddingOpener ? (
           <>
@@ -869,6 +884,7 @@ export default function ChatPageClient({
         userId={session?.userId ?? undefined}
         userEmail={session?.user?.email ?? undefined}
       />
+      {houvasteOpen && <HouvastePopup onClose={() => setHouvasteOpen(false)} />}
     </div>
   );
 }

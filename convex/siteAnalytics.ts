@@ -269,7 +269,7 @@ export const getFeatureStats = query({
 
     const inRange = (ts: number) => ts >= args.from && ts <= args.to;
 
-    const [notes, emotions, checkIns, goals, memories, houvasteProfielen, users] = await Promise.all([
+    const [notes, emotions, checkIns, goals, memories, houvasteProfielen, users, preferences] = await Promise.all([
       ctx.db.query("notes").collect(),
       ctx.db.query("emotionEntries").collect(),
       ctx.db.query("checkInEntries").collect(),
@@ -277,6 +277,7 @@ export const getFeatureStats = query({
       ctx.db.query("memories").collect(),
       ctx.db.query("houvasteProfielen").collect(),
       ctx.db.query("users").collect(),
+      ctx.db.query("userPreferences").collect(),
     ]);
 
     const userEmails = new Set(users.map((u: any) => u.email));
@@ -310,6 +311,8 @@ export const getFeatureStats = query({
         { label: "Doelen", count: goals.filter((g: any) => inRange(ts(g))).length, allTime: goals.length },
         { label: "Memories", count: memories.filter((m: any) => inRange(ts(m))).length, allTime: memories.length },
         { label: "Emoties gelogd", count: emotions.filter((e: any) => inRange(ts(e))).length, allTime: emotions.length },
+        { label: "Kleur gewijzigd", count: preferences.filter((p: any) => p.accentColor && inRange(ts(p))).length, allTime: preferences.filter((p: any) => p.accentColor).length },
+        { label: "Achtergrond gewijzigd", count: preferences.filter((p: any) => p.backgroundImageStorageId && inRange(ts(p))).length, allTime: preferences.filter((p: any) => p.backgroundImageStorageId).length },
       ],
     };
   },
