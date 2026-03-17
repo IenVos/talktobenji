@@ -819,11 +819,11 @@ export default function ChatPageClient({
       )}
 
 
-      {/* Houvast floating knop – alleen zichtbaar op homepage */}
+      {/* Houvast floating knop – alleen zichtbaar op homepage, boven de footer */}
       {!sessionId && !isAddingOpener && (
         <button
           onClick={() => setHouvasteOpen(true)}
-          className="fixed bottom-6 right-4 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg text-white text-sm font-medium transition-all hover:opacity-90"
+          className="fixed bottom-44 right-4 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg text-white text-sm font-medium transition-all hover:opacity-90"
           style={{ background: "rgba(45,58,79,0.92)", backdropFilter: "blur(8px)" }}
           aria-label="Houvast mini-gids"
         >
