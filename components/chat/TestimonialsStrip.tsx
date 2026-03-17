@@ -60,7 +60,7 @@ export function TestimonialsStrip() {
         ) : (
           <button
             type="button"
-            onClick={() => { setMobileOpen(false); setExpandedId(null); setShowForm(false); }}
+            onClick={() => { setMobileOpen(false); setShowForm(false); }}
             className="text-[10px] text-gray-400 hover:text-gray-600 transition-colors mb-1.5"
           >
             ‹ Sluiten
@@ -101,7 +101,7 @@ export function TestimonialsStrip() {
             <>
               <button
                 type="button"
-                onClick={() => { setPage((p) => Math.max(0, p - 1)); setExpandedId(null); }}
+                onClick={() => { setPage((p) => Math.max(0, p - 1)); }}
                 disabled={page === 0}
                 className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30"
               >
@@ -112,7 +112,7 @@ export function TestimonialsStrip() {
                   <button
                     key={i}
                     type="button"
-                    onClick={() => { setPage(i); setExpandedId(null); }}
+                    onClick={() => { setPage(i); }}
                     className={`rounded-full transition-all ${
                       i === page ? "w-3 h-1.5 bg-gray-500" : "w-1.5 h-1.5 bg-gray-300"
                     }`}
@@ -121,7 +121,7 @@ export function TestimonialsStrip() {
               </div>
               <button
                 type="button"
-                onClick={() => { setPage((p) => Math.min(totalPages - 1, p + 1)); setExpandedId(null); }}
+                onClick={() => { setPage((p) => Math.min(totalPages - 1, p + 1)); }}
                 disabled={page === totalPages - 1}
                 className="p-0.5 text-gray-400 hover:text-gray-600 disabled:opacity-30"
               >
