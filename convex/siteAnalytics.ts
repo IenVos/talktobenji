@@ -211,10 +211,37 @@ export const getStats = query({
         ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
         : 0;
 
+    // -- Terugkerende bezoekers (sessies die op meer dan 1 dag bezochten) --
+    const sessionDays: Record<string, Set<string>> = {};
+    for (const view of allViews) {
+      const date = new Date(view.timestamp).toISOString().slice(0, 10);
+      if (!sessionDays[view.sessionId]) sessionDays[view.sessionId] = new Set();
+      sessionDays[view.sessionId].add(date);
+    }
+    const returningVisitors = Object.values(sessionDays).filter((days) => days.size > 1).length;
+
+    // -- Verblijfsduur per pagina --
+    const pageDurations: Record<string, number[]> = {};
+    for (const view of allViews) {
+      if (view.duration && view.duration > 0 && view.duration < 3600) {
+        if (!pageDurations[view.path]) pageDurations[view.path] = [];
+        pageDurations[view.path].push(view.duration);
+      }
+    }
+    const topPageDurations = Object.entries(pageDurations)
+      .map(([path, durs]) => ({
+        path,
+        avgDuration: Math.round(durs.reduce((a, b) => a + b, 0) / durs.length),
+        visits: (pathCounts[path] ?? 0),
+      }))
+      .sort((a, b) => b.visits - a.visits)
+      .slice(0, 5);
+
     const totals = {
       views: allViews.length,
       unique: allSessionIds.size,
       avgDuration,
+      returningVisitors,
     };
 
     // -- Dagelijkse conversies (userSubscriptions) --
@@ -343,6 +370,7 @@ export const getStats = query({
       allSubTypes,
       omzet,
       omzetGeschat,
+      topPageDurations,
     };
   },
 });
