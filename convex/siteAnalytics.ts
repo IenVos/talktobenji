@@ -414,6 +414,27 @@ export const getFeatureStats = query({
   },
 });
 
+/** Toon alle doelen met het emailadres van de eigenaar (admin only). */
+export const listGoalsWithOwner = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const [goals, users] = await Promise.all([
+      ctx.db.query("goals").collect(),
+      ctx.db.query("users").collect(),
+    ]);
+    const userById = new Map(users.map((u: any) => [u._id, u.email]));
+    return goals
+      .sort((a: any, b: any) => (b.createdAt ?? b._creationTime ?? 0) - (a.createdAt ?? a._creationTime ?? 0))
+      .map((g: any) => ({
+        id: g._id,
+        title: g.title ?? g.goal ?? "(geen titel)",
+        email: userById.get(g.userId) ?? g.userId,
+        createdAt: g.createdAt ?? g._creationTime ?? 0,
+      }));
+  },
+});
+
 /** Haal recente inschrijvingen op (admin only). */
 export const getRecentRegistrations = query({
   args: { adminToken: v.string(), days: v.optional(v.number()) },
