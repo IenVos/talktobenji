@@ -760,40 +760,34 @@ export default function AdminAnalytics() {
 
       {/* Sectie 1b: Apparaten + Heatmap + Bron */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Apparaten */}
+        {/* Betrokkenheid */}
         <div className="bg-white rounded-xl border border-primary-200 p-5">
-          <h3 className="text-sm font-semibold text-primary-800 mb-4">Apparaten</h3>
-          {donutData.total === 0 ? (
-            <p className="text-xs text-primary-400">Geen data</p>
-          ) : (
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Monitor size={15} style={{ color: "#6d84a8" }} />
-                  <span className="text-primary-700">Desktop</span>
+          <h3 className="text-sm font-semibold text-primary-800 mb-4">Betrokkenheid</h3>
+          <div className="flex items-start justify-between mb-4 pb-4 border-b border-primary-100">
+            <div>
+              <p className="text-[10px] text-primary-400 mb-0.5">Terugkerend</p>
+              <p className="text-lg font-bold text-primary-900">{stats.totals.returningVisitors ?? 0}</p>
+              <p className="text-[10px] text-primary-400 mt-0.5">
+                {stats.totals.unique > 0
+                  ? `${Math.round(((stats.totals.returningVisitors ?? 0) / stats.totals.unique) * 100)}% van uniek`
+                  : "–"}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-primary-400 mb-0.5">Gem. verblijf</p>
+              <p className="text-lg font-bold text-primary-900">{formatDuration(stats.totals.avgDuration)}</p>
+              <p className="text-[10px] text-primary-400 mt-0.5">per bezoek</p>
+            </div>
+          </div>
+          {(stats as any).topPageDurations?.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-medium text-primary-500 mb-2">Gem. tijd per pagina</p>
+              {(stats as any).topPageDurations.map((p: { path: string; avgDuration: number }) => (
+                <div key={p.path} className="flex items-center justify-between text-xs">
+                  <span className="text-primary-600 truncate max-w-[140px]">{p.path}</span>
+                  <span className="text-primary-800 font-medium flex-shrink-0 ml-2">{formatDuration(p.avgDuration)}</span>
                 </div>
-                <span className="text-primary-500 font-medium">
-                  {donutData.total > 0 ? Math.round((stats.devices.desktop / donutData.total) * 100) : 0}%
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Smartphone size={15} style={{ color: "#68a87a" }} />
-                  <span className="text-primary-700">Mobiel</span>
-                </div>
-                <span className="text-primary-500 font-medium">
-                  {donutData.total > 0 ? Math.round((stats.devices.mobile / donutData.total) * 100) : 0}%
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Tablet size={15} style={{ color: "#e8934a" }} />
-                  <span className="text-primary-700">Tablet</span>
-                </div>
-                <span className="text-primary-500 font-medium">
-                  {donutData.total > 0 ? Math.round((donutData.tablet / donutData.total) * 100) : 0}%
-                </span>
-              </div>
+              ))}
             </div>
           )}
         </div>
@@ -952,38 +946,40 @@ export default function AdminAnalytics() {
         </button>
       </div>
       {openApparaten && <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {/* Verblijfsduur & Terugkerende bezoekers */}
+        {/* Apparaten */}
         <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <h2 className="text-base font-semibold text-primary-900 mb-4">Betrokkenheid</h2>
-
-          {/* Terugkerende bezoekers */}
-          <div className="flex items-center justify-between mb-4 pb-4 border-b border-primary-100">
-            <div>
-              <p className="text-xs text-primary-500 mb-0.5">Terugkerende bezoekers</p>
-              <p className="text-xl font-bold text-primary-900">{stats.totals.returningVisitors ?? 0}</p>
-              <p className="text-xs text-primary-400 mt-0.5">
-                {stats.totals.unique > 0
-                  ? `${Math.round(((stats.totals.returningVisitors ?? 0) / stats.totals.unique) * 100)}% van uniek`
-                  : "–"}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-primary-500 mb-0.5">Gem. verblijfsduur</p>
-              <p className="text-xl font-bold text-primary-900">{formatDuration(stats.totals.avgDuration)}</p>
-              <p className="text-xs text-primary-400 mt-0.5">per bezoek</p>
-            </div>
-          </div>
-
-          {/* Verblijfsduur per pagina */}
-          {(stats as any).topPageDurations?.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-primary-600 mb-2">Gem. tijd per pagina</p>
-              {(stats as any).topPageDurations.map((p: { path: string; avgDuration: number; visits: number }) => (
-                <div key={p.path} className="flex items-center justify-between text-xs">
-                  <span className="text-primary-600 truncate max-w-[160px]">{p.path}</span>
-                  <span className="text-primary-800 font-medium flex-shrink-0 ml-2">{formatDuration(p.avgDuration)}</span>
+          <h2 className="text-base font-semibold text-primary-900 mb-4">Apparaten</h2>
+          {donutData.total === 0 ? (
+            <p className="text-primary-400 text-sm">Geen data</p>
+          ) : (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Monitor size={15} style={{ color: "#6d84a8" }} />
+                  <span className="text-primary-700">Desktop</span>
                 </div>
-              ))}
+                <span className="text-primary-500 font-medium">
+                  {Math.round((stats.devices.desktop / donutData.total) * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Smartphone size={15} style={{ color: "#68a87a" }} />
+                  <span className="text-primary-700">Mobiel</span>
+                </div>
+                <span className="text-primary-500 font-medium">
+                  {Math.round((stats.devices.mobile / donutData.total) * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Tablet size={15} style={{ color: "#e8934a" }} />
+                  <span className="text-primary-700">Tablet</span>
+                </div>
+                <span className="text-primary-500 font-medium">
+                  {Math.round((donutData.tablet / donutData.total) * 100)}%
+                </span>
+              </div>
             </div>
           )}
         </div>
