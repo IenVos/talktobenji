@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, ChevronLeft, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle, ShoppingBag } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, ChevronLeft, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle, ShoppingBag, User } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ScrollIndicator } from "@/components/ScrollIndicator";
 
@@ -74,7 +74,7 @@ export default function AccountLayout({
   const pathname = usePathname();
   const router = useRouter();
   const preferences = useQuery(
-    api.preferences.getPreferences,
+    api.preferences.getPreferencesWithUrl,
     session?.userId ? { userId: session.userId as string } : "skip"
   );
   const [cachedAccent, setCachedAccent] = useState(getCachedAccent);
@@ -569,12 +569,33 @@ export default function AccountLayout({
           </div>
           {/* Titel + subtitel – altijd onder de header-rij */}
           <div className="mt-2">
-            <h1 className="text-base sm:text-xl font-bold text-primary-900">
-              {pathname === "/account" && session.user?.name
-                ? <span>Fijn dat je er bent, {session.user.name.split(" ")[0]}. {pageInfo.title}</span>
-                : pageInfo.title
-              }
-            </h1>
+            {pathname === "/account" && session.user?.name ? (
+              <div className="flex items-center gap-3">
+                {/* Profielfoto */}
+                <Link href="/account/wachtwoord" title="Profielfoto wijzigen">
+                  <div
+                    className="w-10 h-10 rounded-full border-2 overflow-hidden flex-shrink-0 flex items-center justify-center bg-primary-100 hover:opacity-80 transition-opacity"
+                    style={{ borderColor: accent }}
+                  >
+                    {(preferences as any)?.profileImageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={(preferences as any).profileImageUrl}
+                        alt="Profielfoto"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User size={20} style={{ color: accent }} />
+                    )}
+                  </div>
+                </Link>
+                <h1 className="text-base sm:text-xl font-bold text-primary-900">
+                  Fijn dat je er bent, {session.user.name.split(" ")[0]}. {pageInfo.title}
+                </h1>
+              </div>
+            ) : (
+              <h1 className="text-base sm:text-xl font-bold text-primary-900">{pageInfo.title}</h1>
+            )}
             {pageInfo.subtitle && <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>}
           </div>
         </div>
