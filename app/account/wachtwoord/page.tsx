@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { KeyRound, Mail, Eye, EyeOff, CheckCircle, ChevronDown, User, CreditCard, Download, Bell, Trash2, AlertTriangle, Smartphone, X, Check, Sparkles, Star } from "lucide-react";
+import { KeyRound, Mail, Eye, EyeOff, CheckCircle, ChevronDown, User, CreditCard, Download, Bell, Trash2, AlertTriangle, Smartphone, X, Check, Sparkles, Star, Camera } from "lucide-react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { isPushSupported, subscribeToPush, unsubscribeFromPush, getPermissionStatus } from "@/lib/pushNotifications";
@@ -48,6 +48,97 @@ function AccordionRow({
         </div>
       )}
     </div>
+  );
+}
+
+function ProfielFoto({ isOpen, onToggle }: { isOpen: boolean; onToggle: () => void }) {
+  const { data: session } = useSession();
+  const userId = session?.userId as string | undefined;
+  const generateUploadUrl = useMutation(api.preferences.generateUploadUrl);
+  const setPreferences = useMutation(api.preferences.setPreferences);
+  const removeProfileImage = useMutation(api.preferences.removeProfileImage);
+  const prefs = useQuery(api.preferences.getPreferencesWithUrl, userId ? { userId } : "skip");
+  const [uploading, setUploading] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  const profileImageUrl = (prefs as any)?.profileImageUrl ?? null;
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+    setUploading(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const res = await fetch(uploadUrl, { method: "POST", body: file, headers: { "Content-Type": file.type } });
+      const { storageId } = await res.json();
+      if (storageId) {
+        await setPreferences({ userId, profileImageStorageId: storageId });
+      }
+    } catch {
+      // stil falen
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!userId) return;
+    setRemoving(true);
+    try {
+      await removeProfileImage({ userId });
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  return (
+    <AccordionRow
+      icon={<Camera size={18} />}
+      label="Profielfoto"
+      currentValue={profileImageUrl ? "Foto ingesteld" : "Geen foto"}
+      isOpen={isOpen}
+      onToggle={onToggle}
+    >
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          {/* Foto preview */}
+          <div className="w-20 h-20 rounded-full border-2 border-primary-200 overflow-hidden flex-shrink-0 bg-primary-50 flex items-center justify-center">
+            {profileImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profileImageUrl} alt="Profielfoto" className="w-full h-full object-cover" />
+            ) : (
+              <User size={32} className="text-primary-300" />
+            )}
+          </div>
+          <div className="space-y-2">
+            <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors cursor-pointer disabled:opacity-50">
+              <Camera size={15} />
+              {uploading ? "Bezig…" : profileImageUrl ? "Foto wijzigen" : "Foto uploaden"}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={uploading}
+                onChange={handleUpload}
+              />
+            </label>
+            {profileImageUrl && (
+              <button
+                type="button"
+                onClick={handleRemove}
+                disabled={removing}
+                className="flex items-center gap-1.5 text-sm text-red-500 hover:text-red-700 transition-colors"
+              >
+                <Trash2 size={13} />
+                {removing ? "Bezig…" : "Foto verwijderen"}
+              </button>
+            )}
+          </div>
+        </div>
+        <p className="text-xs text-gray-400">Maximaal 5 MB. JPG of PNG.</p>
+      </div>
+    </AccordionRow>
   );
 }
 
@@ -1022,6 +1113,7 @@ export default function InloggegevensPage() {
 
   return (
     <div className="space-y-3 max-w-md">
+      <ProfielFoto isOpen={openSection === "foto"} onToggle={() => toggle("foto")} />
       <NaamWijzigen isOpen={openSection === "naam"} onToggle={() => toggle("naam")} />
       <EmailWijzigen isOpen={openSection === "email"} onToggle={() => toggle("email")} />
       <WachtwoordWijzigen isOpen={openSection === "wachtwoord"} onToggle={() => toggle("wachtwoord")} />

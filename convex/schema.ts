@@ -214,6 +214,7 @@ export default defineSchema({
     userContext: v.optional(v.string()), // Achtergrond/verhaal van gebruiker voor Benji
     accentColor: v.optional(v.string()),
     backgroundImageStorageId: v.optional(v.id("_storage")),
+    profileImageStorageId: v.optional(v.id("_storage")),
     lastSeenNotificationsAt: v.optional(v.number()),
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
@@ -473,6 +474,7 @@ export default defineSchema({
     device: v.string(),
     duration: v.optional(v.number()),
     ip: v.optional(v.string()),
+    referrer: v.optional(v.string()),
   })
     .index("by_timestamp", ["timestamp"])
     .index("by_session_timestamp", ["sessionId", "timestamp"]),

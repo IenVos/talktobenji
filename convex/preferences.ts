@@ -16,7 +16,7 @@ export const getPreferences = query({
   },
 });
 
-/** Voorkeuren inclusief storage URL voor achtergrond */
+/** Voorkeuren inclusief storage URLs voor achtergrond en profielfoto */
 export const getPreferencesWithUrl = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
@@ -25,11 +25,15 @@ export const getPreferencesWithUrl = query({
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .unique();
     if (!prefs) return null;
-    const backgroundImageUrl =
+    const [backgroundImageUrl, profileImageUrl] = await Promise.all([
       prefs.backgroundImageStorageId
-        ? await ctx.storage.getUrl(prefs.backgroundImageStorageId)
-        : null;
-    return { ...prefs, backgroundImageUrl };
+        ? ctx.storage.getUrl(prefs.backgroundImageStorageId)
+        : null,
+      prefs.profileImageStorageId
+        ? ctx.storage.getUrl(prefs.profileImageStorageId)
+        : null,
+    ]);
+    return { ...prefs, backgroundImageUrl, profileImageUrl };
   },
 });
 
@@ -47,6 +51,7 @@ export const setPreferences = mutation({
     userContext: v.optional(v.string()),
     accentColor: v.optional(v.string()),
     backgroundImageStorageId: v.optional(v.id("_storage")),
+    profileImageStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -63,6 +68,9 @@ export const setPreferences = mutation({
       ...(args.backgroundImageStorageId !== undefined && {
         backgroundImageStorageId: args.backgroundImageStorageId,
       }),
+      ...(args.profileImageStorageId !== undefined && {
+        profileImageStorageId: args.profileImageStorageId,
+      }),
     };
 
     if (existing) {
@@ -70,6 +78,20 @@ export const setPreferences = mutation({
       return existing._id;
     }
     return await ctx.db.insert("userPreferences", updates);
+  },
+});
+
+/** Verwijder profielfoto */
+export const removeProfileImage = mutation({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("userPreferences")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .unique();
+    if (!existing || !existing.profileImageStorageId) return existing?._id ?? null;
+    await ctx.db.patch(existing._id, { profileImageStorageId: undefined, updatedAt: Date.now() });
+    return existing._id;
   },
 });
 

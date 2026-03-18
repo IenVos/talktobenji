@@ -10,6 +10,7 @@ import {
   TrendingUp,
   Smartphone,
   Monitor,
+  Tablet,
   Calendar,
   Trash2,
   Shield,
@@ -268,30 +269,188 @@ function formatDuration(seconds: number): string {
   return `${min} min ${sec} sec`;
 }
 
+function sourceColor(source: string): string {
+  const map: Record<string, string> = {
+    Direct: "#6d84a8", Google: "#e8934a", Facebook: "#9c6da8",
+    Instagram: "#e84a8a", Bing: "#4a8ae8", Pinterest: "#e84a4a",
+  };
+  return map[source] ?? "#94a3b8";
+}
+
+// ---------------------------------------------------------------------------
+// Tracking toggle (localStorage vlag)
+// ---------------------------------------------------------------------------
+
+function TrackingToggle() {
+  const [skipping, setSkipping] = useState(() =>
+    typeof window !== "undefined" && localStorage.getItem("ttb_skip_tracking") === "1"
+  );
+
+  const toggle = () => {
+    const next = !skipping;
+    if (next) localStorage.setItem("ttb_skip_tracking", "1");
+    else localStorage.removeItem("ttb_skip_tracking");
+    setSkipping(next);
+  };
+
+  return (
+    <div className="flex items-center justify-between bg-primary-50 rounded-lg px-3 py-2.5 mb-4">
+      <div>
+        <p className="text-xs font-medium text-primary-800">Mijn bezoeken overslaan</p>
+        <p className="text-[11px] text-primary-500 mt-0.5">
+          {skipping ? "Actief op dit apparaat — jouw bezoeken worden niet geteld." : "Niet actief — jouw bezoeken worden meegeteld."}
+        </p>
+      </div>
+      <button
+        onClick={toggle}
+        className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${skipping ? "bg-green-500" : "bg-gray-300"}`}
+      >
+        <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${skipping ? "translate-x-5" : ""}`} />
+      </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Inklapbare IP-lijst
+// ---------------------------------------------------------------------------
+
+function IpExclusionList({ myIp, excludedIps, onAdd, onRemove }: {
+  myIp: string | null;
+  excludedIps: any[];
+  onAdd: (ip: string) => void;
+  onRemove: (id: any) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 text-xs text-primary-500 hover:text-primary-800 transition-colors"
+      >
+        <ChevronDown size={13} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+        IP-adressen beheren ({excludedIps.length} uitgesloten)
+      </button>
+      {open && (
+        <div className="mt-3 space-y-2">
+          {myIp && (
+            <div className="flex items-center justify-between bg-primary-50 rounded-lg px-3 py-2 text-xs">
+              <span className="text-primary-600">Huidig IP: <span className="font-mono font-semibold text-primary-800">{myIp}</span></span>
+              {!excludedIps.some((e) => e.ip === myIp) && (
+                <button onClick={() => onAdd(myIp)} className="flex items-center gap-1 text-primary-600 hover:text-primary-900">
+                  <Plus size={12} /> Uitsluiten
+                </button>
+              )}
+            </div>
+          )}
+          {excludedIps.map((entry: any) => (
+            <div key={entry._id} className="flex items-center justify-between text-xs bg-primary-50 rounded-lg px-3 py-2">
+              <div>
+                <span className="font-mono text-primary-800">{entry.ip}</span>
+                {entry.label && <span className="text-primary-500 ml-2">({entry.label})</span>}
+              </div>
+              <button onClick={() => onRemove(entry._id)} className="text-red-400 hover:text-red-600">
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+          {excludedIps.length === 0 && <p className="text-xs text-primary-400">Nog geen IPs uitgesloten.</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Alle pagina's met uitklap
+// ---------------------------------------------------------------------------
+
+function AllPagesList({ pages, maxCount }: { pages: TopPage[]; maxCount: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const LIMIT = 8;
+  const visible = expanded ? pages : pages.slice(0, LIMIT);
+  return (
+    <div className="space-y-2">
+      {visible.map(({ path, count }) => (
+        <div key={path}>
+          <div className="flex items-center justify-between text-xs mb-0.5">
+            <span className="text-primary-700 truncate max-w-[70%]">{path}</span>
+            <span className="text-primary-500 font-medium">{count}</span>
+          </div>
+          <div className="h-2 bg-primary-50 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${Math.round((count / maxCount) * 100)}%`, backgroundColor: "rgba(109,132,168,0.7)" }}
+            />
+          </div>
+        </div>
+      ))}
+      {pages.length > LIMIT && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="flex items-center gap-1 text-xs text-primary-500 hover:text-primary-800 transition-colors mt-1"
+        >
+          <ChevronDown size={13} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
+          {expanded ? "Minder tonen" : `Toon alle ${pages.length} pagina's`}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Hoofd analytics dashboard
 // ---------------------------------------------------------------------------
 
 export default function AdminAnalytics() {
-  const [days, setDays] = useState(30);
+  const [preset, setPreset] = useState("laatste30");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [showList, setShowList] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Memoize timestamps – Date.now() verandert elke render, waardoor de
-  // Convex subscription telkens herstart en nooit een antwoord krijgt.
+  const PRESETS = [
+    { key: "vandaag", label: "Vandaag" },
+    { key: "week", label: "Week tot nu toe" },
+    { key: "maand", label: "Maand tot nu toe" },
+    { key: "jaar", label: "Jaar tot nu toe" },
+    { key: "laatste7", label: "Laatste 7 dagen" },
+    { key: "laatste14", label: "Laatste 14 dagen" },
+    { key: "laatste28", label: "Laatste 28 dagen" },
+    { key: "laatste30", label: "Laatste 30 dagen" },
+    { key: "laatste90", label: "Laatste 90 dagen" },
+    { key: "vorigeMaand", label: "Vorige maand" },
+    { key: "custom", label: "Aangepast bereik" },
+  ];
+
   const { from, to } = useMemo(() => {
-    if (customFrom && customTo) {
+    if (preset === "custom" && customFrom && customTo) {
       return {
         from: new Date(customFrom).getTime(),
         to: new Date(customTo + "T23:59:59").getTime(),
       };
     }
-    return {
-      from: Date.now() - days * 86_400_000,
-      to: Date.now(),
-    };
-  }, [days, customFrom, customTo]);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (preset === "vandaag") return { from: today.getTime(), to: Date.now() };
+    if (preset === "week") {
+      const day = today.getDay() === 0 ? 6 : today.getDay() - 1;
+      return { from: new Date(today.getTime() - day * 86_400_000).getTime(), to: Date.now() };
+    }
+    if (preset === "maand") return { from: new Date(now.getFullYear(), now.getMonth(), 1).getTime(), to: Date.now() };
+    if (preset === "jaar") return { from: new Date(now.getFullYear(), 0, 1).getTime(), to: Date.now() };
+    if (preset === "laatste7") return { from: Date.now() - 7 * 86_400_000, to: Date.now() };
+    if (preset === "laatste14") return { from: Date.now() - 14 * 86_400_000, to: Date.now() };
+    if (preset === "laatste28") return { from: Date.now() - 28 * 86_400_000, to: Date.now() };
+    if (preset === "laatste30") return { from: Date.now() - 30 * 86_400_000, to: Date.now() };
+    if (preset === "laatste90") return { from: Date.now() - 90 * 86_400_000, to: Date.now() };
+    if (preset === "vorigeMaand") {
+      const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const last = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+      return { from: first.getTime(), to: last.getTime() };
+    }
+    return { from: Date.now() - 30 * 86_400_000, to: Date.now() };
+  }, [preset, customFrom, customTo]);
 
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
   const featureStats = useAdminQuery(api.siteAnalytics.getFeatureStats, { from, to });
@@ -324,7 +483,7 @@ export default function AdminAnalytics() {
     setLoadTimeout(false);
     const t = setTimeout(() => setLoadTimeout(true), 20000);
     return () => clearTimeout(t);
-  }, [days, from, to]);
+  }, [preset, from, to]);
 
   // Lijn-toggle states
   const [viewsActive, setViewsActive] = useState(true);
@@ -408,10 +567,11 @@ export default function AdminAnalytics() {
 
   // Donut-grafiek berekening
   const donutData = useMemo(() => {
-    if (!stats) return { mobile: 0, desktop: 0, mobileAngle: 0 };
-    const total = stats.devices.mobile + stats.devices.desktop;
+    if (!stats) return { mobile: 0, tablet: 0, desktop: 0, mobileAngle: 0, tabletAngle: 0 };
+    const total = stats.devices.mobile + (stats.devices.tablet ?? 0) + stats.devices.desktop;
     const mobileAngle = total > 0 ? (stats.devices.mobile / total) * 360 : 0;
-    return { ...stats.devices, mobileAngle, total };
+    const tabletAngle = total > 0 ? ((stats.devices.tablet ?? 0) / total) * 360 : 0;
+    return { ...stats.devices, tablet: stats.devices.tablet ?? 0, mobileAngle, tabletAngle, total };
   }, [stats]);
 
   function describeArc(
@@ -470,49 +630,38 @@ export default function AdminAnalytics() {
           <p className="text-sm text-primary-600 mt-1">Website bezoeken &amp; conversies</p>
         </div>
 
-        {/* Tijdbereik knoppen */}
-        <div className="flex flex-wrap items-center gap-2">
-          <Calendar size={16} className="text-primary-500" />
-          {[
-            { label: "30 dagen", value: 30 },
-            { label: "90 dagen", value: 90 },
-            { label: "Jaar", value: 365 },
-          ].map(({ label, value }) => (
+        {/* Tijdbereik dropdown */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative">
             <button
-              key={value}
-              onClick={() => { setDays(value); setCustomFrom(""); setCustomTo(""); }}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                days === value && !customFrom
-                  ? "bg-primary-800 text-white"
-                  : "bg-white border border-primary-200 text-primary-700 hover:bg-primary-50"
-              }`}
+              onClick={() => setDropdownOpen((v) => !v)}
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-primary-200 rounded-lg text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors"
             >
-              {label}
+              <Calendar size={14} className="text-primary-400" />
+              {PRESETS.find((p) => p.key === preset)?.label ?? "Periode"}
+              <ChevronDown size={14} className={`text-primary-400 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
             </button>
-          ))}
-          <div className="flex items-center gap-1.5 ml-1">
-            <input
-              type="date"
-              value={customFrom}
-              onChange={(e) => setCustomFrom(e.target.value)}
-              className="px-2 py-1.5 rounded-lg text-sm border border-primary-200 text-primary-700 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
-            />
-            <span className="text-primary-400 text-xs">–</span>
-            <input
-              type="date"
-              value={customTo}
-              onChange={(e) => setCustomTo(e.target.value)}
-              className="px-2 py-1.5 rounded-lg text-sm border border-primary-200 text-primary-700 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400"
-            />
-            {(customFrom || customTo) && (
-              <button
-                onClick={() => { setCustomFrom(""); setCustomTo(""); }}
-                className="text-primary-400 hover:text-primary-700 transition-colors"
-              >
-                <X size={14} />
-              </button>
+            {dropdownOpen && (
+              <div className="absolute right-0 top-full mt-1 w-52 bg-white border border-primary-200 rounded-xl shadow-lg z-20 py-1">
+                {PRESETS.map((p) => (
+                  <button
+                    key={p.key}
+                    onClick={() => { setPreset(p.key); setDropdownOpen(false); if (p.key !== "custom") { setCustomFrom(""); setCustomTo(""); } }}
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${preset === p.key ? "bg-primary-50 text-primary-900 font-medium" : "text-primary-700 hover:bg-primary-50"} ${p.key === "custom" ? "border-t border-primary-100 mt-1 pt-2" : ""}`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
+          {preset === "custom" && (
+            <div className="flex items-center gap-1.5">
+              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} className="px-2 py-1.5 rounded-lg text-sm border border-primary-200 text-primary-700 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400" />
+              <span className="text-primary-400 text-xs">–</span>
+              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} className="px-2 py-1.5 rounded-lg text-sm border border-primary-200 text-primary-700 bg-white focus:outline-none focus:ring-1 focus:ring-primary-400" />
+            </div>
+          )}
         </div>
       </div>
 
@@ -542,7 +691,7 @@ export default function AdminAnalytics() {
       )}
 
       {/* Sectie 1: Samenvattingskaarten */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard
           label="Totaal bezoeken"
           value={stats.totals.views.toLocaleString("nl-NL")}
@@ -562,14 +711,20 @@ export default function AdminAnalytics() {
           color="#9c6da8"
         />
         <StatCard
-          label="Conversies totaal"
+          label="Conversies"
           value={totalConversions.toLocaleString("nl-NL")}
-          icon={BarChart3}
+          icon={Target}
           color="#e8934a"
+        />
+        <StatCard
+          label="Conversie ratio"
+          value={(stats as any).conversieRatio !== undefined ? (stats as any).conversieRatio + "%" : "–"}
+          icon={TrendingUp}
+          color="#4a8ae8"
         />
       </div>
 
-      {/* Sectie 2: Bezoeken lijngrafiek + uurgrafiek */}
+      {/* Bezoeken lijngrafiek */}
       <div className="bg-white rounded-xl border border-primary-200">
         <button onClick={() => setOpenBezoeken(v => !v)} className="w-full flex items-center justify-between p-6 text-left">
           <h2 className="text-base font-semibold text-primary-900">Bezoeken</h2>
@@ -580,42 +735,160 @@ export default function AdminAnalytics() {
             <SimpleLine lines={visitLines} height={200} />
             <ChartLegend lines={visitLines} onToggle={toggleVisitLine} />
           </div>
-          {/* Uurgrafiek */}
-          <div>
-            <h3 className="text-sm font-semibold text-primary-800 mb-3">Bezoeken per uur van de dag</h3>
-            {stats.hourlyViews && stats.hourlyViews.some((h: { hour: number; count: number }) => h.count > 0) ? (
-              <div className="flex items-end gap-0.5 h-24">
-                {stats.hourlyViews.map((h: { hour: number; count: number }) => {
-                  const maxHour = Math.max(...stats.hourlyViews.map((x: { count: number }) => x.count), 1);
-                  const heightPct = Math.round((h.count / maxHour) * 100);
-                  const isDay = h.hour >= 7 && h.hour <= 22;
-                  return (
-                    <div key={h.hour} className="flex-1 flex flex-col items-center gap-0.5 group relative">
-                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden group-hover:flex flex-col items-center z-10 pointer-events-none">
-                        <div className="bg-primary-900 text-white text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap shadow">
-                          {h.hour}:00 — {h.count}×
-                        </div>
-                      </div>
-                      <div
-                        className="w-full rounded-t-sm transition-all"
-                        style={{
-                          height: `${heightPct}%`,
-                          minHeight: h.count > 0 ? "2px" : "0px",
-                          backgroundColor: isDay ? "rgba(109,132,168,0.75)" : "rgba(109,132,168,0.35)",
-                        }}
-                      />
-                      {(h.hour % 6 === 0) && (
-                        <span className="text-[9px] text-primary-400">{h.hour}u</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-xs text-primary-400">Geen data</p>
-            )}
-          </div>
         </div>}
+      </div>
+
+      {/* Sectie 1b: Apparaten + Heatmap + Bron */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Apparaten */}
+        <div className="bg-white rounded-xl border border-primary-200 p-5">
+          <h3 className="text-sm font-semibold text-primary-800 mb-4">Apparaten</h3>
+          {donutData.total === 0 ? (
+            <p className="text-xs text-primary-400">Geen data</p>
+          ) : (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Monitor size={15} style={{ color: "#6d84a8" }} />
+                  <span className="text-primary-700">Desktop</span>
+                </div>
+                <span className="text-primary-500 font-medium">
+                  {donutData.total > 0 ? Math.round((stats.devices.desktop / donutData.total) * 100) : 0}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Smartphone size={15} style={{ color: "#68a87a" }} />
+                  <span className="text-primary-700">Mobiel</span>
+                </div>
+                <span className="text-primary-500 font-medium">
+                  {donutData.total > 0 ? Math.round((stats.devices.mobile / donutData.total) * 100) : 0}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Tablet size={15} style={{ color: "#e8934a" }} />
+                  <span className="text-primary-700">Tablet</span>
+                </div>
+                <span className="text-primary-500 font-medium">
+                  {donutData.total > 0 ? Math.round((donutData.tablet / donutData.total) * 100) : 0}%
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Heatmap */}
+        <div className="bg-white rounded-xl border border-primary-200 p-5">
+          <h3 className="text-sm font-semibold text-primary-800 mb-4">Bezoeken per dag &amp; uur</h3>
+          {stats.hourlyViews && stats.hourlyViews.some((d: any) => d.hours.some((c: number) => c > 0)) ? (() => {
+            const heatDays = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
+            const heatMax = Math.max(...stats.hourlyViews.flatMap((d: any) => d.hours), 1);
+            return (
+              <div className="overflow-x-auto">
+                <div style={{ minWidth: 280 }}>
+                  <div className="flex mb-1 ml-8">
+                    {heatDays.map((d) => (
+                      <div key={d} className="flex-1 text-center text-[10px] font-medium text-primary-600">{d}</div>
+                    ))}
+                  </div>
+                  {Array.from({ length: 24 }, (_, hour) => (
+                    <div key={hour} className="flex items-center gap-0 mb-0.5">
+                      <div className="w-7 text-right pr-1.5 text-[9px] text-primary-400 flex-shrink-0">
+                        {hour % 2 === 0 ? `${hour}:00` : ""}
+                      </div>
+                      {stats.hourlyViews.map((d: any) => {
+                        const count = d.hours[hour];
+                        const intensity = count / heatMax;
+                        return (
+                          <div
+                            key={d.dow}
+                            className="flex-1 mx-0.5 rounded-sm h-4 group relative cursor-default"
+                            style={{
+                              backgroundColor: count === 0
+                                ? "rgba(109,132,168,0.07)"
+                                : `rgba(59,100,170,${0.15 + intensity * 0.85})`,
+                            }}
+                          >
+                            {count > 0 && (
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 pointer-events-none">
+                                <div className="bg-primary-900 text-white text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap shadow">
+                                  {heatDays[d.dow]} {hour}:00 — {count}×
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-1.5 mt-2 ml-8">
+                    <span className="text-[9px] text-primary-400">Minder</span>
+                    {[0, 0.2, 0.4, 0.7, 1].map((v) => (
+                      <div key={v} className="w-4 h-2.5 rounded-sm" style={{ backgroundColor: v === 0 ? "rgba(109,132,168,0.07)" : `rgba(59,100,170,${0.15 + v * 0.85})` }} />
+                    ))}
+                    <span className="text-[9px] text-primary-400">Meer</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })() : (
+            <p className="text-xs text-primary-400">Geen data</p>
+          )}
+        </div>
+
+        {/* Bron */}
+        <div className="bg-white rounded-xl border border-primary-200 p-5">
+          <h3 className="text-sm font-semibold text-primary-800 mb-4">Bron</h3>
+          {!(stats as any).bronnen || (stats as any).bronnen.length === 0 ? (
+            <p className="text-xs text-primary-400">Geen data</p>
+          ) : (() => {
+            const bronnen: { source: string; count: number; pct: number }[] = (stats as any).bronnen;
+            const top5 = bronnen.slice(0, 5);
+            const totalPct = top5.reduce((s, b) => s + b.count, 0) || 1;
+            // Build donut segments
+            let angle = 0;
+            const segments = top5.map((b) => {
+              const sweep = (b.count / totalPct) * 360;
+              const seg = { source: b.source, startAngle: angle, endAngle: angle + sweep };
+              angle += sweep;
+              return seg;
+            });
+            return (
+              <div className="space-y-3">
+                <div className="flex justify-center mb-2">
+                  <svg viewBox="0 0 100 100" className="w-24 h-24" aria-hidden="true">
+                    {segments.map((seg) => (
+                      seg.endAngle - seg.startAngle > 0 && (
+                        <path
+                          key={seg.source}
+                          d={describeArc(50, 50, 38, seg.startAngle, seg.endAngle >= 360 ? 359.99 : seg.endAngle)}
+                          fill="none"
+                          stroke={sourceColor(seg.source)}
+                          strokeWidth={18}
+                        />
+                      )
+                    ))}
+                    {top5.length === 0 && (
+                      <circle cx={50} cy={50} r={38} fill="none" stroke="#e2e8f0" strokeWidth={18} />
+                    )}
+                  </svg>
+                </div>
+                <div className="space-y-0">
+                  {bronnen.map((b) => (
+                    <div key={b.source} className="flex items-center justify-between text-sm py-1.5 border-b border-primary-50 last:border-0">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: sourceColor(b.source) }} />
+                        <span className="text-primary-700">{b.source}</span>
+                      </div>
+                      <span className="text-primary-500 font-medium">{b.pct}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
       </div>
 
       {/* Sectie 3: Conversies + Populairste pagina's */}
@@ -631,6 +904,11 @@ export default function AdminAnalytics() {
           <h2 className="text-base font-semibold text-primary-900 mb-4">Conversies</h2>
           <SimpleLine lines={conversionLines} height={200} />
           <ChartLegend lines={conversionLines} onToggle={toggleConversionLine} />
+          {(stats as any).allSubTypes && (stats as any).allSubTypes.length > 0 && (
+            <p className="text-[10px] text-primary-400 mt-3">
+              Abonnementstypes in periode: {(stats as any).allSubTypes.join(", ")}
+            </p>
+          )}
         </div>
 
         {/* Populairste pagina's */}
@@ -641,25 +919,7 @@ export default function AdminAnalytics() {
           {stats.topPages.length === 0 ? (
             <p className="text-primary-400 text-sm">Geen data</p>
           ) : (
-            <div className="space-y-2">
-              {stats.topPages.slice(0, 8).map(({ path, count }: TopPage) => (
-                <div key={path}>
-                  <div className="flex items-center justify-between text-xs mb-0.5">
-                    <span className="text-primary-700 truncate max-w-[70%]">{path}</span>
-                    <span className="text-primary-500 font-medium">{count}</span>
-                  </div>
-                  <div className="h-2 bg-primary-50 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${Math.round((count / maxPageCount) * 100)}%`,
-                        backgroundColor: "rgba(109,132,168,0.7)",
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <AllPagesList pages={stats.topPages} maxCount={maxPageCount} />
           )}
         </div>
       </div>}
@@ -672,80 +932,39 @@ export default function AdminAnalytics() {
         </button>
       </div>
       {openApparaten && <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {/* Donut-grafiek apparaten */}
+        {/* Apparaten lijst */}
         <div className="bg-white rounded-xl border border-primary-200 p-6">
           <h2 className="text-base font-semibold text-primary-900 mb-4">Apparaten</h2>
           {donutData.total === 0 ? (
             <p className="text-primary-400 text-sm">Geen data</p>
           ) : (
-            <div className="flex items-center gap-6">
-              <svg viewBox="0 0 100 100" className="w-28 h-28 flex-shrink-0" aria-hidden="true">
-                {/* Desktop-segment */}
-                {donutData.mobileAngle < 360 && (
-                  <path
-                    d={describeArc(
-                      50,
-                      50,
-                      38,
-                      donutData.mobileAngle,
-                      360
-                    )}
-                    fill="none"
-                    stroke="#6d84a8"
-                    strokeWidth={18}
-                  />
-                )}
-                {/* Mobiel-segment */}
-                {donutData.mobileAngle > 0 && (
-                  <path
-                    d={describeArc(50, 50, 38, 0, donutData.mobileAngle)}
-                    fill="none"
-                    stroke="#68a87a"
-                    strokeWidth={18}
-                  />
-                )}
-                {/* Volledig gevuld als 100% */}
-                {donutData.mobileAngle === 360 && (
-                  <circle cx={50} cy={50} r={38} fill="none" stroke="#68a87a" strokeWidth={18} />
-                )}
-                {donutData.mobileAngle === 0 && (
-                  <circle cx={50} cy={50} r={38} fill="none" stroke="#6d84a8" strokeWidth={18} />
-                )}
-              </svg>
-
-              <div className="space-y-3">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
-                  <Smartphone size={16} style={{ color: "#68a87a" }} />
-                  <div>
-                    <p className="text-xs text-primary-600">Mobiel</p>
-                    <p className="font-semibold text-primary-900">
-                      {stats.devices.mobile.toLocaleString("nl-NL")}{" "}
-                      <span className="text-xs font-normal text-primary-500">
-                        (
-                        {donutData.total > 0
-                          ? Math.round((stats.devices.mobile / donutData.total) * 100)
-                          : 0}
-                        %)
-                      </span>
-                    </p>
-                  </div>
+                  <Monitor size={15} style={{ color: "#6d84a8" }} />
+                  <span className="text-primary-700">Desktop</span>
                 </div>
+                <span className="text-primary-500 font-medium">
+                  {donutData.total > 0 ? Math.round((stats.devices.desktop / donutData.total) * 100) : 0}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center gap-2">
-                  <Monitor size={16} style={{ color: "#6d84a8" }} />
-                  <div>
-                    <p className="text-xs text-primary-600">Desktop</p>
-                    <p className="font-semibold text-primary-900">
-                      {stats.devices.desktop.toLocaleString("nl-NL")}{" "}
-                      <span className="text-xs font-normal text-primary-500">
-                        (
-                        {donutData.total > 0
-                          ? Math.round((stats.devices.desktop / donutData.total) * 100)
-                          : 0}
-                        %)
-                      </span>
-                    </p>
-                  </div>
+                  <Smartphone size={15} style={{ color: "#68a87a" }} />
+                  <span className="text-primary-700">Mobiel</span>
                 </div>
+                <span className="text-primary-500 font-medium">
+                  {donutData.total > 0 ? Math.round((stats.devices.mobile / donutData.total) * 100) : 0}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Tablet size={15} style={{ color: "#e8934a" }} />
+                  <span className="text-primary-700">Tablet</span>
+                </div>
+                <span className="text-primary-500 font-medium">
+                  {donutData.total > 0 ? Math.round((donutData.tablet / donutData.total) * 100) : 0}%
+                </span>
               </div>
             </div>
           )}
@@ -962,45 +1181,20 @@ export default function AdminAnalytics() {
         <div className="bg-white rounded-xl border border-primary-200 p-6">
           <h2 className="text-base font-semibold text-primary-900 mb-1 flex items-center gap-2">
             <Shield size={16} className="text-primary-500" />
-            Uitgesloten IP-adressen
+            Mijn bezoeken uitsluiten
           </h2>
-          <p className="text-xs text-primary-500 mb-4">Bezoeken van deze IPs worden niet geteld.</p>
+          <p className="text-xs text-primary-500 mb-4">Zet de schakelaar aan op dit apparaat en je bezoeken worden nooit meer geteld, ongeacht IP.</p>
 
-          {/* Mijn huidige IP */}
-          {myIp && (
-            <div className="flex items-center justify-between bg-primary-50 rounded-lg px-3 py-2 mb-3 text-xs">
-              <span className="text-primary-600">Mijn huidige IP: <span className="font-mono font-semibold text-primary-800">{myIp}</span></span>
-              {excludedIps && !excludedIps.some((e: any) => e.ip === myIp) && (
-                <button
-                  onClick={() => addExcludedIp({ ip: myIp, label: "Mijn IP" }).catch(() => {})}
-                  className="flex items-center gap-1 text-primary-600 hover:text-primary-900 transition-colors"
-                >
-                  <Plus size={12} /> Uitsluiten
-                </button>
-              )}
-            </div>
-          )}
+          {/* Apparaat-vlag */}
+          <TrackingToggle />
 
-          {/* Lijst */}
-          <div className="space-y-2">
-            {(excludedIps ?? []).map((entry: any) => (
-              <div key={entry._id} className="flex items-center justify-between text-xs bg-primary-50 rounded-lg px-3 py-2">
-                <div>
-                  <span className="font-mono text-primary-800">{entry.ip}</span>
-                  {entry.label && <span className="text-primary-500 ml-2">({entry.label})</span>}
-                </div>
-                <button
-                  onClick={() => removeExcludedIp({ id: entry._id }).catch(() => {})}
-                  className="text-red-400 hover:text-red-600 transition-colors"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
-            {excludedIps?.length === 0 && (
-              <p className="text-xs text-primary-400">Nog geen IPs uitgesloten.</p>
-            )}
-          </div>
+          {/* IP-lijst inklapbaar */}
+          <IpExclusionList
+            myIp={myIp}
+            excludedIps={excludedIps ?? []}
+            onAdd={(ip) => addExcludedIp({ ip, label: "Mijn IP" }).catch(() => {})}
+            onRemove={(id) => removeExcludedIp({ id }).catch(() => {})}
+          />
         </div>
 
         {/* Email uitsluiting (testbetalingen) */}

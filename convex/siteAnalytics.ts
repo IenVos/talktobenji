@@ -12,6 +12,7 @@ export const trackPageView = mutation({
     sessionId: v.string(),
     device: v.string(),
     ip: v.optional(v.string()),
+    referrer: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Skip admin- en API-paden
@@ -31,6 +32,7 @@ export const trackPageView = mutation({
       timestamp: Date.now(),
       device: args.device,
       ip: args.ip,
+      referrer: args.referrer,
     });
   },
 });
@@ -187,14 +189,15 @@ export const getStats = query({
     }
     const topPages = Object.entries(pathCounts)
       .sort(([, a], [, b]) => b - a)
-      .slice(0, 10)
       .map(([path, count]) => ({ path, count }));
 
     // -- Apparaten --
     let mobile = 0;
+    let tablet = 0;
     let desktop = 0;
     for (const view of allViews) {
       if (view.device === "mobile") mobile++;
+      else if (view.device === "tablet") tablet++;
       else desktop++;
     }
 
@@ -251,21 +254,65 @@ export const getStats = query({
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, counts]) => ({ date, ...counts }));
 
-    // -- Uurverdeling --
-    const hourMap: number[] = Array(24).fill(0);
+    // -- Dag × uur heatmap (7 dagen × 24 uur) --
+    const heatmap: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
     for (const view of allViews) {
-      const hour = new Date(view.timestamp).getHours();
-      hourMap[hour]++;
+      const d = new Date(view.timestamp);
+      const dow = (d.getDay() + 6) % 7; // 0=Ma, 6=Zo
+      const hour = d.getHours();
+      heatmap[dow][hour]++;
     }
-    const hourlyViews = hourMap.map((count, hour) => ({ hour, count }));
+    const hourlyViews = heatmap.map((hours, dow) => ({ dow, hours }));
+
+    // -- Bron (referrer) aggregatie --
+    function parseSource(referrer?: string): string {
+      if (!referrer) return "Direct";
+      try {
+        const url = new URL(referrer);
+        const host = url.hostname.replace("www.", "");
+        if (host.includes("google")) return "Google";
+        if (host.includes("facebook") || host.includes("fb.com")) return "Facebook";
+        if (host.includes("instagram")) return "Instagram";
+        if (host.includes("bing")) return "Bing";
+        if (host.includes("pinterest")) return "Pinterest";
+        if (host.includes("talktobenji")) return "Direct";
+        return host;
+      } catch {
+        return "Direct";
+      }
+    }
+
+    const sourceMap: Record<string, number> = {};
+    for (const view of allViews) {
+      const source = parseSource(view.referrer);
+      sourceMap[source] = (sourceMap[source] ?? 0) + 1;
+    }
+    const totalViewsForSource = allViews.length || 1;
+    const bronnen = Object.entries(sourceMap)
+      .sort(([, a], [, b]) => b - a)
+      .map(([source, count]) => ({ source, count, pct: Math.round((count / totalViewsForSource) * 100) }));
+
+    // -- Conversie ratio (alleen bekende types, zelfde als dailyConversions) --
+    const geteldConversies = subsInRange.filter((s) =>
+      s.subscriptionType === "free" ||
+      s.subscriptionType === "uitgebreid" ||
+      s.subscriptionType === "alles_in_1" ||
+      s.subscriptionType === "niet_alleen"
+    ).length;
+    const conversieRatio = allSessionIds.size > 0 ? Math.round((geteldConversies / allSessionIds.size) * 1000) / 10 : 0;
+    // Debug: alle unieke subscription types die voorkomen
+    const allSubTypes = [...new Set(subsInRange.map((s) => s.subscriptionType))];
 
     return {
       dailyViews,
       dailyConversions,
       topPages,
-      devices: { mobile, desktop },
+      devices: { mobile, tablet, desktop },
       totals,
       hourlyViews,
+      bronnen,
+      conversieRatio,
+      allSubTypes,
     };
   },
 });

@@ -20,6 +20,11 @@ export function PageViewTracker() {
 
   // Initialiseer sessionId, device en IP eenmalig
   useEffect(() => {
+    // Sla tracking over als beheerder-vlag gezet is
+    if (localStorage.getItem("ttb_skip_tracking") === "1") {
+      setIpReady(false);
+      return;
+    }
     const stored = localStorage.getItem("ttb_sid");
     if (stored) {
       sessionIdRef.current = stored;
@@ -28,7 +33,7 @@ export function PageViewTracker() {
       localStorage.setItem("ttb_sid", newId);
       sessionIdRef.current = newId;
     }
-    deviceRef.current = window.innerWidth < 768 ? "mobile" : "desktop";
+    deviceRef.current = window.innerWidth < 768 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop";
     // Haal IP op voor uitsluiting – track pas nadat dit klaar is
     fetch("/api/my-ip")
       .then((r) => r.json())
@@ -50,6 +55,7 @@ export function PageViewTracker() {
       sessionId: sessionIdRef.current ?? "",
       device: deviceRef.current,
       ip: ipRef.current,
+      referrer: document.referrer || undefined,
     }).catch(() => {
       // Negeer fouten – analytics mogen de app nooit breken
     });

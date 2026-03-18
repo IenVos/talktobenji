@@ -287,6 +287,37 @@ export default function AdminLandingspaginasPage() {
         </button>
       </div>
 
+      {/* Vaste (hardcoded) landingspagina's */}
+      <div className="bg-white rounded-xl border border-primary-200 p-6">
+        <h2 className="font-semibold text-primary-900 mb-3">Vaste pagina's</h2>
+        <p className="text-xs text-primary-500 mb-4">Deze pagina's staan in de code en zijn altijd live.</p>
+        <ul className="space-y-2">
+          {[
+            { slug: "jaar-toegang", title: "1 jaar toegang — € 97 eenmalig", note: "Betaalpagina KennisShop" },
+            { slug: "troostende-woorden", title: "Troostende woorden", note: "Content landingspagina" },
+          ].map(({ slug, title, note }) => (
+            <li key={slug} className="flex items-center justify-between p-3 rounded-lg border border-primary-100 bg-primary-50/40">
+              <div>
+                <p className="text-sm font-medium text-primary-900">{title}</p>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <code className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">/lp/{slug}</code>
+                  <span className="text-xs text-gray-400">{note}</span>
+                </div>
+              </div>
+              <a
+                href={`/lp/${slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-2 text-primary-500 hover:bg-primary-100 rounded-lg"
+                title="Bekijk pagina"
+              >
+                <ExternalLink size={16} />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       {/* FORMULIER */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
         <div className="flex justify-between items-center mb-4">
