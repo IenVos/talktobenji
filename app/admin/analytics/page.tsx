@@ -456,6 +456,7 @@ export default function AdminAnalytics() {
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
   const featureStats = useAdminQuery(api.siteAnalytics.getFeatureStats, { from, to });
   const allGoals = useAdminQuery(api.siteAnalytics.listGoalsWithOwner, {});
+  const liveVisitors = useAdminQuery(api.siteAnalytics.getLiveVisitors, {});
   const recentRegs = useAdminQuery(api.siteAnalytics.getRecentRegistrations, { days: 7 });
   const excludedIps = useAdminQuery(api.siteAnalytics.listExcludedIps, {});
   const addExcludedIp = useAdminMutation(api.siteAnalytics.addExcludedIp);
@@ -737,7 +738,16 @@ export default function AdminAnalytics() {
       {/* Bezoeken lijngrafiek */}
       <div className="bg-white rounded-xl border border-primary-200">
         <button onClick={() => setOpenBezoeken(v => !v)} className="w-full flex items-center justify-between p-6 text-left">
-          <h2 className="text-base font-semibold text-primary-900">Bezoeken</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-semibold text-primary-900">Bezoeken</h2>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-primary-100 text-primary-800 text-xs font-bold tabular-nums">
+                {liveVisitors ?? 0}
+              </span>
+              <span className="text-xs text-primary-400">Live</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+            </div>
+          </div>
           <ChevronDown size={16} className={`text-primary-400 transition-transform ${openBezoeken ? "rotate-180" : ""}`} />
         </button>
         {openBezoeken && <div className="px-6 pb-6 space-y-6">

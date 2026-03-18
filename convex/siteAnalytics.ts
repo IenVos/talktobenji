@@ -436,6 +436,26 @@ export const listGoalsWithOwner = query({
   },
 });
 
+/** Aantal live bezoekers (sessies actief in laatste 5 minuten, admin only). */
+export const getLiveVisitors = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const since = Date.now() - 5 * 60 * 1000;
+    const [recentViews, excludedIps] = await Promise.all([
+      ctx.db
+        .query("pageViews")
+        .withIndex("by_timestamp", (q) => q.gte("timestamp", since))
+        .collect(),
+      ctx.db.query("analyticsExcludedIps").collect(),
+    ]);
+    const excludedSet = new Set(excludedIps.map((e) => e.ip));
+    const filtered = recentViews.filter((v) => !v.ip || !excludedSet.has(v.ip));
+    const sessions = new Set(filtered.map((v) => v.sessionId));
+    return sessions.size;
+  },
+});
+
 /** Haal recente inschrijvingen op (admin only). */
 export const getRecentRegistrations = query({
   args: { adminToken: v.string(), days: v.optional(v.number()) },
