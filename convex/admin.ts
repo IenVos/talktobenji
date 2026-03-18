@@ -1197,6 +1197,20 @@ export const retriggerRapporten = mutation({
 /**
  * Zet de status van een sessie handmatig (door admin na beoordeling).
  */
+/** Eenmalige migratie: verplaats alle bestaande 'abandoned' sessies naar 'reviewed' */
+export const migreerAbandonedNaarReviewed = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const sessions = await ctx.db.query("chatSessions").collect();
+    const abandoned = sessions.filter((s: any) => s.status === "abandoned" && s.reviewedAt);
+    for (const s of abandoned) {
+      await ctx.db.patch(s._id, { status: "reviewed" });
+    }
+    return { gemigreerd: abandoned.length };
+  },
+});
+
 export const setSessionStatus = mutation({
   args: {
     adminToken: v.string(),

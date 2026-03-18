@@ -265,7 +265,7 @@ function formatDate(ts: number) {
 const STATUS_CONFIG = {
   resolved: { label: "Goed gesprek", icon: CheckCircle, color: "text-green-600", bg: "bg-green-50 border-green-200" },
   escalated: { label: "Opvolging nodig", icon: AlertCircle, color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
-  abandoned: { label: "Afgehaakt", icon: Clock, color: "text-red-500", bg: "bg-red-50 border-red-200" },
+  abandoned: { label: "Nieuw", icon: Clock, color: "text-blue-500", bg: "bg-blue-50 border-blue-200" },
   active: { label: "Actief", icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50 border-blue-200" },
   reviewed: { label: "Bekeken", icon: Eye, color: "text-gray-500", bg: "bg-gray-50 border-gray-200" },
 };
@@ -294,7 +294,6 @@ function StatusActies({ session }: { session: any }) {
   const ACTIES = [
     { status: "resolved" as const, label: "Goed gesprek", icon: CheckCircle, cls: "bg-green-50 text-green-700 border-green-200 hover:bg-green-100" },
     { status: "escalated" as const, label: "Opvolging nodig", icon: AlertCircle, cls: "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100" },
-    { status: "abandoned" as const, label: "Afgehaakt", icon: Clock, cls: "bg-red-50 text-red-600 border-red-200 hover:bg-red-100" },
     { status: "reviewed" as const, label: "Bekeken", icon: Archive, cls: "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100" },
   ];
 
@@ -376,12 +375,20 @@ export default function AdminChatHistory() {
 
   const deleteChatSession = useAdminMutation(api.admin.deleteChatSession);
   const retriggerRapporten = useAdminMutation(api.admin.retriggerRapporten);
+  const migreerAbandoned = useAdminMutation(api.admin.migreerAbandonedNaarReviewed);
   const [retriggerMsg, setRetriggerMsg] = useState<string | null>(null);
+  const [migreerMsg, setMigreerMsg] = useState<string | null>(null);
 
   const handleRetrigger = async () => {
     const n = await retriggerRapporten({});
     setRetriggerMsg(`${n} rapport${n !== 1 ? "ten" : ""} ingepland.`);
     setTimeout(() => setRetriggerMsg(null), 5000);
+  };
+
+  const handleMigreer = async () => {
+    const result = await migreerAbandoned({}) as { gemigreerd: number };
+    setMigreerMsg(`${result.gemigreerd} sessie${result.gemigreerd !== 1 ? "s" : ""} naar Bekeken verplaatst.`);
+    setTimeout(() => setMigreerMsg(null), 6000);
   };
 
   const handleDeleteSession = async (sessionId: Id<"chatSessions">) => {
@@ -423,13 +430,24 @@ export default function AdminChatHistory() {
             Bekijk elk rapport en categoriseer handmatig. Geen letterlijke berichten zichtbaar.
           </p>
         </div>
-        <button
-          onClick={handleRetrigger}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-100 hover:bg-primary-200 text-primary-700 font-medium transition-colors text-sm flex-shrink-0"
-        >
-          <RefreshCw size={14} />
-          Genereer rapporten
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          <button
+            onClick={handleRetrigger}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary-100 hover:bg-primary-200 text-primary-700 font-medium transition-colors text-sm flex-shrink-0"
+          >
+            <RefreshCw size={14} />
+            Genereer rapporten
+          </button>
+          <button
+            onClick={handleMigreer}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium transition-colors text-sm flex-shrink-0"
+          >
+            <Archive size={14} />
+            Verplaats oude Afgehaakt → Bekeken
+          </button>
+          {migreerMsg && <p className="text-xs text-blue-600">{migreerMsg}</p>}
+          {retriggerMsg && <p className="text-xs text-primary-600">{retriggerMsg}</p>}
+        </div>
       </div>
 
       {/* Terugkerende patronen */}
@@ -514,7 +532,7 @@ export default function AdminChatHistory() {
                 key={session._id}
                 className={`bg-white rounded-xl border overflow-hidden shadow-sm ${
                   session.status === "abandoned" || session.status === "escalated"
-                    ? "border-l-4 " + (session.status === "abandoned" ? "border-l-red-400" : "border-l-amber-400") + " border-primary-200"
+                    ? "border-l-4 " + (session.status === "abandoned" ? "border-l-blue-400" : "border-l-amber-400") + " border-primary-200"
                     : "border-primary-200"
                 }`}
               >
