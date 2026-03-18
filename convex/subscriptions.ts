@@ -247,10 +247,11 @@ export const activateSubscriptionByEmail = mutation({
   args: {
     webhookSecret: v.string(),
     email: v.string(),
-    subscriptionType: v.union(v.literal("uitgebreid"), v.literal("alles_in_1")),
+    subscriptionType: v.union(v.literal("uitgebreid"), v.literal("alles_in_1"), v.literal("niet_alleen")),
     billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("yearly"))),
     externalSubscriptionId: v.optional(v.string()),
     paymentProvider: v.optional(v.string()),
+    pricePaid: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     // Controleer webhook secret
@@ -294,6 +295,7 @@ export const activateSubscriptionByEmail = mutation({
       startedAt: existing?.startedAt || now,
       externalSubscriptionId: args.externalSubscriptionId,
       paymentProvider: args.paymentProvider || "kennisshop",
+      pricePaid: args.pricePaid,
       updatedAt: now,
       expiresAt,
     };
@@ -342,6 +344,7 @@ export const cancelSubscriptionByEmail = mutation({
     await ctx.db.patch(existing._id, {
       status: "cancelled",
       cancelledAt: now,
+      expiresAt: now, // Directe toegangsbeëindiging bij refund/annulering via webhook
       updatedAt: now,
     });
 
@@ -371,32 +374,29 @@ export const cancelOwnSubscription = mutation({
     if (!subscription) throw new Error("Geen actief abonnement gevonden");
     if (subscription.status === "cancelled") throw new Error("Abonnement is al opgezegd");
 
-    // Bereken einde huidige betaalde periode:
-    // Volgende maandelijkse vervaldag na vandaag op basis van startdatum
-    const start = new Date(subscription.startedAt);
-    const nowDate = new Date(now);
-
-    const nextRenewal = new Date(
-      nowDate.getFullYear(),
-      nowDate.getMonth(),
-      start.getDate()
-    );
-    // Als die dag al voorbij is deze maand → volgende maand
-    if (nextRenewal.getTime() <= now) {
-      nextRenewal.setMonth(nextRenewal.getMonth() + 1);
+    // Voor jaar-toegang: toegang loopt door tot de originele expiresAt
+    // Voor maandelijks: bereken volgende vervaldag (legacy, niet meer actief verkocht)
+    let expiresAt: number;
+    if (subscription.billingPeriod === "yearly" && subscription.expiresAt) {
+      expiresAt = subscription.expiresAt;
+    } else {
+      const start = new Date(subscription.startedAt);
+      const nowDate = new Date(now);
+      const nextRenewal = new Date(nowDate.getFullYear(), nowDate.getMonth(), start.getDate());
+      if (nextRenewal.getTime() <= now) nextRenewal.setMonth(nextRenewal.getMonth() + 1);
+      expiresAt = nextRenewal.getTime();
     }
 
     await ctx.db.patch(subscription._id, {
       status: "cancelled",
       cancelledAt: now,
-      expiresAt: nextRenewal.getTime(),
+      expiresAt,
       cancellationReason: args.reason,
       cancellationValuable: args.valuable,
       cancellationWouldRecommend: args.wouldRecommend,
       updatedAt: now,
     });
 
-    // Stuur admin-notificatie via e-mail
     const user = await ctx.db.get(args.userId as any);
 
     await ctx.scheduler.runAfter(0, internal.emails.sendCancellationNotification, {
@@ -405,10 +405,10 @@ export const cancelOwnSubscription = mutation({
       reason: args.reason,
       valuable: args.valuable,
       wouldRecommend: args.wouldRecommend,
-      expiresAt: nextRenewal.getTime(),
+      expiresAt,
     });
 
-    return { expiresAt: nextRenewal.getTime() };
+    return { expiresAt };
   },
 });
 

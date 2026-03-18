@@ -368,7 +368,7 @@ function IpExclusionList({ myIp, excludedIps, onAdd, onRemove }: {
 
 function AllPagesList({ pages, maxCount }: { pages: TopPage[]; maxCount: number }) {
   const [expanded, setExpanded] = useState(false);
-  const LIMIT = 8;
+  const LIMIT = 3;
   const visible = expanded ? pages : pages.slice(0, LIMIT);
   return (
     <div className="space-y-2">
@@ -1137,6 +1137,7 @@ export default function AdminAnalytics() {
           </h2>
           <p className="text-xs text-primary-500 mb-5">Nieuw aangemaakt in geselecteerde periode.</p>
           {featureStats ? (
+            <>
             <div className="space-y-3">
               {featureStats.features.map((f: { label: string; count: number; allTime: number }) => {
                 const maxCount = Math.max(...featureStats.features.map((x: { count: number }) => x.count), 1);
@@ -1183,7 +1184,7 @@ export default function AdminAnalytics() {
                   </div>
                 </div>
               )}
-            </div>
+            </>
           ) : (
             <div className="text-xs text-primary-400">Laden…</div>
           )}
