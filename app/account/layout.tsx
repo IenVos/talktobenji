@@ -443,24 +443,6 @@ export default function AccountLayout({
               </button>
             )}
             <div className="flex-1" />
-            {/* Profielfoto */}
-            <Link href="/account/wachtwoord" title="Account" className="flex-shrink-0">
-              <div
-                className="w-8 h-8 rounded-full border-2 overflow-hidden flex items-center justify-center bg-primary-100 hover:opacity-80 transition-opacity"
-                style={{ borderColor: accent }}
-              >
-                {(preferences as any)?.profileImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={(preferences as any).profileImageUrl}
-                    alt="Profielfoto"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <User size={16} style={{ color: accent }} />
-                )}
-              </div>
-            </Link>
             {/* Hartverwarmer bell */}
             <div>
               <button
@@ -586,14 +568,29 @@ export default function AccountLayout({
             </button>
           </div>
           {/* Titel + subtitel – altijd onder de header-rij */}
-          <div className="mt-2">
-            <h1 className="text-base sm:text-xl font-bold text-primary-900">
-              {pathname === "/account" && session.user?.name
-                ? <span>Fijn dat je er bent, {session.user.name.split(" ")[0]}. {pageInfo.title}</span>
-                : pageInfo.title
-              }
-            </h1>
-            {pageInfo.subtitle && <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>}
+          <div className="mt-2 flex items-center gap-2 sm:gap-3">
+            <Link href="/account/wachtwoord" title="Account" className="flex-shrink-0">
+              <div
+                className="w-9 h-9 sm:w-11 sm:h-11 rounded-full border-2 overflow-hidden flex items-center justify-center bg-primary-100 hover:opacity-80 transition-opacity"
+                style={{ borderColor: accent }}
+              >
+                {(preferences as any)?.profileImageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={(preferences as any).profileImageUrl} alt="Profielfoto" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={18} style={{ color: accent }} />
+                )}
+              </div>
+            </Link>
+            <div>
+              <h1 className="text-base sm:text-xl font-bold text-primary-900 leading-tight">
+                {pathname === "/account" && session.user?.name
+                  ? <span>Fijn dat je er bent, {session.user.name.split(" ")[0]}. {pageInfo.title}</span>
+                  : pageInfo.title
+                }
+              </h1>
+              {pageInfo.subtitle && <p className="text-xs sm:text-sm text-gray-600">{pageInfo.subtitle}</p>}
+            </div>
           </div>
         </div>
 

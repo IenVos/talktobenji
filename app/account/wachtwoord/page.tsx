@@ -535,8 +535,11 @@ function Hartverwarmers({ isOpen, onToggle }: { isOpen: boolean; onToggle: () =>
     setError(null);
     try {
       if (isSubscribed) {
-        await unsubscribeFromPush();
+        // Verwijder eerst het Convex-record (het echte uitzetten)
         await unsubscribeMutation({ userId });
+        // Probeer daarna ook browser-kant uit te schrijven (niet-blokkerend, met timeout)
+        const timeout = new Promise<void>((resolve) => setTimeout(resolve, 3000));
+        await Promise.race([unsubscribeFromPush(), timeout]);
       } else {
         const subscription = await subscribeToPush();
         if (!subscription) {
