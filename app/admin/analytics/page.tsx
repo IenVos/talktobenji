@@ -475,6 +475,7 @@ export default function AdminAnalytics() {
   const [openConversies, setOpenConversies] = useState(true);
   const [openApparaten, setOpenApparaten] = useState(true);
   const [openHouvast, setOpenHouvast] = useState(true);
+  const [openFeatureGebruik, setOpenFeatureGebruik] = useState(true);
   const [openBeheer, setOpenBeheer] = useState(true);
 
   useEffect(() => {
@@ -1130,11 +1131,15 @@ export default function AdminAnalytics() {
         </div>
 
         {/* Feature gebruik */}
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <h2 className="text-base font-semibold text-primary-900 mb-1 flex items-center gap-2">
-            <BarChart3 size={16} className="text-primary-500" />
-            Feature gebruik
-          </h2>
+        <div className="bg-white rounded-xl border border-primary-200">
+          <button onClick={() => setOpenFeatureGebruik(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+            <div className="flex items-center gap-2">
+              <BarChart3 size={16} className="text-primary-500" />
+              <span className="text-base font-semibold text-primary-900">Feature gebruik</span>
+            </div>
+            <ChevronDown size={16} className={`text-primary-400 transition-transform ${openFeatureGebruik ? "rotate-180" : ""}`} />
+          </button>
+          {openFeatureGebruik && <div className="px-6 pb-6">
           <p className="text-xs text-primary-500 mb-5">Nieuw aangemaakt in geselecteerde periode.</p>
           {featureStats ? (
             <>
@@ -1188,6 +1193,7 @@ export default function AdminAnalytics() {
           ) : (
             <div className="text-xs text-primary-400">Laden…</div>
           )}
+          </div>}
         </div>
       </div>}
 
