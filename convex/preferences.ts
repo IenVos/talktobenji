@@ -67,9 +67,13 @@ export const setPreferences = mutation({
       ...(args.accentColor !== undefined && { accentColor: args.accentColor }),
       ...(args.backgroundImageStorageId !== undefined && {
         backgroundImageStorageId: args.backgroundImageStorageId,
+        backgroundImageChangedAt: now,
       }),
       ...(args.profileImageStorageId !== undefined && {
         profileImageStorageId: args.profileImageStorageId,
+      }),
+      ...(args.accentColor !== undefined && {
+        accentColorChangedAt: now,
       }),
     };
 

@@ -215,6 +215,8 @@ export default defineSchema({
     accentColor: v.optional(v.string()),
     backgroundImageStorageId: v.optional(v.id("_storage")),
     profileImageStorageId: v.optional(v.id("_storage")),
+    accentColorChangedAt: v.optional(v.number()),
+    backgroundImageChangedAt: v.optional(v.number()),
     lastSeenNotificationsAt: v.optional(v.number()),
     updatedAt: v.number(),
   }).index("by_user", ["userId"]),
@@ -239,6 +241,7 @@ export default defineSchema({
     startedAt: v.number(),
     expiresAt: v.optional(v.number()),
     cancelledAt: v.optional(v.number()),
+    pricePaid: v.optional(v.number()), // Werkelijk betaald bedrag in euro's
     paymentProvider: v.optional(v.string()), // "mollie", "stripe", etc.
     externalSubscriptionId: v.optional(v.string()),
     reminderDay5Sent: v.optional(v.boolean()),

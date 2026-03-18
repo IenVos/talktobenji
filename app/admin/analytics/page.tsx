@@ -8,6 +8,7 @@ import {
   Users,
   Eye,
   TrendingUp,
+  Euro,
   Smartphone,
   Monitor,
   Tablet,
@@ -721,6 +722,12 @@ export default function AdminAnalytics() {
           value={(stats as any).conversieRatio !== undefined ? (stats as any).conversieRatio + "%" : "–"}
           icon={TrendingUp}
           color="#4a8ae8"
+        />
+        <StatCard
+          label={(stats as any).omzetGeschat ? "Omzet (geschat)" : "Omzet"}
+          value={(stats as any).omzet !== undefined ? "€\u00a0" + (stats as any).omzet.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "–"}
+          icon={Euro}
+          color="#4aab6e"
         />
       </div>
 

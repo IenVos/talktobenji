@@ -303,6 +303,34 @@ export const getStats = query({
     // Debug: alle unieke subscription types die voorkomen
     const allSubTypes = [...new Set(subsInRange.map((s) => s.subscriptionType))];
 
+    // -- Omzet berekening --
+    // Gebruik pricePaid als beschikbaar, anders schatting op basis van type + periode
+    const PRIJS_SCHATTING: Record<string, Record<string, number>> = {
+      uitgebreid:  { monthly: 6.99,  yearly: 69.99 },
+      alles_in_1:  { monthly: 11.99, yearly: 97 },
+      niet_alleen: { monthly: 0,     yearly: 0 },
+      free:        { monthly: 0,     yearly: 0 },
+      trial:       { monthly: 0,     yearly: 0 },
+    };
+
+    const betaaldeSubs = subsInRange.filter((s) =>
+      s.subscriptionType !== "free" && s.subscriptionType !== "trial"
+    );
+
+    let omzet = 0;
+    let omzetGeschat = false;
+    for (const s of betaaldeSubs) {
+      if ((s as any).pricePaid !== undefined) {
+        omzet += (s as any).pricePaid;
+      } else {
+        const periode = (s as any).billingPeriod ?? "monthly";
+        const typeMap = PRIJS_SCHATTING[s.subscriptionType] ?? { monthly: 0 };
+        omzet += typeMap[periode] ?? 0;
+        omzetGeschat = true;
+      }
+    }
+    omzet = Math.round(omzet * 100) / 100;
+
     return {
       dailyViews,
       dailyConversions,
@@ -313,6 +341,8 @@ export const getStats = query({
       bronnen,
       conversieRatio,
       allSubTypes,
+      omzet,
+      omzetGeschat,
     };
   },
 });
@@ -325,7 +355,7 @@ export const getFeatureStats = query({
 
     const inRange = (ts: number) => ts >= args.from && ts <= args.to;
 
-    const [notes, emotions, checkIns, goals, memories, houvasteProfielen, users, preferences] = await Promise.all([
+    const [notes, emotions, checkIns, goals, memories, houvasteProfielen, users, preferences, excludedEmailRecords] = await Promise.all([
       ctx.db.query("notes").collect(),
       ctx.db.query("emotionEntries").collect(),
       ctx.db.query("checkInEntries").collect(),
@@ -334,12 +364,22 @@ export const getFeatureStats = query({
       ctx.db.query("houvasteProfielen").collect(),
       ctx.db.query("users").collect(),
       ctx.db.query("userPreferences").collect(),
+      ctx.db.query("analyticsExcludedEmails").collect(),
     ]);
+
+    const excludedEmailSet = new Set(excludedEmailRecords.map((e: any) => e.email.toLowerCase()));
+
+    // Gebruikers wiens email is uitgesloten
+    const excludedUserIds = new Set(
+      users.filter((u: any) => u.email && excludedEmailSet.has(u.email.toLowerCase())).map((u: any) => u._id)
+    );
 
     const userEmails = new Set(users.map((u: any) => u.email));
 
-    // Houvast funnel
-    const houvasteInPeriod = houvasteProfielen.filter((h: any) => inRange(h.createdAt));
+    // Houvast funnel — uitgesloten emails eruit filteren
+    const houvasteInPeriod = houvasteProfielen.filter(
+      (h: any) => inRange(h.createdAt) && !excludedEmailSet.has(h.email.toLowerCase())
+    );
     const houvasteConverted = houvasteInPeriod.filter((h: any) => userEmails.has(h.email));
 
     // Feature gebruik in periode — gebruik _creationTime als fallback als createdAt ontbreekt
@@ -351,7 +391,7 @@ export const getFeatureStats = query({
       houvast: {
         total: houvasteInPeriod.length,
         converted: houvasteConverted.length,
-        allTime: houvasteProfielen.length,
+        allTime: houvasteProfielen.filter((h: any) => !excludedEmailSet.has(h.email.toLowerCase())).length,
         list: houvasteInPeriod
           .sort((a: any, b: any) => b.createdAt - a.createdAt)
           .map((h: any) => ({
@@ -362,13 +402,13 @@ export const getFeatureStats = query({
           })),
       },
       features: [
-        { label: "Reflecties", count: notes.filter((n: any) => inRange(ts(n))).length, allTime: notes.length },
-        { label: "Check-ins", count: checkIns.filter((c: any) => inRange(ts(c))).length, allTime: checkIns.length },
-        { label: "Doelen", count: goals.filter((g: any) => inRange(ts(g))).length, allTime: goals.length },
-        { label: "Memories", count: memories.filter((m: any) => inRange(ts(m))).length, allTime: memories.length },
-        { label: "Emoties gelogd", count: emotions.filter((e: any) => inRange(ts(e))).length, allTime: emotions.length },
-        { label: "Kleur gewijzigd", count: preferences.filter((p: any) => p.accentColor && inRange(ts(p))).length, allTime: preferences.filter((p: any) => p.accentColor).length },
-        { label: "Achtergrond gewijzigd", count: preferences.filter((p: any) => p.backgroundImageStorageId && inRange(ts(p))).length, allTime: preferences.filter((p: any) => p.backgroundImageStorageId).length },
+        { label: "Reflecties", count: notes.filter((n: any) => inRange(ts(n)) && !excludedUserIds.has(n.userId)).length, allTime: notes.filter((n: any) => !excludedUserIds.has(n.userId)).length },
+        { label: "Check-ins", count: checkIns.filter((c: any) => inRange(ts(c)) && !excludedUserIds.has(c.userId)).length, allTime: checkIns.filter((c: any) => !excludedUserIds.has(c.userId)).length },
+        { label: "Doelen", count: goals.filter((g: any) => inRange(ts(g)) && !excludedUserIds.has(g.userId)).length, allTime: goals.filter((g: any) => !excludedUserIds.has(g.userId)).length },
+        { label: "Memories", count: memories.filter((m: any) => inRange(ts(m)) && !excludedUserIds.has(m.userId)).length, allTime: memories.filter((m: any) => !excludedUserIds.has(m.userId)).length },
+        { label: "Emoties gelogd", count: emotions.filter((e: any) => inRange(ts(e)) && !excludedUserIds.has(e.userId)).length, allTime: emotions.filter((e: any) => !excludedUserIds.has(e.userId)).length },
+        { label: "Kleur gewijzigd", count: preferences.filter((p: any) => p.accentColorChangedAt && inRange(p.accentColorChangedAt) && !excludedUserIds.has(p.userId)).length, allTime: preferences.filter((p: any) => p.accentColor && !excludedUserIds.has(p.userId)).length },
+        { label: "Achtergrond gewijzigd", count: preferences.filter((p: any) => p.backgroundImageChangedAt && inRange(p.backgroundImageChangedAt) && !excludedUserIds.has(p.userId)).length, allTime: preferences.filter((p: any) => p.backgroundImageStorageId && !excludedUserIds.has(p.userId)).length },
       ],
     };
   },
