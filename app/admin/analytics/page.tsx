@@ -476,6 +476,7 @@ export default function AdminAnalytics() {
   const [openApparaten, setOpenApparaten] = useState(true);
   const [openHouvast, setOpenHouvast] = useState(true);
   const [openFeatureGebruik, setOpenFeatureGebruik] = useState(true);
+  const [openDoelen, setOpenDoelen] = useState(false);
   const [openBeheer, setOpenBeheer] = useState(true);
 
   useEffect(() => {
@@ -1178,15 +1179,20 @@ export default function AdminAnalytics() {
             </div>
               {allGoals && allGoals.length > 0 && (
                 <div className="mt-4 pt-3 border-t border-primary-100">
-                  <p className="text-xs font-medium text-primary-700 mb-2">Alle doelen in database ({allGoals.length})</p>
-                  <div className="space-y-0 max-h-48 overflow-y-auto">
-                    {allGoals.map((g: { id: string; title: string; email: string; createdAt: number }) => (
-                      <div key={g.id} className="flex items-start justify-between text-xs py-1.5 border-b border-primary-50 last:border-0 gap-2">
-                        <span className="text-primary-800 font-medium truncate flex-1">{g.title}</span>
-                        <span className="text-primary-400 flex-shrink-0 truncate max-w-[140px]">{g.email}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <button onClick={() => setOpenDoelen(v => !v)} className="flex items-center gap-1.5 text-xs text-primary-500 hover:text-primary-800 transition-colors mb-2">
+                    <ChevronDown size={13} className={`transition-transform ${openDoelen ? "rotate-180" : ""}`} />
+                    Alle doelen in database ({allGoals.length})
+                  </button>
+                  {openDoelen && (
+                    <div className="space-y-0 max-h-48 overflow-y-auto">
+                      {allGoals.map((g: { id: string; title: string; email: string; createdAt: number }) => (
+                        <div key={g.id} className="flex items-start justify-between text-xs py-1.5 border-b border-primary-50 last:border-0 gap-2">
+                          <span className="text-primary-800 font-medium truncate flex-1">{g.title}</span>
+                          <span className="text-primary-400 flex-shrink-0 truncate max-w-[140px]">{g.email}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </>
