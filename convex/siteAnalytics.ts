@@ -306,11 +306,11 @@ export const getStats = query({
     // -- Omzet berekening --
     // Gebruik pricePaid als beschikbaar, anders schatting op basis van type + periode
     const PRIJS_SCHATTING: Record<string, Record<string, number>> = {
-      uitgebreid:  { monthly: 6.99,  yearly: 69.99 },
-      alles_in_1:  { monthly: 11.99, yearly: 97 },
-      niet_alleen: { monthly: 0,     yearly: 0 },
-      free:        { monthly: 0,     yearly: 0 },
-      trial:       { monthly: 0,     yearly: 0 },
+      alles_in_1:  { monthly: 0, yearly: 97 }, // Actief: €97 eenmalig per jaar
+      uitgebreid:  { monthly: 0, yearly: 0 },  // Niet actief verkocht
+      niet_alleen: { monthly: 0, yearly: 0 },  // Niet actief verkocht
+      free:        { monthly: 0, yearly: 0 },
+      trial:       { monthly: 0, yearly: 0 },
     };
 
     const betaaldeSubs = subsInRange.filter((s) =>
@@ -377,9 +377,10 @@ export const getFeatureStats = query({
     const userEmails = new Set(users.map((u: any) => u.email));
 
     // Houvast funnel — uitgesloten emails eruit filteren
-    const houvasteInPeriod = houvasteProfielen.filter(
-      (h: any) => inRange(h.createdAt) && !excludedEmailSet.has(h.email.toLowerCase())
+    const houvasteNietUitgesloten = houvasteProfielen.filter(
+      (h: any) => !excludedEmailSet.has(h.email.toLowerCase())
     );
+    const houvasteInPeriod = houvasteNietUitgesloten.filter((h: any) => inRange(h.createdAt));
     const houvasteConverted = houvasteInPeriod.filter((h: any) => userEmails.has(h.email));
 
     // Feature gebruik in periode — gebruik _creationTime als fallback als createdAt ontbreekt
@@ -391,8 +392,8 @@ export const getFeatureStats = query({
       houvast: {
         total: houvasteInPeriod.length,
         converted: houvasteConverted.length,
-        allTime: houvasteProfielen.filter((h: any) => !excludedEmailSet.has(h.email.toLowerCase())).length,
-        list: houvasteInPeriod
+        allTime: houvasteNietUitgesloten.length,
+        list: houvasteNietUitgesloten
           .sort((a: any, b: any) => b.createdAt - a.createdAt)
           .map((h: any) => ({
             email: h.email,
