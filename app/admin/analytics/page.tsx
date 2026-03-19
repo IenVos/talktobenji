@@ -369,7 +369,7 @@ function IpExclusionList({ myIp, excludedIps, onAdd, onRemove }: {
 
 function AllPagesList({ pages, maxCount }: { pages: TopPage[]; maxCount: number }) {
   const [expanded, setExpanded] = useState(false);
-  const LIMIT = 3;
+  const LIMIT = 10;
   const visible = expanded ? pages : pages.slice(0, LIMIT);
   return (
     <div className="space-y-2">
