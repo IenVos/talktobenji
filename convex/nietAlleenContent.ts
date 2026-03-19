@@ -37,7 +37,7 @@ export const NIET_ALLEEN_CONTENT: DagInhoud[] = [
     mail: {
       persoon: `Jij bent er. Op dag één. Dat vraagt moed, ook al voelt het misschien niet zo.
 
-Je hebt iemand verloren die er niet meer is. En toch ben jij hier, klaar om iets voor jezelf te doen. Dat is niet vanzelfsprekend.
+Je hebt iemand verloren, of draagt een verdriet dat moeilijk te omschrijven is. En toch ben jij hier, klaar om iets voor jezelf te doen. Dat is niet vanzelfsprekend.
 
 De vraag voor vandaag is simpel: hoe voel je je nu, op dit moment? Niet zoals je denkt te moeten voelen. Maar wat er echt is.
 
