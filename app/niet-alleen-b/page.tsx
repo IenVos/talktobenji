@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
+import { KoopKnopLink } from "@/components/KoopKnopLink";
 
 const KOOP_LINK = "https://talktobenji.kennis.shop/pay/niet-alleen";
 
@@ -69,13 +70,14 @@ export default function NietAlleenBPage() {
               Voor €37 ontvang je 30 dagen lang elke ochtend een persoonlijk bericht.
               Eenmalig, geen abonnement.
             </p>
-            <a
+            <KoopKnopLink
               href={KOOP_LINK}
+              buttonLabel="Laten we beginnen"
               className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm"
               style={{ background: "#6d84a8" }}
             >
               Laten we beginnen
-            </a>
+            </KoopKnopLink>
           </div>
         </section>
 
@@ -182,13 +184,14 @@ export default function NietAlleenBPage() {
               <p className="text-base leading-relaxed mb-7" style={{ color: "#6b6460", textWrap: "balance" } as any}>
                 Je hoeft het niet alleen te dragen.
               </p>
-              <a
+              <KoopKnopLink
                 href={KOOP_LINK}
+                buttonLabel="Laten we beginnen"
                 className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm mb-4"
                 style={{ background: "#6d84a8" }}
               >
                 Laten we beginnen
-              </a>
+              </KoopKnopLink>
               <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
                 Voor €37 eenmalig. Geen abonnement, geen verplichtingen.
                 Na aankoop ontvang je direct een bericht van Ien.

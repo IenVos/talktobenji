@@ -115,6 +115,29 @@ export const deleteOldViews = mutation({
   },
 });
 
+/** Sla een koopknop-klik op (publiek, geen auth vereist). */
+export const trackButtonClick = mutation({
+  args: {
+    path: v.string(),
+    buttonLabel: v.string(),
+    sessionId: v.string(),
+    ip: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    if (args.ip) {
+      const excluded = await ctx.db.query("analyticsExcludedIps").collect();
+      if (excluded.some((e) => e.ip === args.ip)) return null;
+    }
+    return await ctx.db.insert("buttonClicks", {
+      path: args.path,
+      buttonLabel: args.buttonLabel,
+      sessionId: args.sessionId,
+      timestamp: Date.now(),
+      ip: args.ip,
+    });
+  },
+});
+
 /** Werk de verblijfsduur bij voor het meest recente bezoek van deze sessie+pad. */
 export const updateDuration = mutation({
   args: {
@@ -358,6 +381,23 @@ export const getStats = query({
     }
     omzet = Math.round(omzet * 100) / 100;
 
+    // -- Koopknop klikken --
+    const allClicks = await ctx.db
+      .query("buttonClicks")
+      .withIndex("by_timestamp", (q) => q.gte("timestamp", args.from).lte("timestamp", args.to))
+      .collect();
+    const filteredClicks = allClicks.filter((c) => !c.ip || !excludedSet.has(c.ip));
+    const clicksByPage: Record<string, number> = {};
+    for (const click of filteredClicks) {
+      clicksByPage[click.path] = (clicksByPage[click.path] ?? 0) + 1;
+    }
+    const koopknopKlikken = {
+      total: filteredClicks.length,
+      byPage: Object.entries(clicksByPage)
+        .sort(([, a], [, b]) => b - a)
+        .map(([path, count]) => ({ path, count })),
+    };
+
     return {
       dailyViews,
       dailyConversions,
@@ -371,6 +411,7 @@ export const getStats = query({
       omzet,
       omzetGeschat,
       topPageDurations,
+      koopknopKlikken,
     };
   },
 });

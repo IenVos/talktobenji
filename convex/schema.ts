@@ -495,6 +495,15 @@ export default defineSchema({
     createdAt: v.number(),
   }),
 
+  // Koopknop klikken (website analytics)
+  buttonClicks: defineTable({
+    path: v.string(),
+    buttonLabel: v.string(),
+    sessionId: v.string(),
+    timestamp: v.number(),
+    ip: v.optional(v.string()),
+  }).index("by_timestamp", ["timestamp"]),
+
   // Aankomende functies (beheerbaar via admin)
   comingSoonFeatures: defineTable({
     featureId: v.string(),   // slug voor vote-tracking

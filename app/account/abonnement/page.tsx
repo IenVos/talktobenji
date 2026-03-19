@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ChevronDown, Sparkles, Star } from "lucide-react";
+import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
 import { useState } from "react";
 
@@ -125,9 +126,9 @@ export default function AbonnementPage() {
                   <p className="text-sm text-gray-700 leading-relaxed mb-4">
                     Benji wordt een plek waar je steeds weer naartoe kunt, op je eigen tempo.
                   </p>
-                  <a href="https://talktobenji.kennis.shop/pay/talktobenji-uitgebreid" className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm">
+                  <KoopKnopLink href="https://talktobenji.kennis.shop/pay/talktobenji-uitgebreid" buttonLabel="Kies Benji Uitgebreid" className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm">
                     Kies Benji Uitgebreid
-                  </a>
+                  </KoopKnopLink>
                 </div>
               )}
             </div>
@@ -156,9 +157,9 @@ export default function AbonnementPage() {
                   <p className="text-sm text-gray-700 leading-relaxed mb-4">
                     Benji wordt een plek die volledig op jou is afgestemd, waar je altijd naartoe kunt.
                   </p>
-                  <a href="https://talktobenji.kennis.shop/pay/talktobenji-alles-in-1" className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm">
+                  <KoopKnopLink href="https://talktobenji.kennis.shop/pay/talktobenji-alles-in-1" buttonLabel="Kies Benji Alles in 1" className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm">
                     Kies Benji Alles in 1
-                  </a>
+                  </KoopKnopLink>
                 </div>
               )}
             </div>

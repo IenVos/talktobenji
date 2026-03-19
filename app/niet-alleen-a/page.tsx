@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
+import { KoopKnopLink } from "@/components/KoopKnopLink";
 
 const KOOP_LINK = "https://talktobenji.kennis.shop/pay/niet-alleen";
 
@@ -96,13 +97,14 @@ export default function NietAlleenAPage() {
               Voor €37 ontvang je 30 dagen lang elke ochtend een persoonlijk bericht in je inbox.
               Eenmalig, geen abonnement, geen verplichtingen.
             </p>
-            <a
+            <KoopKnopLink
               href={KOOP_LINK}
+              buttonLabel="Laten we beginnen"
               className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
               style={{ background: "#6d84a8" }}
             >
               Laten we beginnen
-            </a>
+            </KoopKnopLink>
           </div>
         </section>
 

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { MessageSquare, CalendarCheck, PencilLine, Gem, HandHelping, Sparkles, FileText, MessagesSquare, Palette } from "lucide-react";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { SiteFooter } from "@/components/SiteFooter";
+import { KoopKnopLink } from "@/components/KoopKnopLink";
 
 export const metadata: Metadata = {
   title: "1 jaar Benji · Talk To Benji",
@@ -289,13 +290,14 @@ export default function JaarToegangsPage() {
           <p className="text-sm leading-relaxed mb-6 max-w-md mx-auto" style={{ color: "#6b6460" }}>
             Voor één prijs, één jaar lang alles beschikbaar.
           </p>
-          <a
+          <KoopKnopLink
             href={KENNIS_SHOP_URL}
+            buttonLabel="Begin nu · € 97"
             className="inline-block px-10 py-4 rounded-2xl font-semibold text-white text-base transition-opacity hover:opacity-90"
             style={{ background: "#6d84a8" }}
           >
             Begin nu · € 97
-          </a>
+          </KoopKnopLink>
           <p className="text-xs mt-4" style={{ color: "#a09890" }}>
             Veilig betalen · direct toegang · geen automatische verlenging
           </p>

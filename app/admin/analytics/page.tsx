@@ -792,13 +792,34 @@ export default function AdminAnalytics() {
           )}
         </div>
 
-        {/* Koopknop klikken (placeholder) */}
+        {/* Koopknop klikken */}
         <div className="bg-white rounded-xl border border-primary-200 p-5">
           <h3 className="text-sm font-semibold text-primary-800 mb-4 flex items-center gap-2">
             <ShoppingCart size={15} className="text-primary-400" />
             Koopknop klikken
           </h3>
-          <p className="text-xs text-primary-400">Tracking wordt binnenkort toegevoegd</p>
+          {(stats as any).koopknopKlikken ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-3 border-b border-primary-100">
+                <span className="text-[10px] text-primary-400">Totaal klikken</span>
+                <span className="text-lg font-bold text-primary-900">{(stats as any).koopknopKlikken.total}</span>
+              </div>
+              {(stats as any).koopknopKlikken.byPage.length === 0 ? (
+                <p className="text-xs text-primary-400">Nog geen klikken in deze periode</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {(stats as any).koopknopKlikken.byPage.map((p: { path: string; count: number }) => (
+                    <div key={p.path} className="flex items-center justify-between text-xs">
+                      <span className="text-primary-600 truncate max-w-[140px]">{p.path}</span>
+                      <span className="text-primary-800 font-medium flex-shrink-0 ml-2">{p.count}×</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-primary-400">Laden…</p>
+          )}
         </div>
 
         {/* Houvast trechter */}
