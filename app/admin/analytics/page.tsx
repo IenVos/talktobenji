@@ -26,6 +26,7 @@ import {
   ArrowRight,
   ChevronDown,
   Palette,
+  ShoppingCart,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -475,7 +476,6 @@ export default function AdminAnalytics() {
   const [openBezoeken, setOpenBezoeken] = useState(true);
   const [openConversies, setOpenConversies] = useState(true);
   const [openApparaten, setOpenApparaten] = useState(true);
-  const [openHouvast, setOpenHouvast] = useState(true);
   const [openFeatureGebruik, setOpenFeatureGebruik] = useState(true);
   const [openDoelen, setOpenDoelen] = useState(false);
   const [openBeheer, setOpenBeheer] = useState(true);
@@ -758,7 +758,7 @@ export default function AdminAnalytics() {
         </div>}
       </div>
 
-      {/* Sectie 1b: Apparaten + Heatmap + Bron */}
+      {/* ROW A: Betrokkenheid | Koopknop klikken | Houvast trechter (3-col, not collapsible) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Betrokkenheid */}
         <div className="bg-white rounded-xl border border-primary-200 p-5">
@@ -792,263 +792,19 @@ export default function AdminAnalytics() {
           )}
         </div>
 
-        {/* Heatmap */}
+        {/* Koopknop klikken (placeholder) */}
         <div className="bg-white rounded-xl border border-primary-200 p-5">
-          <h3 className="text-sm font-semibold text-primary-800 mb-4">Bezoeken per dag &amp; uur</h3>
-          {stats.hourlyViews && stats.hourlyViews.some((d: any) => d.hours.some((c: number) => c > 0)) ? (() => {
-            const heatDays = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
-            const heatMax = Math.max(...stats.hourlyViews.flatMap((d: any) => d.hours), 1);
-            return (
-              <div className="overflow-x-auto">
-                <div style={{ minWidth: 280 }}>
-                  <div className="flex mb-1 ml-8">
-                    {heatDays.map((d) => (
-                      <div key={d} className="flex-1 text-center text-[10px] font-medium text-primary-600">{d}</div>
-                    ))}
-                  </div>
-                  {Array.from({ length: 24 }, (_, hour) => (
-                    <div key={hour} className="flex items-center gap-0 mb-0.5">
-                      <div className="w-7 text-right pr-1.5 text-[9px] text-primary-400 flex-shrink-0">
-                        {hour % 2 === 0 ? `${hour}:00` : ""}
-                      </div>
-                      {stats.hourlyViews.map((d: any) => {
-                        const count = d.hours[hour];
-                        const intensity = count / heatMax;
-                        return (
-                          <div
-                            key={d.dow}
-                            className="flex-1 mx-0.5 rounded-sm h-4 group relative cursor-default"
-                            style={{
-                              backgroundColor: count === 0
-                                ? "rgba(109,132,168,0.07)"
-                                : `rgba(59,100,170,${0.15 + intensity * 0.85})`,
-                            }}
-                          >
-                            {count > 0 && (
-                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 pointer-events-none">
-                                <div className="bg-primary-900 text-white text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap shadow">
-                                  {heatDays[d.dow]} {hour}:00 — {count}×
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                  <div className="flex items-center gap-1.5 mt-2 ml-8">
-                    <span className="text-[9px] text-primary-400">Minder</span>
-                    {[0, 0.2, 0.4, 0.7, 1].map((v) => (
-                      <div key={v} className="w-4 h-2.5 rounded-sm" style={{ backgroundColor: v === 0 ? "rgba(109,132,168,0.07)" : `rgba(59,100,170,${0.15 + v * 0.85})` }} />
-                    ))}
-                    <span className="text-[9px] text-primary-400">Meer</span>
-                  </div>
-                </div>
-              </div>
-            );
-          })() : (
-            <p className="text-xs text-primary-400">Geen data</p>
-          )}
+          <h3 className="text-sm font-semibold text-primary-800 mb-4 flex items-center gap-2">
+            <ShoppingCart size={15} className="text-primary-400" />
+            Koopknop klikken
+          </h3>
+          <p className="text-xs text-primary-400">Tracking wordt binnenkort toegevoegd</p>
         </div>
-
-        {/* Bron */}
-        <div className="bg-white rounded-xl border border-primary-200 p-5">
-          <h3 className="text-sm font-semibold text-primary-800 mb-4">Bron</h3>
-          {!(stats as any).bronnen || (stats as any).bronnen.length === 0 ? (
-            <p className="text-xs text-primary-400">Geen data</p>
-          ) : (() => {
-            const bronnen: { source: string; count: number; pct: number }[] = (stats as any).bronnen;
-            const top5 = bronnen.slice(0, 5);
-            const totalPct = top5.reduce((s, b) => s + b.count, 0) || 1;
-            // Build donut segments
-            let angle = 0;
-            const segments = top5.map((b) => {
-              const sweep = (b.count / totalPct) * 360;
-              const seg = { source: b.source, startAngle: angle, endAngle: angle + sweep };
-              angle += sweep;
-              return seg;
-            });
-            return (
-              <div className="space-y-3">
-                <div className="flex justify-center mb-2">
-                  <svg viewBox="0 0 100 100" className="w-24 h-24" aria-hidden="true">
-                    {segments.map((seg) => (
-                      seg.endAngle - seg.startAngle > 0 && (
-                        <path
-                          key={seg.source}
-                          d={describeArc(50, 50, 38, seg.startAngle, seg.endAngle >= 360 ? 359.99 : seg.endAngle)}
-                          fill="none"
-                          stroke={sourceColor(seg.source)}
-                          strokeWidth={18}
-                        />
-                      )
-                    ))}
-                    {top5.length === 0 && (
-                      <circle cx={50} cy={50} r={38} fill="none" stroke="#e2e8f0" strokeWidth={18} />
-                    )}
-                  </svg>
-                </div>
-                <div className="space-y-0">
-                  {bronnen.map((b) => (
-                    <div key={b.source} className="flex items-center justify-between text-sm py-1.5 border-b border-primary-50 last:border-0">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: sourceColor(b.source) }} />
-                        <span className="text-primary-700">{b.source}</span>
-                      </div>
-                      <span className="text-primary-500 font-medium">{b.pct}%</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      </div>
-
-      {/* Sectie 3: Conversies + Populairste pagina's */}
-      <div className="bg-white rounded-xl border border-primary-200">
-        <button onClick={() => setOpenConversies(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
-          <h2 className="text-base font-semibold text-primary-900">Conversies & Pagina's</h2>
-          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openConversies ? "rotate-180" : ""}`} />
-        </button>
-      </div>
-      {openConversies && <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {/* Conversies grafiek */}
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <h2 className="text-base font-semibold text-primary-900 mb-4">Conversies</h2>
-          <SimpleLine lines={conversionLines} height={200} />
-          <ChartLegend lines={conversionLines} onToggle={toggleConversionLine} />
-          {(stats as any).allSubTypes && (stats as any).allSubTypes.length > 0 && (
-            <p className="text-[10px] text-primary-400 mt-3">
-              Abonnementstypes in periode: {(stats as any).allSubTypes.join(", ")}
-            </p>
-          )}
-        </div>
-
-        {/* Populairste pagina's */}
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <h2 className="text-base font-semibold text-primary-900 mb-4">
-            Populairste pagina&apos;s
-          </h2>
-          {stats.topPages.length === 0 ? (
-            <p className="text-primary-400 text-sm">Geen data</p>
-          ) : (
-            <AllPagesList pages={stats.topPages} maxCount={maxPageCount} />
-          )}
-        </div>
-      </div>}
-
-      {/* Sectie 4: Apparaten + Totalen tabel */}
-      <div className="bg-white rounded-xl border border-primary-200">
-        <button onClick={() => setOpenApparaten(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
-          <h2 className="text-base font-semibold text-primary-900">Apparaten & Samenvatting</h2>
-          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openApparaten ? "rotate-180" : ""}`} />
-        </button>
-      </div>
-      {openApparaten && <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {/* Apparaten */}
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <h2 className="text-base font-semibold text-primary-900 mb-4">Apparaten</h2>
-          {donutData.total === 0 ? (
-            <p className="text-primary-400 text-sm">Geen data</p>
-          ) : (
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Monitor size={15} style={{ color: "#6d84a8" }} />
-                  <span className="text-primary-700">Desktop</span>
-                </div>
-                <span className="text-primary-500 font-medium">
-                  {Math.round((stats.devices.desktop / donutData.total) * 100)}%
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Smartphone size={15} style={{ color: "#68a87a" }} />
-                  <span className="text-primary-700">Mobiel</span>
-                </div>
-                <span className="text-primary-500 font-medium">
-                  {Math.round((stats.devices.mobile / donutData.total) * 100)}%
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Tablet size={15} style={{ color: "#e8934a" }} />
-                  <span className="text-primary-700">Tablet</span>
-                </div>
-                <span className="text-primary-500 font-medium">
-                  {Math.round((donutData.tablet / donutData.total) * 100)}%
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Totalen tabel */}
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <h2 className="text-base font-semibold text-primary-900 mb-4">Samenvatting</h2>
-          <table className="w-full text-sm">
-            <tbody className="divide-y divide-primary-100">
-              <tr>
-                <td className="py-2 text-primary-600">Totaal bezoeken</td>
-                <td className="py-2 text-right font-semibold text-primary-900">
-                  {stats.totals.views.toLocaleString("nl-NL")}
-                </td>
-              </tr>
-              <tr>
-                <td className="py-2 text-primary-600">Unieke bezoekers</td>
-                <td className="py-2 text-right font-semibold text-primary-900">
-                  {stats.totals.unique.toLocaleString("nl-NL")}
-                </td>
-              </tr>
-              <tr>
-                <td className="py-2 text-primary-600">Gem. verblijfsduur</td>
-                <td className="py-2 text-right font-semibold text-primary-900">
-                  {formatDuration(stats.totals.avgDuration)}
-                </td>
-              </tr>
-              <tr>
-                <td className="py-2 text-primary-600">Gratis accounts</td>
-                <td className="py-2 text-right font-semibold text-primary-900">
-                  {stats.dailyConversions
-                    .reduce((s: number, d: DailyConversion) => s + d.freeAccounts, 0)
-                    .toLocaleString("nl-NL")}
-                </td>
-              </tr>
-              <tr>
-                <td className="py-2 text-primary-600">1 jaar toegang</td>
-                <td className="py-2 text-right font-semibold text-primary-900">
-                  {stats.dailyConversions
-                    .reduce((s: number, d: DailyConversion) => s + d.paid, 0)
-                    .toLocaleString("nl-NL")}
-                </td>
-              </tr>
-              <tr>
-                <td className="py-2 text-primary-600">Niet Alleen</td>
-                <td className="py-2 text-right font-semibold text-primary-900">
-                  {stats.dailyConversions
-                    .reduce((s: number, d: DailyConversion) => s + d.nietAlleen, 0)
-                    .toLocaleString("nl-NL")}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>}
-
-      {/* Sectie 5: Houvast trechter + Feature gebruik */}
-      <div className="bg-white rounded-xl border border-primary-200">
-        <button onClick={() => setOpenHouvast(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
-          <h2 className="text-base font-semibold text-primary-900">Houvast & Feature gebruik</h2>
-          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openHouvast ? "rotate-180" : ""}`} />
-        </button>
-      </div>
-      {openHouvast && <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
         {/* Houvast trechter */}
-        <div className="bg-white rounded-xl border border-primary-200 p-6">
-          <h2 className="text-base font-semibold text-primary-900 mb-1 flex items-center gap-2">
-            <Leaf size={16} className="text-green-600" />
+        <div className="bg-white rounded-xl border border-primary-200 p-5">
+          <h2 className="text-sm font-semibold text-primary-800 mb-1 flex items-center gap-2">
+            <Leaf size={15} className="text-green-600" />
             Houvast trechter
           </h2>
           <p className="text-xs text-primary-500 mb-5">Van aanvraag tot account in geselecteerde periode.</p>
@@ -1134,78 +890,321 @@ export default function AdminAnalytics() {
             <div className="text-xs text-primary-400">Laden…</div>
           )}
         </div>
+      </div>
 
-        {/* Feature gebruik */}
-        <div className="bg-white rounded-xl border border-primary-200">
-          <button onClick={() => setOpenFeatureGebruik(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
-            <div className="flex items-center gap-2">
-              <BarChart3 size={16} className="text-primary-500" />
-              <span className="text-base font-semibold text-primary-900">Feature gebruik</span>
-            </div>
-            <ChevronDown size={16} className={`text-primary-400 transition-transform ${openFeatureGebruik ? "rotate-180" : ""}`} />
-          </button>
-          {openFeatureGebruik && <div className="px-6 pb-6">
-          <p className="text-xs text-primary-500 mb-5">Nieuw aangemaakt in geselecteerde periode.</p>
-          {featureStats ? (
-            <>
-            <div className="space-y-3">
-              {featureStats.features.map((f: { label: string; count: number; allTime: number }) => {
-                const maxCount = Math.max(...featureStats.features.map((x: { count: number }) => x.count), 1);
-                const Icon = f.label === "Reflecties" ? PencilLine
-                  : f.label === "Check-ins" ? CalendarCheck
-                  : f.label === "Doelen" ? Target
-                  : f.label === "Memories" ? Gem
-                  : Heart;
-                return (
-                  <div key={f.label}>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1.5 text-xs text-primary-700">
-                        <Icon size={13} className="text-primary-400" />
-                        {f.label}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-primary-900">{f.count}</span>
-                        <span className="text-xs text-primary-400">/ {f.allTime} totaal</span>
-                      </div>
-                    </div>
-                    <div className="h-2 bg-primary-50 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${Math.round((f.count / maxCount) * 100)}%`,
-                          backgroundColor: "rgba(109,132,168,0.65)",
-                        }}
-                      />
-                    </div>
+      {/* ROW B: Conversies & Pagina's (collapsible) — 3-col: Heatmap | Conversies | Pagina's */}
+      <div className="bg-white rounded-xl border border-primary-200">
+        <button onClick={() => setOpenConversies(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+          <h2 className="text-base font-semibold text-primary-900">Conversies & Pagina's</h2>
+          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openConversies ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+      {openConversies && <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Heatmap */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-4">Bezoeken per dag &amp; uur</h2>
+          {stats.hourlyViews && stats.hourlyViews.some((d: any) => d.hours.some((c: number) => c > 0)) ? (() => {
+            const heatDays = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
+            const heatMax = Math.max(...stats.hourlyViews.flatMap((d: any) => d.hours), 1);
+            return (
+              <div className="overflow-x-auto">
+                <div style={{ minWidth: 280 }}>
+                  <div className="flex mb-1 ml-8">
+                    {heatDays.map((d) => (
+                      <div key={d} className="flex-1 text-center text-[10px] font-medium text-primary-600">{d}</div>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-              {allGoals && allGoals.length > 0 && (
-                <div className="mt-4 pt-3 border-t border-primary-100">
-                  <button onClick={() => setOpenDoelen(v => !v)} className="flex items-center gap-1.5 text-xs text-primary-500 hover:text-primary-800 transition-colors mb-2">
-                    <ChevronDown size={13} className={`transition-transform ${openDoelen ? "rotate-180" : ""}`} />
-                    Alle doelen in database ({allGoals.length})
-                  </button>
-                  {openDoelen && (
-                    <div className="space-y-0 max-h-48 overflow-y-auto">
-                      {allGoals.map((g: { id: string; title: string; email: string; createdAt: number }) => (
-                        <div key={g.id} className="flex items-start justify-between text-xs py-1.5 border-b border-primary-50 last:border-0 gap-2">
-                          <span className="text-primary-800 font-medium truncate flex-1">{g.title}</span>
-                          <span className="text-primary-400 flex-shrink-0 truncate max-w-[140px]">{g.email}</span>
-                        </div>
-                      ))}
+                  {Array.from({ length: 24 }, (_, hour) => (
+                    <div key={hour} className="flex items-center gap-0 mb-0.5">
+                      <div className="w-7 text-right pr-1.5 text-[9px] text-primary-400 flex-shrink-0">
+                        {hour % 2 === 0 ? `${hour}:00` : ""}
+                      </div>
+                      {stats.hourlyViews.map((d: any) => {
+                        const count = d.hours[hour];
+                        const intensity = count / heatMax;
+                        return (
+                          <div
+                            key={d.dow}
+                            className="flex-1 mx-0.5 rounded-sm h-4 group relative cursor-default"
+                            style={{
+                              backgroundColor: count === 0
+                                ? "rgba(109,132,168,0.07)"
+                                : `rgba(59,100,170,${0.15 + intensity * 0.85})`,
+                            }}
+                          >
+                            {count > 0 && (
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-10 pointer-events-none">
+                                <div className="bg-primary-900 text-white text-[10px] rounded px-1.5 py-0.5 whitespace-nowrap shadow">
+                                  {heatDays[d.dow]} {hour}:00 — {count}×
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
+                  ))}
+                  <div className="flex items-center gap-1.5 mt-2 ml-8">
+                    <span className="text-[9px] text-primary-400">Minder</span>
+                    {[0, 0.2, 0.4, 0.7, 1].map((v) => (
+                      <div key={v} className="w-4 h-2.5 rounded-sm" style={{ backgroundColor: v === 0 ? "rgba(109,132,168,0.07)" : `rgba(59,100,170,${0.15 + v * 0.85})` }} />
+                    ))}
+                    <span className="text-[9px] text-primary-400">Meer</span>
+                  </div>
                 </div>
-              )}
-            </>
-          ) : (
-            <div className="text-xs text-primary-400">Laden…</div>
+              </div>
+            );
+          })() : (
+            <p className="text-xs text-primary-400">Geen data</p>
           )}
-          </div>}
+        </div>
+
+        {/* Conversies grafiek */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-4">Conversies</h2>
+          <SimpleLine lines={conversionLines} height={200} />
+          <ChartLegend lines={conversionLines} onToggle={toggleConversionLine} />
+          {(stats as any).allSubTypes && (stats as any).allSubTypes.length > 0 && (
+            <p className="text-[10px] text-primary-400 mt-3">
+              Abonnementstypes in periode: {(stats as any).allSubTypes.join(", ")}
+            </p>
+          )}
+        </div>
+
+        {/* Populairste pagina's */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-4">
+            Populairste pagina&apos;s
+          </h2>
+          {stats.topPages.length === 0 ? (
+            <p className="text-primary-400 text-sm">Geen data</p>
+          ) : (
+            <AllPagesList pages={stats.topPages} maxCount={maxPageCount} />
+          )}
         </div>
       </div>}
+
+      {/* ROW C: Apparaten & Samenvatting (collapsible) — 3-col: Apparaten | Samenvatting | Bron */}
+      <div className="bg-white rounded-xl border border-primary-200">
+        <button onClick={() => setOpenApparaten(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+          <h2 className="text-base font-semibold text-primary-900">Apparaten & Samenvatting</h2>
+          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openApparaten ? "rotate-180" : ""}`} />
+        </button>
+      </div>
+      {openApparaten && <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Apparaten */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-4">Apparaten</h2>
+          {donutData.total === 0 ? (
+            <p className="text-primary-400 text-sm">Geen data</p>
+          ) : (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Monitor size={15} style={{ color: "#6d84a8" }} />
+                  <span className="text-primary-700">Desktop</span>
+                </div>
+                <span className="text-primary-500 font-medium">
+                  {Math.round((stats.devices.desktop / donutData.total) * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Smartphone size={15} style={{ color: "#68a87a" }} />
+                  <span className="text-primary-700">Mobiel</span>
+                </div>
+                <span className="text-primary-500 font-medium">
+                  {Math.round((stats.devices.mobile / donutData.total) * 100)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Tablet size={15} style={{ color: "#e8934a" }} />
+                  <span className="text-primary-700">Tablet</span>
+                </div>
+                <span className="text-primary-500 font-medium">
+                  {Math.round((donutData.tablet / donutData.total) * 100)}%
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Samenvatting tabel */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-4">Samenvatting</h2>
+          <table className="w-full text-sm">
+            <tbody className="divide-y divide-primary-100">
+              <tr>
+                <td className="py-2 text-primary-600">Totaal bezoeken</td>
+                <td className="py-2 text-right font-semibold text-primary-900">
+                  {stats.totals.views.toLocaleString("nl-NL")}
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 text-primary-600">Unieke bezoekers</td>
+                <td className="py-2 text-right font-semibold text-primary-900">
+                  {stats.totals.unique.toLocaleString("nl-NL")}
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 text-primary-600">Gem. verblijfsduur</td>
+                <td className="py-2 text-right font-semibold text-primary-900">
+                  {formatDuration(stats.totals.avgDuration)}
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 text-primary-600">Gratis accounts</td>
+                <td className="py-2 text-right font-semibold text-primary-900">
+                  {stats.dailyConversions
+                    .reduce((s: number, d: DailyConversion) => s + d.freeAccounts, 0)
+                    .toLocaleString("nl-NL")}
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 text-primary-600">1 jaar toegang</td>
+                <td className="py-2 text-right font-semibold text-primary-900">
+                  {stats.dailyConversions
+                    .reduce((s: number, d: DailyConversion) => s + d.paid, 0)
+                    .toLocaleString("nl-NL")}
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 text-primary-600">Niet Alleen</td>
+                <td className="py-2 text-right font-semibold text-primary-900">
+                  {stats.dailyConversions
+                    .reduce((s: number, d: DailyConversion) => s + d.nietAlleen, 0)
+                    .toLocaleString("nl-NL")}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Bron */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <h2 className="text-base font-semibold text-primary-900 mb-4">Bron</h2>
+          {!(stats as any).bronnen || (stats as any).bronnen.length === 0 ? (
+            <p className="text-xs text-primary-400">Geen data</p>
+          ) : (() => {
+            const bronnen: { source: string; count: number; pct: number }[] = (stats as any).bronnen;
+            const top5 = bronnen.slice(0, 5);
+            const totalPct = top5.reduce((s, b) => s + b.count, 0) || 1;
+            // Build donut segments
+            let angle = 0;
+            const segments = top5.map((b) => {
+              const sweep = (b.count / totalPct) * 360;
+              const seg = { source: b.source, startAngle: angle, endAngle: angle + sweep };
+              angle += sweep;
+              return seg;
+            });
+            return (
+              <div className="space-y-3">
+                <div className="flex justify-center mb-2">
+                  <svg viewBox="0 0 100 100" className="w-24 h-24" aria-hidden="true">
+                    {segments.map((seg) => (
+                      seg.endAngle - seg.startAngle > 0 && (
+                        <path
+                          key={seg.source}
+                          d={describeArc(50, 50, 38, seg.startAngle, seg.endAngle >= 360 ? 359.99 : seg.endAngle)}
+                          fill="none"
+                          stroke={sourceColor(seg.source)}
+                          strokeWidth={18}
+                        />
+                      )
+                    ))}
+                    {top5.length === 0 && (
+                      <circle cx={50} cy={50} r={38} fill="none" stroke="#e2e8f0" strokeWidth={18} />
+                    )}
+                  </svg>
+                </div>
+                <div className="space-y-0">
+                  {bronnen.map((b) => (
+                    <div key={b.source} className="flex items-center justify-between text-sm py-1.5 border-b border-primary-50 last:border-0">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: sourceColor(b.source) }} />
+                        <span className="text-primary-700">{b.source}</span>
+                      </div>
+                      <span className="text-primary-500 font-medium">{b.pct}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      </div>}
+
+      {/* Feature gebruik (standalone collapsible) */}
+      <div className="bg-white rounded-xl border border-primary-200">
+        <button onClick={() => setOpenFeatureGebruik(v => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+          <div className="flex items-center gap-2">
+            <BarChart3 size={16} className="text-primary-500" />
+            <span className="text-base font-semibold text-primary-900">Feature gebruik</span>
+          </div>
+          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openFeatureGebruik ? "rotate-180" : ""}`} />
+        </button>
+        {openFeatureGebruik && <div className="px-6 pb-6">
+        <p className="text-xs text-primary-500 mb-5">Nieuw aangemaakt in geselecteerde periode.</p>
+        {featureStats ? (
+          <>
+          <div className="space-y-3">
+            {featureStats.features.map((f: { label: string; count: number; allTime: number }) => {
+              const maxCount = Math.max(...featureStats.features.map((x: { count: number }) => x.count), 1);
+              const Icon = f.label === "Reflecties" ? PencilLine
+                : f.label === "Check-ins" ? CalendarCheck
+                : f.label === "Doelen" ? Target
+                : f.label === "Memories" ? Gem
+                : Heart;
+              return (
+                <div key={f.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 text-xs text-primary-700">
+                      <Icon size={13} className="text-primary-400" />
+                      {f.label}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-primary-900">{f.count}</span>
+                      <span className="text-xs text-primary-400">/ {f.allTime} totaal</span>
+                    </div>
+                  </div>
+                  <div className="h-2 bg-primary-50 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${Math.round((f.count / maxCount) * 100)}%`,
+                        backgroundColor: "rgba(109,132,168,0.65)",
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+            {allGoals && allGoals.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-primary-100">
+                <button onClick={() => setOpenDoelen(v => !v)} className="flex items-center gap-1.5 text-xs text-primary-500 hover:text-primary-800 transition-colors mb-2">
+                  <ChevronDown size={13} className={`transition-transform ${openDoelen ? "rotate-180" : ""}`} />
+                  Alle doelen in database ({allGoals.length})
+                </button>
+                {openDoelen && (
+                  <div className="space-y-0 max-h-48 overflow-y-auto">
+                    {allGoals.map((g: { id: string; title: string; email: string; createdAt: number }) => (
+                      <div key={g.id} className="flex items-start justify-between text-xs py-1.5 border-b border-primary-50 last:border-0 gap-2">
+                        <span className="text-primary-800 font-medium truncate flex-1">{g.title}</span>
+                        <span className="text-primary-400 flex-shrink-0 truncate max-w-[140px]">{g.email}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="text-xs text-primary-400">Laden…</div>
+        )}
+        </div>}
+      </div>
 
       {/* Sectie 6: Beheer */}
       <div className="bg-white rounded-xl border border-primary-200">
