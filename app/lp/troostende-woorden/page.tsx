@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { HeaderBar } from "@/components/chat/HeaderBar";
+import { KoopKnopLink } from "@/components/KoopKnopLink";
 
 export const metadata: Metadata = {
   title: "Troostende Woorden · Talk To Benji",
@@ -36,13 +37,14 @@ export default function TroostendeWoordenPage() {
           <p className="text-base leading-relaxed mb-8" style={{ color: "#6b6460" }}>
             Voor wie zelf niet de woorden kan vinden, maar ze wel wil geven.
           </p>
-          <a
+          <KoopKnopLink
             href={ctaUrl}
+            buttonLabel="Bestel het boekje"
             className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
             style={{ background: "#6d84a8" }}
           >
             Bestel het boekje
-          </a>
+          </KoopKnopLink>
         </section>
 
         {/* PRODUCTAFBEELDING */}

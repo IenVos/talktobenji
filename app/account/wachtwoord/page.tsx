@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { KeyRound, Mail, Eye, EyeOff, CheckCircle, ChevronDown, User, CreditCard, Download, Bell, Trash2, AlertTriangle, Smartphone, X, Check, Sparkles, Star, Camera } from "lucide-react";
+import { KoopKnopLink } from "@/components/KoopKnopLink";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { isPushSupported, subscribeToPush, unsubscribeFromPush, getPermissionStatus } from "@/lib/pushNotifications";
@@ -779,12 +780,13 @@ function AbonnementAccordion({ isOpen, onToggle }: { isOpen: boolean; onToggle: 
           {/* Upgrade knop */}
           {subscription.subscriptionType !== "alles_in_1" && (
             subscription.subscriptionType === "uitgebreid" ? (
-              <a
+              <KoopKnopLink
                 href="https://talktobenji.kennis.shop/pay/talktobenji-alles-in-1"
+                buttonLabel="Upgraden naar Alles in 1"
                 className="block w-full text-center px-4 py-2 bg-primary-600 text-white hover:bg-primary-700 rounded-lg transition-colors text-sm font-medium"
               >
                 Upgraden naar Alles in 1
-              </a>
+              </KoopKnopLink>
             ) : (
               <Link
                 href="/account/abonnement?upgrade=true"

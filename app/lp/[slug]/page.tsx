@@ -6,6 +6,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { notFound, useParams } from "next/navigation";
 import { HeaderBar } from "@/components/chat/HeaderBar";
+import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
 
 interface Ervaring {
@@ -110,13 +111,14 @@ export default function LandingPage() {
                 {page.heroBody}
               </p>
             )}
-            <a
+            <KoopKnopLink
               href={ctaUrl}
+              buttonLabel={ctaText}
               className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
               style={{ background: "#6d84a8" }}
             >
               {ctaText}
-            </a>
+            </KoopKnopLink>
           </div>
         </section>
 
@@ -284,13 +286,14 @@ export default function LandingPage() {
                     {page.finalCtaBody}
                   </p>
                 )}
-                <a
+                <KoopKnopLink
                   href={ctaUrl}
+                  buttonLabel={ctaText}
                   className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm mb-4"
                   style={{ background: "#6d84a8" }}
                 >
                   {ctaText}
-                </a>
+                </KoopKnopLink>
                 <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
                   Na aankoop ontvang je direct een bericht van Ien.
                   Je eerste dag begint de volgende ochtend.
