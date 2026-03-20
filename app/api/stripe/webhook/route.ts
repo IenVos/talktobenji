@@ -262,7 +262,7 @@ export async function POST(req: NextRequest) {
           const omschrijving = productName || (slug ? slug.replace(/-/g, " ") : "Aankoop");
 
           await resend.emails.send({
-            from: "TalkToBenji <contactmetien@talktobenji.com>",
+            from: "Talk To Benji <noreply@talktobenji.com>",
             to: email,
             subject: `Factuur ${invoiceNr} – ${omschrijving}`,
             html: buildInvoiceEmail({
