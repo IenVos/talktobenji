@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     currency: "eur",
     metadata: {
       slug,
+      productName: product.name,
       subscriptionType: product.subscriptionType,
       email: email || "",
       name: name || "",
