@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
-  CreditCard, Plus, Edit, Trash2, Save, X, Eye, EyeOff, ExternalLink,
+  CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink,
 } from "lucide-react";
 
 type CheckoutProduct = {
@@ -17,6 +17,8 @@ type CheckoutProduct = {
   stripePriceId?: string;
   subscriptionType: string;
   buttonText?: string;
+  imageStorageId?: Id<"_storage">;
+  imageUrl?: string | null;
   isLive: boolean;
   createdAt: number;
   updatedAt: number;
@@ -30,6 +32,8 @@ type FormState = {
   stripePriceId: string;
   subscriptionType: string;
   buttonText: string;
+  imageStorageId?: Id<"_storage">;
+  imageFile: File | null;
   isLive: boolean;
 };
 
@@ -41,6 +45,8 @@ const EMPTY_FORM: FormState = {
   stripePriceId: "",
   subscriptionType: "alles_in_1",
   buttonText: "",
+  imageStorageId: undefined,
+  imageFile: null,
   isLive: false,
 };
 
@@ -57,11 +63,14 @@ export default function AdminCheckoutPage() {
   const createProduct = useAdminMutation(api.checkoutProducts.create);
   const updateProduct = useAdminMutation(api.checkoutProducts.update);
   const removeProduct = useAdminMutation(api.checkoutProducts.remove);
+  const generateUploadUrl = useAdminMutation(api.checkoutProducts.generateUploadUrl);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"checkoutProducts"> | null>(null);
+  const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const set = (field: keyof FormState) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -74,6 +83,7 @@ export default function AdminCheckoutPage() {
   const resetForm = () => {
     setForm(EMPTY_FORM);
     setEditingId(null);
+    setEditingImageUrl(null);
     setShowForm(false);
   };
 
@@ -86,11 +96,21 @@ export default function AdminCheckoutPage() {
       stripePriceId: product.stripePriceId ?? "",
       subscriptionType: product.subscriptionType,
       buttonText: product.buttonText ?? "",
+      imageStorageId: product.imageStorageId,
+      imageFile: null,
       isLive: product.isLive,
     });
+    setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(product._id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const uploadFile = async (file: File): Promise<Id<"_storage">> => {
+    const url = await generateUploadUrl();
+    const res = await fetch(url, { method: "POST", body: file, headers: { "Content-Type": file.type } });
+    const { storageId } = await res.json();
+    return storageId as Id<"_storage">;
   };
 
   const handleSave = async () => {
@@ -99,6 +119,10 @@ export default function AdminCheckoutPage() {
     if (isNaN(price) || price <= 0) return;
     setSaving(true);
     try {
+      let imageStorageId = form.imageStorageId;
+      if (form.imageFile) {
+        imageStorageId = await uploadFile(form.imageFile);
+      }
       const payload = {
         slug: form.slug.trim(),
         name: form.name.trim(),
@@ -107,6 +131,7 @@ export default function AdminCheckoutPage() {
         stripePriceId: opt(form.stripePriceId),
         subscriptionType: form.subscriptionType,
         buttonText: opt(form.buttonText),
+        imageStorageId,
         isLive: form.isLive,
       };
       if (editingId) {
@@ -135,6 +160,11 @@ export default function AdminCheckoutPage() {
     "w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
   const labelSmClass = "block text-xs text-gray-500 mb-1";
+
+  // Preview URL: newly selected file takes priority over existing stored URL
+  const previewUrl = form.imageFile
+    ? URL.createObjectURL(form.imageFile)
+    : editingImageUrl ?? null;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -214,9 +244,54 @@ export default function AdminCheckoutPage() {
                 placeholder="Beschrijving van het product…"
                 value={form.description}
                 onChange={set("description")}
-                rows={3}
+                rows={4}
                 className={inputClass}
               />
+            </div>
+
+            {/* Afbeelding upload */}
+            <div>
+              <label className={labelSmClass}>Afbeelding (optioneel)</label>
+              {previewUrl && (
+                <div className="mb-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="rounded-xl object-cover max-h-48 w-full"
+                  />
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setForm((f) => ({ ...f, imageFile: file }));
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3 py-2 border border-primary-200 rounded-lg text-sm text-primary-700 hover:bg-primary-50"
+              >
+                {previewUrl ? "Andere afbeelding kiezen" : "Afbeelding uploaden"}
+              </button>
+              {previewUrl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm((f) => ({ ...f, imageFile: null, imageStorageId: undefined }));
+                    setEditingImageUrl(null);
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                  }}
+                  className="ml-2 px-3 py-2 border border-red-200 rounded-lg text-sm text-red-600 hover:bg-red-50"
+                >
+                  Verwijderen
+                </button>
+              )}
             </div>
 
             {/* Prijs & stripe */}

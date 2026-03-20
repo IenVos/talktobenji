@@ -10,7 +10,16 @@ export const list = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    return await ctx.db.query("checkoutProducts").collect();
+    const products = await ctx.db.query("checkoutProducts").collect();
+    return await Promise.all(
+      products.map(async (product) => {
+        let imageUrl: string | null = null;
+        try {
+          if (product.imageStorageId) imageUrl = await ctx.storage.getUrl(product.imageStorageId);
+        } catch { /* negeer */ }
+        return { ...product, imageUrl };
+      })
+    );
   },
 });
 
@@ -23,7 +32,20 @@ export const getBySlug = query({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
     if (!product || !product.isLive) return null;
-    return product;
+    let imageUrl: string | null = null;
+    try {
+      if (product.imageStorageId) imageUrl = await ctx.storage.getUrl(product.imageStorageId);
+    } catch { /* negeer */ }
+    return { ...product, imageUrl };
+  },
+});
+
+/** Admin: genereer upload URL voor afbeeldingen */
+export const generateUploadUrl = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.generateUploadUrl();
   },
 });
 
@@ -38,6 +60,7 @@ export const create = mutation({
     stripePriceId: v.optional(v.string()),
     subscriptionType: v.string(),
     buttonText: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
     isLive: v.boolean(),
   },
   handler: async (ctx, args) => {
@@ -51,6 +74,7 @@ export const create = mutation({
       stripePriceId: args.stripePriceId,
       subscriptionType: args.subscriptionType,
       buttonText: args.buttonText,
+      imageStorageId: args.imageStorageId,
       isLive: args.isLive,
       createdAt: now,
       updatedAt: now,
@@ -70,6 +94,7 @@ export const update = mutation({
     stripePriceId: v.optional(v.string()),
     subscriptionType: v.optional(v.string()),
     buttonText: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
     isLive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {

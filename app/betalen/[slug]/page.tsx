@@ -256,11 +256,31 @@ export default function BetalenPage() {
       </header>
 
       <main className="max-w-md mx-auto px-4 py-8">
+        {/* Product afbeelding */}
+        {product.imageUrl && (
+          <div className="mb-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="w-full rounded-2xl max-h-48 object-cover"
+            />
+          </div>
+        )}
+
         {/* Product info */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 mb-6 shadow-sm">
           <h1 className="text-xl font-bold text-stone-800 mb-1">{product.name}</h1>
           {product.description && (
-            <p className="text-sm text-stone-500 mb-4 leading-relaxed">{product.description}</p>
+            <div className="text-sm text-stone-500 mb-4 leading-relaxed space-y-3">
+              {product.description.split("\n\n").map((para, i) => (
+                <p key={i}>
+                  {para.split("\n").map((line, j) =>
+                    j === 0 ? line : <>{"\n"}<br />{line}</>
+                  )}
+                </p>
+              ))}
+            </div>
           )}
           <div className="flex items-baseline gap-1">
             <span className="text-3xl font-bold text-primary-700">{priceFormatted}</span>

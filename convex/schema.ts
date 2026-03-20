@@ -652,6 +652,7 @@ export default defineSchema({
     stripePriceId: v.optional(v.string()),
     subscriptionType: v.string(), // "alles_in_1" | "niet_alleen" | etc.
     buttonText: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
     isLive: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
