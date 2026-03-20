@@ -12,7 +12,7 @@ import {
   Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3,
   MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell,
   ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp,
-  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate,
+  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard,
 } from "lucide-react";
 
 type NavItem = {
@@ -233,6 +233,17 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         icon: Mail,
         items: [
           { href: "/admin/niet-alleen-emails", label: "E-mails", icon: Mail },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
+        id: "verkoop",
+        label: "Verkoop",
+        icon: CreditCard,
+        items: [
+          { href: "/admin/checkout", label: "Checkout producten", icon: CreditCard },
         ],
       },
     },

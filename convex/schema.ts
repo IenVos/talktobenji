@@ -643,6 +643,20 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_token", ["token"]),
 
+  // Checkout producten (beheerbaar via admin, publiek via /betalen/[slug])
+  checkoutProducts: defineTable({
+    slug: v.string(),
+    name: v.string(),
+    description: v.optional(v.string()),
+    priceInCents: v.number(),
+    stripePriceId: v.optional(v.string()),
+    subscriptionType: v.string(), // "alles_in_1" | "niet_alleen" | etc.
+    buttonText: v.optional(v.string()),
+    isLive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),
+
   // Reviews / testimonials (beheerbaar via admin, zichtbaar op homepage)
   testimonials: defineTable({
     name: v.string(),       // Weergavenaam, bijv. "Anne" of "Thomas, 34"

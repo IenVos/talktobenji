@@ -13,7 +13,8 @@
       "Bash(find convex:*)",
       "Bash(cp:*)",
       "Bash(npx convex:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(grep:*)"
     ]
   }
 }
