@@ -224,12 +224,14 @@ export default function BetalenPage() {
         appearance: {
           theme: "stripe",
           variables: {
-            colorPrimary: "#7c5c3e",
+            colorPrimary: "#6d84a8",
             colorBackground: "#ffffff",
             colorText: "#44403c",
             colorDanger: "#dc2626",
-            fontFamily: "inherit",
-            borderRadius: "12px",
+            fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            fontSizeBase: "15px",
+            borderRadius: "10px",
+            spacingUnit: "5px",
           },
         },
       }
