@@ -219,26 +219,30 @@ export async function POST(req: NextRequest) {
           ? (subscriptionType as "niet_alleen" | "uitgebreid" | "alles_in_1")
           : "alles_in_1";
 
-        const result = await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
-          webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
-          email,
-          subscriptionType: subType,
-          billingPeriod: "yearly",
-          pricePaid: pi.amount / 100,
-          paymentProvider: "stripe",
-          externalSubscriptionId: pi.id,
-        });
-
-        // Stuur welkomstmail + maak profiel aan voor niet_alleen
-        if (subType === "niet_alleen" && result?.userId) {
-          await convex.action(api.nietAlleen.activeerEnStuurWelkom, {
-            userId: result.userId,
+        // Welkomstmail altijd sturen, ook zonder bestaand account
+        if (subType === "niet_alleen") {
+          await convex.action(api.nietAlleen.stuurWelkomstMailZonderAccount, {
             email,
             naam: name || email,
           });
         }
+
+        // Abonnement activeren (vereist bestaand account — stille fout als nog geen account)
+        try {
+          await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
+            webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
+            email,
+            subscriptionType: subType,
+            billingPeriod: "yearly",
+            pricePaid: pi.amount / 100,
+            paymentProvider: "stripe",
+            externalSubscriptionId: pi.id,
+          });
+        } catch {
+          // Geen account gevonden — activatie volgt wanneer ze zich registreren
+        }
       } catch (err: any) {
-        console.error("[Stripe webhook] activatie mislukt:", err?.message);
+        console.error("[Stripe webhook] fout:", err?.message);
       }
 
       // MailerLite — voeg toe aan groep

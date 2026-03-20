@@ -188,6 +188,17 @@ export const activeerEnStuurWelkom = action({
   },
 });
 
+/** Stuur alleen de welkomstmail — geen account vereist (bijv. na Stripe betaling). */
+export const stuurWelkomstMailZonderAccount = action({
+  args: { email: v.string(), naam: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.runAction(internal.nietAlleenEmails.sendWelkomstMail, {
+      email: args.email,
+      naam: args.naam,
+    });
+  },
+});
+
 // ─────────────────────────────────────────
 // ─────────────────────────────────────────
 // Testprofiel aanmaken (admin)
