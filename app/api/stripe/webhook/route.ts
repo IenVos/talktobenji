@@ -219,7 +219,7 @@ export async function POST(req: NextRequest) {
           ? (subscriptionType as "niet_alleen" | "uitgebreid" | "alles_in_1")
           : "alles_in_1";
 
-        await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
+        const result = await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
           webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
           email,
           subscriptionType: subType,
@@ -228,6 +228,15 @@ export async function POST(req: NextRequest) {
           paymentProvider: "stripe",
           externalSubscriptionId: pi.id,
         });
+
+        // Stuur welkomstmail + maak profiel aan voor niet_alleen
+        if (subType === "niet_alleen" && result?.userId) {
+          await convex.action(api.nietAlleen.activeerEnStuurWelkom, {
+            userId: result.userId,
+            email,
+            naam: name || email,
+          });
+        }
       } catch (err: any) {
         console.error("[Stripe webhook] activatie mislukt:", err?.message);
       }
