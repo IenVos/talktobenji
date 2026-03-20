@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const mailerLiteKey = process.env.MAILERLITE_API_KEY;
     const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
     if (mailerLiteKey && mailerLiteGroep) {
-      fetch("https://connect.mailerlite.com/api/subscribers", {
+      await fetch("https://connect.mailerlite.com/api/subscribers", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${mailerLiteKey}` },
         body: JSON.stringify({ email, fields: { name: name ?? "" }, groups: [mailerLiteGroep] }),
