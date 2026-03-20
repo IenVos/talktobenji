@@ -9,6 +9,6 @@ const PAGES_WITH_OWN_MENU = ["/", "/privacy", "/algemene-voorwaarden", "/faq", "
 
 export function LayoutMenu() {
   const pathname = usePathname();
-  if (!pathname || PAGES_WITH_OWN_MENU.includes(pathname) || pathname.startsWith("/admin") || pathname.startsWith("/account") || pathname.startsWith("/niet-alleen") || pathname.startsWith("/houvast") || pathname.startsWith("/lp/") || pathname.startsWith("/voor-jou") || pathname.startsWith("/betaald") || pathname.startsWith("/waarom-benji") || pathname.startsWith("/contact")) return null;
+  if (!pathname || PAGES_WITH_OWN_MENU.includes(pathname) || pathname.startsWith("/admin") || pathname.startsWith("/account") || pathname.startsWith("/niet-alleen") || pathname.startsWith("/houvast") || pathname.startsWith("/lp/") || pathname.startsWith("/voor-jou") || pathname.startsWith("/betaald") || pathname.startsWith("/betalen") || pathname.startsWith("/waarom-benji") || pathname.startsWith("/contact")) return null;
   return <GlobalMenu />;
 }
