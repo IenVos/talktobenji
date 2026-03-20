@@ -58,7 +58,7 @@ function CheckoutForm({
     const { error: submitError } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/bedankt?product=${slug}`,
+        return_url: `${window.location.origin}/bedankt?item=${slug}`,
         payment_method_data: {
           billing_details: {
             name: naam,
