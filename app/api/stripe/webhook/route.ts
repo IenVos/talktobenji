@@ -219,15 +219,7 @@ export async function POST(req: NextRequest) {
           ? (subscriptionType as "niet_alleen" | "uitgebreid" | "alles_in_1")
           : "alles_in_1";
 
-        // Welkomstmail altijd sturen, ook zonder bestaand account
-        if (subType === "niet_alleen") {
-          await convex.action(api.nietAlleen.stuurWelkomstMailZonderAccount, {
-            email,
-            naam: name || email,
-          });
-        }
-
-        // Abonnement activeren (vereist bestaand account — stille fout als nog geen account)
+        // Activatie proberen (stille fout als nog geen account)
         try {
           await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
             webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
@@ -239,10 +231,38 @@ export async function POST(req: NextRequest) {
             externalSubscriptionId: pi.id,
           });
         } catch {
-          // Geen account gevonden — activatie volgt wanneer ze zich registreren
+          // Geen account — activatie volgt na registratie
         }
       } catch (err: any) {
         console.error("[Stripe webhook] fout:", err?.message);
+      }
+
+      // Welkomstmail direct via Resend (geen Convex nodig)
+      if (subscriptionType === "niet_alleen" && process.env.RESEND_API_KEY) {
+        try {
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          const voornaam = (name || email).split(" ")[0];
+          await resend.emails.send({
+            from: "Talk To Benji <noreply@talktobenji.com>",
+            to: email,
+            subject: "Welkom bij Niet Alleen, dag 1 begint vandaag",
+            html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
+              <p style="font-size:16px;margin-bottom:8px;">Hi ${voornaam},</p>
+              <p style="font-size:15px;line-height:1.8;color:#4a5568;">Fijn dat je er bent. De komende 30 dagen lopen we samen met je mee, één dag tegelijk.</p>
+              <p style="font-size:15px;line-height:1.8;color:#4a5568;">Elke ochtend ontvang je een kleine vraag. Geen druk, geen goed of fout. Gewoon ruimte voor wat er in je leeft.</p>
+              <div style="margin:28px 0;">
+                <a href="https://talktobenji.com/niet-alleen/welkom" style="background-color:#6d84a8;color:white;padding:13px 26px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">Vandaag beginnen</a>
+              </div>
+              <p style="font-size:14px;color:#718096;">Heb je vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;"><tr>
+                <td style="padding-right:14px;vertical-align:middle;"><img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="52" height="52" style="border-radius:50%;display:block;" /></td>
+                <td style="vertical-align:middle;"><p style="font-size:15px;font-weight:600;color:#2d3748;margin:0;">Ien</p><p style="font-size:13px;color:#718096;margin:3px 0 0 0;">Founder van TalkToBenji</p></td>
+              </tr></table>
+            </div>`,
+          });
+        } catch (err: any) {
+          console.error("[Resend] Welkomstmail mislukt:", err?.message);
+        }
       }
 
       // MailerLite — voeg toe aan groep
