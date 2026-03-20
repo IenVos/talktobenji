@@ -137,7 +137,7 @@ export default function BetalenPage() {
   const params = useParams()!;
   const slug = typeof params?.slug === "string" ? params.slug : Array.isArray(params?.slug) ? params.slug[0] : "";
 
-  const product = useQuery(api.checkoutProducts.getBySlug, { slug });
+  const product = useQuery(api.checkoutProducts.getBySlug, slug ? { slug } : "skip");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadingSecret, setLoadingSecret] = useState(false);
   const [secretError, setSecretError] = useState<string | null>(null);
