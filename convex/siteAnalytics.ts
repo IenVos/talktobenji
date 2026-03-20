@@ -526,6 +526,30 @@ export const getLiveVisitors = query({
 });
 
 /** Haal recente inschrijvingen op (admin only). */
+export const getRecentHouvasteSignups = query({
+  args: { adminToken: v.string(), days: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const daysBack = args.days ?? 7;
+    const since = Date.now() - daysBack * 24 * 60 * 60 * 1000;
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const profielen = await ctx.db.query("houvasteProfielen").order("desc").collect();
+    const recent = profielen.filter((p: any) => p.createdAt >= since);
+
+    return {
+      total: recent.length,
+      today: recent.filter((p: any) => p.createdAt >= todayStart.getTime()).length,
+      profielen: recent.slice(0, 20).map((p: any) => ({
+        name: p.name ?? null,
+        email: p.email,
+        createdAt: p.createdAt,
+      })),
+    };
+  },
+});
+
 export const getRecentRegistrations = query({
   args: { adminToken: v.string(), days: v.optional(v.number()) },
   handler: async (ctx, args) => {

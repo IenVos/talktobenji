@@ -459,6 +459,7 @@ export default function AdminAnalytics() {
   const allGoals = useAdminQuery(api.siteAnalytics.listGoalsWithOwner, {});
   const liveVisitors = useAdminQuery(api.siteAnalytics.getLiveVisitors, {});
   const recentRegs = useAdminQuery(api.siteAnalytics.getRecentRegistrations, { days: 7 });
+  const recentHouvast = useAdminQuery(api.siteAnalytics.getRecentHouvasteSignups, { days: 7 });
   const excludedIps = useAdminQuery(api.siteAnalytics.listExcludedIps, {});
   const addExcludedIp = useAdminMutation(api.siteAnalytics.addExcludedIp);
   const removeExcludedIp = useAdminMutation(api.siteAnalytics.removeExcludedIp);
@@ -692,6 +693,30 @@ export default function AdminAnalytics() {
             </div>
           </div>
           <span className="text-xs text-green-500 flex-shrink-0">{recentRegs.total} deze week</span>
+        </div>
+      )}
+
+      {recentHouvast && recentHouvast.today > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-start gap-3">
+          <Leaf size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-green-800">
+              {recentHouvast.today} nieuwe Houvast aanvra{recentHouvast.today !== 1 ? "gen" : "ag"} vandaag
+            </p>
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+              {recentHouvast.profielen
+                .filter((p: { createdAt: number }) => p.createdAt >= new Date().setHours(0, 0, 0, 0))
+                .map((p: { createdAt: number; name: string | null; email: string }, i: number) => (
+                  <span key={i} className="text-xs text-green-700">
+                    {p.name || p.email}
+                    <span className="text-green-400 ml-1">
+                      {new Date(p.createdAt).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </span>
+                ))}
+            </div>
+          </div>
+          <span className="text-xs text-green-500 flex-shrink-0">{recentHouvast.total} deze week</span>
         </div>
       )}
 
