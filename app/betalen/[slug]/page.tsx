@@ -229,9 +229,9 @@ export default function BetalenPage() {
             colorText: "#44403c",
             colorDanger: "#dc2626",
             fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-            fontSizeBase: "15px",
+            fontSizeBase: "16px",
             borderRadius: "10px",
-            spacingUnit: "5px",
+            spacingUnit: "6px",
           },
         },
       }
