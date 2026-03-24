@@ -25,6 +25,23 @@ export async function checkAdmin(ctx: any, adminToken: string) {
 }
 
 /**
+ * Log een admin-actie in de beveiligingslog.
+ * Aanroepen vanuit mutations (ctx heeft schrijfrechten).
+ */
+export async function logAdminAction(ctx: any, action: string) {
+  try {
+    await ctx.db.insert("securityEvents", {
+      type: "admin_action",
+      ip: "admin",
+      timestamp: Date.now(),
+      details: action,
+    });
+  } catch {
+    // Logging mag nooit de actie zelf blokkeren
+  }
+}
+
+/**
  * Query versie van checkAdmin - voor gebruik in actions via ctx.runQuery.
  * Actions hebben geen ctx.db, dus ze moeten via een query valideren.
  */

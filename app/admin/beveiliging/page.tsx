@@ -5,10 +5,11 @@ import { api } from "@/convex/_generated/api";
 import { Shield, AlertTriangle, CheckCircle, XCircle, Clock, Wifi } from "lucide-react";
 
 const EVENT_LABELS: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  failed_login:        { label: "Mislukte login",    color: "text-red-600 bg-red-50 border-red-200",    icon: XCircle },
-  login_success:       { label: "Succesvol ingelogd", color: "text-green-700 bg-green-50 border-green-200", icon: CheckCircle },
-  rate_limited:        { label: "Rate limited",      color: "text-orange-600 bg-orange-50 border-orange-200", icon: AlertTriangle },
-  suspicious_activity: { label: "Verdachte activiteit", color: "text-red-700 bg-red-50 border-red-200", icon: AlertTriangle },
+  failed_login:        { label: "Mislukte login",       color: "text-red-600 bg-red-50 border-red-200",       icon: XCircle },
+  login_success:       { label: "Succesvol ingelogd",   color: "text-green-700 bg-green-50 border-green-200", icon: CheckCircle },
+  rate_limited:        { label: "Rate limited",         color: "text-orange-600 bg-orange-50 border-orange-200", icon: AlertTriangle },
+  suspicious_activity: { label: "Verdachte activiteit", color: "text-red-700 bg-red-50 border-red-200",       icon: AlertTriangle },
+  admin_action:        { label: "Admin actie",          color: "text-blue-700 bg-blue-50 border-blue-200",    icon: Shield },
 };
 
 function timeAgo(ts: number) {

@@ -400,6 +400,15 @@ export const createEmailVerificationToken = mutation({
     checkSecret(args.secret);
     const emailLower = args.email.toLowerCase().trim();
 
+    // IDOR-bescherming: controleer of het emailadres echt bij dit userId hoort
+    const cred = await ctx.db
+      .query("credentials")
+      .withIndex("email", (q) => q.eq("email", emailLower))
+      .unique();
+    if (!cred || cred.userId !== args.userId) {
+      throw new Error("Email hoort niet bij dit account");
+    }
+
     // Verwijder bestaande tokens voor dit e-mailadres
     const existing = await ctx.db
       .query("emailVerificationTokens")

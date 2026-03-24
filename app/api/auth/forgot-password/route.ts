@@ -8,7 +8,10 @@ import crypto from "crypto";
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 const resend = new Resend(process.env.RESEND_API_KEY);
 const secret = process.env.CONVEX_AUTH_ADAPTER_SECRET!;
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.talktobenji.com";
+
+const ALLOWED_APP_URLS = ["https://www.talktobenji.com", "https://talktobenji.com"];
+const rawAppUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.talktobenji.com";
+const appUrl = ALLOWED_APP_URLS.includes(rawAppUrl) ? rawAppUrl : "https://www.talktobenji.com";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";

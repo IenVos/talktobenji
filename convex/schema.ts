@@ -475,7 +475,8 @@ export default defineSchema({
       v.literal("failed_login"),
       v.literal("login_success"),
       v.literal("rate_limited"),
-      v.literal("suspicious_activity")
+      v.literal("suspicious_activity"),
+      v.literal("admin_action")
     ),
     ip: v.string(),
     timestamp: v.number(),

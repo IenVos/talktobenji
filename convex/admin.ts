@@ -10,7 +10,7 @@
 
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
-import { checkAdmin } from "./adminAuth";
+import { checkAdmin, logAdminAction } from "./adminAuth";
 import { api } from "./_generated/api";
 
 // ============================================================================
@@ -419,6 +419,7 @@ export const deleteFeedback = mutation({
       try { await ctx.storage.delete(feedback.imageStorageId); } catch {}
     }
     await ctx.db.delete(args.feedbackId);
+    await logAdminAction(ctx, `Feedback verwijderd: ${args.feedbackId}`);
   },
 });
 
@@ -773,6 +774,7 @@ export const deleteChatMessages = mutation({
     for (const id of args.messageIds) {
       await ctx.db.delete(id);
     }
+    await logAdminAction(ctx, `${args.messageIds.length} chatberichten verwijderd`);
   },
 });
 
@@ -792,6 +794,7 @@ export const deleteChatSession = mutation({
       await ctx.db.delete(msg._id);
     }
     await ctx.db.delete(args.sessionId);
+    await logAdminAction(ctx, `Chat sessie verwijderd: ${args.sessionId} (${messages.length} berichten)`);
   },
 });
 
