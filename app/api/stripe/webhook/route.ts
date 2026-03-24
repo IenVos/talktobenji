@@ -43,7 +43,7 @@ async function buildInvoicePdf({
   let y = height - 110;
   page.drawText("FACTUUR", { x: L, y, size: 8, font: fontBold, color: gray });
   // VOLDAAN badge
-  page.drawRectangle({ x: R - 72, y: y - 4, width: 72, height: 18, color: rgb(0.86, 0.99, 0.87), borderRadius: 4 });
+  page.drawRectangle({ x: R - 72, y: y - 4, width: 72, height: 18, color: rgb(0.86, 0.99, 0.87) });
   page.drawText("VOLDAAN", { x: R - 58, y: y + 1, size: 8, font: fontBold, color: green });
 
   y -= 20;
@@ -105,7 +105,7 @@ async function buildInvoicePdf({
 
   // ── Betaald-balk ──
   y -= 36;
-  page.drawRectangle({ x: L, y: y - 8, width: R - L, height: 28, color: rgb(0.96, 0.95, 0.94), borderRadius: 6 });
+  page.drawRectangle({ x: L, y: y - 8, width: R - L, height: 28, color: rgb(0.96, 0.95, 0.94) });
   page.drawText(`✓  Betaald via Stripe  ·  ${date}`, { x: L + 14, y: y + 4, size: 9.5, font: fontBold, color: mid });
 
   // ── Footer ──
