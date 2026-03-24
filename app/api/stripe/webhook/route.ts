@@ -403,31 +403,32 @@ export async function POST(req: NextRequest) {
           const totalInclBtw = pi.amount / 100;
           const omschrijving = productName || (slug ? slug.replace(/-/g, " ") : "Aankoop");
 
-          const pdfBytes = await buildInvoicePdf({
-            invoiceNr,
-            date,
-            customerName: name || email,
-            customerEmail: email,
-            productName: omschrijving,
-            totalInclBtw,
-          });
+          let attachments: { filename: string; content: string }[] = [];
+          try {
+            const pdfBytes = await buildInvoicePdf({
+              invoiceNr, date,
+              customerName: name || email,
+              customerEmail: email,
+              productName: omschrijving,
+              totalInclBtw,
+            });
+            attachments = [{ filename: `${invoiceNr}.pdf`, content: Buffer.from(pdfBytes).toString("base64") }];
+          } catch (pdfErr: any) {
+            console.error("[PDF] Generatie mislukt, email zonder bijlage:", pdfErr?.message);
+          }
 
           await resend.emails.send({
             from: "Talk To Benji <noreply@talktobenji.com>",
             to: email,
             subject: `Factuur ${invoiceNr} – ${omschrijving}`,
             html: buildInvoiceEmail({
-              invoiceNr,
-              date,
+              invoiceNr, date,
               customerName: name || email,
               customerEmail: email,
               productName: omschrijving,
               totalInclBtw,
             }),
-            attachments: [{
-              filename: `${invoiceNr}.pdf`,
-              content: Buffer.from(pdfBytes).toString("base64"),
-            }],
+            ...(attachments.length > 0 && { attachments }),
           });
         } catch (err: any) {
           console.error("[Resend] Factuur versturen mislukt:", err?.message);
