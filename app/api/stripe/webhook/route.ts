@@ -41,10 +41,10 @@ async function buildInvoicePdf({
 
   // ── FACTUUR + VOLDAAN ──
   let y = height - 110;
-  page.drawText("FACTUUR", { x: L, y, size: 8, font: fontBold, color: gray, characterSpacing: 1.2 });
+  page.drawText("FACTUUR", { x: L, y, size: 8, font: fontBold, color: gray });
   // VOLDAAN badge
   page.drawRectangle({ x: R - 72, y: y - 4, width: 72, height: 18, color: rgb(0.86, 0.99, 0.87), borderRadius: 4 });
-  page.drawText("VOLDAAN", { x: R - 58, y: y + 1, size: 8, font: fontBold, color: green, characterSpacing: 1 });
+  page.drawText("VOLDAAN", { x: R - 58, y: y + 1, size: 8, font: fontBold, color: green });
 
   y -= 20;
   page.drawText(invoiceNr, { x: L, y, size: 20, font: fontBold, color: dark });
@@ -53,8 +53,8 @@ async function buildInvoicePdf({
 
   // ── Van / Aan ──
   y -= 36;
-  page.drawText("VAN", { x: L, y, size: 8, font: fontBold, color: gray, characterSpacing: 1.2 });
-  page.drawText("AAN", { x: width / 2, y, size: 8, font: fontBold, color: gray, characterSpacing: 1.2 });
+  page.drawText("VAN", { x: L, y, size: 8, font: fontBold, color: gray });
+  page.drawText("AAN", { x: width / 2, y, size: 8, font: fontBold, color: gray });
 
   const vanLines = ["TalkToBenji", "onderdeel van LAAV", "contactmetien@talktobenji.com", "Hässleholm, 28192", "Zweden", "BTW: SE671123042201"];
   const aanLines = [customerName, customerEmail];
@@ -76,8 +76,8 @@ async function buildInvoicePdf({
 
   // ── Tabelheader ──
   y -= 20;
-  page.drawText("OMSCHRIJVING", { x: L, y, size: 8, font: fontBold, color: gray, characterSpacing: 1.2 });
-  page.drawText("BEDRAG", { x: R - 60, y, size: 8, font: fontBold, color: gray, characterSpacing: 1.2 });
+  page.drawText("OMSCHRIJVING", { x: L, y, size: 8, font: fontBold, color: gray });
+  page.drawText("BEDRAG", { x: R - 60, y, size: 8, font: fontBold, color: gray });
 
   // ── Productregel ──
   y -= 20;
