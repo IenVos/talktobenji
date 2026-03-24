@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   const { allowed, retryAfterMs } = rateLimit(ip, { maxAttempts: 5, windowMs: 15 * 60 * 1000 });
   if (!allowed) {
     return NextResponse.json(
-      { error: "Te veel registratiepogingen. Probeer het later opnieuw." },
+      { error: `Te veel registratiepogingen. ${retryAfterMessage(retryAfterMs)}` },
       { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
     );
   }

@@ -481,6 +481,8 @@ export default defineSchema({
     ip: v.string(),
     timestamp: v.number(),
     details: v.optional(v.string()),
+    isRead: v.optional(v.boolean()),
+    note: v.optional(v.string()),
   })
     .index("by_timestamp", ["timestamp"])
     .index("by_type", ["type"]),

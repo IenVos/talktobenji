@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
   if (!allowed) {
     await logSecurityEvent("rate_limited", ip, "Admin login rate limit bereikt");
     return NextResponse.json(
-      { error: "Te veel pogingen. Probeer het later opnieuw." },
+      { error: `Te veel pogingen. ${retryAfterMessage(retryAfterMs)}` },
       {
         status: 429,
         headers: {

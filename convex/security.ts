@@ -67,6 +67,45 @@ export const getRecentEvents = query({
   },
 });
 
+// ── Markeer alle alerts als gelezen ──
+export const markAllRead = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    const session = await ctx.db
+      .query("adminSessions")
+      .withIndex("by_token", (q) => q.eq("token", args.adminToken))
+      .first();
+    if (!session || session.expiresAt < Date.now()) throw new Error("Unauthorized");
+
+    const unread = await ctx.db
+      .query("securityEvents")
+      .withIndex("by_timestamp")
+      .collect();
+
+    for (const e of unread) {
+      if (!e.isRead) await ctx.db.patch(e._id, { isRead: true });
+    }
+  },
+});
+
+// ── Notitie toevoegen aan een event ──
+export const addNote = mutation({
+  args: {
+    adminToken: v.string(),
+    eventId: v.id("securityEvents"),
+    note: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const session = await ctx.db
+      .query("adminSessions")
+      .withIndex("by_token", (q) => q.eq("token", args.adminToken))
+      .first();
+    if (!session || session.expiresAt < Date.now()) throw new Error("Unauthorized");
+
+    await ctx.db.patch(args.eventId, { note: args.note.trim() || undefined });
+  },
+});
+
 // ── Samenvatting voor badge in navigatie ──
 export const getAlertCount = query({
   args: { adminToken: v.string() },
@@ -77,15 +116,14 @@ export const getAlertCount = query({
       .first();
     if (!session || session.expiresAt < Date.now()) return 0;
 
-    const since = Date.now() - 60 * 60 * 1000; // Laatste uur
-    const recent = await ctx.db
+    // Alleen ongelezen alerts tellen (mislukte logins + rate limiting)
+    const all = await ctx.db
       .query("securityEvents")
-      .withIndex("by_timestamp", (q) => q.gt("timestamp", since))
+      .withIndex("by_timestamp")
       .collect();
 
-    // Tel alleen mislukte logins en rate limiting (niet succesvolle logins)
-    return recent.filter(
-      (e) => e.type === "failed_login" || e.type === "rate_limited"
+    return all.filter(
+      (e) => !e.isRead && (e.type === "failed_login" || e.type === "rate_limited")
     ).length;
   },
 });

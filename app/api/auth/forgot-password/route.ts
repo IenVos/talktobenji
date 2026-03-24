@@ -2,7 +2,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { Resend } from "resend";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
 import crypto from "crypto";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const { allowed, retryAfterMs } = rateLimit(ip, { maxAttempts: 3, windowMs: 15 * 60 * 1000 });
   if (!allowed) {
     return NextResponse.json(
-      { error: "Te veel verzoeken. Probeer het later opnieuw." },
+      { error: `Te veel verzoeken. ${retryAfterMessage(retryAfterMs)}` },
       { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
     );
   }

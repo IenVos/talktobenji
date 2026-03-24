@@ -3,7 +3,7 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { compare } from "bcryptjs";
 import { encode } from "next-auth/jwt";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
 
 async function handleLogin(email: string, password: string, callbackUrl: string) {
   if (!email || !password) {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
   const { allowed, retryAfterMs } = rateLimit(ip, { maxAttempts: 10, windowMs: 15 * 60 * 1000 });
   if (!allowed) {
     return NextResponse.json(
-      { error: "Te veel inlogpogingen. Probeer het later opnieuw." },
+      { error: `Te veel inlogpogingen. ${retryAfterMessage(retryAfterMs)}` },
       { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
     );
   }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
 import crypto from "crypto";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const { allowed, retryAfterMs } = rateLimit(ip, { maxAttempts: 5, windowMs: 15 * 60 * 1000 });
   if (!allowed) {
     return NextResponse.json(
-      { error: "Te veel pogingen. Probeer het later opnieuw." },
+      { error: `Te veel pogingen. ${retryAfterMessage(retryAfterMs)}` },
       { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
     );
   }

@@ -20,6 +20,13 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
+export function retryAfterMessage(retryAfterMs: number): string {
+  const mins = Math.ceil(retryAfterMs / 60000);
+  if (mins <= 1) return "Probeer het over ongeveer 1 minuut opnieuw.";
+  if (mins < 60) return `Probeer het over ${mins} minuten opnieuw.`;
+  return `Probeer het over ${Math.ceil(mins / 60)} uur opnieuw.`;
+}
+
 export function rateLimit(
   ip: string,
   { maxAttempts = 5, windowMs = 15 * 60 * 1000 } = {}

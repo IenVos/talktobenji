@@ -229,22 +229,12 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     {
       type: "group",
       group: {
-        id: "niet-alleen",
-        label: "Niet Alleen",
-        icon: Mail,
-        items: [
-          { href: "/admin/niet-alleen-emails", label: "E-mails", icon: Mail },
-        ],
-      },
-    },
-    {
-      type: "group",
-      group: {
         id: "verkoop",
         label: "Verkoop",
         icon: CreditCard,
         items: [
           { href: "/admin/checkout", label: "Checkout producten", icon: CreditCard },
+          { href: "/admin/niet-alleen-emails", label: "Niet Alleen e-mails", icon: Mail },
         ],
       },
     },
