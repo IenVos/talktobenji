@@ -25,9 +25,11 @@ const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : 
 function CheckoutForm({
   slug,
   buttonText,
+  clientSecret,
 }: {
   slug: string;
   buttonText?: string;
+  clientSecret: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -44,15 +46,16 @@ function CheckoutForm({
     setSubmitting(true);
     setError(null);
 
-    // Update payment intent met naam en e-mail
+    // Update bestaande PaymentIntent met e-mail en naam
     try {
+      const paymentIntentId = clientSecret.split("_secret_")[0];
       await fetch("/api/stripe/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, email, name: naam }),
+        body: JSON.stringify({ slug, email, name: naam, paymentIntentId }),
       });
     } catch {
-      // Niet fataal — metadata is al meegegeven bij aanmaken
+      // Niet fataal
     }
 
     const { error: submitError } = await stripe.confirmPayment({
@@ -307,6 +310,7 @@ export default function BetalenPage() {
               <CheckoutForm
                 slug={slug}
                 buttonText={product.buttonText}
+                clientSecret={clientSecret}
               />
             </Elements>
           )}
