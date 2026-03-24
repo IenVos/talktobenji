@@ -106,7 +106,7 @@ async function buildInvoicePdf({
   // ── Betaald-balk ──
   y -= 36;
   page.drawRectangle({ x: L, y: y - 8, width: R - L, height: 28, color: rgb(0.96, 0.95, 0.94) });
-  page.drawText(`✓  Betaald via Stripe  ·  ${date}`, { x: L + 14, y: y + 4, size: 9.5, font: fontBold, color: mid });
+  page.drawText(`Betaald via Stripe  -  ${date}`, { x: L + 14, y: y + 4, size: 9.5, font: fontBold, color: mid });
 
   // ── Footer ──
   page.drawLine({ start: { x: 0, y: 48 }, end: { x: width, y: 48 }, thickness: 0.5, color: line });
