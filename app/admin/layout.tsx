@@ -161,6 +161,19 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     {
       type: "group",
       group: {
+        id: "verkoop",
+        label: "Verkoop",
+        icon: CreditCard,
+        items: [
+          { href: "/admin/checkout", label: "Checkout producten", icon: CreditCard },
+          { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
+          { href: "/admin/niet-alleen-emails", label: "Niet Alleen e-mails", icon: Mail },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
         id: "klanten",
         label: "Klanten",
         icon: Users,
@@ -195,7 +208,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping },
           { href: "/admin/testimonials", label: "Reviews", icon: Quote },
           { href: "/admin/onderweg", label: "Iets voor onderweg", icon: ShoppingBag },
-          { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
           { href: "/admin/notificaties", label: "Notificaties", icon: Bell },
         ],
       },
@@ -223,18 +235,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         items: [
           { href: "/admin/trial-test", label: "Trial testen", icon: FlaskConical },
           { href: "/admin/trial-emails", label: "Trial e-mails", icon: Mail },
-        ],
-      },
-    },
-    {
-      type: "group",
-      group: {
-        id: "verkoop",
-        label: "Verkoop",
-        icon: CreditCard,
-        items: [
-          { href: "/admin/checkout", label: "Checkout producten", icon: CreditCard },
-          { href: "/admin/niet-alleen-emails", label: "Niet Alleen e-mails", icon: Mail },
         ],
       },
     },
