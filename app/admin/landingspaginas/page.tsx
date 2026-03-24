@@ -112,6 +112,7 @@ export default function AdminLandingspaginasPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"landingPages"> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [savedFeedback, setSavedFeedback] = useState(false);
   const [seedStatus, setSeedStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editingProductImageUrl, setEditingProductImageUrl] = useState<string | null>(null);
@@ -193,39 +194,68 @@ export default function AdminLandingspaginasPage() {
       if (form.productImageFile) productImageStorageId = await uploadFile(form.productImageFile);
       if (form.bgImageFile) bgImageStorageId = await uploadFile(form.bgImageFile);
 
-      const payload = {
-        slug: form.slug.trim(),
-        pageTitle: form.pageTitle.trim(),
-        isLive: form.isLive,
-        heroTitle: form.heroTitle.trim(),
-        heroLabel: opt(form.heroLabel),
-        heroSubtitle: opt(form.heroSubtitle),
-        heroBody: opt(form.heroBody),
-        ctaText: opt(form.ctaText),
-        ctaUrl: opt(form.ctaUrl),
-        section1Title: opt(form.section1Title),
-        section1Text: opt(form.section1Text),
-        section2Title: opt(form.section2Title),
-        section2Text: opt(form.section2Text),
-        productImageStorageId,
-        productImagePath: opt(form.productImagePath),
-        bgImageStorageId,
-        voorWieBullets: opt(form.voorWieBullets),
-        voorWieTitle: opt(form.voorWieTitle),
-        ervaringenJson: opt(form.ervaringenJson),
-        vragenJson: opt(form.vragenJson),
-        wieIsTitle: opt(form.wieIsTitle),
-        wieIsText: opt(form.wieIsText),
-        finalCtaTitle: opt(form.finalCtaTitle),
-        finalCtaBody: opt(form.finalCtaBody),
-        footerText: opt(form.footerText),
-      };
       if (editingId) {
-        await updatePage({ id: editingId, ...payload });
+        // Bij bewerken: stuur lege strings door zodat Convex velden kan wissen
+        await updatePage({
+          id: editingId,
+          slug: form.slug.trim(),
+          pageTitle: form.pageTitle.trim(),
+          isLive: form.isLive,
+          heroTitle: form.heroTitle.trim(),
+          heroLabel: form.heroLabel.trim(),
+          heroSubtitle: form.heroSubtitle.trim(),
+          heroBody: form.heroBody.trim(),
+          ctaText: form.ctaText.trim(),
+          ctaUrl: form.ctaUrl.trim(),
+          section1Title: form.section1Title.trim(),
+          section1Text: form.section1Text.trim(),
+          section2Title: form.section2Title.trim(),
+          section2Text: form.section2Text.trim(),
+          productImageStorageId,
+          productImagePath: form.productImagePath.trim(),
+          bgImageStorageId,
+          voorWieBullets: form.voorWieBullets.trim(),
+          voorWieTitle: form.voorWieTitle.trim(),
+          ervaringenJson: form.ervaringenJson.trim(),
+          vragenJson: form.vragenJson.trim(),
+          wieIsTitle: form.wieIsTitle.trim(),
+          wieIsText: form.wieIsText.trim(),
+          finalCtaTitle: form.finalCtaTitle.trim(),
+          finalCtaBody: form.finalCtaBody.trim(),
+          footerText: form.footerText.trim(),
+        });
+        setSavedFeedback(true);
+        setTimeout(() => setSavedFeedback(false), 2500);
       } else {
-        await createPage(payload);
+        await createPage({
+          slug: form.slug.trim(),
+          pageTitle: form.pageTitle.trim(),
+          isLive: form.isLive,
+          heroTitle: form.heroTitle.trim(),
+          heroLabel: opt(form.heroLabel),
+          heroSubtitle: opt(form.heroSubtitle),
+          heroBody: opt(form.heroBody),
+          ctaText: opt(form.ctaText),
+          ctaUrl: opt(form.ctaUrl),
+          section1Title: opt(form.section1Title),
+          section1Text: opt(form.section1Text),
+          section2Title: opt(form.section2Title),
+          section2Text: opt(form.section2Text),
+          productImageStorageId,
+          productImagePath: opt(form.productImagePath),
+          bgImageStorageId,
+          voorWieBullets: opt(form.voorWieBullets),
+          voorWieTitle: opt(form.voorWieTitle),
+          ervaringenJson: opt(form.ervaringenJson),
+          vragenJson: opt(form.vragenJson),
+          wieIsTitle: opt(form.wieIsTitle),
+          wieIsText: opt(form.wieIsText),
+          finalCtaTitle: opt(form.finalCtaTitle),
+          finalCtaBody: opt(form.finalCtaBody),
+          footerText: opt(form.footerText),
+        });
+        resetForm();
       }
-      resetForm();
     } finally {
       setSaving(false);
     }
@@ -582,7 +612,7 @@ export default function AdminLandingspaginasPage() {
             </div>
 
             {/* Knoppen */}
-            <div className="flex gap-2 pt-2">
+            <div className="flex items-center gap-3 pt-2">
               <button
                 type="button"
                 onClick={handleSave}
@@ -598,8 +628,11 @@ export default function AdminLandingspaginasPage() {
                 className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 rounded-lg text-sm font-medium hover:bg-primary-50"
               >
                 <X size={18} />
-                Annuleren
+                {editingId ? "Sluiten" : "Annuleren"}
               </button>
+              {savedFeedback && (
+                <span className="text-sm text-green-600 font-medium">✓ Opgeslagen</span>
+              )}
             </div>
           </div>
         )}

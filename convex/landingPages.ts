@@ -124,7 +124,7 @@ export const update = mutation({
     if (!existing) throw new Error("Pagina niet gevonden");
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     for (const [key, val] of Object.entries(updates)) {
-      if (val !== undefined) patch[key] = val;
+      if (val !== undefined) patch[key] = val === "" ? undefined : val;
     }
     await ctx.db.patch(id, patch);
     return id;
