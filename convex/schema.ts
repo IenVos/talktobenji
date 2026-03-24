@@ -469,6 +469,21 @@ export default defineSchema({
     expiresAt: v.number(),
   }).index("by_token", ["token"]),
 
+  // Beveiligingsgebeurtenissen (login pogingen, rate limiting, etc.)
+  securityEvents: defineTable({
+    type: v.union(
+      v.literal("failed_login"),
+      v.literal("login_success"),
+      v.literal("rate_limited"),
+      v.literal("suspicious_activity")
+    ),
+    ip: v.string(),
+    timestamp: v.number(),
+    details: v.optional(v.string()),
+  })
+    .index("by_timestamp", ["timestamp"])
+    .index("by_type", ["type"]),
+
   // Paginabezoeken (website analytics)
   pageViews: defineTable({
     path: v.string(),

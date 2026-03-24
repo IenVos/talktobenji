@@ -46,6 +46,7 @@ import type * as preferences from "../preferences.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as pushSubscriptions from "../pushSubscriptions.js";
 import type * as reflecties from "../reflecties.js";
+import type * as security from "../security.js";
 import type * as seedData from "../seedData.js";
 import type * as settings from "../settings.js";
 import type * as siteAnalytics from "../siteAnalytics.js";
@@ -101,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   pushNotifications: typeof pushNotifications;
   pushSubscriptions: typeof pushSubscriptions;
   reflecties: typeof reflecties;
+  security: typeof security;
   seedData: typeof seedData;
   settings: typeof settings;
   siteAnalytics: typeof siteAnalytics;

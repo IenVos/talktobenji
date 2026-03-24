@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "E-mailadres en userId zijn verplicht" }, { status: 400 });
     }
 
-    // Genereer 6-cijferige OTP
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    // Genereer 6-cijferige OTP met cryptografisch veilige willekeurige generator
+    const otp = crypto.randomInt(100000, 1000000).toString();
     const hashedOtp = crypto.createHash("sha256").update(otp).digest("hex");
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minuten
 

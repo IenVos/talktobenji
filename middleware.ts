@@ -44,8 +44,9 @@ export function middleware(request: NextRequest) {
   );
   response.headers.set(
     "Content-Security-Policy",
-    "frame-ancestors 'none'; object-src 'none';"
+    "frame-ancestors 'none'; object-src 'none'; base-uri 'self';"
   );
+  response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
 
   return response;
 }

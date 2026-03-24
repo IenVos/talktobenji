@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!password || typeof password !== "string" || password.length < 8) {
+    if (!password || typeof password !== "string" || password.length < 8 || password.length > 256) {
       return NextResponse.json(
-        { error: "Wachtwoord moet minimaal 8 tekens zijn" },
+        { error: "Wachtwoord moet minimaal 8 en maximaal 256 tekens zijn" },
         { status: 400 }
       );
     }
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const mailerLiteKey = process.env.MAILERLITE_API_KEY;
     const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
     if (mailerLiteKey && mailerLiteGroep) {
-      fetch("https://connect.mailerlite.com/api/subscribers", {
+      await fetch("https://connect.mailerlite.com/api/subscribers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -114,11 +114,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (message.includes("secret") || message.includes("Secret")) {
+      console.error("[Register] CONVEX_AUTH_ADAPTER_SECRET mismatch — controleer Vercel env vars en Convex dashboard");
       return NextResponse.json(
-        {
-          error:
-            "CONVEX_AUTH_ADAPTER_SECRET klopt niet. Zet dezelfde waarde in .env.local én in Convex (npx convex env set CONVEX_AUTH_ADAPTER_SECRET \"waarde\").",
-        },
+        { error: "Registratie is tijdelijk niet beschikbaar. Probeer het later opnieuw." },
         { status: 500 }
       );
     }

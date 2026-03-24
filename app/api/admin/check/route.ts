@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 function verifySessionToken(token: string): { valid: boolean; sessionId: string } {
-  const secret = process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD || "";
+  const secret = process.env.AUTH_SECRET || "";
   const dotIndex = token.indexOf(".");
   if (dotIndex === -1) return { valid: false, sessionId: "" };
 

@@ -1,6 +1,13 @@
 /**
  * Simpele in-memory rate limiter voor API routes.
  * Beperkt het aantal verzoeken per IP-adres binnen een tijdvenster.
+ *
+ * ⚠️ VERCEL BEPERKING: Serverless functies hebben geen gedeeld geheugen tussen
+ * invocaties. Deze rate limiter werkt alleen betrouwbaar bij warme function-instanties
+ * en biedt GEEN garantie op Vercel bij hoge load of cold starts.
+ *
+ * Voor productie-grade bescherming: gebruik Vercel Firewall (Dashboard → Firewall)
+ * of voeg Upstash Redis toe: https://vercel.com/integrations/upstash
  */
 
 const attempts = new Map<string, { count: number; resetAt: number }>();

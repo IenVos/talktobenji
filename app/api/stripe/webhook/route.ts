@@ -47,8 +47,8 @@ async function buildInvoicePdf({
   page.drawText("VOLDAAN", { x: R - 58, y: y + 1, size: 8, font: fontBold, color: green });
 
   y -= 20;
-  page.drawText(invoiceNr, { x: L, y, size: 20, font: fontBold, color: dark });
-  y -= 18;
+  page.drawText(invoiceNr, { x: L, y, size: 13, font: fontBold, color: dark });
+  y -= 16;
   page.drawText(date, { x: L, y, size: 10, font: fontReg, color: mid });
 
   // ── Van / Aan ──
@@ -56,7 +56,7 @@ async function buildInvoicePdf({
   page.drawText("VAN", { x: L, y, size: 8, font: fontBold, color: gray });
   page.drawText("AAN", { x: width / 2, y, size: 8, font: fontBold, color: gray });
 
-  const vanLines = ["TalkToBenji", "onderdeel van LAAV", "contactmetien@talktobenji.com", "Hässleholm, 28192", "Zweden", "BTW: SE671123042201"];
+  const vanLines = ["TalkToBenji", "contactmetien@talktobenji.com", "Hässleholm, 28192", "Zweden", "BTW: SE671123042201"];
   const aanLines = [customerName, customerEmail];
 
   y -= 16;

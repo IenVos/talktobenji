@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { rateLimit } from "@/lib/rate-limit";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const { allowed, retryAfterMs } = rateLimit(`houvast:${ip}`, { maxAttempts: 5, windowMs: 60 * 60 * 1000 });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Te veel aanmeldingen. Probeer het later opnieuw." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+    );
+  }
+
   const body = await req.json();
   const { email, name } = body;
 
@@ -32,6 +42,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("[houvast/registreer] Fout:", err?.message);
-    return NextResponse.json({ error: err?.message }, { status: 500 });
+    return NextResponse.json({ error: "Er ging iets mis. Probeer het opnieuw." }, { status: 500 });
   }
 }

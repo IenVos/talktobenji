@@ -6,9 +6,24 @@ import { api } from "@/convex/_generated/api";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+async function logSecurityEvent(
+  type: "failed_login" | "login_success" | "rate_limited",
+  ip: string,
+  details?: string
+) {
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  if (!secret) return;
+  try {
+    await convex.mutation(api.security.logEvent, { secret, type, ip, details });
+  } catch {
+    // Logging mag nooit de login blokkeren
+  }
+}
+
 function signSessionToken(sessionId: string): string {
-  const secret = process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD;
-  if (!secret) throw new Error("No signing secret configured");
+  // Gebruik AUTH_SECRET als dedicated signing key — NOOIT het wachtwoord als sleutel gebruiken
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) throw new Error("AUTH_SECRET is not configured");
   const hmac = crypto.createHmac("sha256", secret);
   hmac.update(sessionId);
   return `${sessionId}.${hmac.digest("hex")}`;
@@ -23,6 +38,7 @@ export async function POST(request: NextRequest) {
   });
 
   if (!allowed) {
+    await logSecurityEvent("rate_limited", ip, "Admin login rate limit bereikt");
     return NextResponse.json(
       { error: "Te veel pogingen. Probeer het later opnieuw." },
       {
@@ -45,7 +61,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (password === adminPassword) {
+    const passwordMatch = password?.length === adminPassword.length &&
+      crypto.timingSafeEqual(Buffer.from(password), Buffer.from(adminPassword));
+
+    if (!passwordMatch) {
+      await logSecurityEvent("failed_login", ip, "Ongeldig wachtwoord ingevoerd");
+    }
+
+    if (passwordMatch) {
       const sessionId = crypto.randomUUID();
       const token = signSessionToken(sessionId);
       const expiresAt = Date.now() + 8 * 60 * 60 * 1000; // 8 uur
@@ -61,6 +84,8 @@ export async function POST(request: NextRequest) {
         console.error("Failed to create admin session in Convex:", err);
         // Ga door - cookie-based auth werkt nog steeds
       }
+
+      await logSecurityEvent("login_success", ip, "Succesvol ingelogd");
 
       const response = NextResponse.json({
         success: true,

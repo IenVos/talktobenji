@@ -12,7 +12,7 @@ import {
   Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3,
   MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell,
   ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp,
-  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard,
+  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield,
 } from "lucide-react";
 
 type NavItem = {
@@ -154,6 +154,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const notHelpfulCount = notHelpful?.length ?? 0;
   const helpful = useAdminQuery(api.admin.getHelpfulMessages, {});
   const helpfulCount = helpful?.length ?? 0;
+  const securityAlertCount = (useAdminQuery(api.security.getAlertCount, {}) as number | undefined) ?? 0;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const entries: NavEntry[] = [
@@ -248,6 +249,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       },
     },
     { type: "separator" },
+    { type: "item", item: { href: "/admin/beveiliging", label: "Beveiliging", icon: Shield, badge: securityAlertCount } },
     { type: "item", item: { href: "/admin/instellingen", label: "Instellingen", icon: Settings } },
   ];
 

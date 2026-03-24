@@ -14,7 +14,9 @@
       "Bash(cp:*)",
       "Bash(npx convex:*)",
       "Bash(git:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(node:*)",
+      "Bash(find:*)"
     ]
   }
 }
