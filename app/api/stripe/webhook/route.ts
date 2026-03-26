@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object as Stripe.PaymentIntent;
-    const { email, name, subscriptionType, slug, productName } = pi.metadata;
+    const { email, name, subscriptionType, slug, productName, optIn } = pi.metadata;
 
     if (email) {
       try {
@@ -191,10 +191,10 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // MailerLite — voeg toe aan groep
+      // MailerLite — alleen toevoegen als koper opt-in heeft gegeven
       const mailerLiteKey = process.env.MAILERLITE_API_KEY;
       const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
-      if (mailerLiteKey && mailerLiteGroep) {
+      if (mailerLiteKey && mailerLiteGroep && optIn === "true") {
         await fetch("https://connect.mailerlite.com/api/subscribers", {
           method: "POST",
           headers: {

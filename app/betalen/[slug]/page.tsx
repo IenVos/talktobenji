@@ -36,6 +36,7 @@ function CheckoutForm({
   const router = useRouter();
   const [naam, setNaam] = useState("");
   const [email, setEmail] = useState("");
+  const [optIn, setOptIn] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,7 +53,7 @@ function CheckoutForm({
       await fetch("/api/stripe/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, email, name: naam, paymentIntentId }),
+        body: JSON.stringify({ slug, email, name: naam, paymentIntentId, optIn }),
       });
     } catch {
       // Niet fataal
@@ -113,6 +114,35 @@ function CheckoutForm({
           <PaymentElement />
         </div>
       </div>
+
+      {/* Opt-in nieuwsbrief */}
+      <label className="flex items-start gap-3 cursor-pointer group">
+        <div className="relative mt-0.5 shrink-0">
+          <input
+            type="checkbox"
+            checked={optIn}
+            onChange={(e) => setOptIn(e.target.checked)}
+            className="sr-only"
+          />
+          <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${
+            optIn
+              ? "bg-primary-600 border-primary-600"
+              : "bg-white border-stone-300 group-hover:border-primary-400"
+          }`}>
+            {optIn && (
+              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+        </div>
+        <div>
+          <p className="text-sm text-stone-700 leading-snug">
+            Ja, houd me op de hoogte van nieuwe inhoud en aanbiedingen
+          </p>
+          <p className="text-xs text-stone-400 mt-0.5">Geen spam, uitschrijven kan altijd.</p>
+        </div>
+      </label>
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
