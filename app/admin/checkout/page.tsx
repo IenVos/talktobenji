@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
+import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
-  CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink,
+  CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink, Send,
 } from "lucide-react";
 
 type CheckoutProduct = {
@@ -65,6 +65,7 @@ function formatPrice(cents: number): string {
 }
 
 export default function AdminCheckoutPage() {
+  const { adminToken } = useAdminAuth();
   const products = useAdminQuery(api.checkoutProducts.list, {});
   const createProduct = useAdminMutation(api.checkoutProducts.create);
   const updateProduct = useAdminMutation(api.checkoutProducts.update);
@@ -76,6 +77,9 @@ export default function AdminCheckoutPage() {
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [testEmail, setTestEmail] = useState("");
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testStatus, setTestStatus] = useState<"idle" | "sent" | "error">("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const set = (field: keyof FormState) => (
@@ -385,6 +389,49 @@ export default function AdminCheckoutPage() {
                   className={inputClass}
                 />
               </div>
+              {/* Testmail versturen */}
+              {form.followUpEmailSubject && form.followUpEmailBody && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input
+                    type="email"
+                    placeholder="jouw@email.com"
+                    value={testEmail}
+                    onChange={(e) => { setTestEmail(e.target.value); setTestStatus("idle"); }}
+                    className="flex-1 min-w-0 px-3 py-2 border border-primary-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  />
+                  <button
+                    type="button"
+                    disabled={sendingTest || !testEmail}
+                    onClick={async () => {
+                      setSendingTest(true);
+                      setTestStatus("idle");
+                      try {
+                        const res = await fetch("/api/admin/send-test-email", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            adminToken,
+                            toEmail: testEmail,
+                            subject: form.followUpEmailSubject,
+                            body: form.followUpEmailBody,
+                          }),
+                        });
+                        setTestStatus(res.ok ? "sent" : "error");
+                      } catch {
+                        setTestStatus("error");
+                      } finally {
+                        setSendingTest(false);
+                      }
+                    }}
+                    className="inline-flex items-center gap-2 px-3 py-2 border border-primary-300 rounded-lg text-sm text-primary-700 hover:bg-primary-50 disabled:opacity-50 shrink-0"
+                  >
+                    <Send size={15} />
+                    {sendingTest ? "Versturen…" : "Testmail sturen"}
+                  </button>
+                  {testStatus === "sent" && <span className="text-sm text-green-600">✓ Verzonden</span>}
+                  {testStatus === "error" && <span className="text-sm text-red-600">Mislukt</span>}
+                </div>
+              )}
             </div>
 
             <label className="flex items-center gap-2 cursor-pointer">
