@@ -216,9 +216,14 @@ export async function POST(req: NextRequest) {
           if (product?.followUpEmailSubject && product?.followUpEmailBody) {
             const resend = new Resend(process.env.RESEND_API_KEY);
             const voornaam = (name || email).split(" ")[0];
+            const toHtml = (text: string) =>
+              text
+                .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" style="color:#6d84a8;">$1</a>')
+                .replace(/\n/g, "<br/>");
             const bodyHtml = product.followUpEmailBody
+              .replace(/{naam}/g, voornaam)
               .split("\n\n")
-              .map((p: string) => `<p style="font-size:15px;line-height:1.8;color:#4a5568;">${p.replace(/\n/g, "<br/>")}</p>`)
+              .map((p: string) => `<p style="font-size:15px;line-height:1.8;color:#4a5568;">${toHtml(p)}</p>`)
               .join("");
             await resend.emails.send({
               from: "Talk To Benji <noreply@talktobenji.com>",

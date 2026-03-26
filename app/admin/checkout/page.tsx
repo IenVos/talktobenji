@@ -375,10 +375,10 @@ export default function AdminCheckoutPage() {
               </div>
               <div>
                 <label className={labelSmClass}>
-                  Tekst <span className="text-gray-400">— gebruik &#123;naam&#125; voor voornaam, lege regel = nieuwe alinea</span>
+                  Tekst <span className="text-gray-400">— &#123;naam&#125; = voornaam · lege regel = nieuwe alinea · [linktekst](https://...) = klikbare link</span>
                 </label>
                 <textarea
-                  placeholder={`Hi {naam},\n\nHier is de link naar je gids: https://...\n\nVeel leesplezier!`}
+                  placeholder={`Hi {naam},\n\nJe kunt de gids hier vinden: [Er Zijn](https://talktobenji.com/er-zijn)\n\nVeel leesplezier!`}
                   value={form.followUpEmailBody}
                   onChange={set("followUpEmailBody")}
                   rows={6}
