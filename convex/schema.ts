@@ -672,6 +672,9 @@ export default defineSchema({
     buttonText: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
     isLive: v.boolean(),
+    // Bevestigingsmail na aankoop (optioneel, beheerbaar via admin)
+    followUpEmailSubject: v.optional(v.string()),
+    followUpEmailBody: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

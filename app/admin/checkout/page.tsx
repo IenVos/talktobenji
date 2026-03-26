@@ -20,6 +20,8 @@ type CheckoutProduct = {
   imageStorageId?: Id<"_storage">;
   imageUrl?: string | null;
   isLive: boolean;
+  followUpEmailSubject?: string;
+  followUpEmailBody?: string;
   createdAt: number;
   updatedAt: number;
 };
@@ -35,6 +37,8 @@ type FormState = {
   imageStorageId?: Id<"_storage">;
   imageFile: File | null;
   isLive: boolean;
+  followUpEmailSubject: string;
+  followUpEmailBody: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -48,6 +52,8 @@ const EMPTY_FORM: FormState = {
   imageStorageId: undefined,
   imageFile: null,
   isLive: false,
+  followUpEmailSubject: "",
+  followUpEmailBody: "",
 };
 
 function opt(val: string): string | undefined {
@@ -99,6 +105,8 @@ export default function AdminCheckoutPage() {
       imageStorageId: product.imageStorageId,
       imageFile: null,
       isLive: product.isLive,
+      followUpEmailSubject: product.followUpEmailSubject ?? "",
+      followUpEmailBody: product.followUpEmailBody ?? "",
     });
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(product._id);
@@ -133,6 +141,8 @@ export default function AdminCheckoutPage() {
         buttonText: opt(form.buttonText),
         imageStorageId,
         isLive: form.isLive,
+        followUpEmailSubject: opt(form.followUpEmailSubject),
+        followUpEmailBody: opt(form.followUpEmailBody),
       };
       if (editingId) {
         await updateProduct({ id: editingId, ...payload });
@@ -338,6 +348,40 @@ export default function AdminCheckoutPage() {
                   placeholder="Start mijn reis"
                   value={form.buttonText}
                   onChange={set("buttonText")}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            {/* Bevestigingsmail na aankoop */}
+            <div className="border-t border-primary-100 pt-4 space-y-3">
+              <p className="text-sm font-medium text-primary-900">
+                Bevestigingsmail na aankoop{" "}
+                <span className="text-xs text-gray-400 font-normal">
+                  (optioneel — laat leeg om geen mail te sturen)
+                </span>
+              </p>
+              <div>
+                <label className={labelSmClass}>
+                  Onderwerp <span className="text-gray-400">— gebruik &#123;naam&#125; voor voornaam koper</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Je gids staat klaar, {naam}!"
+                  value={form.followUpEmailSubject}
+                  onChange={set("followUpEmailSubject")}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelSmClass}>
+                  Tekst <span className="text-gray-400">— gebruik &#123;naam&#125; voor voornaam, lege regel = nieuwe alinea</span>
+                </label>
+                <textarea
+                  placeholder={`Hi {naam},\n\nHier is de link naar je gids: https://...\n\nVeel leesplezier!`}
+                  value={form.followUpEmailBody}
+                  onChange={set("followUpEmailBody")}
+                  rows={6}
                   className={inputClass}
                 />
               </div>

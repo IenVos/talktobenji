@@ -209,6 +209,33 @@ export async function POST(req: NextRequest) {
         }).catch((err) => console.error("[MailerLite] Stripe webhook fout:", err));
       }
 
+      // Bevestigingsmail per product (als ingesteld in admin)
+      if (process.env.RESEND_API_KEY && slug) {
+        try {
+          const product = await convex.query(api.checkoutProducts.getBySlug, { slug });
+          if (product?.followUpEmailSubject && product?.followUpEmailBody) {
+            const resend = new Resend(process.env.RESEND_API_KEY);
+            const voornaam = (name || email).split(" ")[0];
+            const bodyHtml = product.followUpEmailBody
+              .split("\n\n")
+              .map((p: string) => `<p style="font-size:15px;line-height:1.8;color:#4a5568;">${p.replace(/\n/g, "<br/>")}</p>`)
+              .join("");
+            await resend.emails.send({
+              from: "Talk To Benji <noreply@talktobenji.com>",
+              to: email,
+              subject: product.followUpEmailSubject.replace("{naam}", voornaam),
+              html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
+                <p style="font-size:16px;margin-bottom:8px;">Hi ${voornaam},</p>
+                ${bodyHtml}
+                <p style="font-size:14px;color:#718096;margin-top:24px;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
+              </div>`,
+            });
+          }
+        } catch (err: any) {
+          console.error("[Resend] Bevestigingsmail mislukt:", err?.message);
+        }
+      }
+
       // Factuur per e-mail via Resend
       if (process.env.RESEND_API_KEY) {
         try {

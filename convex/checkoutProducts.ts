@@ -62,6 +62,8 @@ export const create = mutation({
     buttonText: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
     isLive: v.boolean(),
+    followUpEmailSubject: v.optional(v.string()),
+    followUpEmailBody: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -76,6 +78,8 @@ export const create = mutation({
       buttonText: args.buttonText,
       imageStorageId: args.imageStorageId,
       isLive: args.isLive,
+      followUpEmailSubject: args.followUpEmailSubject,
+      followUpEmailBody: args.followUpEmailBody,
       createdAt: now,
       updatedAt: now,
     });
@@ -96,6 +100,8 @@ export const update = mutation({
     buttonText: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
     isLive: v.optional(v.boolean()),
+    followUpEmailSubject: v.optional(v.string()),
+    followUpEmailBody: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
