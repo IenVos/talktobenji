@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
     subject: `[TEST] ${subject.replace("{naam}", voornaam)}`,
     html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
       <p style="font-size:11px;color:#a0aec0;margin-bottom:16px;">— Dit is een testmail —</p>
-      <p style="font-size:16px;margin-bottom:8px;">Hi ${voornaam},</p>
       ${bodyHtml}
       <p style="font-size:14px;color:#718096;margin-top:24px;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
     </div>`,

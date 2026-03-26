@@ -209,39 +209,7 @@ export async function POST(req: NextRequest) {
         }).catch((err) => console.error("[MailerLite] Stripe webhook fout:", err));
       }
 
-      // Bevestigingsmail per product (als ingesteld in admin)
-      if (process.env.RESEND_API_KEY && slug) {
-        try {
-          const product = await convex.query(api.checkoutProducts.getBySlug, { slug });
-          if (product?.followUpEmailSubject && product?.followUpEmailBody) {
-            const resend = new Resend(process.env.RESEND_API_KEY);
-            const voornaam = (name || email).split(" ")[0];
-            const toHtml = (text: string) =>
-              text
-                .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" style="color:#6d84a8;">$1</a>')
-                .replace(/\n/g, "<br/>");
-            const bodyHtml = product.followUpEmailBody
-              .replace(/{naam}/g, voornaam)
-              .split("\n\n")
-              .map((p: string) => `<p style="font-size:15px;line-height:1.8;color:#4a5568;">${toHtml(p)}</p>`)
-              .join("");
-            await resend.emails.send({
-              from: "Talk To Benji <noreply@talktobenji.com>",
-              to: email,
-              subject: product.followUpEmailSubject.replace("{naam}", voornaam),
-              html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
-                <p style="font-size:16px;margin-bottom:8px;">Hi ${voornaam},</p>
-                ${bodyHtml}
-                <p style="font-size:14px;color:#718096;margin-top:24px;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
-              </div>`,
-            });
-          }
-        } catch (err: any) {
-          console.error("[Resend] Bevestigingsmail mislukt:", err?.message);
-        }
-      }
-
-      // Factuur per e-mail via Resend
+      // Bevestigingsmail + factuur
       if (process.env.RESEND_API_KEY) {
         try {
           const resend = new Resend(process.env.RESEND_API_KEY);
@@ -251,7 +219,9 @@ export async function POST(req: NextRequest) {
           });
           const totalInclBtw = pi.amount / 100;
           const omschrijving = productName || (slug ? slug.replace(/-/g, " ") : "Aankoop");
+          const voornaam = (name || email).split(" ")[0];
 
+          // Bouw PDF
           let attachments: { filename: string; content: string }[] = [];
           try {
             const pdfBytes = await buildInvoicePdf({
@@ -266,20 +236,49 @@ export async function POST(req: NextRequest) {
             console.error("[PDF] Generatie mislukt, email zonder bijlage:", pdfErr?.message);
           }
 
-          const voornaam = (name || email).split(" ")[0];
-          await resend.emails.send({
-            from: "Talk To Benji <noreply@talktobenji.com>",
-            to: email,
-            subject: `Factuur ${invoiceNr} – ${omschrijving}`,
-            html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#44403c;padding:32px 24px;">
-              <p style="font-size:15px;line-height:1.7;">Hi ${voornaam},</p>
-              <p style="font-size:15px;line-height:1.7;">Hierbij je factuur voor <strong>${omschrijving}</strong>. Je vindt de factuur als bijlage bij deze e-mail.</p>
-              <p style="font-size:14px;color:#78716c;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
-            </div>`,
-            ...(attachments.length > 0 && { attachments }),
-          });
+          // Haal product op voor bevestigingsmail (als slug bekend)
+          const product = slug
+            ? await convex.query(api.checkoutProducts.getBySlug, { slug }).catch(() => null)
+            : null;
+
+          if (product?.followUpEmailSubject && product?.followUpEmailBody) {
+            // Bevestigingsmail + factuur als bijlage in één e-mail
+            const toHtml = (text: string) =>
+              text
+                .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" style="color:#6d84a8;">$1</a>')
+                .replace(/\n/g, "<br/>");
+            const bodyHtml = product.followUpEmailBody
+              .replace(/{naam}/g, voornaam)
+              .split("\n\n")
+              .map((p: string) => `<p style="font-size:15px;line-height:1.8;color:#4a5568;">${toHtml(p)}</p>`)
+              .join("");
+            await resend.emails.send({
+              from: "Talk To Benji <noreply@talktobenji.com>",
+              to: email,
+              subject: product.followUpEmailSubject.replace("{naam}", voornaam),
+              html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
+                ${bodyHtml}
+                <p style="font-size:13px;color:#a0aec0;margin-top:28px;border-top:1px solid #e8e4e0;padding-top:16px;">Je factuur (${invoiceNr}) vind je als bijlage bij deze e-mail.</p>
+                <p style="font-size:14px;color:#718096;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
+              </div>`,
+              ...(attachments.length > 0 && { attachments }),
+            });
+          } else {
+            // Geen bevestigingsmail ingesteld — stuur alleen de factuur
+            await resend.emails.send({
+              from: "Talk To Benji <noreply@talktobenji.com>",
+              to: email,
+              subject: `Factuur ${invoiceNr} – ${omschrijving}`,
+              html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#44403c;padding:32px 24px;">
+                <p style="font-size:15px;line-height:1.7;">Hi ${voornaam},</p>
+                <p style="font-size:15px;line-height:1.7;">Hierbij je factuur voor <strong>${omschrijving}</strong>. Je vindt de factuur als bijlage bij deze e-mail.</p>
+                <p style="font-size:14px;color:#78716c;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
+              </div>`,
+              ...(attachments.length > 0 && { attachments }),
+            });
+          }
         } catch (err: any) {
-          console.error("[Resend] Factuur versturen mislukt:", err?.message);
+          console.error("[Resend] E-mail versturen mislukt:", err?.message);
         }
       }
     }
