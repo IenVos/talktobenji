@@ -313,9 +313,8 @@ export default function BetalenPage() {
               />
             </div>
           )}
-          <div className="flex items-baseline gap-1">
+          <div className="flex justify-center">
             <span className="text-3xl font-bold text-primary-700">{priceFormatted}</span>
-            <span className="text-sm text-stone-400">eenmalig</span>
           </div>
         </div>
 
