@@ -414,6 +414,7 @@ export default function AdminCheckoutPage() {
                             toEmail: testEmail,
                             subject: form.followUpEmailSubject,
                             body: form.followUpEmailBody,
+                            productName: form.name,
                           }),
                         });
                         setTestStatus(res.ok ? "sent" : "error");
