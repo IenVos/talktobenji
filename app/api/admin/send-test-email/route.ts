@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
   // Valideer admin token via Convex
   try {
-    await convex.query(api.adminAuth.validateToken, { token: adminToken });
+    await convex.query(api.adminAuth.validateToken, { adminToken });
   } catch {
     return NextResponse.json({ error: "Geen toegang" }, { status: 401 });
   }
