@@ -138,7 +138,7 @@ function CheckoutForm({
         </div>
         <div>
           <p className="text-sm text-stone-700 leading-snug">
-            Ja, houd me op de hoogte van nieuwe inhoud en aanbiedingen
+            Ja, houd me op de hoogte
           </p>
           <p className="text-xs text-stone-400 mt-0.5">Geen spam, uitschrijven kan altijd.</p>
         </div>
