@@ -50,7 +50,7 @@ export default async function BlogOverviewPage() {
                     {post.excerpt && (
                       <p className="text-stone-500 text-sm leading-relaxed line-clamp-3 flex-1">{post.excerpt}</p>
                     )}
-                    <span className="inline-block mt-4 text-sm font-medium text-primary-600 group-hover:underline">
+                    <span className="inline-block mt-4 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg px-4 py-2 group-hover:bg-primary-50 transition-colors">
                       Lees verder →
                     </span>
                   </div>
