@@ -184,14 +184,14 @@ export default async function BlogPostPage({ params }: Props) {
 
       <div className="max-w-2xl mx-auto px-4 py-12">
         {/* Breadcrumb */}
-        <nav className="text-xs text-stone-400 mb-8 flex items-center gap-1.5">
-          <Link href="/" className="hover:text-primary-600">Home</Link>
+        <nav className="text-xs text-stone-400 mb-8 flex items-center gap-1.5 flex-wrap">
+          <Link href="/" className="hover:text-primary-600 whitespace-nowrap">Home</Link>
           <span>›</span>
-          <Link href="/blog" className="hover:text-primary-600">Blog</Link>
+          <Link href="/blog" className="hover:text-primary-600 whitespace-nowrap">Blog</Link>
           {pillar && (
             <>
               <span>›</span>
-              <Link href={`/thema/${pillar.slug}`} className="hover:text-primary-600">{pillar.title}</Link>
+              <Link href={`/thema/${pillar.slug}`} className="hover:text-primary-600 whitespace-nowrap">{pillar.title}</Link>
             </>
           )}
           <span>›</span>
