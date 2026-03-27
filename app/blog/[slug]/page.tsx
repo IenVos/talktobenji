@@ -37,11 +37,14 @@ function renderContent(content: string) {
       );
     }
     // Kop
-    if (block.startsWith("# ")) {
-      return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
+    if (block.startsWith("### ")) {
+      return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
     }
     if (block.startsWith("## ")) {
       return <h3 key={i} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{block.slice(3)}</h3>;
+    }
+    if (block.startsWith("# ")) {
+      return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
     }
     const lines = block.split("\n").filter(Boolean);
     // Blockquote

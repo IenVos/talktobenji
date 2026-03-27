@@ -148,8 +148,9 @@ export default function AdminBlogPage() {
     }
   };
 
-  const saveArticle = async () => {
-    if (!form.slug.trim() || !form.title.trim() || !form.content.trim()) return false;
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const buildPayload = async () => {
     let coverImageStorageId = form.coverImageStorageId;
     if (form.coverImageFile) {
       coverImageStorageId = await uploadFile(form.coverImageFile);
@@ -158,7 +159,7 @@ export default function AdminBlogPage() {
     const publishedAt = form.publishedAt ? new Date(form.publishedAt).getTime() : undefined;
     const faqItems = form.faqItems.filter((f) => f.question.trim() && f.answer.trim());
     const internalLinks = form.internalLinks.filter((l) => l.label.trim() && l.slug.trim());
-    const payload = {
+    return {
       slug: form.slug.trim(),
       title: form.title.trim(),
       seoTitle: form.seoTitle.trim() || undefined,
@@ -173,30 +174,39 @@ export default function AdminBlogPage() {
       pillarSlug: form.pillarSlug.trim() || undefined,
       kbSynced: false,
     };
-    if (editingId) {
-      await updatePost({ id: editingId, ...payload });
-    } else {
-      await createPost(payload);
-    }
-    return true;
   };
 
   const handleSave = async () => {
+    if (!form.slug.trim() || !form.title.trim() || !form.content.trim()) return;
     setSaving(true);
     try {
-      await saveArticle();
-      resetForm();
+      const payload = await buildPayload();
+      if (editingId) {
+        await updatePost({ id: editingId, ...payload });
+      } else {
+        const newId = await createPost(payload) as Id<"blogPosts">;
+        setEditingId(newId);
+      }
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2500);
     } finally {
       setSaving(false);
     }
   };
 
   const handleBack = async () => {
-    setSaving(true);
-    try {
-      await saveArticle();
-    } finally {
-      setSaving(false);
+    if (form.slug.trim() && form.title.trim() && form.content.trim()) {
+      setSaving(true);
+      try {
+        const payload = await buildPayload();
+        if (editingId) {
+          await updatePost({ id: editingId, ...payload });
+        } else {
+          await createPost(payload);
+        }
+      } finally {
+        setSaving(false);
+      }
     }
     resetForm();
   };
@@ -512,7 +522,7 @@ export default function AdminBlogPage() {
               <button type="button" onClick={handleSave} disabled={saving || !form.slug.trim() || !form.title.trim() || !form.content.trim()}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50">
                 <Save size={18} />
-                {saving ? "Bezig…" : "Opslaan"}
+                {saving ? "Bezig…" : saveSuccess ? "✓ Opgeslagen" : "Opslaan"}
               </button>
               {editingId && (
                 <button type="button"
