@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { Layers, Plus, Edit, Trash2, Save, X, ExternalLink, ArrowLeft, Image as ImageIcon, BookOpen, Link as LinkIcon } from "lucide-react";
+import { Layers, Plus, Edit, Trash2, Save, X, ExternalLink, ArrowLeft, Image as ImageIcon, BookOpen, Link as LinkIcon, RefreshCw } from "lucide-react";
 import { FormatToolbar } from "@/components/admin/FormatToolbar";
 
 type FaqItem = { question: string; answer: string };
@@ -49,6 +49,7 @@ export default function AdminPillarsPage() {
   const updatePillar = useAdminMutation(api.pillars.update);
   const removePillar = useAdminMutation(api.pillars.remove);
   const seedPillars = useAdminMutation(api.pillars.seedPillars);
+  const syncKb = useAdminMutation(api.pillars.syncToKnowledgeBase);
   const generateUploadUrl = useAdminMutation(api.pillars.generateUploadUrl);
   const getImageUrl = useAdminMutation(api.pillars.getImageUrl);
 
@@ -56,6 +57,9 @@ export default function AdminPillarsPage() {
   const [editingId, setEditingId] = useState<Id<"pillars"> | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [syncingKb, setSyncingKb] = useState(false);
+  const [syncKbDone, setSyncKbDone] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -99,34 +103,70 @@ export default function AdminPillarsPage() {
     return storageId as Id<"_storage">;
   };
 
+  const buildPayload = async () => {
+    let coverImageStorageId = form.coverImageStorageId;
+    if (form.coverImageFile) {
+      coverImageStorageId = await uploadFile(form.coverImageFile);
+      setForm((f) => ({ ...f, coverImageFile: null, coverImageStorageId }));
+    }
+    const faqItems = form.faqItems.filter((f) => f.question.trim() && f.answer.trim());
+    const internalLinks = form.internalLinks.filter((l) => l.label.trim() && l.slug.trim());
+    return {
+      slug: form.slug.trim(),
+      title: form.title.trim(),
+      seoTitle: form.seoTitle.trim() || undefined,
+      metaDescription: form.metaDescription.trim() || undefined,
+      excerpt: form.excerpt.trim() || undefined,
+      content: form.content.trim() || undefined,
+      coverImageStorageId,
+      faqItems: faqItems.length ? faqItems : undefined,
+      internalLinks: internalLinks.length ? internalLinks : undefined,
+      isLive: form.isLive,
+    };
+  };
+
   const handleSave = async () => {
     if (!form.slug.trim() || !form.title.trim()) return;
     setSaving(true);
     try {
-      let coverImageStorageId = form.coverImageStorageId;
-      if (form.coverImageFile) {
-        coverImageStorageId = await uploadFile(form.coverImageFile);
-        setForm((f) => ({ ...f, coverImageFile: null, coverImageStorageId }));
+      const payload = await buildPayload();
+      if (editingId) {
+        await updatePillar({ id: editingId, ...payload });
+      } else {
+        const newId = await createPillar(payload) as Id<"pillars">;
+        setEditingId(newId);
       }
-      const faqItems = form.faqItems.filter((f) => f.question.trim() && f.answer.trim());
-      const internalLinks = form.internalLinks.filter((l) => l.label.trim() && l.slug.trim());
-      const payload = {
-        slug: form.slug.trim(),
-        title: form.title.trim(),
-        seoTitle: form.seoTitle.trim() || undefined,
-        metaDescription: form.metaDescription.trim() || undefined,
-        excerpt: form.excerpt.trim() || undefined,
-        content: form.content.trim() || undefined,
-        coverImageStorageId,
-        faqItems: faqItems.length ? faqItems : undefined,
-        internalLinks: internalLinks.length ? internalLinks : undefined,
-        isLive: form.isLive,
-      };
-      if (editingId) await updatePillar({ id: editingId, ...payload });
-      else await createPillar(payload);
-      reset();
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2500);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleBack = async () => {
+    if (form.slug.trim() && form.title.trim()) {
+      setSaving(true);
+      try {
+        const payload = await buildPayload();
+        if (editingId) await updatePillar({ id: editingId, ...payload });
+        else await createPillar(payload);
+      } finally {
+        setSaving(false);
+      }
+    }
+    reset();
+  };
+
+  const handleSyncKb = async () => {
+    if (!editingId) return;
+    setSyncingKb(true);
+    setSyncKbDone(false);
+    try {
+      await syncKb({ id: editingId });
+      setSyncKbDone(true);
+      setTimeout(() => setSyncKbDone(false), 3000);
+    } finally {
+      setSyncingKb(false);
     }
   };
 
@@ -164,18 +204,19 @@ export default function AdminPillarsPage() {
         {showForm && (
           <div className="space-y-5 mb-6">
             {/* Terug */}
-            <button type="button" onClick={reset}
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600">
-              <ArrowLeft size={16} /> Terug naar overzicht
-            </button>
-            {editingId && (
-              <div className="flex justify-end -mt-8">
+            <div className="flex items-center justify-between">
+              <button type="button" onClick={handleBack} disabled={saving}
+                className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 disabled:opacity-50">
+                <ArrowLeft size={16} />
+                {saving ? "Opslaan…" : "Terug naar overzicht"}
+              </button>
+              {editingId && (
                 <a href={`/thema/${form.slug}`} target="_blank" rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm text-primary-600 hover:underline">
                   <ExternalLink size={14} /> Bekijk pagina
                 </a>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Titel + slug */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -259,7 +300,7 @@ export default function AdminPillarsPage() {
                 placeholder="Schrijf hier de pillar content…"
                 value={form.content}
                 onChange={set("content")}
-                rows={10}
+                rows={20}
                 className={inputClass + " font-mono text-xs leading-relaxed rounded-t-none"}
               />
             </div>
@@ -323,12 +364,19 @@ export default function AdminPillarsPage() {
               </label>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 pt-2">
               <button type="button" onClick={handleSave} disabled={saving || !form.slug.trim() || !form.title.trim()}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50">
                 <Save size={18} />
-                {saving ? "Bezig…" : "Opslaan"}
+                {saving ? "Bezig…" : saveSuccess ? "✓ Opgeslagen" : "Opslaan"}
               </button>
+              {editingId && (
+                <button type="button" onClick={handleSyncKb} disabled={syncingKb}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-50 disabled:opacity-50">
+                  {syncingKb ? <RefreshCw size={17} className="animate-spin" /> : <BookOpen size={17} />}
+                  {syncingKb ? "Bezig…" : syncKbDone ? "✓ Toegevoegd aan kennisbank" : "Toevoegen aan kennisbank"}
+                </button>
+              )}
               <button type="button" onClick={reset}
                 className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 rounded-lg text-sm font-medium hover:bg-primary-50">
                 <X size={18} /> Annuleren

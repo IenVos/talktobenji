@@ -140,6 +140,45 @@ export const remove = mutation({
   },
 });
 
+/** Admin: samenvatting + FAQ synchroniseren naar kennisbank */
+export const syncToKnowledgeBase = mutation({
+  args: { adminToken: v.string(), id: v.id("pillars") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const pillar = await ctx.db.get(args.id);
+    if (!pillar) throw new Error("Pillar niet gevonden");
+
+    const now = Date.now();
+    const tags = [pillar.slug, "pillar", "thema", ...pillar.title.toLowerCase().split(" ").filter((w) => w.length > 3)];
+
+    const existing = await ctx.db.query("knowledgeBase").collect();
+    const existingQuestions = new Set(existing.map((e) => e.question.trim().toLowerCase()));
+
+    const insertIfNew = async (question: string, answer: string, priority: number) => {
+      if (!question.trim() || !answer.trim()) return;
+      if (existingQuestions.has(question.trim().toLowerCase())) return;
+      await ctx.db.insert("knowledgeBase", {
+        question, answer,
+        category: "Thema",
+        tags, isActive: true, usageCount: 0, priority,
+        createdBy: "pillar-sync",
+        createdAt: now, updatedAt: now,
+      });
+      existingQuestions.add(question.trim().toLowerCase());
+    };
+
+    if (pillar.excerpt) await insertIfNew(pillar.title, pillar.excerpt, 5);
+    if (pillar.faqItems) {
+      for (const faq of pillar.faqItems) {
+        await insertIfNew(faq.question, faq.answer, 6);
+      }
+    }
+
+    await ctx.db.patch(args.id, { kbSynced: true, updatedAt: now });
+    return true;
+  },
+});
+
 /** Admin: de 3 standaard pillars aanmaken */
 export const seedPillars = mutation({
   args: { adminToken: v.string() },

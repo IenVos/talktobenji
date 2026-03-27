@@ -691,6 +691,7 @@ export default defineSchema({
     faqItems: v.optional(v.array(v.object({ question: v.string(), answer: v.string() }))),
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     isLive: v.boolean(),
+    kbSynced: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]),
