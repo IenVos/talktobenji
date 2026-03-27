@@ -135,6 +135,14 @@ export default async function PillarPage({ params }: Props) {
 
         {/* Header */}
         <div className="mb-10">
+          {(pillar as any).coverImageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={(pillar as any).coverImageUrl}
+              alt={pillar.title}
+              className="w-full rounded-2xl mb-6 object-cover max-h-72"
+            />
+          )}
           <h1 className="text-3xl sm:text-4xl font-bold text-stone-800 mb-4 leading-tight">
             {pillar.title}
           </h1>
@@ -199,6 +207,24 @@ export default async function PillarPage({ params }: Props) {
 
         {(articles as any[]).length === 0 && (
           <p className="text-stone-400 text-sm">Er zijn nog geen artikelen gepubliceerd onder dit thema.</p>
+        )}
+
+        {/* Bronnen */}
+        {(pillar as any).sources && (
+          <div className="mt-10 p-5 bg-stone-50 rounded-2xl border border-stone-200">
+            <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Bronnen</p>
+            <ul className="space-y-1">
+              {(pillar as any).sources.split("\n").filter(Boolean).map((source: string, i: number) => (
+                <li key={i} className="text-sm italic text-stone-400 leading-relaxed">
+                  {source.startsWith("http") ? (
+                    <a href={source} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 underline underline-offset-2">
+                      {source}
+                    </a>
+                  ) : source}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
 
         {/* CTA */}

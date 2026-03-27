@@ -17,6 +17,7 @@ type FormState = {
   metaDescription: string;
   excerpt: string;
   content: string;
+  sources: string;
   isLive: boolean;
   faqItems: FaqItem[];
   internalLinks: InternalLink[];
@@ -31,6 +32,7 @@ const EMPTY: FormState = {
   metaDescription: "",
   excerpt: "",
   content: "",
+  sources: "",
   isLive: false,
   faqItems: [{ question: "", answer: "" }],
   internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
@@ -81,6 +83,7 @@ export default function AdminPillarsPage() {
       metaDescription: p.metaDescription ?? "",
       excerpt: p.excerpt ?? "",
       content: p.content ?? "",
+      sources: p.sources ?? "",
       isLive: p.isLive,
       faqItems: p.faqItems?.length ? p.faqItems : [{ question: "", answer: "" }],
       internalLinks: [
@@ -122,6 +125,7 @@ export default function AdminPillarsPage() {
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : undefined,
       isLive: form.isLive,
+      sources: form.sources.trim() || undefined,
     };
   };
 
@@ -352,6 +356,20 @@ export default function AdminPillarsPage() {
                     className={inputClass} />
                 </div>
               ))}
+            </div>
+
+            {/* Bronnen */}
+            <div className="border-t border-primary-100 pt-4">
+              <label className={labelSmClass}>
+                Bronnen <span className="text-gray-400">(één per regel — worden cursief onderaan de pagina getoond)</span>
+              </label>
+              <textarea
+                placeholder={"NRC, 12 jan 2025 — Rouw na verlies\nhttps://voorbeeld.nl/bron"}
+                value={form.sources}
+                onChange={set("sources")}
+                rows={3}
+                className={inputClass}
+              />
             </div>
 
             {/* Live toggle */}

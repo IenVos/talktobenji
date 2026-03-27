@@ -31,9 +31,14 @@ export const listPublic = query({
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
-    return ctx.db.query("pillars")
+    const pillar = await ctx.db.query("pillars")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
+    if (!pillar) return null;
+    const coverImageUrl = pillar.coverImageStorageId
+      ? await ctx.storage.getUrl(pillar.coverImageStorageId).catch(() => null)
+      : null;
+    return { ...pillar, coverImageUrl };
   },
 });
 
@@ -83,6 +88,7 @@ export const create = mutation({
     faqItems: v.optional(v.array(v.object({ question: v.string(), answer: v.string() }))),
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     isLive: v.boolean(),
+    sources: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -98,6 +104,7 @@ export const create = mutation({
       faqItems: args.faqItems,
       internalLinks: args.internalLinks,
       isLive: args.isLive,
+      sources: args.sources,
       createdAt: now,
       updatedAt: now,
     });
@@ -119,6 +126,7 @@ export const update = mutation({
     faqItems: v.optional(v.array(v.object({ question: v.string(), answer: v.string() }))),
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     isLive: v.optional(v.boolean()),
+    sources: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

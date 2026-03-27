@@ -692,6 +692,7 @@ export default defineSchema({
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     isLive: v.boolean(),
     kbSynced: v.optional(v.boolean()),
+    sources: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]),
