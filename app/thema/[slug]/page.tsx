@@ -267,6 +267,23 @@ export default async function PillarPage({ params }: Props) {
           <p className="text-stone-400 text-sm">Er zijn nog geen artikelen gepubliceerd onder dit thema.</p>
         )}
 
+        {/* Auteur */}
+        <div className="mt-12 p-5 bg-white rounded-2xl border border-stone-200 flex items-center gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/ien-founder.png"
+            alt="Ien"
+            className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+          />
+          <div>
+            <p className="font-semibold text-stone-800 text-sm">Ien</p>
+            <p className="text-xs text-primary-600 mb-1">Founder van Talk To Benji</p>
+            <p className="text-sm text-stone-500 leading-relaxed">
+              Ien richtte Talk To Benji op na haar eigen ervaringen met verlies en rouw. Ze gelooft dat iedereen recht heeft op een luisterend oor — ook midden in de nacht.
+            </p>
+          </div>
+        </div>
+
         {/* CTA */}
         <div className="mt-14 p-6 bg-white rounded-2xl border-2 border-primary-600 text-center">
           <p className="text-stone-800 font-semibold text-lg mb-2">Praat met Benji</p>
