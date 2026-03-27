@@ -172,7 +172,6 @@ export default function AdminBlogPage() {
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : undefined,
       pillarSlug: form.pillarSlug.trim() || undefined,
-      kbSynced: false,
     };
   };
 
