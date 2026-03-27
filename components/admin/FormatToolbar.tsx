@@ -79,6 +79,21 @@ export function FormatToolbar({ textareaRef, value, onChange }: Props) {
       >
         ✓
       </button>
+      <div className="w-px h-4 bg-gray-300 mx-1" />
+      <button
+        type="button"
+        title="Inline CTA-blok invoegen"
+        onClick={() => {
+          const t = ta();
+          const s = t.selectionStart;
+          const block = "\n\n[cta]\n\n";
+          onChange(value.slice(0, s) + block + value.slice(s));
+          setTimeout(() => { t.focus(); t.setSelectionRange(s + block.length, s + block.length); }, 0);
+        }}
+        className="px-1.5 py-1 rounded hover:bg-amber-100 text-amber-700 hover:text-amber-800 transition-colors text-xs font-bold leading-none"
+      >
+        CTA
+      </button>
     </div>
   );
 }

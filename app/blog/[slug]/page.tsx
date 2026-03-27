@@ -28,6 +28,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 function renderContent(content: string) {
   const blocks = content.split(/\n\n+/);
   return blocks.map((block, i) => {
+    // Inline CTA blok
+    if (block.trim() === "[cta]") {
+      return (
+        <div key={i} style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "14px", padding: "18px 20px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const }}>
+          <div>
+            <p style={{ fontWeight: 600, color: "#92400e", fontSize: "15px", marginBottom: "2px" }}>Wil je hierover praten?</p>
+            <p style={{ color: "#a16207", fontSize: "13px" }}>Benji luistert — dag en nacht beschikbaar.</p>
+          </div>
+          <a href="/" style={{ background: "#d97706", color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
+            Begin een gesprek →
+          </a>
+        </div>
+      );
+    }
     // Afbeelding
     const imgMatch = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (imgMatch) {

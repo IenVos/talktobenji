@@ -41,6 +41,20 @@ function renderInline(text: string): React.ReactNode {
 function renderContent(content: string): React.ReactNode[] {
   const blocks = content.split(/\n\n+/);
   return blocks.map((block, i) => {
+    // Inline CTA blok
+    if (block.trim() === "[cta]") {
+      return (
+        <div key={i} style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "14px", padding: "18px 20px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const }}>
+          <div>
+            <p style={{ fontWeight: 600, color: "#92400e", fontSize: "15px", marginBottom: "2px" }}>Wil je hierover praten?</p>
+            <p style={{ color: "#a16207", fontSize: "13px" }}>Benji luistert — dag en nacht beschikbaar.</p>
+          </div>
+          <a href="/" style={{ background: "#d97706", color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
+            Begin een gesprek →
+          </a>
+        </div>
+      );
+    }
     if (block.startsWith("### ")) return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
     if (block.startsWith("## ")) return <h3 key={i} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{block.slice(3)}</h3>;
     if (block.startsWith("# ")) return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
@@ -162,6 +176,24 @@ export default async function PillarPage({ params }: Props) {
           </div>
         )}
 
+        {/* Bronnen */}
+        {(pillar as any).sources && (
+          <div className="mt-2 mb-12 p-5 bg-stone-50 rounded-2xl border border-stone-200">
+            <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Bronnen</p>
+            <ul className="space-y-1">
+              {(pillar as any).sources.split("\n").filter(Boolean).map((source: string, i: number) => (
+                <li key={i} className="text-sm italic text-stone-400 leading-relaxed">
+                  {source.startsWith("http") ? (
+                    <a href={source} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 underline underline-offset-2">
+                      {source}
+                    </a>
+                  ) : source}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Artikelen */}
         {(articles as any[]).length > 0 && (
           <div>
@@ -211,24 +243,6 @@ export default async function PillarPage({ params }: Props) {
 
         {(articles as any[]).length === 0 && (
           <p className="text-stone-400 text-sm">Er zijn nog geen artikelen gepubliceerd onder dit thema.</p>
-        )}
-
-        {/* Bronnen */}
-        {(pillar as any).sources && (
-          <div className="mt-10 p-5 bg-stone-50 rounded-2xl border border-stone-200">
-            <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Bronnen</p>
-            <ul className="space-y-1">
-              {(pillar as any).sources.split("\n").filter(Boolean).map((source: string, i: number) => (
-                <li key={i} className="text-sm italic text-stone-400 leading-relaxed">
-                  {source.startsWith("http") ? (
-                    <a href={source} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 underline underline-offset-2">
-                      {source}
-                    </a>
-                  ) : source}
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
 
         {/* CTA */}
