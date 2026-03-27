@@ -91,9 +91,11 @@ function renderContent(content: string): React.ReactNode[] {
       );
     }
     return (
-      <p key={i} className="text-stone-600 leading-relaxed text-[17px]">
-        {lines.map((line, j) => <span key={j}>{j > 0 && <br />}{renderInline(line)}</span>)}
-      </p>
+      <div key={i} className="space-y-3">
+        {lines.map((line, j) => (
+          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{renderInline(line)}</p>
+        ))}
+      </div>
     );
   });
 }
@@ -173,6 +175,22 @@ export default async function PillarPage({ params }: Props) {
         {pillar.content && (
           <div className="mb-12 space-y-5">
             {renderContent(pillar.content)}
+          </div>
+        )}
+
+        {/* Interne links */}
+        {(pillar as any).internalLinks && (pillar as any).internalLinks.filter((l: any) => l.label && l.slug).length > 0 && (
+          <div className="mt-2 mb-10 p-5 bg-primary-50 rounded-2xl border border-primary-100">
+            <p className="text-sm font-semibold text-primary-800 mb-3">Lees ook</p>
+            <ul className="space-y-2">
+              {(pillar as any).internalLinks.filter((l: any) => l.label && l.slug).map((link: any, i: number) => (
+                <li key={i}>
+                  <Link href={`/blog/${link.slug}`} className="text-primary-600 hover:underline text-sm">
+                    → {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 

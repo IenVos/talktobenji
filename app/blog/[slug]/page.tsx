@@ -99,14 +99,11 @@ function renderContent(content: string) {
     }
     // Normale alinea
     return (
-      <p key={i} className="text-stone-600 leading-relaxed text-[17px]">
+      <div key={i} className="space-y-3">
         {lines.map((line, j) => (
-          <span key={j}>
-            {j > 0 && <br />}
-            {renderInline(line)}
-          </span>
+          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{renderInline(line)}</p>
         ))}
-      </p>
+      </div>
     );
   });
 }
