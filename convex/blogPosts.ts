@@ -146,7 +146,7 @@ export const remove = mutation({
   },
 });
 
-/** Admin: FAQ + samenvatting synchroniseren naar kennisbank */
+/** Admin: FAQ + samenvatting synchroniseren naar kennisbank (geen duplicaten) */
 export const syncToKnowledgeBase = mutation({
   args: {
     adminToken: v.string(),
@@ -160,38 +160,35 @@ export const syncToKnowledgeBase = mutation({
     const now = Date.now();
     const tags = [post.slug, "blog", ...post.title.toLowerCase().split(" ").filter((w) => w.length > 3)];
 
-    // Samenvatting als kennisbank-item
-    if (post.excerpt) {
+    // Haal alle bestaande vragen op (eenmalig, voor duplicate check)
+    const existing = await ctx.db.query("knowledgeBase").collect();
+    const existingQuestions = new Set(existing.map((e) => e.question.trim().toLowerCase()));
+
+    const insertIfNew = async (question: string, answer: string, priority: number) => {
+      if (!question.trim() || !answer.trim()) return;
+      if (existingQuestions.has(question.trim().toLowerCase())) return; // al aanwezig
       await ctx.db.insert("knowledgeBase", {
-        question: post.title,
-        answer: post.excerpt,
+        question,
+        answer,
         category: "Blog",
         tags,
         isActive: true,
         usageCount: 0,
-        priority: 5,
+        priority,
         createdBy: "blog-sync",
         createdAt: now,
         updatedAt: now,
       });
-    }
+      existingQuestions.add(question.trim().toLowerCase()); // voorkom dubbel binnen zelfde sync
+    };
 
-    // FAQ-items als kennisbank-items
-    if (post.faqItems && post.faqItems.length > 0) {
+    // Samenvatting
+    if (post.excerpt) await insertIfNew(post.title, post.excerpt, 5);
+
+    // FAQ-items
+    if (post.faqItems) {
       for (const faq of post.faqItems) {
-        if (!faq.question.trim() || !faq.answer.trim()) continue;
-        await ctx.db.insert("knowledgeBase", {
-          question: faq.question,
-          answer: faq.answer,
-          category: "Blog",
-          tags,
-          isActive: true,
-          usageCount: 0,
-          priority: 6,
-          createdBy: "blog-sync",
-          createdAt: now,
-          updatedAt: now,
-        });
+        await insertIfNew(faq.question, faq.answer, 6);
       }
     }
 
