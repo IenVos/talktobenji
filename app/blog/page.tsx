@@ -3,6 +3,7 @@ import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
   title: "Samen Omgaan met Verdriet en Pijn — Talk To Benji",
@@ -62,6 +63,7 @@ export default async function BlogOverviewPage() {
           </ul>
         )}
       </div>
+      <SiteFooter variant="light" />
     </div>
   );
 }

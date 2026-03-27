@@ -120,6 +120,10 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
   if (!post) notFound();
 
+  const pillar = post.pillarSlug
+    ? await fetchQuery(api.pillars.getBySlug, { slug: post.pillarSlug }).catch(() => null)
+    : null;
+
   // JSON-LD structured data voor Google (Article + FAQPage)
   const articleSchema = {
     "@context": "https://schema.org",
@@ -171,11 +175,24 @@ export default async function BlogPostPage({ params }: Props) {
 
         {/* Header */}
         <article>
-          {post.publishedAt && (
-            <p className="text-sm text-stone-400 mb-3">
-              {new Date(post.publishedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
-            </p>
-          )}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            {post.publishedAt && (
+              <p className="text-sm text-stone-400">
+                {new Date(post.publishedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
+              </p>
+            )}
+            {pillar && (
+              <>
+                {post.publishedAt && <span className="text-stone-300 text-sm">·</span>}
+                <Link
+                  href={`/thema/${pillar.slug}`}
+                  className="text-xs text-stone-400 hover:text-primary-600 transition-colors"
+                >
+                  {pillar.title}
+                </Link>
+              </>
+            )}
+          </div>
           <h1 className="text-3xl font-bold text-stone-800 mb-6 leading-tight">{post.title}</h1>
 
           {post.coverImageUrl && (

@@ -106,12 +106,26 @@ export default async function PillarPage({ params }: Props) {
     })),
   };
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://talktobenji.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://talktobenji.com/blog" },
+      { "@type": "ListItem", position: 3, name: pillar.title, item: `https://talktobenji.com/thema/${pillar.slug}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-stone-50">
       <HeaderBar />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pillarSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
       <div className="max-w-3xl mx-auto px-4 py-12">
