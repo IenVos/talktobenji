@@ -1,0 +1,526 @@
+"use client";
+
+import { useState, useRef } from "react";
+import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import {
+  Newspaper, Plus, Edit, Trash2, Save, X, ExternalLink,
+  BookOpen, RefreshCw, Image as ImageIcon, Link as LinkIcon,
+} from "lucide-react";
+
+type FaqItem = { question: string; answer: string };
+type InternalLink = { label: string; slug: string };
+
+type FormState = {
+  slug: string;
+  title: string;
+  content: string;
+  excerpt: string;
+  metaDescription: string;
+  publishedAt: string; // "YYYY-MM-DD"
+  isLive: boolean;
+  faqItems: FaqItem[];
+  internalLinks: InternalLink[];
+  coverImageStorageId?: Id<"_storage">;
+  coverImageFile: File | null;
+};
+
+const EMPTY_FORM: FormState = {
+  slug: "",
+  title: "",
+  content: "",
+  excerpt: "",
+  metaDescription: "",
+  publishedAt: new Date().toISOString().slice(0, 10),
+  isLive: false,
+  faqItems: [{ question: "", answer: "" }],
+  internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
+  coverImageStorageId: undefined,
+  coverImageFile: null,
+};
+
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 80);
+}
+
+export default function AdminBlogPage() {
+  const { adminToken } = useAdminAuth();
+  const posts = useAdminQuery(api.blogPosts.list, {});
+  const createPost = useAdminMutation(api.blogPosts.create);
+  const updatePost = useAdminMutation(api.blogPosts.update);
+  const removePost = useAdminMutation(api.blogPosts.remove);
+  const syncKb = useAdminMutation(api.blogPosts.syncToKnowledgeBase);
+  const seedExample = useAdminMutation(api.blogPosts.seedExample);
+  const generateUploadUrl = useAdminMutation(api.blogPosts.generateUploadUrl);
+  const getImageUrl = useAdminMutation(api.blogPosts.getImageUrl);
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<Id<"blogPosts"> | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState<Id<"blogPosts"> | null>(null);
+  const [syncDone, setSyncDone] = useState<Id<"blogPosts"> | null>(null);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [insertingImage, setInsertingImage] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const inlineInputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
+
+  const inputClass = "w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
+  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
+  const labelSmClass = "block text-xs text-gray-500 mb-1";
+
+  const set = (field: keyof FormState) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  const resetForm = () => {
+    setForm(EMPTY_FORM);
+    setEditingId(null);
+    setCoverPreview(null);
+    setShowForm(false);
+  };
+
+  const startEdit = (post: any) => {
+    const publishDate = post.publishedAt
+      ? new Date(post.publishedAt).toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
+    setForm({
+      slug: post.slug,
+      title: post.title,
+      content: post.content,
+      excerpt: post.excerpt ?? "",
+      metaDescription: post.metaDescription ?? "",
+      publishedAt: publishDate,
+      isLive: post.isLive,
+      faqItems: post.faqItems?.length ? post.faqItems : [{ question: "", answer: "" }],
+      internalLinks: [
+        post.internalLinks?.[0] ?? { label: "", slug: "" },
+        post.internalLinks?.[1] ?? { label: "", slug: "" },
+      ],
+      coverImageStorageId: post.coverImageStorageId,
+      coverImageFile: null,
+    });
+    setCoverPreview(post.coverImageUrl ?? null);
+    setEditingId(post._id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const uploadFile = async (file: File): Promise<Id<"_storage">> => {
+    const url = await generateUploadUrl();
+    const res = await fetch(url, { method: "POST", body: file, headers: { "Content-Type": file.type } });
+    const { storageId } = await res.json();
+    return storageId as Id<"_storage">;
+  };
+
+  const insertImageAtCursor = async (file: File) => {
+    setInsertingImage(true);
+    try {
+      const storageId = await uploadFile(file);
+      const imageUrl = await getImageUrl({ storageId });
+      if (!imageUrl || !contentRef.current) return;
+      const ta = contentRef.current;
+      const start = ta.selectionStart ?? ta.value.length;
+      const before = ta.value.slice(0, start);
+      const after = ta.value.slice(start);
+      const insertion = `\n![](${imageUrl})\n`;
+      const newVal = before + insertion + after;
+      setForm((f) => ({ ...f, content: newVal }));
+    } finally {
+      setInsertingImage(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!form.slug.trim() || !form.title.trim() || !form.content.trim()) return;
+    setSaving(true);
+    try {
+      let coverImageStorageId = form.coverImageStorageId;
+      if (form.coverImageFile) {
+        coverImageStorageId = await uploadFile(form.coverImageFile);
+      }
+
+      const publishedAt = form.publishedAt
+        ? new Date(form.publishedAt).getTime()
+        : undefined;
+
+      const faqItems = form.faqItems.filter((f) => f.question.trim() && f.answer.trim());
+      const internalLinks = form.internalLinks.filter((l) => l.label.trim() && l.slug.trim());
+
+      const payload = {
+        slug: form.slug.trim(),
+        title: form.title.trim(),
+        content: form.content.trim(),
+        excerpt: form.excerpt.trim() || undefined,
+        metaDescription: form.metaDescription.trim() || undefined,
+        coverImageStorageId,
+        publishedAt,
+        isLive: form.isLive,
+        faqItems: faqItems.length ? faqItems : undefined,
+        internalLinks: internalLinks.length ? internalLinks : undefined,
+        kbSynced: false,
+      };
+
+      let postId: Id<"blogPosts">;
+      if (editingId) {
+        await updatePost({ id: editingId, ...payload });
+        postId = editingId;
+      } else {
+        postId = await createPost(payload) as Id<"blogPosts">;
+      }
+
+      // Automatisch synchroniseren naar kennisbank
+      if ((faqItems.length || form.excerpt.trim()) && adminToken) {
+        await syncKb({ id: postId });
+      }
+
+      resetForm();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSync = async (id: Id<"blogPosts">) => {
+    setSyncing(id);
+    try {
+      await syncKb({ id });
+      setSyncDone(id);
+      setTimeout(() => setSyncDone(null), 3000);
+    } finally {
+      setSyncing(null);
+    }
+  };
+
+  const handleSeed = async () => {
+    const id = await seedExample() as Id<"blogPosts">;
+    const all = posts;
+    const seeded = all?.find((p: any) => p._id === id);
+    if (seeded) startEdit(seeded);
+    else window.location.reload();
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-primary-900 flex items-center gap-2">
+          <Newspaper size={28} className="text-primary-600" />
+          Blog
+        </h1>
+        <p className="text-sm text-primary-700 mt-1">
+          Artikelen voor SEO en AEO — FAQ en samenvatting worden automatisch aan de kennisbank toegevoegd.
+        </p>
+      </div>
+
+      <div className="bg-white rounded-xl border border-primary-200 p-6">
+        <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+          <h2 className="font-semibold text-primary-900">
+            {showForm ? (editingId ? "Artikel bewerken" : "Nieuw artikel") : "Artikelen"}
+          </h2>
+          {!showForm && (
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleSeed}
+                className="inline-flex items-center gap-2 px-3 py-2 border border-primary-300 text-primary-700 rounded-lg text-sm hover:bg-primary-50"
+              >
+                Voorbeeldartikel laden
+              </button>
+              <button
+                type="button"
+                onClick={() => { resetForm(); setShowForm(true); }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700"
+              >
+                <Plus size={18} />
+                Nieuw artikel
+              </button>
+            </div>
+          )}
+        </div>
+
+        {showForm && (
+          <div className="space-y-5 mb-6">
+            {editingId && (
+              <a
+                href={`/blog/${form.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-primary-600 hover:underline"
+              >
+                <ExternalLink size={15} />
+                Bekijk artikel: /blog/{form.slug}
+              </a>
+            )}
+
+            {/* Titel + slug */}
+            <div>
+              <label className={labelClass}>Titel *</label>
+              <input
+                type="text"
+                placeholder="Hoe er zijn voor iemand die rouwt"
+                value={form.title}
+                onChange={(e) => {
+                  const title = e.target.value;
+                  setForm((f) => ({
+                    ...f,
+                    title,
+                    slug: f.slug || slugify(title),
+                  }));
+                }}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelSmClass}>Slug (URL: /blog/slug)</label>
+              <input
+                type="text"
+                value={form.slug}
+                onChange={set("slug")}
+                className={inputClass}
+              />
+            </div>
+
+            {/* Cover afbeelding */}
+            <div>
+              <label className={labelSmClass}>Omslagafbeelding</label>
+              {coverPreview && (
+                <div className="mb-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={coverPreview} alt="Cover" className="w-full rounded-xl max-h-48 object-cover" />
+                </div>
+              )}
+              <input ref={coverInputRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setForm((f) => ({ ...f, coverImageFile: file }));
+                  if (file) setCoverPreview(URL.createObjectURL(file));
+                }}
+              />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => coverInputRef.current?.click()}
+                  className="px-3 py-2 border border-primary-200 rounded-lg text-sm text-primary-700 hover:bg-primary-50 inline-flex items-center gap-2">
+                  <ImageIcon size={15} />
+                  {coverPreview ? "Andere afbeelding" : "Omslagafbeelding uploaden"}
+                </button>
+                {coverPreview && (
+                  <button type="button" onClick={() => { setForm((f) => ({ ...f, coverImageFile: null, coverImageStorageId: undefined })); setCoverPreview(null); }}
+                    className="px-3 py-2 border border-red-200 rounded-lg text-sm text-red-600 hover:bg-red-50">
+                    Verwijderen
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Inhoud */}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className={labelClass} style={{ marginBottom: 0 }}>Inhoud *</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">**vet** · [link](url) · ![](url)</span>
+                  <input ref={inlineInputRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) insertImageAtCursor(file);
+                      if (inlineInputRef.current) inlineInputRef.current.value = "";
+                    }}
+                  />
+                  <button type="button" onClick={() => inlineInputRef.current?.click()}
+                    disabled={insertingImage}
+                    className="inline-flex items-center gap-1 px-2 py-1 border border-primary-200 rounded text-xs text-primary-700 hover:bg-primary-50 disabled:opacity-50">
+                    <ImageIcon size={13} />
+                    {insertingImage ? "Uploaden…" : "Afbeelding invoegen"}
+                  </button>
+                </div>
+              </div>
+              <textarea
+                ref={contentRef}
+                placeholder="Schrijf hier het artikel..."
+                value={form.content}
+                onChange={set("content")}
+                rows={12}
+                className={inputClass + " font-mono text-xs leading-relaxed"}
+              />
+            </div>
+
+            {/* Samenvatting */}
+            <div>
+              <label className={labelClass}>
+                Samenvatting{" "}
+                <span className="text-xs text-gray-400 font-normal">— wordt direct aan kennisbank toegevoegd</span>
+              </label>
+              <textarea
+                placeholder="Korte samenvatting van het artikel (2-3 zinnen)…"
+                value={form.excerpt}
+                onChange={set("excerpt")}
+                rows={3}
+                className={inputClass}
+              />
+            </div>
+
+            {/* Meta description */}
+            <div>
+              <label className={labelSmClass}>
+                Meta description <span className="text-gray-400">(SEO — max 155 tekens)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Wat staat er in de Google-snippet?"
+                value={form.metaDescription}
+                onChange={set("metaDescription")}
+                maxLength={155}
+                className={inputClass}
+              />
+              <p className="text-xs text-gray-400 mt-0.5">{form.metaDescription.length}/155</p>
+            </div>
+
+            {/* FAQ */}
+            <div className="border-t border-primary-100 pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-primary-900 flex items-center gap-2">
+                  <BookOpen size={16} />
+                  FAQ{" "}
+                  <span className="text-xs text-gray-400 font-normal">— wordt direct aan kennisbank toegevoegd</span>
+                </p>
+                <button type="button"
+                  onClick={() => setForm((f) => ({ ...f, faqItems: [...f.faqItems, { question: "", answer: "" }] }))}
+                  className="text-xs text-primary-600 hover:underline">
+                  + Vraag toevoegen
+                </button>
+              </div>
+              {form.faqItems.map((faq, i) => (
+                <div key={i} className="space-y-2 p-3 bg-primary-50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-600">Vraag {i + 1}</span>
+                    {form.faqItems.length > 1 && (
+                      <button type="button"
+                        onClick={() => setForm((f) => ({ ...f, faqItems: f.faqItems.filter((_, j) => j !== i) }))}
+                        className="text-xs text-red-500 hover:underline">
+                        Verwijderen
+                      </button>
+                    )}
+                  </div>
+                  <input type="text" placeholder="Vraag…" value={faq.question}
+                    onChange={(e) => setForm((f) => ({ ...f, faqItems: f.faqItems.map((q, j) => j === i ? { ...q, question: e.target.value } : q) }))}
+                    className={inputClass} />
+                  <textarea placeholder="Antwoord…" value={faq.answer} rows={2}
+                    onChange={(e) => setForm((f) => ({ ...f, faqItems: f.faqItems.map((q, j) => j === i ? { ...q, answer: e.target.value } : q) }))}
+                    className={inputClass} />
+                </div>
+              ))}
+            </div>
+
+            {/* Interne links */}
+            <div className="border-t border-primary-100 pt-4 space-y-3">
+              <p className="text-sm font-medium text-primary-900 flex items-center gap-2">
+                <LinkIcon size={16} />
+                Interne links <span className="text-xs text-gray-400 font-normal">(max 2)</span>
+              </p>
+              {form.internalLinks.map((link, i) => (
+                <div key={i} className="grid grid-cols-2 gap-2">
+                  <input type="text" placeholder={`Linktekst ${i + 1}`} value={link.label}
+                    onChange={(e) => setForm((f) => ({ ...f, internalLinks: f.internalLinks.map((l, j) => j === i ? { ...l, label: e.target.value } : l) }))}
+                    className={inputClass} />
+                  <input type="text" placeholder="slug-van-artikel" value={link.slug}
+                    onChange={(e) => setForm((f) => ({ ...f, internalLinks: f.internalLinks.map((l, j) => j === i ? { ...l, slug: e.target.value } : l) }))}
+                    className={inputClass} />
+                </div>
+              ))}
+            </div>
+
+            {/* Publicatiedatum + live */}
+            <div className="grid grid-cols-2 gap-4 items-end border-t border-primary-100 pt-4">
+              <div>
+                <label className={labelClass}>Publicatiedatum</label>
+                <input type="date" value={form.publishedAt} onChange={set("publishedAt")} className={inputClass} />
+                <p className="text-xs text-gray-400 mt-0.5">Toekomstige datum = ingepland, nog niet zichtbaar</p>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer pb-2">
+                <input type="checkbox" checked={form.isLive} onChange={(e) => setForm((f) => ({ ...f, isLive: e.target.checked }))}
+                  className="rounded border-primary-300 text-primary-600" />
+                <span className="text-sm text-gray-700">Live (publiek zichtbaar)</span>
+              </label>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button type="button" onClick={handleSave} disabled={saving || !form.slug.trim() || !form.title.trim() || !form.content.trim()}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50">
+                <Save size={18} />
+                {saving ? "Bezig…" : "Opslaan + naar kennisbank"}
+              </button>
+              <button type="button" onClick={resetForm}
+                className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 rounded-lg text-sm font-medium hover:bg-primary-50">
+                <X size={18} />
+                Annuleren
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!showForm && (
+          <>
+            {posts === undefined ? (
+              <div className="py-8 text-center text-primary-600">Laden…</div>
+            ) : posts.length === 0 ? (
+              <p className="text-sm text-gray-500 py-4">Nog geen artikelen. Klik op "Voorbeeldartikel laden" om te starten.</p>
+            ) : (
+              <ul className="space-y-3">
+                {posts.map((post: any) => (
+                  <li key={post._id} className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${post.isLive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
+                            {post.isLive ? "Live" : "Concept"}
+                          </span>
+                          {post.publishedAt && post.publishedAt > Date.now() && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                              Ingepland {new Date(post.publishedAt).toLocaleDateString("nl-NL")}
+                            </span>
+                          )}
+                          {post.kbSynced && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">KB ✓</span>
+                          )}
+                        </div>
+                        <h3 className="font-medium text-primary-900 line-clamp-1">{post.title}</h3>
+                        {post.excerpt && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{post.excerpt}</p>}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {!post.kbSynced && (
+                          <button type="button" onClick={() => handleSync(post._id)} disabled={syncing === post._id}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Synchroniseer naar kennisbank">
+                            {syncing === post._id ? <RefreshCw size={17} className="animate-spin" /> : <BookOpen size={17} />}
+                          </button>
+                        )}
+                        {syncDone === post._id && <span className="text-xs text-green-600">✓ Gesynchroniseerd</span>}
+                        {post.isLive && (
+                          <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer"
+                            className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Bekijk artikel">
+                            <ExternalLink size={17} />
+                          </a>
+                        )}
+                        <button type="button" onClick={() => startEdit(post)}
+                          className="p-2 text-primary-600 hover:bg-primary-100 rounded-lg">
+                          <Edit size={17} />
+                        </button>
+                        <button type="button" onClick={() => { if (confirm("Artikel verwijderen?")) removePost({ id: post._id }); }}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                          <Trash2 size={17} />
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

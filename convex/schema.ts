@@ -679,6 +679,29 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),
 
+  // Blog artikelen (SEO + AEO + KB-koppeling)
+  blogPosts: defineTable({
+    slug: v.string(),
+    title: v.string(),
+    content: v.string(),
+    excerpt: v.optional(v.string()),         // Samenvatting — ook naar kennisbank
+    metaDescription: v.optional(v.string()), // SEO meta description
+    coverImageStorageId: v.optional(v.id("_storage")),
+    publishedAt: v.optional(v.number()),     // Kan in de toekomst liggen
+    isLive: v.boolean(),
+    faqItems: v.optional(v.array(v.object({
+      question: v.string(),
+      answer: v.string(),
+    }))),
+    internalLinks: v.optional(v.array(v.object({
+      label: v.string(),
+      slug: v.string(),
+    }))),
+    kbSynced: v.optional(v.boolean()),       // FAQ al gesynchroniseerd met kennisbank
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]),
+
   // Reviews / testimonials (beheerbaar via admin, zichtbaar op homepage)
   testimonials: defineTable({
     name: v.string(),       // Weergavenaam, bijv. "Anne" of "Thomas, 34"
