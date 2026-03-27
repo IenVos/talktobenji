@@ -181,12 +181,12 @@ export default async function BlogPostPage({ params }: Props) {
           )}
 
           {/* CTA */}
-          <div className="mt-12 p-6 bg-primary-900 rounded-2xl text-center">
-            <p className="text-white font-semibold text-lg mb-2">Praat met Benji</p>
-            <p className="text-gray-300 text-sm mb-5">Een luisterend oor, dag en nacht beschikbaar.</p>
+          <div className="mt-12 p-6 bg-white rounded-2xl border-2 border-primary-600 text-center">
+            <p className="text-stone-800 font-semibold text-lg mb-2">Praat met Benji</p>
+            <p className="text-stone-500 text-sm mb-5">Een luisterend oor, dag en nacht beschikbaar.</p>
             <Link
               href="/"
-              className="inline-block bg-white text-primary-900 font-semibold px-6 py-3 rounded-xl hover:bg-primary-50 transition-colors"
+              className="inline-block bg-primary-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-primary-700 transition-colors"
             >
               Begin een gesprek
             </Link>
