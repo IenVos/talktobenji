@@ -50,9 +50,9 @@ function renderContent(content: string) {
     // Blockquote
     if (lines.length > 0 && lines.every(l => l.startsWith("> "))) {
       return (
-        <blockquote key={i} className="border-l-4 border-primary-300 pl-5 my-5 space-y-1">
+        <blockquote key={i} className="border-l-4 border-primary-400 pl-5 pr-4 py-3 my-5 space-y-1 bg-primary-50 rounded-r-xl">
           {lines.map((l, j) => (
-            <p key={j} className="text-stone-500 italic leading-relaxed text-[17px]">{renderInline(l.slice(2))}</p>
+            <p key={j} className="text-stone-600 italic leading-relaxed text-[17px]">{renderInline(l.slice(2))}</p>
           ))}
         </blockquote>
       );
@@ -240,6 +240,24 @@ export default async function BlogPostPage({ params }: Props) {
                   </details>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Bronnen */}
+          {post.sources && (
+            <div className="mt-10 p-5 bg-stone-50 rounded-2xl border border-stone-200">
+              <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Bronnen</p>
+              <ul className="space-y-1">
+                {post.sources.split("\n").filter(Boolean).map((source, i) => (
+                  <li key={i} className="text-sm italic text-stone-400 leading-relaxed">
+                    {source.startsWith("http") ? (
+                      <a href={source} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 underline underline-offset-2">
+                        {source}
+                      </a>
+                    ) : source}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

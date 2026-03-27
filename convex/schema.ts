@@ -717,6 +717,7 @@ export default defineSchema({
     }))),
     kbSynced: v.optional(v.boolean()),       // FAQ al gesynchroniseerd met kennisbank
     pillarSlug: v.optional(v.string()),      // Koppeling aan pillar pagina
+    sources: v.optional(v.string()),         // Bronnen (één per regel)
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]).index("by_pillar", ["pillarSlug"]),

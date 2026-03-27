@@ -21,6 +21,7 @@ type FormState = {
   excerpt: string;
   metaDescription: string;
   pillarSlug: string;
+  sources: string;
   publishedAt: string; // "YYYY-MM-DD"
   isLive: boolean;
   faqItems: FaqItem[];
@@ -37,6 +38,7 @@ const EMPTY_FORM: FormState = {
   excerpt: "",
   metaDescription: "",
   pillarSlug: "",
+  sources: "",
   publishedAt: new Date().toISOString().slice(0, 10),
   isLive: false,
   faqItems: [{ question: "", answer: "" }],
@@ -106,6 +108,7 @@ export default function AdminBlogPage() {
       content: post.content,
       excerpt: post.excerpt ?? "",
       metaDescription: post.metaDescription ?? "",
+      sources: post.sources ?? "",
       publishedAt: publishDate,
       isLive: post.isLive,
       faqItems: post.faqItems?.length ? post.faqItems : [{ question: "", answer: "" }],
@@ -140,7 +143,7 @@ export default function AdminBlogPage() {
       const start = ta.selectionStart ?? ta.value.length;
       const before = ta.value.slice(0, start);
       const after = ta.value.slice(start);
-      const insertion = `\n![](${imageUrl})\n`;
+      const insertion = `\n\n![](${imageUrl})\n\n`;
       const newVal = before + insertion + after;
       setForm((f) => ({ ...f, content: newVal }));
     } finally {
@@ -172,6 +175,7 @@ export default function AdminBlogPage() {
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : undefined,
       pillarSlug: form.pillarSlug.trim() || undefined,
+      sources: form.sources.trim() || undefined,
     };
   };
 
@@ -486,6 +490,20 @@ export default function AdminBlogPage() {
                     className={inputClass} />
                 </div>
               ))}
+            </div>
+
+            {/* Bronnen */}
+            <div className="border-t border-primary-100 pt-4">
+              <label className={labelSmClass}>
+                Bronnen <span className="text-gray-400">(één per regel — worden cursief onderaan het artikel getoond)</span>
+              </label>
+              <textarea
+                placeholder={"NRC, 12 jan 2025 — Rouw na verlies\nhttps://voorbeeld.nl/bron"}
+                value={form.sources}
+                onChange={set("sources")}
+                rows={3}
+                className={inputClass}
+              />
             </div>
 
             {/* Pillar */}

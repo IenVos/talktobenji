@@ -47,8 +47,8 @@ function renderContent(content: string): React.ReactNode[] {
     const lines = block.split("\n").filter(Boolean);
     if (lines.length > 0 && lines.every(l => l.startsWith("> "))) {
       return (
-        <blockquote key={i} className="border-l-4 border-primary-300 pl-5 my-5 space-y-1">
-          {lines.map((l, j) => <p key={j} className="text-stone-500 italic leading-relaxed text-[17px]">{renderInline(l.slice(2))}</p>)}
+        <blockquote key={i} className="border-l-4 border-primary-400 pl-5 pr-4 py-3 my-5 space-y-1 bg-primary-50 rounded-r-xl">
+          {lines.map((l, j) => <p key={j} className="text-stone-600 italic leading-relaxed text-[17px]">{renderInline(l.slice(2))}</p>)}
         </blockquote>
       );
     }
