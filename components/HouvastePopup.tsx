@@ -27,7 +27,7 @@ export function HouvastePopup({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed bottom-44 right-4 z-50 w-80 rounded-2xl shadow-2xl overflow-hidden"
+      className="fixed bottom-[70px] right-4 z-50 w-80 max-h-[calc(100dvh-80px)] overflow-y-auto rounded-2xl shadow-2xl"
       style={{ background: "#2d3a4f" }}
     >
       {/* Sluitknop */}

@@ -43,6 +43,7 @@ import type * as nietAlleenContent from "../nietAlleenContent.js";
 import type * as nietAlleenEmails from "../nietAlleenEmails.js";
 import type * as notes from "../notes.js";
 import type * as onderweg from "../onderweg.js";
+import type * as pillars from "../pillars.js";
 import type * as preferences from "../preferences.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as pushSubscriptions from "../pushSubscriptions.js";
@@ -100,6 +101,7 @@ declare const fullApi: ApiFromModules<{
   nietAlleenEmails: typeof nietAlleenEmails;
   notes: typeof notes;
   onderweg: typeof onderweg;
+  pillars: typeof pillars;
   preferences: typeof preferences;
   pushNotifications: typeof pushNotifications;
   pushSubscriptions: typeof pushSubscriptions;

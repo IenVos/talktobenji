@@ -15,14 +15,14 @@ export function WelcomeScreenInfoIcons({ variant = "dark" }: { variant?: "light"
   const textClass = isDark ? "text-primary-200" : "text-primary-600";
 
   return (
-    <div className="flex flex-col items-center gap-1.5 sm:gap-2 w-full max-w-sm sm:max-w-md mx-auto px-3 sm:px-4 py-3 sm:py-4 text-center">
-      <div className="flex gap-2 justify-center items-center flex-wrap">
-        <Lock size={18} strokeWidth={2} className={`${iconClass} flex-shrink-0`} />
-        <span className={`${textClass} text-[10px] sm:text-xs leading-snug text-center`}>Gesprekken zijn privé en beveiligd.</span>
+    <div className="flex flex-wrap justify-center items-center gap-x-5 gap-y-1 w-full px-4 py-2">
+      <div className="flex items-center gap-1.5">
+        <Lock size={13} strokeWidth={2} className={`${iconClass} flex-shrink-0`} />
+        <span className={`${textClass} text-[10px] sm:text-xs leading-snug`}>Gesprekken zijn privé en beveiligd.</span>
       </div>
-      <div className="flex gap-2 justify-center items-center flex-wrap">
-        <AlertTriangle size={18} strokeWidth={2} className={`${iconClass} flex-shrink-0`} />
-        <span className={`${textClass} text-[10px] sm:text-xs leading-snug break-words text-center`}>Benji is geen vervanging van professionele hulp.</span>
+      <div className="flex items-center gap-1.5">
+        <AlertTriangle size={13} strokeWidth={2} className={`${iconClass} flex-shrink-0`} />
+        <span className={`${textClass} text-[10px] sm:text-xs leading-snug`}>Benji is geen vervanging van professionele hulp.</span>
       </div>
     </div>
   );

@@ -819,23 +819,11 @@ export default function ChatPageClient({
       )}
 
 
-      {/* Houvast floating knop – alleen zichtbaar op homepage, boven de footer */}
-      {!sessionId && !isAddingOpener && (
-        <button
-          onClick={() => setHouvasteOpen(true)}
-          className="fixed bottom-44 right-4 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg text-white text-sm font-medium transition-all hover:opacity-90"
-          style={{ background: "rgba(45,58,79,0.92)", backdropFilter: "blur(8px)" }}
-          aria-label="Houvast mini-gids"
-        >
-          👋 Even Houvast
-        </button>
-      )}
-
 <footer className="bg-primary-900 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
         {!sessionId && !isAddingOpener ? (
           <>
             <WelcomeScreenInfoIcons variant="dark" />
-            <SiteFooter variant="dark" />
+            <SiteFooter variant="dark" onHouvasteClick={() => setHouvasteOpen(true)} />
           </>
         ) : (
           <div className="px-3 sm:px-4 py-4 sm:py-5">
