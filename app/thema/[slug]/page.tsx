@@ -39,8 +39,12 @@ function renderInline(text: string): React.ReactNode {
 }
 
 function renderContent(content: string): React.ReactNode[] {
-  const blocks = content.split(/\n\n+/);
+  const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
   return blocks.map((block, i) => {
+    // Extra witregel
+    if (block.trim() === "__SPACER__") {
+      return <div key={i} className="h-6" />;
+    }
     // Inline CTA blok
     if (block.trim() === "[cta]") {
       return (
