@@ -10,7 +10,6 @@ import { VerhaalPopup } from "@/components/VerhaalPopup";
 import {
   MessageCircle, CheckSquare, BookOpen, Heart,
   Lightbulb, Sparkles, FileText, Clock, Palette, Star,
-  ChevronDown,
 } from "lucide-react";
 
 const FEATURE_ICONS = [
@@ -29,9 +28,10 @@ function parseFeatures(text: string) {
   });
 }
 
+const CARD = { background: "rgba(255,255,255,0.95)", boxShadow: "0 2px 16px rgba(0,0,0,0.09)", border: "1px solid rgba(0,0,0,0.09)" };
+
 export default function JaarToegangPage() {
   const [showIen, setShowIen] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const page = useQuery(api.landingPages.getBySlug, { slug: "jaar-toegang" });
 
   if (page === undefined) {
@@ -116,11 +116,7 @@ export default function JaarToegangPage() {
                 {features.map((f, i) => {
                   const Icon = FEATURE_ICONS[i % FEATURE_ICONS.length];
                   return (
-                    <div
-                      key={i}
-                      className="rounded-2xl p-5"
-                      style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 1px 12px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)" }}
-                    >
+                    <div key={i} className="rounded-2xl p-5" style={CARD}>
                       <Icon size={18} strokeWidth={1.5} className="mb-2" style={{ color: "#6d84a8" }} />
                       <p className="font-semibold text-sm mb-1" style={{ color: "#2e2a26" }}>{f.name}</p>
                       <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{f.desc}</p>
@@ -141,45 +137,58 @@ export default function JaarToegangPage() {
               </h2>
               <div className="space-y-3">
                 {voorWieBullets.map((item, i) => (
-                  <div
-                    key={i}
-                    className="rounded-2xl px-6 py-5"
-                    style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 1px 12px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)" }}
-                  >
+                  <div key={i} className="rounded-2xl px-6 py-5" style={CARD}>
                     <p className="text-base leading-relaxed" style={{ color: "#3d3530" }}>{item}</p>
                   </div>
                 ))}
               </div>
-
-              {/* Citaat */}
-              {page.wieIsText && page.wieIsText.includes("had willen hebben") && (
-                <blockquote
-                  className="mt-6 px-6 py-5 rounded-2xl border-l-4"
-                  style={{ background: "rgba(255,255,255,0.90)", borderLeftColor: "#6d84a8", boxShadow: "0 1px 12px rgba(0,0,0,0.06)" }}
-                >
-                  <p className="text-base italic font-medium" style={{ color: "#3d3530" }}>
-                    Dit is wat ik toen had willen hebben.
-                  </p>
-                </blockquote>
-              )}
             </div>
           </section>
         )}
 
+        {/* ── IEN / FOUNDER ────────────────────────────────────── */}
+        <section className="px-5 pb-10">
+          <div className="max-w-2xl mx-auto">
+            <div className="rounded-2xl p-6 flex items-start gap-4" style={CARD}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/ien-founder.png"
+                alt="Ien"
+                className="w-16 h-16 rounded-full object-cover flex-shrink-0"
+              />
+              <div>
+                <p className="font-semibold text-sm mb-0.5" style={{ color: "#2e2a26" }}>Ien</p>
+                <p className="text-xs mb-2" style={{ color: "#6d84a8" }}>Founder van Talk To Benji</p>
+                <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+                  {page.wieIsText
+                    ? page.wieIsText.split("\n\n")[0]
+                    : "Benji is gemaakt omdat verdriet geen kantooruren kent. Omdat iemand die mist niet tot maandag kan wachten."}
+                </p>
+              </div>
+            </div>
+
+            {/* Citaat */}
+            <blockquote
+              className="mt-4 px-6 py-5 rounded-2xl border-l-4"
+              style={{ ...CARD, borderLeftColor: "#6d84a8" }}
+            >
+              <p className="text-base italic font-medium" style={{ color: "#3d3530" }}>
+                Dit is wat ik toen had willen hebben.
+              </p>
+            </blockquote>
+          </div>
+        </section>
+
         {/* ── ERVARINGEN ───────────────────────────────────────── */}
         {ervaringen.length > 0 && (
-          <section className="px-5 pb-16">
+          <section className="px-5 py-10">
             <div className="max-w-3xl mx-auto">
               <p className="text-xs uppercase tracking-[0.16em] font-medium text-center mb-8" style={{ color: "#9a9088" }}>
                 Wat anderen zeggen
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {ervaringen.map((e, i) => (
-                  <div
-                    key={i}
-                    className="rounded-2xl p-6"
-                    style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 1px 12px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)" }}
-                  >
+                  <div key={i} className="rounded-2xl p-6" style={CARD}>
                     <p className="text-base leading-relaxed mb-4" style={{ color: "#3d3530" }}>
                       "{e.tekst}"
                     </p>
@@ -193,37 +202,18 @@ export default function JaarToegangPage() {
           </section>
         )}
 
-        {/* ── FAQ ──────────────────────────────────────────────── */}
+        {/* ── FAQ (altijd open — beter voor leesbaarheid) ───────── */}
         {vragen.length > 0 && (
-          <section className="px-5 pb-16">
+          <section className="px-5 py-10">
             <div className="max-w-2xl mx-auto">
               <h2 className="text-2xl sm:text-3xl font-semibold text-center mb-8" style={{ color: "#2e2a26" }}>
                 Veelgestelde vragen
               </h2>
               <div className="space-y-3">
                 {vragen.map((v, i) => (
-                  <div
-                    key={i}
-                    className="rounded-2xl overflow-hidden"
-                    style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 1px 12px rgba(0,0,0,0.06)", border: "1px solid rgba(0,0,0,0.05)" }}
-                  >
-                    <button
-                      className="w-full text-left px-6 py-5 flex justify-between items-center gap-4"
-                      onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    >
-                      <span className="font-semibold text-sm" style={{ color: "#2e2a26" }}>{v.vraag}</span>
-                      <ChevronDown
-                        size={16}
-                        strokeWidth={2}
-                        className="flex-shrink-0 transition-transform"
-                        style={{ color: "#8a8078", transform: openFaq === i ? "rotate(180deg)" : "rotate(0deg)" }}
-                      />
-                    </button>
-                    {openFaq === i && (
-                      <div className="px-6 pb-5">
-                        <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{v.antwoord}</p>
-                      </div>
-                    )}
+                  <div key={i} className="rounded-2xl px-6 py-5" style={CARD}>
+                    <p className="font-semibold text-sm mb-2" style={{ color: "#2e2a26" }}>{v.vraag}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{v.antwoord}</p>
                   </div>
                 ))}
               </div>
@@ -237,7 +227,7 @@ export default function JaarToegangPage() {
             <div className="max-w-xl mx-auto text-center">
               <div
                 className="rounded-2xl px-8 py-10"
-                style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 4px 32px rgba(0,0,0,0.10)", border: "2px solid rgba(109,132,168,0.25)" }}
+                style={{ ...CARD, border: "2px solid rgba(109,132,168,0.30)", boxShadow: "0 4px 32px rgba(0,0,0,0.12)" }}
               >
                 {page.finalCtaTitle && (
                   <h2 className="text-2xl font-semibold mb-3 leading-snug" style={{ color: "#2e2a26", textWrap: "balance" } as React.CSSProperties}>
