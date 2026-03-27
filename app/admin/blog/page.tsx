@@ -64,6 +64,8 @@ export default function AdminBlogPage() {
   const [editingId, setEditingId] = useState<Id<"blogPosts"> | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [syncingForm, setSyncingForm] = useState(false);
+  const [syncFormDone, setSyncFormDone] = useState(false);
   const [syncing, setSyncing] = useState<Id<"blogPosts"> | null>(null);
   const [syncDone, setSyncDone] = useState<Id<"blogPosts"> | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -168,17 +170,10 @@ export default function AdminBlogPage() {
         kbSynced: false,
       };
 
-      let postId: Id<"blogPosts">;
       if (editingId) {
         await updatePost({ id: editingId, ...payload });
-        postId = editingId;
       } else {
-        postId = await createPost(payload) as Id<"blogPosts">;
-      }
-
-      // Automatisch synchroniseren naar kennisbank
-      if ((faqItems.length || form.excerpt.trim()) && adminToken) {
-        await syncKb({ id: postId });
+        await createPost(payload);
       }
 
       resetForm();
@@ -447,12 +442,31 @@ export default function AdminBlogPage() {
               </label>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 pt-2">
               <button type="button" onClick={handleSave} disabled={saving || !form.slug.trim() || !form.title.trim() || !form.content.trim()}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50">
                 <Save size={18} />
-                {saving ? "Bezig…" : "Opslaan + naar kennisbank"}
+                {saving ? "Bezig…" : "Opslaan"}
               </button>
+              {editingId && (
+                <button type="button"
+                  disabled={syncingForm}
+                  onClick={async () => {
+                    setSyncingForm(true);
+                    setSyncFormDone(false);
+                    try {
+                      await syncKb({ id: editingId });
+                      setSyncFormDone(true);
+                      setTimeout(() => setSyncFormDone(false), 3000);
+                    } finally {
+                      setSyncingForm(false);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-50 disabled:opacity-50">
+                  {syncingForm ? <RefreshCw size={17} className="animate-spin" /> : <BookOpen size={17} />}
+                  {syncingForm ? "Bezig…" : syncFormDone ? "✓ Toegevoegd aan kennisbank" : "Toevoegen aan kennisbank"}
+                </button>
+              )}
               <button type="button" onClick={resetForm}
                 className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 rounded-lg text-sm font-medium hover:bg-primary-50">
                 <X size={18} />
