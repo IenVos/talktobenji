@@ -129,9 +129,13 @@ export default async function PillarPage({ params }: Props) {
       />
 
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <Link href="/blog" className="text-sm text-stone-400 hover:text-primary-600 mb-8 inline-block">
-          ← Alle artikelen
-        </Link>
+        <nav className="text-xs text-stone-400 mb-8 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-primary-600">Home</Link>
+          <span>›</span>
+          <Link href="/blog" className="hover:text-primary-600">Blog</Link>
+          <span>›</span>
+          <span className="text-stone-500">{pillar.title}</span>
+        </nav>
 
         {/* Header */}
         <div className="mb-10">

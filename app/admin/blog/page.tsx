@@ -165,17 +165,17 @@ export default function AdminBlogPage() {
     return {
       slug: form.slug.trim(),
       title: form.title.trim(),
-      seoTitle: form.seoTitle.trim() || undefined,
+      seoTitle: form.seoTitle.trim(),
       content: form.content.trim(),
-      excerpt: form.excerpt.trim() || undefined,
-      metaDescription: form.metaDescription.trim() || undefined,
+      excerpt: form.excerpt.trim(),
+      metaDescription: form.metaDescription.trim(),
       coverImageStorageId,
       publishedAt,
       isLive: form.isLive,
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : undefined,
-      pillarSlug: form.pillarSlug.trim() || undefined,
-      sources: form.sources.trim() || undefined,
+      pillarSlug: form.pillarSlug.trim(),
+      sources: form.sources.trim(),
     };
   };
 

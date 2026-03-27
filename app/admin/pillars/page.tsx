@@ -117,15 +117,15 @@ export default function AdminPillarsPage() {
     return {
       slug: form.slug.trim(),
       title: form.title.trim(),
-      seoTitle: form.seoTitle.trim() || undefined,
-      metaDescription: form.metaDescription.trim() || undefined,
-      excerpt: form.excerpt.trim() || undefined,
-      content: form.content.trim() || undefined,
+      seoTitle: form.seoTitle.trim(),
+      metaDescription: form.metaDescription.trim(),
+      excerpt: form.excerpt.trim(),
+      content: form.content.trim(),
       coverImageStorageId,
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : undefined,
       isLive: form.isLive,
-      sources: form.sources.trim() || undefined,
+      sources: form.sources.trim(),
     };
   };
 

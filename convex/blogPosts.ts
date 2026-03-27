@@ -140,7 +140,7 @@ export const update = mutation({
     const { adminToken, id, ...fields } = args;
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     for (const [key, val] of Object.entries(fields)) {
-      if (val !== undefined) patch[key] = val;
+      if (val !== undefined) patch[key] = val === "" ? undefined : val;
     }
     await ctx.db.patch(id, patch);
   },

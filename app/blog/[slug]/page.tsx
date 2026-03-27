@@ -168,10 +168,20 @@ export default async function BlogPostPage({ params }: Props) {
       )}
 
       <div className="max-w-2xl mx-auto px-4 py-12">
-        {/* Terug */}
-        <Link href="/blog" className="text-sm text-stone-400 hover:text-primary-600 mb-8 inline-block">
-          ← Alle artikelen
-        </Link>
+        {/* Breadcrumb */}
+        <nav className="text-xs text-stone-400 mb-8 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-primary-600">Home</Link>
+          <span>›</span>
+          <Link href="/blog" className="hover:text-primary-600">Blog</Link>
+          {pillar && (
+            <>
+              <span>›</span>
+              <Link href={`/thema/${pillar.slug}`} className="hover:text-primary-600">{pillar.title}</Link>
+            </>
+          )}
+          <span>›</span>
+          <span className="text-stone-500 line-clamp-1">{post.title}</span>
+        </nav>
 
         {/* Header */}
         <article>
