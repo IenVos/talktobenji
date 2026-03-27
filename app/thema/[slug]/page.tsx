@@ -3,6 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { HeaderBar } from "@/components/chat/HeaderBar";
 
 export const revalidate = 3600;
 
@@ -12,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pillar = await fetchQuery(api.pillars.getBySlug, { slug: params.slug }).catch(() => null);
   if (!pillar || !pillar.isLive) return { title: "Pagina niet gevonden" };
   return {
-    title: `${pillar.title} — Talk To Benji`,
+    title: pillar.seoTitle ? `${pillar.seoTitle} — Talk To Benji` : `${pillar.title} — Talk To Benji`,
     description: pillar.metaDescription || undefined,
     openGraph: {
       title: pillar.title,
@@ -20,6 +21,66 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "website",
     },
   };
+}
+
+function renderInline(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]*)\))/g;
+  let last = 0, m;
+  while ((m = regex.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    if (m[0].startsWith("**")) parts.push(<strong key={m.index} className="font-semibold text-stone-800">{m[2]}</strong>);
+    else if (m[0].startsWith("*")) parts.push(<em key={m.index}>{m[3]}</em>);
+    else parts.push(<a key={m.index} href={m[5]} className="text-primary-600 underline underline-offset-2">{m[4]}</a>);
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
+
+function renderContent(content: string): React.ReactNode[] {
+  const blocks = content.split(/\n\n+/);
+  return blocks.map((block, i) => {
+    if (block.startsWith("# ")) return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
+    if (block.startsWith("## ")) return <h3 key={i} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{block.slice(3)}</h3>;
+    const lines = block.split("\n").filter(Boolean);
+    if (lines.length > 0 && lines.every(l => l.startsWith("> "))) {
+      return (
+        <blockquote key={i} className="border-l-4 border-primary-300 pl-5 my-5 space-y-1">
+          {lines.map((l, j) => <p key={j} className="text-stone-500 italic leading-relaxed text-[17px]">{renderInline(l.slice(2))}</p>)}
+        </blockquote>
+      );
+    }
+    if (lines.length > 0 && lines.every(l => l.startsWith("✓ "))) {
+      return (
+        <ul key={i} className="my-4 space-y-2">
+          {lines.map((l, j) => (
+            <li key={j} className="flex items-start gap-2.5">
+              <span className="text-primary-600 font-bold mt-0.5 flex-shrink-0">✓</span>
+              <span className="text-stone-600 leading-relaxed text-[17px]">{renderInline(l.slice(2))}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    if (lines.length > 0 && lines.every(l => l.startsWith("- "))) {
+      return (
+        <ul key={i} className="my-4 space-y-2">
+          {lines.map((l, j) => (
+            <li key={j} className="flex items-start gap-2.5">
+              <span className="text-stone-400 mt-1 flex-shrink-0">•</span>
+              <span className="text-stone-600 leading-relaxed text-[17px]">{renderInline(l.slice(2))}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    return (
+      <p key={i} className="text-stone-600 leading-relaxed text-[17px]">
+        {lines.map((line, j) => <span key={j}>{j > 0 && <br />}{renderInline(line)}</span>)}
+      </p>
+    );
+  });
 }
 
 export default async function PillarPage({ params }: Props) {
@@ -46,6 +107,7 @@ export default async function PillarPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-stone-50">
+      <HeaderBar />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pillarSchema) }}
@@ -68,16 +130,8 @@ export default async function PillarPage({ params }: Props) {
 
         {/* Pillar content (optioneel) */}
         {pillar.content && (
-          <div className="prose prose-stone max-w-none mb-12 text-stone-600 leading-relaxed">
-            {pillar.content.split(/\n\n+/).map((para: string, i: number) => {
-              if (para.startsWith("# ")) {
-                return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{para.slice(2)}</h2>;
-              }
-              if (para.startsWith("## ")) {
-                return <h3 key={i} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{para.slice(3)}</h3>;
-              }
-              return <p key={i} className="text-stone-600 leading-relaxed text-[17px]">{para}</p>;
-            })}
+          <div className="mb-12 space-y-5">
+            {renderContent(pillar.content)}
           </div>
         )}
 

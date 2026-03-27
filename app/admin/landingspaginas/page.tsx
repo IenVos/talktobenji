@@ -107,6 +107,8 @@ export default function AdminLandingspaginasPage() {
   const duplicatePage = useAdminMutation(api.landingPages.duplicate);
   const toggleLive = useAdminMutation(api.landingPages.toggleLive);
   const seedPages = useAdminMutation(api.landingPages.seed);
+  const seedJaarToegang = useAdminMutation(api.landingPages.seedJaarToegang);
+  const [jaarSeedStatus, setJaarSeedStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const generateUploadUrl = useAdminMutation(api.landingPages.generateUploadUrl);
 
   const [showForm, setShowForm] = useState(false);
@@ -320,10 +322,40 @@ export default function AdminLandingspaginasPage() {
       {/* Vaste (hardcoded) landingspagina's */}
       <div className="bg-white rounded-xl border border-primary-200 p-6">
         <h2 className="font-semibold text-primary-900 mb-3">Vaste pagina's</h2>
-        <p className="text-xs text-primary-500 mb-4">Deze pagina's staan in de code en zijn altijd live.</p>
+        <p className="text-xs text-primary-500 mb-4">Troostende woorden staat in de code. Jaar-toegang is bewerkbaar via de lijst hierboven zodra je hem importeert.</p>
         <ul className="space-y-2">
+          {/* jaar-toegang: importeerbaar */}
+          {!pages?.find((p: LandingPage) => p.slug === "jaar-toegang") && (
+            <li className="flex items-center justify-between p-3 rounded-lg border border-amber-200 bg-amber-50/40">
+              <div>
+                <p className="text-sm font-medium text-primary-900">1 jaar toegang — € 97 eenmalig</p>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <code className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">/lp/jaar-toegang</code>
+                  <span className="text-xs text-amber-600">Nog niet bewerkbaar — importeer eerst</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  setJaarSeedStatus("loading");
+                  try {
+                    await seedJaarToegang({});
+                    setJaarSeedStatus("done");
+                    setTimeout(() => setJaarSeedStatus("idle"), 3000);
+                  } catch {
+                    setJaarSeedStatus("error");
+                    setTimeout(() => setJaarSeedStatus("idle"), 3000);
+                  }
+                }}
+                disabled={jaarSeedStatus === "loading"}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white rounded-lg text-xs font-medium hover:bg-primary-700 disabled:opacity-50"
+              >
+                <Download size={14} />
+                {jaarSeedStatus === "loading" ? "Bezig…" : jaarSeedStatus === "done" ? "Geïmporteerd!" : "Importeer"}
+              </button>
+            </li>
+          )}
           {[
-            { slug: "jaar-toegang", title: "1 jaar toegang — € 97 eenmalig", note: "Betaalpagina KennisShop" },
             { slug: "troostende-woorden", title: "Troostende woorden", note: "Content landingspagina" },
           ].map(({ slug, title, note }) => (
             <li key={slug} className="flex items-center justify-between p-3 rounded-lg border border-primary-100 bg-primary-50/40">

@@ -7,7 +7,13 @@ export const list = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    return ctx.db.query("pillars").collect();
+    const pillars = await ctx.db.query("pillars").collect();
+    return await Promise.all(pillars.map(async (p) => ({
+      ...p,
+      coverImageUrl: p.coverImageStorageId
+        ? await ctx.storage.getUrl(p.coverImageStorageId).catch(() => null)
+        : null,
+    })));
   },
 });
 
@@ -45,14 +51,37 @@ export const getArticles = query({
   },
 });
 
+/** Admin: upload URL genereren */
+export const generateUploadUrl = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.generateUploadUrl();
+  },
+});
+
+/** Admin: afbeelding URL ophalen */
+export const getImageUrl = mutation({
+  args: { adminToken: v.string(), storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.getUrl(args.storageId);
+  },
+});
+
 /** Admin: pillar aanmaken */
 export const create = mutation({
   args: {
     adminToken: v.string(),
     slug: v.string(),
     title: v.string(),
+    seoTitle: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
+    excerpt: v.optional(v.string()),
     content: v.optional(v.string()),
+    coverImageStorageId: v.optional(v.id("_storage")),
+    faqItems: v.optional(v.array(v.object({ question: v.string(), answer: v.string() }))),
+    internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     isLive: v.boolean(),
   },
   handler: async (ctx, args) => {
@@ -61,8 +90,13 @@ export const create = mutation({
     return ctx.db.insert("pillars", {
       slug: args.slug,
       title: args.title,
+      seoTitle: args.seoTitle,
       metaDescription: args.metaDescription,
+      excerpt: args.excerpt,
       content: args.content,
+      coverImageStorageId: args.coverImageStorageId,
+      faqItems: args.faqItems,
+      internalLinks: args.internalLinks,
       isLive: args.isLive,
       createdAt: now,
       updatedAt: now,
@@ -77,8 +111,13 @@ export const update = mutation({
     id: v.id("pillars"),
     slug: v.optional(v.string()),
     title: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
+    excerpt: v.optional(v.string()),
     content: v.optional(v.string()),
+    coverImageStorageId: v.optional(v.id("_storage")),
+    faqItems: v.optional(v.array(v.object({ question: v.string(), answer: v.string() }))),
+    internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     isLive: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {

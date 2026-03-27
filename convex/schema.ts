@@ -681,10 +681,15 @@ export default defineSchema({
 
   // Pillar pagina's (SEO laag 2 — thematische gezaghebbende pagina's)
   pillars: defineTable({
-    slug: v.string(),          // bijv. "rouw-en-verdriet"
-    title: v.string(),         // bijv. "Rouw & Verdriet"
+    slug: v.string(),
+    title: v.string(),
+    seoTitle: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
-    content: v.optional(v.string()),  // lange tekst — later toe te voegen
+    excerpt: v.optional(v.string()),
+    content: v.optional(v.string()),
+    coverImageStorageId: v.optional(v.id("_storage")),
+    faqItems: v.optional(v.array(v.object({ question: v.string(), answer: v.string() }))),
+    internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     isLive: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -694,6 +699,7 @@ export default defineSchema({
   blogPosts: defineTable({
     slug: v.string(),
     title: v.string(),
+    seoTitle: v.optional(v.string()),
     content: v.string(),
     excerpt: v.optional(v.string()),         // Samenvatting — ook naar kennisbank
     metaDescription: v.optional(v.string()), // SEO meta description

@@ -1,36 +1,64 @@
 "use client";
 
-import { useState } from "react";
-import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
+import { useState, useRef } from "react";
+import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { Layers, Plus, Edit, Trash2, Save, X, ExternalLink } from "lucide-react";
+import { Layers, Plus, Edit, Trash2, Save, X, ExternalLink, ArrowLeft, Image as ImageIcon, BookOpen, Link as LinkIcon } from "lucide-react";
+import { FormatToolbar } from "@/components/admin/FormatToolbar";
+
+type FaqItem = { question: string; answer: string };
+type InternalLink = { label: string; slug: string };
 
 type FormState = {
   slug: string;
   title: string;
+  seoTitle: string;
   metaDescription: string;
+  excerpt: string;
   content: string;
   isLive: boolean;
+  faqItems: FaqItem[];
+  internalLinks: InternalLink[];
+  coverImageStorageId?: Id<"_storage">;
+  coverImageFile: File | null;
 };
 
-const EMPTY: FormState = { slug: "", title: "", metaDescription: "", content: "", isLive: false };
+const EMPTY: FormState = {
+  slug: "",
+  title: "",
+  seoTitle: "",
+  metaDescription: "",
+  excerpt: "",
+  content: "",
+  isLive: false,
+  faqItems: [{ question: "", answer: "" }],
+  internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
+  coverImageStorageId: undefined,
+  coverImageFile: null,
+};
 
 function slugify(t: string) {
   return t.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80);
 }
 
 export default function AdminPillarsPage() {
+  const { adminToken } = useAdminAuth();
   const pillars = useAdminQuery(api.pillars.list, {});
   const createPillar = useAdminMutation(api.pillars.create);
   const updatePillar = useAdminMutation(api.pillars.update);
   const removePillar = useAdminMutation(api.pillars.remove);
   const seedPillars = useAdminMutation(api.pillars.seedPillars);
+  const generateUploadUrl = useAdminMutation(api.pillars.generateUploadUrl);
+  const getImageUrl = useAdminMutation(api.pillars.getImageUrl);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"pillars"> | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const inputClass = "w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
@@ -39,24 +67,59 @@ export default function AdminPillarsPage() {
   const set = (f: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((s) => ({ ...s, [f]: e.target.value }));
 
-  const reset = () => { setForm(EMPTY); setEditingId(null); setShowForm(false); };
+  const reset = () => { setForm(EMPTY); setEditingId(null); setCoverPreview(null); setShowForm(false); };
 
   const startEdit = (p: any) => {
-    setForm({ slug: p.slug, title: p.title, metaDescription: p.metaDescription ?? "", content: p.content ?? "", isLive: p.isLive });
+    setForm({
+      slug: p.slug,
+      title: p.title,
+      seoTitle: p.seoTitle ?? "",
+      metaDescription: p.metaDescription ?? "",
+      excerpt: p.excerpt ?? "",
+      content: p.content ?? "",
+      isLive: p.isLive,
+      faqItems: p.faqItems?.length ? p.faqItems : [{ question: "", answer: "" }],
+      internalLinks: [
+        p.internalLinks?.[0] ?? { label: "", slug: "" },
+        p.internalLinks?.[1] ?? { label: "", slug: "" },
+      ],
+      coverImageStorageId: p.coverImageStorageId,
+      coverImageFile: null,
+    });
+    setCoverPreview(p.coverImageUrl ?? null);
     setEditingId(p._id);
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const uploadFile = async (file: File): Promise<Id<"_storage">> => {
+    const url = await generateUploadUrl();
+    const res = await fetch(url, { method: "POST", body: file, headers: { "Content-Type": file.type } });
+    const { storageId } = await res.json();
+    return storageId as Id<"_storage">;
   };
 
   const handleSave = async () => {
     if (!form.slug.trim() || !form.title.trim()) return;
     setSaving(true);
     try {
+      let coverImageStorageId = form.coverImageStorageId;
+      if (form.coverImageFile) {
+        coverImageStorageId = await uploadFile(form.coverImageFile);
+        setForm((f) => ({ ...f, coverImageFile: null, coverImageStorageId }));
+      }
+      const faqItems = form.faqItems.filter((f) => f.question.trim() && f.answer.trim());
+      const internalLinks = form.internalLinks.filter((l) => l.label.trim() && l.slug.trim());
       const payload = {
         slug: form.slug.trim(),
         title: form.title.trim(),
+        seoTitle: form.seoTitle.trim() || undefined,
         metaDescription: form.metaDescription.trim() || undefined,
+        excerpt: form.excerpt.trim() || undefined,
         content: form.content.trim() || undefined,
+        coverImageStorageId,
+        faqItems: faqItems.length ? faqItems : undefined,
+        internalLinks: internalLinks.length ? internalLinks : undefined,
         isLive: form.isLive,
       };
       if (editingId) await updatePillar({ id: editingId, ...payload });
@@ -99,7 +162,22 @@ export default function AdminPillarsPage() {
         </div>
 
         {showForm && (
-          <div className="space-y-4 mb-6">
+          <div className="space-y-5 mb-6">
+            {/* Terug */}
+            <button type="button" onClick={reset}
+              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600">
+              <ArrowLeft size={16} /> Terug naar overzicht
+            </button>
+            {editingId && (
+              <div className="flex justify-end -mt-8">
+                <a href={`/thema/${form.slug}`} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-primary-600 hover:underline">
+                  <ExternalLink size={14} /> Bekijk pagina
+                </a>
+              </div>
+            )}
+
+            {/* Titel + slug */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Titel *</label>
@@ -113,27 +191,137 @@ export default function AdminPillarsPage() {
               </div>
             </div>
 
-            <div>
-              <label className={labelSmClass}>Meta description (SEO — max 155 tekens)</label>
-              <input type="text" placeholder="Alles over rouw en verdriet…" value={form.metaDescription}
-                onChange={set("metaDescription")} maxLength={155} className={inputClass} />
-              <p className="text-xs text-gray-400 mt-0.5">{form.metaDescription.length}/155</p>
+            {/* SEO titel + meta description */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelSmClass}>SEO titel <span className="text-gray-400">(browser tab / Google — leeg = paginatitel)</span></label>
+                <input type="text" placeholder="Rouw & Verdriet — Talk To Benji"
+                  value={form.seoTitle} onChange={set("seoTitle")} maxLength={70} className={inputClass} />
+                <p className="text-xs text-gray-400 mt-0.5">{form.seoTitle.length}/70</p>
+              </div>
+              <div>
+                <label className={labelSmClass}>Meta description <span className="text-gray-400">(max 155 tekens)</span></label>
+                <input type="text" placeholder="Alles over rouw en verdriet…"
+                  value={form.metaDescription} onChange={set("metaDescription")} maxLength={155} className={inputClass} />
+                <p className="text-xs text-gray-400 mt-0.5">{form.metaDescription.length}/155</p>
+              </div>
             </div>
 
+            {/* Cover afbeelding */}
             <div>
-              <label className={labelSmClass}>
-                Inhoud <span className="text-gray-400">— nog niet verplicht, later in te vullen</span>
+              <label className={labelSmClass}>Omslagafbeelding</label>
+              {coverPreview && (
+                <div className="mb-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={coverPreview} alt="Cover" className="w-full rounded-xl max-h-48 object-cover" />
+                </div>
+              )}
+              <input ref={coverInputRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  setForm((f) => ({ ...f, coverImageFile: file }));
+                  if (file) setCoverPreview(URL.createObjectURL(file));
+                }} />
+              <div className="flex gap-2">
+                <button type="button" onClick={() => coverInputRef.current?.click()}
+                  className="px-3 py-2 border border-primary-200 rounded-lg text-sm text-primary-700 hover:bg-primary-50 inline-flex items-center gap-2">
+                  <ImageIcon size={15} />
+                  {coverPreview ? "Andere afbeelding" : "Omslagafbeelding uploaden"}
+                </button>
+                {coverPreview && (
+                  <button type="button" onClick={() => { setForm((f) => ({ ...f, coverImageFile: null, coverImageStorageId: undefined })); setCoverPreview(null); }}
+                    className="px-3 py-2 border border-red-200 rounded-lg text-sm text-red-600 hover:bg-red-50">
+                    Verwijderen
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Samenvatting */}
+            <div>
+              <label className={labelClass}>Samenvatting</label>
+              <textarea placeholder="Korte intro van de pagina (2-3 zinnen)…"
+                value={form.excerpt} onChange={set("excerpt")} rows={3} className={inputClass} />
+            </div>
+
+            {/* Inhoud met toolbar */}
+            <div>
+              <label className={labelClass}>
+                Inhoud <span className="text-xs text-gray-400 font-normal">— nog niet verplicht, later toe te voegen</span>
               </label>
-              <textarea placeholder="Schrijf hier de pillar content (later toe te voegen)…"
-                value={form.content} onChange={set("content")} rows={8} className={inputClass} />
+              <FormatToolbar
+                textareaRef={contentRef}
+                value={form.content}
+                onChange={(v) => setForm((f) => ({ ...f, content: v }))}
+              />
+              <textarea
+                ref={contentRef}
+                placeholder="Schrijf hier de pillar content…"
+                value={form.content}
+                onChange={set("content")}
+                rows={10}
+                className={inputClass + " font-mono text-xs leading-relaxed rounded-t-none"}
+              />
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.isLive}
-                onChange={(e) => setForm((s) => ({ ...s, isLive: e.target.checked }))}
-                className="rounded border-primary-300 text-primary-600" />
-              <span className="text-sm text-gray-700">Live (publiek zichtbaar)</span>
-            </label>
+            {/* FAQ */}
+            <div className="border-t border-primary-100 pt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-primary-900 flex items-center gap-2">
+                  <BookOpen size={16} /> FAQ
+                </p>
+                <button type="button"
+                  onClick={() => setForm((f) => ({ ...f, faqItems: [...f.faqItems, { question: "", answer: "" }] }))}
+                  className="text-xs text-primary-600 hover:underline">
+                  + Vraag toevoegen
+                </button>
+              </div>
+              {form.faqItems.map((faq, i) => (
+                <div key={i} className="space-y-2 p-3 bg-primary-50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-600">Vraag {i + 1}</span>
+                    {form.faqItems.length > 1 && (
+                      <button type="button"
+                        onClick={() => setForm((f) => ({ ...f, faqItems: f.faqItems.filter((_, j) => j !== i) }))}
+                        className="text-xs text-red-500 hover:underline">Verwijderen</button>
+                    )}
+                  </div>
+                  <input type="text" placeholder="Vraag…" value={faq.question}
+                    onChange={(e) => setForm((f) => ({ ...f, faqItems: f.faqItems.map((q, j) => j === i ? { ...q, question: e.target.value } : q) }))}
+                    className={inputClass} />
+                  <textarea placeholder="Antwoord…" value={faq.answer} rows={2}
+                    onChange={(e) => setForm((f) => ({ ...f, faqItems: f.faqItems.map((q, j) => j === i ? { ...q, answer: e.target.value } : q) }))}
+                    className={inputClass} />
+                </div>
+              ))}
+            </div>
+
+            {/* Interne links */}
+            <div className="border-t border-primary-100 pt-4 space-y-3">
+              <p className="text-sm font-medium text-primary-900 flex items-center gap-2">
+                <LinkIcon size={16} /> Interne links <span className="text-xs text-gray-400 font-normal">(max 2)</span>
+              </p>
+              {form.internalLinks.map((link, i) => (
+                <div key={i} className="grid grid-cols-2 gap-2">
+                  <input type="text" placeholder={`Linktekst ${i + 1}`} value={link.label}
+                    onChange={(e) => setForm((f) => ({ ...f, internalLinks: f.internalLinks.map((l, j) => j === i ? { ...l, label: e.target.value } : l) }))}
+                    className={inputClass} />
+                  <input type="text" placeholder="slug-van-artikel" value={link.slug}
+                    onChange={(e) => setForm((f) => ({ ...f, internalLinks: f.internalLinks.map((l, j) => j === i ? { ...l, slug: e.target.value } : l) }))}
+                    className={inputClass} />
+                </div>
+              ))}
+            </div>
+
+            {/* Live toggle */}
+            <div className="border-t border-primary-100 pt-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.isLive}
+                  onChange={(e) => setForm((s) => ({ ...s, isLive: e.target.checked }))}
+                  className="rounded border-primary-300 text-primary-600" />
+                <span className="text-sm text-gray-700">Live (publiek zichtbaar)</span>
+              </label>
+            </div>
 
             <div className="flex gap-2 pt-2">
               <button type="button" onClick={handleSave} disabled={saving || !form.slug.trim() || !form.title.trim()}

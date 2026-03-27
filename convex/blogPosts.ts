@@ -78,6 +78,7 @@ export const create = mutation({
     adminToken: v.string(),
     slug: v.string(),
     title: v.string(),
+    seoTitle: v.optional(v.string()),
     content: v.string(),
     excerpt: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
@@ -94,6 +95,7 @@ export const create = mutation({
     const id = await ctx.db.insert("blogPosts", {
       slug: args.slug,
       title: args.title,
+      seoTitle: args.seoTitle,
       content: args.content,
       excerpt: args.excerpt,
       metaDescription: args.metaDescription,
@@ -118,6 +120,7 @@ export const update = mutation({
     id: v.id("blogPosts"),
     slug: v.optional(v.string()),
     title: v.optional(v.string()),
+    seoTitle: v.optional(v.string()),
     content: v.optional(v.string()),
     excerpt: v.optional(v.string()),
     metaDescription: v.optional(v.string()),

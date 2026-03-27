@@ -195,19 +195,7 @@ export default function ChatPageClient({
     !session?.userId && anonymousId ? { anonymousId } : "skip"
   ) ?? 0;
 
-  // Initiële nudge bij eerste bezoek (count 0): toon 5 seconden dan verbergen
-  useEffect(() => {
-    if (!session?.userId && anonymousCount === 0 && !nudgeTimerFired.current) {
-      nudgeTimerFired.current = true;
-      const t = setTimeout(() => setHideInitialNudge(true), 5000);
-      return () => clearTimeout(t);
-    }
-  }, [anonymousCount, session?.userId]);
-
-  const showNudgeBanner = !session?.userId && (
-    (anonymousCount === 0 && !hideInitialNudge) ||
-    (anonymousCount >= 3 && anonymousCount < 5)
-  );
+  const showNudgeBanner = !session?.userId && anonymousCount >= 3 && anonymousCount < 5;
 
   const preferencesData = useQuery(
     api.preferences.getPreferencesWithUrl,

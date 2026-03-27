@@ -3,6 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { HeaderBar } from "@/components/chat/HeaderBar";
 
 export const revalidate = 3600;
 
@@ -12,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
   if (!post) return { title: "Artikel niet gevonden" };
   return {
-    title: `${post.title} — Talk To Benji`,
+    title: post.seoTitle ? `${post.seoTitle} — Talk To Benji` : `${post.title} — Talk To Benji`,
     description: post.metaDescription || post.excerpt || undefined,
     openGraph: {
       title: post.title,
@@ -25,10 +26,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function renderContent(content: string) {
-  const paragraphs = content.split(/\n\n+/);
-  return paragraphs.map((para, i) => {
+  const blocks = content.split(/\n\n+/);
+  return blocks.map((block, i) => {
     // Afbeelding
-    const imgMatch = para.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    const imgMatch = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (imgMatch) {
       return (
         // eslint-disable-next-line @next/next/no-img-element
@@ -36,14 +37,50 @@ function renderContent(content: string) {
       );
     }
     // Kop
-    if (para.startsWith("# ")) {
-      return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{para.slice(2)}</h2>;
+    if (block.startsWith("# ")) {
+      return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
     }
-    if (para.startsWith("## ")) {
-      return <h3 key={i} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{para.slice(3)}</h3>;
+    if (block.startsWith("## ")) {
+      return <h3 key={i} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{block.slice(3)}</h3>;
     }
-    // Normale alinea met inline opmaak
-    const lines = para.split("\n");
+    const lines = block.split("\n").filter(Boolean);
+    // Blockquote
+    if (lines.length > 0 && lines.every(l => l.startsWith("> "))) {
+      return (
+        <blockquote key={i} className="border-l-4 border-primary-300 pl-5 my-5 space-y-1">
+          {lines.map((l, j) => (
+            <p key={j} className="text-stone-500 italic leading-relaxed text-[17px]">{renderInline(l.slice(2))}</p>
+          ))}
+        </blockquote>
+      );
+    }
+    // Opsomming met vinkjes ✓
+    if (lines.length > 0 && lines.every(l => l.startsWith("✓ "))) {
+      return (
+        <ul key={i} className="my-4 space-y-2">
+          {lines.map((l, j) => (
+            <li key={j} className="flex items-start gap-2.5">
+              <span className="text-primary-600 font-bold mt-0.5 flex-shrink-0">✓</span>
+              <span className="text-stone-600 leading-relaxed text-[17px]">{renderInline(l.slice(2))}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    // Opsomming met puntjes -
+    if (lines.length > 0 && lines.every(l => l.startsWith("- "))) {
+      return (
+        <ul key={i} className="my-4 space-y-2">
+          {lines.map((l, j) => (
+            <li key={j} className="flex items-start gap-2.5">
+              <span className="text-stone-400 mt-1 flex-shrink-0">•</span>
+              <span className="text-stone-600 leading-relaxed text-[17px]">{renderInline(l.slice(2))}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    // Normale alinea
     return (
       <p key={i} className="text-stone-600 leading-relaxed text-[17px]">
         {lines.map((line, j) => (
@@ -106,6 +143,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-stone-50">
+      <HeaderBar />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}

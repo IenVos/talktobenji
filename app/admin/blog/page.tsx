@@ -8,6 +8,7 @@ import {
   Newspaper, Plus, Edit, Trash2, Save, X, ExternalLink,
   BookOpen, RefreshCw, Image as ImageIcon, Link as LinkIcon, ArrowLeft,
 } from "lucide-react";
+import { FormatToolbar } from "@/components/admin/FormatToolbar";
 
 type FaqItem = { question: string; answer: string };
 type InternalLink = { label: string; slug: string };
@@ -15,6 +16,7 @@ type InternalLink = { label: string; slug: string };
 type FormState = {
   slug: string;
   title: string;
+  seoTitle: string;
   content: string;
   excerpt: string;
   metaDescription: string;
@@ -30,6 +32,7 @@ type FormState = {
 const EMPTY_FORM: FormState = {
   slug: "",
   title: "",
+  seoTitle: "",
   content: "",
   excerpt: "",
   metaDescription: "",
@@ -99,6 +102,7 @@ export default function AdminBlogPage() {
     setForm({
       slug: post.slug,
       title: post.title,
+      seoTitle: post.seoTitle ?? "",
       content: post.content,
       excerpt: post.excerpt ?? "",
       metaDescription: post.metaDescription ?? "",
@@ -157,6 +161,7 @@ export default function AdminBlogPage() {
     const payload = {
       slug: form.slug.trim(),
       title: form.title.trim(),
+      seoTitle: form.seoTitle.trim() || undefined,
       content: form.content.trim(),
       excerpt: form.excerpt.trim() || undefined,
       metaDescription: form.metaDescription.trim() || undefined,
@@ -358,13 +363,18 @@ export default function AdminBlogPage() {
                   </button>
                 </div>
               </div>
+              <FormatToolbar
+                textareaRef={contentRef}
+                value={form.content}
+                onChange={(v) => setForm((f) => ({ ...f, content: v }))}
+              />
               <textarea
                 ref={contentRef}
                 placeholder="Schrijf hier het artikel..."
                 value={form.content}
                 onChange={set("content")}
                 rows={12}
-                className={inputClass + " font-mono text-xs leading-relaxed"}
+                className={inputClass + " font-mono text-xs leading-relaxed rounded-t-none"}
               />
             </div>
 
@@ -383,20 +393,36 @@ export default function AdminBlogPage() {
               />
             </div>
 
-            {/* Meta description */}
-            <div>
-              <label className={labelSmClass}>
-                Meta description <span className="text-gray-400">(SEO — max 155 tekens)</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Wat staat er in de Google-snippet?"
-                value={form.metaDescription}
-                onChange={set("metaDescription")}
-                maxLength={155}
-                className={inputClass}
-              />
-              <p className="text-xs text-gray-400 mt-0.5">{form.metaDescription.length}/155</p>
+            {/* SEO titel + meta description */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelSmClass}>
+                  SEO titel <span className="text-gray-400">(browser tab / Google — leeg = artikeltitel)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Bijv. Hoe er zijn voor iemand die rouwt — TTB"
+                  value={form.seoTitle}
+                  onChange={set("seoTitle")}
+                  maxLength={70}
+                  className={inputClass}
+                />
+                <p className="text-xs text-gray-400 mt-0.5">{form.seoTitle.length}/70</p>
+              </div>
+              <div>
+                <label className={labelSmClass}>
+                  Meta description <span className="text-gray-400">(max 155 tekens)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Wat staat er in de Google-snippet?"
+                  value={form.metaDescription}
+                  onChange={set("metaDescription")}
+                  maxLength={155}
+                  className={inputClass}
+                />
+                <p className="text-xs text-gray-400 mt-0.5">{form.metaDescription.length}/155</p>
+              </div>
             </div>
 
             {/* FAQ */}

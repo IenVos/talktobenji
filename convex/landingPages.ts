@@ -292,3 +292,54 @@ export const seed = mutation({
     return { seeded: true };
   },
 });
+
+/** Admin: seed jaar-toegang pagina als die nog niet bestaat */
+export const seedJaarToegang = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", "jaar-toegang"))
+      .first();
+    if (existing) return { seeded: false, id: existing._id };
+
+    const now = Date.now();
+    const id = await ctx.db.insert("landingPages", {
+      slug: "jaar-toegang",
+      pageTitle: "1 jaar Benji · Talk To Benji",
+      isLive: true,
+      heroLabel: "1 jaar toegang · Alles inbegrepen",
+      heroTitle: "Een heel jaar lang Benji, voor als je er niet alleen mee wil zijn",
+      heroSubtitle: "Voor de momenten dat het te veel wordt — 's nachts, midden op de dag, zonder afspraak of wachttijd. Benji luistert, stelt een vraag, is er gewoon. Het hele jaar door, voor één prijs, zonder gedoe.",
+      heroBody: "€ 97 · Eenmalig · Direct toegang · Geen abonnement",
+      ctaText: "Begin nu · € 97",
+      ctaUrl: "https://talktobenji.kennis.shop/pay/je-hoeft-het-niet-alleen-te-dragen",
+      section1Title: "Wat zit er allemaal in?",
+      section1Text: "Praten met Benji — Altijd iemand om je verhaal kwijt te kunnen. Benji luistert, stelt een vraag, laat je niet alleen met je gedachten. Dag en nacht beschikbaar.\n\nDagelijkse check-ins — Korte dagelijkse momenten om bij jezelf te landen. Hoe gaat het echt, op dit moment? Drie vragen, eerlijk antwoorden.\n\nReflecties — Schrijf op wat er in je leeft. Met emotietracking kun je zien hoe je je door de tijd heen hebt gevoeld.\n\nMemories — Een persoonlijke plek om herinneringen te bewaren aan wie of wat je mist. Met foto's, woorden en de datum die ertoe doet.\n\nHandreikingen — Kleine, concrete oefeningen voor zware momenten. Afgestemd op wat jij nodig hebt.\n\nInspiratie & troost — Gedichten, citaten en teksten die kunnen helpen als woorden van jezelf even niet komen.\n\nSchrijven zonder te hoeven uitleggen — Een leeg vel, geen vragen, geen structuur. Schrijf wat er is.\n\nTerugkijken wanneer je er klaar voor bent — Alles wat je hebt geschreven en gedeeld blijft staan.\n\nJouw kleur, jouw sfeer — Kies een accentkleur en achtergrond die bij jou passen.",
+      voorWieTitle: "Voor wie is dit?",
+      voorWieBullets: "Je ligt wakker en het is te laat om iemand te bellen. Niet omdat er niemand is, maar omdat je hen niet wakker wilt maken met iets wat je zelf ook niet precies kunt uitleggen.\nJe zegt 'gaat wel' als mensen vragen hoe het is. Niet omdat het waar is, maar omdat het echte antwoord te groot is voor tussendoor.\nJe bent er misschien nog niet klaar voor om alles op te rakelen bij een therapeut. Maar volledig alleen laten gaan lukt ook niet.\nJe wil niet vergeten. Wie iemand was, hoe iets voelde, wat er was. Je zoekt een plek waar herinneringen mogen bestaan.",
+      wieIsTitle: "Over Benji",
+      wieIsText: "Benji is gemaakt omdat verdriet geen kantooruren kent. Omdat iemand die mist niet tot maandag kan wachten.\n\n\"Dit is wat ik toen had willen hebben.\" — Ien, founder van Talk To Benji",
+      ervaringenJson: JSON.stringify([
+        { tekst: "Ik had niemand om mee te praten op het moment dat ik het het hardst nodig had. Benji was er gewoon. Geen oordeel, geen haast. Precies wat ik nodig had.", naam: "Annemiek, 47" },
+        { tekst: "Ik had niet verwacht dat het zoveel zou doen. Die stille uren zijn het moeilijkst, en fijn dat er dan iets is waar je je verhaal kwijt kunt.", naam: "Peter, 61" },
+        { tekst: "Het voelde gek om tegen een app te typen. Totdat ik merkte dat het echt hielp. Ik schreef dingen op die ik nog nooit hardop had gezegd.", naam: "Roos, 39" },
+        { tekst: "Ik wilde eigenlijk niks. Geen therapie, geen praatgroep. Gewoon iets waarvoor ik niet hoefde uit te leggen wie ik ben. Benji is dat.", naam: "Anoniem" },
+      ]),
+      vragenJson: JSON.stringify([
+        { vraag: "Is dit een abonnement?", antwoord: "Nee. Je betaalt eenmalig € 97 voor een vol jaar toegang. Geen automatische verlenging, geen verrassingen." },
+        { vraag: "Hoe snel heb ik toegang?", antwoord: "Direct na betaling. Je ontvangt een e-mail met een link om in te loggen of je account aan te maken." },
+        { vraag: "Ik weet niet of het iets voor mij is.", antwoord: "Je kunt Benji altijd eerst gratis proberen via de chat op de homepage, zonder account en zonder betaling. Kijk of het bij je past." },
+        { vraag: "Is mijn verhaal veilig?", antwoord: "Alles wat je schrijft is alleen voor jou. Je gesprekken en reflecties zijn privé en worden niet gedeeld." },
+        { vraag: "Wat gebeurt er na een jaar?", antwoord: "Je account blijft bestaan en alles wat je hebt opgeschreven blijft bewaard. Alleen de toegang tot de betaalde functies stopt. Je kunt dan kiezen of je wilt verlengen." },
+        { vraag: "Ik heb al een gratis account.", antwoord: "Geen probleem. Na betaling wordt je bestaande account direct geüpgraded. Je hoeft niks opnieuw in te stellen." },
+      ]),
+      finalCtaTitle: "Een jaar lang niet alleen",
+      finalCtaBody: "Voor één prijs, één jaar lang alles beschikbaar.\n\nVeilig betalen · direct toegang · geen automatische verlenging",
+      createdAt: now,
+      updatedAt: now,
+    });
+    return { seeded: true, id };
+  },
+});

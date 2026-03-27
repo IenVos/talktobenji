@@ -2,10 +2,11 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import type { Metadata } from "next";
+import { HeaderBar } from "@/components/chat/HeaderBar";
 
 export const metadata: Metadata = {
-  title: "Blog — Talk To Benji",
-  description: "Artikelen over rouw, verlies en omgaan met verdriet. Praktische inzichten voor wie zelf rouwt of iemand wil steunen.",
+  title: "Samen Omgaan met Verdriet en Pijn — Talk To Benji",
+  description: "Een plek waar je steun, begrip en praktische tips vindt om sterker door moeilijke tijden te komen.",
 };
 
 export const revalidate = 3600;
@@ -15,11 +16,12 @@ export default async function BlogOverviewPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
+      <HeaderBar />
       <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold text-stone-800 mb-3">Blog</h1>
-          <p className="text-stone-500 text-lg leading-relaxed">
-            Over rouw, verlies en omgaan met verdriet — voor wie zelf rouwt of iemand wil steunen.
+        <div className="mb-10 text-center">
+          <h1 className="text-3xl sm:text-4xl font-bold text-stone-800 mb-3">Samen Omgaan met Verdriet en Pijn</h1>
+          <p className="text-stone-500 text-lg leading-relaxed max-w-xl mx-auto">
+            Een plek waar je steun, begrip en praktische tips vindt om sterker door moeilijke tijden te komen.
           </p>
         </div>
 
