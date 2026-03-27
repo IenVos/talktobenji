@@ -86,6 +86,7 @@ export const create = mutation({
     isLive: v.boolean(),
     faqItems: v.optional(v.array(v.object({ question: v.string(), answer: v.string() }))),
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
+    pillarSlug: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -101,6 +102,7 @@ export const create = mutation({
       isLive: args.isLive,
       faqItems: args.faqItems,
       internalLinks: args.internalLinks,
+      pillarSlug: args.pillarSlug,
       kbSynced: false,
       createdAt: now,
       updatedAt: now,
@@ -124,6 +126,7 @@ export const update = mutation({
     isLive: v.optional(v.boolean()),
     faqItems: v.optional(v.array(v.object({ question: v.string(), answer: v.string() }))),
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
+    pillarSlug: v.optional(v.string()),
     kbSynced: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {

@@ -679,6 +679,17 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),
 
+  // Pillar pagina's (SEO laag 2 — thematische gezaghebbende pagina's)
+  pillars: defineTable({
+    slug: v.string(),          // bijv. "rouw-en-verdriet"
+    title: v.string(),         // bijv. "Rouw & Verdriet"
+    metaDescription: v.optional(v.string()),
+    content: v.optional(v.string()),  // lange tekst — later toe te voegen
+    isLive: v.boolean(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_slug", ["slug"]),
+
   // Blog artikelen (SEO + AEO + KB-koppeling)
   blogPosts: defineTable({
     slug: v.string(),
@@ -698,9 +709,10 @@ export default defineSchema({
       slug: v.string(),
     }))),
     kbSynced: v.optional(v.boolean()),       // FAQ al gesynchroniseerd met kennisbank
+    pillarSlug: v.optional(v.string()),      // Koppeling aan pillar pagina
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]),
+  }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]).index("by_pillar", ["pillarSlug"]),
 
   // Reviews / testimonials (beheerbaar via admin, zichtbaar op homepage)
   testimonials: defineTable({

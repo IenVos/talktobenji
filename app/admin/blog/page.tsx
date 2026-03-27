@@ -18,6 +18,7 @@ type FormState = {
   content: string;
   excerpt: string;
   metaDescription: string;
+  pillarSlug: string;
   publishedAt: string; // "YYYY-MM-DD"
   isLive: boolean;
   faqItems: FaqItem[];
@@ -32,6 +33,7 @@ const EMPTY_FORM: FormState = {
   content: "",
   excerpt: "",
   metaDescription: "",
+  pillarSlug: "",
   publishedAt: new Date().toISOString().slice(0, 10),
   isLive: false,
   faqItems: [{ question: "", answer: "" }],
@@ -52,6 +54,7 @@ function slugify(text: string) {
 export default function AdminBlogPage() {
   const { adminToken } = useAdminAuth();
   const posts = useAdminQuery(api.blogPosts.list, {});
+  const pillars = useAdminQuery(api.pillars.list, {});
   const createPost = useAdminMutation(api.blogPosts.create);
   const updatePost = useAdminMutation(api.blogPosts.update);
   const removePost = useAdminMutation(api.blogPosts.remove);
@@ -108,6 +111,7 @@ export default function AdminBlogPage() {
       ],
       coverImageStorageId: post.coverImageStorageId,
       coverImageFile: null,
+      pillarSlug: post.pillarSlug ?? "",
     });
     setCoverPreview(post.coverImageUrl ?? null);
     setEditingId(post._id);
@@ -161,6 +165,7 @@ export default function AdminBlogPage() {
       isLive: form.isLive,
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : undefined,
+      pillarSlug: form.pillarSlug.trim() || undefined,
       kbSynced: false,
     };
     if (editingId) {
@@ -446,6 +451,21 @@ export default function AdminBlogPage() {
                     className={inputClass} />
                 </div>
               ))}
+            </div>
+
+            {/* Pillar */}
+            <div className="border-t border-primary-100 pt-4">
+              <label className={labelSmClass}>Pillar pagina <span className="text-gray-400">(optioneel — koppelt dit artikel aan een thema)</span></label>
+              <select
+                value={form.pillarSlug}
+                onChange={(e) => setForm((f) => ({ ...f, pillarSlug: e.target.value }))}
+                className={inputClass}
+              >
+                <option value="">— Geen pillar —</option>
+                {(pillars ?? []).map((p: any) => (
+                  <option key={p._id} value={p.slug}>{p.title}</option>
+                ))}
+              </select>
             </div>
 
             {/* Publicatiedatum + live */}
