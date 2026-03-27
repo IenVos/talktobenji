@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
   Newspaper, Plus, Edit, Trash2, Save, X, ExternalLink,
-  BookOpen, RefreshCw, Image as ImageIcon, Link as LinkIcon,
+  BookOpen, RefreshCw, Image as ImageIcon, Link as LinkIcon, ArrowLeft,
 } from "lucide-react";
 
 type FaqItem = { question: string; answer: string };
@@ -140,46 +140,55 @@ export default function AdminBlogPage() {
     }
   };
 
+  const saveArticle = async () => {
+    if (!form.slug.trim() || !form.title.trim() || !form.content.trim()) return false;
+    let coverImageStorageId = form.coverImageStorageId;
+    if (form.coverImageFile) {
+      coverImageStorageId = await uploadFile(form.coverImageFile);
+      setForm((f) => ({ ...f, coverImageFile: null, coverImageStorageId }));
+    }
+    const publishedAt = form.publishedAt ? new Date(form.publishedAt).getTime() : undefined;
+    const faqItems = form.faqItems.filter((f) => f.question.trim() && f.answer.trim());
+    const internalLinks = form.internalLinks.filter((l) => l.label.trim() && l.slug.trim());
+    const payload = {
+      slug: form.slug.trim(),
+      title: form.title.trim(),
+      content: form.content.trim(),
+      excerpt: form.excerpt.trim() || undefined,
+      metaDescription: form.metaDescription.trim() || undefined,
+      coverImageStorageId,
+      publishedAt,
+      isLive: form.isLive,
+      faqItems: faqItems.length ? faqItems : undefined,
+      internalLinks: internalLinks.length ? internalLinks : undefined,
+      kbSynced: false,
+    };
+    if (editingId) {
+      await updatePost({ id: editingId, ...payload });
+    } else {
+      await createPost(payload);
+    }
+    return true;
+  };
+
   const handleSave = async () => {
-    if (!form.slug.trim() || !form.title.trim() || !form.content.trim()) return;
     setSaving(true);
     try {
-      let coverImageStorageId = form.coverImageStorageId;
-      if (form.coverImageFile) {
-        coverImageStorageId = await uploadFile(form.coverImageFile);
-      }
-
-      const publishedAt = form.publishedAt
-        ? new Date(form.publishedAt).getTime()
-        : undefined;
-
-      const faqItems = form.faqItems.filter((f) => f.question.trim() && f.answer.trim());
-      const internalLinks = form.internalLinks.filter((l) => l.label.trim() && l.slug.trim());
-
-      const payload = {
-        slug: form.slug.trim(),
-        title: form.title.trim(),
-        content: form.content.trim(),
-        excerpt: form.excerpt.trim() || undefined,
-        metaDescription: form.metaDescription.trim() || undefined,
-        coverImageStorageId,
-        publishedAt,
-        isLive: form.isLive,
-        faqItems: faqItems.length ? faqItems : undefined,
-        internalLinks: internalLinks.length ? internalLinks : undefined,
-        kbSynced: false,
-      };
-
-      if (editingId) {
-        await updatePost({ id: editingId, ...payload });
-      } else {
-        await createPost(payload);
-      }
-
+      await saveArticle();
       resetForm();
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleBack = async () => {
+    setSaving(true);
+    try {
+      await saveArticle();
+    } finally {
+      setSaving(false);
+    }
+    resetForm();
   };
 
   const handleSync = async (id: Id<"blogPosts">) => {
@@ -241,17 +250,28 @@ export default function AdminBlogPage() {
 
         {showForm && (
           <div className="space-y-5 mb-6">
-            {editingId && (
-              <a
-                href={`/blog/${form.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-primary-600 hover:underline"
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={saving}
+                className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary-600 disabled:opacity-50"
               >
-                <ExternalLink size={15} />
-                Bekijk artikel: /blog/{form.slug}
-              </a>
-            )}
+                <ArrowLeft size={16} />
+                {saving ? "Opslaan…" : "Terug naar overzicht"}
+              </button>
+              {editingId && (
+                <a
+                  href={`/blog/${form.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-primary-600 hover:underline"
+                >
+                  <ExternalLink size={15} />
+                  Bekijk artikel
+                </a>
+              )}
+            </div>
 
             {/* Titel + slug */}
             <div>
