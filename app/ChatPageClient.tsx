@@ -660,6 +660,15 @@ export default function ChatPageClient({
                   {isRecording && <p className="text-xs text-red-300 mt-1.5 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
                 </form>
               </div>
+              <div className="flex justify-center mt-3">
+                <button
+                  type="button"
+                  onClick={() => setHouvasteOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-500 hover:text-gray-700 hover:bg-white/60 transition-colors"
+                >
+                  👋 Even Houvast
+                </button>
+              </div>
             </>
           )}
 
@@ -745,8 +754,8 @@ export default function ChatPageClient({
         </div>
       </main>
 
-      {/* Zachte nudge: eerste bezoek (5s), gesprek 3 en gesprek 4 */}
-      {showNudgeBanner && (
+      {/* Zachte nudge: eerste bezoek (5s), gesprek 3 en gesprek 4 — alleen op welkomstscherm */}
+      {showNudgeBanner && !sessionId && !isAddingOpener && (
         <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3 rounded-xl bg-primary-50 border border-primary-200 text-primary-800 text-sm mx-3 mb-1">
           <span>
             {anonymousCount === 0
@@ -823,7 +832,7 @@ export default function ChatPageClient({
         {!sessionId && !isAddingOpener ? (
           <>
             <WelcomeScreenInfoIcons variant="dark" />
-            <SiteFooter variant="dark" onHouvasteClick={() => setHouvasteOpen(true)} />
+            <SiteFooter variant="dark" />
           </>
         ) : (
           <div className="px-3 sm:px-4 py-4 sm:py-5">

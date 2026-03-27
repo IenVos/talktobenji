@@ -5,10 +5,9 @@ import { ErvaringenTrigger } from "./ErvaringenPopup";
 
 interface SiteFooterProps {
   variant?: "light" | "dark";
-  onHouvasteClick?: () => void;
 }
 
-export function SiteFooter({ variant = "light", onHouvasteClick }: SiteFooterProps) {
+export function SiteFooter({ variant = "light" }: SiteFooterProps) {
   const isDark = variant === "dark";
 
   if (isDark) {
@@ -20,11 +19,6 @@ export function SiteFooter({ variant = "light", onHouvasteClick }: SiteFooterPro
           <Link href="/blog" className="hover:text-primary-100 transition-colors">Blog</Link>
           <ErvaringenTrigger className="hover:text-primary-100 transition-colors cursor-pointer">Ervaringen</ErvaringenTrigger>
           <Link href="/contact" className="hover:text-primary-100 transition-colors">Contact</Link>
-          {onHouvasteClick && (
-            <button onClick={onHouvasteClick} className="hover:text-primary-100 transition-colors">
-              👋 Even Houvast
-            </button>
-          )}
         </div>
       </div>
     );
