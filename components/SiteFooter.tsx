@@ -5,36 +5,38 @@ import Link from "next/link";
 import { Lock, AlertTriangle } from "lucide-react";
 import { ErvaringenTrigger } from "./ErvaringenPopup";
 
-// variant prop wordt geaccepteerd maar heeft geen effect meer — footer is altijd hetzelfde
 export function SiteFooter({ variant }: { variant?: "light" | "dark" }) {
   const [popup, setPopup] = useState<"lock" | "warning" | null>(null);
 
   return (
-    <footer className="bg-primary-900 px-5 py-8 text-center">
-      {/* Nav links — 3×2 grid */}
-      <div className="max-w-xs mx-auto grid grid-cols-3 gap-x-4 gap-y-2 text-xs text-white/50 mb-5">
-        <Link href="/faq" className="hover:text-white/80 transition-colors">Veelgestelde vragen</Link>
-        <Link href="/privacy" className="hover:text-white/80 transition-colors">Privacy</Link>
-        <Link href="/algemene-voorwaarden" className="hover:text-white/80 transition-colors">Algemene voorwaarden</Link>
-        <Link href="/blog" className="hover:text-white/80 transition-colors">Blog</Link>
-        <ErvaringenTrigger className="hover:text-white/80 transition-colors cursor-pointer text-white/50">Ervaringen</ErvaringenTrigger>
-        <Link href="/contact" className="hover:text-white/80 transition-colors">Contact</Link>
-      </div>
+    <footer className="bg-primary-900 px-4 py-2.5 text-center">
+      <div className="flex items-center justify-center gap-4 flex-wrap">
+        <ErvaringenTrigger className="text-xs text-white/50 hover:text-white/80 transition-colors cursor-pointer">
+          Ervaringen
+        </ErvaringenTrigger>
+        <Link href="/contact" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+          Contact
+        </Link>
+        <Link href="/blog" className="hidden xs:inline text-xs text-white/50 hover:text-white/80 transition-colors sm:inline">
+          Blog
+        </Link>
 
-      {/* Disclaimer icoontjes */}
-      <div className="flex justify-center gap-4 mb-4">
+        {/* Scheidingslijn */}
+        <span className="text-white/20 text-xs">·</span>
+
+        {/* Slot-icoontje */}
         <div className="relative">
           <button
             onClick={() => setPopup(popup === "lock" ? null : "lock")}
-            className="text-white/30 hover:text-white/60 transition-colors p-1"
+            className="text-amber-400 hover:text-amber-300 transition-colors p-1"
             aria-label="Privacy"
           >
-            <Lock size={13} />
+            <Lock size={12} />
           </button>
           {popup === "lock" && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setPopup(null)} />
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white text-gray-700 text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-50">
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white text-gray-700 text-xs px-3 py-2 rounded-lg shadow-lg z-50" style={{ whiteSpace: "nowrap" }}>
                 Gesprekken zijn privé en beveiligd.
                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white" />
               </div>
@@ -42,18 +44,19 @@ export function SiteFooter({ variant }: { variant?: "light" | "dark" }) {
           )}
         </div>
 
+        {/* Driehoek-icoontje */}
         <div className="relative">
           <button
             onClick={() => setPopup(popup === "warning" ? null : "warning")}
-            className="text-white/30 hover:text-white/60 transition-colors p-1"
+            className="text-amber-400 hover:text-amber-300 transition-colors p-1"
             aria-label="Disclaimer"
           >
-            <AlertTriangle size={13} />
+            <AlertTriangle size={12} />
           </button>
           {popup === "warning" && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setPopup(null)} />
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white text-gray-700 text-xs px-3 py-2 rounded-lg shadow-lg whitespace-nowrap z-50">
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white text-gray-700 text-xs px-3 py-2 rounded-lg shadow-lg z-50" style={{ whiteSpace: "nowrap" }}>
                 Geen vervanging van professionele hulp.
                 <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white" />
               </div>
@@ -62,7 +65,7 @@ export function SiteFooter({ variant }: { variant?: "light" | "dark" }) {
         </div>
       </div>
 
-      <p className="text-[11px] text-white/25">© Talk To Benji · talktobenji.com</p>
+      <p className="text-[10px] text-white/40 mt-1">© Talk To Benji · talktobenji.com</p>
     </footer>
   );
 }

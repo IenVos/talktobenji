@@ -278,12 +278,16 @@ export default function AdminBlogPage() {
 
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Auto-resize content textarea
+  // Auto-resize content textarea zonder te verspringen
   useEffect(() => {
     const ta = contentRef.current;
     if (!ta) return;
+    const winScroll = window.scrollY;
+    const taScroll = ta.scrollTop;
     ta.style.height = "auto";
     ta.style.height = Math.max(320, ta.scrollHeight) + "px";
+    ta.scrollTop = taScroll;
+    window.scrollTo({ top: winScroll, behavior: "instant" as ScrollBehavior });
   }, [form.content]);
 
   const buildPayload = async () => {

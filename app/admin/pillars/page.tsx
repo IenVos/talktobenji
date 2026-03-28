@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -71,6 +71,18 @@ export default function AdminPillarsPage() {
   const [form, setForm] = useState<FormState>(EMPTY);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-resize content textarea zonder te verspringen
+  useEffect(() => {
+    const ta = contentRef.current;
+    if (!ta) return;
+    const winScroll = window.scrollY;
+    const taScroll = ta.scrollTop;
+    ta.style.height = "auto";
+    ta.style.height = Math.max(320, ta.scrollHeight) + "px";
+    ta.scrollTop = taScroll;
+    window.scrollTo({ top: winScroll, behavior: "instant" as ScrollBehavior });
+  }, [form.content]);
 
   const inputClass = "w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
