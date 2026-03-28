@@ -82,7 +82,7 @@ function renderContent(content: string): React.ReactNode[] {
         </ul>
       );
     }
-    if (lines.length > 0 && lines.every(l => l.startsWith("- "))) {
+    if (lines.length > 0 && lines.every(l => l.startsWith("- ") || l.startsWith("* "))) {
       return (
         <ul key={i} className="my-4 space-y-2">
           {lines.map((l, j) => (

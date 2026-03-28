@@ -137,7 +137,20 @@ export default function AdminBlogPage() {
       faqItems.push({ question: currentQ, answer: currentA.join("\n").trim() });
     }
 
-    // 4. Bronnen: strip - prefix
+    // 4. Samenvatting: zoek "In het kort:" alinea in content
+    let excerpt = "";
+    const filteredContentLines: string[] = [];
+    const contentBlocks = contentLines.join("\n").split(/\n\n+/);
+    for (const block of contentBlocks) {
+      const trimmed = block.trim();
+      if (/^in het kort:/i.test(trimmed)) {
+        excerpt = trimmed.replace(/^in het kort:\s*/i, "").trim();
+      } else {
+        filteredContentLines.push(trimmed);
+      }
+    }
+
+    // 5. Bronnen: strip - prefix
     const sources = sourcesLines
       .map((l) => l.replace(/^[-*]\s+/, "").trim())
       .filter(Boolean)
@@ -147,7 +160,8 @@ export default function AdminBlogPage() {
       ...f,
       title: title && !f.title ? title : f.title,
       slug: title && !f.slug ? slugify(title) : f.slug,
-      content: contentLines.join("\n").replace(/^\n+/, "").trimEnd(),
+      content: filteredContentLines.join("\n\n").replace(/^\n+/, "").trimEnd(),
+      excerpt: excerpt || f.excerpt,
       faqItems: faqItems.length ? faqItems : f.faqItems,
       sources: sources || f.sources,
     }));
