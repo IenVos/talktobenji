@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -152,6 +152,14 @@ export default function AdminBlogPage() {
   };
 
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Auto-resize content textarea
+  useEffect(() => {
+    const ta = contentRef.current;
+    if (!ta) return;
+    ta.style.height = "auto";
+    ta.style.height = Math.max(320, ta.scrollHeight) + "px";
+  }, [form.content]);
 
   const buildPayload = async () => {
     let coverImageStorageId = form.coverImageStorageId;
@@ -386,7 +394,7 @@ export default function AdminBlogPage() {
                 placeholder="Schrijf hier het artikel..."
                 value={form.content}
                 onChange={set("content")}
-                rows={12}
+                style={{ minHeight: "320px", resize: "none", overflow: "hidden" }}
                 className={inputClass + " font-mono text-xs leading-relaxed rounded-t-none"}
               />
             </div>

@@ -8,15 +8,22 @@ type Props = {
   onChange: (v: string) => void;
 };
 
+function restoreScroll(ta: HTMLTextAreaElement, scrollTop: number, fn: () => void) {
+  fn();
+  requestAnimationFrame(() => { ta.scrollTop = scrollTop; });
+}
+
 function wrap(ta: HTMLTextAreaElement, val: string, before: string, after: string, onChange: (v: string) => void) {
+  const scrollTop = ta.scrollTop;
   const s = ta.selectionStart, e = ta.selectionEnd;
   const sel = val.slice(s, e) || "tekst";
   const next = val.slice(0, s) + before + sel + after + val.slice(e);
-  onChange(next);
-  setTimeout(() => { ta.focus(); ta.setSelectionRange(s + before.length, s + before.length + sel.length); }, 0);
+  restoreScroll(ta, scrollTop, () => onChange(next));
+  requestAnimationFrame(() => { ta.focus(); ta.setSelectionRange(s + before.length, s + before.length + sel.length); });
 }
 
 function prefixLines(ta: HTMLTextAreaElement, val: string, prefix: string, onChange: (v: string) => void) {
+  const scrollTop = ta.scrollTop;
   const s = ta.selectionStart, e = ta.selectionEnd;
   const lineStart = val.lastIndexOf("\n", s - 1) + 1;
   const lineEnd = val.indexOf("\n", e);
@@ -25,11 +32,12 @@ function prefixLines(ta: HTMLTextAreaElement, val: string, prefix: string, onCha
   const lines = chunk.split("\n");
   const allHave = lines.every(l => l.startsWith(prefix));
   const replaced = lines.map(l => allHave ? l.slice(prefix.length) : prefix + l).join("\n");
-  onChange(val.slice(0, lineStart) + replaced + val.slice(end));
-  setTimeout(() => ta.focus(), 0);
+  restoreScroll(ta, scrollTop, () => onChange(val.slice(0, lineStart) + replaced + val.slice(end)));
+  requestAnimationFrame(() => ta.focus());
 }
 
 function setHeading(ta: HTMLTextAreaElement, val: string, prefix: string, onChange: (v: string) => void) {
+  const scrollTop = ta.scrollTop;
   const s = ta.selectionStart;
   const lineStart = val.lastIndexOf("\n", s - 1) + 1;
   const lineEnd = val.indexOf("\n", s);
@@ -37,8 +45,8 @@ function setHeading(ta: HTMLTextAreaElement, val: string, prefix: string, onChan
   const line = val.slice(lineStart, end);
   const cleaned = line.replace(/^#{1,3} /, "");
   const newLine = line.startsWith(prefix) ? cleaned : prefix + cleaned;
-  onChange(val.slice(0, lineStart) + newLine + val.slice(end));
-  setTimeout(() => ta.focus(), 0);
+  restoreScroll(ta, scrollTop, () => onChange(val.slice(0, lineStart) + newLine + val.slice(end)));
+  requestAnimationFrame(() => ta.focus());
 }
 
 export function FormatToolbar({ textareaRef, value, onChange }: Props) {
@@ -85,10 +93,11 @@ export function FormatToolbar({ textareaRef, value, onChange }: Props) {
         title="Inline CTA-blok invoegen"
         onClick={() => {
           const t = ta();
+          const scrollTop = t.scrollTop;
           const s = t.selectionStart;
           const block = "\n\n[cta]\n\n";
-          onChange(value.slice(0, s) + block + value.slice(s));
-          setTimeout(() => { t.focus(); t.setSelectionRange(s + block.length, s + block.length); }, 0);
+          restoreScroll(t, scrollTop, () => onChange(value.slice(0, s) + block + value.slice(s)));
+          requestAnimationFrame(() => { t.focus(); t.setSelectionRange(s + block.length, s + block.length); });
         }}
         className="px-1.5 py-1 rounded hover:bg-amber-100 text-amber-700 hover:text-amber-800 transition-colors text-xs font-bold leading-none"
       >

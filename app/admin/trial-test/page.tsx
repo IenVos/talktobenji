@@ -48,6 +48,7 @@ export default function TrialTestPage() {
   const setTrialState = useAdminMutation(api.trials.setTrialStateForTesting);
   const processTrials = useAdminMutation(api.trials.checkAndProcessTrials);
   const upgradeSubscription = useAdminMutation(api.trials.upgradeSubscriptionForTesting);
+  const sendTestWelcome = useAdminMutation(api.emails.sendTestWelcomeEmail);
 
   const handleSetState = async (state: typeof STATES[number]["key"]) => {
     if (!email.trim()) {
@@ -97,6 +98,23 @@ export default function TrialTestPage() {
     }
   };
 
+  const handleSendTestWelcome = async () => {
+    if (!email.trim()) {
+      setStatus({ type: "error", message: "Vul eerst een e-mailadres in" });
+      return;
+    }
+    setLoading("welcome");
+    setStatus(null);
+    try {
+      await sendTestWelcome({ email: email.trim(), name: "Test" });
+      setStatus({ type: "success", message: `Welkomstmail verstuurd naar ${email}` });
+    } catch (err: any) {
+      setStatus({ type: "error", message: err.message || "Mislukt" });
+    } finally {
+      setLoading(null);
+    }
+  };
+
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
@@ -119,6 +137,23 @@ export default function TrialTestPage() {
           placeholder="jouw@email.com"
           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
+      </div>
+
+      {/* Welkomstmail testen */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <p className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <Mail size={16} className="text-primary-600" />
+          Welkomstmail testen
+        </p>
+        <p className="text-xs text-gray-500">Stuur de welkomstmail zoals nieuwe gebruikers die ontvangen naar het bovenstaande adres.</p>
+        <button
+          onClick={handleSendTestWelcome}
+          disabled={loading === "welcome"}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50"
+        >
+          <Mail size={15} />
+          {loading === "welcome" ? "Versturen…" : "Stuur welkomstmail"}
+        </button>
       </div>
 
       {/* Stap 1: staat instellen */}

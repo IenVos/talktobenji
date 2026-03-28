@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { CheckCircle, Send } from "lucide-react";
 
@@ -8,20 +8,24 @@ export default function ContactPage() {
   const [naam, setNaam] = useState("");
   const [email, setEmail] = useState("");
   const [bericht, setBericht] = useState("");
+  const [honeypot, setHoneypot] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const loadedAt = useRef(Date.now());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!naam.trim() || !email.trim() || !bericht.trim()) return;
+    // Spam checks: honeypot ingevuld of te snel ingediend
+    if (honeypot || Date.now() - loadedAt.current < 3000) return;
     setSending(true);
     setError("");
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ naam, email, bericht }),
+        body: JSON.stringify({ naam, email, bericht, _t: loadedAt.current }),
       });
       if (!res.ok) throw new Error("Versturen mislukt");
       setSent(true);
@@ -64,6 +68,17 @@ export default function ContactPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-sm rounded-xl border border-primary-200 p-6 space-y-4">
+              {/* Honeypot: onzichtbaar voor mensen, bots vullen dit in */}
+              <input
+                type="text"
+                name="website"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                style={{ position: "absolute", left: "-9999px", width: "1px", height: "1px", opacity: 0 }}
+              />
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Naam</label>
                 <input

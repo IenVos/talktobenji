@@ -1,8 +1,9 @@
 /**
  * Email verzending via Resend
  */
-import { internalAction } from "./_generated/server";
+import { internalAction, action } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { checkAdmin } from "./adminAuth";
 import { v } from "convex/values";
 
 const ADMIN_EMAIL = process.env.ADMIN_EXEMPT_EMAIL ?? "";
@@ -219,11 +220,11 @@ export const sendWelcomeEmail = internalAction({
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Ik weet niet precies wat je op dit moment draagt, maar ik weet wel dat het moed vraagt om ergens naar op zoek te gaan als je verdriet hebt. Dat je hier bent, betekent iets.
+          Ik weet niet precies wat je op dit moment draagt, maar dat je hier bent betekent iets. Het vraagt moed om ergens naar op zoek te gaan als je verdriet hebt.
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          De komende 7 dagen heb je toegang tot alles. Begin gewoon ergens — misschien met een gesprek met Benji als je iets van je af wil schrijven, of met een dagelijkse check-in als je wil bijhouden hoe je je voelt. Je kunt herinneringen bewaren in Memories, terugkijken op wat je hebt opgeschreven in je reflecties, of gewoon even bladeren door teksten en gedichten die precies zeggen wat jij zelf niet onder woorden kunt brengen. Er is geen goede of verkeerde manier om te beginnen.
+          De komende 7 dagen heb je toegang tot alles. Begin gewoon ergens — er is geen goede of verkeerde manier. Een gesprek met Benji, een dagelijkse check-in, herinneringen bewaren in Memories, of bladeren door gedichten die zeggen wat jij zelf niet onder woorden kunt brengen.
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
@@ -231,14 +232,20 @@ export const sendWelcomeEmail = internalAction({
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Ik zal deze week nog een paar keer even bij je inchecken. Niet om iets van je te vragen, maar gewoon om te kijken hoe het gaat en of je nog iets nodig hebt. En als er iets is voordat ik schrijf, kun je me altijd mailen. Ik lees alles.
-        </p>
-
-        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
           Neem de tijd. Je hoeft nergens klaar voor te zijn.
         </p>
 
-        <div style="margin: 32px 0;">
+        <div style="margin: 28px 0 8px 0;">
+          <p style="font-size: 13px; color: #9ca3af; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.05em;">Dit is wat je bij Talk To Benji vindt</p>
+          <img
+            src="https://talktobenji.com/images/app-screenshot.png"
+            alt="Talk To Benji — Mijn plek"
+            width="520"
+            style="width: 100%; max-width: 520px; border-radius: 12px; border: 1px solid #e5e7eb; display: block;"
+          />
+        </div>
+
+        <div style="margin: 28px 0;">
           <a href="https://talktobenji.com/chat"
              style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
             Begin je eerste gesprek
@@ -265,6 +272,18 @@ export const sendWelcomeEmail = internalAction({
       subject: "Welkom bij Talk To Benji",
       html,
       apiKey: RESEND_API_KEY,
+    });
+  },
+});
+
+/** Admin: stuur testversie van de welkomstmail */
+export const sendTestWelcomeEmail = action({
+  args: { adminToken: v.string(), email: v.string(), name: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    await ctx.runAction(internal.emails.sendWelcomeEmail, {
+      email: args.email,
+      name: args.name,
     });
   },
 });

@@ -234,17 +234,6 @@ export default async function BlogPostPage({ params }: Props) {
                 {new Date(post.publishedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
               </p>
             )}
-            {pillar && (
-              <>
-                {post.publishedAt && <span className="text-stone-300 text-sm">·</span>}
-                <Link
-                  href={`/thema/${pillar.slug}`}
-                  className="text-xs text-stone-400 hover:text-primary-600 transition-colors"
-                >
-                  {pillar.title}
-                </Link>
-              </>
-            )}
             <span className="text-stone-300 text-sm">·</span>
             <span className="text-xs text-stone-400">{readingTime(post.content)} min lezen</span>
             {post.updatedAt && post.publishedAt && post.updatedAt - post.publishedAt > 30 * 24 * 60 * 60 * 1000 && (
