@@ -26,8 +26,8 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
 
   return (
     <footer className="border-t px-5 py-8 text-center" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-      <div className="max-w-lg mx-auto space-y-2">
-        <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs" style={{ color: "#8a8078" }}>
+      <div className="max-w-xs mx-auto space-y-3">
+        <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-xs" style={{ color: "#8a8078" }}>
           <Link href="/faq" className="hover:underline">Veelgestelde vragen</Link>
           <Link href="/privacy" className="hover:underline">Privacy</Link>
           <Link href="/algemene-voorwaarden" className="hover:underline">Algemene voorwaarden</Link>

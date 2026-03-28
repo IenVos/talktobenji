@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { AuthorCard } from "@/components/blog/AuthorCard";
 import { CtaBlockB } from "@/components/blog/CtaBlock";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export const revalidate = 3600;
 
@@ -365,6 +366,7 @@ export default async function BlogPostPage({ params }: Props) {
           Benji is geen vervanging van professionele hulp.
         </span>
       </div>
+      <SiteFooter variant="light" />
     </div>
   );
 }

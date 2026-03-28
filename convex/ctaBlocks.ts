@@ -3,8 +3,9 @@ import { query, mutation } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     return ctx.db.query("ctaBlocks").order("asc").collect();
   },
 });

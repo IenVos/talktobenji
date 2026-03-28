@@ -706,6 +706,7 @@ export default defineSchema({
     isLive: v.boolean(),
     kbSynced: v.optional(v.boolean()),
     sources: v.optional(v.string()),
+    focusKeyword: v.optional(v.string()),    // Primair zoekwoord
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]),
@@ -732,6 +733,7 @@ export default defineSchema({
     kbSynced: v.optional(v.boolean()),       // FAQ al gesynchroniseerd met kennisbank
     pillarSlug: v.optional(v.string()),      // Koppeling aan pillar pagina
     sources: v.optional(v.string()),         // Bronnen (één per regel)
+    focusKeyword: v.optional(v.string()),    // Primair zoekwoord
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]).index("by_pillar", ["pillarSlug"]),

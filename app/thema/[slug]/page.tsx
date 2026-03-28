@@ -3,6 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CtaBlockA } from "@/components/blog/CtaBlock";
+import { SiteFooter } from "@/components/SiteFooter";
 import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 
@@ -287,6 +288,7 @@ export default async function PillarPage({ params }: Props) {
 
         <CtaBlockA />
       </div>
+      <SiteFooter variant="light" />
     </div>
   );
 }
