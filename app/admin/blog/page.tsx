@@ -85,14 +85,25 @@ export default function AdminBlogPage() {
     const raw = importText;
     const lines = raw.split("\n");
 
-    // 1. Titel: eerste # regel
+    // 1. Titel, SEO-titel en meta description uit de header
     let title = "";
+    let seoTitle = "";
+    let metaDescription = "";
     let bodyStart = 0;
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i].startsWith("# ")) {
-        title = lines[i].slice(2).trim();
+      const line = lines[i];
+      if (line.startsWith("# ")) {
+        title = line.slice(2).trim();
         bodyStart = i + 1;
-        break;
+        continue;
+      }
+      if (bodyStart > 0) {
+        const seoMatch = line.match(/^SEO-titel:\s*(.+)/i);
+        const metaMatch = line.match(/^Meta\s*description:\s*(.+)/i);
+        if (seoMatch) { seoTitle = seoMatch[1].trim(); continue; }
+        if (metaMatch) { metaDescription = metaMatch[1].trim(); continue; }
+        // Stop zodra we een niet-label, niet-lege regel tegenkomen
+        if (line.trim() && !seoMatch && !metaMatch) { bodyStart = i; break; }
       }
     }
 
@@ -116,7 +127,18 @@ export default function AdminBlogPage() {
       else contentLines.push(line);
     }
 
-    // 3. FAQ parsen: **Vraag?** of ### Vraag? gevolgd door antwoord
+    // 3. Auto-quote: losse regels tussen aanhalingstekens → blockquote
+    const processedContentLines = contentLines.map((line) => {
+      if (line.startsWith("> ")) return line; // al een blockquote
+      const q = line.trim();
+      // Hele regel is één geciteerde zin: "..." of '...' of „..."
+      if (/^["„''].{20,}["'']\s*$/.test(q)) {
+        return `> ${q.replace(/^["„'']|["'']\s*$/g, "").trim()}`;
+      }
+      return line;
+    });
+
+    // 4. FAQ parsen: **Vraag?** of ### Vraag? gevolgd door antwoord
     const faqItems: FaqItem[] = [];
     let currentQ = "";
     let currentA: string[] = [];
@@ -137,10 +159,10 @@ export default function AdminBlogPage() {
       faqItems.push({ question: currentQ, answer: currentA.join("\n").trim() });
     }
 
-    // 4. Samenvatting: zoek "In het kort:" alinea in content
+    // 5. Samenvatting: zoek "In het kort:" alinea in content
     let excerpt = "";
     const filteredContentLines: string[] = [];
-    const contentBlocks = contentLines.join("\n").split(/\n\n+/);
+    const contentBlocks = processedContentLines.join("\n").split(/\n\n+/);
     for (const block of contentBlocks) {
       const trimmed = block.trim();
       if (/^in het kort:/i.test(trimmed)) {
@@ -160,6 +182,8 @@ export default function AdminBlogPage() {
       ...f,
       title: title && !f.title ? title : f.title,
       slug: title && !f.slug ? slugify(title) : f.slug,
+      seoTitle: seoTitle || f.seoTitle,
+      metaDescription: metaDescription || f.metaDescription,
       content: filteredContentLines.join("\n\n").replace(/^\n+/, "").trimEnd(),
       excerpt: excerpt || f.excerpt,
       faqItems: faqItems.length ? faqItems : f.faqItems,
@@ -453,6 +477,53 @@ export default function AdminBlogPage() {
               </div>
             </div>
 
+            {/* Samenvatting */}
+            <div>
+              <label className={labelClass}>
+                Samenvatting{" "}
+                <span className="text-xs text-gray-400 font-normal">— wordt direct aan kennisbank toegevoegd</span>
+              </label>
+              <textarea
+                placeholder="Korte samenvatting van het artikel (2-3 zinnen)…"
+                value={form.excerpt}
+                onChange={set("excerpt")}
+                rows={3}
+                className={inputClass}
+              />
+            </div>
+
+            {/* SEO titel + meta description */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelSmClass}>
+                  SEO titel <span className="text-gray-400">(browser tab / Google — leeg = artikeltitel)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Bijv. Hoe er zijn voor iemand die rouwt — TTB"
+                  value={form.seoTitle}
+                  onChange={set("seoTitle")}
+                  maxLength={70}
+                  className={inputClass}
+                />
+                <p className="text-xs text-gray-400 mt-0.5">{form.seoTitle.length}/70</p>
+              </div>
+              <div>
+                <label className={labelSmClass}>
+                  Meta description <span className="text-gray-400">(max 155 tekens)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Wat staat er in de Google-snippet?"
+                  value={form.metaDescription}
+                  onChange={set("metaDescription")}
+                  maxLength={155}
+                  className={inputClass}
+                />
+                <p className="text-xs text-gray-400 mt-0.5">{form.metaDescription.length}/155</p>
+              </div>
+            </div>
+
             {/* Importeer van Claude */}
             <div className="border border-primary-200 rounded-xl overflow-hidden">
               <button
@@ -528,53 +599,6 @@ export default function AdminBlogPage() {
                 style={{ minHeight: "320px", resize: "none", overflow: "hidden" }}
                 className={inputClass + " font-mono text-xs leading-relaxed rounded-t-none"}
               />
-            </div>
-
-            {/* Samenvatting */}
-            <div>
-              <label className={labelClass}>
-                Samenvatting{" "}
-                <span className="text-xs text-gray-400 font-normal">— wordt direct aan kennisbank toegevoegd</span>
-              </label>
-              <textarea
-                placeholder="Korte samenvatting van het artikel (2-3 zinnen)…"
-                value={form.excerpt}
-                onChange={set("excerpt")}
-                rows={3}
-                className={inputClass}
-              />
-            </div>
-
-            {/* SEO titel + meta description */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className={labelSmClass}>
-                  SEO titel <span className="text-gray-400">(browser tab / Google — leeg = artikeltitel)</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Bijv. Hoe er zijn voor iemand die rouwt — TTB"
-                  value={form.seoTitle}
-                  onChange={set("seoTitle")}
-                  maxLength={70}
-                  className={inputClass}
-                />
-                <p className="text-xs text-gray-400 mt-0.5">{form.seoTitle.length}/70</p>
-              </div>
-              <div>
-                <label className={labelSmClass}>
-                  Meta description <span className="text-gray-400">(max 155 tekens)</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Wat staat er in de Google-snippet?"
-                  value={form.metaDescription}
-                  onChange={set("metaDescription")}
-                  maxLength={155}
-                  className={inputClass}
-                />
-                <p className="text-xs text-gray-400 mt-0.5">{form.metaDescription.length}/155</p>
-              </div>
             </div>
 
             {/* FAQ */}

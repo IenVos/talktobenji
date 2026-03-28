@@ -2,6 +2,7 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { CtaBlockA } from "@/components/blog/CtaBlock";
 import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 
@@ -284,17 +285,7 @@ export default async function PillarPage({ params }: Props) {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="mt-14 p-6 bg-white rounded-2xl border-2 border-primary-600 text-center">
-          <p className="text-stone-800 font-semibold text-lg mb-2">Praat met Benji</p>
-          <p className="text-stone-500 text-sm mb-5">Een luisterend oor, dag en nacht beschikbaar.</p>
-          <Link
-            href="/"
-            className="inline-block bg-primary-600 text-white font-semibold px-6 py-3 rounded-xl hover:bg-primary-700 transition-colors"
-          >
-            Begin een gesprek
-          </Link>
-        </div>
+        <CtaBlockA />
       </div>
     </div>
   );
