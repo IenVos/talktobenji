@@ -123,7 +123,7 @@ export default function AdminPillarsPage() {
       content: form.content.trim(),
       coverImageStorageId,
       faqItems: faqItems.length ? faqItems : undefined,
-      internalLinks: internalLinks.length ? internalLinks : undefined,
+      internalLinks: internalLinks.length ? internalLinks : [],
       isLive: form.isLive,
       sources: form.sources.trim(),
     };
