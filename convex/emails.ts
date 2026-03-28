@@ -70,6 +70,9 @@ function buildEmailHtml(name: string, bodyText: string): string {
           </td>
         </tr>
       </table>
+      <p style="font-size: 12px; color: #a0aec0; margin-top: 28px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+        Vragen of iets kwijt? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color: #6d84a8;">contactmetien@talktobenji.com</a> — ik lees alles.
+      </p>
     </div>
   `;
 }
