@@ -153,9 +153,12 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
   if (!post) notFound();
 
-  const pillar = post.pillarSlug
-    ? await fetchQuery(api.pillars.getBySlug, { slug: post.pillarSlug }).catch(() => null)
-    : null;
+  const [pillar, ctaData] = await Promise.all([
+    post.pillarSlug
+      ? fetchQuery(api.pillars.getBySlug, { slug: post.pillarSlug }).catch(() => null)
+      : Promise.resolve(null),
+    fetchQuery(api.ctaBlocks.getByKey, { key: "blog_default" }).catch(() => null),
+  ]);
 
   // JSON-LD structured data voor Google (Article + FAQPage)
   const articleSchema = {
@@ -351,7 +354,7 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           )}
 
-          <CtaBlockB />
+          <CtaBlockB data={ctaData} />
         </article>
       </div>
 

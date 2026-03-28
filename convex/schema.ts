@@ -465,6 +465,9 @@ export default defineSchema({
     buttonText: v.string(),             // knoptekst
     footnote: v.optional(v.string()),   // kleine tekst onder de knop
     showImage: v.boolean(),             // toon app-screenshot
+    bgColor: v.optional(v.string()),    // achtergrondkleur hex, bijv. "#f5f0eb"
+    borderColor: v.optional(v.string()), // randkleur hex, leeg = geen rand
+    buttonColor: v.optional(v.string()), // knopkleur hex, bijv. "#6d84a8"
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 

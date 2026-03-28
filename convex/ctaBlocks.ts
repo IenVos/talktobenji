@@ -29,6 +29,9 @@ export const save = mutation({
     buttonText: v.string(),
     footnote: v.optional(v.string()),
     showImage: v.boolean(),
+    bgColor: v.optional(v.string()),
+    borderColor: v.optional(v.string()),
+    buttonColor: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

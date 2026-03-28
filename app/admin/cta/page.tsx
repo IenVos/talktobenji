@@ -15,6 +15,9 @@ type CtaForm = {
   buttonText: string;
   footnote: string;
   showImage: boolean;
+  bgColor: string;
+  borderColor: string;
+  buttonColor: string;
 };
 
 const DEFAULTS: CtaForm = {
@@ -26,7 +29,13 @@ const DEFAULTS: CtaForm = {
   buttonText: "Kijk of het bij je past",
   footnote: "7 dagen volledig toegang · geen creditcard nodig",
   showImage: false,
+  bgColor: "#f5f0eb",
+  borderColor: "",
+  buttonColor: "#6d84a8",
 };
+
+const BG_SWATCHES = ["#f5f0eb", "#eef2f7", "#f0f4ee", "#fdf4f7", "#f7f4ff", "#ffffff", "#1a1a2e", "#2d3748"];
+const BTN_SWATCHES = ["#6d84a8", "#4a7c59", "#c07a5a", "#7c6d9e", "#2563eb", "#d97706", "#374151", "#be185d"];
 
 const PRESETS: { label: string; data: Partial<CtaForm> }[] = [
   {
@@ -40,6 +49,9 @@ const PRESETS: { label: string; data: Partial<CtaForm> }[] = [
       buttonText: "Kijk of het bij je past",
       footnote: "7 dagen volledig toegang · geen creditcard nodig",
       showImage: false,
+      bgColor: "#f5f0eb",
+      borderColor: "",
+      buttonColor: "#6d84a8",
     },
   },
   {
@@ -53,22 +65,31 @@ const PRESETS: { label: string; data: Partial<CtaForm> }[] = [
       buttonText: "Kijk of het bij je past",
       footnote: "7 dagen volledig toegang · geen creditcard nodig",
       showImage: true,
+      bgColor: "#f5f0eb",
+      borderColor: "",
+      buttonColor: "#6d84a8",
     },
   },
 ];
 
 function CtaPreview({ form }: { form: CtaForm }) {
+  const bg = form.bgColor || "#f5f0eb";
+  const btnColor = form.buttonColor || "#6d84a8";
+  const borderStyle = form.borderColor ? { border: `2px solid ${form.borderColor}` } : {};
+
   return (
-    <div className="rounded-2xl bg-[#f5f0eb] overflow-hidden">
+    <div className="rounded-2xl overflow-hidden" style={{ background: bg, ...borderStyle }}>
       <div className="px-7 pt-8 pb-6 text-center">
         {form.eyebrow && (
-          <p className="text-stone-500 text-xs uppercase tracking-widest mb-4">{form.eyebrow}</p>
+          <p className="text-xs uppercase tracking-widest mb-4" style={{ color: "color-mix(in srgb, #000 40%, " + bg + ")" }}>
+            {form.eyebrow}
+          </p>
         )}
-        <p className="text-stone-800 text-xl font-semibold leading-snug mb-3">
-          {form.title || <span className="text-stone-300 italic">Titel...</span>}
+        <p className="text-xl font-semibold leading-snug mb-3" style={{ color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>
+          {form.title || <span className="opacity-30 italic">Titel...</span>}
         </p>
-        <p className="text-stone-500 text-[15px] leading-relaxed max-w-sm mx-auto mb-2">
-          {form.body || <span className="text-stone-300 italic">Bodytekst...</span>}
+        <p className="text-[15px] leading-relaxed max-w-sm mx-auto mb-2" style={{ color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>
+          {form.body || <span className="opacity-30 italic">Bodytekst...</span>}
         </p>
       </div>
 
@@ -84,11 +105,13 @@ function CtaPreview({ form }: { form: CtaForm }) {
       )}
 
       <div className="px-7 py-7 text-center">
-        <span className="inline-block bg-[#6d84a8] text-white text-sm font-semibold px-6 py-3 rounded-xl">
+        <span className="inline-block text-white text-sm font-semibold px-6 py-3 rounded-xl" style={{ background: btnColor }}>
           {form.buttonText || "Knoptekst..."}
         </span>
         {form.footnote && (
-          <p className="text-xs text-stone-400 mt-3">{form.footnote}</p>
+          <p className="text-xs mt-3" style={{ color: "color-mix(in srgb, #000 35%, " + bg + ")" }}>
+            {form.footnote}
+          </p>
         )}
       </div>
     </div>
@@ -125,6 +148,9 @@ export default function CtaAdminPage() {
       buttonText: block.buttonText,
       footnote: block.footnote ?? "",
       showImage: block.showImage,
+      bgColor: block.bgColor ?? "#f5f0eb",
+      borderColor: block.borderColor ?? "",
+      buttonColor: block.buttonColor ?? "#6d84a8",
     });
     setEditingId(block._id);
     setShowForm(true);
@@ -144,6 +170,9 @@ export default function CtaAdminPage() {
         buttonText: form.buttonText.trim(),
         footnote: form.footnote.trim() || undefined,
         showImage: form.showImage,
+        bgColor: form.bgColor || undefined,
+        borderColor: form.borderColor || undefined,
+        buttonColor: form.buttonColor || undefined,
       });
       setShowForm(false);
       setEditingId(null);
@@ -229,8 +258,10 @@ export default function CtaAdminPage() {
               <div className="px-4 py-3 space-y-1">
                 <p className="text-sm font-medium text-gray-800 line-clamp-1">{block.title}</p>
                 <p className="text-xs text-gray-500 line-clamp-2">{block.body}</p>
-                <div className="flex items-center gap-2 pt-1">
-                  <span className="text-xs px-2 py-0.5 bg-primary-50 text-primary-700 rounded-full">{block.buttonText}</span>
+                <div className="flex items-center gap-2 pt-1 flex-wrap">
+                  <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ background: block.buttonColor || "#6d84a8" }}>{block.buttonText}</span>
+                  {block.bgColor && <span className="text-xs px-2 py-0.5 rounded-full border border-gray-200" style={{ background: block.bgColor }}>bg</span>}
+                  {block.borderColor && <span className="text-xs px-2 py-0.5 rounded-full" style={{ border: `2px solid ${block.borderColor}`, color: block.borderColor }}>rand</span>}
                   {block.showImage && <span className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full flex items-center gap-1"><ImageIcon size={10} /> Met screenshot</span>}
                 </div>
               </div>
@@ -248,6 +279,9 @@ export default function CtaAdminPage() {
                     buttonText: block.buttonText,
                     footnote: block.footnote ?? "",
                     showImage: block.showImage,
+                    bgColor: block.bgColor ?? "#f5f0eb",
+                    borderColor: block.borderColor ?? "",
+                    buttonColor: block.buttonColor ?? "#6d84a8",
                   }} />
                 </div>
               )}
@@ -312,6 +346,105 @@ export default function CtaAdminPage() {
                 />
                 <span className="text-sm text-gray-700">App-screenshot tonen</span>
               </label>
+
+              {/* Kleuren */}
+              <div className="border-t border-gray-100 pt-4 space-y-3">
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Kleuren</p>
+
+                {/* Achtergrondkleur */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Achtergrondkleur</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {BG_SWATCHES.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        title={c}
+                        onClick={() => setForm((f) => ({ ...f, bgColor: c }))}
+                        className="w-7 h-7 rounded-lg border-2 transition-all"
+                        style={{
+                          background: c,
+                          borderColor: form.bgColor === c ? "#6d84a8" : "#e5e7eb",
+                          transform: form.bgColor === c ? "scale(1.15)" : "scale(1)",
+                        }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={form.bgColor || "#f5f0eb"}
+                      onChange={(e) => setForm((f) => ({ ...f, bgColor: e.target.value }))}
+                      className="w-7 h-7 rounded cursor-pointer border border-gray-200"
+                      title="Eigen kleur kiezen"
+                    />
+                    <span className="text-xs text-gray-400 font-mono">{form.bgColor}</span>
+                  </div>
+                </div>
+
+                {/* Randkleur */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Randkleur <span className="text-gray-400 font-normal">(leeg = geen rand)</span></label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, borderColor: "" }))}
+                      className="w-7 h-7 rounded-lg border-2 text-xs text-gray-400 flex items-center justify-center"
+                      style={{ borderColor: !form.borderColor ? "#6d84a8" : "#e5e7eb", background: "#fff" }}
+                      title="Geen rand"
+                    >✕</button>
+                    {BG_SWATCHES.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        title={c}
+                        onClick={() => setForm((f) => ({ ...f, borderColor: c }))}
+                        className="w-7 h-7 rounded-lg border-2 transition-all"
+                        style={{
+                          background: c,
+                          borderColor: form.borderColor === c ? "#6d84a8" : "#e5e7eb",
+                          transform: form.borderColor === c ? "scale(1.15)" : "scale(1)",
+                        }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={form.borderColor || "#cccccc"}
+                      onChange={(e) => setForm((f) => ({ ...f, borderColor: e.target.value }))}
+                      className="w-7 h-7 rounded cursor-pointer border border-gray-200"
+                      title="Eigen randkleur kiezen"
+                    />
+                    {form.borderColor && <span className="text-xs text-gray-400 font-mono">{form.borderColor}</span>}
+                  </div>
+                </div>
+
+                {/* Knopkleur */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Knopkleur</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {BTN_SWATCHES.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        title={c}
+                        onClick={() => setForm((f) => ({ ...f, buttonColor: c }))}
+                        className="w-7 h-7 rounded-lg border-2 transition-all"
+                        style={{
+                          background: c,
+                          borderColor: form.buttonColor === c ? "#374151" : "#e5e7eb",
+                          transform: form.buttonColor === c ? "scale(1.15)" : "scale(1)",
+                        }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={form.buttonColor || "#6d84a8"}
+                      onChange={(e) => setForm((f) => ({ ...f, buttonColor: e.target.value }))}
+                      className="w-7 h-7 rounded cursor-pointer border border-gray-200"
+                      title="Eigen knopkleur kiezen"
+                    />
+                    <span className="text-xs text-gray-400 font-mono">{form.buttonColor}</span>
+                  </div>
+                </div>
+              </div>
 
               <div className="flex gap-3 pt-2">
                 <button

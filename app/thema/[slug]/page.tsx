@@ -107,9 +107,10 @@ function renderContent(content: string): React.ReactNode[] {
 }
 
 export default async function PillarPage({ params }: Props) {
-  const [pillar, articles] = await Promise.all([
+  const [pillar, articles, ctaData] = await Promise.all([
     fetchQuery(api.pillars.getBySlug, { slug: params.slug }).catch(() => null),
     fetchQuery(api.pillars.getArticles, { pillarSlug: params.slug }).catch(() => []),
+    fetchQuery(api.ctaBlocks.getByKey, { key: "pillar_default" }).catch(() => null),
   ]);
 
   if (!pillar || !pillar.isLive) notFound();
@@ -286,7 +287,7 @@ export default async function PillarPage({ params }: Props) {
           </div>
         </div>
 
-        <CtaBlockA />
+        <CtaBlockA data={ctaData} />
       </div>
       <SiteFooter variant="light" />
     </div>
