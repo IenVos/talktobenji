@@ -480,6 +480,53 @@ export default function AdminBlogPage() {
                 <LinkIcon size={16} />
                 Interne links <span className="text-xs text-gray-400 font-normal">(max 2)</span>
               </p>
+              {/* Checkbox-lijst met artikelen uit dezelfde pillar */}
+              {form.pillarSlug && (() => {
+                const siblings = (posts ?? []).filter(
+                  (p: any) => p.pillarSlug === form.pillarSlug && p._id !== editingId
+                );
+                if (!siblings.length) return (
+                  <p className="text-xs text-gray-400 italic">Nog geen andere artikelen in deze pillar.</p>
+                );
+                const activeCount = form.internalLinks.filter(l => l.slug.trim()).length;
+                return (
+                  <div className="p-3 bg-stone-50 rounded-lg border border-stone-200 space-y-2">
+                    <p className="text-xs text-gray-500">Kies uit artikelen in dezelfde pillar (max 2):</p>
+                    {siblings.map((p: any) => {
+                      const isChecked = form.internalLinks.some(l => l.slug === p.slug);
+                      return (
+                        <label key={p._id} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            disabled={!isChecked && activeCount >= 2}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setForm((f) => {
+                                  const links = [...f.internalLinks];
+                                  const emptyIdx = links.findIndex(l => !l.slug.trim());
+                                  if (emptyIdx >= 0) links[emptyIdx] = { label: p.title, slug: p.slug };
+                                  return { ...f, internalLinks: links };
+                                });
+                              } else {
+                                setForm((f) => ({
+                                  ...f,
+                                  internalLinks: f.internalLinks.map(l =>
+                                    l.slug === p.slug ? { label: "", slug: "" } : l
+                                  ),
+                                }));
+                              }
+                            }}
+                            className="rounded border-primary-300 text-primary-600"
+                          />
+                          <span className="text-sm text-gray-700 leading-tight">{p.title}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+              {/* Handmatige invoer (voor links buiten de pillar) */}
               {form.internalLinks.map((link, i) => (
                 <div key={i} className="grid grid-cols-2 gap-2">
                   <input type="text" placeholder={`Linktekst ${i + 1}`} value={link.label}
