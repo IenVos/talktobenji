@@ -82,23 +82,74 @@ export default function AdminBlogPage() {
   const [importText, setImportText] = useState("");
 
   const handleImport = () => {
-    const lines = importText.split("\n");
-    let titleLine = "";
-    let contentStart = 0;
-    // Pak de eerste # regel als titel
+    const raw = importText;
+    const lines = raw.split("\n");
+
+    // 1. Titel: eerste # regel
+    let title = "";
+    let bodyStart = 0;
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].startsWith("# ")) {
-        titleLine = lines[i].slice(2).trim();
-        contentStart = i + 1;
+        title = lines[i].slice(2).trim();
+        bodyStart = i + 1;
         break;
       }
     }
-    const content = lines.slice(contentStart).join("\n").replace(/^\n+/, "").trimEnd();
+
+    // 2. Splits body in secties op ## koppen
+    const FAQ_HEADERS = /^##\s+(veelgestelde vragen|faq|vragen)/i;
+    const SOURCES_HEADERS = /^##\s+(bronnen|bronvermelding|referenties|literatuur)/i;
+
+    const body = lines.slice(bodyStart);
+    const contentLines: string[] = [];
+    const faqLines: string[] = [];
+    const sourcesLines: string[] = [];
+    let mode: "content" | "faq" | "sources" = "content";
+
+    for (const line of body) {
+      if (FAQ_HEADERS.test(line)) { mode = "faq"; continue; }
+      if (SOURCES_HEADERS.test(line)) { mode = "sources"; continue; }
+      // Andere ## koppen gaan terug naar content
+      if (/^##\s+/.test(line)) { mode = "content"; }
+      if (mode === "faq") faqLines.push(line);
+      else if (mode === "sources") sourcesLines.push(line);
+      else contentLines.push(line);
+    }
+
+    // 3. FAQ parsen: **Vraag?** of ### Vraag? gevolgd door antwoord
+    const faqItems: FaqItem[] = [];
+    let currentQ = "";
+    let currentA: string[] = [];
+    for (const line of faqLines) {
+      const boldQ = line.match(/^\*\*(.+\??)\*\*\s*$/);
+      const h3Q = line.match(/^###\s+(.+)/);
+      if (boldQ || h3Q) {
+        if (currentQ && currentA.join("").trim()) {
+          faqItems.push({ question: currentQ, answer: currentA.join("\n").trim() });
+        }
+        currentQ = (boldQ?.[1] || h3Q?.[1] || "").trim();
+        currentA = [];
+      } else {
+        currentA.push(line);
+      }
+    }
+    if (currentQ && currentA.join("").trim()) {
+      faqItems.push({ question: currentQ, answer: currentA.join("\n").trim() });
+    }
+
+    // 4. Bronnen: strip - prefix
+    const sources = sourcesLines
+      .map((l) => l.replace(/^[-*]\s+/, "").trim())
+      .filter(Boolean)
+      .join("\n");
+
     setForm((f) => ({
       ...f,
-      title: titleLine && !f.title ? titleLine : f.title,
-      slug: titleLine && !f.slug ? slugify(titleLine) : f.slug,
-      content: content,
+      title: title && !f.title ? title : f.title,
+      slug: title && !f.slug ? slugify(title) : f.slug,
+      content: contentLines.join("\n").replace(/^\n+/, "").trimEnd(),
+      faqItems: faqItems.length ? faqItems : f.faqItems,
+      sources: sources || f.sources,
     }));
     setImportText("");
     setShowImport(false);
