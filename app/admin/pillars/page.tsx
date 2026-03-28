@@ -298,6 +298,28 @@ export default function AdminPillarsPage() {
                 value={form.excerpt} onChange={set("excerpt")} rows={3} className={inputClass} />
             </div>
 
+            {/* Focuszoekwoord + CTA */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelSmClass}>Focuszoekwoord</label>
+                <input type="text" placeholder="bijv. rouw na verlies"
+                  value={form.focusKeyword} onChange={set("focusKeyword")} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelSmClass}>CTA blok</label>
+                <select
+                  value={form.ctaKey}
+                  onChange={(e) => setForm((f) => ({ ...f, ctaKey: e.target.value }))}
+                  className={inputClass}
+                >
+                  <option value="">— Standaard —</option>
+                  {(ctaBlocks ?? []).map((c: any) => (
+                    <option key={c._id} value={c.key}>{c.label || c.key}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             {/* Inhoud met toolbar */}
             <div>
               <label className={labelClass}>
@@ -379,28 +401,6 @@ export default function AdminPillarsPage() {
                 rows={3}
                 className={inputClass}
               />
-            </div>
-
-            {/* Focuszoekwoord */}
-            <div className="border-t border-primary-100 pt-4">
-              <label className={labelSmClass}>Focuszoekwoord <span className="text-gray-400">(één keyword waar deze pagina op scoort)</span></label>
-              <input type="text" placeholder="bijv. rouw na verlies"
-                value={form.focusKeyword} onChange={set("focusKeyword")} className={inputClass} />
-            </div>
-
-            {/* CTA blok */}
-            <div>
-              <label className={labelSmClass}>CTA blok <span className="text-gray-400">(welke call-to-action onderaan en bij [cta] in de tekst)</span></label>
-              <select
-                value={form.ctaKey}
-                onChange={(e) => setForm((f) => ({ ...f, ctaKey: e.target.value }))}
-                className={inputClass}
-              >
-                <option value="">— Standaard (pillar_default) —</option>
-                {(ctaBlocks ?? []).map((c: any) => (
-                  <option key={c._id} value={c.key}>{c.label || c.key}</option>
-                ))}
-              </select>
             </div>
 
             {/* Live toggle */}

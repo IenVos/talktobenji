@@ -586,6 +586,36 @@ export default function AdminBlogPage() {
               )}
             </div>
 
+            {/* Pillar + CTA */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelSmClass}>Pillar pagina</label>
+                <select
+                  value={form.pillarSlug}
+                  onChange={(e) => setForm((f) => ({ ...f, pillarSlug: e.target.value }))}
+                  className={inputClass}
+                >
+                  <option value="">— Geen pillar —</option>
+                  {(pillars ?? []).map((p: any) => (
+                    <option key={p._id} value={p.slug}>{p.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelSmClass}>CTA blok</label>
+                <select
+                  value={form.ctaKey}
+                  onChange={(e) => setForm((f) => ({ ...f, ctaKey: e.target.value }))}
+                  className={inputClass}
+                >
+                  <option value="">— Standaard —</option>
+                  {(ctaBlocks ?? []).map((c: any) => (
+                    <option key={c._id} value={c.key}>{c.label || c.key}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             {/* Inhoud */}
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -735,36 +765,6 @@ export default function AdminBlogPage() {
                 rows={3}
                 className={inputClass}
               />
-            </div>
-
-            {/* Pillar */}
-            <div className="border-t border-primary-100 pt-4">
-              <label className={labelSmClass}>Pillar pagina <span className="text-gray-400">(optioneel — koppelt dit artikel aan een thema)</span></label>
-              <select
-                value={form.pillarSlug}
-                onChange={(e) => setForm((f) => ({ ...f, pillarSlug: e.target.value }))}
-                className={inputClass}
-              >
-                <option value="">— Geen pillar —</option>
-                {(pillars ?? []).map((p: any) => (
-                  <option key={p._id} value={p.slug}>{p.title}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* CTA blok */}
-            <div>
-              <label className={labelSmClass}>CTA blok <span className="text-gray-400">(welke call-to-action onderaan en bij [cta] in de tekst)</span></label>
-              <select
-                value={form.ctaKey}
-                onChange={(e) => setForm((f) => ({ ...f, ctaKey: e.target.value }))}
-                className={inputClass}
-              >
-                <option value="">— Standaard (blog_default) —</option>
-                {(ctaBlocks ?? []).map((c: any) => (
-                  <option key={c._id} value={c.key}>{c.label || c.key}</option>
-                ))}
-              </select>
             </div>
 
             {/* Publicatiedatum + live */}
