@@ -16,9 +16,9 @@ export default async function BlogOverviewPage() {
   const posts = await fetchQuery(api.blogPosts.listPublished, {}).catch(() => []);
 
   return (
-    <div className="min-h-screen bg-stone-50">
+    <div className="min-h-screen bg-stone-50 flex flex-col">
       <HeaderBar />
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 py-12 flex-1">
         <div className="mb-10 text-center">
           <h1 className="text-3xl sm:text-4xl font-bold text-stone-800 mb-3">Samen Omgaan met Verdriet en Pijn</h1>
           <p className="text-stone-500 text-lg leading-relaxed max-w-xl mx-auto">
