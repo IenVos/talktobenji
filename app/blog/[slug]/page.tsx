@@ -25,6 +25,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+function headingId(text: string) {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, "-").slice(0, 60);
+}
+
+function readingTime(content: string) {
+  return Math.max(1, Math.ceil(content.trim().split(/\s+/).length / 200));
+}
+
+function extractTOC(content: string) {
+  return content.replace(/\n{3,}/g, "\n\n").split(/\n\n+/)
+    .filter(b => b.startsWith("## "))
+    .map(b => ({ text: b.slice(3), id: headingId(b.slice(3)) }));
+}
+
 function renderContent(content: string) {
   const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
   return blocks.map((block, i) => {
@@ -59,7 +73,8 @@ function renderContent(content: string) {
       return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
     }
     if (block.startsWith("## ")) {
-      return <h3 key={i} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{block.slice(3)}</h3>;
+      const text = block.slice(3);
+      return <h3 key={i} id={headingId(text)} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{text}</h3>;
     }
     if (block.startsWith("# ")) {
       return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
@@ -230,6 +245,16 @@ export default async function BlogPostPage({ params }: Props) {
                 </Link>
               </>
             )}
+            <span className="text-stone-300 text-sm">·</span>
+            <span className="text-xs text-stone-400">{readingTime(post.content)} min lezen</span>
+            {post.updatedAt && post.publishedAt && post.updatedAt - post.publishedAt > 30 * 24 * 60 * 60 * 1000 && (
+              <>
+                <span className="text-stone-300 text-sm">·</span>
+                <span className="text-xs text-stone-400">
+                  Bijgewerkt {new Date(post.updatedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
+                </span>
+              </>
+            )}
           </div>
           <h1 className="text-3xl font-bold text-stone-800 mb-6 leading-tight">{post.title}</h1>
 
@@ -248,6 +273,24 @@ export default async function BlogPostPage({ params }: Props) {
               className="w-full rounded-2xl mb-8 object-cover max-h-80"
             />
           )}
+
+          {/* Inhoudsopgave */}
+          {(() => {
+            const toc = extractTOC(post.content);
+            if (toc.length < 3) return null;
+            return (
+              <div className="mb-8 p-4 bg-stone-100 rounded-xl border border-stone-200">
+                <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">In dit artikel</p>
+                <ol className="space-y-1.5 list-decimal list-inside">
+                  {toc.map((h, i) => (
+                    <li key={i}>
+                      <a href={`#${h.id}`} className="text-sm text-primary-600 hover:underline">{h.text}</a>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            );
+          })()}
 
           {/* Inhoud */}
           <div className="space-y-5">

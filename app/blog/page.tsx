@@ -43,8 +43,14 @@ export default async function BlogOverviewPage() {
                   )}
                   <div className="p-5 flex flex-col flex-1">
                     {post.publishedAt && (
-                      <p className="text-xs text-stone-400 mb-2">
+                      <p className="text-xs text-stone-400 mb-2 flex items-center gap-1.5">
                         {new Date(post.publishedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
+                        {post.content && (
+                          <>
+                            <span>·</span>
+                            <span>{Math.max(1, Math.ceil(post.content.trim().split(/\s+/).length / 200))} min</span>
+                          </>
+                        )}
                       </p>
                     )}
                     <h2 className="text-base font-bold text-stone-800 mb-2 group-hover:text-primary-700 transition-colors leading-snug">
