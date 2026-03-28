@@ -173,7 +173,7 @@ export default function AdminBlogPage() {
       publishedAt,
       isLive: form.isLive,
       faqItems: faqItems.length ? faqItems : undefined,
-      internalLinks: internalLinks.length ? internalLinks : undefined,
+      internalLinks: internalLinks.length ? internalLinks : [],
       pillarSlug: form.pillarSlug.trim(),
       sources: form.sources.trim(),
     };
