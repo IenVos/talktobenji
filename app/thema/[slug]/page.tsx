@@ -17,9 +17,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: pillar.seoTitle ? `${pillar.seoTitle} — Talk To Benji` : `${pillar.title} — Talk To Benji`,
     description: pillar.metaDescription || undefined,
+    alternates: {
+      canonical: `https://www.talktobenji.com/thema/${pillar.slug}`,
+    },
     openGraph: {
       title: pillar.title,
       description: pillar.metaDescription || undefined,
+      url: `https://www.talktobenji.com/thema/${pillar.slug}`,
+      siteName: "Talk To Benji",
       type: "website",
     },
   };
@@ -133,22 +138,42 @@ export default async function PillarPage({ params }: Props) {
     "@type": "CollectionPage",
     name: pillar.title,
     description: pillar.metaDescription,
-    url: `https://talktobenji.com/thema/${pillar.slug}`,
+    url: `https://www.talktobenji.com/thema/${pillar.slug}`,
+    inLanguage: "nl-NL",
+    dateModified: new Date(pillar.updatedAt).toISOString(),
+    publisher: {
+      "@type": "Organization",
+      name: "Talk To Benji",
+      url: "https://www.talktobenji.com",
+      logo: { "@type": "ImageObject", url: "https://www.talktobenji.com/images/benji-logo-2.png" },
+    },
     hasPart: (articles as any[]).map((a) => ({
       "@type": "Article",
       headline: a.title,
-      url: `https://talktobenji.com/blog/${a.slug}`,
+      url: `https://www.talktobenji.com/blog/${a.slug}`,
       datePublished: a.publishedAt ? new Date(a.publishedAt).toISOString() : undefined,
     })),
   };
+
+  const faqSchema = (pillar as any).faqItems?.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: (pillar as any).faqItems.map((f: any) => ({
+          "@type": "Question",
+          name: f.question,
+          acceptedAnswer: { "@type": "Answer", text: f.answer },
+        })),
+      }
+    : null;
 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://talktobenji.com" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://talktobenji.com/blog" },
-      { "@type": "ListItem", position: 3, name: pillar.title, item: `https://talktobenji.com/thema/${pillar.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.talktobenji.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.talktobenji.com/blog" },
+      { "@type": "ListItem", position: 3, name: pillar.title, item: `https://www.talktobenji.com/thema/${pillar.slug}` },
     ],
   };
 
@@ -159,6 +184,12 @@ export default async function PillarPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(pillarSchema) }}
       />
+      {faqSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}

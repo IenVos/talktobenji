@@ -84,6 +84,42 @@ export default function RootLayout({
             src="https://www.facebook.com/tr?id=2054062258501361&ev=PageView&noscript=1"
           />
         </noscript>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://www.talktobenji.com/#organization",
+                  name: "Talk To Benji",
+                  url: "https://www.talktobenji.com",
+                  logo: {
+                    "@type": "ImageObject",
+                    url: "https://www.talktobenji.com/images/benji-logo-2.png",
+                    width: 512,
+                    height: 512,
+                  },
+                  founder: {
+                    "@type": "Person",
+                    name: "Ien",
+                  },
+                  description: "AI-gesprekspartner voor mensen die rouwen of verdriet hebben. Altijd beschikbaar, zonder oordeel.",
+                  inLanguage: "nl-NL",
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://www.talktobenji.com/#website",
+                  url: "https://www.talktobenji.com",
+                  name: "Talk To Benji",
+                  publisher: { "@id": "https://www.talktobenji.com/#organization" },
+                  inLanguage: "nl-NL",
+                },
+              ],
+            }),
+          }}
+        />
       </head>
       <body>
         <Script id="meta-pixel" strategy="afterInteractive">

@@ -18,12 +18,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.seoTitle ? `${post.seoTitle} — Talk To Benji` : `${post.title} — Talk To Benji`,
     description: post.metaDescription || post.excerpt || undefined,
+    alternates: {
+      canonical: `https://www.talktobenji.com/blog/${post.slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.metaDescription || post.excerpt || undefined,
+      url: `https://www.talktobenji.com/blog/${post.slug}`,
+      siteName: "Talk To Benji",
       images: post.coverImageUrl ? [{ url: post.coverImageUrl }] : undefined,
       type: "article",
       publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+      modifiedTime: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
     },
   };
 }
@@ -178,15 +184,24 @@ export default async function BlogPostPage({ params }: Props) {
     "@type": "Article",
     headline: post.title,
     description: post.metaDescription || post.excerpt,
+    url: `https://www.talktobenji.com/blog/${post.slug}`,
     datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
+    dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
     image: post.coverImageUrl || undefined,
+    inLanguage: "nl-NL",
     author: {
       "@type": "Person",
       name: "Ien",
       jobTitle: "Founder van Talk To Benji",
-      url: "https://talktobenji.com",
+      url: "https://www.talktobenji.com",
     },
-    publisher: { "@type": "Organization", name: "Talk To Benji", url: "https://talktobenji.com" },
+    publisher: {
+      "@type": "Organization",
+      name: "Talk To Benji",
+      url: "https://www.talktobenji.com",
+      logo: { "@type": "ImageObject", url: "https://www.talktobenji.com/images/benji-logo-2.png" },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `https://www.talktobenji.com/blog/${post.slug}` },
   };
 
   const faqSchema = post.faqItems?.length

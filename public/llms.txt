@@ -1,0 +1,39 @@
+# Talk To Benji
+
+> Talk To Benji is een Nederlandse AI-gesprekspartner voor mensen die rouwen, verdriet hebben of moeite hebben met verlies. Benji luistert zonder oordeel — overdag, 's avonds en midden in de nacht. Opgericht door Ien, die zelf weet hoe eenzaam verdriet kan zijn.
+
+## Over Talk To Benji
+
+Talk To Benji biedt een veilige, persoonlijke gespreksruimte voor mensen in rouw of verdriet. Geen therapie, maar een luisterend oor dat altijd beschikbaar is. Benji helpt mensen hun gedachten te ordenen, herinneringen te bewaren en dagelijkse check-ins bij te houden.
+
+## Kernpagina's
+
+- [Home](https://www.talktobenji.com)
+- [Waarom Benji](https://www.talktobenji.com/waarom-benji)
+- [Prijzen en abonnementen](https://www.talktobenji.com/prijzen)
+- [FAQ](https://www.talktobenji.com/faq)
+- [Blog](https://www.talktobenji.com/blog)
+
+## Blog & Thema's
+
+De blog van Talk To Benji behandelt onderwerpen rondom rouw, verlies en verdriet. Artikelen zijn gegroepeerd per thema (pillar-pagina's op /thema/).
+
+Veelbesproken thema's:
+- Rouw & Verdriet
+- Onzichtbaar verlies
+- Verlies van een huisdier
+- Hoe er zijn voor iemand die rouwt
+
+## Oprichter
+
+**Ien** richtte Talk To Benji op vanuit eigen ervaring met verlies. Ze gelooft dat iedereen recht heeft op een luisterend oor — ook midden in de nacht, ook als er niemand is om naartoe te gaan.
+
+## Doelgroep
+
+Nederlandstalige volwassenen die te maken hebben met verlies, rouw of aanhoudend verdriet. Benji is geen vervanging van professionele hulp.
+
+## Technisch
+
+- Taal: Nederlands
+- Sitemap: https://www.talktobenji.com/sitemap.xml
+- Contactpagina: https://www.talktobenji.com/faq
