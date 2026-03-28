@@ -857,25 +857,29 @@ export default function AdminBlogPage() {
                 <Save size={18} />
                 {saving ? "Bezig…" : saveSuccess ? "✓ Opgeslagen" : "Opslaan"}
               </button>
-              {editingId && (
-                <button type="button"
-                  disabled={syncingForm}
-                  onClick={async () => {
-                    setSyncingForm(true);
-                    setSyncFormDone(false);
-                    try {
-                      await syncKb({ id: editingId });
-                      setSyncFormDone(true);
-                      setTimeout(() => setSyncFormDone(false), 3000);
-                    } finally {
-                      setSyncingForm(false);
-                    }
-                  }}
-                  className="inline-flex items-center gap-2 px-4 py-2 border border-blue-300 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-50 disabled:opacity-50">
-                  {syncingForm ? <RefreshCw size={17} className="animate-spin" /> : <BookOpen size={17} />}
-                  {syncingForm ? "Bezig…" : syncFormDone ? "✓ Toegevoegd aan kennisbank" : "Toevoegen aan kennisbank"}
-                </button>
-              )}
+              {editingId && (() => {
+                const isSynced = (posts ?? []).find((p: any) => p._id === editingId)?.kbSynced ?? false;
+                return (
+                  <button type="button"
+                    disabled={syncingForm}
+                    onClick={async () => {
+                      setSyncingForm(true);
+                      try {
+                        await syncKb({ id: editingId });
+                      } finally {
+                        setSyncingForm(false);
+                      }
+                    }}
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 ${
+                      isSynced
+                        ? "bg-green-100 border border-green-300 text-green-700 hover:bg-green-200"
+                        : "border border-blue-300 text-blue-700 hover:bg-blue-50"
+                    }`}>
+                    {syncingForm ? <RefreshCw size={17} className="animate-spin" /> : <BookOpen size={17} />}
+                    {syncingForm ? "Bezig…" : isSynced ? "✓ In kennisbank" : "Toevoegen aan kennisbank"}
+                  </button>
+                );
+              })()}
               <button type="button" onClick={resetForm}
                 className="inline-flex items-center gap-2 px-4 py-2 border border-primary-200 rounded-lg text-sm font-medium hover:bg-primary-50">
                 <X size={18} />
