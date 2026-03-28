@@ -2,7 +2,7 @@
  * Email verzending via Resend
  */
 import { internalAction, action } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { internal, api } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
 import { v } from "convex/values";
 
@@ -280,7 +280,7 @@ export const sendWelcomeEmail = internalAction({
 export const sendTestWelcomeEmail = action({
   args: { adminToken: v.string(), email: v.string(), name: v.string() },
   handler: async (ctx, args) => {
-    await ctx.runQuery(internal.adminAuth.validateToken, { adminToken: args.adminToken });
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     await ctx.runAction(internal.emails.sendWelcomeEmail, {
       email: args.email,
       name: args.name,
