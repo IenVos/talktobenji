@@ -42,23 +42,26 @@ function extractTOC(content: string) {
     .map(b => ({ text: b.slice(3), id: headingId(b.slice(3)) }));
 }
 
-function renderContent(content: string) {
+function renderContent(content: string, ctaData?: any) {
   const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
   return blocks.map((block, i) => {
     // Extra witregel
     if (block.trim() === "__SPACER__") {
       return <div key={i} className="h-6" />;
     }
-    // Inline CTA blok
+    // Inline CTA blok — gebruikt de gekozen CTA van het artikel
     if (block.trim() === "[cta]") {
+      const bg = ctaData?.bgColor || "#f5f0eb";
+      const btnColor = ctaData?.buttonColor || "#6d84a8";
+      const borderStyle = ctaData?.borderColor ? { border: `2px solid ${ctaData.borderColor}` } : {};
       return (
-        <div key={i} style={{ background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "14px", padding: "18px 20px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const }}>
+        <div key={i} style={{ background: bg, borderRadius: "14px", padding: "20px 24px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const, ...borderStyle }}>
           <div>
-            <p style={{ fontWeight: 600, color: "#92400e", fontSize: "15px", marginBottom: "2px" }}>Wil je hierover praten?</p>
-            <p style={{ color: "#a16207", fontSize: "13px" }}>Benji luistert — dag en nacht beschikbaar.</p>
+            <p style={{ fontWeight: 600, fontSize: "15px", marginBottom: "2px", color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>{ctaData?.title || "Wil je hierover praten?"}</p>
+            <p style={{ fontSize: "13px", color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>{ctaData?.body || "Benji luistert — dag en nacht beschikbaar."}</p>
           </div>
-          <a href="/" style={{ background: "#d97706", color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
-            Begin een gesprek →
+          <a href="/" style={{ background: btnColor, color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
+            {ctaData?.buttonText || "Begin een gesprek →"}
           </a>
         </div>
       );
@@ -157,7 +160,7 @@ export default async function BlogPostPage({ params }: Props) {
     post.pillarSlug
       ? fetchQuery(api.pillars.getBySlug, { slug: post.pillarSlug }).catch(() => null)
       : Promise.resolve(null),
-    fetchQuery(api.ctaBlocks.getByKey, { key: "blog_default" }).catch(() => null),
+    fetchQuery(api.ctaBlocks.getByKey, { key: post.ctaKey || "blog_default" }).catch(() => null),
   ]);
 
   // JSON-LD structured data voor Google (Article + FAQPage)
@@ -295,7 +298,7 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Inhoud */}
           <div className="space-y-5">
-            {renderContent(post.content)}
+            {renderContent(post.content, ctaData)}
           </div>
 
           {/* Interne links */}

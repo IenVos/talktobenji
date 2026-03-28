@@ -710,6 +710,7 @@ export default defineSchema({
     kbSynced: v.optional(v.boolean()),
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),    // Primair zoekwoord
+    ctaKey: v.optional(v.string()),          // Welke CTA te tonen, bijv. "blog_default"
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]),
@@ -737,6 +738,7 @@ export default defineSchema({
     pillarSlug: v.optional(v.string()),      // Koppeling aan pillar pagina
     sources: v.optional(v.string()),         // Bronnen (één per regel)
     focusKeyword: v.optional(v.string()),    // Primair zoekwoord
+    ctaKey: v.optional(v.string()),          // Welke CTA te tonen, bijv. "blog_default"
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]).index("by_pillar", ["pillarSlug"]),

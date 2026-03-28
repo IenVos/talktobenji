@@ -90,6 +90,7 @@ export const create = mutation({
     isLive: v.boolean(),
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),
+    ctaKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -107,6 +108,7 @@ export const create = mutation({
       isLive: args.isLive,
       sources: args.sources,
       focusKeyword: args.focusKeyword,
+      ctaKey: args.ctaKey,
       createdAt: now,
       updatedAt: now,
     });
@@ -130,6 +132,7 @@ export const update = mutation({
     isLive: v.optional(v.boolean()),
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),
+    ctaKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

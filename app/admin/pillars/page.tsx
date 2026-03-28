@@ -19,6 +19,7 @@ type FormState = {
   content: string;
   sources: string;
   focusKeyword: string;
+  ctaKey: string;
   isLive: boolean;
   faqItems: FaqItem[];
   internalLinks: InternalLink[];
@@ -35,6 +36,7 @@ const EMPTY: FormState = {
   content: "",
   sources: "",
   focusKeyword: "",
+  ctaKey: "",
   isLive: false,
   faqItems: [{ question: "", answer: "" }],
   internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
@@ -49,6 +51,7 @@ function slugify(t: string) {
 export default function AdminPillarsPage() {
   const { adminToken } = useAdminAuth();
   const pillars = useAdminQuery(api.pillars.list, {});
+  const ctaBlocks = useAdminQuery(api.ctaBlocks.list, {});
   const createPillar = useAdminMutation(api.pillars.create);
   const updatePillar = useAdminMutation(api.pillars.update);
   const removePillar = useAdminMutation(api.pillars.remove);
@@ -87,6 +90,7 @@ export default function AdminPillarsPage() {
       content: p.content ?? "",
       sources: p.sources ?? "",
       focusKeyword: p.focusKeyword ?? "",
+      ctaKey: p.ctaKey ?? "",
       isLive: p.isLive,
       faqItems: p.faqItems?.length ? p.faqItems : [{ question: "", answer: "" }],
       internalLinks: [
@@ -129,6 +133,7 @@ export default function AdminPillarsPage() {
       internalLinks: internalLinks.length ? internalLinks : [],
       isLive: form.isLive,
       focusKeyword: form.focusKeyword.trim() || undefined,
+      ctaKey: form.ctaKey.trim() || undefined,
       sources: form.sources.trim(),
     };
   };
@@ -381,6 +386,21 @@ export default function AdminPillarsPage() {
               <label className={labelSmClass}>Focuszoekwoord <span className="text-gray-400">(één keyword waar deze pagina op scoort)</span></label>
               <input type="text" placeholder="bijv. rouw na verlies"
                 value={form.focusKeyword} onChange={set("focusKeyword")} className={inputClass} />
+            </div>
+
+            {/* CTA blok */}
+            <div>
+              <label className={labelSmClass}>CTA blok <span className="text-gray-400">(welke call-to-action onderaan en bij [cta] in de tekst)</span></label>
+              <select
+                value={form.ctaKey}
+                onChange={(e) => setForm((f) => ({ ...f, ctaKey: e.target.value }))}
+                className={inputClass}
+              >
+                <option value="">— Standaard (pillar_default) —</option>
+                {(ctaBlocks ?? []).map((c: any) => (
+                  <option key={c._id} value={c.key}>{c.label || c.key}</option>
+                ))}
+              </select>
             </div>
 
             {/* Live toggle */}

@@ -21,6 +21,7 @@ type FormState = {
   excerpt: string;
   metaDescription: string;
   pillarSlug: string;
+  ctaKey: string;
   sources: string;
   focusKeyword: string;
   publishedAt: string; // "YYYY-MM-DD"
@@ -39,6 +40,7 @@ const EMPTY_FORM: FormState = {
   excerpt: "",
   metaDescription: "",
   pillarSlug: "",
+  ctaKey: "",
   sources: "",
   focusKeyword: "",
   publishedAt: new Date().toISOString().slice(0, 10),
@@ -62,6 +64,7 @@ export default function AdminBlogPage() {
   const { adminToken } = useAdminAuth();
   const posts = useAdminQuery(api.blogPosts.list, {});
   const pillars = useAdminQuery(api.pillars.list, {});
+  const ctaBlocks = useAdminQuery(api.ctaBlocks.list, {});
   const createPost = useAdminMutation(api.blogPosts.create);
   const updatePost = useAdminMutation(api.blogPosts.update);
   const removePost = useAdminMutation(api.blogPosts.remove);
@@ -236,6 +239,7 @@ export default function AdminBlogPage() {
       coverImageStorageId: post.coverImageStorageId,
       coverImageFile: null,
       pillarSlug: post.pillarSlug ?? "",
+      ctaKey: post.ctaKey ?? "",
     });
     setCoverPreview(post.coverImageUrl ?? null);
     setEditingId(post._id);
@@ -300,6 +304,7 @@ export default function AdminBlogPage() {
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : [],
       pillarSlug: form.pillarSlug.trim(),
+      ctaKey: form.ctaKey.trim() || undefined,
       sources: form.sources.trim(),
       focusKeyword: form.focusKeyword.trim() || undefined,
     };
@@ -743,6 +748,21 @@ export default function AdminBlogPage() {
                 <option value="">— Geen pillar —</option>
                 {(pillars ?? []).map((p: any) => (
                   <option key={p._id} value={p.slug}>{p.title}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* CTA blok */}
+            <div>
+              <label className={labelSmClass}>CTA blok <span className="text-gray-400">(welke call-to-action onderaan en bij [cta] in de tekst)</span></label>
+              <select
+                value={form.ctaKey}
+                onChange={(e) => setForm((f) => ({ ...f, ctaKey: e.target.value }))}
+                className={inputClass}
+              >
+                <option value="">— Standaard (blog_default) —</option>
+                {(ctaBlocks ?? []).map((c: any) => (
+                  <option key={c._id} value={c.key}>{c.label || c.key}</option>
                 ))}
               </select>
             </div>

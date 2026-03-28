@@ -90,6 +90,7 @@ export const create = mutation({
     pillarSlug: v.optional(v.string()),
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),
+    ctaKey: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -109,6 +110,7 @@ export const create = mutation({
       pillarSlug: args.pillarSlug,
       sources: args.sources,
       focusKeyword: args.focusKeyword,
+      ctaKey: args.ctaKey,
       kbSynced: false,
       createdAt: now,
       updatedAt: now,
@@ -136,6 +138,7 @@ export const update = mutation({
     pillarSlug: v.optional(v.string()),
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),
+    ctaKey: v.optional(v.string()),
     kbSynced: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
