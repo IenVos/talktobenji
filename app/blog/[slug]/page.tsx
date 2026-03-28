@@ -361,18 +361,7 @@ export default async function BlogPostPage({ params }: Props) {
         </article>
       </div>
 
-      {/* Disclaimer balk */}
-      <div className="bg-[#2d3748] text-white/80 text-xs py-3 px-4 flex items-center justify-center gap-6 flex-wrap">
-        <span className="flex items-center gap-1.5">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Gesprekken zijn privé en beveiligd.
-        </span>
-        <span className="flex items-center gap-1.5">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-          Benji is geen vervanging van professionele hulp.
-        </span>
-      </div>
-      <SiteFooter variant="light" />
+      <SiteFooter variant="dark" />
     </div>
   );
 }

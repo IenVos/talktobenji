@@ -293,7 +293,7 @@ export default async function PillarPage({ params }: Props) {
 
         <CtaBlockA data={ctaData} />
       </div>
-      <SiteFooter variant="light" />
+      <SiteFooter variant="dark" />
     </div>
   );
 }

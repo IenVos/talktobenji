@@ -12,15 +12,17 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
 
   if (isDark) {
     return (
-      <div className="w-full text-center px-4 py-2">
-        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-[10px] sm:text-xs text-primary-300">
-          <Link href="/faq" className="hover:text-primary-100 transition-colors">Veelgestelde vragen</Link>
-          <Link href="/privacy" className="hover:text-primary-100 transition-colors">Privacy</Link>
-          <Link href="/blog" className="hover:text-primary-100 transition-colors">Blog</Link>
-          <ErvaringenTrigger className="hover:text-primary-100 transition-colors cursor-pointer">Ervaringen</ErvaringenTrigger>
-          <Link href="/contact" className="hover:text-primary-100 transition-colors">Contact</Link>
+      <footer className="bg-[#2d3748] px-5 py-8 text-center">
+        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-white/50 mb-4">
+          <Link href="/faq" className="hover:text-white/80 transition-colors">Veelgestelde vragen</Link>
+          <Link href="/privacy" className="hover:text-white/80 transition-colors">Privacy</Link>
+          <Link href="/algemene-voorwaarden" className="hover:text-white/80 transition-colors">Algemene voorwaarden</Link>
+          <Link href="/blog" className="hover:text-white/80 transition-colors">Blog</Link>
+          <ErvaringenTrigger className="hover:text-white/80 transition-colors cursor-pointer text-white/50">Ervaringen</ErvaringenTrigger>
+          <Link href="/contact" className="hover:text-white/80 transition-colors">Contact</Link>
         </div>
-      </div>
+        <p className="text-[11px] text-white/25">© Talk To Benji · talktobenji.com</p>
+      </footer>
     );
   }
 
