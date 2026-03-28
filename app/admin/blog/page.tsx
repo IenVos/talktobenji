@@ -78,6 +78,31 @@ export default function AdminBlogPage() {
   const [syncDone, setSyncDone] = useState<Id<"blogPosts"> | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [insertingImage, setInsertingImage] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [importText, setImportText] = useState("");
+
+  const handleImport = () => {
+    const lines = importText.split("\n");
+    let titleLine = "";
+    let contentStart = 0;
+    // Pak de eerste # regel als titel
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith("# ")) {
+        titleLine = lines[i].slice(2).trim();
+        contentStart = i + 1;
+        break;
+      }
+    }
+    const content = lines.slice(contentStart).join("\n").replace(/^\n+/, "").trimEnd();
+    setForm((f) => ({
+      ...f,
+      title: titleLine && !f.title ? titleLine : f.title,
+      slug: titleLine && !f.slug ? slugify(titleLine) : f.slug,
+      content: content,
+    }));
+    setImportText("");
+    setShowImport(false);
+  };
   const coverInputRef = useRef<HTMLInputElement>(null);
   const inlineInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -361,6 +386,47 @@ export default function AdminBlogPage() {
                   </button>
                 )}
               </div>
+            </div>
+
+            {/* Importeer van Claude */}
+            <div className="border border-primary-200 rounded-xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowImport((v) => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-primary-50 text-sm font-medium text-primary-800 hover:bg-primary-100 transition-colors"
+              >
+                <span>Importeer van Claude of Koala</span>
+                <span className="text-primary-400 text-xs">{showImport ? "▲ sluiten" : "▼ openen"}</span>
+              </button>
+              {showImport && (
+                <div className="p-4 space-y-3 bg-white">
+                  <p className="text-xs text-gray-500">Plak de volledige markdown-output van Claude of Koala. De eerste <code className="bg-gray-100 px-1 rounded"># Titel</code> gaat automatisch naar het titelvel (als dat nog leeg is).</p>
+                  <textarea
+                    value={importText}
+                    onChange={(e) => setImportText(e.target.value)}
+                    placeholder={"# Artikeltitel\n\n## Inleiding\n\nPlak hier de Claude-output..."}
+                    rows={10}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 resize-y"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleImport}
+                      disabled={!importText.trim()}
+                      className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                    >
+                      Importeer naar content
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setImportText(""); setShowImport(false); }}
+                      className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+                    >
+                      Annuleer
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Inhoud */}
