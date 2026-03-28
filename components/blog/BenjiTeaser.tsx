@@ -3,7 +3,14 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mic, Square, Printer } from "lucide-react";
+import { Mic, Square, Download, ChevronDown, ChevronUp, PenLine, Smile, CalendarCheck, Gem } from "lucide-react";
+
+const FEATURES = [
+  { icon: PenLine, kleur: "text-teal-600 bg-teal-50", naam: "Reflecties", omschrijving: "Schrijven of inspreken, wanneer je wil" },
+  { icon: Smile, kleur: "text-amber-500 bg-amber-50", naam: "Emotie-tracker", omschrijving: "Bijhouden hoe je stemming beweegt" },
+  { icon: CalendarCheck, kleur: "text-primary-600 bg-primary-50", naam: "Dagelijkse check-in", omschrijving: "Korte vragen om de mist te klaren" },
+  { icon: Gem, kleur: "text-violet-500 bg-violet-50", naam: "Memories", omschrijving: "Herinneringen bewaren zodat je ze niet vergeet" },
+];
 
 const VRAGEN: { vraag: string; placeholder: string }[] = [
   {
@@ -23,6 +30,7 @@ const VRAGEN: { vraag: string; placeholder: string }[] = [
 export function BenjiTeaserReflectie() {
   const router = useRouter();
   const [antwoorden, setAntwoorden] = useState(["", "", ""]);
+  const [toonFeatures, setToonFeatures] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [opnameIndex, setOpnameIndex] = useState<number | null>(null);
   const recognitionRef = useRef<any>(null);
@@ -64,34 +72,60 @@ export function BenjiTeaserReflectie() {
   const buildHtml = () => {
     const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>");
     const datum = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
-    const html = `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="utf-8">
 <title>Mijn reflectie — ${datum}</title>
 <style>
-  body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 48px auto; color: #2d3748; line-height: 1.8; }
-  h1 { font-size: 24px; font-weight: normal; color: #1a202c; margin: 0 0 4px; }
-  .meta { font-size: 13px; color: #a0aec0; margin-bottom: 40px; }
-  .entry { margin-bottom: 32px; page-break-inside: avoid; }
-  .vraag { font-size: 13px; font-weight: 600; color: #718096; margin-bottom: 8px; }
-  .antwoord { font-size: 15px; color: #2d3748; border-left: 3px solid #e2e8f0; padding-left: 18px; }
-  @media print { body { margin: 24px; } }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f5f0eb; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 48px 16px; }
+  .card { background: #faf7f4; max-width: 580px; margin: 0 auto; border-radius: 12px; overflow: hidden; }
+  .header { padding: 32px 40px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #6d84a8; color: white; font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .brand-name { font-size: 15px; font-weight: 600; color: #2d3748; }
+  .brand-sub { font-size: 12px; color: #a0aec0; }
+  .body { padding: 0 40px 16px; }
+  .intro { font-size: 16px; color: #2d3748; line-height: 1.7; margin-bottom: 28px; }
+  .entry { margin-bottom: 24px; page-break-inside: avoid; }
+  .vraag { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #6d84a8; margin-bottom: 8px; }
+  .antwoord { font-size: 16px; color: #2d3748; line-height: 1.75; }
+  .divider { border: none; border-top: 1px solid #e8e1d9; margin: 24px 0; }
+  .footer { padding: 0 40px 36px; font-size: 15px; color: #4a5568; line-height: 1.7; }
+  .datum { font-size: 12px; color: #a0aec0; margin-top: 20px; }
+  @media print { body { padding: 0; background: #faf7f4; } .card { border-radius: 0; } }
 </style>
 </head>
 <body>
-<h1>Mijn reflectie</h1>
-<div class="meta">${datum} · Talk To Benji</div>
-${VRAGEN.map(({ vraag }, i) => `<div class="entry">
-  <div class="vraag">${vraag}</div>
-  <div class="antwoord">${antwoorden[i].trim() ? esc(antwoorden[i].trim()) : "<em style='color:#a0aec0'>— niet ingevuld</em>"}</div>
-</div>`).join("")}
+<div class="card">
+  <div class="header">
+    <div class="brand">
+      <div class="avatar">TB</div>
+      <div>
+        <div class="brand-name">Talk To Benji</div>
+        <div class="brand-sub">Jouw reflectie van ${datum}</div>
+      </div>
+    </div>
+  </div>
+  <div class="body">
+    <p class="intro">Je hebt even de tijd genomen voor jezelf. Dat verdient erkenning.<br/>Hieronder staan jouw gedachten, precies zoals jij ze hebt opgeschreven.</p>
+    <hr class="divider"/>
+    ${VRAGEN.map(({ vraag }, i) => antwoorden[i].trim() ? `<div class="entry">
+      <div class="vraag">${vraag}</div>
+      <div class="antwoord">${esc(antwoorden[i].trim())}</div>
+    </div>` : "").join("")}
+  </div>
+  <div class="footer">
+    Met zorg bewaard voor jou.<br/><strong>Benji</strong>
+    <div class="datum">${datum} · talktobenji.com</div>
+  </div>
+</div>
 </body>
 </html>`;
-    return html;
   };
 
-  const handleDownloadEnBenji = () => {
+  const triggerDownload = () => {
     const blob = new Blob([buildHtml()], { type: "text/html;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -99,12 +133,16 @@ ${VRAGEN.map(({ vraag }, i) => `<div class="entry">
     a.download = "mijn-reflectie.html";
     a.click();
     URL.revokeObjectURL(url);
+    setAntwoorden(["", "", ""]);
+  };
+
+  const handleDownloadEnBenji = () => {
+    triggerDownload();
     setTimeout(() => router.push("/"), 400);
   };
 
-  const handlePrint = () => {
-    const win = window.open("", "_blank");
-    if (win) { win.document.write(buildHtml()); win.document.close(); win.focus(); setTimeout(() => win.print(), 300); }
+  const handleAlleenDownload = () => {
+    triggerDownload();
   };
 
   return (
@@ -157,10 +195,10 @@ ${VRAGEN.map(({ vraag }, i) => `<div class="entry">
             </button>
             <button
               type="button"
-              onClick={handlePrint}
+              onClick={handleAlleenDownload}
               className="inline-flex items-center gap-2 text-sm text-stone-400 hover:text-stone-600 transition-colors"
             >
-              <Printer size={14} />
+              <Download size={14} />
               Alleen downloaden
             </button>
           </div>
@@ -171,6 +209,38 @@ ${VRAGEN.map(({ vraag }, i) => `<div class="entry">
           >
             Praat verder met Benji →
           </Link>
+        )}
+      </div>
+
+      {/* Uitklapbare feature preview */}
+      <div className="border-t border-primary-200">
+        <button
+          type="button"
+          onClick={() => setToonFeatures((v) => !v)}
+          className="w-full flex items-center justify-between px-6 py-3 text-xs text-primary-500 hover:text-primary-700 hover:bg-primary-100/50 transition-colors"
+        >
+          <span>Wat kun je nog meer met Benji?</span>
+          {toonFeatures ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+        {toonFeatures && (
+          <div className="px-6 pb-5 grid grid-cols-2 gap-3">
+            {FEATURES.map((f) => (
+              <div key={f.naam} className="flex items-start gap-2.5 bg-white rounded-xl px-3 py-3 border border-primary-100">
+                <div className={`p-1.5 rounded-lg ${f.kleur} shrink-0`}>
+                  <f.icon size={14} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-stone-700">{f.naam}</p>
+                  <p className="text-xs text-stone-400 leading-snug mt-0.5">{f.omschrijving}</p>
+                </div>
+              </div>
+            ))}
+            <div className="col-span-2 pt-1">
+              <Link href="/" className="text-xs text-primary-600 hover:text-primary-800 font-medium transition-colors">
+                Ontdek alles wat Benji biedt →
+              </Link>
+            </div>
+          </div>
         )}
       </div>
     </div>
