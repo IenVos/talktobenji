@@ -178,35 +178,50 @@ export const syncToKnowledgeBase = mutation({
     const now = Date.now();
     const tags = [post.slug, "blog", ...post.title.toLowerCase().split(" ").filter((w) => w.length > 3)];
 
-    // Haal alle bestaande vragen op (eenmalig, voor duplicate check)
-    const existing = await ctx.db.query("knowledgeBase").collect();
-    const existingQuestions = new Set(existing.map((e) => e.question.trim().toLowerCase()));
+    // Bepaal categorie op basis van gekoppelde pillar, anders "Blog"
+    let category = "Blog";
+    if (post.pillarSlug) {
+      const pillar = await ctx.db.query("pillars")
+        .withIndex("by_slug", (q) => q.eq("slug", post.pillarSlug!))
+        .first();
+      if (pillar?.title) category = pillar.title;
+    }
 
-    const insertIfNew = async (question: string, answer: string, priority: number) => {
+    // Haal alle bestaande vragen op (eenmalig, voor upsert)
+    const existing = await ctx.db.query("knowledgeBase").collect();
+    const existingMap = new Map(existing.map((e) => [e.question.trim().toLowerCase(), e]));
+
+    const upsert = async (question: string, answer: string, priority: number) => {
       if (!question.trim() || !answer.trim()) return;
-      if (existingQuestions.has(question.trim().toLowerCase())) return; // al aanwezig
-      await ctx.db.insert("knowledgeBase", {
-        question,
-        answer,
-        category: "Blog",
-        tags,
-        isActive: true,
-        usageCount: 0,
-        priority,
-        createdBy: "blog-sync",
-        createdAt: now,
-        updatedAt: now,
-      });
-      existingQuestions.add(question.trim().toLowerCase()); // voorkom dubbel binnen zelfde sync
+      const key = question.trim().toLowerCase();
+      const found = existingMap.get(key);
+      if (found) {
+        // Update categorie en antwoord als die gewijzigd zijn
+        await ctx.db.patch(found._id, { category, answer, tags, updatedAt: now });
+      } else {
+        await ctx.db.insert("knowledgeBase", {
+          question,
+          answer,
+          category,
+          tags,
+          isActive: true,
+          usageCount: 0,
+          priority,
+          createdBy: "blog-sync",
+          createdAt: now,
+          updatedAt: now,
+        });
+        existingMap.set(key, {} as any); // voorkom dubbel binnen zelfde sync
+      }
     };
 
     // Samenvatting
-    if (post.excerpt) await insertIfNew(post.title, post.excerpt, 5);
+    if (post.excerpt) await upsert(post.title, post.excerpt, 5);
 
     // FAQ-items
     if (post.faqItems) {
       for (const faq of post.faqItems) {
-        await insertIfNew(faq.question, faq.answer, 6);
+        await upsert(faq.question, faq.answer, 6);
       }
     }
 
