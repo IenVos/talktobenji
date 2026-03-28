@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { AuthorCard } from "@/components/blog/AuthorCard";
 import { CtaBlockB } from "@/components/blog/CtaBlock";
+import { BenjiTeaserReflectie } from "@/components/blog/BenjiTeaser";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const revalidate = 3600;
@@ -71,6 +72,11 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     // Extra witregel
     if (block.trim() === "__SPACER__") {
       return <div key={i} className="h-6" />;
+    }
+    // Benji teaser: [benji:type]
+    const benjiMatch = block.trim().match(/^\[benji:([^\]]+)\]$/);
+    if (benjiMatch) {
+      if (benjiMatch[1] === "reflectie") return <BenjiTeaserReflectie key={i} />;
     }
     // Inline CTA: [cta] of [cta:key]
     const ctaMatch = block.trim().match(/^\[cta(?::([^\]]+))?\]$/);
