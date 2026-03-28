@@ -280,7 +280,7 @@ export const sendWelcomeEmail = internalAction({
 export const sendTestWelcomeEmail = action({
   args: { adminToken: v.string(), email: v.string(), name: v.string() },
   handler: async (ctx, args) => {
-    await checkAdmin(ctx, args.adminToken);
+    await ctx.runQuery(internal.adminAuth.validateToken, { adminToken: args.adminToken });
     await ctx.runAction(internal.emails.sendWelcomeEmail, {
       email: args.email,
       name: args.name,
