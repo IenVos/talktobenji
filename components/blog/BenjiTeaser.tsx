@@ -2,15 +2,26 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Mic, Square, Printer } from "lucide-react";
 
-const VRAGEN = [
-  "Wat draag je vandaag met je mee dat je nog niet hardop hebt gezegd?",
-  "Wat heeft je de laatste tijd het meeste energie gekost?",
-  "Wat heb je nodig — van jezelf of van anderen?",
+const VRAGEN: { vraag: string; placeholder: string }[] = [
+  {
+    vraag: "Wat draag je vandaag met je mee dat je nog niet hardop hebt gezegd?",
+    placeholder: "Misschien iets wat je al een tijdje met je meedraagt…",
+  },
+  {
+    vraag: "Wat heeft je de laatste tijd het meeste energie gekost?",
+    placeholder: "Een situatie, een gevoel, of iemand in je omgeving…",
+  },
+  {
+    vraag: "Wat heb je nodig — van jezelf of van anderen?",
+    placeholder: "Rust, ruimte, begrip, of gewoon gehoord worden…",
+  },
 ];
 
 export function BenjiTeaserReflectie() {
+  const router = useRouter();
   const [antwoorden, setAntwoorden] = useState(["", "", ""]);
   const [speechSupported, setSpeechSupported] = useState(false);
   const [opnameIndex, setOpnameIndex] = useState<number | null>(null);
@@ -50,7 +61,7 @@ export function BenjiTeaserReflectie() {
 
   const ingevuld = antwoorden.some((a) => a.trim());
 
-  const handlePrint = () => {
+  const buildHtml = () => {
     const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br/>");
     const datum = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
     const html = `<!DOCTYPE html>
@@ -71,14 +82,29 @@ export function BenjiTeaserReflectie() {
 <body>
 <h1>Mijn reflectie</h1>
 <div class="meta">${datum} · Talk To Benji</div>
-${VRAGEN.map((v, i) => `<div class="entry">
-  <div class="vraag">${v}</div>
+${VRAGEN.map(({ vraag }, i) => `<div class="entry">
+  <div class="vraag">${vraag}</div>
   <div class="antwoord">${antwoorden[i].trim() ? esc(antwoorden[i].trim()) : "<em style='color:#a0aec0'>— niet ingevuld</em>"}</div>
 </div>`).join("")}
 </body>
 </html>`;
+    return html;
+  };
+
+  const handleDownloadEnBenji = () => {
+    const blob = new Blob([buildHtml()], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "mijn-reflectie.html";
+    a.click();
+    URL.revokeObjectURL(url);
+    setTimeout(() => router.push("/"), 400);
+  };
+
+  const handlePrint = () => {
     const win = window.open("", "_blank");
-    if (win) { win.document.write(html); win.document.close(); win.focus(); setTimeout(() => win.print(), 300); }
+    if (win) { win.document.write(buildHtml()); win.document.close(); win.focus(); setTimeout(() => win.print(), 300); }
   };
 
   return (
@@ -88,14 +114,14 @@ ${VRAGEN.map((v, i) => `<div class="entry">
         <p className="text-base text-stone-500 mb-5">Neem even de tijd voor jezelf. Je hoeft niets te delen.</p>
 
         <div className="space-y-5">
-          {VRAGEN.map((vraag, i) => (
+          {VRAGEN.map(({ vraag, placeholder }, i) => (
             <div key={i}>
               <p className="text-sm font-semibold text-stone-700 mb-2">{vraag}</p>
               <div className="relative">
                 <textarea
                   value={antwoorden[i]}
                   onChange={(e) => setAntwoord(i, e.target.value)}
-                  placeholder="Schrijf hier wat er in je opkomt…"
+                  placeholder={placeholder}
                   rows={3}
                   className="w-full px-4 py-3 pr-10 rounded-xl border border-primary-200 bg-white text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none leading-relaxed"
                 />
@@ -121,22 +147,23 @@ ${VRAGEN.map((v, i) => `<div class="entry">
 
       <div className="px-6 pb-6 pt-2 flex flex-col sm:flex-row items-start sm:items-center gap-3">
         {ingevuld ? (
-          <>
+          <div className="flex flex-col items-start gap-2">
+            <button
+              type="button"
+              onClick={handleDownloadEnBenji}
+              className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+            >
+              Bewaar mijn gedachten en praat verder met Benji →
+            </button>
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-stone-400 hover:text-stone-600 transition-colors"
             >
-              <Printer size={15} />
-              Opslaan of afdrukken
+              <Printer size={14} />
+              Alleen downloaden
             </button>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-800 font-medium transition-colors"
-            >
-              Praat verder met Benji →
-            </Link>
-          </>
+          </div>
         ) : (
           <Link
             href="/"
