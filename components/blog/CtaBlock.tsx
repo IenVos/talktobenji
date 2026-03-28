@@ -7,6 +7,7 @@ export type CtaData = {
   buttonText: string;
   footnote?: string;
   showImage: boolean;
+  imageUrl?: string | null;
   bgColor?: string;
   borderColor?: string;
   buttonColor?: string;
@@ -56,11 +57,11 @@ function CtaBlockInner({ data }: { data: CtaData }) {
         </p>
       </div>
 
-      {data.showImage && (
+      {(data.imageUrl || data.showImage) && (
         <div className="px-6 pb-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/app-screenshot.png"
+            src={data.imageUrl || "/images/app-screenshot.png"}
             alt="Talk To Benji"
             className="w-full rounded-xl border border-stone-200 shadow-sm"
           />

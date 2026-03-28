@@ -106,7 +106,8 @@ export default function ZoekwoordenPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left px-5 py-2 text-xs font-medium text-gray-500 w-1/2">Artikel</th>
+                    <th className="text-left px-5 py-2 text-xs font-medium text-gray-500 w-2/5">Artikel</th>
+                    <th className="text-left px-5 py-2 text-xs font-medium text-gray-500">Tags</th>
                     <th className="text-left px-5 py-2 text-xs font-medium text-gray-500">Focuszoekwoord</th>
                     <th className="px-5 py-2 text-xs font-medium text-gray-500 text-right">Status</th>
                   </tr>
@@ -122,6 +123,16 @@ export default function ZoekwoordenPage() {
                             <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-primary-600 flex-shrink-0">
                               <ExternalLink size={12} />
                             </a>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {post.tags?.length > 0
+                              ? post.tags.map((tag: string) => (
+                                  <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-full">{tag}</span>
+                                ))
+                              : <span className="text-xs text-gray-300">—</span>
+                            }
                           </div>
                         </td>
                         <td className="px-5 py-3">
@@ -162,12 +173,22 @@ export default function ZoekwoordenPage() {
                 const kwDuplicate = post.focusKeyword && duplicates.has(post.focusKeyword.toLowerCase().trim());
                 return (
                   <tr key={post._id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="px-5 py-3 w-1/2">
+                    <td className="px-5 py-3 w-2/5">
                       <div className="flex items-center gap-2">
                         <span className="text-gray-800">{post.title}</span>
                         <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-primary-600">
                           <ExternalLink size={12} />
                         </a>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {post.tags?.length > 0
+                          ? post.tags.map((tag: string) => (
+                              <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-full">{tag}</span>
+                            ))
+                          : <span className="text-xs text-gray-300">—</span>
+                        }
                       </div>
                     </td>
                     <td className="px-5 py-3">

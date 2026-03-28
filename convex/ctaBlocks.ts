@@ -6,7 +6,11 @@ export const list = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    return ctx.db.query("ctaBlocks").order("asc").collect();
+    const blocks = await ctx.db.query("ctaBlocks").order("asc").collect();
+    return await Promise.all(blocks.map(async (b) => ({
+      ...b,
+      imageUrl: b.imageStorageId ? await ctx.storage.getUrl(b.imageStorageId).catch(() => null) : null,
+    })));
   },
 });
 
@@ -21,7 +25,27 @@ export const getByKey = query({
 export const listAll = query({
   args: {},
   handler: async (ctx) => {
-    return ctx.db.query("ctaBlocks").collect();
+    const blocks = await ctx.db.query("ctaBlocks").collect();
+    return await Promise.all(blocks.map(async (b) => ({
+      ...b,
+      imageUrl: b.imageStorageId ? await ctx.storage.getUrl(b.imageStorageId).catch(() => null) : null,
+    })));
+  },
+});
+
+export const generateUploadUrl = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.generateUploadUrl();
+  },
+});
+
+export const getImageUrl = mutation({
+  args: { adminToken: v.string(), storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.getUrl(args.storageId);
   },
 });
 
@@ -37,6 +61,7 @@ export const save = mutation({
     buttonText: v.string(),
     footnote: v.optional(v.string()),
     showImage: v.boolean(),
+    imageStorageId: v.optional(v.id("_storage")),
     bgColor: v.optional(v.string()),
     borderColor: v.optional(v.string()),
     buttonColor: v.optional(v.string()),

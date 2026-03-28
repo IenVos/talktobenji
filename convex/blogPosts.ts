@@ -91,6 +91,7 @@ export const create = mutation({
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),
     ctaKey: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -111,6 +112,7 @@ export const create = mutation({
       sources: args.sources,
       focusKeyword: args.focusKeyword,
       ctaKey: args.ctaKey,
+      tags: args.tags,
       kbSynced: false,
       createdAt: now,
       updatedAt: now,
@@ -139,6 +141,7 @@ export const update = mutation({
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),
     ctaKey: v.optional(v.string()),
+    tags: v.optional(v.array(v.string())),
     kbSynced: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {

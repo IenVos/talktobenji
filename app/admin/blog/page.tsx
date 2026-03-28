@@ -30,6 +30,7 @@ type FormState = {
   internalLinks: InternalLink[];
   coverImageStorageId?: Id<"_storage">;
   coverImageFile: File | null;
+  tags: string[];
 };
 
 const EMPTY_FORM: FormState = {
@@ -49,6 +50,7 @@ const EMPTY_FORM: FormState = {
   internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
   coverImageStorageId: undefined,
   coverImageFile: null,
+  tags: [],
 };
 
 function slugify(text: string) {
@@ -77,6 +79,7 @@ export default function AdminBlogPage() {
   const [editingId, setEditingId] = useState<Id<"blogPosts"> | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [tagInput, setTagInput] = useState("");
   const [syncingForm, setSyncingForm] = useState(false);
   const [syncFormDone, setSyncFormDone] = useState(false);
   const [syncing, setSyncing] = useState<Id<"blogPosts"> | null>(null);
@@ -240,6 +243,7 @@ export default function AdminBlogPage() {
       coverImageFile: null,
       pillarSlug: post.pillarSlug ?? "",
       ctaKey: post.ctaKey ?? "",
+      tags: post.tags ?? [],
     });
     setCoverPreview(post.coverImageUrl ?? null);
     setEditingId(post._id);
@@ -305,6 +309,7 @@ export default function AdminBlogPage() {
       internalLinks: internalLinks.length ? internalLinks : [],
       pillarSlug: form.pillarSlug.trim(),
       ctaKey: form.ctaKey.trim() || undefined,
+      tags: form.tags.length ? form.tags : undefined,
       sources: form.sources.trim(),
       focusKeyword: form.focusKeyword.trim() || undefined,
     };
@@ -455,6 +460,46 @@ export default function AdminBlogPage() {
               />
             </div>
 
+            {/* Tags */}
+            <div>
+              <label className={labelSmClass}>
+                Tags <span className="text-gray-400">(thema-labels voor later groeperen — typ en druk Enter of komma)</span>
+              </label>
+              <div className={`${inputClass} flex flex-wrap gap-1.5 min-h-[38px] cursor-text`}
+                onClick={() => document.getElementById("tag-input")?.focus()}>
+                {form.tags.map((tag) => (
+                  <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary-100 text-primary-800 rounded-full text-xs font-medium">
+                    {tag}
+                    <button type="button" onClick={() => setForm((f) => ({ ...f, tags: f.tags.filter((t) => t !== tag) }))}
+                      className="text-primary-400 hover:text-primary-700 leading-none">×</button>
+                  </span>
+                ))}
+                <input
+                  id="tag-input"
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+                      e.preventDefault();
+                      const tag = tagInput.trim().toLowerCase().replace(/,/g, "");
+                      if (tag && !form.tags.includes(tag)) setForm((f) => ({ ...f, tags: [...f.tags, tag] }));
+                      setTagInput("");
+                    } else if (e.key === "Backspace" && !tagInput && form.tags.length) {
+                      setForm((f) => ({ ...f, tags: f.tags.slice(0, -1) }));
+                    }
+                  }}
+                  onBlur={() => {
+                    const tag = tagInput.trim().toLowerCase().replace(/,/g, "");
+                    if (tag && !form.tags.includes(tag)) setForm((f) => ({ ...f, tags: [...f.tags, tag] }));
+                    setTagInput("");
+                  }}
+                  placeholder={form.tags.length ? "" : "kinderloosheid, zwangerschap…"}
+                  className="flex-1 min-w-[120px] outline-none bg-transparent text-sm py-0.5"
+                />
+              </div>
+            </div>
+
             {/* Cover afbeelding */}
             <div>
               <label className={labelSmClass}>Omslagafbeelding</label>
@@ -543,6 +588,26 @@ export default function AdminBlogPage() {
                 onChange={set("focusKeyword")}
                 className={inputClass}
               />
+              {(() => {
+                const kw = form.focusKeyword.trim().toLowerCase();
+                if (!kw || kw.length < 3) return null;
+                const conflicts = [
+                  ...(posts ?? []).filter((p: any) => p._id !== editingId && p.focusKeyword?.trim().toLowerCase() === kw).map((p: any) => ({ type: "artikel", title: p.title })),
+                  ...(pillars ?? []).filter((p: any) => p.focusKeyword?.trim().toLowerCase() === kw).map((p: any) => ({ type: "pillar", title: p.title })),
+                ];
+                if (conflicts.length === 0) return null;
+                return (
+                  <div className="mt-1.5 flex items-start gap-1.5 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+                    <span className="text-red-500 text-xs mt-0.5">⚠</span>
+                    <p className="text-xs text-red-700">
+                      Al gebruikt in {conflicts.length === 1 ? "1 pagina" : `${conflicts.length} pagina's`}:{" "}
+                      {conflicts.map((c, i) => (
+                        <span key={i}><strong>{c.title}</strong>{i < conflicts.length - 1 ? ", " : ""}</span>
+                      ))}
+                    </p>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Importeer van Claude */}
@@ -842,6 +907,13 @@ export default function AdminBlogPage() {
                           )}
                         </div>
                         <h3 className="font-medium text-primary-900 line-clamp-1">{post.title}</h3>
+                        {post.tags?.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {post.tags.map((tag: string) => (
+                              <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-full">{tag}</span>
+                            ))}
+                          </div>
+                        )}
                         {post.excerpt && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{post.excerpt}</p>}
                       </div>
                       <div className="flex items-center gap-1 shrink-0">

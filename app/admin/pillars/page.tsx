@@ -51,6 +51,7 @@ function slugify(t: string) {
 export default function AdminPillarsPage() {
   const { adminToken } = useAdminAuth();
   const pillars = useAdminQuery(api.pillars.list, {});
+  const posts = useAdminQuery(api.blogPosts.list, {});
   const ctaBlocks = useAdminQuery(api.ctaBlocks.list, {});
   const createPillar = useAdminMutation(api.pillars.create);
   const updatePillar = useAdminMutation(api.pillars.update);
@@ -304,6 +305,26 @@ export default function AdminPillarsPage() {
                 <label className={labelSmClass}>Focuszoekwoord</label>
                 <input type="text" placeholder="bijv. rouw na verlies"
                   value={form.focusKeyword} onChange={set("focusKeyword")} className={inputClass} />
+                {(() => {
+                  const kw = form.focusKeyword.trim().toLowerCase();
+                  if (!kw || kw.length < 3) return null;
+                  const conflicts = [
+                    ...(pillars ?? []).filter((p: any) => p._id !== editingId && p.focusKeyword?.trim().toLowerCase() === kw).map((p: any) => ({ title: p.title })),
+                    ...(posts ?? []).filter((p: any) => p.focusKeyword?.trim().toLowerCase() === kw).map((p: any) => ({ title: p.title })),
+                  ];
+                  if (conflicts.length === 0) return null;
+                  return (
+                    <div className="mt-1.5 flex items-start gap-1.5 px-3 py-2 bg-red-50 border border-red-200 rounded-lg">
+                      <span className="text-red-500 text-xs mt-0.5">⚠</span>
+                      <p className="text-xs text-red-700">
+                        Al gebruikt in {conflicts.length === 1 ? "1 pagina" : `${conflicts.length} pagina's`}:{" "}
+                        {conflicts.map((c, i) => (
+                          <span key={i}><strong>{c.title}</strong>{i < conflicts.length - 1 ? ", " : ""}</span>
+                        ))}
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
               <div>
                 <label className={labelSmClass}>CTA blok</label>

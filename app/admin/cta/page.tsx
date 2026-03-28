@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAdminMutation, useAdminQuery, useAdminAuth } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { Plus, Edit, Trash2, Save, X, Eye, Image as ImageIcon } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Eye, Image as ImageIcon, Upload, Trash } from "lucide-react";
 
 type CtaForm = {
   key: string;
@@ -15,6 +15,8 @@ type CtaForm = {
   buttonText: string;
   footnote: string;
   showImage: boolean;
+  imageStorageId: Id<"_storage"> | null;
+  imagePreviewUrl: string | null;
   bgColor: string;
   borderColor: string;
   buttonColor: string;
@@ -29,6 +31,8 @@ const DEFAULTS: CtaForm = {
   buttonText: "Kijk of het bij je past",
   footnote: "7 dagen volledig toegang · geen creditcard nodig",
   showImage: false,
+  imageStorageId: null,
+  imagePreviewUrl: null,
   bgColor: "#f5f0eb",
   borderColor: "",
   buttonColor: "#6d84a8",
@@ -93,11 +97,11 @@ function CtaPreview({ form }: { form: CtaForm }) {
         </p>
       </div>
 
-      {form.showImage && (
+      {(form.imagePreviewUrl || form.showImage) && (
         <div className="px-6 pb-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/images/app-screenshot.png"
+            src={form.imagePreviewUrl || "/images/app-screenshot.png"}
             alt="Talk To Benji"
             className="w-full rounded-xl border border-stone-200 shadow-sm"
           />
@@ -123,12 +127,16 @@ export default function CtaAdminPage() {
   const blocks = useAdminQuery(api.ctaBlocks.list, {});
   const saveCta = useAdminMutation(api.ctaBlocks.save);
   const removeCta = useAdminMutation(api.ctaBlocks.remove);
+  const generateUploadUrl = useAdminMutation(api.ctaBlocks.generateUploadUrl);
+  const getImageUrl = useAdminMutation(api.ctaBlocks.getImageUrl);
 
   const [editingId, setEditingId] = useState<Id<"ctaBlocks"> | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<CtaForm>(DEFAULTS);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const inputClass = "w-full px-3 py-2 border border-primary-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
 
@@ -148,12 +156,27 @@ export default function CtaAdminPage() {
       buttonText: block.buttonText,
       footnote: block.footnote ?? "",
       showImage: block.showImage,
+      imageStorageId: block.imageStorageId ?? null,
+      imagePreviewUrl: block.imageUrl ?? null,
       bgColor: block.bgColor ?? "#f5f0eb",
       borderColor: block.borderColor ?? "",
       buttonColor: block.buttonColor ?? "#6d84a8",
     });
     setEditingId(block._id);
     setShowForm(true);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const uploadUrl = await generateUploadUrl({});
+      const res = await fetch(uploadUrl, { method: "POST", body: file, headers: { "Content-Type": file.type } });
+      const { storageId } = await res.json();
+      const url = await getImageUrl({ storageId });
+      setForm((f) => ({ ...f, imageStorageId: storageId, imagePreviewUrl: url }));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -170,6 +193,7 @@ export default function CtaAdminPage() {
         buttonText: form.buttonText.trim(),
         footnote: form.footnote.trim() || undefined,
         showImage: form.showImage,
+        imageStorageId: form.imageStorageId ?? undefined,
         bgColor: form.bgColor || undefined,
         borderColor: form.borderColor || undefined,
         buttonColor: form.buttonColor || undefined,
@@ -204,23 +228,6 @@ export default function CtaAdminPage() {
         </button>
       </div>
 
-      {/* Snelstart met presets */}
-      {(!blocks || blocks.length === 0) && !showForm && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-sm font-medium text-gray-700 mb-3">Snelstart — begin met een van de bestaande varianten:</p>
-          <div className="flex flex-wrap gap-3">
-            {PRESETS.map((p) => (
-              <button
-                key={p.label}
-                onClick={() => openNew(p.data)}
-                className="px-4 py-2 border border-primary-200 rounded-lg text-sm text-primary-700 hover:bg-primary-50"
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Bestaande CTA's */}
       {blocks && blocks.length > 0 && (
@@ -262,7 +269,8 @@ export default function CtaAdminPage() {
                   <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ background: block.buttonColor || "#6d84a8" }}>{block.buttonText}</span>
                   {block.bgColor && <span className="text-xs px-2 py-0.5 rounded-full border border-gray-200" style={{ background: block.bgColor }}>bg</span>}
                   {block.borderColor && <span className="text-xs px-2 py-0.5 rounded-full" style={{ border: `2px solid ${block.borderColor}`, color: block.borderColor }}>rand</span>}
-                  {block.showImage && <span className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full flex items-center gap-1"><ImageIcon size={10} /> Met screenshot</span>}
+                  {block.imageUrl && <span className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full flex items-center gap-1"><ImageIcon size={10} /> Eigen afbeelding</span>}
+                  {!block.imageUrl && block.showImage && <span className="text-xs px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full flex items-center gap-1"><ImageIcon size={10} /> App-screenshot</span>}
                 </div>
               </div>
 
@@ -279,6 +287,8 @@ export default function CtaAdminPage() {
                     buttonText: block.buttonText,
                     footnote: block.footnote ?? "",
                     showImage: block.showImage,
+                    imageStorageId: block.imageStorageId ?? null,
+                    imagePreviewUrl: block.imageUrl ?? null,
                     bgColor: block.bgColor ?? "#f5f0eb",
                     borderColor: block.borderColor ?? "",
                     buttonColor: block.buttonColor ?? "#6d84a8",
@@ -301,6 +311,23 @@ export default function CtaAdminPage() {
               <X size={18} />
             </button>
           </div>
+
+          {/* Presets — altijd beschikbaar bij nieuw */}
+          {!editingId && (
+            <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center gap-3 flex-wrap">
+              <span className="text-xs text-gray-400">Begin met een variant:</span>
+              {PRESETS.map((p) => (
+                <button
+                  key={p.label}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, ...p.data }))}
+                  className="px-3 py-1.5 border border-primary-200 rounded-lg text-xs text-primary-700 hover:bg-primary-50"
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
             {/* Formulier links */}
@@ -337,15 +364,52 @@ export default function CtaAdminPage() {
                   <input type="text" value={form.footnote} onChange={set("footnote")} placeholder="7 dagen gratis..." className={inputClass} />
                 </div>
               </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={form.showImage}
-                  onChange={(e) => setForm((f) => ({ ...f, showImage: e.target.checked }))}
-                  className="rounded"
-                />
-                <span className="text-sm text-gray-700">App-screenshot tonen</span>
-              </label>
+              {/* Afbeelding */}
+              <div className="border-t border-gray-100 pt-4 space-y-3">
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">Afbeelding</p>
+
+                {form.imagePreviewUrl ? (
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={form.imagePreviewUrl} alt="preview" className="w-full rounded-xl border border-gray-200 shadow-sm" />
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, imageStorageId: null, imagePreviewUrl: null }))}
+                      className="absolute top-2 right-2 p-1.5 bg-white rounded-full shadow border border-gray-200 text-gray-400 hover:text-red-600"
+                    >
+                      <Trash size={13} />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                      className="flex items-center gap-2 px-4 py-2.5 border border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-primary-400 hover:text-primary-600 w-full justify-center"
+                    >
+                      <Upload size={14} />
+                      {uploading ? "Uploaden..." : "Eigen afbeelding uploaden"}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }}
+                    />
+                    <label className="flex items-center gap-2 cursor-pointer mt-2">
+                      <input
+                        type="checkbox"
+                        checked={form.showImage}
+                        onChange={(e) => setForm((f) => ({ ...f, showImage: e.target.checked }))}
+                        className="rounded"
+                      />
+                      <span className="text-sm text-gray-700">Of toon standaard app-screenshot</span>
+                    </label>
+                  </div>
+                )}
+              </div>
 
               {/* Kleuren */}
               <div className="border-t border-gray-100 pt-4 space-y-3">

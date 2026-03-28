@@ -465,6 +465,7 @@ export default defineSchema({
     buttonText: v.string(),             // knoptekst
     footnote: v.optional(v.string()),   // kleine tekst onder de knop
     showImage: v.boolean(),             // toon app-screenshot
+    imageStorageId: v.optional(v.id("_storage")), // eigen afbeelding (overschrijft app-screenshot)
     bgColor: v.optional(v.string()),    // achtergrondkleur hex, bijv. "#f5f0eb"
     borderColor: v.optional(v.string()), // randkleur hex, leeg = geen rand
     buttonColor: v.optional(v.string()), // knopkleur hex, bijv. "#6d84a8"
@@ -739,6 +740,7 @@ export default defineSchema({
     sources: v.optional(v.string()),         // Bronnen (één per regel)
     focusKeyword: v.optional(v.string()),    // Primair zoekwoord
     ctaKey: v.optional(v.string()),          // Welke CTA te tonen, bijv. "blog_default"
+    tags: v.optional(v.array(v.string())),   // Inhoudelijke labels, bijv. ["kinderloosheid", "zwangerschap"]
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]).index("by_pillar", ["pillarSlug"]),
