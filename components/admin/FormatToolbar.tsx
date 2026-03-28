@@ -70,7 +70,7 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
   }
 
   return (
-    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 border border-primary-200 rounded-t-lg border-b-0 flex-wrap">
+    <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 border border-primary-200 rounded-t-lg border-b-0 flex-wrap sticky top-0 z-20 shadow-sm">
       <button type="button" title="Kop 1 (grote titel)" onClick={() => setHeading(ta(), value, "# ", onChange)} className={btnText}>
         H1
       </button>
