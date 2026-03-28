@@ -12,7 +12,7 @@ export function SiteFooter({ variant = "light" }: SiteFooterProps) {
 
   if (isDark) {
     return (
-      <footer className="bg-[#2d3748] px-5 py-8 text-center">
+      <footer className="bg-primary-900 px-5 py-8 text-center">
         <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-white/50 mb-4">
           <Link href="/faq" className="hover:text-white/80 transition-colors">Veelgestelde vragen</Link>
           <Link href="/privacy" className="hover:text-white/80 transition-colors">Privacy</Link>
