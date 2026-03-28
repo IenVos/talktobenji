@@ -38,7 +38,7 @@ const DEFAULTS: CtaForm = {
   buttonColor: "#6d84a8",
 };
 
-const BG_SWATCHES = ["#f5f0eb", "#eef2f7", "#f0f4ee", "#fdf4f7", "#f7f4ff", "#ffffff", "#1a1a2e", "#2d3748"];
+const BG_SWATCHES = ["#f5f0eb", "#fef3c7", "#eef2f7", "#f0f4ee", "#fdf4f7", "#f7f4ff", "#ffffff", "#1a1a2e", "#2d3748"];
 const BTN_SWATCHES = ["#6d84a8", "#4a7c59", "#c07a5a", "#7c6d9e", "#2563eb", "#d97706", "#374151", "#be185d"];
 
 const PRESETS: { label: string; data: Partial<CtaForm> }[] = [
@@ -56,6 +56,22 @@ const PRESETS: { label: string; data: Partial<CtaForm> }[] = [
       bgColor: "#f5f0eb",
       borderColor: "",
       buttonColor: "#6d84a8",
+    },
+  },
+  {
+    label: "Variant C — warm amber",
+    data: {
+      key: "amber_warm",
+      label: "Amber — warm & uitnodigend",
+      eyebrow: "Talk To Benji",
+      title: "Je hoeft het niet alleen te dragen.",
+      body: "Benji is er voor je — wanneer je even wil praten, stilstaan of gewoon niet meer weet waar je het zoeken moet.",
+      buttonText: "Kijk of het bij je past",
+      footnote: "7 dagen volledig toegang · geen creditcard nodig",
+      showImage: false,
+      bgColor: "#fef3c7",
+      borderColor: "#d97706",
+      buttonColor: "#d97706",
     },
   },
   {
