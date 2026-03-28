@@ -40,29 +40,36 @@ function renderInline(text: string): React.ReactNode {
   return parts;
 }
 
-function renderContent(content: string, ctaData?: any): React.ReactNode[] {
+function renderInlineCta(data: any, key: number) {
+  const bg = data?.bgColor || "#f5f0eb";
+  const btnColor = data?.buttonColor || "#6d84a8";
+  const borderStyle = data?.borderColor ? { border: `2px solid ${data.borderColor}` } : {};
+  return (
+    <div key={key} style={{ background: bg, borderRadius: "14px", padding: "20px 24px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const, ...borderStyle }}>
+      <div>
+        <p style={{ fontWeight: 600, fontSize: "15px", marginBottom: "2px", color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>{data?.title || "Wil je hierover praten?"}</p>
+        <p style={{ fontSize: "13px", color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>{data?.body || "Benji luistert — dag en nacht beschikbaar."}</p>
+      </div>
+      <a href="/" style={{ background: btnColor, color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
+        {data?.buttonText || "Begin een gesprek →"}
+      </a>
+    </div>
+  );
+}
+
+function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>): React.ReactNode[] {
   const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
   return blocks.map((block, i) => {
     // Extra witregel
     if (block.trim() === "__SPACER__") {
       return <div key={i} className="h-6" />;
     }
-    // Inline CTA blok — gebruikt de gekozen CTA van de pillar
-    if (block.trim() === "[cta]") {
-      const bg = ctaData?.bgColor || "#f5f0eb";
-      const btnColor = ctaData?.buttonColor || "#6d84a8";
-      const borderStyle = ctaData?.borderColor ? { border: `2px solid ${ctaData.borderColor}` } : {};
-      return (
-        <div key={i} style={{ background: bg, borderRadius: "14px", padding: "20px 24px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const, ...borderStyle }}>
-          <div>
-            <p style={{ fontWeight: 600, fontSize: "15px", marginBottom: "2px", color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>{ctaData?.title || "Wil je hierover praten?"}</p>
-            <p style={{ fontSize: "13px", color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>{ctaData?.body || "Benji luistert — dag en nacht beschikbaar."}</p>
-          </div>
-          <a href="/" style={{ background: btnColor, color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
-            {ctaData?.buttonText || "Begin een gesprek →"}
-          </a>
-        </div>
-      );
+    // Inline CTA: [cta] of [cta:key]
+    const ctaMatch = block.trim().match(/^\[cta(?::([^\]]+))?\]$/);
+    if (ctaMatch) {
+      const key = ctaMatch[1];
+      const data = key ? (ctaMap?.get(key) ?? ctaData) : ctaData;
+      return renderInlineCta(data, i);
     }
     if (block.startsWith("### ")) return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
     if (block.startsWith("## ")) return <h3 key={i} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{block.slice(3)}</h3>;
@@ -117,7 +124,9 @@ export default async function PillarPage({ params }: Props) {
 
   if (!pillar || !pillar.isLive) notFound();
 
-  const ctaData = await fetchQuery(api.ctaBlocks.getByKey, { key: (pillar as any).ctaKey || "pillar_default" }).catch(() => null);
+  const allCtas = await fetchQuery(api.ctaBlocks.listAll, {}).catch(() => [] as any[]);
+  const ctaMap = new Map((allCtas as any[]).map((c: any) => [c.key, c]));
+  const ctaData = ctaMap.get((pillar as any).ctaKey || "pillar_default") ?? ctaMap.get("pillar_default") ?? null;
 
   const pillarSchema = {
     "@context": "https://schema.org",
@@ -185,7 +194,7 @@ export default async function PillarPage({ params }: Props) {
         {/* Pillar content (optioneel) */}
         {pillar.content && (
           <div className="mb-12 space-y-5">
-            {renderContent(pillar.content, ctaData)}
+            {renderContent(pillar.content, ctaData, ctaMap)}
           </div>
         )}
 

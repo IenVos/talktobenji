@@ -329,6 +329,7 @@ export default function AdminPillarsPage() {
                 textareaRef={contentRef}
                 value={form.content}
                 onChange={(v) => setForm((f) => ({ ...f, content: v }))}
+                ctaBlocks={(ctaBlocks ?? []).map((c: any) => ({ key: c.key, label: c.label || c.key }))}
               />
               <textarea
                 ref={contentRef}

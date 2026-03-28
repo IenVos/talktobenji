@@ -17,6 +17,14 @@ export const getByKey = query({
   },
 });
 
+/** Publiek: alle CTA blokken (voor live pagina's) */
+export const listAll = query({
+  args: {},
+  handler: async (ctx) => {
+    return ctx.db.query("ctaBlocks").collect();
+  },
+});
+
 export const save = mutation({
   args: {
     adminToken: v.string(),

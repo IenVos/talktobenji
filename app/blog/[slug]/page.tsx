@@ -42,29 +42,36 @@ function extractTOC(content: string) {
     .map(b => ({ text: b.slice(3), id: headingId(b.slice(3)) }));
 }
 
-function renderContent(content: string, ctaData?: any) {
+function renderInlineCta(data: any, key: number) {
+  const bg = data?.bgColor || "#f5f0eb";
+  const btnColor = data?.buttonColor || "#6d84a8";
+  const borderStyle = data?.borderColor ? { border: `2px solid ${data.borderColor}` } : {};
+  return (
+    <div key={key} style={{ background: bg, borderRadius: "14px", padding: "20px 24px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const, ...borderStyle }}>
+      <div>
+        <p style={{ fontWeight: 600, fontSize: "15px", marginBottom: "2px", color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>{data?.title || "Wil je hierover praten?"}</p>
+        <p style={{ fontSize: "13px", color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>{data?.body || "Benji luistert — dag en nacht beschikbaar."}</p>
+      </div>
+      <a href="/" style={{ background: btnColor, color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
+        {data?.buttonText || "Begin een gesprek →"}
+      </a>
+    </div>
+  );
+}
+
+function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>) {
   const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
   return blocks.map((block, i) => {
     // Extra witregel
     if (block.trim() === "__SPACER__") {
       return <div key={i} className="h-6" />;
     }
-    // Inline CTA blok — gebruikt de gekozen CTA van het artikel
-    if (block.trim() === "[cta]") {
-      const bg = ctaData?.bgColor || "#f5f0eb";
-      const btnColor = ctaData?.buttonColor || "#6d84a8";
-      const borderStyle = ctaData?.borderColor ? { border: `2px solid ${ctaData.borderColor}` } : {};
-      return (
-        <div key={i} style={{ background: bg, borderRadius: "14px", padding: "20px 24px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const, ...borderStyle }}>
-          <div>
-            <p style={{ fontWeight: 600, fontSize: "15px", marginBottom: "2px", color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>{ctaData?.title || "Wil je hierover praten?"}</p>
-            <p style={{ fontSize: "13px", color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>{ctaData?.body || "Benji luistert — dag en nacht beschikbaar."}</p>
-          </div>
-          <a href="/" style={{ background: btnColor, color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
-            {ctaData?.buttonText || "Begin een gesprek →"}
-          </a>
-        </div>
-      );
+    // Inline CTA: [cta] of [cta:key]
+    const ctaMatch = block.trim().match(/^\[cta(?::([^\]]+))?\]$/);
+    if (ctaMatch) {
+      const key = ctaMatch[1];
+      const data = key ? (ctaMap?.get(key) ?? ctaData) : ctaData;
+      return renderInlineCta(data, i);
     }
     // Afbeelding
     const imgMatch = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
@@ -156,12 +163,14 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
   if (!post) notFound();
 
-  const [pillar, ctaData] = await Promise.all([
+  const [pillar, allCtas] = await Promise.all([
     post.pillarSlug
       ? fetchQuery(api.pillars.getBySlug, { slug: post.pillarSlug }).catch(() => null)
       : Promise.resolve(null),
-    fetchQuery(api.ctaBlocks.getByKey, { key: post.ctaKey || "blog_default" }).catch(() => null),
+    fetchQuery(api.ctaBlocks.listAll, {}).catch(() => [] as any[]),
   ]);
+  const ctaMap = new Map((allCtas as any[]).map((c: any) => [c.key, c]));
+  const ctaData = ctaMap.get(post.ctaKey || "blog_default") ?? ctaMap.get("blog_default") ?? null;
 
   // JSON-LD structured data voor Google (Article + FAQPage)
   const articleSchema = {
@@ -298,7 +307,7 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Inhoud */}
           <div className="space-y-5">
-            {renderContent(post.content, ctaData)}
+            {renderContent(post.content, ctaData, ctaMap)}
           </div>
 
           {/* Interne links */}

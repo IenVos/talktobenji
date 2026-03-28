@@ -1,11 +1,15 @@
 "use client";
 
-import { Bold, Italic, Quote, List } from "lucide-react";
+import { useState } from "react";
+import { Bold, Italic, Quote, List, ChevronDown } from "lucide-react";
+
+type CtaOption = { key: string; label: string };
 
 type Props = {
   textareaRef: React.RefObject<HTMLTextAreaElement>;
   value: string;
   onChange: (v: string) => void;
+  ctaBlocks?: CtaOption[];
 };
 
 function restoreScroll(ta: HTMLTextAreaElement, scrollTop: number, fn: () => void) {
@@ -49,10 +53,21 @@ function setHeading(ta: HTMLTextAreaElement, val: string, prefix: string, onChan
   requestAnimationFrame(() => ta.focus());
 }
 
-export function FormatToolbar({ textareaRef, value, onChange }: Props) {
+export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props) {
   const btn = "p-1.5 rounded hover:bg-primary-100 text-gray-600 hover:text-primary-700 transition-colors";
   const btnText = "px-1.5 py-1 rounded hover:bg-primary-100 text-gray-600 hover:text-primary-700 transition-colors text-xs font-bold leading-none";
   const ta = () => textareaRef.current!;
+  const [ctaOpen, setCtaOpen] = useState(false);
+
+  function insertCta(key?: string) {
+    const t = ta();
+    const scrollTop = t.scrollTop;
+    const s = t.selectionStart;
+    const block = key ? `\n\n[cta:${key}]\n\n` : "\n\n[cta]\n\n";
+    restoreScroll(t, scrollTop, () => onChange(value.slice(0, s) + block + value.slice(s)));
+    requestAnimationFrame(() => { t.focus(); t.setSelectionRange(s + block.length, s + block.length); });
+    setCtaOpen(false);
+  }
 
   return (
     <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 border border-primary-200 rounded-t-lg border-b-0 flex-wrap">
@@ -88,21 +103,51 @@ export function FormatToolbar({ textareaRef, value, onChange }: Props) {
         ✓
       </button>
       <div className="w-px h-4 bg-gray-300 mx-1" />
-      <button
-        type="button"
-        title="Inline CTA-blok invoegen"
-        onClick={() => {
-          const t = ta();
-          const scrollTop = t.scrollTop;
-          const s = t.selectionStart;
-          const block = "\n\n[cta]\n\n";
-          restoreScroll(t, scrollTop, () => onChange(value.slice(0, s) + block + value.slice(s)));
-          requestAnimationFrame(() => { t.focus(); t.setSelectionRange(s + block.length, s + block.length); });
-        }}
-        className="px-1.5 py-1 rounded hover:bg-amber-100 text-amber-700 hover:text-amber-800 transition-colors text-xs font-bold leading-none"
-      >
-        CTA
-      </button>
+      {/* CTA dropdown */}
+      <div className="relative">
+        <div className="flex items-center">
+          <button
+            type="button"
+            title="Standaard CTA invoegen"
+            onClick={() => insertCta()}
+            className="px-1.5 py-1 rounded-l hover:bg-amber-100 text-amber-700 hover:text-amber-800 transition-colors text-xs font-bold leading-none"
+          >
+            CTA
+          </button>
+          {ctaBlocks && ctaBlocks.length > 0 && (
+            <button
+              type="button"
+              title="Kies een specifieke CTA"
+              onClick={() => setCtaOpen((o) => !o)}
+              className="px-0.5 py-1 rounded-r hover:bg-amber-100 text-amber-600 hover:text-amber-800 transition-colors"
+            >
+              <ChevronDown size={11} />
+            </button>
+          )}
+        </div>
+        {ctaOpen && ctaBlocks && ctaBlocks.length > 0 && (
+          <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px]">
+            <button
+              type="button"
+              onClick={() => insertCta()}
+              className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-amber-50 hover:text-amber-800"
+            >
+              Standaard <span className="text-gray-400 font-mono">[cta]</span>
+            </button>
+            <div className="border-t border-gray-100 my-1" />
+            {ctaBlocks.map((c) => (
+              <button
+                key={c.key}
+                type="button"
+                onClick={() => insertCta(c.key)}
+                className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-amber-50 hover:text-amber-800"
+              >
+                {c.label} <span className="text-gray-400 font-mono text-[10px]">{c.key}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
