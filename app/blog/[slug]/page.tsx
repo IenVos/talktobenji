@@ -168,6 +168,17 @@ export default async function BlogPostPage({ params }: Props) {
       }
     : null;
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://talktobenji.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://talktobenji.com/blog" },
+      ...(pillar ? [{ "@type": "ListItem", position: 3, name: pillar.title, item: `https://talktobenji.com/thema/${pillar.slug}` }] : []),
+      { "@type": "ListItem", position: pillar ? 4 : 3, name: post.title, item: `https://talktobenji.com/blog/${post.slug}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-stone-50">
       <HeaderBar />
@@ -181,6 +192,10 @@ export default async function BlogPostPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
 
       <div className="max-w-2xl mx-auto px-4 py-12">
         {/* Breadcrumb */}
@@ -194,8 +209,6 @@ export default async function BlogPostPage({ params }: Props) {
               <Link href={`/thema/${pillar.slug}`} className="hover:text-primary-600 whitespace-nowrap">{pillar.title}</Link>
             </>
           )}
-          <span>›</span>
-          <span className="text-stone-500 line-clamp-1">{post.title}</span>
         </nav>
 
         {/* Header */}
@@ -219,6 +232,13 @@ export default async function BlogPostPage({ params }: Props) {
             )}
           </div>
           <h1 className="text-3xl font-bold text-stone-800 mb-6 leading-tight">{post.title}</h1>
+
+          {post.excerpt && (
+            <div className="mb-8 p-4 bg-primary-50 border-l-4 border-primary-400 rounded-r-xl">
+              <p className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-1">In het kort</p>
+              <p className="text-stone-600 leading-relaxed text-[15px]">{post.excerpt}</p>
+            </div>
+          )}
 
           {post.coverImageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
