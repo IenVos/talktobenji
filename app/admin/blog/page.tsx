@@ -22,6 +22,7 @@ type FormState = {
   metaDescription: string;
   pillarSlug: string;
   sources: string;
+  focusKeyword: string;
   publishedAt: string; // "YYYY-MM-DD"
   isLive: boolean;
   faqItems: FaqItem[];
@@ -39,6 +40,7 @@ const EMPTY_FORM: FormState = {
   metaDescription: "",
   pillarSlug: "",
   sources: "",
+  focusKeyword: "",
   publishedAt: new Date().toISOString().slice(0, 10),
   isLive: false,
   faqItems: [{ question: "", answer: "" }],
@@ -223,6 +225,7 @@ export default function AdminBlogPage() {
       excerpt: post.excerpt ?? "",
       metaDescription: post.metaDescription ?? "",
       sources: post.sources ?? "",
+      focusKeyword: post.focusKeyword ?? "",
       publishedAt: publishDate,
       isLive: post.isLive,
       faqItems: post.faqItems?.length ? post.faqItems : [{ question: "", answer: "" }],
@@ -298,6 +301,7 @@ export default function AdminBlogPage() {
       internalLinks: internalLinks.length ? internalLinks : [],
       pillarSlug: form.pillarSlug.trim(),
       sources: form.sources.trim(),
+      focusKeyword: form.focusKeyword.trim() || undefined,
     };
   };
 
@@ -522,6 +526,18 @@ export default function AdminBlogPage() {
                 />
                 <p className="text-xs text-gray-400 mt-0.5">{form.metaDescription.length}/155</p>
               </div>
+            </div>
+
+            {/* Focuszoekwoord */}
+            <div>
+              <label className={labelSmClass}>Focuszoekwoord <span className="text-gray-400">(primair zoekwoord — voor overzicht en duplicate-check)</span></label>
+              <input
+                type="text"
+                placeholder="Bijv. niet kunnen slapen van verdriet"
+                value={form.focusKeyword}
+                onChange={set("focusKeyword")}
+                className={inputClass}
+              />
             </div>
 
             {/* Importeer van Claude */}

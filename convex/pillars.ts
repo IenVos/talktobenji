@@ -89,6 +89,7 @@ export const create = mutation({
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     isLive: v.boolean(),
     sources: v.optional(v.string()),
+    focusKeyword: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -105,6 +106,7 @@ export const create = mutation({
       internalLinks: args.internalLinks,
       isLive: args.isLive,
       sources: args.sources,
+      focusKeyword: args.focusKeyword,
       createdAt: now,
       updatedAt: now,
     });
@@ -127,6 +129,7 @@ export const update = mutation({
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     isLive: v.optional(v.boolean()),
     sources: v.optional(v.string()),
+    focusKeyword: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

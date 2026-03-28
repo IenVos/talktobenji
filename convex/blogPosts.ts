@@ -89,6 +89,7 @@ export const create = mutation({
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     pillarSlug: v.optional(v.string()),
     sources: v.optional(v.string()),
+    focusKeyword: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -107,6 +108,7 @@ export const create = mutation({
       internalLinks: args.internalLinks,
       pillarSlug: args.pillarSlug,
       sources: args.sources,
+      focusKeyword: args.focusKeyword,
       kbSynced: false,
       createdAt: now,
       updatedAt: now,
@@ -133,6 +135,7 @@ export const update = mutation({
     internalLinks: v.optional(v.array(v.object({ label: v.string(), slug: v.string() }))),
     pillarSlug: v.optional(v.string()),
     sources: v.optional(v.string()),
+    focusKeyword: v.optional(v.string()),
     kbSynced: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {

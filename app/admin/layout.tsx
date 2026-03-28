@@ -207,6 +207,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/blog", label: "Blog artikelen", icon: Newspaper },
           { href: "/admin/pillars", label: "Pillar pagina's", icon: Layers },
           { href: "/admin/cta", label: "CTA blokken", icon: MousePointerClick },
+          { href: "/admin/zoekwoorden", label: "Zoekwoorden", icon: BarChart3 },
           { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
           { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping },
           { href: "/admin/testimonials", label: "Reviews", icon: Quote },

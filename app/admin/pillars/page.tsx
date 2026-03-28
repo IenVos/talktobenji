@@ -18,6 +18,7 @@ type FormState = {
   excerpt: string;
   content: string;
   sources: string;
+  focusKeyword: string;
   isLive: boolean;
   faqItems: FaqItem[];
   internalLinks: InternalLink[];
@@ -33,6 +34,7 @@ const EMPTY: FormState = {
   excerpt: "",
   content: "",
   sources: "",
+  focusKeyword: "",
   isLive: false,
   faqItems: [{ question: "", answer: "" }],
   internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
@@ -84,6 +86,7 @@ export default function AdminPillarsPage() {
       excerpt: p.excerpt ?? "",
       content: p.content ?? "",
       sources: p.sources ?? "",
+      focusKeyword: p.focusKeyword ?? "",
       isLive: p.isLive,
       faqItems: p.faqItems?.length ? p.faqItems : [{ question: "", answer: "" }],
       internalLinks: [
@@ -125,6 +128,7 @@ export default function AdminPillarsPage() {
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : [],
       isLive: form.isLive,
+      focusKeyword: form.focusKeyword.trim() || undefined,
       sources: form.sources.trim(),
     };
   };
@@ -370,6 +374,13 @@ export default function AdminPillarsPage() {
                 rows={3}
                 className={inputClass}
               />
+            </div>
+
+            {/* Focuszoekwoord */}
+            <div className="border-t border-primary-100 pt-4">
+              <label className={labelSmClass}>Focuszoekwoord <span className="text-gray-400">(één keyword waar deze pagina op scoort)</span></label>
+              <input type="text" placeholder="bijv. rouw na verlies"
+                value={form.focusKeyword} onChange={set("focusKeyword")} className={inputClass} />
             </div>
 
             {/* Live toggle */}
