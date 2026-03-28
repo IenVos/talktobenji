@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAdminMutation } from "../AdminAuthContext";
+import { useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import { FlaskConical, Mail, Clock, AlertTriangle, CheckCircle, Play, Star, Sparkles } from "lucide-react";
 
@@ -48,7 +48,7 @@ export default function TrialTestPage() {
   const setTrialState = useAdminMutation(api.trials.setTrialStateForTesting);
   const processTrials = useAdminMutation(api.trials.checkAndProcessTrials);
   const upgradeSubscription = useAdminMutation(api.trials.upgradeSubscriptionForTesting);
-  const sendTestWelcome = useAdminMutation(api.emails.sendTestWelcomeEmail);
+  const sendTestWelcome = useAdminAction(api.emails.sendTestWelcomeEmail);
 
   const handleSetState = async (state: typeof STATES[number]["key"]) => {
     if (!email.trim()) {
