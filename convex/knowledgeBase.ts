@@ -397,6 +397,29 @@ export const activateQuestion = mutation({
 });
 
 /**
+ * Verwijder duplicaten uit de kennisbank (houdt de oudste entry)
+ */
+export const deduplicateKb = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const all = await ctx.db.query("knowledgeBase").collect();
+    const seen = new Map<string, typeof all[0]>();
+    let deleted = 0;
+    for (const entry of all) {
+      const key = entry.question.trim().toLowerCase();
+      if (seen.has(key)) {
+        await ctx.db.delete(entry._id);
+        deleted++;
+      } else {
+        seen.set(key, entry);
+      }
+    }
+    return { deleted };
+  },
+});
+
+/**
  * Verwijder een Q&A permanent (gebruik met voorzichtigheid!)
  */
 export const deleteQuestion = mutation({

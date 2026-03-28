@@ -68,6 +68,8 @@ export default function AdminPillarsPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [syncingKb, setSyncingKb] = useState(false);
   const [syncKbDone, setSyncKbDone] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [importText, setImportText] = useState("");
   const [form, setForm] = useState<FormState>(EMPTY);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -194,6 +196,75 @@ export default function AdminPillarsPage() {
     } finally {
       setSyncingKb(false);
     }
+  };
+
+  const handleImport = () => {
+    const lines = importText.split("\n");
+    let title = "";
+    let seoTitle = "";
+    let metaDescription = "";
+    let bodyStart = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.startsWith("# ")) { title = line.slice(2).trim(); bodyStart = i + 1; continue; }
+      if (bodyStart > 0) {
+        const seoMatch = line.match(/^SEO-titel:\s*(.+)/i);
+        const metaMatch = line.match(/^Meta\s*description:\s*(.+)/i);
+        if (seoMatch) { seoTitle = seoMatch[1].trim(); continue; }
+        if (metaMatch) { metaDescription = metaMatch[1].trim(); continue; }
+        if (line.trim() && !seoMatch && !metaMatch) { bodyStart = i; break; }
+      }
+    }
+    const FAQ_HEADERS = /^##\s+(veelgestelde vragen|faq|vragen)/i;
+    const SOURCES_HEADERS = /^##\s+(bronnen|bronvermelding|referenties|literatuur)/i;
+    const body = lines.slice(bodyStart);
+    const contentLines: string[] = [];
+    const faqLines: string[] = [];
+    const sourcesLines: string[] = [];
+    let mode: "content" | "faq" | "sources" = "content";
+    for (const line of body) {
+      if (FAQ_HEADERS.test(line)) { mode = "faq"; continue; }
+      if (SOURCES_HEADERS.test(line)) { mode = "sources"; continue; }
+      if (/^##\s+/.test(line)) { mode = "content"; }
+      if (mode === "faq") faqLines.push(line);
+      else if (mode === "sources") sourcesLines.push(line);
+      else contentLines.push(line);
+    }
+    const faqItems: FaqItem[] = [];
+    let currentQ = "";
+    let currentA: string[] = [];
+    for (const line of faqLines) {
+      const boldQ = line.match(/^\*\*(.+\??)\*\*\s*$/);
+      const h3Q = line.match(/^###\s+(.+)/);
+      if (boldQ || h3Q) {
+        if (currentQ && currentA.join("").trim()) faqItems.push({ question: currentQ, answer: currentA.join("\n").trim() });
+        currentQ = (boldQ?.[1] || h3Q?.[1] || "").trim();
+        currentA = [];
+      } else { currentA.push(line); }
+    }
+    if (currentQ && currentA.join("").trim()) faqItems.push({ question: currentQ, answer: currentA.join("\n").trim() });
+    let excerpt = "";
+    const filteredContentLines: string[] = [];
+    const contentBlocks = contentLines.join("\n").split(/\n\n+/);
+    for (const block of contentBlocks) {
+      const trimmed = block.trim();
+      if (/^in het kort:/i.test(trimmed)) excerpt = trimmed.replace(/^in het kort:\s*/i, "").trim();
+      else filteredContentLines.push(trimmed);
+    }
+    const sources = sourcesLines.map((l) => l.replace(/^[-*]\s+/, "").trim()).filter(Boolean).join("\n");
+    setForm((f) => ({
+      ...f,
+      title: title && !f.title ? title : f.title,
+      slug: title && !f.slug ? slugify(title) : f.slug,
+      seoTitle: seoTitle || f.seoTitle,
+      metaDescription: metaDescription || f.metaDescription,
+      content: filteredContentLines.join("\n\n").replace(/^\n+/, "").trimEnd(),
+      excerpt: excerpt || f.excerpt,
+      faqItems: faqItems.length ? faqItems : f.faqItems,
+      sources: sources || f.sources,
+    }));
+    setImportText("");
+    setShowImport(false);
   };
 
   return (
@@ -351,6 +422,47 @@ export default function AdminPillarsPage() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            {/* Importeer van Claude of Koala */}
+            <div className="border border-primary-200 rounded-xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setShowImport((v) => !v)}
+                className="w-full flex items-center justify-between px-4 py-3 bg-primary-50 text-sm font-medium text-primary-800 hover:bg-primary-100 transition-colors"
+              >
+                <span>Importeer van Claude of Koala</span>
+                <span className="text-primary-400 text-xs">{showImport ? "▲ sluiten" : "▼ openen"}</span>
+              </button>
+              {showImport && (
+                <div className="p-4 space-y-3 bg-white">
+                  <p className="text-xs text-gray-500">Plak de volledige markdown-output van Claude of Koala. De eerste <code className="bg-gray-100 px-1 rounded"># Titel</code> gaat automatisch naar het titelveld (als dat nog leeg is).</p>
+                  <textarea
+                    value={importText}
+                    onChange={(e) => setImportText(e.target.value)}
+                    placeholder={"# Pillar titel\n\n## Inleiding\n\nPlak hier de Claude-output..."}
+                    rows={10}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs font-mono focus:outline-none focus:ring-2 focus:ring-primary-400 resize-y"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleImport}
+                      disabled={!importText.trim()}
+                      className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                    >
+                      Importeer naar content
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setImportText(""); setShowImport(false); }}
+                      className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm hover:bg-gray-200 transition-colors"
+                    >
+                      Annuleer
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Inhoud met toolbar */}
