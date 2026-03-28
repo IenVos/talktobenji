@@ -455,6 +455,19 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_active_order", ["isActive", "order"]),
 
+  // CTA blokken (bewerkbaar via admin, gebruikt op blog/pillar pagina's)
+  ctaBlocks: defineTable({
+    key: v.string(),                    // "blog_default", "pillar_default", of eigen naam
+    label: v.string(),                  // weergavenaam in admin
+    eyebrow: v.optional(v.string()),    // klein label bovenaan, bijv. "Talk To Benji"
+    title: v.string(),                  // grote koptekst
+    body: v.string(),                   // alinea tekst
+    buttonText: v.string(),             // knoptekst
+    footnote: v.optional(v.string()),   // kleine tekst onder de knop
+    showImage: v.boolean(),             // toon app-screenshot
+    updatedAt: v.number(),
+  }).index("by_key", ["key"]),
+
   // E-mail templates (bewerkbaar via admin)
   emailTemplates: defineTable({
     key: v.string(),      // "trial_day5" | "trial_day7"

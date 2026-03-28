@@ -12,7 +12,7 @@ import {
   Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3,
   MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell,
   ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp,
-  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield, Newspaper, Layers,
+  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield, Newspaper, Layers, MousePointerClick,
 } from "lucide-react";
 
 type NavItem = {
@@ -206,6 +206,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         items: [
           { href: "/admin/blog", label: "Blog artikelen", icon: Newspaper },
           { href: "/admin/pillars", label: "Pillar pagina's", icon: Layers },
+          { href: "/admin/cta", label: "CTA blokken", icon: MousePointerClick },
           { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
           { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping },
           { href: "/admin/testimonials", label: "Reviews", icon: Quote },
