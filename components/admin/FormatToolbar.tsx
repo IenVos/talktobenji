@@ -103,6 +103,23 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
         ✓
       </button>
       <div className="w-px h-4 bg-gray-300 mx-1" />
+      {/* Benji teaser */}
+      <button
+        type="button"
+        title="Reflectie-teaser invoegen"
+        onClick={() => {
+          const t = ta();
+          const scrollTop = t.scrollTop;
+          const s = t.selectionStart;
+          const block = "\n\n[benji:reflectie]\n\n";
+          restoreScroll(t, scrollTop, () => onChange(value.slice(0, s) + block + value.slice(s)));
+          requestAnimationFrame(() => { t.focus(); t.setSelectionRange(s + block.length, s + block.length); });
+        }}
+        className="px-1.5 py-1 rounded hover:bg-primary-100 text-primary-600 hover:text-primary-800 transition-colors text-xs font-bold leading-none"
+      >
+        Benji
+      </button>
+      <div className="w-px h-4 bg-gray-300 mx-1" />
       {/* CTA dropdown */}
       <div className="relative">
         <div className="flex items-center">
