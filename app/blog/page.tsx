@@ -69,7 +69,7 @@ export default async function BlogOverviewPage() {
           </ul>
         )}
       </div>
-      <SiteFooter variant="light" />
+      <SiteFooter variant="dark" />
     </div>
   );
 }
