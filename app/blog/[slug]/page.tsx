@@ -338,6 +338,29 @@ export default async function BlogPostPage({ params }: Props) {
           </div>
 
           {/* Interne links */}
+          {/* FAQ */}
+          {post.faqItems && post.faqItems.filter((f: any) => f.question && f.answer).length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-xl font-bold text-stone-800 mb-5">Veelgestelde vragen</h2>
+              <div className="space-y-3">
+                {post.faqItems.filter((f: any) => f.question && f.answer).map((faq: any, i: number) => (
+                  <details key={i} className="group bg-primary-50 rounded-xl border border-primary-100 p-5">
+                    <summary className="font-semibold text-stone-800 cursor-pointer list-none flex justify-between items-center">
+                      {faq.question}
+                      <span className="text-primary-400 ml-3 flex-shrink-0 group-open:rotate-180 transition-transform">↓</span>
+                    </summary>
+                    <div className="mt-3 space-y-2">
+                      {faq.answer.split("\n").filter(Boolean).map((line: string, j: number) => (
+                        <p key={j} className="text-stone-600 leading-relaxed text-sm">{line}</p>
+                      ))}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Lees ook */}
           {post.internalLinks && post.internalLinks.filter((l: any) => l.label && l.slug).length > 0 && (
             <div className="mt-10">
               <p className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-4">Lees ook</p>
@@ -352,28 +375,6 @@ export default async function BlogPostPage({ params }: Props) {
                       Lees verder →
                     </span>
                   </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* FAQ */}
-          {post.faqItems && post.faqItems.filter((f: any) => f.question && f.answer).length > 0 && (
-            <div className="mt-10">
-              <h2 className="text-xl font-bold text-stone-800 mb-5">Veelgestelde vragen</h2>
-              <div className="space-y-4">
-                {post.faqItems.filter((f: any) => f.question && f.answer).map((faq: any, i: number) => (
-                  <details key={i} className="group bg-white rounded-xl border border-stone-200 p-5">
-                    <summary className="font-semibold text-stone-800 cursor-pointer list-none flex justify-between items-center">
-                      {faq.question}
-                      <span className="text-stone-400 group-open:rotate-180 transition-transform">↓</span>
-                    </summary>
-                    <div className="mt-3 space-y-2">
-                      {faq.answer.split("\n").filter(Boolean).map((line: string, j: number) => (
-                        <p key={j} className="text-stone-600 leading-relaxed text-sm">{line}</p>
-                      ))}
-                    </div>
-                  </details>
                 ))}
               </div>
             </div>
