@@ -20,7 +20,7 @@ function FeaturePreview({ borderColor }: { borderColor: string }) {
     <div style={{ borderTopColor: borderColor }} className="border-t">
       <button type="button" onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between px-6 py-3 text-xs text-stone-400 hover:text-stone-600 hover:bg-black/5 transition-colors">
-        <span>Wat kun je nog meer met Benji?</span>
+        <span>Ontdek hoe Benji er op elk moment voor je is.</span>
         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
       {open && (
@@ -160,7 +160,7 @@ function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsn
           {!uitgebreid && vragen.length > 1 && (
             <button type="button" onClick={() => setUitgebreid(true)}
               className="text-xs text-stone-400 hover:text-stone-600 transition-colors flex items-center gap-1">
-              <ChevronDown size={13} /> Er is nog meer ruimte, als je wilt
+              <ChevronDown size={13} /> Voor als je hart vandaag wat voller is...
             </button>
           )}
         </div>
