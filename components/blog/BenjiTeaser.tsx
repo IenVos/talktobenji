@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mic, Square, Download, ChevronDown, ChevronUp, PenLine, Smile, CalendarCheck, Gem, Moon } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 // ─── Shared feature preview ──────────────────────────────────────────────────
 
@@ -213,91 +215,100 @@ const THEME_VIOLET: Theme = {
   micBg: "bg-violet-100",
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const THEMES: Record<string, Theme> = {
+  primary: THEME_PRIMARY,
+  amber: THEME_AMBER,
+  teal: THEME_TEAL,
+  violet: THEME_VIOLET,
+};
+
+type DefaultConfig = { label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; vragen: Vraag[] };
+
+function useTeaserConfig(type: string, defaults: DefaultConfig) {
+  const db = useQuery(api.benjiTeasers.getByType, { type });
+  const config = db ?? defaults;
+  return {
+    label: config.label,
+    intro: config.intro,
+    theme: THEMES[config.themeKey] ?? THEME_PRIMARY,
+    downloadTitel: config.downloadTitel,
+    bestandsnaam: config.bestandsnaam,
+    vragen: config.vragen,
+  };
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 export function BenjiTeaserReflectie() {
-  return (
-    <BenjiTeaserForm
-      label="Korte reflectie"
-      intro="Neem even de tijd voor jezelf. Je hoeft niets te delen."
-      theme={THEME_PRIMARY}
-      downloadTitel="Mijn reflectie"
-      bestandsnaam="mijn-reflectie.html"
-      vragen={[
-        { vraag: "Wat draag je vandaag met je mee dat je nog niet hardop hebt gezegd?", placeholder: "Misschien iets wat je al een tijdje met je meedraagt…" },
-        { vraag: "Wat heeft je de laatste tijd het meeste energie gekost?",             placeholder: "Een situatie, een gevoel, of iemand in je omgeving…" },
-        { vraag: "Wat heb je nodig — van jezelf of van anderen?",                       placeholder: "Rust, ruimte, begrip, of gewoon gehoord worden…" },
-      ]}
-    />
-  );
+  const cfg = useTeaserConfig("reflectie", {
+    label: "Korte reflectie", themeKey: "primary",
+    intro: "Neem even de tijd voor jezelf. Je hoeft niets te delen.",
+    downloadTitel: "Mijn reflectie", bestandsnaam: "mijn-reflectie.html",
+    vragen: [
+      { vraag: "Wat draag je vandaag met je mee dat je nog niet hardop hebt gezegd?", placeholder: "Misschien iets wat je al een tijdje met je meedraagt…" },
+      { vraag: "Wat heeft je de laatste tijd het meeste energie gekost?",             placeholder: "Een situatie, een gevoel, of iemand in je omgeving…" },
+      { vraag: "Wat heb je nodig — van jezelf of van anderen?",                       placeholder: "Rust, ruimte, begrip, of gewoon gehoord worden…" },
+    ],
+  });
+  return <BenjiTeaserForm {...cfg} />;
 }
 
 export function BenjiTeaserHerinnering() {
-  return (
-    <BenjiTeaserForm
-      label="Een herinnering bewaren"
-      intro="Rouw voelt vaak als een onmogelijke berg. Laten we beginnen met één klein detail."
-      theme={THEME_VIOLET}
-      downloadTitel="Mijn herinnering"
-      bestandsnaam="mijn-herinnering.html"
-      vragen={[
-        { vraag: "Welk ding van degene die je mist wil je vandaag absoluut niet vergeten?", placeholder: "Een gebaar, een geur, een stem, een blik…" },
-        { vraag: "Wat deed die persoon dat jou altijd aan hem of haar herinnert?",           placeholder: "Een gewoontefje, een uitdrukking, iets wat hij of zij altijd zei…" },
-        { vraag: "Is er een moment dat je koestert en nooit wil loslaten?",                  placeholder: "Een dag, een uur, een blik die alles zei…" },
-      ]}
-    />
-  );
+  const cfg = useTeaserConfig("herinnering", {
+    label: "Een herinnering bewaren", themeKey: "violet",
+    intro: "Rouw voelt vaak als een onmogelijke berg. Laten we beginnen met één klein detail.",
+    downloadTitel: "Mijn herinnering", bestandsnaam: "mijn-herinnering.html",
+    vragen: [
+      { vraag: "Welk ding van degene die je mist wil je vandaag absoluut niet vergeten?", placeholder: "Een gebaar, een geur, een stem, een blik…" },
+      { vraag: "Wat deed die persoon dat jou altijd aan hem of haar herinnert?",           placeholder: "Een gewoontetje, een uitdrukking, iets wat hij of zij altijd zei…" },
+      { vraag: "Is er een moment dat je koestert en nooit wil loslaten?",                  placeholder: "Een dag, een uur, een blik die alles zei…" },
+    ],
+  });
+  return <BenjiTeaserForm {...cfg} />;
 }
 
 export function BenjiTeaserEmotie() {
-  return (
-    <BenjiTeaserForm
-      label="Emotie-tracker"
-      intro="Hoe voel je je vandaag — echt? Je hoeft het niet te verklaren, alleen te benoemen."
-      theme={THEME_AMBER}
-      downloadTitel="Mijn emoties vandaag"
-      bestandsnaam="mijn-emoties.html"
-      vragen={[
-        { vraag: "Hoe voel je je vandaag — echt?",                     placeholder: "Zwaar, leeg, verdrietig, oké, of iets anders…" },
-        { vraag: "Wat triggerde vandaag een gevoel bij je?",            placeholder: "Een herinnering, een situatie, een geur, een lied…" },
-        { vraag: "Wat hielp je vandaag, al was het maar even?",         placeholder: "Een kopje thee, een wandeling, een gesprek, een moment…" },
-      ]}
-    />
-  );
+  const cfg = useTeaserConfig("emotie", {
+    label: "Emotie-tracker", themeKey: "amber",
+    intro: "Hoe voel je je vandaag — echt? Je hoeft het niet te verklaren, alleen te benoemen.",
+    downloadTitel: "Mijn emoties vandaag", bestandsnaam: "mijn-emoties.html",
+    vragen: [
+      { vraag: "Hoe voel je je vandaag — echt?",          placeholder: "Zwaar, leeg, verdrietig, oké, of iets anders…" },
+      { vraag: "Wat triggerde vandaag een gevoel bij je?", placeholder: "Een herinnering, een situatie, een geur, een lied…" },
+      { vraag: "Wat hielp je vandaag, al was het maar even?", placeholder: "Een kopje thee, een wandeling, een gesprek, een moment…" },
+    ],
+  });
+  return <BenjiTeaserForm {...cfg} />;
 }
 
 export function BenjiTeaserCheckin() {
-  return (
-    <BenjiTeaserForm
-      label="Dagelijkse check-in"
-      intro="Korte vragen om je gedachten te ordenen. Je kunt dit zo vaak doen als je wil."
-      theme={THEME_TEAL}
-      downloadTitel="Mijn check-in"
-      bestandsnaam="mijn-checkin.html"
-      vragen={[
-        { vraag: "Hoe voel ik me vandaag?",       placeholder: "Beschrijf je stemming in je eigen woorden…" },
-        { vraag: "Wat hielp me vandaag?",          placeholder: "Groot of klein, het mag allemaal…" },
-        { vraag: "Waar ben ik dankbaar voor?",     placeholder: "Een persoon, een moment, iets simpels…" },
-      ]}
-    />
-  );
+  const cfg = useTeaserConfig("checkin", {
+    label: "Dagelijkse check-in", themeKey: "teal",
+    intro: "Korte vragen om je gedachten te ordenen. Je kunt dit zo vaak doen als je wil.",
+    downloadTitel: "Mijn check-in", bestandsnaam: "mijn-checkin.html",
+    vragen: [
+      { vraag: "Hoe voel ik me vandaag?",    placeholder: "Beschrijf je stemming in je eigen woorden…" },
+      { vraag: "Wat hielp me vandaag?",      placeholder: "Groot of klein, het mag allemaal…" },
+      { vraag: "Waar ben ik dankbaar voor?", placeholder: "Een persoon, een moment, iets simpels…" },
+    ],
+  });
+  return <BenjiTeaserForm {...cfg} />;
 }
 
 export function BenjiTeaserMemories() {
-  return (
-    <BenjiTeaserForm
-      label="Memories"
-      intro="Bewaar wat je niet wil vergeten. Het verdient een plekje."
-      theme={THEME_VIOLET}
-      downloadTitel="Mijn memories"
-      bestandsnaam="mijn-memories.html"
-      vragen={[
-        { vraag: "Welke herinnering wil je vandaag bewaren?",                        placeholder: "Een moment, een dag, een detail dat je bijblijft…" },
-        { vraag: "Hoe voelde die herinnering toen je eraan dacht?",                   placeholder: "Warm, pijnlijk, lief, gemengd…" },
-        { vraag: "Wat zou je tegen die persoon zeggen als je dat zou kunnen?",        placeholder: "Zeg het hier, voor jezelf…" },
-      ]}
-    />
-  );
+  const cfg = useTeaserConfig("memories", {
+    label: "Memories", themeKey: "violet",
+    intro: "Bewaar wat je niet wil vergeten. Het verdient een plekje.",
+    downloadTitel: "Mijn memories", bestandsnaam: "mijn-memories.html",
+    vragen: [
+      { vraag: "Welke herinnering wil je vandaag bewaren?",                 placeholder: "Een moment, een dag, een detail dat je bijblijft…" },
+      { vraag: "Hoe voelde die herinnering toen je eraan dacht?",            placeholder: "Warm, pijnlijk, lief, gemengd…" },
+      { vraag: "Wat zou je tegen die persoon zeggen als je dat zou kunnen?", placeholder: "Zeg het hier, voor jezelf…" },
+    ],
+  });
+  return <BenjiTeaserForm {...cfg} />;
 }
 
 export function BenjiTeaserLanding() {

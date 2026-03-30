@@ -745,6 +745,18 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]).index("by_pillar", ["pillarSlug"]),
 
+  // Benji teasers (interactieve blokken in blog/pillar artikelen)
+  benjiTeasers: defineTable({
+    type: v.string(),        // unieke sleutel: "reflectie", "herinnering", "emotie", etc.
+    label: v.string(),
+    intro: v.string(),
+    themeKey: v.string(),    // "primary" | "amber" | "teal" | "violet"
+    downloadTitel: v.string(),
+    bestandsnaam: v.string(),
+    vragen: v.array(v.object({ vraag: v.string(), placeholder: v.string() })),
+    updatedAt: v.number(),
+  }).index("by_type", ["type"]),
+
   // Reviews / testimonials (beheerbaar via admin, zichtbaar op homepage)
   testimonials: defineTable({
     name: v.string(),       // Weergavenaam, bijv. "Anne" of "Thomas, 34"
