@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import { Lock, AlertTriangle } from "lucide-react";
 
 export type CtaData = {
   eyebrow?: string;
@@ -16,9 +20,8 @@ export type CtaData = {
 const DEFAULT_A: CtaData = {
   eyebrow: "Talk To Benji",
   title: "Misschien is dit het moment.",
-  body: "Benji luistert — zonder oordeel, zonder haast. Er voor je overdag, 's avonds en midden in de nacht.",
+  body: "Benji luistert zonder oordeel, zonder haast. Is er altijd voor je.",
   buttonText: "Kijk of het bij je past",
-  footnote: "7 dagen volledig toegang · geen creditcard nodig",
   showImage: false,
 };
 
@@ -27,9 +30,58 @@ const DEFAULT_B: CtaData = {
   title: "Soms wil je gewoon ergens heen kunnen.",
   body: "Benji is er voor de momenten dat je het moeilijk hebt. Een gesprek, een dagelijkse check-in, herinneringen bewaren — op jouw tempo, wanneer jij er behoefte aan hebt.",
   buttonText: "Kijk of het bij je past",
-  footnote: "7 dagen volledig toegang · geen creditcard nodig",
   showImage: true,
 };
+
+function DisclaimerIcons({ bg }: { bg: string }) {
+  const [popup, setPopup] = useState<"lock" | "warning" | null>(null);
+  const color = "color-mix(in srgb, #000 35%, " + bg + ")";
+
+  return (
+    <div className="flex items-center justify-center gap-3">
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setPopup(popup === "lock" ? null : "lock")}
+          className="p-1 transition-opacity hover:opacity-70"
+          aria-label="Privacy"
+          style={{ color }}
+        >
+          <Lock size={12} />
+        </button>
+        {popup === "lock" && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setPopup(null)} />
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white text-gray-700 text-xs px-3 py-2 rounded-lg shadow-lg z-50 whitespace-nowrap">
+              Gesprekken zijn privé en beveiligd.
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white" />
+            </div>
+          </>
+        )}
+      </div>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setPopup(popup === "warning" ? null : "warning")}
+          className="p-1 transition-opacity hover:opacity-70"
+          aria-label="Disclaimer"
+          style={{ color }}
+        >
+          <AlertTriangle size={12} />
+        </button>
+        {popup === "warning" && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setPopup(null)} />
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white text-gray-700 text-xs px-3 py-2 rounded-lg shadow-lg z-50 whitespace-nowrap">
+              Geen vervanging van professionele hulp.
+              <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-white" />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function CtaBlockInner({ data }: { data: CtaData }) {
   const bg = data.bgColor || "#f5f0eb";
@@ -68,7 +120,7 @@ function CtaBlockInner({ data }: { data: CtaData }) {
         </div>
       )}
 
-      <div className="px-7 pb-7 pt-5 text-center">
+      <div className="px-7 pb-5 pt-5 text-center">
         <Link
           href="/"
           className="inline-block text-white text-sm font-semibold px-6 py-3 rounded-xl transition-opacity hover:opacity-90"
@@ -76,23 +128,9 @@ function CtaBlockInner({ data }: { data: CtaData }) {
         >
           {data.buttonText}
         </Link>
-        {data.footnote && (
-          <p className="text-xs mt-3" style={{ color: "color-mix(in srgb, #000 35%, " + bg + ")" }}>
-            {data.footnote}
-          </p>
-        )}
-      </div>
-
-      {/* Disclaimer — altijd onderaan */}
-      <div className="px-6 pb-5 flex flex-col items-center gap-1">
-        <span className="flex items-center gap-1.5 text-[11px]" style={{ color: "color-mix(in srgb, #000 30%, " + bg + ")" }}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Gesprekken zijn privé en beveiligd.
-        </span>
-        <span className="flex items-center gap-1.5 text-[11px]" style={{ color: "color-mix(in srgb, #000 30%, " + bg + ")" }}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-          Geen vervanging van professionele hulp.
-        </span>
+        <div className="mt-3">
+          <DisclaimerIcons bg={bg} />
+        </div>
       </div>
     </div>
   );

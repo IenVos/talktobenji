@@ -94,6 +94,7 @@ function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsn
   const [antwoorden, setAntwoorden] = useState(vragen.map(() => ""));
   const [speechSupported, setSpeechSupported] = useState(false);
   const [opnameIndex, setOpnameIndex] = useState<number | null>(null);
+  const [uitgebreid, setUitgebreid] = useState(false);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -136,23 +137,32 @@ function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsn
         <p className={`text-xs uppercase tracking-widest mb-1 ${theme.accent}`}>{label}</p>
         <p className="text-base text-stone-500 mb-5">{intro}</p>
         <div className="space-y-5">
-          {vragen.map(({ vraag, placeholder }, i) => (
-            <div key={i}>
-              <p className="text-sm font-semibold text-stone-700 mb-2">{vraag}</p>
-              <div className="relative">
-                <textarea value={antwoorden[i]} onChange={e => setAntwoord(i, e.target.value)}
-                  placeholder={placeholder} rows={3}
-                  className={`w-full px-4 py-3 pr-10 rounded-xl border bg-white text-sm text-stone-700 placeholder-stone-400 focus:outline-none resize-none leading-relaxed ${theme.border} ${theme.ring}`} />
-                {speechSupported && (
-                  <button type="button" onClick={() => toggleMic(i)}
-                    title={opnameIndex === i ? "Stop opname" : "Inspreken"}
-                    className={`absolute right-2 bottom-2 p-1.5 rounded-lg transition-colors ${opnameIndex === i ? "bg-red-100 text-red-600 hover:bg-red-200" : `${theme.micBg} ${theme.accent} hover:opacity-80`}`}>
-                    {opnameIndex === i ? <Square size={13} /> : <Mic size={13} />}
-                  </button>
-                )}
+          {vragen.map(({ vraag, placeholder }, i) => {
+            if (i > 0 && !uitgebreid) return null;
+            return (
+              <div key={i}>
+                <p className="text-sm font-semibold text-stone-700 mb-2">{vraag}</p>
+                <div className="relative">
+                  <textarea value={antwoorden[i]} onChange={e => setAntwoord(i, e.target.value)}
+                    placeholder={placeholder} rows={3}
+                    className={`w-full px-4 py-3 pr-10 rounded-xl border bg-white text-sm text-stone-700 placeholder-stone-400 focus:outline-none resize-none leading-relaxed ${theme.border} ${theme.ring}`} />
+                  {speechSupported && (
+                    <button type="button" onClick={() => toggleMic(i)}
+                      title={opnameIndex === i ? "Stop opname" : "Inspreken"}
+                      className={`absolute right-2 bottom-2 p-1.5 rounded-lg transition-colors ${opnameIndex === i ? "bg-red-100 text-red-600 hover:bg-red-200" : `${theme.micBg} ${theme.accent} hover:opacity-80`}`}>
+                      {opnameIndex === i ? <Square size={13} /> : <Mic size={13} />}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+          {!uitgebreid && vragen.length > 1 && (
+            <button type="button" onClick={() => setUitgebreid(true)}
+              className="text-xs text-stone-400 hover:text-stone-600 transition-colors flex items-center gap-1">
+              <ChevronDown size={13} /> Voeg nog {vragen.length - 1} {vragen.length - 1 === 1 ? "vraag" : "vragen"} toe
+            </button>
+          )}
         </div>
       </div>
 
