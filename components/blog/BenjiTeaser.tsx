@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mic, Square, Download, ChevronDown, ChevronUp, PenLine, Smile, CalendarCheck, Gem } from "lucide-react";
+import { Mic, Square, Download, ChevronDown, ChevronUp, PenLine, Smile, CalendarCheck, Gem, Moon } from "lucide-react";
 
 const FEATURES = [
   { icon: PenLine, kleur: "text-teal-600 bg-teal-50", naam: "Reflecties", omschrijving: "Schrijven of inspreken, wanneer je wil" },
@@ -242,6 +242,91 @@ export function BenjiTeaserReflectie() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+export function BenjiTeaserLanding() {
+  return (
+    <div className="my-8 rounded-2xl bg-stone-50 border border-stone-200 px-7 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+      <div className="flex-1">
+        <p className="text-[15px] text-stone-600 leading-relaxed">
+          Soms zijn woorden op een scherm te veel voor een hoofd dat vol zit met verdriet. Als lezen nu niet lukt, kun je direct je hart luchten bij Benji. Hij luistert terwijl jij je weg zoekt.
+        </p>
+      </div>
+      <Link
+        href="/"
+        className="shrink-0 inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap"
+      >
+        Praat direct met Benji
+      </Link>
+    </div>
+  );
+}
+
+export function BenjiTeaserHerinnering() {
+  const [tekst, setTekst] = useState("");
+
+  return (
+    <div className="my-10 rounded-2xl bg-primary-50 border border-primary-200 overflow-hidden">
+      <div className="px-6 pt-6 pb-4">
+        <p className="text-xs uppercase tracking-widest text-primary-500 mb-3">Een herinnering bewaren</p>
+        <p className="text-[15px] text-stone-600 leading-relaxed mb-5">
+          Rouw voelt vaak als een onmogelijke berg. Laten we beginnen met één klein detail. Welk ding van degene die je mist wil je vandaag absoluut niet vergeten? Schrijf het hieronder op om het een plekje te geven.
+        </p>
+        <textarea
+          value={tekst}
+          onChange={(e) => setTekst(e.target.value)}
+          placeholder="Typ hier je herinnering…"
+          rows={4}
+          className="w-full px-4 py-3 rounded-xl border border-primary-200 bg-white text-sm text-stone-700 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-none leading-relaxed"
+        />
+      </div>
+      <div className="px-6 pb-6 pt-2">
+        <Link
+          href="/"
+          className="inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+        >
+          {tekst.trim() ? "Deel dit met Benji →" : "Praat met Benji →"}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export function BenjiTeaserNacht() {
+  return (
+    <div className="my-10 rounded-2xl overflow-hidden relative" style={{ background: "linear-gradient(135deg, #1a1f2e 0%, #2d3561 60%, #1e2a4a 100%)" }}>
+      {/* Sterren decoratie */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden>
+        {["top-4 left-8", "top-6 right-12", "top-12 left-1/3", "top-3 right-1/3", "top-8 left-2/3"].map((pos, i) => (
+          <span key={i} className={`absolute ${pos} text-white/20 text-xs`}>✦</span>
+        ))}
+      </div>
+
+      <div className="relative px-7 pt-8 pb-3">
+        <div className="flex items-center gap-2 mb-5">
+          <Moon size={14} className="text-indigo-300" />
+          <p className="text-xs uppercase tracking-widest text-indigo-300">Midden in de nacht</p>
+        </div>
+        <p className="text-[17px] leading-relaxed text-white/90 mb-2">
+          Het is 03:00 uur en de wereld slaapt, maar jouw gedachten staan aan.
+        </p>
+        <p className="text-[17px] leading-relaxed text-white/70 mb-6">
+          Je wilt niemand wakker maken, maar je hart is vol. Benji is de luisteraar die nooit slaapt. Deel je gedachten nu, ongefilterd en in alle rust.
+        </p>
+        <Link
+          href="/"
+          className="inline-block text-sm font-semibold px-6 py-3 rounded-xl transition-opacity hover:opacity-90"
+          style={{ background: "#4f5fa8", color: "white" }}
+        >
+          Lucht nu je hart bij Benji
+        </Link>
+      </div>
+
+      <div className="relative px-7 pb-6 pt-4 border-t border-white/10 mt-4">
+        <p className="text-xs text-white/30">Benji luistert — zonder oordeel, zonder haast. Altijd.</p>
       </div>
     </div>
   );

@@ -88,6 +88,12 @@ export const createUserWithPassword = withSecretMutation({
     
     // Als er een orphaned user is (zonder credential), verwijder die eerst
     if (existingUser && !existingCred) {
+      // Verwijder ook de bijbehorende subscription zodat er geen dubbele ontstaan
+      const orphanedSub = await ctx.db
+        .query("userSubscriptions")
+        .withIndex("by_email", (q) => q.eq("email", emailLower))
+        .first();
+      if (orphanedSub) await ctx.db.delete(orphanedSub._id);
       await ctx.db.delete(existingUser._id);
     }
     

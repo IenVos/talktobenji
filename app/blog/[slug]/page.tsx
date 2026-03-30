@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { AuthorCard } from "@/components/blog/AuthorCard";
 import { CtaBlockB } from "@/components/blog/CtaBlock";
-import { BenjiTeaserReflectie } from "@/components/blog/BenjiTeaser";
+import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering } from "@/components/blog/BenjiTeaser";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const revalidate = 3600;
@@ -77,6 +77,9 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     const benjiMatch = block.trim().match(/^\[benji:([^\]]+)\]$/);
     if (benjiMatch) {
       if (benjiMatch[1] === "reflectie") return <BenjiTeaserReflectie key={i} />;
+      if (benjiMatch[1] === "nacht") return <BenjiTeaserNacht key={i} />;
+      if (benjiMatch[1] === "landing") return <BenjiTeaserLanding key={i} />;
+      if (benjiMatch[1] === "herinnering") return <BenjiTeaserHerinnering key={i} />;
     }
     // Inline CTA: [cta] of [cta:key]
     const ctaMatch = block.trim().match(/^\[cta(?::([^\]]+))?\]$/);
