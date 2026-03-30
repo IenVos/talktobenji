@@ -550,16 +550,6 @@ export default function CtaAdminPage() {
         </div>
       )}
 
-      {/* Uitleg hoe te gebruiken */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5">
-        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">Hoe gebruik je een CTA op een pagina?</p>
-        <p className="text-xs text-gray-500 mb-2">Geef de key van de gewenste CTA door aan de blog of pillar pagina. De huidige instellingen:</p>
-        <div className="space-y-1 font-mono text-xs bg-gray-50 rounded-lg p-3">
-          <p><span className="text-gray-400">Blog artikelen →</span> <span className="text-primary-700">CtaBlockB</span> <span className="text-gray-400">(key: blog_default)</span></p>
-          <p><span className="text-gray-400">Pillar pagina's →</span> <span className="text-primary-700">CtaBlockA</span> <span className="text-gray-400">(key: pillar_default)</span></p>
-        </div>
-        <p className="text-xs text-gray-400 mt-2">Vraag aan je developer om de key aan te passen als je wil wisselen.</p>
-      </div>
     </div>
   );
 }

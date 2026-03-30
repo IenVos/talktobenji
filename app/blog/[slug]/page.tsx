@@ -339,17 +339,21 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Interne links */}
           {post.internalLinks && post.internalLinks.filter((l: any) => l.label && l.slug).length > 0 && (
-            <div className="mt-10 p-5 bg-primary-50 rounded-2xl border border-primary-100">
-              <p className="text-sm font-semibold text-primary-800 mb-3">Lees ook</p>
-              <ul className="space-y-2">
+            <div className="mt-10">
+              <p className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-4">Lees ook</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {post.internalLinks.filter((l: any) => l.label && l.slug).map((link: any, i: number) => (
-                  <li key={i}>
-                    <Link href={`/blog/${link.slug}`} className="text-primary-600 hover:underline text-sm">
-                      → {link.label}
-                    </Link>
-                  </li>
+                  <Link key={i} href={`/blog/${link.slug}`}
+                    className="group bg-white rounded-2xl border border-stone-200 p-5 hover:shadow-md transition-shadow">
+                    <p className="font-semibold text-stone-800 leading-snug mb-3 group-hover:text-primary-600 transition-colors text-sm">
+                      {link.label}
+                    </p>
+                    <span className="text-sm text-primary-600 border border-primary-200 px-3 py-1 rounded-lg inline-block">
+                      Lees verder →
+                    </span>
+                  </Link>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 

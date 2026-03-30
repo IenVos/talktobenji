@@ -41,7 +41,8 @@ export default function BenjiTeasersAdmin() {
   const [saving, setSaving] = useState(false);
   const [expandedType, setExpandedType] = useState<string | null>(null);
 
-  const dbMap = new Map((teasers ?? []).map((t: any) => [t.type, t]));
+  type TeaserDoc = { type: string; label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; vragen: Vraag[] };
+  const dbMap = new Map<string, TeaserDoc>((teasers ?? []).map((t: any) => [t.type, t as TeaserDoc]));
 
   function startNew() {
     setEditing({ ...EMPTY_FORM, vragen: EMPTY_FORM.vragen.map(v => ({ ...v })) });
