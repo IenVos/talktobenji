@@ -160,7 +160,7 @@ function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsn
           {!uitgebreid && vragen.length > 1 && (
             <button type="button" onClick={() => setUitgebreid(true)}
               className="text-xs text-stone-400 hover:text-stone-600 transition-colors flex items-center gap-1">
-              <ChevronDown size={13} /> Voeg nog {vragen.length - 1} {vragen.length - 1 === 1 ? "vraag" : "vragen"} toe
+              <ChevronDown size={13} /> Er is nog meer ruimte, als je wilt
             </button>
           )}
         </div>

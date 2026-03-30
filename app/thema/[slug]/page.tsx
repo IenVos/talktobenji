@@ -232,6 +232,17 @@ export default async function PillarPage({ params }: Props) {
           {pillar.metaDescription && (
             <p className="text-stone-500 text-lg leading-relaxed">{pillar.metaDescription}</p>
           )}
+
+          {(pillar as any).excerpt && (
+            <div className="mt-6 mb-2 p-4 bg-primary-50 border-l-4 border-primary-400 rounded-r-xl">
+              <p className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-2">In het kort</p>
+              <div className="space-y-2">
+                {(pillar as any).excerpt.split("\n").filter(Boolean).map((line: string, i: number) => (
+                  <p key={i} className="text-stone-600 leading-relaxed text-[15px]">{line}</p>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Pillar content (optioneel) */}
