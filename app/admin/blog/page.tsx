@@ -31,6 +31,7 @@ type FormState = {
   coverImageStorageId?: Id<"_storage">;
   coverImageFile: File | null;
   tags: string[];
+  anchorPhrases: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -51,6 +52,7 @@ const EMPTY_FORM: FormState = {
   coverImageStorageId: undefined,
   coverImageFile: null,
   tags: [],
+  anchorPhrases: "",
 };
 
 function slugify(text: string) {
@@ -244,6 +246,7 @@ export default function AdminBlogPage() {
       pillarSlug: post.pillarSlug ?? "",
       ctaKey: post.ctaKey ?? "",
       tags: post.tags ?? [],
+      anchorPhrases: (post as any).anchorPhrases?.join("\n") ?? "",
     });
     setCoverPreview(post.coverImageUrl ?? null);
     setEditingId(post._id);
@@ -316,6 +319,9 @@ export default function AdminBlogPage() {
       tags: form.tags.length ? form.tags : undefined,
       sources: form.sources.trim(),
       focusKeyword: form.focusKeyword.trim() || undefined,
+      anchorPhrases: form.anchorPhrases.trim()
+        ? form.anchorPhrases.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 3)
+        : undefined,
     };
   };
 
@@ -758,6 +764,20 @@ export default function AdminBlogPage() {
               ))}
             </div>
 
+            {/* Ankerzinnen */}
+            <div className="border-t border-primary-100 pt-4 space-y-2">
+              <label className={labelSmClass}>
+                Ankerzinnen <span className="text-gray-400 font-normal">(max 3 — één per regel, worden in andere artikelen automatisch een link naar dit artikel)</span>
+              </label>
+              <textarea
+                value={form.anchorPhrases}
+                onChange={e => setForm(f => ({ ...f, anchorPhrases: e.target.value }))}
+                rows={3}
+                placeholder={"niet kunnen slapen door rouw\nrouw en slaap\nwakker liggen van verdriet"}
+                className={inputClass}
+              />
+            </div>
+
             {/* Interne links */}
             <div className="border-t border-primary-100 pt-4 space-y-3">
               <p className="text-sm font-medium text-primary-900 flex items-center gap-2">
@@ -811,16 +831,30 @@ export default function AdminBlogPage() {
                 );
               })()}
               {/* Handmatige invoer (voor links buiten de pillar) */}
-              {form.internalLinks.map((link, i) => (
-                <div key={i} className="grid grid-cols-2 gap-2">
-                  <input type="text" placeholder={`Linktekst ${i + 1}`} value={link.label}
-                    onChange={(e) => setForm((f) => ({ ...f, internalLinks: f.internalLinks.map((l, j) => j === i ? { ...l, label: e.target.value } : l) }))}
-                    className={inputClass} />
-                  <input type="text" placeholder="slug-van-artikel" value={link.slug}
-                    onChange={(e) => setForm((f) => ({ ...f, internalLinks: f.internalLinks.map((l, j) => j === i ? { ...l, slug: e.target.value } : l) }))}
-                    className={inputClass} />
-                </div>
-              ))}
+              {form.internalLinks.map((link, i) => {
+                const linkedPost = link.slug.trim()
+                  ? (posts ?? []).find((p: any) => p.slug === link.slug.trim())
+                  : null;
+                const isCrossPillar = linkedPost && form.pillarSlug &&
+                  (linkedPost as any).pillarSlug !== form.pillarSlug;
+                return (
+                  <div key={i} className="space-y-1">
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="text" placeholder={`Linktekst ${i + 1}`} value={link.label}
+                        onChange={(e) => setForm((f) => ({ ...f, internalLinks: f.internalLinks.map((l, j) => j === i ? { ...l, label: e.target.value } : l) }))}
+                        className={inputClass} />
+                      <input type="text" placeholder="slug-van-artikel" value={link.slug}
+                        onChange={(e) => setForm((f) => ({ ...f, internalLinks: f.internalLinks.map((l, j) => j === i ? { ...l, slug: e.target.value } : l) }))}
+                        className={inputClass} />
+                    </div>
+                    {isCrossPillar && (
+                      <p className="text-xs text-amber-600 flex items-center gap-1">
+                        ⚠️ Deze link gaat buiten de pillar "{form.pillarSlug}" — naar "{(linkedPost as any).pillarSlug || "geen pillar"}". Bewust?
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Bronnen */}

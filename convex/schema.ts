@@ -741,6 +741,7 @@ export default defineSchema({
     focusKeyword: v.optional(v.string()),    // Primair zoekwoord
     ctaKey: v.optional(v.string()),          // Welke CTA te tonen, bijv. "blog_default"
     tags: v.optional(v.array(v.string())),   // Inhoudelijke labels, bijv. ["kinderloosheid", "zwangerschap"]
+    anchorPhrases: v.optional(v.array(v.string())), // Zinnen die in andere artikelen automatisch naar dit artikel linken
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]).index("by_pillar", ["pillarSlug"]),

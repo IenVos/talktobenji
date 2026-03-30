@@ -36,6 +36,21 @@ export const listPublished = query({
   },
 });
 
+/** Publiek: lichte dataset voor auto-linking (slug, title, pillarSlug, anchorPhrases) */
+export const listAnchorData = query({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const posts = await ctx.db.query("blogPosts")
+      .filter((q) => q.eq(q.field("isLive"), true))
+      .collect();
+    return posts
+      .filter((p) => !p.publishedAt || p.publishedAt <= now)
+      .filter((p) => p.anchorPhrases && p.anchorPhrases.length > 0)
+      .map((p) => ({ slug: p.slug, title: p.title, pillarSlug: p.pillarSlug ?? null, anchorPhrases: p.anchorPhrases! }));
+  },
+});
+
 /** Publiek: één post via slug */
 export const getBySlug = query({
   args: { slug: v.string() },
@@ -143,6 +158,7 @@ export const update = mutation({
     ctaKey: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     kbSynced: v.optional(v.boolean()),
+    anchorPhrases: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

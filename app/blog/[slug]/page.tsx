@@ -49,6 +49,36 @@ function extractTOC(content: string) {
     .map(b => ({ text: b.slice(3), id: headingId(b.slice(3)) }));
 }
 
+type AnchorEntry = { slug: string; pillarSlug: string | null; anchorPhrases: string[] };
+
+function applyAutoLinks(text: string, currentSlug: string, currentPillar: string | null, anchorData: AnchorEntry[], used: Set<string>): React.ReactNode {
+  // Bouw gesorteerde lijst: langste zinnen eerst (greedy matching)
+  const candidates = anchorData
+    .filter(a => a.slug !== currentSlug && (a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar)))
+    .flatMap(a => a.anchorPhrases.map(phrase => ({ phrase, slug: a.slug })))
+    .sort((a, b) => b.phrase.length - a.phrase.length);
+
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+
+  outer: while (remaining.length > 0) {
+    for (const { phrase, slug } of candidates) {
+      if (used.has(phrase)) continue;
+      const idx = remaining.toLowerCase().indexOf(phrase.toLowerCase());
+      if (idx === -1) continue;
+      if (idx > 0) parts.push(remaining.slice(0, idx));
+      used.add(phrase);
+      parts.push(<Link key={key++} href={`/blog/${slug}`} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{remaining.slice(idx, idx + phrase.length)}</Link>);
+      remaining = remaining.slice(idx + phrase.length);
+      continue outer;
+    }
+    parts.push(remaining);
+    break;
+  }
+  return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
+}
+
 function renderInlineCta(data: any, key: number) {
   const bg = data?.bgColor || "#f5f0eb";
   const btnColor = data?.buttonColor || "#6d84a8";
@@ -66,7 +96,12 @@ function renderInlineCta(data: any, key: number) {
   );
 }
 
-function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>) {
+function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>, anchorData?: AnchorEntry[], currentSlug?: string, currentPillar?: string | null) {
+  const used = new Set<string>();
+  const autoLink = (text: string) =>
+    anchorData?.length && currentSlug
+      ? applyAutoLinks(text, currentSlug, currentPillar ?? null, anchorData, used)
+      : text;
   const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
   return blocks.map((block, i) => {
     // Extra witregel
@@ -151,7 +186,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     return (
       <div key={i} className="space-y-3">
         {lines.map((line, j) => (
-          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{renderInline(line)}</p>
+          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{autoLink(line)}</p>
         ))}
       </div>
     );
@@ -181,11 +216,12 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
   if (!post) notFound();
 
-  const [pillar, allCtas] = await Promise.all([
+  const [pillar, allCtas, anchorData] = await Promise.all([
     post.pillarSlug
       ? fetchQuery(api.pillars.getBySlug, { slug: post.pillarSlug }).catch(() => null)
       : Promise.resolve(null),
     fetchQuery(api.ctaBlocks.listAll, {}).catch(() => [] as any[]),
+    fetchQuery(api.blogPosts.listAnchorData, {}).catch(() => [] as any[]),
   ]);
   const ctaMap = new Map((allCtas as any[]).map((c: any) => [c.key, c]));
   const ctaData = ctaMap.get(post.ctaKey || "blog_default") ?? ctaMap.get("blog_default") ?? null;
@@ -334,7 +370,7 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Inhoud */}
           <div className="space-y-5">
-            {renderContent(post.content, ctaData, ctaMap)}
+            {renderContent(post.content, ctaData, ctaMap, anchorData as AnchorEntry[], post.slug, post.pillarSlug ?? null)}
           </div>
 
           {/* Interne links */}
