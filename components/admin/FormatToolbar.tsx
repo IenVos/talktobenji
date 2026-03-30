@@ -119,7 +119,7 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
       >
         Benji
       </button>
-      {(["nacht", "herinnering", "landing"] as const).map((type) => (
+      {(["nacht", "herinnering", "landing", "emotie", "checkin", "memories"] as const).map((type) => (
         <button
           key={type}
           type="button"
