@@ -18,6 +18,7 @@ export default function WaaromBenjiPage() {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
       }}
     >
       <ScrollToTop />
