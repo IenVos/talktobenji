@@ -297,9 +297,9 @@ export default async function BlogPostPage({ params }: Props) {
           {post.excerpt && (
             <div className="mb-8 p-4 bg-primary-50 border-l-4 border-primary-400 rounded-r-xl">
               <p className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-2">In het kort</p>
-              <div className="space-y-2">
-                {post.excerpt.split("\n").filter(Boolean).map((line: string, i: number) => (
-                  <p key={i} className="text-stone-600 leading-relaxed text-[15px]">{line}</p>
+              <div className="space-y-3">
+                {post.excerpt.split("\n\n").filter(Boolean).map((para: string, i: number) => (
+                  <p key={i} className="text-stone-600 leading-relaxed text-[15px]" style={{ whiteSpace: "pre-line" }}>{para.trim()}</p>
                 ))}
               </div>
             </div>

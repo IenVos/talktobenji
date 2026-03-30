@@ -31,6 +31,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+function headingId(text: string) {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, "-").slice(0, 60);
+}
+
+function extractTOC(content: string) {
+  return content.replace(/\n{3,}/g, "\n\n").split(/\n\n+/)
+    .filter(b => b.startsWith("## "))
+    .map(b => ({ text: b.slice(3), id: headingId(b.slice(3)) }));
+}
+
 function renderInline(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
   const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]*)\))/g;
@@ -89,7 +99,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       return renderInlineCta(data, i);
     }
     if (block.startsWith("### ")) return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
-    if (block.startsWith("## ")) return <h3 key={i} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{block.slice(3)}</h3>;
+    if (block.startsWith("## ")) { const t = block.slice(3); return <h3 key={i} id={headingId(t)} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{t}</h3>; }
     if (block.startsWith("# ")) return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
     const lines = block.split("\n").filter(Boolean);
     if (lines.length > 0 && lines.every(l => l.startsWith("> "))) {
@@ -218,14 +228,6 @@ export default async function PillarPage({ params }: Props) {
 
         {/* Header */}
         <div className="mb-10">
-          {(pillar as any).coverImageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={(pillar as any).coverImageUrl}
-              alt={pillar.title}
-              className="w-full rounded-2xl mb-6 object-cover max-h-72"
-            />
-          )}
           <h1 className="text-3xl sm:text-4xl font-bold text-stone-800 mb-4 leading-tight">
             {pillar.title}
           </h1>
@@ -234,16 +236,43 @@ export default async function PillarPage({ params }: Props) {
           )}
 
           {(pillar as any).excerpt && (
-            <div className="mt-6 mb-2 p-4 bg-primary-50 border-l-4 border-primary-400 rounded-r-xl">
+            <div className="mt-6 mb-6 p-4 bg-primary-50 border-l-4 border-primary-400 rounded-r-xl">
               <p className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-2">In het kort</p>
-              <div className="space-y-2">
-                {(pillar as any).excerpt.split("\n").filter(Boolean).map((line: string, i: number) => (
-                  <p key={i} className="text-stone-600 leading-relaxed text-[15px]">{line}</p>
+              <div className="space-y-3">
+                {(pillar as any).excerpt.split("\n\n").filter(Boolean).map((para: string, i: number) => (
+                  <p key={i} className="text-stone-600 leading-relaxed text-[15px]" style={{ whiteSpace: "pre-line" }}>{para.trim()}</p>
                 ))}
               </div>
             </div>
           )}
+
+          {(pillar as any).coverImageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={(pillar as any).coverImageUrl}
+              alt={pillar.title}
+              className="w-full rounded-2xl mb-6 object-cover max-h-72"
+            />
+          )}
         </div>
+
+        {/* Inhoudsopgave */}
+        {pillar.content && (() => {
+          const toc = extractTOC(pillar.content!);
+          if (toc.length < 3) return null;
+          return (
+            <div className="mb-8 p-4 bg-stone-100 rounded-xl border border-stone-200">
+              <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">In dit artikel</p>
+              <ol className="space-y-1.5 list-decimal list-inside">
+                {toc.map((h, i) => (
+                  <li key={i}>
+                    <a href={`#${h.id}`} className="text-sm text-primary-600 hover:underline">{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          );
+        })()}
 
         {/* Pillar content (optioneel) */}
         {pillar.content && (

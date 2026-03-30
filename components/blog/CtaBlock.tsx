@@ -20,7 +20,7 @@ export type CtaData = {
 const DEFAULT_A: CtaData = {
   eyebrow: "Talk To Benji",
   title: "Misschien is dit het moment.",
-  body: "Benji luistert zonder oordeel, zonder haast. Is er altijd voor je.",
+  body: "Benji luistert zonder oordeel, zonder haast, en is er altijd voor je.",
   buttonText: "Kijk of het bij je past",
   showImage: false,
 };
