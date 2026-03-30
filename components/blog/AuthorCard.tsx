@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export function AuthorCard() {
   const [open, setOpen] = useState(false);
@@ -58,12 +59,23 @@ export function AuthorCard() {
             <p className="text-sm text-stone-600 leading-relaxed mb-4">
               Benji is er voor de momenten dat je iets kwijt wilt — zonder oordeel, zonder haast. Overdag, 's avonds, midden in de nacht. Geen vervanging van professionele hulp, maar een luisterend oor dat altijd beschikbaar is.
             </p>
-            <button
-              onClick={() => setOpen(false)}
-              className="w-full py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-sm font-medium transition-colors"
-            >
-              Sluiten
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setOpen(false)}
+                className="flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-sm font-medium transition-colors"
+              >
+                Sluiten
+              </button>
+              <Link
+                href="/waarom-benji"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2.5 bg-primary-50 hover:bg-primary-100 text-primary-700 rounded-xl text-sm font-medium transition-colors text-center"
+                onClick={() => setOpen(false)}
+              >
+                Lees meer →
+              </Link>
+            </div>
           </div>
         </div>
       )}

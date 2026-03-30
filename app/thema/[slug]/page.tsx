@@ -3,6 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CtaBlockA } from "@/components/blog/CtaBlock";
+import { AuthorCard } from "@/components/blog/AuthorCard";
 import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering, BenjiTeaserEmotie, BenjiTeaserCheckin, BenjiTeaserMemories } from "@/components/blog/BenjiTeaser";
 import { SiteFooter } from "@/components/SiteFooter";
 import type { Metadata } from "next";
@@ -231,9 +232,7 @@ export default async function PillarPage({ params }: Props) {
           <h1 className="text-3xl sm:text-4xl font-bold text-stone-800 mb-4 leading-tight">
             {pillar.title}
           </h1>
-          {pillar.metaDescription && (
-            <p className="text-stone-500 text-lg leading-relaxed">{pillar.metaDescription}</p>
-          )}
+          <AuthorCard />
 
           {(pillar as any).excerpt && (
             <div className="mt-6 mb-6 p-4 bg-primary-50 border-l-4 border-primary-400 rounded-r-xl">
@@ -365,23 +364,6 @@ export default async function PillarPage({ params }: Props) {
         {(articles as any[]).length === 0 && (
           <p className="text-stone-400 text-sm">Er zijn nog geen artikelen gepubliceerd onder dit thema.</p>
         )}
-
-        {/* Auteur */}
-        <div className="mt-12 p-5 bg-white rounded-2xl border border-stone-200 flex items-center gap-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/ien-founder.png"
-            alt="Ien"
-            className="w-16 h-16 rounded-full object-cover flex-shrink-0"
-          />
-          <div>
-            <p className="font-semibold text-stone-800 text-sm">Ien</p>
-            <p className="text-xs text-primary-600 mb-1">Founder van Talk To Benji</p>
-            <p className="text-sm text-stone-500 leading-relaxed">
-              Ien richtte Talk To Benji op na haar eigen ervaringen met verlies en rouw. Ze gelooft dat iedereen recht heeft op een luisterend oor — ook midden in de nacht.
-            </p>
-          </div>
-        </div>
 
         <CtaBlockA data={ctaData} />
       </div>

@@ -95,16 +95,16 @@ function CtaBlockInner({ data }: { data: CtaData }) {
       className="mt-12 rounded-2xl overflow-hidden"
       style={{ background: bg, ...borderStyle }}
     >
-      <div className="px-7 pt-8 pb-6 text-center">
+      <div className="px-7 pt-7 pb-4 text-center">
         {data.eyebrow && (
-          <p className="text-xs uppercase tracking-widest mb-4" style={{ color: "color-mix(in srgb, #000 40%, " + bg + ")" }}>
+          <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "color-mix(in srgb, #000 40%, " + bg + ")" }}>
             {data.eyebrow}
           </p>
         )}
-        <p className="text-xl font-semibold leading-snug mb-3" style={{ color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>
+        <p className="text-xl font-semibold leading-snug mb-2" style={{ color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>
           {data.title}
         </p>
-        <p className="text-[15px] leading-relaxed max-w-sm mx-auto mb-2" style={{ color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>
+        <p className="text-[15px] leading-relaxed max-w-[260px] mx-auto mb-0" style={{ color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>
           {data.body}
         </p>
       </div>
@@ -120,7 +120,7 @@ function CtaBlockInner({ data }: { data: CtaData }) {
         </div>
       )}
 
-      <div className="px-7 pb-5 pt-5 text-center">
+      <div className="px-7 pb-5 pt-4 text-center">
         <Link
           href="/"
           className="inline-block text-white text-sm font-semibold px-6 py-3 rounded-xl transition-opacity hover:opacity-90"
