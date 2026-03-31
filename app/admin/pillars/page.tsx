@@ -223,7 +223,13 @@ export default function AdminPillarsPage() {
   };
 
   const handleImport = () => {
-    const lines = importText.split("\n");
+    const lines = importText
+      .replace(/[—–]/g, " ")
+      .replace(/  +/g, " ")
+      .replace(/\n#{1,3} ?(vervolg|gerelateerde?|andere?|meer lezen|lees ook|suggesties|volgende|related)[^\n]*/gi, "\n__STRIP__")
+      .replace(/\n__STRIP__[\s\S]*/i, "")
+      .trimEnd()
+      .split("\n");
     let title = "";
     let seoTitle = "";
     let metaDescription = "";

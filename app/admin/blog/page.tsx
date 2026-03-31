@@ -111,7 +111,12 @@ export default function AdminBlogPage() {
   const [importText, setImportText] = useState("");
 
   const handleImport = () => {
-    const raw = importText;
+    const raw = importText
+      .replace(/[—–]/g, " ")
+      .replace(/  +/g, " ")
+      .replace(/\n#{1,3} ?(vervolg|gerelateerde?|andere?|meer lezen|lees ook|suggesties|volgende|related)[^\n]*/gi, "\n__STRIP__")
+      .replace(/\n__STRIP__[\s\S]*/i, "")
+      .trimEnd();
     const lines = raw.split("\n");
 
     // 1. Titel, SEO-titel en meta description uit de header
