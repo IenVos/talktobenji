@@ -130,7 +130,7 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
   }
 
   return (
-    <div className="relative">
+    <>
       <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 border border-primary-200 rounded-t-lg border-b-0 flex-wrap sticky top-0 z-20 shadow-sm">
         {/* Headings */}
         <button type="button" title="Kop 1" onMouseDown={noFocus} onClick={() => setHeading(ta(), value, "# ", onChange)} className={btnText}>H1</button>
@@ -197,7 +197,7 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
           {benjiOpen && (
             <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[150px]">
               {BENJI_TYPES.map(({ type, label }) => (
-                <button key={type} type="button" onClick={() => insertBenji(type)}
+                <button key={type} type="button" onMouseDown={noFocus} onClick={() => insertBenji(type)}
                   className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-800">
                   {label} <span className="text-gray-400 font-mono text-[10px]">[benji:{type}]</span>
                 </button>
@@ -226,13 +226,13 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
           </div>
           {ctaOpen && ctaBlocks && ctaBlocks.length > 0 && (
             <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[160px]">
-              <button type="button" onClick={() => insertCta()}
+              <button type="button" onMouseDown={noFocus} onClick={() => insertCta()}
                 className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-amber-50 hover:text-amber-800">
                 Standaard <span className="text-gray-400 font-mono">[cta]</span>
               </button>
               <div className="border-t border-gray-100 my-1" />
               {ctaBlocks.map((c) => (
-                <button key={c.key} type="button" onClick={() => insertCta(c.key)}
+                <button key={c.key} type="button" onMouseDown={noFocus} onClick={() => insertCta(c.key)}
                   className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-amber-50 hover:text-amber-800">
                   {c.label} <span className="text-gray-400 font-mono text-[10px]">{c.key}</span>
                 </button>
@@ -246,6 +246,6 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
       {(ctaOpen || benjiOpen || linkOpen) && (
         <div className="fixed inset-0 z-40" onClick={() => { setCtaOpen(false); setBenjiOpen(false); setLinkOpen(false); }} />
       )}
-    </div>
+    </>
   );
 }
