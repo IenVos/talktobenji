@@ -436,7 +436,7 @@ export default async function BlogPostPage({ params }: Props) {
               <p className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-4">Lees ook</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {post.internalLinks.filter((l: any) => l.label && l.slug).map((link: any, i: number) => (
-                  <Link key={i} href={`/blog/${link.slug}`}
+                  <Link key={i} href={link.slug.startsWith("thema/") ? `/${link.slug}` : `/blog/${link.slug}`}
                     className="group bg-white rounded-2xl border border-stone-200 p-5 hover:shadow-md transition-shadow">
                     <p className="font-semibold text-stone-800 leading-snug mb-3 group-hover:text-primary-600 transition-colors text-sm">
                       {link.label}

@@ -909,9 +909,40 @@ export default function AdminBlogPage() {
                   </div>
                 );
               })()}
-              {/* Handmatige invoer (voor links buiten de pillar) */}
+              {/* Cross-pillar: link naar een andere pillar-pagina (bewust, 1x) */}
+              {(pillars ?? []).filter((p: any) => p.slug !== form.pillarSlug && p.isLive).length > 0 && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-2">
+                  <p className="text-xs font-medium text-amber-800">Bewust naar een ander thema linken:</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(pillars ?? [])
+                      .filter((p: any) => p.slug !== form.pillarSlug && p.isLive)
+                      .map((p: any) => {
+                        const slug = `thema/${p.slug}`;
+                        const isActive = form.internalLinks.some(l => l.slug === slug);
+                        return (
+                          <button key={p._id} type="button"
+                            onClick={() => {
+                              if (isActive) {
+                                setForm(f => ({ ...f, internalLinks: f.internalLinks.map(l => l.slug === slug ? { label: "", slug: "" } : l) }));
+                              } else {
+                                const emptyIdx = form.internalLinks.findIndex(l => !l.slug.trim());
+                                if (emptyIdx === -1) return;
+                                setForm(f => ({ ...f, internalLinks: f.internalLinks.map((l, j) => j === emptyIdx ? { label: p.title, slug } : l) }));
+                              }
+                            }}
+                            className={`px-2.5 py-1 text-xs rounded-full border transition-colors ${isActive ? "bg-amber-200 border-amber-400 text-amber-900 font-medium" : "bg-white border-amber-300 text-amber-700 hover:bg-amber-100"}`}>
+                            {isActive ? "✓ " : "+ "}{p.title}
+                          </button>
+                        );
+                      })}
+                  </div>
+                  <p className="text-[11px] text-amber-600">Auto-linking werkt nooit cross-silo — dit is de enige plek voor bewuste kruislinks.</p>
+                </div>
+              )}
+
+              {/* Handmatige invoer — voor blog slugs of eigen tekst */}
               {form.internalLinks.map((link, i) => {
-                const linkedPost = link.slug.trim()
+                const linkedPost = link.slug.trim() && !link.slug.startsWith("thema/")
                   ? (posts ?? []).find((p: any) => p.slug === link.slug.trim())
                   : null;
                 const isCrossPillar = linkedPost && form.pillarSlug &&
@@ -928,7 +959,7 @@ export default function AdminBlogPage() {
                     </div>
                     {isCrossPillar && (
                       <p className="text-xs text-amber-600 flex items-center gap-1">
-                        ⚠️ Deze link gaat buiten de pillar "{form.pillarSlug}" — naar "{(linkedPost as any).pillarSlug || "geen pillar"}". Bewust?
+                        ⚠️ Gaat naar pillar "{(linkedPost as any).pillarSlug || "geen pillar"}" — buiten jouw cluster. Bewust?
                       </p>
                     )}
                   </div>
