@@ -87,6 +87,18 @@ export const generateUploadUrl = mutation({
   },
 });
 
+// Genereer ankerzinnen automatisch uit titel + focuszoekwoord
+const STOP_NL = new Set(["de","het","een","en","of","in","van","aan","op","is","die","dat","te","ook","zijn","wat","hoe","er","naar","met","voor","door","bij","maar","als","om","tot","dan","zo","wel","niet","nog","je","ik","we","ze","hij","zij","haar","hun","hem"]);
+function autoAnchorPhrases(title: string, focusKeyword?: string): string[] {
+  const phrases: string[] = [];
+  if (focusKeyword?.trim()) phrases.push(focusKeyword.trim().toLowerCase());
+  const clean = title.toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim();
+  const words = clean.split(/\s+/).filter(w => w.length > 3 && !STOP_NL.has(w));
+  if (words.length >= 2) phrases.push(words.slice(0, Math.min(3, words.length)).join(" "));
+  if (words.length > 3) phrases.push(words.slice(words.length - 3).join(" "));
+  return [...new Set(phrases)].slice(0, 3).filter(Boolean);
+}
+
 /** Admin: nieuw artikel aanmaken */
 export const create = mutation({
   args: {
@@ -107,10 +119,15 @@ export const create = mutation({
     focusKeyword: v.optional(v.string()),
     ctaKey: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
+    anchorPhrases: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
     const now = Date.now();
+    // Auto-genereer ankerzinnen als niet meegegeven
+    const anchorPhrases = args.anchorPhrases?.length
+      ? args.anchorPhrases
+      : autoAnchorPhrases(args.title, args.focusKeyword);
     const id = await ctx.db.insert("blogPosts", {
       slug: args.slug,
       title: args.title,
@@ -128,6 +145,7 @@ export const create = mutation({
       focusKeyword: args.focusKeyword,
       ctaKey: args.ctaKey,
       tags: args.tags,
+      anchorPhrases: anchorPhrases.length ? anchorPhrases : undefined,
       kbSynced: false,
       createdAt: now,
       updatedAt: now,

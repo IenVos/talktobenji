@@ -42,20 +42,6 @@ function extractTOC(content: string) {
     .map(b => ({ text: b.slice(3), id: headingId(b.slice(3)) }));
 }
 
-function renderInline(text: string): React.ReactNode {
-  const parts: React.ReactNode[] = [];
-  const regex = /(\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]*)\))/g;
-  let last = 0, m;
-  while ((m = regex.exec(text)) !== null) {
-    if (m.index > last) parts.push(text.slice(last, m.index));
-    if (m[0].startsWith("**")) parts.push(<strong key={m.index} className="font-semibold text-stone-800">{m[2]}</strong>);
-    else if (m[0].startsWith("*")) parts.push(<em key={m.index}>{m[3]}</em>);
-    else parts.push(<a key={m.index} href={m[5]} className="text-primary-600 underline underline-offset-2">{m[4]}</a>);
-    last = m.index + m[0].length;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  return parts;
-}
 
 function renderInlineCta(data: any, key: number) {
   const bg = data?.bgColor || "#f5f0eb";
@@ -76,41 +62,67 @@ function renderInlineCta(data: any, key: number) {
 
 type AnchorEntry = { slug: string; pillarSlug?: string | null; anchorPhrases: string[]; isPillar?: boolean };
 
-function applyAutoLinks(text: string, currentSlug: string, currentPillar: string | null, anchorData: AnchorEntry[], used: Set<string>): React.ReactNode {
-  const candidates = anchorData
-    .filter(a => a.slug !== currentSlug && (
-      a.isPillar ||
-      (a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar))
-    ))
-    .flatMap(a => a.anchorPhrases.map(phrase => ({ phrase, slug: a.slug, isPillar: a.isPillar ?? false })))
-    .sort((a, b) => b.phrase.length - a.phrase.length);
-  const parts: React.ReactNode[] = [];
-  let remaining = text;
-  let key = 0;
-  outer: while (remaining.length > 0) {
+/** Verwerkt **vet**, *cursief*, [link](url) én auto-linking in één pass */
+function renderInlineAll(
+  text: string,
+  anchorData: AnchorEntry[] | undefined,
+  currentSlug: string | undefined,
+  currentPillar: string | null | undefined,
+  used: Set<string>
+): React.ReactNode {
+  type Seg = { start: number; end: number; node: React.ReactNode };
+  const segs: Seg[] = [];
+  const mdRe = /(\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]*)\))/g;
+  let m;
+  while ((m = mdRe.exec(text)) !== null) {
+    if (m[0].startsWith("**"))
+      segs.push({ start: m.index, end: m.index + m[0].length, node: <strong key={`b${m.index}`} className="font-semibold text-stone-800">{m[2]}</strong> });
+    else if (m[0].startsWith("*"))
+      segs.push({ start: m.index, end: m.index + m[0].length, node: <em key={`i${m.index}`}>{m[3]}</em> });
+    else
+      segs.push({ start: m.index, end: m.index + m[0].length, node: <a key={`l${m.index}`} href={m[5]} className="text-primary-600 underline underline-offset-2">{m[4]}</a> });
+  }
+  if (anchorData?.length && currentSlug) {
+    const candidates = anchorData
+      .filter(a => {
+        if (a.slug === currentSlug) return false;
+        if (a.isPillar) {
+          // Pillar-ankerzin linkt alleen binnen zijn eigen cluster
+          return currentPillar === a.slug;
+        }
+        // Blog-ankerzin linkt alleen binnen dezelfde pillar
+        return a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar);
+      })
+      .flatMap(a => a.anchorPhrases.map(p => ({ phrase: p, slug: a.slug, isPillar: a.isPillar ?? false })))
+      .sort((a, b) => b.phrase.length - a.phrase.length);
+    const lower = text.toLowerCase();
     for (const { phrase, slug, isPillar } of candidates) {
       if (used.has(phrase)) continue;
-      const idx = remaining.toLowerCase().indexOf(phrase.toLowerCase());
+      const idx = lower.indexOf(phrase.toLowerCase());
       if (idx === -1) continue;
-      if (idx > 0) parts.push(remaining.slice(0, idx));
+      if (segs.some(s => idx < s.end && idx + phrase.length > s.start)) continue;
       used.add(phrase);
       const href = isPillar ? `/thema/${slug}` : `/blog/${slug}`;
-      parts.push(<Link key={key++} href={href} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{remaining.slice(idx, idx + phrase.length)}</Link>);
-      remaining = remaining.slice(idx + phrase.length);
-      continue outer;
+      segs.push({ start: idx, end: idx + phrase.length, node: <Link key={`al${idx}`} href={href} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{text.slice(idx, idx + phrase.length)}</Link> });
     }
-    parts.push(remaining);
-    break;
   }
+  if (!segs.length) return text;
+  segs.sort((a, b) => a.start - b.start);
+  const parts: React.ReactNode[] = [];
+  let pos = 0;
+  for (const seg of segs) {
+    if (seg.start < pos) continue;
+    if (seg.start > pos) parts.push(text.slice(pos, seg.start));
+    parts.push(seg.node);
+    pos = seg.end;
+  }
+  if (pos < text.length) parts.push(text.slice(pos));
   return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
 }
 
 function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>, anchorData?: AnchorEntry[], currentSlug?: string, currentPillar?: string | null): React.ReactNode[] {
   const used = new Set<string>();
-  const autoLink = (text: string) =>
-    anchorData?.length && currentSlug
-      ? applyAutoLinks(text, currentSlug, currentPillar ?? null, anchorData, used)
-      : text;
+  const ri = (text: string) => renderInlineAll(text, anchorData, currentSlug, currentPillar, used);
   const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
   return blocks.map((block, i) => {
     // Extra witregel
@@ -142,7 +154,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     if (lines.length > 0 && lines.every(l => l.startsWith("> "))) {
       return (
         <blockquote key={i} className="border-l-4 border-primary-400 pl-5 pr-4 py-3 my-5 space-y-1 bg-primary-50 rounded-r-xl">
-          {lines.map((l, j) => <p key={j} className="text-stone-600 italic leading-relaxed text-[17px]">{renderInline(l.slice(2))}</p>)}
+          {lines.map((l, j) => <p key={j} className="text-stone-600 italic leading-relaxed text-[17px]">{ri(l.slice(2))}</p>)}
         </blockquote>
       );
     }
@@ -152,7 +164,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
           {lines.map((l, j) => (
             <li key={j} className="flex items-start gap-2.5">
               <span className="text-primary-600 font-bold mt-0.5 flex-shrink-0">✓</span>
-              <span className="text-stone-600 leading-relaxed text-[17px]">{renderInline(l.slice(2))}</span>
+              <span className="text-stone-600 leading-relaxed text-[17px]">{ri(l.slice(2))}</span>
             </li>
           ))}
         </ul>
@@ -164,7 +176,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
           {lines.map((l, j) => (
             <li key={j} className="flex items-start gap-2.5">
               <span className="text-stone-400 mt-1 flex-shrink-0">•</span>
-              <span className="text-stone-600 leading-relaxed text-[17px]">{renderInline(l.slice(2))}</span>
+              <span className="text-stone-600 leading-relaxed text-[17px]">{ri(l.slice(2))}</span>
             </li>
           ))}
         </ul>
@@ -173,7 +185,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     return (
       <div key={i} className="space-y-3">
         {lines.map((line, j) => (
-          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{autoLink(line)}</p>
+          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{ri(line)}</p>
         ))}
       </div>
     );

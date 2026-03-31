@@ -76,6 +76,7 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const linkInputRef = useRef<HTMLInputElement>(null);
+  const savedSel = useRef<{ s: number; e: number }>({ s: 0, e: 0 });
 
   // Prevent focus loss on toolbar button clicks
   const noFocus = (e: React.MouseEvent) => e.preventDefault();
@@ -102,8 +103,13 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
     setBenjiOpen(false);
   }
 
-  function handleLinkOpen(e: React.MouseEvent) {
-    // Don't prevent default here — we WANT the input to receive focus
+  function handleLinkMouseDown() {
+    // Sla selectie op vóór focus verlies (mousedown treedt op vóór blur)
+    const t = textareaRef.current;
+    if (t) savedSel.current = { s: t.selectionStart, e: t.selectionEnd };
+  }
+
+  function handleLinkOpen() {
     setLinkOpen(o => !o);
     setBenjiOpen(false);
     setCtaOpen(false);
@@ -113,7 +119,7 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
   function confirmLink() {
     if (!linkUrl.trim()) { setLinkOpen(false); return; }
     const t = ta();
-    const s = t.selectionStart, e = t.selectionEnd;
+    const { s, e } = savedSel.current;
     const sel = value.slice(s, e) || "link";
     const block = `[${sel}](${linkUrl.trim()})`;
     const next = value.slice(0, s) + block + value.slice(e);
@@ -142,7 +148,7 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
 
         {/* Link */}
         <div className="relative">
-          <button type="button" title="Link invoegen" onClick={handleLinkOpen} className={btn}>
+          <button type="button" title="Link invoegen" onMouseDown={handleLinkMouseDown} onClick={handleLinkOpen} className={btn}>
             <LinkIcon size={15} />
           </button>
           {linkOpen && (
