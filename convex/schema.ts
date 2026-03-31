@@ -712,6 +712,7 @@ export default defineSchema({
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),    // Primair zoekwoord
     ctaKey: v.optional(v.string()),          // Welke CTA te tonen, bijv. "blog_default"
+    anchorPhrases: v.optional(v.array(v.string())), // Zinnen die in andere artikelen automatisch naar deze pillar linken
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]),

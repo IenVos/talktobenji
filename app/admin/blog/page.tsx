@@ -55,6 +55,25 @@ const EMPTY_FORM: FormState = {
   anchorPhrases: "",
 };
 
+const STOP_WORDS = new Set(["de","het","een","en","of","in","van","aan","op","is","die","dat","te","ook","zijn","wat","hoe","er","naar","met","voor","door","bij","maar","als","om","tot","dan","zo","wel","niet","nog","je","ik","we","ze","hij","zij","haar","hun","hem","jij","u","dit","die","deze"]);
+
+function suggestAnchorPhrases(title: string, focusKeyword: string): string[] {
+  const suggestions: string[] = [];
+  if (focusKeyword.trim()) suggestions.push(focusKeyword.trim().toLowerCase());
+  const clean = title.toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim();
+  const words = clean.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  words.filter(w => w.length >= 4).forEach(w => { if (!suggestions.includes(w)) suggestions.push(w); });
+  for (let i = 0; i < words.length - 1; i++) {
+    const p = `${words[i]} ${words[i + 1]}`;
+    if (!suggestions.includes(p)) suggestions.push(p);
+  }
+  for (let i = 0; i < words.length - 2; i++) {
+    const p = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
+    if (!suggestions.includes(p)) suggestions.push(p);
+  }
+  return suggestions.slice(0, 10);
+}
+
 function slugify(text: string) {
   return text
     .toLowerCase()
@@ -776,6 +795,26 @@ export default function AdminBlogPage() {
                 placeholder={"niet kunnen slapen door rouw\nrouw en slaap\nwakker liggen van verdriet"}
                 className={inputClass}
               />
+              {(() => {
+                const suggestions = suggestAnchorPhrases(form.title, form.focusKeyword);
+                const active = form.anchorPhrases.split("\n").map(s => s.trim()).filter(Boolean);
+                const unused = suggestions.filter(s => !active.includes(s));
+                if (!unused.length) return null;
+                return (
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-gray-400">Suggesties (klik om toe te voegen):</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {unused.map(s => (
+                        <button key={s} type="button"
+                          onClick={() => setForm(f => ({ ...f, anchorPhrases: f.anchorPhrases ? f.anchorPhrases.trim() + "\n" + s : s }))}
+                          className="px-2.5 py-1 text-xs bg-primary-50 border border-primary-200 text-primary-700 rounded-full hover:bg-primary-100 transition-colors">
+                          + {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Interne links */}

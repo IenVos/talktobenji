@@ -49,13 +49,16 @@ function extractTOC(content: string) {
     .map(b => ({ text: b.slice(3), id: headingId(b.slice(3)) }));
 }
 
-type AnchorEntry = { slug: string; pillarSlug: string | null; anchorPhrases: string[] };
+type AnchorEntry = { slug: string; pillarSlug?: string | null; anchorPhrases: string[]; isPillar?: boolean };
 
 function applyAutoLinks(text: string, currentSlug: string, currentPillar: string | null, anchorData: AnchorEntry[], used: Set<string>): React.ReactNode {
   // Bouw gesorteerde lijst: langste zinnen eerst (greedy matching)
   const candidates = anchorData
-    .filter(a => a.slug !== currentSlug && (a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar)))
-    .flatMap(a => a.anchorPhrases.map(phrase => ({ phrase, slug: a.slug })))
+    .filter(a => a.slug !== currentSlug && (
+      a.isPillar ||
+      (a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar))
+    ))
+    .flatMap(a => a.anchorPhrases.map(phrase => ({ phrase, slug: a.slug, isPillar: a.isPillar ?? false })))
     .sort((a, b) => b.phrase.length - a.phrase.length);
 
   const parts: React.ReactNode[] = [];
@@ -63,13 +66,14 @@ function applyAutoLinks(text: string, currentSlug: string, currentPillar: string
   let key = 0;
 
   outer: while (remaining.length > 0) {
-    for (const { phrase, slug } of candidates) {
+    for (const { phrase, slug, isPillar } of candidates) {
       if (used.has(phrase)) continue;
       const idx = remaining.toLowerCase().indexOf(phrase.toLowerCase());
       if (idx === -1) continue;
       if (idx > 0) parts.push(remaining.slice(0, idx));
       used.add(phrase);
-      parts.push(<Link key={key++} href={`/blog/${slug}`} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{remaining.slice(idx, idx + phrase.length)}</Link>);
+      const href = isPillar ? `/thema/${slug}` : `/blog/${slug}`;
+      parts.push(<Link key={key++} href={href} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{remaining.slice(idx, idx + phrase.length)}</Link>);
       remaining = remaining.slice(idx + phrase.length);
       continue outer;
     }
@@ -216,13 +220,15 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
   if (!post) notFound();
 
-  const [pillar, allCtas, anchorData] = await Promise.all([
+  const [pillar, allCtas, blogAnchorData, pillarAnchorData] = await Promise.all([
     post.pillarSlug
       ? fetchQuery(api.pillars.getBySlug, { slug: post.pillarSlug }).catch(() => null)
       : Promise.resolve(null),
     fetchQuery(api.ctaBlocks.listAll, {}).catch(() => [] as any[]),
     fetchQuery(api.blogPosts.listAnchorData, {}).catch(() => [] as any[]),
+    fetchQuery(api.pillars.listAnchorData, {}).catch(() => [] as any[]),
   ]);
+  const anchorData = [...(blogAnchorData as any[]), ...(pillarAnchorData as any[])];
   const ctaMap = new Map((allCtas as any[]).map((c: any) => [c.key, c]));
   const ctaData = ctaMap.get(post.ctaKey || "blog_default") ?? ctaMap.get("blog_default") ?? null;
 
@@ -396,6 +402,24 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           )}
 
+          {/* Bronnen */}
+          {post.sources && (
+            <div className="mt-10 p-5 bg-stone-50 rounded-2xl border border-stone-200">
+              <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Bronnen</p>
+              <ul className="space-y-1">
+                {post.sources.split("\n").filter(Boolean).map((source, i) => (
+                  <li key={i} className="text-sm italic text-stone-400 leading-relaxed">
+                    {source.startsWith("http") ? (
+                      <a href={source} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 underline underline-offset-2">
+                        {source}
+                      </a>
+                    ) : source}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Lees ook */}
           {post.internalLinks && post.internalLinks.filter((l: any) => l.label && l.slug).length > 0 && (
             <div className="mt-10">
@@ -413,24 +437,6 @@ export default async function BlogPostPage({ params }: Props) {
                   </Link>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Bronnen */}
-          {post.sources && (
-            <div className="mt-10 p-5 bg-stone-50 rounded-2xl border border-stone-200">
-              <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Bronnen</p>
-              <ul className="space-y-1">
-                {post.sources.split("\n").filter(Boolean).map((source, i) => (
-                  <li key={i} className="text-sm italic text-stone-400 leading-relaxed">
-                    {source.startsWith("http") ? (
-                      <a href={source} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 underline underline-offset-2">
-                        {source}
-                      </a>
-                    ) : source}
-                  </li>
-                ))}
-              </ul>
             </div>
           )}
 

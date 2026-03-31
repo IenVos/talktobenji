@@ -74,6 +74,19 @@ export const getImageUrl = mutation({
   },
 });
 
+/** Publiek: lichte dataset voor auto-linking (slug, title, anchorPhrases) — linkt naar /thema/ */
+export const listAnchorData = query({
+  args: {},
+  handler: async (ctx) => {
+    const pillars = await ctx.db.query("pillars")
+      .filter((q) => q.eq(q.field("isLive"), true))
+      .collect();
+    return pillars
+      .filter((p) => p.anchorPhrases && p.anchorPhrases.length > 0)
+      .map((p) => ({ slug: p.slug, title: p.title, anchorPhrases: p.anchorPhrases!, isPillar: true }));
+  },
+});
+
 /** Admin: pillar aanmaken */
 export const create = mutation({
   args: {
@@ -91,6 +104,7 @@ export const create = mutation({
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),
     ctaKey: v.optional(v.string()),
+    anchorPhrases: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -109,6 +123,7 @@ export const create = mutation({
       sources: args.sources,
       focusKeyword: args.focusKeyword,
       ctaKey: args.ctaKey,
+      anchorPhrases: args.anchorPhrases,
       createdAt: now,
       updatedAt: now,
     });
@@ -133,6 +148,8 @@ export const update = mutation({
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),
     ctaKey: v.optional(v.string()),
+    anchorPhrases: v.optional(v.array(v.string())),
+    kbSynced: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

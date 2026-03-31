@@ -25,6 +25,7 @@ type FormState = {
   internalLinks: InternalLink[];
   coverImageStorageId?: Id<"_storage">;
   coverImageFile: File | null;
+  anchorPhrases: string;
 };
 
 const EMPTY: FormState = {
@@ -42,7 +43,27 @@ const EMPTY: FormState = {
   internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
   coverImageStorageId: undefined,
   coverImageFile: null,
+  anchorPhrases: "",
 };
+
+const STOP_WORDS = new Set(["de","het","een","en","of","in","van","aan","op","is","die","dat","te","ook","zijn","wat","hoe","er","naar","met","voor","door","bij","maar","als","om","tot","dan","zo","wel","niet","nog","je","ik","we","ze","hij","zij","haar","hun","hem","jij","u","dit","die","deze"]);
+
+function suggestAnchorPhrases(title: string, focusKeyword: string): string[] {
+  const suggestions: string[] = [];
+  if (focusKeyword.trim()) suggestions.push(focusKeyword.trim().toLowerCase());
+  const clean = title.toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim();
+  const words = clean.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  words.filter(w => w.length >= 4).forEach(w => { if (!suggestions.includes(w)) suggestions.push(w); });
+  for (let i = 0; i < words.length - 1; i++) {
+    const p = `${words[i]} ${words[i + 1]}`;
+    if (!suggestions.includes(p)) suggestions.push(p);
+  }
+  for (let i = 0; i < words.length - 2; i++) {
+    const p = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
+    if (!suggestions.includes(p)) suggestions.push(p);
+  }
+  return suggestions.slice(0, 10);
+}
 
 function slugify(t: string) {
   return t.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-").slice(0, 80);
@@ -114,6 +135,7 @@ export default function AdminPillarsPage() {
       ],
       coverImageStorageId: p.coverImageStorageId,
       coverImageFile: null,
+      anchorPhrases: (p as any).anchorPhrases?.join("\n") ?? "",
     });
     setCoverPreview(p.coverImageUrl ?? null);
     setEditingId(p._id);
@@ -150,6 +172,9 @@ export default function AdminPillarsPage() {
       focusKeyword: form.focusKeyword.trim() || undefined,
       ctaKey: form.ctaKey.trim() || undefined,
       sources: form.sources.trim(),
+      anchorPhrases: form.anchorPhrases.trim()
+        ? form.anchorPhrases.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 5)
+        : undefined,
     };
   };
 
@@ -546,6 +571,40 @@ export default function AdminPillarsPage() {
                 rows={3}
                 className={inputClass}
               />
+            </div>
+
+            {/* Ankerzinnen */}
+            <div className="border-t border-primary-100 pt-4 space-y-2">
+              <label className={labelSmClass}>
+                Ankerzinnen <span className="text-gray-400 font-normal">(max 5 — één per regel, worden in blog/pillar artikelen automatisch een link naar deze pagina)</span>
+              </label>
+              <textarea
+                value={form.anchorPhrases}
+                onChange={e => setForm(f => ({ ...f, anchorPhrases: e.target.value }))}
+                rows={3}
+                placeholder={"rouw en verdriet\nrouw na verlies\nomgaan met verdriet"}
+                className={inputClass}
+              />
+              {(() => {
+                const suggestions = suggestAnchorPhrases(form.title, form.focusKeyword);
+                const active = form.anchorPhrases.split("\n").map(s => s.trim()).filter(Boolean);
+                const unused = suggestions.filter(s => !active.includes(s));
+                if (!unused.length) return null;
+                return (
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-gray-400">Suggesties (klik om toe te voegen):</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {unused.map(s => (
+                        <button key={s} type="button"
+                          onClick={() => setForm(f => ({ ...f, anchorPhrases: f.anchorPhrases ? f.anchorPhrases.trim() + "\n" + s : s }))}
+                          className="px-2.5 py-1 text-xs bg-primary-50 border border-primary-200 text-primary-700 rounded-full hover:bg-primary-100 transition-colors">
+                          + {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Live toggle */}

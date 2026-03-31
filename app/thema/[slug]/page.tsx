@@ -74,7 +74,43 @@ function renderInlineCta(data: any, key: number) {
   );
 }
 
-function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>): React.ReactNode[] {
+type AnchorEntry = { slug: string; pillarSlug?: string | null; anchorPhrases: string[]; isPillar?: boolean };
+
+function applyAutoLinks(text: string, currentSlug: string, currentPillar: string | null, anchorData: AnchorEntry[], used: Set<string>): React.ReactNode {
+  const candidates = anchorData
+    .filter(a => a.slug !== currentSlug && (
+      a.isPillar ||
+      (a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar))
+    ))
+    .flatMap(a => a.anchorPhrases.map(phrase => ({ phrase, slug: a.slug, isPillar: a.isPillar ?? false })))
+    .sort((a, b) => b.phrase.length - a.phrase.length);
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+  outer: while (remaining.length > 0) {
+    for (const { phrase, slug, isPillar } of candidates) {
+      if (used.has(phrase)) continue;
+      const idx = remaining.toLowerCase().indexOf(phrase.toLowerCase());
+      if (idx === -1) continue;
+      if (idx > 0) parts.push(remaining.slice(0, idx));
+      used.add(phrase);
+      const href = isPillar ? `/thema/${slug}` : `/blog/${slug}`;
+      parts.push(<Link key={key++} href={href} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{remaining.slice(idx, idx + phrase.length)}</Link>);
+      remaining = remaining.slice(idx + phrase.length);
+      continue outer;
+    }
+    parts.push(remaining);
+    break;
+  }
+  return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
+}
+
+function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>, anchorData?: AnchorEntry[], currentSlug?: string, currentPillar?: string | null): React.ReactNode[] {
+  const used = new Set<string>();
+  const autoLink = (text: string) =>
+    anchorData?.length && currentSlug
+      ? applyAutoLinks(text, currentSlug, currentPillar ?? null, anchorData, used)
+      : text;
   const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
   return blocks.map((block, i) => {
     // Extra witregel
@@ -137,7 +173,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     return (
       <div key={i} className="space-y-3">
         {lines.map((line, j) => (
-          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{renderInline(line)}</p>
+          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{autoLink(line)}</p>
         ))}
       </div>
     );
@@ -152,7 +188,12 @@ export default async function PillarPage({ params }: Props) {
 
   if (!pillar || !pillar.isLive) notFound();
 
-  const allCtas = await fetchQuery(api.ctaBlocks.listAll, {}).catch(() => [] as any[]);
+  const [allCtas, blogAnchorData, pillarAnchorData] = await Promise.all([
+    fetchQuery(api.ctaBlocks.listAll, {}).catch(() => [] as any[]),
+    fetchQuery(api.blogPosts.listAnchorData, {}).catch(() => [] as any[]),
+    fetchQuery(api.pillars.listAnchorData, {}).catch(() => [] as any[]),
+  ]);
+  const anchorData = [...(blogAnchorData as any[]), ...(pillarAnchorData as any[])];
   const ctaMap = new Map((allCtas as any[]).map((c: any) => [c.key, c]));
   const ctaData = ctaMap.get((pillar as any).ctaKey || "pillar_default") ?? ctaMap.get("pillar_default") ?? null;
 
@@ -276,7 +317,7 @@ export default async function PillarPage({ params }: Props) {
         {/* Pillar content (optioneel) */}
         {pillar.content && (
           <div className="mb-12 space-y-5">
-            {renderContent(pillar.content, ctaData, ctaMap)}
+            {renderContent(pillar.content, ctaData, ctaMap, anchorData as AnchorEntry[], pillar.slug, pillar.slug)}
           </div>
         )}
 
