@@ -70,53 +70,73 @@ function renderInlineAll(
   currentPillar: string | null | undefined,
   used: Set<string>
 ): React.ReactNode {
+  // Bereken candidates eenmalig zodat linkText ze ook kan gebruiken
+  const candidates = (anchorData?.length && currentSlug)
+    ? anchorData
+        .filter(a => {
+          if (a.slug === currentSlug) return false;
+          if (a.isPillar) return currentPillar === a.slug;
+          return a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar);
+        })
+        .flatMap(a => a.anchorPhrases.map(p => ({ phrase: p, slug: a.slug, isPillar: a.isPillar ?? false })))
+        .sort((a, b) => b.phrase.length - a.phrase.length)
+    : [];
+
+  // Hulpfunctie: auto-links toepassen op een stuk plain tekst (ook binnen bold/italic)
+  function linkText(t: string): React.ReactNode {
+    if (!candidates.length) return t;
+    type S = { start: number; end: number; node: React.ReactNode };
+    const s: S[] = [];
+    const lower = t.toLowerCase();
+    for (const { phrase, slug, isPillar } of candidates) {
+      if (used.has(phrase)) continue;
+      const idx = lower.indexOf(phrase.toLowerCase());
+      if (idx === -1) continue;
+      if (s.some(x => idx < x.end && idx + phrase.length > x.start)) continue;
+      used.add(phrase);
+      const href = isPillar ? `/thema/${slug}` : `/blog/${slug}`;
+      s.push({ start: idx, end: idx + phrase.length, node: <Link key={`al${idx}`} href={href} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{t.slice(idx, idx + phrase.length)}</Link> });
+    }
+    if (!s.length) return t;
+    s.sort((a, b) => a.start - b.start);
+    const parts: React.ReactNode[] = [];
+    let pos = 0;
+    for (const seg of s) {
+      if (seg.start < pos) continue;
+      if (seg.start > pos) parts.push(t.slice(pos, seg.start));
+      parts.push(seg.node);
+      pos = seg.end;
+    }
+    if (pos < t.length) parts.push(t.slice(pos));
+    return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
+  }
+
+  // Markdown: **bold**, *italic*, [text](url) — anchors ook binnen bold/italic
   type Seg = { start: number; end: number; node: React.ReactNode };
   const segs: Seg[] = [];
   const mdRe = /(\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]*)\))/g;
   let m;
   while ((m = mdRe.exec(text)) !== null) {
     if (m[0].startsWith("**"))
-      segs.push({ start: m.index, end: m.index + m[0].length, node: <strong key={`b${m.index}`} className="font-semibold text-stone-800">{m[2]}</strong> });
+      segs.push({ start: m.index, end: m.index + m[0].length, node: <strong key={`b${m.index}`} className="font-semibold text-stone-800">{linkText(m[2])}</strong> });
     else if (m[0].startsWith("*"))
-      segs.push({ start: m.index, end: m.index + m[0].length, node: <em key={`i${m.index}`}>{m[3]}</em> });
+      segs.push({ start: m.index, end: m.index + m[0].length, node: <em key={`i${m.index}`}>{linkText(m[3])}</em> });
     else
       segs.push({ start: m.index, end: m.index + m[0].length, node: <a key={`l${m.index}`} href={m[5]} className="text-primary-600 underline underline-offset-2">{m[4]}</a> });
   }
-  if (anchorData?.length && currentSlug) {
-    const candidates = anchorData
-      .filter(a => {
-        if (a.slug === currentSlug) return false;
-        if (a.isPillar) {
-          // Pillar-ankerzin linkt alleen binnen zijn eigen cluster
-          return currentPillar === a.slug;
-        }
-        // Blog-ankerzin linkt alleen binnen dezelfde pillar
-        return a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar);
-      })
-      .flatMap(a => a.anchorPhrases.map(p => ({ phrase: p, slug: a.slug, isPillar: a.isPillar ?? false })))
-      .sort((a, b) => b.phrase.length - a.phrase.length);
-    const lower = text.toLowerCase();
-    for (const { phrase, slug, isPillar } of candidates) {
-      if (used.has(phrase)) continue;
-      const idx = lower.indexOf(phrase.toLowerCase());
-      if (idx === -1) continue;
-      if (segs.some(s => idx < s.end && idx + phrase.length > s.start)) continue;
-      used.add(phrase);
-      const href = isPillar ? `/thema/${slug}` : `/blog/${slug}`;
-      segs.push({ start: idx, end: idx + phrase.length, node: <Link key={`al${idx}`} href={href} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{text.slice(idx, idx + phrase.length)}</Link> });
-    }
-  }
-  if (!segs.length) return text;
+
+  // Tekst tussen markdown-matches ook auto-linken
+  if (!segs.length) return linkText(text);
   segs.sort((a, b) => a.start - b.start);
   const parts: React.ReactNode[] = [];
   let pos = 0;
   for (const seg of segs) {
     if (seg.start < pos) continue;
-    if (seg.start > pos) parts.push(text.slice(pos, seg.start));
+    if (seg.start > pos) parts.push(linkText(text.slice(pos, seg.start)));
     parts.push(seg.node);
     pos = seg.end;
   }
-  if (pos < text.length) parts.push(text.slice(pos));
+  if (pos < text.length) parts.push(linkText(text.slice(pos)));
   return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
 }
 

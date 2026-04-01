@@ -14,7 +14,9 @@ const THEME_OPTIONS = [
 
 const DEFAULT_TYPES = [
   { type: "reflectie",  label: "Korte reflectie",        themeKey: "primary" },
+  { type: "nacht",      label: "Nachtgedachte",           themeKey: "primary" },
   { type: "herinnering",label: "Een herinnering bewaren", themeKey: "violet"  },
+  { type: "landing",    label: "Landing",                 themeKey: "teal"    },
   { type: "emotie",     label: "Emotie-tracker",          themeKey: "amber"   },
   { type: "checkin",    label: "Dagelijkse check-in",     themeKey: "teal"    },
   { type: "memories",   label: "Memories",                themeKey: "violet"  },
@@ -174,9 +176,13 @@ export default function BenjiTeasersAdmin() {
         </div>
       )}
 
-      {/* Lijst van standaard types */}
+      {/* Lijst van standaard types + eventuele extra DB-teasers */}
       <div className="space-y-2">
-        {DEFAULT_TYPES.map(({ type, label }) => {
+        {[
+          ...DEFAULT_TYPES,
+          ...(teasers ?? []).filter((t: any) => !DEFAULT_TYPES.some(d => d.type === t.type))
+            .map((t: any) => ({ type: t.type, label: t.label, themeKey: t.themeKey })),
+        ].map(({ type, label }) => {
           const db = dbMap.get(type);
           const isOpen = expandedType === type;
           return (
