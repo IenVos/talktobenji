@@ -83,7 +83,7 @@ export const listSlugs = query({
   args: {},
   handler: async (ctx) => {
     const pillars = await ctx.db.query("pillars")
-      .withIndex("by_live", (q) => q.eq("isLive", true))
+      .filter((q) => q.eq(q.field("isLive"), true))
       .collect();
     return pillars
       .sort((a, b) => a.createdAt - b.createdAt)
