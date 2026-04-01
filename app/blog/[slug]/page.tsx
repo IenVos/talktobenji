@@ -11,7 +11,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 
 export const revalidate = 3600;
 
-type Props = { params: { slug: string } };
+type Props = { params: { slug: string }; searchParams: { preview?: string } };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
@@ -241,9 +241,15 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
 }
 
 
-export default async function BlogPostPage({ params }: Props) {
-  const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
+export default async function BlogPostPage({ params, searchParams }: Props) {
+  const previewToken = searchParams?.preview;
+  const post = await (
+    previewToken
+      ? fetchQuery(api.blogPosts.getBySlugPreview, { adminToken: previewToken, slug: params.slug }).catch(() => null)
+      : fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null)
+  );
   if (!post) notFound();
+  const isPreview = !!previewToken && !(post as any).isLive;
 
   const [pillar, allCtas, blogAnchorData, pillarAnchorData, allCovers] = await Promise.all([
     post.pillarSlug
@@ -311,6 +317,11 @@ export default async function BlogPostPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-stone-50">
       <HeaderBar />
+      {isPreview && (
+        <div className="bg-amber-400 text-amber-900 text-sm font-medium text-center py-2 px-4">
+          ⚠️ Voorbeeldmodus — dit artikel is nog niet live
+        </div>
+      )}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}

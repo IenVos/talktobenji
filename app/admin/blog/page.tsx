@@ -1081,9 +1081,14 @@ export default function AdminBlogPage() {
                           </button>
                         )}
                         {syncDone === post._id && <span className="text-xs text-green-600">✓ Gesynchroniseerd</span>}
-                        {post.isLive && (
+                        {post.isLive ? (
                           <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer"
                             className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Bekijk artikel">
+                            <ExternalLink size={17} />
+                          </a>
+                        ) : (
+                          <a href={`/blog/${post.slug}?preview=${adminToken}`} target="_blank" rel="noopener noreferrer"
+                            className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg" title="Bekijk concept">
                             <ExternalLink size={17} />
                           </a>
                         )}

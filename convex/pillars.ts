@@ -78,6 +78,19 @@ export const getImageUrl = mutation({
   },
 });
 
+/** Publiek: alle live pillar slugs — voor kleurcodering op overzichtspagina */
+export const listSlugs = query({
+  args: {},
+  handler: async (ctx) => {
+    const pillars = await ctx.db.query("pillars")
+      .withIndex("by_live", (q) => q.eq("isLive", true))
+      .collect();
+    return pillars
+      .sort((a, b) => a.createdAt - b.createdAt)
+      .map((p) => p.slug);
+  },
+});
+
 /** Publiek: lichte dataset voor auto-linking (slug, title, anchorPhrases) — linkt naar /thema/ */
 export const listAnchorData = query({
   args: {},
