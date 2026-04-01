@@ -12,6 +12,15 @@ export const metadata: Metadata = {
 
 export const revalidate = 3600;
 
+// Zachte achtergrondtint per pillar — deterministisch op basis van slug
+const TINTS = ["#f0f7ff","#fff5f5","#fffbeb","#f0fdf4","#faf5ff","#f0fdfa","#fff7ed","#f5f3ff"];
+function pillarTint(slug: string | null | undefined): string | undefined {
+  if (!slug) return undefined;
+  let h = 0;
+  for (const c of slug) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return TINTS[Math.abs(h) % TINTS.length];
+}
+
 export default async function BlogOverviewPage() {
   const posts = await fetchQuery(api.blogPosts.listPublished, {}).catch(() => []);
 
@@ -32,7 +41,7 @@ export default async function BlogOverviewPage() {
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {posts.map((post: any) => (
               <li key={post._id}>
-                <Link href={`/blog/${post.slug}`} className="group flex flex-col h-full bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow">
+                <Link href={`/blog/${post.slug}`} className="group flex flex-col h-full rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow" style={{ backgroundColor: pillarTint(post.pillarSlug) ?? "#ffffff" }}>
                   {post.coverImageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img

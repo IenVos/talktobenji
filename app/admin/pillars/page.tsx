@@ -26,6 +26,7 @@ type FormState = {
   coverImageStorageId?: Id<"_storage">;
   coverImageFile: File | null;
   anchorPhrases: string;
+  featuredSlugs: string[];
 };
 
 const EMPTY: FormState = {
@@ -44,6 +45,7 @@ const EMPTY: FormState = {
   coverImageStorageId: undefined,
   coverImageFile: null,
   anchorPhrases: "",
+  featuredSlugs: [],
 };
 
 const STOP_WORDS = new Set(["de","het","een","en","of","in","van","aan","op","is","die","dat","te","ook","zijn","wat","hoe","er","naar","met","voor","door","bij","maar","als","om","tot","dan","zo","wel","niet","nog","je","ik","we","ze","hij","zij","haar","hun","hem","jij","u","dit","die","deze"]);
@@ -136,6 +138,7 @@ export default function AdminPillarsPage() {
       coverImageStorageId: p.coverImageStorageId,
       coverImageFile: null,
       anchorPhrases: (p as any).anchorPhrases?.join("\n") ?? "",
+      featuredSlugs: (p as any).featuredSlugs ?? [],
     });
     setCoverPreview(p.coverImageUrl ?? null);
     setEditingId(p._id);
@@ -175,6 +178,7 @@ export default function AdminPillarsPage() {
       anchorPhrases: form.anchorPhrases.trim()
         ? form.anchorPhrases.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 5)
         : undefined,
+      featuredSlugs: form.featuredSlugs.length ? form.featuredSlugs : undefined,
     };
   };
 
@@ -607,6 +611,55 @@ export default function AdminPillarsPage() {
                           + {s}
                         </button>
                       ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Uitgelichte artikelen */}
+            <div className="border-t border-primary-100 pt-4 space-y-2">
+              <label className={labelSmClass}>
+                Uitgelichte artikelen <span className="text-gray-400 font-normal">(max 5 — worden onderaan de pillar pagina getoond)</span>
+              </label>
+              {(() => {
+                const pillarPosts = (posts ?? []).filter((p: any) => p.pillarSlug === form.slug && p.isLive);
+                if (!pillarPosts.length) return <p className="text-xs text-gray-400 italic">Nog geen gepubliceerde artikelen in deze pillar.</p>;
+                return (
+                  <div className="space-y-1.5">
+                    {form.featuredSlugs.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {form.featuredSlugs.map((slug, i) => {
+                          const p = (posts ?? []).find((x: any) => x.slug === slug);
+                          return (
+                            <span key={slug} className="flex items-center gap-1 px-2.5 py-1 bg-primary-100 border border-primary-200 text-primary-800 rounded-full text-xs">
+                              <span className="text-gray-400 mr-0.5">{i + 1}.</span>
+                              {p?.title?.slice(0, 35) ?? slug}…
+                              <button type="button" onClick={() => setForm(f => ({ ...f, featuredSlugs: f.featuredSlugs.filter(s => s !== slug) }))}
+                                className="ml-0.5 text-primary-400 hover:text-red-500">×</button>
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div className="max-h-48 overflow-y-auto space-y-1 border border-gray-100 rounded-lg p-2 bg-gray-50">
+                      {pillarPosts.map((p: any) => {
+                        const selected = form.featuredSlugs.includes(p.slug);
+                        const full = form.featuredSlugs.length >= 5 && !selected;
+                        return (
+                          <label key={p._id} className={`flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer text-xs ${selected ? "bg-primary-50 text-primary-800" : "text-gray-700 hover:bg-white"} ${full ? "opacity-40 cursor-not-allowed" : ""}`}>
+                            <input type="checkbox" checked={selected} disabled={full}
+                              onChange={() => setForm(f => ({
+                                ...f,
+                                featuredSlugs: selected
+                                  ? f.featuredSlugs.filter(s => s !== p.slug)
+                                  : [...f.featuredSlugs, p.slug],
+                              }))}
+                              className="rounded border-gray-300 text-primary-600" />
+                            {p.title}
+                          </label>
+                        );
+                      })}
                     </div>
                   </div>
                 );

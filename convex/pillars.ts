@@ -42,17 +42,21 @@ export const getBySlug = query({
   },
 });
 
-/** Publiek: artikelen gekoppeld aan een pillar */
+/** Publiek: artikelen gekoppeld aan een pillar — respecteert featuredSlugs indien ingesteld */
 export const getArticles = query({
   args: { pillarSlug: v.string() },
   handler: async (ctx, args) => {
     const now = Date.now();
-    const posts = await ctx.db.query("blogPosts")
-      .withIndex("by_pillar", (q) => q.eq("pillarSlug", args.pillarSlug))
-      .collect();
-    return posts
-      .filter((p) => p.isLive && (!p.publishedAt || p.publishedAt <= now))
-      .sort((a, b) => (b.publishedAt ?? b.createdAt) - (a.publishedAt ?? a.createdAt));
+    const [pillar, posts] = await Promise.all([
+      ctx.db.query("pillars").withIndex("by_slug", (q) => q.eq("slug", args.pillarSlug)).first(),
+      ctx.db.query("blogPosts").withIndex("by_pillar", (q) => q.eq("pillarSlug", args.pillarSlug)).collect(),
+    ]);
+    const live = posts.filter((p) => p.isLive && (!p.publishedAt || p.publishedAt <= now));
+    if (pillar?.featuredSlugs?.length) {
+      const map = new Map(live.map((p) => [p.slug, p]));
+      return pillar.featuredSlugs.map((s) => map.get(s)).filter(Boolean) as typeof live;
+    }
+    return live.sort((a, b) => (b.publishedAt ?? b.createdAt) - (a.publishedAt ?? a.createdAt));
   },
 });
 
@@ -105,6 +109,7 @@ export const create = mutation({
     focusKeyword: v.optional(v.string()),
     ctaKey: v.optional(v.string()),
     anchorPhrases: v.optional(v.array(v.string())),
+    featuredSlugs: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -124,6 +129,7 @@ export const create = mutation({
       focusKeyword: args.focusKeyword,
       ctaKey: args.ctaKey,
       anchorPhrases: args.anchorPhrases,
+      featuredSlugs: args.featuredSlugs,
       createdAt: now,
       updatedAt: now,
     });
@@ -149,6 +155,7 @@ export const update = mutation({
     focusKeyword: v.optional(v.string()),
     ctaKey: v.optional(v.string()),
     anchorPhrases: v.optional(v.array(v.string())),
+    featuredSlugs: v.optional(v.array(v.string())),
     kbSynced: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
