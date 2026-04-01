@@ -36,6 +36,25 @@ export const listPublished = query({
   },
 });
 
+/** Publiek: lichte dataset voor "Lees ook" kaartjes (slug, title, coverImageUrl) */
+export const listCovers = query({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const posts = await ctx.db.query("blogPosts")
+      .filter((q) => q.eq(q.field("isLive"), true))
+      .collect();
+    const published = posts.filter((p) => !p.publishedAt || p.publishedAt <= now);
+    return await Promise.all(published.map(async (p) => ({
+      slug: p.slug,
+      title: p.title,
+      coverImageUrl: p.coverImageStorageId
+        ? await ctx.storage.getUrl(p.coverImageStorageId).catch(() => null)
+        : null,
+    })));
+  },
+});
+
 /** Publiek: lichte dataset voor auto-linking (slug, title, pillarSlug, anchorPhrases) */
 export const listAnchorData = query({
   args: {},

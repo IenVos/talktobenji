@@ -245,14 +245,16 @@ export default async function BlogPostPage({ params }: Props) {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
   if (!post) notFound();
 
-  const [pillar, allCtas, blogAnchorData, pillarAnchorData] = await Promise.all([
+  const [pillar, allCtas, blogAnchorData, pillarAnchorData, allCovers] = await Promise.all([
     post.pillarSlug
       ? fetchQuery(api.pillars.getBySlug, { slug: post.pillarSlug }).catch(() => null)
       : Promise.resolve(null),
     fetchQuery(api.ctaBlocks.listAll, {}).catch(() => [] as any[]),
     fetchQuery(api.blogPosts.listAnchorData, {}).catch(() => [] as any[]),
     fetchQuery(api.pillars.listAnchorData, {}).catch(() => [] as any[]),
+    fetchQuery(api.blogPosts.listCovers, {}).catch(() => [] as any[]),
   ]);
+  const coverMap = new Map((allCovers as any[]).map((c: any) => [c.slug, c.coverImageUrl]));
   const anchorData = [...(blogAnchorData as any[]), ...(pillarAnchorData as any[])];
   const ctaMap = new Map((allCtas as any[]).map((c: any) => [c.key, c]));
   const ctaData = ctaMap.get(post.ctaKey || "blog_default") ?? ctaMap.get("blog_default") ?? null;
@@ -446,24 +448,49 @@ export default async function BlogPostPage({ params }: Props) {
           )}
 
           {/* Lees ook */}
-          {post.internalLinks && post.internalLinks.filter((l: any) => l.label && l.slug).length > 0 && (
-            <div className="mt-10">
-              <p className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-4">Lees ook</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {post.internalLinks.filter((l: any) => l.label && l.slug).map((link: any, i: number) => (
-                  <Link key={i} href={link.slug.startsWith("thema/") ? `/${link.slug}` : `/blog/${link.slug}`}
-                    className="group bg-white rounded-2xl border border-stone-200 p-5 hover:shadow-md transition-shadow">
-                    <p className="font-semibold text-stone-800 leading-snug mb-3 group-hover:text-primary-600 transition-colors text-sm">
-                      {link.label}
-                    </p>
-                    <span className="text-sm text-primary-600 border border-primary-200 px-3 py-1 rounded-lg inline-block">
-                      Lees verder →
-                    </span>
+          {(() => {
+            const articleLinks = (post.internalLinks ?? [])
+              .filter((l: any) => l.label && l.slug && !l.slug.startsWith("thema/"))
+              .slice(0, 3);
+            const hasLinks = articleLinks.length > 0;
+            const hasPillar = !!pillar;
+            if (!hasLinks && !hasPillar) return null;
+            return (
+              <div className="mt-10">
+                <p className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-4">Lees ook</p>
+                {hasLinks && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                    {articleLinks.map((link: any, i: number) => {
+                      const cover = coverMap.get(link.slug);
+                      return (
+                        <Link key={i} href={`/blog/${link.slug}`}
+                          className="group bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow">
+                          {cover
+                            ? <img src={cover} alt={link.label} className="w-full h-36 object-cover" />
+                            : <div className="w-full h-36 bg-primary-50" />}
+                          <div className="p-4">
+                            <p className="font-semibold text-stone-800 leading-snug mb-3 group-hover:text-primary-600 transition-colors text-sm">
+                              {link.label}
+                            </p>
+                            <span className="text-sm text-primary-600 border border-primary-200 px-3 py-1 rounded-lg inline-block">
+                              Lees verder →
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+                {hasPillar && (
+                  <Link href={`/thema/${pillar.slug}`}
+                    className="flex items-center gap-2 text-sm text-primary-700 hover:text-primary-900 transition-colors">
+                    <span className="text-base">📖</span>
+                    <span>Meer over dit thema: <span className="font-semibold">{pillar.title}</span> →</span>
                   </Link>
-                ))}
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           <CtaBlockB data={ctaData} />
         </article>
