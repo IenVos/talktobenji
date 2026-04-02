@@ -1087,7 +1087,7 @@ export default function AdminBlogPage() {
                             <ExternalLink size={17} />
                           </a>
                         ) : (
-                          <a href={`/blog/${post.slug}?preview=${process.env.NEXT_PUBLIC_PREVIEW_SECRET ?? "preview"}`} target="_blank" rel="noopener noreferrer"
+                          <a href={`/blog/${post.slug}/preview?token=${process.env.NEXT_PUBLIC_PREVIEW_SECRET ?? "preview"}`} target="_blank" rel="noopener noreferrer"
                             className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg" title="Bekijk concept">
                             <ExternalLink size={17} />
                           </a>

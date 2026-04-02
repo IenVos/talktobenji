@@ -52,11 +52,17 @@ export const getArticles = query({
       ctx.db.query("blogPosts").withIndex("by_pillar", (q) => q.eq("pillarSlug", args.pillarSlug)).collect(),
     ]);
     const live = posts.filter((p) => p.isLive && (!p.publishedAt || p.publishedAt <= now));
+    const withCovers = await Promise.all(live.map(async (p) => ({
+      ...p,
+      coverImageUrl: p.coverImageStorageId
+        ? await ctx.storage.getUrl(p.coverImageStorageId).catch(() => null)
+        : null,
+    })));
     if (pillar?.featuredSlugs?.length) {
-      const map = new Map(live.map((p) => [p.slug, p]));
-      return pillar.featuredSlugs.map((s) => map.get(s)).filter(Boolean) as typeof live;
+      const map = new Map(withCovers.map((p) => [p.slug, p]));
+      return pillar.featuredSlugs.map((s) => map.get(s)).filter(Boolean) as typeof withCovers;
     }
-    return live.sort((a, b) => (b.publishedAt ?? b.createdAt) - (a.publishedAt ?? a.createdAt));
+    return withCovers.sort((a, b) => (b.publishedAt ?? b.createdAt) - (a.publishedAt ?? a.createdAt));
   },
 });
 

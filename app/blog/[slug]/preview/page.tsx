@@ -2,38 +2,16 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { AuthorCard } from "@/components/blog/AuthorCard";
 import { CtaBlockB } from "@/components/blog/CtaBlock";
 import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering, BenjiTeaserEmotie, BenjiTeaserCheckin, BenjiTeaserMemories } from "@/components/blog/BenjiTeaser";
 import { SiteFooter } from "@/components/SiteFooter";
 
-export const revalidate = 3600;
+// Altijd vers renderen — geen ISR caching voor preview
+export const dynamic = "force-dynamic";
 
-type Props = { params: { slug: string }; searchParams: { preview?: string } };
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
-  if (!post) return { title: "Artikel niet gevonden" };
-  return {
-    title: post.seoTitle ? `${post.seoTitle} — Talk To Benji` : `${post.title} — Talk To Benji`,
-    description: post.metaDescription || post.excerpt || undefined,
-    alternates: {
-      canonical: `https://www.talktobenji.com/blog/${post.slug}`,
-    },
-    openGraph: {
-      title: post.title,
-      description: post.metaDescription || post.excerpt || undefined,
-      url: `https://www.talktobenji.com/blog/${post.slug}`,
-      siteName: "Talk To Benji",
-      images: post.coverImageUrl ? [{ url: post.coverImageUrl }] : undefined,
-      type: "article",
-      publishedTime: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
-      modifiedTime: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
-    },
-  };
-}
+type Props = { params: { slug: string }; searchParams: { token?: string } };
 
 function headingId(text: string) {
   return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, "-").slice(0, 60);
@@ -51,7 +29,6 @@ function extractTOC(content: string) {
 
 type AnchorEntry = { slug: string; pillarSlug?: string | null; anchorPhrases: string[]; isPillar?: boolean };
 
-/** Verwerkt **vet**, *cursief*, [link](url) én auto-linking in één pass */
 function renderInlineAll(
   text: string,
   anchorData: AnchorEntry[] | undefined,
@@ -59,7 +36,6 @@ function renderInlineAll(
   currentPillar: string | null | undefined,
   used: Set<string>
 ): React.ReactNode {
-  // Bereken candidates eenmalig zodat linkText ze ook kan gebruiken
   const candidates = (anchorData?.length && currentSlug)
     ? anchorData
         .filter(a => {
@@ -71,7 +47,6 @@ function renderInlineAll(
         .sort((a, b) => b.phrase.length - a.phrase.length)
     : [];
 
-  // Hulpfunctie: auto-links toepassen op een stuk plain tekst (ook binnen bold/italic)
   function linkText(t: string): React.ReactNode {
     if (!candidates.length) return t;
     type S = { start: number; end: number; node: React.ReactNode };
@@ -100,7 +75,6 @@ function renderInlineAll(
     return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
   }
 
-  // Markdown: **bold**, *italic*, [text](url) — anchors ook binnen bold/italic
   type Seg = { start: number; end: number; node: React.ReactNode };
   const segs: Seg[] = [];
   const mdRe = /(\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]*)\))/g;
@@ -114,7 +88,6 @@ function renderInlineAll(
       segs.push({ start: m.index, end: m.index + m[0].length, node: <a key={`l${m.index}`} href={m[5]} className="text-primary-600 underline underline-offset-2">{m[4]}</a> });
   }
 
-  // Tekst tussen markdown-matches ook auto-linken
   if (!segs.length) return linkText(text);
   segs.sort((a, b) => a.start - b.start);
   const parts: React.ReactNode[] = [];
@@ -151,11 +124,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
   const ri = (text: string) => renderInlineAll(text, anchorData, currentSlug, currentPillar, used);
   const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
   return blocks.map((block, i) => {
-    // Extra witregel
-    if (block.trim() === "__SPACER__") {
-      return <div key={i} className="h-6" />;
-    }
-    // Benji teaser: [benji:type]
+    if (block.trim() === "__SPACER__") return <div key={i} className="h-6" />;
     const benjiMatch = block.trim().match(/^\[benji:([^\]]+)\]$/);
     if (benjiMatch) {
       if (benjiMatch[1] === "reflectie") return <BenjiTeaserReflectie key={i} />;
@@ -166,44 +135,31 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       if (benjiMatch[1] === "checkin") return <BenjiTeaserCheckin key={i} />;
       if (benjiMatch[1] === "memories") return <BenjiTeaserMemories key={i} />;
     }
-    // Inline CTA: [cta] of [cta:key]
     const ctaMatch = block.trim().match(/^\[cta(?::([^\]]+))?\]$/);
     if (ctaMatch) {
       const key = ctaMatch[1];
       const data = key ? (ctaMap?.get(key) ?? ctaData) : ctaData;
       return renderInlineCta(data, i);
     }
-    // Afbeelding
     const imgMatch = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (imgMatch) {
-      return (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img key={i} src={imgMatch[2]} alt={imgMatch[1]} className="w-full rounded-xl my-6" />
-      );
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img key={i} src={imgMatch[2]} alt={imgMatch[1]} className="w-full rounded-xl my-6" />;
     }
-    // Kop
-    if (block.startsWith("### ")) {
-      return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
-    }
+    if (block.startsWith("### ")) return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
     if (block.startsWith("## ")) {
       const text = block.slice(3);
       return <h3 key={i} id={headingId(text)} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{text}</h3>;
     }
-    if (block.startsWith("# ")) {
-      return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
-    }
+    if (block.startsWith("# ")) return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
     const lines = block.split("\n").filter(Boolean);
-    // Blockquote
     if (lines.length > 0 && lines.every(l => l.startsWith("> "))) {
       return (
         <blockquote key={i} className="border-l-4 border-primary-400 pl-5 pr-4 py-3 my-5 space-y-1 bg-primary-50 rounded-r-xl">
-          {lines.map((l, j) => (
-            <p key={j} className="text-stone-600 italic leading-relaxed text-[17px]">{ri(l.slice(2))}</p>
-          ))}
+          {lines.map((l, j) => <p key={j} className="text-stone-600 italic leading-relaxed text-[17px]">{ri(l.slice(2))}</p>)}
         </blockquote>
       );
     }
-    // Opsomming met vinkjes ✓
     if (lines.length > 0 && lines.every(l => l.startsWith("✓ "))) {
       return (
         <ul key={i} className="my-4 space-y-2">
@@ -216,7 +172,6 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
         </ul>
       );
     }
-    // Opsomming met puntjes - of *
     if (lines.length > 0 && lines.every(l => l.startsWith("- ") || l.startsWith("* "))) {
       return (
         <ul key={i} className="my-4 space-y-2">
@@ -229,28 +184,20 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
         </ul>
       );
     }
-    // Normale alinea
     return (
       <div key={i} className="space-y-3">
-        {lines.map((line, j) => (
-          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{ri(line)}</p>
-        ))}
+        {lines.map((line, j) => <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{ri(line)}</p>)}
       </div>
     );
   });
 }
 
+export default async function BlogPostPreviewPage({ params, searchParams }: Props) {
+  const token = searchParams?.token;
+  if (!token || token !== process.env.NEXT_PUBLIC_PREVIEW_SECRET) notFound();
 
-export default async function BlogPostPage({ params, searchParams }: Props) {
-  const previewToken = searchParams?.preview;
-  const isValidPreview = !!previewToken && previewToken === process.env.NEXT_PUBLIC_PREVIEW_SECRET;
-  const post = await (
-    isValidPreview
-      ? fetchQuery(api.blogPosts.getBySlugAdmin, { slug: params.slug }).catch(() => null)
-      : fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null)
-  );
+  const post = await fetchQuery(api.blogPosts.getBySlugAdmin, { slug: params.slug }).catch(() => null);
   if (!post) notFound();
-  const isPreview = isValidPreview && !(post as any).isLive;
 
   const [pillar, allCtas, blogAnchorData, pillarAnchorData, allCovers] = await Promise.all([
     post.pillarSlug
@@ -266,80 +213,14 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
   const ctaMap = new Map((allCtas as any[]).map((c: any) => [c.key, c]));
   const ctaData = ctaMap.get(post.ctaKey || "blog_default") ?? ctaMap.get("blog_default") ?? null;
 
-  // JSON-LD structured data voor Google (Article + FAQPage)
-  const articleSchema = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: post.title,
-    description: post.metaDescription || post.excerpt,
-    url: `https://www.talktobenji.com/blog/${post.slug}`,
-    datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
-    dateModified: post.updatedAt ? new Date(post.updatedAt).toISOString() : undefined,
-    image: post.coverImageUrl || undefined,
-    inLanguage: "nl-NL",
-    author: {
-      "@type": "Person",
-      name: "Ien",
-      jobTitle: "Founder van Talk To Benji",
-      url: "https://www.talktobenji.com",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Talk To Benji",
-      url: "https://www.talktobenji.com",
-      logo: { "@type": "ImageObject", url: "https://www.talktobenji.com/images/benji-logo-2.png" },
-    },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `https://www.talktobenji.com/blog/${post.slug}` },
-  };
-
-  const faqSchema = post.faqItems?.length
-    ? {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: post.faqItems.map((f: any) => ({
-          "@type": "Question",
-          name: f.question,
-          acceptedAnswer: { "@type": "Answer", text: f.answer },
-        })),
-      }
-    : null;
-
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://talktobenji.com" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://talktobenji.com/blog" },
-      ...(pillar ? [{ "@type": "ListItem", position: 3, name: pillar.title, item: `https://talktobenji.com/thema/${pillar.slug}` }] : []),
-      { "@type": "ListItem", position: pillar ? 4 : 3, name: post.title, item: `https://talktobenji.com/blog/${post.slug}` },
-    ],
-  };
-
   return (
     <div className="min-h-screen bg-stone-50">
       <HeaderBar />
-      {isPreview && (
-        <div className="bg-amber-400 text-amber-900 text-sm font-medium text-center py-2 px-4">
-          ⚠️ Voorbeeldmodus — dit artikel is nog niet live
-        </div>
-      )}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
-      />
-      {faqSchema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-        />
-      )}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
+      <div className="bg-amber-400 text-amber-900 text-sm font-medium text-center py-2 px-4">
+        ⚠️ Voorbeeldmodus — {(post as any).isLive ? "dit artikel is live" : "dit artikel is nog niet live"}
+      </div>
 
       <div className="max-w-2xl mx-auto px-4 py-12">
-        {/* Breadcrumb */}
         <nav className="text-xs text-stone-400 mb-8 flex items-center gap-1.5 flex-wrap">
           <Link href="/" className="hover:text-primary-600 whitespace-nowrap">Home</Link>
           <span>›</span>
@@ -352,7 +233,6 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
           )}
         </nav>
 
-        {/* Header */}
         <article>
           <div className="flex items-center gap-2 mb-3 flex-wrap">
             {post.publishedAt && (
@@ -362,14 +242,6 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
             )}
             <span className="text-stone-300 text-sm">·</span>
             <span className="text-xs text-stone-400">{readingTime(post.content)} min lezen</span>
-            {post.updatedAt && post.publishedAt && post.updatedAt - post.publishedAt > 30 * 24 * 60 * 60 * 1000 && (
-              <>
-                <span className="text-stone-300 text-sm">·</span>
-                <span className="text-xs text-stone-400">
-                  Bijgewerkt {new Date(post.updatedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
-                </span>
-              </>
-            )}
           </div>
           <h1 className="text-3xl font-bold text-stone-800 mb-6 leading-tight">{post.title}</h1>
 
@@ -388,14 +260,9 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
 
           {post.coverImageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={post.coverImageUrl}
-              alt={post.title}
-              className="w-full rounded-2xl mb-8 object-cover max-h-80"
-            />
+            <img src={post.coverImageUrl} alt={post.title} className="w-full rounded-2xl mb-8 object-cover max-h-80" />
           )}
 
-          {/* Inhoudsopgave */}
           {(() => {
             const toc = extractTOC(post.content);
             if (toc.length < 3) return null;
@@ -404,22 +271,17 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
                 <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">In dit artikel</p>
                 <ol className="space-y-1.5 list-decimal list-inside">
                   {toc.map((h, i) => (
-                    <li key={i}>
-                      <a href={`#${h.id}`} className="text-sm text-primary-600 hover:underline">{h.text}</a>
-                    </li>
+                    <li key={i}><a href={`#${h.id}`} className="text-sm text-primary-600 hover:underline">{h.text}</a></li>
                   ))}
                 </ol>
               </div>
             );
           })()}
 
-          {/* Inhoud */}
           <div className="space-y-5">
             {renderContent(post.content, ctaData, ctaMap, anchorData as AnchorEntry[], post.slug, post.pillarSlug ?? null)}
           </div>
 
-          {/* Interne links */}
-          {/* FAQ */}
           {post.faqItems && post.faqItems.filter((f: any) => f.question && f.answer).length > 0 && (
             <div className="mt-10">
               <h2 className="text-xl font-bold text-stone-800 mb-5">Veelgestelde vragen</h2>
@@ -441,7 +303,6 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          {/* Bronnen */}
           {post.sources && (
             <div className="mt-10 p-5 bg-stone-50 rounded-2xl border border-stone-200">
               <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Bronnen</p>
@@ -449,9 +310,7 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
                 {post.sources.split("\n").filter(Boolean).map((source, i) => (
                   <li key={i} className="text-sm italic text-stone-400 leading-relaxed">
                     {source.startsWith("http") ? (
-                      <a href={source} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 underline underline-offset-2">
-                        {source}
-                      </a>
+                      <a href={source} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 underline underline-offset-2">{source}</a>
                     ) : source}
                   </li>
                 ))}
@@ -459,7 +318,6 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
             </div>
           )}
 
-          {/* Lees ook */}
           {(() => {
             const articleLinks = (post.internalLinks ?? [])
               .filter((l: any) => l.label && l.slug && !l.slug.startsWith("thema/"))
