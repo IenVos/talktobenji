@@ -243,13 +243,14 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
 
 export default async function BlogPostPage({ params, searchParams }: Props) {
   const previewToken = searchParams?.preview;
+  const isValidPreview = !!previewToken && previewToken === process.env.NEXT_PUBLIC_PREVIEW_SECRET;
   const post = await (
-    previewToken
-      ? fetchQuery(api.blogPosts.getBySlugPreview, { adminToken: previewToken, slug: params.slug }).catch(() => null)
+    isValidPreview
+      ? fetchQuery(api.blogPosts.getBySlugAdmin, { slug: params.slug }).catch(() => null)
       : fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null)
   );
   if (!post) notFound();
-  const isPreview = !!previewToken && !(post as any).isLive;
+  const isPreview = isValidPreview && !(post as any).isLive;
 
   const [pillar, allCtas, blogAnchorData, pillarAnchorData, allCovers] = await Promise.all([
     post.pillarSlug

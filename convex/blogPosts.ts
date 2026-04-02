@@ -70,11 +70,10 @@ export const listAnchorData = query({
   },
 });
 
-/** Admin: één post via slug voor preview (ook concepten) */
-export const getBySlugPreview = query({
-  args: { adminToken: v.string(), slug: v.string() },
+/** Server-side preview: één post via slug, ook concepten — token wordt gevalideerd in Next.js page */
+export const getBySlugAdmin = query({
+  args: { slug: v.string() },
   handler: async (ctx, args) => {
-    await checkAdmin(ctx, args.adminToken);
     const post = await ctx.db.query("blogPosts")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
