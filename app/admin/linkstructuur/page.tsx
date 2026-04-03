@@ -55,10 +55,10 @@ export default function LinkStructuurPage() {
   }, [stats, filterPillar, filterStatus, sortField, sortDir]);
 
   // Gezondheidssamenvatting (alleen live)
-  const liveItems = (stats ?? []).filter((p) => p.isLive);
-  const noLinks = liveItems.filter((p) => p.incomingLinkCount === 0).length;
-  const oneLink = liveItems.filter((p) => p.incomingLinkCount === 1).length;
-  const goodLinks = liveItems.filter((p) => p.incomingLinkCount >= 2).length;
+  const liveItems = (stats ?? []).filter((p: any) => p.isLive);
+  const noLinks = liveItems.filter((p: any) => p.incomingLinkCount === 0).length;
+  const oneLink = liveItems.filter((p: any) => p.incomingLinkCount === 1).length;
+  const goodLinks = liveItems.filter((p: any) => p.incomingLinkCount >= 2).length;
 
   function toggleSort(field: SortField) {
     if (sortField === field) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
