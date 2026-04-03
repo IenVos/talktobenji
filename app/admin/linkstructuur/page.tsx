@@ -41,7 +41,7 @@ export default function LinkStructuurPage() {
   }, [stats, pillarMap]);
 
   const filtered = useMemo(() => {
-    let items = stats ?? [];
+    let items: NonNullable<typeof stats> = stats ?? [];
     if (filterPillar !== "all") items = items.filter((p) => p.pillarSlug === filterPillar);
     if (filterStatus === "live") items = items.filter((p) => p.isLive);
     if (filterStatus === "concept") items = items.filter((p) => !p.isLive);
