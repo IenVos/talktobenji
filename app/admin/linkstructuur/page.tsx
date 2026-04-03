@@ -172,7 +172,7 @@ export default function LinkStructuurPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {filtered.map((post) => (
+            {filtered.map((post: any) => (
               <tr key={post._id} className={`hover:bg-gray-50 transition-colors ${!post.isLive ? "opacity-60" : ""}`}>
                 {/* Titel */}
                 <td className="px-4 py-3 max-w-xs">
@@ -220,7 +220,7 @@ export default function LinkStructuurPage() {
                     <div className="flex items-center gap-1.5 group">
                       {post.anchorPhrases.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
-                          {post.anchorPhrases.map((phrase, i) => (
+                          {post.anchorPhrases.map((phrase: any, i: number) => (
                             <span key={i} className="text-xs bg-violet-50 border border-violet-200 text-violet-700 rounded px-1.5 py-0.5">
                               {phrase}
                             </span>
@@ -254,7 +254,7 @@ export default function LinkStructuurPage() {
                 <td className="px-4 py-3 hidden lg:table-cell">
                   {post.outgoingLinks.length > 0 ? (
                     <div className="flex flex-wrap gap-1">
-                      {post.outgoingLinks.map((link, i) => (
+                      {post.outgoingLinks.map((link: any, i: number) => (
                         <span key={i} className="text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 truncate max-w-[120px]" title={link.slug}>
                           {link.slug}
                         </span>
