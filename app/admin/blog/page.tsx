@@ -86,6 +86,7 @@ function slugify(text: string) {
 export default function AdminBlogPage() {
   const { adminToken } = useAdminAuth();
   const posts = useAdminQuery(api.blogPosts.list, {});
+  const linkStats = useAdminQuery(api.blogPosts.listWithLinkStats, {});
   const pillars = useAdminQuery(api.pillars.list, {});
   const ctaBlocks = useAdminQuery(api.ctaBlocks.list, {});
   const createPost = useAdminMutation(api.blogPosts.create);
@@ -868,20 +869,25 @@ export default function AdminBlogPage() {
                 <LinkIcon size={16} />
                 Interne links <span className="text-xs text-gray-400 font-normal">(max 2)</span>
               </p>
-              {/* Checkbox-lijst met artikelen uit dezelfde pillar */}
+              {/* Checkbox-lijst met artikelen uit dezelfde pillar — gesorteerd op minste inkomende links */}
               {form.pillarSlug && (() => {
-                const siblings = (posts ?? []).filter(
-                  (p: any) => p.pillarSlug === form.pillarSlug && p._id !== editingId
+                const incomingMap = new Map<string, number>(
+                  (linkStats ?? []).map((s: any) => [s.slug, s.incomingLinkCount])
                 );
+                const siblings = (posts ?? [])
+                  .filter((p: any) => p.pillarSlug === form.pillarSlug && p._id !== editingId)
+                  .sort((a: any, b: any) => (incomingMap.get(a.slug) ?? 0) - (incomingMap.get(b.slug) ?? 0));
                 if (!siblings.length) return (
                   <p className="text-xs text-gray-400 italic">Nog geen andere artikelen in deze pillar.</p>
                 );
                 const activeCount = form.internalLinks.filter(l => l.slug.trim()).length;
                 return (
                   <div className="p-3 bg-stone-50 rounded-lg border border-stone-200 space-y-2">
-                    <p className="text-xs text-gray-500">Kies uit artikelen in dezelfde pillar (max 2):</p>
+                    <p className="text-xs text-gray-500">Kies uit artikelen in dezelfde pillar — <span className="text-amber-600 font-medium">gesorteerd op minste inkomende links</span> (max 2):</p>
                     {siblings.map((p: any) => {
                       const isChecked = form.internalLinks.some(l => l.slug === p.slug);
+                      const incoming = incomingMap.get(p.slug) ?? 0;
+                      const badgeColor = incoming === 0 ? "bg-red-100 text-red-600" : incoming === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
                       return (
                         <label key={p._id} className="flex items-center gap-2 cursor-pointer">
                           <input
@@ -907,6 +913,7 @@ export default function AdminBlogPage() {
                             }}
                             className="rounded border-primary-300 text-primary-600"
                           />
+                          <span className={`text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{incoming}</span>
                           <span className="text-sm text-gray-700 leading-tight">{p.title}</span>
                         </label>
                       );

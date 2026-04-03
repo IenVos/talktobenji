@@ -300,6 +300,38 @@ export const syncToKnowledgeBase = mutation({
   },
 });
 
+/** Admin: alle posts met inkomende/uitgaande link-statistieken */
+export const listWithLinkStats = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const posts = await ctx.db.query("blogPosts").collect();
+
+    // Bereken inkomende links per slug
+    const incomingCount = new Map<string, number>();
+    for (const post of posts) {
+      for (const link of (post.internalLinks ?? [])) {
+        if (link.slug && !link.slug.startsWith("thema/")) {
+          incomingCount.set(link.slug, (incomingCount.get(link.slug) ?? 0) + 1);
+        }
+      }
+    }
+
+    return posts.map((p) => ({
+      _id: p._id,
+      slug: p.slug,
+      title: p.title,
+      pillarSlug: p.pillarSlug ?? null,
+      isLive: p.isLive,
+      anchorPhrases: p.anchorPhrases ?? [],
+      outgoingLinks: (p.internalLinks ?? []).filter((l) => l.slug && !l.slug.startsWith("thema/")),
+      incomingLinkCount: incomingCount.get(p.slug) ?? 0,
+      publishedAt: p.publishedAt ?? null,
+      createdAt: p.createdAt,
+    }));
+  },
+});
+
 /** Admin: voorbeeldartikel aanmaken */
 export const seedExample = mutation({
   args: { adminToken: v.string() },
