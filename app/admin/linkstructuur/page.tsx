@@ -41,11 +41,11 @@ export default function LinkStructuurPage() {
   }, [stats, pillarMap]);
 
   const filtered = useMemo(() => {
-    let items: NonNullable<typeof stats> = stats ?? [];
-    if (filterPillar !== "all") items = items.filter((p) => p.pillarSlug === filterPillar);
-    if (filterStatus === "live") items = items.filter((p) => p.isLive);
-    if (filterStatus === "concept") items = items.filter((p) => !p.isLive);
-    return [...items].sort((a, b) => {
+    let items: any[] = stats ?? [];
+    if (filterPillar !== "all") items = items.filter((p: any) => p.pillarSlug === filterPillar);
+    if (filterStatus === "live") items = items.filter((p: any) => p.isLive);
+    if (filterStatus === "concept") items = items.filter((p: any) => !p.isLive);
+    return [...items].sort((a: any, b: any) => {
       let diff = 0;
       if (sortField === "incoming") diff = a.incomingLinkCount - b.incomingLinkCount;
       else if (sortField === "outgoing") diff = a.outgoingLinks.length - b.outgoingLinks.length;
