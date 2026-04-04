@@ -78,11 +78,12 @@ function renderInlineAll(
     const s: S[] = [];
     const lower = t.toLowerCase();
     for (const { phrase, slug, isPillar } of candidates) {
-      if (used.has(phrase)) continue;
+      if (used.has(phrase) || used.has(`slug:${slug}`)) continue;
       const idx = lower.indexOf(phrase.toLowerCase());
       if (idx === -1) continue;
       if (s.some(x => idx < x.end && idx + phrase.length > x.start)) continue;
       used.add(phrase);
+      used.add(`slug:${slug}`);
       const href = isPillar ? `/thema/${slug}` : `/blog/${slug}`;
       s.push({ start: idx, end: idx + phrase.length, node: <Link key={`al${idx}`} href={href} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{t.slice(idx, idx + phrase.length)}</Link> });
     }
