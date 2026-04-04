@@ -225,7 +225,7 @@ export const update = mutation({
   },
 });
 
-/** Admin: scan artikel-tekst op mogelijke interne links */
+/** Admin: scan artikel-tekst op mogelijke interne links — optie C: kernwoorden + beste zin */
 export const scanForLinks = query({
   args: {
     adminToken: v.string(),
@@ -252,7 +252,24 @@ export const scanForLinks = query({
       (p) => p.slug !== args.excludeSlug && (!args.pillarSlug || p.pillarSlug === args.pillarSlug)
     );
 
-    const contentLower = args.content.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+    // Extra stopwoorden voor generieke werkwoorden/bijwoorden die slechte ankerzinnen geven
+    const GENERIC = new Set([
+      ...Array.from(STOP_NL),
+      "gaan","komen","zien","doen","maken","zeggen","weten","worden","blijven","laten","staan",
+      "meer","minder","veel","weinig","goed","slecht","groot","klein","lang","kort","nieuw","oud",
+      "eerste","tweede","laatste","eigen","hele","zelfde","andere","enkele","alle","elke","ieder",
+      "kunnen","willen","moeten","mogen","hoeven","lijken","lijkt","voelen","voelt","lijken",
+      "echter","altijd","soms","vaak","nooit","misschien","juist","alleen","nog","ook","wel",
+      "gewoon","echt","heel","erg","zeer","best","zeker","waarom","wanneer","waardoor","waarmee",
+    ]);
+
+    // Splits brontekst in zinnen
+    const sentences = args.content
+      .replace(/\n+/g, " ")
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 20 && !s.startsWith("[") && !s.startsWith("#"));
+
     const usedTargets = new Set<string>();
     const matches: Array<{
       targetSlug: string;
@@ -261,57 +278,99 @@ export const scanForLinks = query({
       matchedPhrase: string;
       incomingLinkCount: number;
       isNewAnchor: boolean;
+      score: number;
     }> = [];
 
     for (const post of candidates) {
       if (usedTargets.has(post.slug)) continue;
+
+      // Bouw kernwoordenset: titel + focusKeyword + excerpt (gefilterd op betekenisvolle woorden)
+      const sources = [
+        post.title,
+        post.focusKeyword ?? "",
+        post.excerpt ?? "",
+      ].join(" ");
+      const keywords = new Set(
+        sources.toLowerCase()
+          .replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "")
+          .split(/\s+/)
+          .filter((w) => w.length > 3 && !GENERIC.has(w))
+      );
+      if (keywords.size === 0) continue;
+
+      // Bestaande ankerzinnen als exacte matches ook meenemen
       const existingAnchors = new Set(post.anchorPhrases ?? []);
-      const phrases: { phrase: string; isNew: boolean }[] = [];
 
-      // Bestaande ankerzinnen (alleen meerdere woorden)
-      for (const p of existingAnchors) {
-        if (p.includes(" ")) phrases.push({ phrase: p.toLowerCase(), isNew: false });
+      // Score elke zin op overlap met kernwoorden
+      let bestSentence = "";
+      let bestScore = 0;
+      let bestMatchingWords: string[] = [];
+
+      for (const sentence of sentences) {
+        const sentLower = sentence.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+        const sentWords = sentLower.split(/\s+/);
+        const matchingWords = sentWords.filter((w) => keywords.has(w));
+        const score = matchingWords.length;
+        if (score > bestScore) {
+          bestScore = score;
+          bestSentence = sentLower;
+          bestMatchingWords = matchingWords;
+        }
       }
 
-      // Titelbigrams en trigrams
-      const titleWords = post.title.toLowerCase()
-        .replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim()
-        .split(/\s+/).filter((w) => w.length > 2 && !STOP_NL.has(w));
-      for (let i = 0; i < titleWords.length - 1; i++) {
-        const p = `${titleWords[i]} ${titleWords[i + 1]}`;
-        phrases.push({ phrase: p, isNew: !existingAnchors.has(p) });
-      }
-      for (let i = 0; i < titleWords.length - 2; i++) {
-        const p = `${titleWords[i]} ${titleWords[i + 1]} ${titleWords[i + 2]}`;
-        phrases.push({ phrase: p, isNew: !existingAnchors.has(p) });
+      // Minimaal 2 kernwoord-matches nodig voor een goede ankerzin
+      if (bestScore < 2) continue;
+
+      // Extraheer de beste aaneengesloten span van 3-5 woorden uit de beste zin
+      // die de meeste kernwoorden bevat
+      const sentWords = bestSentence.split(/\s+/);
+      let bestSpan = "";
+      let bestSpanScore = 0;
+
+      for (let len = 5; len >= 3; len--) {
+        for (let i = 0; i <= sentWords.length - len; i++) {
+          const span = sentWords.slice(i, i + len);
+          // Filter spans die beginnen of eindigen met een generiek woord
+          if (GENERIC.has(span[0]) || GENERIC.has(span[span.length - 1])) continue;
+          const spanScore = span.filter((w) => keywords.has(w)).length;
+          if (spanScore > bestSpanScore) {
+            bestSpanScore = spanScore;
+            bestSpan = span.join(" ");
+          }
+        }
+        if (bestSpanScore >= 2) break; // goede span gevonden, stop zoeken
       }
 
-      // Focus keyword (meerdere woorden)
-      if (post.focusKeyword?.includes(" ")) {
-        const fk = post.focusKeyword.toLowerCase();
-        phrases.push({ phrase: fk, isNew: !existingAnchors.has(fk) });
-      }
+      if (!bestSpan || bestSpanScore < 1) continue;
 
-      // Eerste match in de tekst
-      for (const { phrase, isNew } of phrases) {
-        if (phrase.length < 5) continue;
-        if (contentLower.includes(phrase)) {
-          matches.push({
-            targetSlug: post.slug,
-            targetTitle: post.title,
-            targetId: post._id,
-            matchedPhrase: phrase,
-            incomingLinkCount: incomingCount.get(post.slug) ?? 0,
-            isNewAnchor: isNew,
-          });
-          usedTargets.add(post.slug);
+      // Controleer ook op bestaande ankerzinnen in de brontekst
+      const contentLower = args.content.toLowerCase();
+      let finalPhrase = bestSpan;
+      let isNewAnchor = !existingAnchors.has(bestSpan);
+
+      for (const anchor of existingAnchors) {
+        if (anchor.includes(" ") && contentLower.includes(anchor.toLowerCase())) {
+          finalPhrase = anchor.toLowerCase();
+          isNewAnchor = false;
           break;
         }
       }
+
+      matches.push({
+        targetSlug: post.slug,
+        targetTitle: post.title,
+        targetId: post._id,
+        matchedPhrase: finalPhrase,
+        incomingLinkCount: incomingCount.get(post.slug) ?? 0,
+        isNewAnchor,
+        score: bestScore,
+      });
+      usedTargets.add(post.slug);
     }
 
-    // Sorteren: minste inkomende links eerst
-    return matches.sort((a, b) => a.incomingLinkCount - b.incomingLinkCount);
+    // Sorteren: eerst score (relevantie), dan minste inkomende links
+    return matches
+      .sort((a, b) => b.score - a.score || a.incomingLinkCount - b.incomingLinkCount);
   },
 });
 
