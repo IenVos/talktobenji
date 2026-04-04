@@ -390,9 +390,14 @@ export default async function PillarPage({ params }: Props) {
         {/* Artikelen */}
         {(articles as any[]).length > 0 && (
           <div>
-            <h2 className="text-xl font-bold text-stone-800 mb-6">
-              Artikelen over {pillar.title}
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-stone-800">
+                Artikelen over {pillar.title}
+              </h2>
+              <Link href={`/thema/${pillar.slug}/artikelen`} className="text-sm text-primary-600 hover:text-primary-800 transition-colors whitespace-nowrap">
+                Bekijk alle artikelen →
+              </Link>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               {(articles as any[]).map((post) => (
                 <Link

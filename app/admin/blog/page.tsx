@@ -932,8 +932,11 @@ export default function AdminBlogPage() {
               {/* Scan op links */}
               {form.pillarSlug && form.content.trim().length > 100 && (
                 <div className="border border-primary-200 rounded-lg bg-primary-50 p-3 space-y-3">
+                  {form.title && (
+                    <p className="text-xs text-gray-500 truncate font-medium" title={form.title}>📄 {form.title}</p>
+                  )}
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-primary-800">Automatisch scannen op ankerzinnen</p>
+                    <p className="text-xs font-medium text-primary-800">Zinnen in dit artikel die linken naar andere artikelen</p>
                     <button
                       type="button"
                       disabled={scanLoading}
@@ -949,7 +952,8 @@ export default function AdminBlogPage() {
                             excludeSlug: form.slug,
                           });
                           setScanResults(results as any[]);
-                          setScanAccepted(new Set((results as any[]).map((r: any) => r.targetSlug)));
+                          // Pre-check ankerzinnen die al zijn toegepast (isNewAnchor === false)
+                          setScanAccepted(new Set((results as any[]).filter((r: any) => !r.isNewAnchor).map((r: any) => r.targetSlug)));
                         } finally {
                           setScanLoading(false);
                         }
@@ -966,7 +970,7 @@ export default function AdminBlogPage() {
                       <p className="text-xs text-gray-500 italic">Geen matches gevonden in je tekst.</p>
                     ) : (
                       <div className="space-y-2">
-                        <p className="text-xs text-gray-500">{scanResults.length} match{scanResults.length !== 1 ? "es" : ""} gevonden — vink aan wat je wil toepassen:</p>
+                        <p className="text-xs text-gray-500">{scanResults.length} zin{scanResults.length !== 1 ? "nen" : ""} gevonden in dit artikel die kunnen linken naar:</p>
                         {scanResults.map((r: any) => {
                           const checked = scanAccepted.has(r.targetSlug);
                           const badgeColor = r.incomingLinkCount === 0 ? "bg-red-100 text-red-600" : r.incomingLinkCount === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
@@ -988,30 +992,35 @@ export default function AdminBlogPage() {
                                   <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className="text-xs font-medium text-violet-700 bg-violet-50 border border-violet-200 rounded px-1.5 py-0.5">"{r.matchedPhrase}"</span>
                                     <span className={`text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
-                                    {r.isNewAnchor && <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">nieuw</span>}
+                                    {r.isNewAnchor
+                                      ? <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">nieuw</span>
+                                      : <span className="text-[10px] text-green-600 bg-green-50 border border-green-200 rounded px-1 py-0.5">✓ actief</span>
+                                    }
                                   </div>
                                 </div>
                               </div>
                             </label>
                           );
                         })}
-                        {scanAccepted.size > 0 && (
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              const toApply = scanResults
-                                .filter((r: any) => scanAccepted.has(r.targetSlug))
-                                .map((r: any) => ({ targetId: r.targetId as Id<"blogPosts">, phrase: r.matchedPhrase }));
-                              await applyLinks({ suggestions: toApply });
-                              setScanResults(null);
-                              setScanAccepted(new Set());
-                            }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            <CheckCircle size={12} />
-                            {scanAccepted.size} ankerzin{scanAccepted.size !== 1 ? "nen" : ""} toepassen
-                          </button>
-                        )}
+                        {(() => {
+                          const newToApply = (scanResults ?? []).filter((r: any) => scanAccepted.has(r.targetSlug) && r.isNewAnchor);
+                          if (!newToApply.length) return null;
+                          return (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const toApply = newToApply.map((r: any) => ({ targetId: r.targetId as Id<"blogPosts">, phrase: r.matchedPhrase }));
+                                await applyLinks({ suggestions: toApply });
+                                setScanResults(null);
+                                setScanAccepted(new Set());
+                              }}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                              <CheckCircle size={12} />
+                              {newToApply.length} nieuwe link{newToApply.length !== 1 ? "s" : ""} activeren
+                            </button>
+                          );
+                        })()}
                       </div>
                     )
                   )}

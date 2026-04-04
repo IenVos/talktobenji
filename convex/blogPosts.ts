@@ -252,15 +252,30 @@ export const scanForLinks = query({
       (p) => p.slug !== args.excludeSlug && (!args.pillarSlug || p.pillarSlug === args.pillarSlug)
     );
 
-    // Extra stopwoorden voor generieke werkwoorden/bijwoorden die slechte ankerzinnen geven
+    // Woorden die een span niet mogen STARTEN of EINDIGEN
     const GENERIC = new Set([
       ...Array.from(STOP_NL),
       "gaan","komen","zien","doen","maken","zeggen","weten","worden","blijven","laten","staan",
       "meer","minder","veel","weinig","goed","slecht","groot","klein","lang","kort","nieuw","oud",
       "eerste","tweede","laatste","eigen","hele","zelfde","andere","enkele","alle","elke","ieder",
-      "kunnen","willen","moeten","mogen","hoeven","lijken","lijkt","voelen","voelt","lijken",
+      "kunnen","willen","moeten","mogen","hoeven","lijken","lijkt","voelen","voelt",
       "echter","altijd","soms","vaak","nooit","misschien","juist","alleen","nog","ook","wel",
       "gewoon","echt","heel","erg","zeer","best","zeker","waarom","wanneer","waardoor","waarmee",
+      // Vervoegingen die de basisvorm missen
+      "kunt","kan","kon","konden","wil","wilt","wist","werd","werden","ben","bent","was","waren",
+      "heeft","hebben","had","hadden","gaat","komt","kwamen","doet","ziet","zag","geeft","staat",
+      "vind","vindt","voel","voelt","snap","snapt","denk","denkt","weet","kent","kent","lijkt",
+      // Lidwoorden/voornaamwoorden die in STOP_NL missen
+      "geen","mijn","jouw","ons","uw","hun","zich","zelf","iets","niets","iemand","niemand",
+      "hierbij","hiermee","hiervoor","hierin","hierdoor","daarin","daarmee","daarvoor","daardoor",
+    ]);
+
+    // Woorden die NERGENS in een span mogen voorkomen (breekpunten)
+    const HARD_STOP = new Set([
+      "is","zijn","was","waren","wordt","werden","ben","bent","heeft","hebben","had","hadden",
+      "een","de","het","geen","en","of","maar","want","dus","toch","ook","nog","al","al",
+      "naar","van","aan","op","in","bij","uit","door","over","voor","met","om","tot","als",
+      "dat","die","dit","deze","zo","dan","er","zich",
     ]);
 
     // Splits brontekst in zinnen
@@ -331,8 +346,10 @@ export const scanForLinks = query({
       for (let len = 5; len >= 3; len--) {
         for (let i = 0; i <= sentWords.length - len; i++) {
           const span = sentWords.slice(i, i + len);
-          // Filter spans die beginnen of eindigen met een generiek woord
+          // Filter: mag niet beginnen/eindigen met generiek woord
           if (GENERIC.has(span[0]) || GENERIC.has(span[span.length - 1])) continue;
+          // Filter: geen hard-stop woord ergens in de span (voorkomt "gevoel van ... is geen")
+          if (span.some((w) => HARD_STOP.has(w))) continue;
           const spanScore = span.filter((w) => keywords.has(w)).length;
           if (spanScore > bestSpanScore) {
             bestSpanScore = spanScore;

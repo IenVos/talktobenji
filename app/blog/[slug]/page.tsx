@@ -347,7 +347,7 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
           {pillar && (
             <>
               <span>›</span>
-              <Link href={`/thema/${pillar.slug}`} className="hover:text-primary-600 whitespace-nowrap">{pillar.title}</Link>
+              <Link href={`/thema/${pillar.slug}/artikelen`} className="hover:text-primary-600 whitespace-nowrap">{pillar.title}</Link>
             </>
           )}
         </nav>

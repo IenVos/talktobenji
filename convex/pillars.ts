@@ -66,6 +66,25 @@ export const getArticles = query({
   },
 });
 
+/** Publiek: alle gepubliceerde artikelen voor een pillar (negeert featuredSlugs) */
+export const getAllArticles = query({
+  args: { pillarSlug: v.string() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const posts = await ctx.db.query("blogPosts")
+      .withIndex("by_pillar", (q) => q.eq("pillarSlug", args.pillarSlug))
+      .collect();
+    const live = posts.filter((p) => p.isLive && (!p.publishedAt || p.publishedAt <= now));
+    const withCovers = await Promise.all(live.map(async (p) => ({
+      ...p,
+      coverImageUrl: p.coverImageStorageId
+        ? await ctx.storage.getUrl(p.coverImageStorageId).catch(() => null)
+        : null,
+    })));
+    return withCovers.sort((a, b) => (b.publishedAt ?? b.createdAt) - (a.publishedAt ?? a.createdAt));
+  },
+});
+
 /** Admin: upload URL genereren */
 export const generateUploadUrl = mutation({
   args: { adminToken: v.string() },
