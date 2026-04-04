@@ -30,10 +30,12 @@ export default async function PillarArtikelenPage({ params }: Props) {
 
   if (!pillar || !(pillar as any).isLive) notFound();
 
-  const TINTS = ["#f0f7ff", "#fff5f5", "#fffbeb", "#f0fdf4", "#faf5ff", "#f0fdfa", "#fff7ed", "#f5f3ff"];
+  const TINTS        = ["#f0f7ff","#fff5f5","#fffbeb","#f0fdf4","#faf5ff","#f0fdfa","#fff7ed","#f5f3ff"];
+  const TINT_BORDERS = ["#93c5fd","#fda4af","#fcd34d","#86efac","#d8b4fe","#5eead4","#fdba74","#c4b5fd"];
   const pillarSlugs = await fetchQuery(api.pillars.listSlugs, {}).catch(() => [] as string[]);
   const pillarIdx = (pillarSlugs as string[]).indexOf(params.slug);
-  const tint = TINTS[pillarIdx % TINTS.length] ?? "#ffffff";
+  const tint       = TINTS[pillarIdx % TINTS.length] ?? "#ffffff";
+  const tintBorder = TINT_BORDERS[pillarIdx % TINT_BORDERS.length] ?? "#d6d3d1";
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
@@ -93,7 +95,8 @@ export default async function PillarArtikelenPage({ params }: Props) {
                     {post.excerpt && (
                       <p className="text-stone-500 text-sm leading-relaxed line-clamp-3 flex-1">{post.excerpt}</p>
                     )}
-                    <span className="inline-block mt-4 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg px-4 py-2 group-hover:bg-primary-50 transition-colors">
+                    <span className="inline-block mt-4 text-sm font-medium text-stone-700 rounded-lg px-4 py-2 transition-opacity group-hover:opacity-80"
+                      style={{ backgroundColor: tint, border: `1.5px solid ${tintBorder}` }}>
                       Lees verder →
                     </span>
                   </div>

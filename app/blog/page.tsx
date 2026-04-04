@@ -13,14 +13,16 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 // Zachte achtergrondtinten — elke pillar krijgt een unieke kleur op volgorde van aanmaak
-const TINTS = ["#f0f7ff","#fff5f5","#fffbeb","#f0fdf4","#faf5ff","#f0fdfa","#fff7ed","#f5f3ff"];
+const TINTS        = ["#f0f7ff","#fff5f5","#fffbeb","#f0fdf4","#faf5ff","#f0fdfa","#fff7ed","#f5f3ff"];
+const TINT_BORDERS = ["#93c5fd","#fda4af","#fcd34d","#86efac","#d8b4fe","#5eead4","#fdba74","#c4b5fd"];
 
 export default async function BlogOverviewPage() {
   const [posts, pillarSlugs] = await Promise.all([
     fetchQuery(api.blogPosts.listPublished, {}).catch(() => [] as any[]),
     fetchQuery(api.pillars.listSlugs, {}).catch(() => [] as string[]),
   ]);
-  const pillarColorMap = new Map((pillarSlugs as string[]).map((slug, i) => [slug, TINTS[i % TINTS.length]]));
+  const pillarColorMap  = new Map((pillarSlugs as string[]).map((slug, i) => [slug, TINTS[i % TINTS.length]]));
+  const pillarBorderMap = new Map((pillarSlugs as string[]).map((slug, i) => [slug, TINT_BORDERS[i % TINT_BORDERS.length]]));
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
@@ -37,9 +39,12 @@ export default async function BlogOverviewPage() {
           <p className="text-stone-400 text-center py-16">Binnenkort verschijnen hier artikelen.</p>
         ) : (
           <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post: any) => (
+            {posts.map((post: any) => {
+              const cardBg     = pillarColorMap.get(post.pillarSlug) ?? "#ffffff";
+              const cardBorder = pillarBorderMap.get(post.pillarSlug) ?? "#d6d3d1";
+              return (
               <li key={post._id}>
-                <Link href={`/blog/${post.slug}`} className="group flex flex-col h-full rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow" style={{ backgroundColor: pillarColorMap.get(post.pillarSlug) ?? "#ffffff" }}>
+                <Link href={`/blog/${post.slug}`} className="group flex flex-col h-full rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow" style={{ backgroundColor: cardBg }}>
                   {post.coverImageUrl && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -66,13 +71,15 @@ export default async function BlogOverviewPage() {
                     {post.excerpt && (
                       <p className="text-stone-500 text-sm leading-relaxed line-clamp-3 flex-1">{post.excerpt}</p>
                     )}
-                    <span className="inline-block mt-4 text-sm font-medium text-primary-600 border border-primary-600 rounded-lg px-4 py-2 group-hover:bg-primary-50 transition-colors">
+                    <span className="inline-block mt-4 text-sm font-medium text-stone-700 rounded-lg px-4 py-2 transition-opacity group-hover:opacity-80"
+                      style={{ backgroundColor: cardBg, border: `1.5px solid ${cardBorder}` }}>
                       Lees verder →
                     </span>
                   </div>
                 </Link>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </div>
