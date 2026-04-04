@@ -297,95 +297,127 @@ export const scanForLinks = query({
       score: number;
     }> = [];
 
+    const contentLower = args.content.toLowerCase();
+
+    // Hulpfunctie: zoek phrase terug in originele tekst (behoudt schrijfwijze)
+    function findOriginal(phrase: string): string | null {
+      const idx = contentLower.indexOf(phrase.toLowerCase());
+      if (idx === -1) return null;
+      return args.content.slice(idx, idx + phrase.length);
+    }
+
+    // Hulpfunctie: genereer n-gram kandidaten uit een tekst (2-4 woorden, no stop-ends)
+    function ngramCandidates(text: string, minLen: number, maxLen: number): string[] {
+      const clean = text.toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim();
+      const words = clean.split(/\s+/).filter(Boolean);
+      const results: string[] = [];
+      for (let len = maxLen; len >= minLen; len--) {
+        for (let i = 0; i <= words.length - len; i++) {
+          const span = words.slice(i, i + len);
+          if (GENERIC.has(span[0]) || GENERIC.has(span[span.length - 1])) continue;
+          if (span.some((w) => HARD_STOP.has(w))) continue;
+          results.push(span.join(" "));
+        }
+      }
+      return results;
+    }
+
     for (const post of candidates) {
       if (usedTargets.has(post.slug)) continue;
 
-      // Bouw kernwoordenset: titel + focusKeyword + excerpt (gefilterd op betekenisvolle woorden)
-      const sources = [
-        post.title,
-        post.focusKeyword ?? "",
-        post.excerpt ?? "",
-      ].join(" ");
-      const keywords = new Set(
-        sources.toLowerCase()
-          .replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "")
-          .split(/\s+/)
-          .filter((w) => w.length > 3 && !GENERIC.has(w))
-      );
-      if (keywords.size === 0) continue;
-
-      // Bestaande ankerzinnen als exacte matches ook meenemen
+      // Bestaande ankerzinnen als directe matches meenemen
       const existingAnchors = new Set(post.anchorPhrases ?? []);
 
-      // Score elke zin op overlap met kernwoorden
-      let bestSentence = "";
-      let bestScore = 0;
-      let bestMatchingWords: string[] = [];
+      let finalPhrase: string | null = null;
+      let isNewAnchor = true;
 
-      for (const sentence of sentences) {
-        const sentLower = sentence.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
-        const sentWords = sentLower.split(/\s+/);
-        const matchingWords = sentWords.filter((w) => keywords.has(w));
-        const score = matchingWords.length;
-        if (score > bestScore) {
-          bestScore = score;
-          bestSentence = sentLower;
-          bestMatchingWords = matchingWords;
-        }
-      }
-
-      // Minimaal 2 kernwoord-matches nodig voor een goede ankerzin
-      if (bestScore < 2) continue;
-
-      // Extraheer de beste aaneengesloten span van 3-5 woorden uit de beste zin
-      // die de meeste kernwoorden bevat
-      const sentWords = bestSentence.split(/\s+/);
-      let bestSpan = "";
-      let bestSpanScore = 0;
-
-      for (let len = 5; len >= 3; len--) {
-        for (let i = 0; i <= sentWords.length - len; i++) {
-          const span = sentWords.slice(i, i + len);
-          // Filter: mag niet beginnen/eindigen met generiek woord
-          if (GENERIC.has(span[0]) || GENERIC.has(span[span.length - 1])) continue;
-          // Filter: geen hard-stop woord ergens in de span (voorkomt "gevoel van ... is geen")
-          if (span.some((w) => HARD_STOP.has(w))) continue;
-          const spanScore = span.filter((w) => keywords.has(w)).length;
-          if (spanScore > bestSpanScore) {
-            bestSpanScore = spanScore;
-            bestSpan = span.join(" ");
-          }
-        }
-        if (bestSpanScore >= 2) break; // goede span gevonden, stop zoeken
-      }
-
-      if (!bestSpan || bestSpanScore < 1) continue;
-
-      // Controleer ook op bestaande ankerzinnen in de brontekst
-      const contentLower = args.content.toLowerCase();
-      let finalPhrase = bestSpan.trim();
-      let isNewAnchor = !existingAnchors.has(finalPhrase);
-
+      // Stap 0: bestaande ankerzin staat al letterlijk in de source-tekst
       for (const anchor of existingAnchors) {
         if (anchor.includes(" ") && contentLower.includes(anchor.toLowerCase())) {
-          finalPhrase = anchor.toLowerCase().trim();
-          isNewAnchor = false;
-          break;
+          const orig = findOriginal(anchor);
+          if (orig) { finalPhrase = orig; isNewAnchor = false; break; }
         }
       }
 
-      // Zelfde ankerzin mag niet twee keer voorkomen — tweede artikel slaat over
-      if (usedPhrases.has(finalPhrase)) continue;
-      usedPhrases.add(finalPhrase);
+      // Stap 1: focusKeyword (2+ woorden) letterlijk in de source-tekst
+      if (!finalPhrase && post.focusKeyword && post.focusKeyword.trim().includes(" ")) {
+        const kw = post.focusKeyword.trim();
+        if (contentLower.includes(kw.toLowerCase())) {
+          finalPhrase = findOriginal(kw) ?? kw;
+        }
+      }
+
+      // Stap 2: aaneengesloten reeks van 2-4 woorden uit de titel in source-tekst (langste eerst)
+      if (!finalPhrase) {
+        for (const candidate of ngramCandidates(post.title, 2, 4)) {
+          if (contentLower.includes(candidate)) {
+            finalPhrase = findOriginal(candidate) ?? candidate;
+            break;
+          }
+        }
+      }
+
+      // Stap 3: fallback — kernwoorden-overlap + sliding window
+      if (!finalPhrase) {
+        const sources = [post.title, post.focusKeyword ?? "", post.excerpt ?? ""].join(" ");
+        const keywords = new Set(
+          sources.toLowerCase()
+            .replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "")
+            .split(/\s+/)
+            .filter((w) => w.length > 3 && !GENERIC.has(w))
+        );
+        if (keywords.size === 0) continue;
+
+        let bestSentence = "";
+        let bestScore = 0;
+        for (const sentence of sentences) {
+          const sentLower = sentence.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+          const score = sentLower.split(/\s+/).filter((w) => keywords.has(w)).length;
+          if (score > bestScore) { bestScore = score; bestSentence = sentLower; }
+        }
+        if (bestScore < 2) continue;
+
+        const sentWords = bestSentence.split(/\s+/);
+        let bestSpan = "";
+        let bestSpanScore = 0;
+        for (let len = 5; len >= 3; len--) {
+          for (let i = 0; i <= sentWords.length - len; i++) {
+            const span = sentWords.slice(i, i + len);
+            if (GENERIC.has(span[0]) || GENERIC.has(span[span.length - 1])) continue;
+            if (span.some((w) => HARD_STOP.has(w))) continue;
+            const spanScore = span.filter((w) => keywords.has(w)).length;
+            if (spanScore > bestSpanScore) { bestSpanScore = spanScore; bestSpan = span.join(" "); }
+          }
+          if (bestSpanScore >= 2) break;
+        }
+        if (!bestSpan || bestSpanScore < 1) continue;
+        // Herstel originele schrijfwijze
+        finalPhrase = findOriginal(bestSpan) ?? bestSpan;
+      }
+
+      if (!finalPhrase) continue;
+
+      // Zelfde ankerzin mag niet twee keer voorkomen
+      const phraseKey = finalPhrase.toLowerCase().trim();
+      if (usedPhrases.has(phraseKey)) continue;
+      usedPhrases.add(phraseKey);
+
+      // Bereken score voor sortering (keyword-overlap in brontekst)
+      const kwSet = new Set(
+        [post.title, post.focusKeyword ?? "", post.excerpt ?? ""].join(" ")
+          .toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/)
+          .filter((w) => w.length > 3 && !GENERIC.has(w))
+      );
+      const score = args.content.toLowerCase().split(/\s+/).filter((w) => kwSet.has(w)).length;
 
       matches.push({
         targetSlug: post.slug,
         targetTitle: post.title,
         targetId: post._id,
-        matchedPhrase: finalPhrase,
+        matchedPhrase: finalPhrase.trim(),
         incomingLinkCount: incomingCount.get(post.slug) ?? 0,
         isNewAnchor,
-        score: bestScore,
+        score,
       });
       usedTargets.add(post.slug);
     }

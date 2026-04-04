@@ -952,8 +952,8 @@ export default function AdminBlogPage() {
                             excludeSlug: form.slug,
                           });
                           setScanResults(results as any[]);
-                          // Pre-check ankerzinnen die al zijn toegepast (isNewAnchor === false)
-                          setScanAccepted(new Set((results as any[]).filter((r: any) => !r.isNewAnchor).map((r: any) => r.targetSlug)));
+                          // Start leeg — gebruiker vinkt zelf aan wat toegepast moet worden
+                          setScanAccepted(new Set());
                         } finally {
                           setScanLoading(false);
                         }
@@ -975,16 +975,20 @@ export default function AdminBlogPage() {
                           const checked = scanAccepted.has(r.targetSlug);
                           const badgeColor = r.incomingLinkCount === 0 ? "bg-red-100 text-red-600" : r.incomingLinkCount === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
                           return (
-                            <label key={r.targetSlug} className="flex items-start gap-2 cursor-pointer">
+                            <label key={r.targetSlug} className={`flex items-start gap-2 ${r.isNewAnchor ? "cursor-pointer" : "cursor-default opacity-60"}`}>
                               <input
                                 type="checkbox"
-                                checked={checked}
-                                onChange={() => setScanAccepted(prev => {
-                                  const next = new Set(prev);
-                                  checked ? next.delete(r.targetSlug) : next.add(r.targetSlug);
-                                  return next;
-                                })}
-                                className="mt-0.5 rounded border-primary-300 text-primary-600"
+                                checked={!r.isNewAnchor || checked}
+                                disabled={!r.isNewAnchor}
+                                onChange={() => {
+                                  if (!r.isNewAnchor) return;
+                                  setScanAccepted(prev => {
+                                    const next = new Set(prev);
+                                    checked ? next.delete(r.targetSlug) : next.add(r.targetSlug);
+                                    return next;
+                                  });
+                                }}
+                                className="mt-0.5 rounded border-primary-300 text-primary-600 disabled:opacity-50"
                               />
                               <div className="flex-1 min-w-0">
                                 <div className="flex flex-col gap-1">
