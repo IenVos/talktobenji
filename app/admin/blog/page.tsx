@@ -983,12 +983,13 @@ export default function AdminBlogPage() {
                                 className="mt-0.5 rounded border-primary-300 text-primary-600"
                               />
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="text-xs font-medium text-violet-700 bg-violet-50 border border-violet-200 rounded px-1.5 py-0.5">"{r.matchedPhrase}"</span>
-                                  <span className="text-xs text-gray-400">→</span>
-                                  <span className="text-xs text-gray-700 truncate">{r.targetTitle}</span>
-                                  <span className={`text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
-                                  {r.isNewAnchor && <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">nieuw</span>}
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-sm font-semibold text-gray-800 leading-snug">{r.targetTitle}</span>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-xs font-medium text-violet-700 bg-violet-50 border border-violet-200 rounded px-1.5 py-0.5">"{r.matchedPhrase}"</span>
+                                    <span className={`text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
+                                    {r.isNewAnchor && <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">nieuw</span>}
+                                  </div>
                                 </div>
                               </div>
                             </label>

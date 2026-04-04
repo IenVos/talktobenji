@@ -271,6 +271,7 @@ export const scanForLinks = query({
       .filter((s) => s.length > 20 && !s.startsWith("[") && !s.startsWith("#"));
 
     const usedTargets = new Set<string>();
+    const usedPhrases = new Set<string>();
     const matches: Array<{
       targetSlug: string;
       targetTitle: string;
@@ -345,16 +346,20 @@ export const scanForLinks = query({
 
       // Controleer ook op bestaande ankerzinnen in de brontekst
       const contentLower = args.content.toLowerCase();
-      let finalPhrase = bestSpan;
-      let isNewAnchor = !existingAnchors.has(bestSpan);
+      let finalPhrase = bestSpan.trim();
+      let isNewAnchor = !existingAnchors.has(finalPhrase);
 
       for (const anchor of existingAnchors) {
         if (anchor.includes(" ") && contentLower.includes(anchor.toLowerCase())) {
-          finalPhrase = anchor.toLowerCase();
+          finalPhrase = anchor.toLowerCase().trim();
           isNewAnchor = false;
           break;
         }
       }
+
+      // Zelfde ankerzin mag niet twee keer voorkomen — tweede artikel slaat over
+      if (usedPhrases.has(finalPhrase)) continue;
+      usedPhrases.add(finalPhrase);
 
       matches.push({
         targetSlug: post.slug,
