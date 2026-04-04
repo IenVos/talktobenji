@@ -2,11 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
+import { useConvex } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
   Newspaper, Plus, Edit, Trash2, Save, X, ExternalLink,
-  BookOpen, RefreshCw, Image as ImageIcon, Link as LinkIcon, ArrowLeft,
+  BookOpen, RefreshCw, Image as ImageIcon, Link as LinkIcon, ArrowLeft, Search, CheckCircle,
 } from "lucide-react";
 import { FormatToolbar } from "@/components/admin/FormatToolbar";
 
@@ -87,6 +88,7 @@ function slugify(text: string) {
 
 export default function AdminBlogPage() {
   const { adminToken } = useAdminAuth();
+  const convex = useConvex();
   const posts = useAdminQuery(api.blogPosts.list, {});
   const linkStats = useAdminQuery(api.blogPosts.listWithLinkStats, {});
   const pillars = useAdminQuery(api.pillars.list, {});
@@ -98,6 +100,7 @@ export default function AdminBlogPage() {
   const seedExample = useAdminMutation(api.blogPosts.seedExample);
   const generateUploadUrl = useAdminMutation(api.blogPosts.generateUploadUrl);
   const getImageUrl = useAdminMutation(api.blogPosts.getImageUrl);
+  const applyLinks = useAdminMutation(api.blogPosts.applyLinkSuggestions);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"blogPosts"> | null>(null);
@@ -106,6 +109,9 @@ export default function AdminBlogPage() {
   const [tagInput, setTagInput] = useState("");
   const [syncingForm, setSyncingForm] = useState(false);
   const [syncFormDone, setSyncFormDone] = useState(false);
+  const [scanLoading, setScanLoading] = useState(false);
+  const [scanResults, setScanResults] = useState<any[] | null>(null);
+  const [scanAccepted, setScanAccepted] = useState<Set<string>>(new Set());
   const [syncing, setSyncing] = useState<Id<"blogPosts"> | null>(null);
   const [syncDone, setSyncDone] = useState<Id<"blogPosts"> | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -923,6 +929,94 @@ export default function AdminBlogPage() {
                   </div>
                 );
               })()}
+              {/* Scan op links */}
+              {form.pillarSlug && form.content.trim().length > 100 && (
+                <div className="border border-primary-200 rounded-lg bg-primary-50 p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-primary-800">Automatisch scannen op ankerzinnen</p>
+                    <button
+                      type="button"
+                      disabled={scanLoading}
+                      onClick={async () => {
+                        setScanLoading(true);
+                        setScanResults(null);
+                        setScanAccepted(new Set());
+                        try {
+                          const results = await convex.query(api.blogPosts.scanForLinks, {
+                            adminToken: adminToken ?? "",
+                            content: form.content,
+                            pillarSlug: form.pillarSlug || undefined,
+                            excludeSlug: form.slug,
+                          });
+                          setScanResults(results as any[]);
+                          setScanAccepted(new Set((results as any[]).map((r: any) => r.targetSlug)));
+                        } finally {
+                          setScanLoading(false);
+                        }
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
+                    >
+                      <Search size={12} />
+                      {scanLoading ? "Scannen..." : "Scan tekst"}
+                    </button>
+                  </div>
+
+                  {scanResults !== null && (
+                    scanResults.length === 0 ? (
+                      <p className="text-xs text-gray-500 italic">Geen matches gevonden in je tekst.</p>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-xs text-gray-500">{scanResults.length} match{scanResults.length !== 1 ? "es" : ""} gevonden — vink aan wat je wil toepassen:</p>
+                        {scanResults.map((r: any) => {
+                          const checked = scanAccepted.has(r.targetSlug);
+                          const badgeColor = r.incomingLinkCount === 0 ? "bg-red-100 text-red-600" : r.incomingLinkCount === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
+                          return (
+                            <label key={r.targetSlug} className="flex items-start gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => setScanAccepted(prev => {
+                                  const next = new Set(prev);
+                                  checked ? next.delete(r.targetSlug) : next.add(r.targetSlug);
+                                  return next;
+                                })}
+                                className="mt-0.5 rounded border-primary-300 text-primary-600"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-xs font-medium text-violet-700 bg-violet-50 border border-violet-200 rounded px-1.5 py-0.5">"{r.matchedPhrase}"</span>
+                                  <span className="text-xs text-gray-400">→</span>
+                                  <span className="text-xs text-gray-700 truncate">{r.targetTitle}</span>
+                                  <span className={`text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
+                                  {r.isNewAnchor && <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">nieuw</span>}
+                                </div>
+                              </div>
+                            </label>
+                          );
+                        })}
+                        {scanAccepted.size > 0 && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const toApply = scanResults
+                                .filter((r: any) => scanAccepted.has(r.targetSlug))
+                                .map((r: any) => ({ targetId: r.targetId as Id<"blogPosts">, phrase: r.matchedPhrase }));
+                              await applyLinks({ suggestions: toApply });
+                              setScanResults(null);
+                              setScanAccepted(new Set());
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            <CheckCircle size={12} />
+                            {scanAccepted.size} ankerzin{scanAccepted.size !== 1 ? "nen" : ""} toepassen
+                          </button>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
+
               {/* Cross-pillar: link naar een andere pillar-pagina (bewust, 1x) */}
               {(pillars ?? []).filter((p: any) => p.slug !== form.pillarSlug && p.isLive).length > 0 && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg space-y-2">

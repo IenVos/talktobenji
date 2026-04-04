@@ -225,6 +225,123 @@ export const update = mutation({
   },
 });
 
+/** Admin: scan artikel-tekst op mogelijke interne links */
+export const scanForLinks = query({
+  args: {
+    adminToken: v.string(),
+    content: v.string(),
+    pillarSlug: v.optional(v.string()),
+    excludeSlug: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const allPosts = await ctx.db.query("blogPosts").collect();
+
+    // Inkomende link-counts berekenen
+    const incomingCount = new Map<string, number>();
+    for (const post of allPosts) {
+      for (const link of (post.internalLinks ?? [])) {
+        if (link.slug && !link.slug.startsWith("thema/")) {
+          incomingCount.set(link.slug, (incomingCount.get(link.slug) ?? 0) + 1);
+        }
+      }
+    }
+
+    // Kandidaten: alleen artikelen in dezelfde pillar
+    const candidates = allPosts.filter(
+      (p) => p.slug !== args.excludeSlug && (!args.pillarSlug || p.pillarSlug === args.pillarSlug)
+    );
+
+    const contentLower = args.content.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+    const usedTargets = new Set<string>();
+    const matches: Array<{
+      targetSlug: string;
+      targetTitle: string;
+      targetId: string;
+      matchedPhrase: string;
+      incomingLinkCount: number;
+      isNewAnchor: boolean;
+    }> = [];
+
+    for (const post of candidates) {
+      if (usedTargets.has(post.slug)) continue;
+      const existingAnchors = new Set(post.anchorPhrases ?? []);
+      const phrases: { phrase: string; isNew: boolean }[] = [];
+
+      // Bestaande ankerzinnen (alleen meerdere woorden)
+      for (const p of existingAnchors) {
+        if (p.includes(" ")) phrases.push({ phrase: p.toLowerCase(), isNew: false });
+      }
+
+      // Titelbigrams en trigrams
+      const titleWords = post.title.toLowerCase()
+        .replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim()
+        .split(/\s+/).filter((w) => w.length > 2 && !STOP_NL.has(w));
+      for (let i = 0; i < titleWords.length - 1; i++) {
+        const p = `${titleWords[i]} ${titleWords[i + 1]}`;
+        phrases.push({ phrase: p, isNew: !existingAnchors.has(p) });
+      }
+      for (let i = 0; i < titleWords.length - 2; i++) {
+        const p = `${titleWords[i]} ${titleWords[i + 1]} ${titleWords[i + 2]}`;
+        phrases.push({ phrase: p, isNew: !existingAnchors.has(p) });
+      }
+
+      // Focus keyword (meerdere woorden)
+      if (post.focusKeyword?.includes(" ")) {
+        const fk = post.focusKeyword.toLowerCase();
+        phrases.push({ phrase: fk, isNew: !existingAnchors.has(fk) });
+      }
+
+      // Eerste match in de tekst
+      for (const { phrase, isNew } of phrases) {
+        if (phrase.length < 5) continue;
+        if (contentLower.includes(phrase)) {
+          matches.push({
+            targetSlug: post.slug,
+            targetTitle: post.title,
+            targetId: post._id,
+            matchedPhrase: phrase,
+            incomingLinkCount: incomingCount.get(post.slug) ?? 0,
+            isNewAnchor: isNew,
+          });
+          usedTargets.add(post.slug);
+          break;
+        }
+      }
+    }
+
+    // Sorteren: minste inkomende links eerst
+    return matches.sort((a, b) => a.incomingLinkCount - b.incomingLinkCount);
+  },
+});
+
+/** Admin: ankerzinnen toevoegen aan doel-artikelen na scan-goedkeuring */
+export const applyLinkSuggestions = mutation({
+  args: {
+    adminToken: v.string(),
+    suggestions: v.array(v.object({
+      targetId: v.id("blogPosts"),
+      phrase: v.string(),
+    })),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const now = Date.now();
+    for (const { targetId, phrase } of args.suggestions) {
+      const post = await ctx.db.get(targetId);
+      if (!post) continue;
+      const existing = post.anchorPhrases ?? [];
+      if (!existing.includes(phrase)) {
+        await ctx.db.patch(targetId, {
+          anchorPhrases: [...existing, phrase],
+          updatedAt: now,
+        });
+      }
+    }
+    return args.suggestions.length;
+  },
+});
+
 /** Admin: alle ankerzinnen van alle posts leegmaken */
 export const clearAllAnchorPhrases = mutation({
   args: { adminToken: v.string() },
