@@ -6,7 +6,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Mail, Check, Pencil, X, Gem, Mic, Square, Camera } from "lucide-react";
-import { Paywall } from "@/components/Paywall";
 
 const TOTAL = 6;
 
@@ -643,22 +642,12 @@ export default function BriefOefeningPage() {
     </div>
   );
 
-  if (hasAccess === undefined) {
+  // Laad-toestand (sessie of toegangscheck nog bezig)
+  if (hasAccess === undefined && session?.userId) {
     return (
       <div className="flex justify-center py-16">
         <div className="animate-pulse rounded-full h-8 w-8 border-b-2 border-primary-600" />
       </div>
-    );
-  }
-
-  if (hasAccess === false) {
-    return (
-      <Paywall
-        title="Upgrade naar Benji Alles in 1"
-        message="De schrijfoefeningen zijn beschikbaar in Benji Alles in 1."
-      >
-        {regularContent}
-      </Paywall>
     );
   }
 
