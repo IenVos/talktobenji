@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Network, Edit, Save, X, ExternalLink, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 
-type SortField = "incoming" | "outgoing" | "title";
+type SortField = "incoming" | "outgoing" | "anchors" | "title";
 type SortDir = "asc" | "desc";
 
 export default function LinkStructuurPage() {
@@ -51,6 +51,7 @@ export default function LinkStructuurPage() {
       let diff = 0;
       if (sortField === "incoming") diff = a.incomingLinkCount - b.incomingLinkCount;
       else if (sortField === "outgoing") diff = a.outgoingLinks.length - b.outgoingLinks.length;
+      else if (sortField === "anchors") diff = a.anchorPhrases.length - b.anchorPhrases.length;
       else diff = a.title.localeCompare(b.title);
       return sortDir === "asc" ? diff : -diff;
     });
@@ -176,6 +177,11 @@ export default function LinkStructuurPage() {
               <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Pillar</th>
               <th className="text-left px-4 py-3 font-medium text-gray-600">Ankerzinnen</th>
               <th className="text-center px-4 py-3 font-medium text-gray-600">
+                <button onClick={() => toggleSort("anchors")} className="flex items-center gap-1 hover:text-primary-600 mx-auto">
+                  # Ankers <SortIcon field="anchors" />
+                </button>
+              </th>
+              <th className="text-center px-4 py-3 font-medium text-gray-600">
                 <button onClick={() => toggleSort("incoming")} className="flex items-center gap-1 hover:text-primary-600 mx-auto">
                   ↓ Inkomend <SortIcon field="incoming" />
                 </button>
@@ -254,6 +260,13 @@ export default function LinkStructuurPage() {
                       </button>
                     </div>
                   )}
+                </td>
+
+                {/* Ankerfrasen teller */}
+                <td className="px-4 py-3 text-center">
+                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${post.anchorPhrases.length > 0 ? "bg-violet-100 text-violet-700" : "bg-gray-100 text-gray-400"}`}>
+                    {post.anchorPhrases.length}
+                  </span>
                 </td>
 
                 {/* Inkomende links */}

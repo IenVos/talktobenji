@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
 import { useConvex } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -104,6 +104,9 @@ export default function AdminBlogPage() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"blogPosts"> | null>(null);
+  const [filterPillar, setFilterPillar] = useState<string>("all");
+  const [listPage, setListPage] = useState(0);
+  const LIST_PAGE_SIZE = 10;
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [tagInput, setTagInput] = useState("");
@@ -254,6 +257,24 @@ export default function AdminBlogPage() {
     setShowForm(false);
   };
 
+  // Gesorteerd + gefilterd + gepagineerd voor de artikellijst
+  const sortedPosts = useMemo(() => {
+    if (!posts) return [];
+    const sorted = [...posts].sort((a: any, b: any) => {
+      // Concepten bovenaan
+      if (!a.isLive && b.isLive) return -1;
+      if (a.isLive && !b.isLive) return 1;
+      // Dan nieuwste eerst
+      return (b.publishedAt ?? b.createdAt ?? 0) - (a.publishedAt ?? a.createdAt ?? 0);
+    });
+    return filterPillar === "all"
+      ? sorted
+      : sorted.filter((p: any) => (filterPillar === "" ? !p.pillarSlug : p.pillarSlug === filterPillar));
+  }, [posts, filterPillar]);
+
+  const totalPages = Math.ceil(sortedPosts.length / LIST_PAGE_SIZE);
+  const pagedPosts = sortedPosts.slice(listPage * LIST_PAGE_SIZE, (listPage + 1) * LIST_PAGE_SIZE);
+
   const startEdit = (post: any) => {
     const publishDate = post.publishedAt
       ? new Date(post.publishedAt).toISOString().slice(0, 10)
@@ -313,6 +334,16 @@ export default function AdminBlogPage() {
   };
 
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Auto-open artikel via ?edit=[id] URL param (nieuw tabblad flow)
+  useEffect(() => {
+    if (!posts || showForm) return;
+    const params = new URLSearchParams(window.location.search);
+    const editId = params.get("edit");
+    if (!editId) return;
+    const post = posts.find((p: any) => p._id === editId);
+    if (post) startEdit(post);
+  }, [posts]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-resize content textarea zonder te verspringen
   useEffect(() => {
@@ -1162,66 +1193,120 @@ export default function AdminBlogPage() {
             ) : posts.length === 0 ? (
               <p className="text-sm text-gray-500 py-4">Nog geen artikelen. Klik op "Voorbeeldartikel laden" om te starten.</p>
             ) : (
-              <ul className="space-y-3">
-                {posts.map((post: any) => (
-                  <li key={post._id} className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50">
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${post.isLive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
-                            {post.isLive ? "Live" : "Concept"}
-                          </span>
-                          {post.publishedAt && post.publishedAt > Date.now() && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                              Ingepland {new Date(post.publishedAt).toLocaleDateString("nl-NL")}
-                            </span>
-                          )}
-                          {post.kbSynced && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">KB ✓</span>
-                          )}
-                        </div>
-                        <h3 className="font-medium text-primary-900 line-clamp-1">{post.title}</h3>
-                        {post.tags?.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {post.tags.map((tag: string) => (
-                              <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-full">{tag}</span>
-                            ))}
+              <>
+                {/* Pillar filter */}
+                <div className="flex items-center gap-3 mb-3">
+                  <select
+                    value={filterPillar}
+                    onChange={(e) => { setFilterPillar(e.target.value); setListPage(0); }}
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-primary-300"
+                  >
+                    <option value="all">Alle pillars</option>
+                    <option value="">Geen pillar</option>
+                    {(pillars ?? []).map((p: any) => (
+                      <option key={p.slug} value={p.slug}>{p.title}</option>
+                    ))}
+                  </select>
+                  <span className="text-sm text-gray-400">{sortedPosts.length} artikelen</span>
+                </div>
+
+                <ul className="space-y-3">
+                  {pagedPosts.map((post: any) => {
+                    const pillarTitle = (pillars ?? []).find((p: any) => p.slug === post.pillarSlug)?.title;
+                    return (
+                      <li key={post._id} className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${post.isLive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
+                                {post.isLive ? "Live" : "Concept"}
+                              </span>
+                              {post.publishedAt && post.publishedAt > Date.now() && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                                  Ingepland {new Date(post.publishedAt).toLocaleDateString("nl-NL")}
+                                </span>
+                              )}
+                              {post.kbSynced && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">KB ✓</span>
+                              )}
+                              {pillarTitle && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 border border-primary-200">
+                                  {pillarTitle}
+                                </span>
+                              )}
+                            </div>
+                            <h3 className="font-medium text-primary-900 line-clamp-1">{post.title}</h3>
+                            {post.tags?.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {post.tags.map((tag: string) => (
+                                  <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-primary-50 text-primary-600 rounded-full">{tag}</span>
+                                ))}
+                              </div>
+                            )}
+                            {post.excerpt && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{post.excerpt}</p>}
                           </div>
-                        )}
-                        {post.excerpt && <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{post.excerpt}</p>}
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {!post.kbSynced && (
-                          <button type="button" onClick={() => handleSync(post._id)} disabled={syncing === post._id}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Synchroniseer naar kennisbank">
-                            {syncing === post._id ? <RefreshCw size={17} className="animate-spin" /> : <BookOpen size={17} />}
-                          </button>
-                        )}
-                        {syncDone === post._id && <span className="text-xs text-green-600">✓ Gesynchroniseerd</span>}
-                        {post.isLive ? (
-                          <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer"
-                            className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Bekijk artikel">
-                            <ExternalLink size={17} />
-                          </a>
-                        ) : (
-                          <a href={`/blog/${post.slug}/preview?token=${process.env.NEXT_PUBLIC_PREVIEW_SECRET ?? "preview"}`} target="_blank" rel="noopener noreferrer"
-                            className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg" title="Bekijk concept">
-                            <ExternalLink size={17} />
-                          </a>
-                        )}
-                        <button type="button" onClick={() => startEdit(post)}
-                          className="p-2 text-primary-600 hover:bg-primary-100 rounded-lg">
-                          <Edit size={17} />
-                        </button>
-                        <button type="button" onClick={() => { if (confirm("Artikel verwijderen?")) removePost({ id: post._id }); }}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
-                          <Trash2 size={17} />
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {!post.kbSynced && (
+                              <button type="button" onClick={() => handleSync(post._id)} disabled={syncing === post._id}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="Synchroniseer naar kennisbank">
+                                {syncing === post._id ? <RefreshCw size={17} className="animate-spin" /> : <BookOpen size={17} />}
+                              </button>
+                            )}
+                            {syncDone === post._id && <span className="text-xs text-green-600">✓ Gesynchroniseerd</span>}
+                            {post.isLive ? (
+                              <a href={`/blog/${post.slug}`} target="_blank" rel="noopener noreferrer"
+                                className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Bekijk artikel">
+                                <ExternalLink size={17} />
+                              </a>
+                            ) : (
+                              <a href={`/blog/${post.slug}/preview?token=${process.env.NEXT_PUBLIC_PREVIEW_SECRET ?? "preview"}`} target="_blank" rel="noopener noreferrer"
+                                className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg" title="Bekijk concept">
+                                <ExternalLink size={17} />
+                              </a>
+                            )}
+                            <a
+                              href={`/admin/blog?edit=${post._id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 text-primary-600 hover:bg-primary-100 rounded-lg"
+                              title="Bewerk artikel (nieuw tabblad)"
+                            >
+                              <Edit size={17} />
+                            </a>
+                            <button type="button" onClick={() => { if (confirm("Artikel verwijderen?")) removePost({ id: post._id }); }}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
+                              <Trash2 size={17} />
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {/* Paginering */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    <button
+                      onClick={() => setListPage((p) => Math.max(0, p - 1))}
+                      disabled={listPage === 0}
+                      className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                    >
+                      ← Vorige
+                    </button>
+                    <span className="text-sm text-gray-500">
+                      {listPage + 1} / {totalPages}
+                    </span>
+                    <button
+                      onClick={() => setListPage((p) => Math.min(totalPages - 1, p + 1))}
+                      disabled={listPage >= totalPages - 1}
+                      className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                    >
+                      Volgende →
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
