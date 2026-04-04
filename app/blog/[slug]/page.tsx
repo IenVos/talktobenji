@@ -9,7 +9,7 @@ import { CtaBlockB } from "@/components/blog/CtaBlock";
 import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering, BenjiTeaserEmotie, BenjiTeaserCheckin, BenjiTeaserMemories } from "@/components/blog/BenjiTeaser";
 import { SiteFooter } from "@/components/SiteFooter";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 type Props = { params: { slug: string }; searchParams: { preview?: string } };
 

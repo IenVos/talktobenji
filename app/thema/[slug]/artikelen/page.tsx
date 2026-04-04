@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { SiteFooter } from "@/components/SiteFooter";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 type Props = { params: { slug: string } };
 

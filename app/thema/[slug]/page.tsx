@@ -9,7 +9,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 type Props = { params: { slug: string } };
 

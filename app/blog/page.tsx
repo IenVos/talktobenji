@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description: "Een plek waar je steun, begrip en praktische tips vindt om sterker door moeilijke tijden te komen.",
 };
 
-export const revalidate = 3600;
+export const revalidate = 60;
 
 // Zachte achtergrondtinten — elke pillar krijgt een unieke kleur op volgorde van aanmaak
 const TINTS = ["#f0f7ff","#fff5f5","#fffbeb","#f0fdf4","#faf5ff","#f0fdfa","#fff7ed","#f5f3ff"];
