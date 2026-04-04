@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { Network, Edit, Save, X, ExternalLink, ChevronUp, ChevronDown } from "lucide-react";
+import { Network, Edit, Save, X, ExternalLink, ChevronUp, ChevronDown, Trash2 } from "lucide-react";
 
 type SortField = "incoming" | "outgoing" | "title";
 type SortDir = "asc" | "desc";
@@ -13,6 +13,7 @@ export default function LinkStructuurPage() {
   const stats = useAdminQuery(api.blogPosts.listWithLinkStats, {});
   const pillars = useAdminQuery(api.pillars.list, {});
   const updatePost = useAdminMutation(api.blogPosts.update);
+  const clearAllAnchors = useAdminMutation(api.blogPosts.clearAllAnchorPhrases);
 
   const [filterPillar, setFilterPillar] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "live" | "concept">("all");
@@ -21,6 +22,7 @@ export default function LinkStructuurPage() {
   const [editingId, setEditingId] = useState<Id<"blogPosts"> | null>(null);
   const [editPhrases, setEditPhrases] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const pillarMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -91,12 +93,28 @@ export default function LinkStructuurPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Network className="text-primary-600" size={22} />
-        <div>
-          <h1 className="text-xl font-bold text-gray-900">Linkstructuur</h1>
-          <p className="text-sm text-gray-500">Overzicht van interne links — welke artikelen hebben aandacht nodig?</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Network className="text-primary-600" size={22} />
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Linkstructuur</h1>
+            <p className="text-sm text-gray-500">Overzicht van interne links — welke artikelen hebben aandacht nodig?</p>
+          </div>
         </div>
+        <button
+          onClick={async () => {
+            if (!confirm("Alle ankerzinnen van alle artikelen verwijderen? Dit is onomkeerbaar.")) return;
+            setClearing(true);
+            const count = await clearAllAnchors({});
+            setClearing(false);
+            alert(`Ankerzinnen verwijderd van ${count} artikelen.`);
+          }}
+          disabled={clearing}
+          className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+        >
+          <Trash2 size={14} />
+          {clearing ? "Bezig..." : "Alle ankerzinnen wissen"}
+        </button>
       </div>
 
       {/* Gezondheidsindicatoren */}

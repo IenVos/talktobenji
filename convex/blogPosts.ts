@@ -127,7 +127,7 @@ export const generateUploadUrl = mutation({
 const STOP_NL = new Set(["de","het","een","en","of","in","van","aan","op","is","die","dat","te","ook","zijn","wat","hoe","er","naar","met","voor","door","bij","maar","als","om","tot","dan","zo","wel","niet","nog","je","ik","we","ze","hij","zij","haar","hun","hem"]);
 function autoAnchorPhrases(title: string, focusKeyword?: string): string[] {
   const phrases: string[] = [];
-  if (focusKeyword?.trim()) phrases.push(focusKeyword.trim().toLowerCase());
+  if (focusKeyword?.trim() && focusKeyword.trim().includes(" ")) phrases.push(focusKeyword.trim().toLowerCase());
   const clean = title.toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim();
   const words = clean.split(/\s+/).filter(w => w.length > 3 && !STOP_NL.has(w));
   if (words.length >= 2) phrases.push(words.slice(0, Math.min(3, words.length)).join(" "));
@@ -222,6 +222,17 @@ export const update = mutation({
       if (val !== undefined) patch[key] = val === "" ? undefined : val;
     }
     await ctx.db.patch(id, patch);
+  },
+});
+
+/** Admin: alle ankerzinnen van alle posts leegmaken */
+export const clearAllAnchorPhrases = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const posts = await ctx.db.query("blogPosts").collect();
+    await Promise.all(posts.map((p) => ctx.db.patch(p._id, { anchorPhrases: undefined })));
+    return posts.length;
   },
 });
 

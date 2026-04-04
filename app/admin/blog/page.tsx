@@ -59,14 +59,16 @@ const STOP_WORDS = new Set(["de","het","een","en","of","in","van","aan","op","is
 
 function suggestAnchorPhrases(title: string, focusKeyword: string): string[] {
   const suggestions: string[] = [];
-  if (focusKeyword.trim()) suggestions.push(focusKeyword.trim().toLowerCase());
+  // Focus keyword alleen toevoegen als het meerdere woorden bevat
+  if (focusKeyword.trim() && focusKeyword.trim().includes(" ")) suggestions.push(focusKeyword.trim().toLowerCase());
   const clean = title.toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim();
   const words = clean.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
-  words.filter(w => w.length >= 4).forEach(w => { if (!suggestions.includes(w)) suggestions.push(w); });
+  // Alleen 2-woordcombinaties
   for (let i = 0; i < words.length - 1; i++) {
     const p = `${words[i]} ${words[i + 1]}`;
     if (!suggestions.includes(p)) suggestions.push(p);
   }
+  // Alleen 3-woordcombinaties
   for (let i = 0; i < words.length - 2; i++) {
     const p = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
     if (!suggestions.includes(p)) suggestions.push(p);
