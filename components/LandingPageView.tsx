@@ -62,9 +62,27 @@ export function LandingPageView({ slug }: { slug: string }) {
   const ctaText = page.ctaText || "Start mijn reis";
 
   const renderTextWithParagraphs = (text: string) =>
-    text.split("\n\n").map((para, i) => (
-      <p key={i}>{para}</p>
-    ));
+    text.split("\n\n").map((para, i) => {
+      const videoMatch = para.trim().match(/^\[video:(.+)\]$/);
+      if (videoMatch) {
+        const inner = videoMatch[1];
+        const isCenter = inner.endsWith(":center");
+        const src = isCenter ? inner.slice(0, -7) : inner;
+        return isCenter ? (
+          <div key={i} className="my-4 flex justify-center">
+            <video src={src} controls playsInline
+              className="rounded-xl max-h-[360px] w-auto max-w-full bg-black"
+              style={{ maxWidth: "60%" }}
+            />
+          </div>
+        ) : (
+          <video key={i} src={src} controls playsInline
+            className="w-full rounded-xl my-4 max-h-[360px] bg-black"
+          />
+        );
+      }
+      return <p key={i}>{para}</p>;
+    });
 
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>

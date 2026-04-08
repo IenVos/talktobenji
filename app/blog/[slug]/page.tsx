@@ -174,11 +174,21 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       const data = key ? (ctaMap?.get(key) ?? ctaData) : ctaData;
       return renderInlineCta(data, i);
     }
-    // Video: [video:URL]
-    const videoMatch = block.trim().match(/^\[video:([^\]]+)\]$/);
+    // Video: [video:URL] of [video:URL:center]
+    const videoMatch = block.trim().match(/^\[video:(.+)\]$/);
     if (videoMatch) {
-      return (
-        <video key={i} src={videoMatch[1]} controls playsInline
+      const inner = videoMatch[1];
+      const isCenter = inner.endsWith(":center");
+      const videoSrc = isCenter ? inner.slice(0, -7) : inner;
+      return isCenter ? (
+        <div key={i} className="my-6 flex justify-center">
+          <video src={videoSrc} controls playsInline
+            className="rounded-xl max-h-[480px] w-auto max-w-full bg-black"
+            style={{ maxWidth: "60%" }}
+          />
+        </div>
+      ) : (
+        <video key={i} src={videoSrc} controls playsInline
           className="w-full rounded-xl my-6 max-h-[480px] bg-black"
         />
       );

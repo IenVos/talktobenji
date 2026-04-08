@@ -94,8 +94,11 @@ export default function AdminPillarsPage() {
   const [showImport, setShowImport] = useState(false);
   const [importText, setImportText] = useState("");
   const [form, setForm] = useState<FormState>(EMPTY);
+  const [insertingVideo, setInsertingVideo] = useState(false);
+  const [videoCentered, setVideoCentered] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
+  const inlineVideoInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-resize content textarea zonder te verspringen
   useEffect(() => {
@@ -151,6 +154,22 @@ export default function AdminPillarsPage() {
     const res = await fetch(url, { method: "POST", body: file, headers: { "Content-Type": file.type } });
     const { storageId } = await res.json();
     return storageId as Id<"_storage">;
+  };
+
+  const insertVideoAtCursor = async (file: File, centered: boolean) => {
+    setInsertingVideo(true);
+    try {
+      const storageId = await uploadFile(file);
+      const videoUrl = await getImageUrl({ storageId });
+      if (!videoUrl || !contentRef.current) return;
+      const ta = contentRef.current;
+      const start = ta.selectionStart ?? ta.value.length;
+      const tag = centered ? `[video:${videoUrl}:center]` : `[video:${videoUrl}]`;
+      const newVal = ta.value.slice(0, start) + `\n\n${tag}\n\n` + ta.value.slice(start);
+      setForm((f) => ({ ...f, content: newVal }));
+    } finally {
+      setInsertingVideo(false);
+    }
   };
 
   const buildPayload = async () => {
@@ -501,9 +520,32 @@ export default function AdminPillarsPage() {
 
             {/* Inhoud met toolbar */}
             <div>
-              <label className={labelClass}>
-                Inhoud <span className="text-xs text-gray-400 font-normal">— nog niet verplicht, later toe te voegen</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className={labelClass} style={{ marginBottom: 0 }}>
+                  Inhoud <span className="text-xs text-gray-400 font-normal">— nog niet verplicht, later toe te voegen</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input ref={inlineVideoInputRef} type="file" accept="video/mp4,video/webm,video/*" className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) insertVideoAtCursor(file, videoCentered);
+                      if (inlineVideoInputRef.current) inlineVideoInputRef.current.value = "";
+                    }}
+                  />
+                  <div className="inline-flex items-center border border-purple-200 rounded overflow-hidden">
+                    <button type="button" onClick={() => inlineVideoInputRef.current?.click()}
+                      disabled={insertingVideo}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs text-purple-700 hover:bg-purple-50 disabled:opacity-50">
+                      🎬 {insertingVideo ? "Uploaden…" : "Video invoegen"}
+                    </button>
+                    <button type="button" title={videoCentered ? "Gecentreerd" : "Volledige breedte"}
+                      onClick={() => setVideoCentered(v => !v)}
+                      className={`px-1.5 py-1 text-xs border-l border-purple-200 transition-colors ${videoCentered ? "bg-purple-100 text-purple-800" : "text-purple-400 hover:bg-purple-50"}`}>
+                      {videoCentered ? "▣" : "▬"}
+                    </button>
+                  </div>
+                </div>
+              </div>
               <FormatToolbar
                 textareaRef={contentRef}
                 value={form.content}

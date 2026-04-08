@@ -110,6 +110,7 @@ export default function AdminLandingspaginasPage() {
   const seedJaarToegang = useAdminMutation(api.landingPages.seedJaarToegang);
   const [jaarSeedStatus, setJaarSeedStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const generateUploadUrl = useAdminMutation(api.landingPages.generateUploadUrl);
+  const getImageUrl = useAdminMutation(api.landingPages.getImageUrl);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"landingPages"> | null>(null);
@@ -121,6 +122,14 @@ export default function AdminLandingspaginasPage() {
   const [editingBgImageUrl, setEditingBgImageUrl] = useState<string | null>(null);
   const productImageRef = useRef<HTMLInputElement>(null);
   const bgImageRef = useRef<HTMLInputElement>(null);
+  const section1TextRef = useRef<HTMLTextAreaElement>(null);
+  const section2TextRef = useRef<HTMLTextAreaElement>(null);
+  const videoRef1 = useRef<HTMLInputElement>(null);
+  const videoRef2 = useRef<HTMLInputElement>(null);
+  const [insertingVideo1, setInsertingVideo1] = useState(false);
+  const [insertingVideo2, setInsertingVideo2] = useState(false);
+  const [video1Centered, setVideo1Centered] = useState(false);
+  const [video2Centered, setVideo2Centered] = useState(false);
 
   const productPreviewUrl = useMemo(() => form.productImageFile ? URL.createObjectURL(form.productImageFile) : null, [form.productImageFile]);
   const bgPreviewUrl = useMemo(() => form.bgImageFile ? URL.createObjectURL(form.bgImageFile) : null, [form.bgImageFile]);
@@ -185,6 +194,32 @@ export default function AdminLandingspaginasPage() {
     const res = await fetch(url, { method: "POST", body: file, headers: { "Content-Type": file.type } });
     const { storageId } = await res.json();
     return storageId as Id<"_storage">;
+  };
+
+  const insertVideoInSection = async (
+    sectionRef: React.RefObject<HTMLTextAreaElement>,
+    field: "section1Text" | "section2Text",
+    file: File,
+    centered: boolean,
+    setInserting: (v: boolean) => void,
+  ) => {
+    setInserting(true);
+    try {
+      const storageId = await uploadFile(file);
+      const videoUrl = await getImageUrl({ storageId });
+      if (!videoUrl) return;
+      const ta = sectionRef.current;
+      const tag = centered ? `[video:${videoUrl}:center]` : `[video:${videoUrl}]`;
+      if (ta) {
+        const start = ta.selectionStart ?? ta.value.length;
+        const newVal = ta.value.slice(0, start) + `\n\n${tag}\n\n` + ta.value.slice(start);
+        setForm((f) => ({ ...f, [field]: newVal }));
+      } else {
+        setForm((f) => ({ ...f, [field]: f[field] + `\n\n${tag}\n\n` }));
+      }
+    } finally {
+      setInserting(false);
+    }
   };
 
   const handleSave = async () => {
@@ -524,8 +559,28 @@ export default function AdminLandingspaginasPage() {
                   <input type="text" placeholder="Verdriet heeft niet altijd een naam." value={form.section1Title} onChange={set("section1Title")} className={inputClass} />
                 </div>
                 <div>
-                  <label className={labelSmClass}>Tekst sectie 1 (dubbele enter = nieuwe alinea)</label>
-                  <textarea placeholder="Het hoeft geen overlijden te zijn…" value={form.section1Text} onChange={set("section1Text")} rows={6} className={inputClass} />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className={labelSmClass} style={{ marginBottom: 0 }}>Tekst sectie 1 (dubbele enter = nieuwe alinea)</label>
+                    <div className="inline-flex items-center border border-purple-200 rounded overflow-hidden">
+                      <input ref={videoRef1} type="file" accept="video/mp4,video/webm,video/*" className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) insertVideoInSection(section1TextRef, "section1Text", file, video1Centered, setInsertingVideo1);
+                          if (videoRef1.current) videoRef1.current.value = "";
+                        }}
+                      />
+                      <button type="button" onClick={() => videoRef1.current?.click()} disabled={insertingVideo1}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs text-purple-700 hover:bg-purple-50 disabled:opacity-50">
+                        🎬 {insertingVideo1 ? "Uploaden…" : "Video invoegen"}
+                      </button>
+                      <button type="button" title={video1Centered ? "Gecentreerd" : "Volledige breedte"}
+                        onClick={() => setVideo1Centered(v => !v)}
+                        className={`px-1.5 py-1 text-xs border-l border-purple-200 transition-colors ${video1Centered ? "bg-purple-100 text-purple-800" : "text-purple-400 hover:bg-purple-50"}`}>
+                        {video1Centered ? "▣" : "▬"}
+                      </button>
+                    </div>
+                  </div>
+                  <textarea ref={section1TextRef} placeholder="Het hoeft geen overlijden te zijn…" value={form.section1Text} onChange={set("section1Text")} rows={6} className={inputClass} />
                 </div>
               </div>
             </div>
@@ -539,8 +594,28 @@ export default function AdminLandingspaginasPage() {
                   <input type="text" placeholder="Hoe het werkt." value={form.section2Title} onChange={set("section2Title")} className={inputClass} />
                 </div>
                 <div>
-                  <label className={labelSmClass}>Tekst sectie 2 (dubbele enter = nieuwe alinea)</label>
-                  <textarea placeholder="Elke ochtend ontvang je een bericht…" value={form.section2Text} onChange={set("section2Text")} rows={6} className={inputClass} />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className={labelSmClass} style={{ marginBottom: 0 }}>Tekst sectie 2 (dubbele enter = nieuwe alinea)</label>
+                    <div className="inline-flex items-center border border-purple-200 rounded overflow-hidden">
+                      <input ref={videoRef2} type="file" accept="video/mp4,video/webm,video/*" className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) insertVideoInSection(section2TextRef, "section2Text", file, video2Centered, setInsertingVideo2);
+                          if (videoRef2.current) videoRef2.current.value = "";
+                        }}
+                      />
+                      <button type="button" onClick={() => videoRef2.current?.click()} disabled={insertingVideo2}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs text-purple-700 hover:bg-purple-50 disabled:opacity-50">
+                        🎬 {insertingVideo2 ? "Uploaden…" : "Video invoegen"}
+                      </button>
+                      <button type="button" title={video2Centered ? "Gecentreerd" : "Volledige breedte"}
+                        onClick={() => setVideo2Centered(v => !v)}
+                        className={`px-1.5 py-1 text-xs border-l border-purple-200 transition-colors ${video2Centered ? "bg-purple-100 text-purple-800" : "text-purple-400 hover:bg-purple-50"}`}>
+                        {video2Centered ? "▣" : "▬"}
+                      </button>
+                    </div>
+                  </div>
+                  <textarea ref={section2TextRef} placeholder="Elke ochtend ontvang je een bericht…" value={form.section2Text} onChange={set("section2Text")} rows={6} className={inputClass} />
                 </div>
               </div>
             </div>

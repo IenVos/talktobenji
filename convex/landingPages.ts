@@ -36,12 +36,21 @@ export const getBySlug = query({
   },
 });
 
-/** Admin: genereer upload URL voor afbeeldingen */
+/** Admin: genereer upload URL voor afbeeldingen/video */
 export const generateUploadUrl = mutation({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
     return ctx.storage.generateUploadUrl();
+  },
+});
+
+/** Admin: haal publieke URL op na upload */
+export const getImageUrl = mutation({
+  args: { adminToken: v.string(), storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.getUrl(args.storageId);
   },
 });
 

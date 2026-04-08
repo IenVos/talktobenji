@@ -167,6 +167,25 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       const data = key ? (ctaMap?.get(key) ?? ctaData) : ctaData;
       return renderInlineCta(data, i);
     }
+    // Video: [video:URL] of [video:URL:center]
+    const videoMatch = block.trim().match(/^\[video:(.+)\]$/);
+    if (videoMatch) {
+      const inner = videoMatch[1];
+      const isCenter = inner.endsWith(":center");
+      const videoSrc = isCenter ? inner.slice(0, -7) : inner;
+      return isCenter ? (
+        <div key={i} className="my-6 flex justify-center">
+          <video src={videoSrc} controls playsInline
+            className="rounded-xl max-h-[480px] w-auto max-w-full bg-black"
+            style={{ maxWidth: "60%" }}
+          />
+        </div>
+      ) : (
+        <video key={i} src={videoSrc} controls playsInline
+          className="w-full rounded-xl my-6 max-h-[480px] bg-black"
+        />
+      );
+    }
     if (block.startsWith("### ")) return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
     if (block.startsWith("## ")) { const t = block.slice(3); return <h3 key={i} id={headingId(t)} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{t}</h3>; }
     if (block.startsWith("# ")) return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
