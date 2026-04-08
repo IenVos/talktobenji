@@ -637,6 +637,7 @@ export default defineSchema({
     heroTitle: v.string(),
     heroSubtitle: v.optional(v.string()),
     heroBody: v.optional(v.string()),
+    heroVideoUrl: v.optional(v.string()),
     ctaText: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),
     // Body sections (up to 2 text sections)

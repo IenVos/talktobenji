@@ -17,6 +17,7 @@ type LandingPage = {
   heroTitle: string;
   heroSubtitle?: string;
   heroBody?: string;
+  heroVideoUrl?: string;
   ctaText?: string;
   ctaUrl?: string;
   section1Title?: string;
@@ -47,6 +48,7 @@ type FormState = {
   heroTitle: string;
   heroSubtitle: string;
   heroBody: string;
+  heroVideoUrl: string;
   ctaText: string;
   ctaUrl: string;
   section1Title: string;
@@ -75,6 +77,7 @@ const EMPTY_FORM: FormState = {
   heroTitle: "",
   heroSubtitle: "",
   heroBody: "",
+  heroVideoUrl: "",
   ctaText: "",
   ctaUrl: "",
   section1Title: "",
@@ -126,8 +129,10 @@ export default function AdminLandingspaginasPage() {
   const section2TextRef = useRef<HTMLTextAreaElement>(null);
   const videoRef1 = useRef<HTMLInputElement>(null);
   const videoRef2 = useRef<HTMLInputElement>(null);
+  const heroVideoRef = useRef<HTMLInputElement>(null);
   const [insertingVideo1, setInsertingVideo1] = useState(false);
   const [insertingVideo2, setInsertingVideo2] = useState(false);
+  const [insertingHeroVideo, setInsertingHeroVideo] = useState(false);
   const [video1Centered, setVideo1Centered] = useState(false);
   const [video2Centered, setVideo2Centered] = useState(false);
 
@@ -163,6 +168,7 @@ export default function AdminLandingspaginasPage() {
       heroTitle: page.heroTitle,
       heroSubtitle: page.heroSubtitle ?? "",
       heroBody: page.heroBody ?? "",
+      heroVideoUrl: (page as any).heroVideoUrl ?? "",
       ctaText: page.ctaText ?? "",
       ctaUrl: page.ctaUrl ?? "",
       section1Title: page.section1Title ?? "",
@@ -194,6 +200,17 @@ export default function AdminLandingspaginasPage() {
     const res = await fetch(url, { method: "POST", body: file, headers: { "Content-Type": file.type } });
     const { storageId } = await res.json();
     return storageId as Id<"_storage">;
+  };
+
+  const uploadHeroVideo = async (file: File) => {
+    setInsertingHeroVideo(true);
+    try {
+      const storageId = await uploadFile(file);
+      const videoUrl = await getImageUrl({ storageId });
+      if (videoUrl) setForm((f) => ({ ...f, heroVideoUrl: videoUrl }));
+    } finally {
+      setInsertingHeroVideo(false);
+    }
   };
 
   const insertVideoInSection = async (
@@ -242,6 +259,7 @@ export default function AdminLandingspaginasPage() {
           heroLabel: form.heroLabel.trim(),
           heroSubtitle: form.heroSubtitle.trim(),
           heroBody: form.heroBody.trim(),
+          heroVideoUrl: form.heroVideoUrl.trim(),
           ctaText: form.ctaText.trim(),
           ctaUrl: form.ctaUrl.trim(),
           section1Title: form.section1Title.trim(),
@@ -272,6 +290,7 @@ export default function AdminLandingspaginasPage() {
           heroLabel: opt(form.heroLabel),
           heroSubtitle: opt(form.heroSubtitle),
           heroBody: opt(form.heroBody),
+          heroVideoUrl: opt(form.heroVideoUrl),
           ctaText: opt(form.ctaText),
           ctaUrl: opt(form.ctaUrl),
           section1Title: opt(form.section1Title),
@@ -486,6 +505,29 @@ export default function AdminLandingspaginasPage() {
                 <div>
                   <label className={labelSmClass}>Bodytekst hero (heroBody)</label>
                   <textarea placeholder="Voor €37 ontvang je…" value={form.heroBody} onChange={set("heroBody")} rows={3} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelSmClass}>Hero video (optioneel — getoond onder bodytekst, boven de knop)</label>
+                  <input ref={heroVideoRef} type="file" accept="video/mp4,video/webm,video/*" className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadHeroVideo(file);
+                      if (heroVideoRef.current) heroVideoRef.current.value = "";
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => heroVideoRef.current?.click()} disabled={insertingHeroVideo}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 border border-purple-200 rounded text-xs text-purple-700 hover:bg-purple-50 disabled:opacity-50">
+                      🎬 {insertingHeroVideo ? "Uploaden…" : "Video uploaden"}
+                    </button>
+                    {form.heroVideoUrl && (
+                      <>
+                        <span className="text-xs text-green-600">✓ Video geladen</span>
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, heroVideoUrl: "" }))}
+                          className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>

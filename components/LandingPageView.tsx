@@ -122,6 +122,17 @@ export function LandingPageView({ slug }: { slug: string }) {
                 {page.heroBody}
               </p>
             )}
+            {(page as any).heroVideoUrl && (
+              <div className="mb-8">
+                <video
+                  src={(page as any).heroVideoUrl}
+                  controls
+                  playsInline
+                  className="w-auto max-w-full mx-auto block rounded-2xl"
+                  style={{ maxHeight: "420px" }}
+                />
+              </div>
+            )}
             <KoopKnopLink
               href={ctaUrl}
               buttonLabel={ctaText}
