@@ -176,13 +176,13 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       return isCenter ? (
         <div key={i} className="my-6 flex justify-center">
           <video src={videoSrc} controls playsInline
-            className="rounded-xl max-h-[480px] w-auto max-w-full bg-black"
+            className="rounded-xl max-h-[480px] w-auto max-w-full"
             style={{ maxWidth: "60%" }}
           />
         </div>
       ) : (
         <video key={i} src={videoSrc} controls playsInline
-          className="w-full rounded-xl my-6 max-h-[480px] bg-black"
+          className="w-auto max-w-full rounded-xl my-6 max-h-[480px] mx-auto block"
         />
       );
     }

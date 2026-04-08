@@ -71,13 +71,13 @@ export function LandingPageView({ slug }: { slug: string }) {
         return isCenter ? (
           <div key={i} className="my-4 flex justify-center">
             <video src={src} controls playsInline
-              className="rounded-xl max-h-[360px] w-auto max-w-full bg-black"
+              className="rounded-xl max-h-[360px] w-auto max-w-full"
               style={{ maxWidth: "60%" }}
             />
           </div>
         ) : (
           <video key={i} src={src} controls playsInline
-            className="w-full rounded-xl my-4 max-h-[360px] bg-black"
+            className="w-auto max-w-full rounded-xl my-4 max-h-[360px] mx-auto block"
           />
         );
       }
