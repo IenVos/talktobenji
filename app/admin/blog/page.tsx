@@ -119,6 +119,8 @@ export default function AdminBlogPage() {
   const [syncDone, setSyncDone] = useState<Id<"blogPosts"> | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [insertingImage, setInsertingImage] = useState(false);
+  const [insertingVideo, setInsertingVideo] = useState(false);
+  const inlineVideoInputRef = useRef<HTMLInputElement>(null);
   const [showImport, setShowImport] = useState(false);
   const [importText, setImportText] = useState("");
 
@@ -330,6 +332,24 @@ export default function AdminBlogPage() {
       setForm((f) => ({ ...f, content: newVal }));
     } finally {
       setInsertingImage(false);
+    }
+  };
+
+  const insertVideoAtCursor = async (file: File) => {
+    setInsertingVideo(true);
+    try {
+      const storageId = await uploadFile(file);
+      const videoUrl = await getImageUrl({ storageId });
+      if (!videoUrl || !contentRef.current) return;
+      const ta = contentRef.current;
+      const start = ta.selectionStart ?? ta.value.length;
+      const before = ta.value.slice(0, start);
+      const after = ta.value.slice(start);
+      const insertion = `\n\n[video:${videoUrl}]\n\n`;
+      const newVal = before + insertion + after;
+      setForm((f) => ({ ...f, content: newVal }));
+    } finally {
+      setInsertingVideo(false);
     }
   };
 
@@ -778,6 +798,18 @@ export default function AdminBlogPage() {
                     className="inline-flex items-center gap-1 px-2 py-1 border border-primary-200 rounded text-xs text-primary-700 hover:bg-primary-50 disabled:opacity-50">
                     <ImageIcon size={13} />
                     {insertingImage ? "Uploaden…" : "Afbeelding invoegen"}
+                  </button>
+                  <input ref={inlineVideoInputRef} type="file" accept="video/mp4,video/webm,video/*" className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) insertVideoAtCursor(file);
+                      if (inlineVideoInputRef.current) inlineVideoInputRef.current.value = "";
+                    }}
+                  />
+                  <button type="button" onClick={() => inlineVideoInputRef.current?.click()}
+                    disabled={insertingVideo}
+                    className="inline-flex items-center gap-1 px-2 py-1 border border-purple-200 rounded text-xs text-purple-700 hover:bg-purple-50 disabled:opacity-50">
+                    🎬 {insertingVideo ? "Uploaden…" : "Video invoegen"}
                   </button>
                 </div>
               </div>

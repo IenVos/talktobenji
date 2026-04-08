@@ -174,6 +174,15 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       const data = key ? (ctaMap?.get(key) ?? ctaData) : ctaData;
       return renderInlineCta(data, i);
     }
+    // Video: [video:URL]
+    const videoMatch = block.trim().match(/^\[video:([^\]]+)\]$/);
+    if (videoMatch) {
+      return (
+        <video key={i} src={videoMatch[1]} controls playsInline
+          className="w-full rounded-xl my-6 max-h-[480px] bg-black"
+        />
+      );
+    }
     // Afbeelding
     const imgMatch = block.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
     if (imgMatch) {
