@@ -57,12 +57,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
 
       {/* Achtergrond */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0 }}>
-        {(page as any).bgImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={(page as any).bgImageUrl} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <Image src="/images/achtergrond.png" alt="" fill className="object-cover" priority />
-        )}
+        <Image src="/images/achtergrond.png" alt="" fill className="object-cover" priority />
         <div style={{ position: "absolute", inset: 0, background: "rgba(253,249,244,0.82)" }} />
       </div>
 
