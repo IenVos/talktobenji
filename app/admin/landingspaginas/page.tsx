@@ -805,6 +805,9 @@ export default function AdminLandingspaginasPage() {
                     <div className="flex justify-between items-start gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
+                          {page.slug.startsWith("niet-alleen") && (
+                            <span title="niet-alleen.nl" className="inline-block w-2.5 h-2.5 rounded-full bg-orange-400 shrink-0" />
+                          )}
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                               page.isLive
