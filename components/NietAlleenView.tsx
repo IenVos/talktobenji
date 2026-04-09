@@ -213,7 +213,9 @@ export function NietAlleenView({ slug }: { slug: string }) {
                   )}
                 </div>
                 {(page as any).wieIsText && (
-                  <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{(page as any).wieIsText}</p>
+                  <div className="space-y-3 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+                    {renderText((page as any).wieIsText)}
+                  </div>
                 )}
               </div>
             </div>
@@ -248,9 +250,9 @@ export function NietAlleenView({ slug }: { slug: string }) {
                   </h2>
                 )}
                 {(page as any).finalCtaBody && (
-                  <p className="text-sm leading-relaxed mb-7" style={{ color: "#6b6460", textWrap: "balance" } as React.CSSProperties}>
-                    {(page as any).finalCtaBody}
-                  </p>
+                  <div className="space-y-3 text-sm leading-relaxed mb-7" style={{ color: "#6b6460" }}>
+                    {renderText((page as any).finalCtaBody)}
+                  </div>
                 )}
                 <a
                   href={ctaUrl}
