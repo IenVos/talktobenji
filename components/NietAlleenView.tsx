@@ -49,7 +49,13 @@ export function NietAlleenView({ slug }: { slug: string }) {
           <video key={i} src={src} controls playsInline className="w-auto max-w-full rounded-xl my-4 max-h-[360px] mx-auto block" />
         );
       }
-      return <p key={i}>{para}</p>;
+      return (
+        <p key={i}>
+          {para.split("\n").map((line, j, arr) => (
+            <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
+          ))}
+        </p>
+      );
     });
 
   return (
@@ -114,7 +120,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
         {((page as any).section1Title || (page as any).section1Text) && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
+              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "#ffffff", border: "1px solid rgba(160,148,136,0.35)", boxShadow: "0 6px 32px rgba(61,53,48,0.18)" }}>
                 {(page as any).section1Title && (
                   <h2 className="text-lg font-semibold mb-4" style={{ color: "#3d3530" }}>{(page as any).section1Title}</h2>
                 )}
@@ -132,7 +138,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
         {((page as any).section2Title || (page as any).section2Text) && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
+              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "#ffffff", border: "1px solid rgba(160,148,136,0.35)", boxShadow: "0 6px 32px rgba(61,53,48,0.18)" }}>
                 {(page as any).section2Title && (
                   <h2 className="text-lg font-semibold mb-4" style={{ color: "#3d3530" }}>{(page as any).section2Title}</h2>
                 )}
@@ -164,7 +170,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
         {voorWieBullets.length > 0 && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
+              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "#ffffff", border: "1px solid rgba(160,148,136,0.35)", boxShadow: "0 6px 32px rgba(61,53,48,0.18)" }}>
                 <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>
                   {(page as any).voorWieTitle || "Dit is voor jou als..."}
                 </h2>
@@ -186,7 +192,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto space-y-4">
               {ervaringen.map((e, i) => (
-                <div key={i} className="rounded-2xl p-6" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}>
+                <div key={i} className="rounded-2xl p-6" style={{ background: "#ffffff", border: "1px solid rgba(160,148,136,0.35)", boxShadow: "0 6px 32px rgba(61,53,48,0.18)" }}>
                   <p className="text-sm leading-relaxed mb-3" style={{ color: "#3d3530" }}>"{e.tekst}"</p>
                   <p className="text-xs" style={{ color: "#8a8078" }}>{e.naam}{e.context ? `, ${e.context}` : ""}</p>
                 </div>
@@ -199,7 +205,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
         {((page as any).wieIsTitle || (page as any).wieIsText) && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
+              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "#ffffff", border: "1px solid rgba(160,148,136,0.35)", boxShadow: "0 6px 32px rgba(61,53,48,0.18)" }}>
                 <div className="flex items-center gap-4 mb-4">
                   <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width={64} height={64} style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                   {(page as any).wieIsTitle && (
@@ -219,7 +225,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
               <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>Misschien vraag je je af...</h2>
-              <div className="rounded-2xl p-6 sm:p-7 space-y-6" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
+              <div className="rounded-2xl p-6 sm:p-7 space-y-6" style={{ background: "#ffffff", border: "1px solid rgba(160,148,136,0.35)", boxShadow: "0 6px 32px rgba(61,53,48,0.18)" }}>
                 {vragen.map((v, i) => (
                   <div key={i}>
                     <p className="text-sm font-semibold mb-1" style={{ color: "#3d3530" }}>{v.vraag}</p>
@@ -235,7 +241,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
         {((page as any).finalCtaTitle || (page as any).finalCtaBody) && (
           <section className="px-5 pb-20">
             <div className="max-w-md mx-auto text-center">
-              <div className="rounded-2xl px-6 sm:px-10 py-10" style={{ background: "rgba(255,255,255,0.90)", boxShadow: "0 2px 24px rgba(0,0,0,0.09)" }}>
+              <div className="rounded-2xl px-6 sm:px-10 py-10" style={{ background: "#ffffff", border: "1px solid rgba(160,148,136,0.35)", boxShadow: "0 6px 32px rgba(61,53,48,0.18)" }}>
                 {(page as any).finalCtaTitle && (
                   <h2 className="text-2xl font-semibold mb-3 leading-snug" style={{ color: "#3d3530", textWrap: "balance" } as React.CSSProperties}>
                     {(page as any).finalCtaTitle}
