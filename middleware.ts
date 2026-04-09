@@ -19,17 +19,25 @@ export function middleware(request: NextRequest) {
   const isNietAlleen = hostname === "niet-alleen.nl" || hostname === "www.niet-alleen.nl";
   if (isNietAlleen) {
     const pathname = request.nextUrl.pathname;
-    const rewriteMap: Record<string, string> = {
+
+    // Vaste routes
+    const fixedMap: Record<string, string> = {
       "/": "/niet-alleen-nl",
       "/betalen": "/niet-alleen-nl/betalen",
       "/bedankt": "/niet-alleen-nl/bedankt",
       "/privacy": "/niet-alleen-nl/privacy",
     };
-    const target = rewriteMap[pathname];
-    if (target) {
-      return NextResponse.rewrite(new URL(target, request.url));
+    if (fixedMap[pathname]) {
+      return NextResponse.rewrite(new URL(fixedMap[pathname], request.url));
     }
-    // Alles wat niet bekend is → terug naar homepage
+
+    // Dynamische landingspagina's: /er-zijn → /niet-alleen-nl/er-zijn (slug: niet-alleen-er-zijn)
+    const dynamicMatch = pathname.match(/^\/([a-z0-9-]+)$/);
+    if (dynamicMatch) {
+      return NextResponse.rewrite(new URL(`/niet-alleen-nl/${dynamicMatch[1]}`, request.url));
+    }
+
+    // Alles wat niet matcht → homepage
     return NextResponse.redirect(new URL("/", request.url));
   }
 
