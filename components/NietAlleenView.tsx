@@ -113,7 +113,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
         {((page as any).section1Title || (page as any).section1Text) && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
+              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
                 {(page as any).section1Title && (
                   <h2 className="text-lg font-semibold mb-4" style={{ color: "#3d3530" }}>{(page as any).section1Title}</h2>
                 )}
@@ -131,7 +131,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
         {((page as any).section2Title || (page as any).section2Text) && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
+              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
                 {(page as any).section2Title && (
                   <h2 className="text-lg font-semibold mb-4" style={{ color: "#3d3530" }}>{(page as any).section2Title}</h2>
                 )}
@@ -145,11 +145,25 @@ export function NietAlleenView({ slug }: { slug: string }) {
           </section>
         )}
 
+        {/* PRODUCTAFBEELDING */}
+        {((page as any).productImageUrl || (page as any).productImagePath) && (
+          <section className="px-5 pb-12">
+            <div className="max-w-lg mx-auto">
+              {(page as any).productImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={(page as any).productImageUrl} alt="" className="w-full rounded-2xl" />
+              ) : (
+                <Image src={(page as any).productImagePath} alt="" width={600} height={420} className="w-full rounded-2xl" />
+              )}
+            </div>
+          </section>
+        )}
+
         {/* VOOR WIE */}
         {voorWieBullets.length > 0 && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
+              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
                 <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>
                   {(page as any).voorWieTitle || "Dit is voor jou als..."}
                 </h2>
@@ -184,7 +198,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
         {((page as any).wieIsTitle || (page as any).wieIsText) && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
+              <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
                 <div className="flex items-center gap-4 mb-4">
                   <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width={64} height={64} style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                   {(page as any).wieIsTitle && (
@@ -204,7 +218,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
               <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>Misschien vraag je je af...</h2>
-              <div className="rounded-2xl p-6 sm:p-7 space-y-6" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
+              <div className="rounded-2xl p-6 sm:p-7 space-y-6" style={{ background: "rgba(255,255,255,0.92)", border: "1px solid rgba(175,162,150,0.45)", boxShadow: "0 4px 28px rgba(61,53,48,0.13)" }}>
                 {vragen.map((v, i) => (
                   <div key={i}>
                     <p className="text-sm font-semibold mb-1" style={{ color: "#3d3530" }}>{v.vraag}</p>
