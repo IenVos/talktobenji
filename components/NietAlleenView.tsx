@@ -66,7 +66,8 @@ export function NietAlleenView({ slug }: { slug: string }) {
         {/* HEADER */}
         <header className="flex flex-col items-center pt-8 pb-2 px-5">
           <Link href="/">
-            <Image src="/images/niet-alleen-logo.png" alt="Niet Alleen" width={96} height={96} priority />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/niet-alleen-logo.png" alt="Niet Alleen" width={96} height={96} />
           </Link>
         </header>
 
