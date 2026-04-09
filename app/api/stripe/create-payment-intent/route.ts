@@ -30,7 +30,6 @@ export async function POST(req: NextRequest) {
   if (paymentIntentId && email) {
     await stripe.paymentIntents.update(paymentIntentId, {
       metadata: { email, name: name || "", optIn: optIn ? "true" : "false" },
-      receipt_email: email,
     });
     return NextResponse.json({ success: true });
   }
