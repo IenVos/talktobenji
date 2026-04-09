@@ -64,9 +64,9 @@ export function NietAlleenView({ slug }: { slug: string }) {
       <div style={{ position: "relative", zIndex: 1 }}>
 
         {/* HEADER */}
-        <header className="flex items-center justify-between px-5 py-4">
-          <Link href="/" className="text-base font-semibold" style={{ color: "#3d3530", letterSpacing: "-0.01em" }}>
-            Niet Alleen
+        <header className="flex flex-col items-center pt-8 pb-2 px-5">
+          <Link href="/">
+            <Image src="/images/niet-alleen-logo.png" alt="Niet Alleen" width={96} height={96} priority />
           </Link>
         </header>
 
@@ -185,9 +185,12 @@ export function NietAlleenView({ slug }: { slug: string }) {
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-                {(page as any).wieIsTitle && (
-                  <h2 className="text-lg font-semibold mb-3" style={{ color: "#3d3530" }}>{(page as any).wieIsTitle}</h2>
-                )}
+                <div className="flex items-center gap-4 mb-4">
+                  <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width={64} height={64} style={{ borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                  {(page as any).wieIsTitle && (
+                    <h2 className="text-lg font-semibold leading-snug" style={{ color: "#3d3530" }}>{(page as any).wieIsTitle}</h2>
+                  )}
+                </div>
                 {(page as any).wieIsText && (
                   <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{(page as any).wieIsText}</p>
                 )}
@@ -244,21 +247,9 @@ export function NietAlleenView({ slug }: { slug: string }) {
         )}
 
         {/* FOOTER */}
-        <footer className="px-5 py-10 text-center" style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}>
-          <div className="max-w-lg mx-auto space-y-3">
-            <p className="text-xs" style={{ color: "#6b6460" }}>
-              Vragen?{" "}
-              <a href="mailto:hallo@niet-alleen.nl" style={{ color: "#6d84a8" }}>
-                hallo@niet-alleen.nl
-              </a>
-            </p>
-            {(page as any).footerText && (
-              <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>{(page as any).footerText}</p>
-            )}
-            <p className="text-xs" style={{ color: "#b0a8a0" }}>
-              <Link href="/privacy" style={{ color: "#b0a8a0" }}>Privacybeleid</Link>
-              {" · "}Niet Alleen is geen vervanging van professionele hulp.
-            </p>
+        <footer className="px-5 py-8 text-center" style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}>
+          <div className="max-w-lg mx-auto">
+            <Link href="/privacy" className="text-xs" style={{ color: "#b0a8a0" }}>Privacybeleid</Link>
           </div>
         </footer>
 
