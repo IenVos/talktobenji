@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
               <div style="margin:28px 0;">
                 <a href="https://talktobenji.com/niet-alleen/welkom" style="background-color:#6d84a8;color:white;padding:13px 26px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">Vandaag beginnen</a>
               </div>
-              <p style="font-size:13px;color:#a0aec0;margin-bottom:20px;">Niet Alleen is een programma van Talk To Benji, gemaakt door Ien Vos.</p>
+              <p style="font-size:13px;color:#a0aec0;margin-bottom:20px;">Niet Alleen is een programma van Talk To Benji.</p>
               <table cellpadding="0" cellspacing="0" border="0"><tr>
                 <td style="padding-right:14px;vertical-align:middle;"><img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="52" height="52" style="border-radius:50%;display:block;" /></td>
                 <td style="vertical-align:middle;"><p style="font-size:15px;font-weight:600;color:#2d3748;margin:0;">Ien</p><p style="font-size:13px;color:#718096;margin:3px 0 0 0;">Founder van Talk To Benji</p></td>
