@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         <h1 className="text-2xl font-semibold">Privacybeleid</h1>
 
         <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-          Niet Alleen is een programma van Ien Vos. We gaan zorgvuldig om met je gegevens.
+          Niet Alleen is een programma dat zorgvuldig omgaat met je gegevens.
         </p>
 
         <div className="space-y-4 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
