@@ -14,6 +14,25 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  // Hostname-based routing voor niet-alleen.nl
+  const hostname = request.headers.get("host") ?? "";
+  const isNietAlleen = hostname === "niet-alleen.nl" || hostname === "www.niet-alleen.nl";
+  if (isNietAlleen) {
+    const pathname = request.nextUrl.pathname;
+    const rewriteMap: Record<string, string> = {
+      "/": "/niet-alleen-nl",
+      "/betalen": "/niet-alleen-nl/betalen",
+      "/bedankt": "/niet-alleen-nl/bedankt",
+      "/privacy": "/niet-alleen-nl/privacy",
+    };
+    const target = rewriteMap[pathname];
+    if (target) {
+      return NextResponse.rewrite(new URL(target, request.url));
+    }
+    // Alles wat niet bekend is → terug naar homepage
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
   // Admin route protection: controleer of admin_session cookie aanwezig is
   // met geldig formaat (uuid.hmac). De volledige cryptografische verificatie
   // gebeurt in /api/admin/check, maar dit blokkeert ongeautoriseerde toegang
