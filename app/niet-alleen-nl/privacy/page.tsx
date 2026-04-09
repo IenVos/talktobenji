@@ -1,29 +1,30 @@
 import Link from "next/link";
 
 export const metadata = {
-  title: "Privacybeleid — Niet Alleen",
+  title: "Privacybeleid",
 };
 
 export default function PrivacyPage() {
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4" }}>
-      <header className="flex items-center px-5 py-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.07)" }}>
-        <Link href="/" className="text-base font-semibold" style={{ color: "#3d3530" }}>
-          Niet Alleen
+      <header className="flex flex-col items-center pt-8 pb-4">
+        <Link href="/">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/niet-alleen-logo.png" alt="Niet Alleen" width={80} height={80} />
         </Link>
       </header>
 
-      <div className="max-w-2xl mx-auto px-5 py-12 space-y-6" style={{ color: "#3d3530" }}>
+      <div className="max-w-2xl mx-auto px-5 py-8 space-y-6" style={{ color: "#3d3530" }}>
         <h1 className="text-2xl font-semibold">Privacybeleid</h1>
 
         <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-          Niet Alleen is een programma van Ien Vos, onderdeel van Talk To Benji. We gaan zorgvuldig om met je gegevens.
+          Niet Alleen is een programma van Ien Vos. We gaan zorgvuldig om met je gegevens.
         </p>
 
         <div className="space-y-4 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
           <div>
             <h2 className="font-semibold mb-1" style={{ color: "#3d3530" }}>Welke gegevens bewaren we?</h2>
-            <p>Je naam, e-mailadres en wat je deelt binnen het programma. We delen dit nooit met derden.</p>
+            <p>Je naam en e-mailadres. We delen dit nooit met derden.</p>
           </div>
           <div>
             <h2 className="font-semibold mb-1" style={{ color: "#3d3530" }}>Waarvoor gebruiken we je e-mailadres?</h2>
@@ -35,7 +36,7 @@ export default function PrivacyPage() {
           </div>
           <div>
             <h2 className="font-semibold mb-1" style={{ color: "#3d3530" }}>Contact</h2>
-            <p>Vragen over je gegevens? Mail naar <a href="mailto:hallo@niet-alleen.nl" style={{ color: "#6d84a8" }}>hallo@niet-alleen.nl</a></p>
+            <p>Deelnemers kunnen altijd contact opnemen door te reageren op de dagelijkse mail die ze ontvangen. Wij lezen en beantwoorden elke reactie.</p>
           </div>
         </div>
       </div>
