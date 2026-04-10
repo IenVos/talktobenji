@@ -159,6 +159,18 @@ export async function POST(req: NextRequest) {
         } catch {
           // Geen account — activatie volgt na registratie
         }
+
+        // Niet Alleen profiel aanmaken voor dagelijkse mails (ook zonder TTB-account)
+        if (subscriptionType === "niet_alleen") {
+          try {
+            await convex.mutation(api.nietAlleen.activateNietAlleenDirect, {
+              email,
+              naam: name || email,
+            });
+          } catch (err: any) {
+            console.error("[Convex] Niet Alleen profiel aanmaken mislukt:", err?.message);
+          }
+        }
       } catch (err: any) {
         console.error("[Stripe webhook] fout:", err?.message);
       }

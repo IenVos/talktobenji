@@ -322,6 +322,39 @@ export const activateNietAlleen = internalMutation({
   },
 });
 
+/**
+ * Maak een Niet Alleen profiel aan voor kopers zonder TTB-account (bijv. via niet-alleen.nl).
+ * Gebruikt email als userId zodat dagelijkse mails werken.
+ */
+export const activateNietAlleenDirect = mutation({
+  args: {
+    email: v.string(),
+    naam: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+
+    // Al een profiel? Dan niets doen
+    const bestaand = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+    if (bestaand) return { isNieuw: false };
+
+    await ctx.db.insert("nietAlleenProfiles", {
+      userId: args.email, // email als userId zodat lookup by_email werkt
+      email: args.email,
+      naam: args.naam,
+      startDatum: now,
+      dagPrompts: [],
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return { isNieuw: true };
+  },
+});
+
 /** Upgrade naar volledig abonnement (bij aankoop abo met zelfde e-mail). */
 export const upgradeNaarVolledig = internalMutation({
   args: {
