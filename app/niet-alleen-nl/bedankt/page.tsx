@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { MetaPixelPurchase } from "./MetaPixelPurchase";
 
 export const metadata = {
   title: "Gelukt!",
@@ -13,6 +14,7 @@ export default function BedanktPage() {
         <div style={{ position: "absolute", inset: 0, background: "rgba(253,249,244,0.88)" }} />
       </div>
 
+      <MetaPixelPurchase />
       <div style={{ position: "relative", zIndex: 1 }}>
         <header className="flex flex-col items-center pt-8 pb-2">
           <Link href="/">
