@@ -640,6 +640,7 @@ export default defineSchema({
     heroVideoUrl: v.optional(v.string()),
     ctaText: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),
+    ctaColor: v.optional(v.string()),
     // Body sections (up to 2 text sections)
     section1Title: v.optional(v.string()),
     section1Text: v.optional(v.string()),
@@ -663,6 +664,11 @@ export default defineSchema({
     // Final CTA block
     finalCtaTitle: v.optional(v.string()),
     finalCtaBody: v.optional(v.string()),
+    // Sectie-zichtbaarheid
+    hideErvaringen: v.optional(v.boolean()),
+    hideVragen: v.optional(v.boolean()),
+    hideWieIsIen: v.optional(v.boolean()),
+    hideMidCta: v.optional(v.boolean()),
     // Footer
     footerText: v.optional(v.string()),
     createdAt: v.number(),

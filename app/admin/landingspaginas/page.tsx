@@ -51,6 +51,11 @@ type FormState = {
   heroVideoUrl: string;
   ctaText: string;
   ctaUrl: string;
+  ctaColor: string;
+  hideErvaringen: boolean;
+  hideVragen: boolean;
+  hideWieIsIen: boolean;
+  hideMidCta: boolean;
   section1Title: string;
   section1Text: string;
   section2Title: string;
@@ -80,6 +85,11 @@ const EMPTY_FORM: FormState = {
   heroVideoUrl: "",
   ctaText: "",
   ctaUrl: "",
+  ctaColor: "#6d84a8",
+  hideErvaringen: false,
+  hideVragen: false,
+  hideWieIsIen: false,
+  hideMidCta: false,
   section1Title: "",
   section1Text: "",
   section2Title: "",
@@ -171,6 +181,11 @@ export default function AdminLandingspaginasPage() {
       heroVideoUrl: (page as any).heroVideoUrl ?? "",
       ctaText: page.ctaText ?? "",
       ctaUrl: page.ctaUrl ?? "",
+      ctaColor: (page as any).ctaColor ?? "#6d84a8",
+      hideErvaringen: (page as any).hideErvaringen ?? false,
+      hideVragen: (page as any).hideVragen ?? false,
+      hideWieIsIen: (page as any).hideWieIsIen ?? false,
+      hideMidCta: (page as any).hideMidCta ?? false,
       section1Title: page.section1Title ?? "",
       section1Text: page.section1Text ?? "",
       section2Title: page.section2Title ?? "",
@@ -262,6 +277,11 @@ export default function AdminLandingspaginasPage() {
           heroVideoUrl: form.heroVideoUrl.trim(),
           ctaText: form.ctaText.trim(),
           ctaUrl: form.ctaUrl.trim(),
+          ctaColor: form.ctaColor.trim(),
+          hideErvaringen: form.hideErvaringen,
+          hideVragen: form.hideVragen,
+          hideWieIsIen: form.hideWieIsIen,
+          hideMidCta: form.hideMidCta,
           section1Title: form.section1Title.trim(),
           section1Text: form.section1Text.trim(),
           section2Title: form.section2Title.trim(),
@@ -293,6 +313,11 @@ export default function AdminLandingspaginasPage() {
           heroVideoUrl: opt(form.heroVideoUrl),
           ctaText: opt(form.ctaText),
           ctaUrl: opt(form.ctaUrl),
+          ctaColor: opt(form.ctaColor),
+          hideErvaringen: form.hideErvaringen,
+          hideVragen: form.hideVragen,
+          hideWieIsIen: form.hideWieIsIen,
+          hideMidCta: form.hideMidCta,
           section1Title: opt(form.section1Title),
           section1Text: opt(form.section1Text),
           section2Title: opt(form.section2Title),
@@ -537,6 +562,50 @@ export default function AdminLandingspaginasPage() {
                   <div>
                     <label className={labelSmClass}>CTA URL</label>
                     <input type="url" placeholder="https://talktobenji.kennis.shop/pay/niet-alleen" value={form.ctaUrl} onChange={set("ctaUrl")} className={inputClass} />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelSmClass}>Knopkleur</label>
+                  <div className="flex items-center gap-3 mt-1">
+                    <input
+                      type="color"
+                      value={form.ctaColor || "#6d84a8"}
+                      onChange={(e) => setForm((f) => ({ ...f, ctaColor: e.target.value }))}
+                      className="h-9 w-14 rounded border border-primary-200 cursor-pointer p-0.5"
+                    />
+                    <div className="flex gap-2">
+                      {["#6d84a8","#4a7c59","#c07a5a","#7c6d9e","#374151","#be185d"].map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, ctaColor: c }))}
+                          className="w-7 h-7 rounded-full border-2 transition-all"
+                          style={{ background: c, borderColor: form.ctaColor === c ? "#1e293b" : "transparent" }}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-xs text-gray-400">{form.ctaColor}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelSmClass}>Secties zichtbaar</label>
+                  <div className="flex flex-wrap gap-4 mt-2">
+                    {([
+                      ["hideMidCta", "Tussenknop"],
+                      ["hideErvaringen", "Ervaringen"],
+                      ["hideVragen", "FAQ"],
+                      ["hideWieIsIen", "Wie is Ien"],
+                    ] as const).map(([field, label]) => (
+                      <label key={field} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!form[field]}
+                          onChange={(e) => setForm((f) => ({ ...f, [field]: !e.target.checked }))}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-primary-700">{label}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               </div>

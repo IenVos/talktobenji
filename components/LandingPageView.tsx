@@ -60,6 +60,11 @@ export function LandingPageView({ slug }: { slug: string }) {
 
   const ctaUrl = page.ctaUrl || "#";
   const ctaText = page.ctaText || "Start mijn reis";
+  const ctaColor = (page as any).ctaColor || "#6d84a8";
+  const hideErvaringen = (page as any).hideErvaringen ?? false;
+  const hideVragen = (page as any).hideVragen ?? false;
+  const hideWieIsIen = (page as any).hideWieIsIen ?? false;
+  const hideMidCta = (page as any).hideMidCta ?? false;
 
   const renderTextWithParagraphs = (text: string) =>
     text.split("\n\n").map((para, i) => {
@@ -144,7 +149,7 @@ export function LandingPageView({ slug }: { slug: string }) {
               href={ctaUrl}
               buttonLabel={ctaText}
               className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
-              style={{ background: "#6d84a8" }}
+              style={{ background: ctaColor }}
             >
               {ctaText}
             </KoopKnopLink>
@@ -226,21 +231,38 @@ export function LandingPageView({ slug }: { slug: string }) {
           </section>
         )}
 
+        {/* MID-PAGE CTA */}
+        {!hideMidCta && (
+          <section className="px-5 pb-12">
+            <div className="max-w-md mx-auto text-center">
+              <KoopKnopLink
+                href={ctaUrl}
+                buttonLabel={ctaText}
+                className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm"
+                style={{ background: ctaColor }}
+              >
+                {ctaText}
+              </KoopKnopLink>
+            </div>
+          </section>
+        )}
+
         {/* ERVARINGEN */}
-        {ervaringen.length > 0 && (
+        {ervaringen.length > 0 && !hideErvaringen && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto space-y-4">
               {ervaringen.map((e, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl p-6"
-                  style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 16px rgba(0,0,0,0.06)" }}
+                  className="rounded-2xl p-6 sm:p-7"
+                  style={{ background: "rgba(255,255,255,0.92)", boxShadow: "0 2px 20px rgba(0,0,0,0.08)" }}
                 >
-                  <p className="text-sm leading-relaxed mb-3" style={{ color: "#3d3530" }}>
-                    "{e.tekst}"
+                  <p className="text-2xl mb-3" style={{ color: "#c8bfb8", lineHeight: 1 }}>"</p>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: "#3d3530" }}>
+                    {e.tekst}
                   </p>
-                  <p className="text-xs" style={{ color: "#8a8078" }}>
-                    {e.naam}{e.context ? `, ${e.context}` : ""}
+                  <p className="text-xs font-medium" style={{ color: "#8a8078" }}>
+                    — {e.naam}{e.context ? `, ${e.context}` : ""}
                   </p>
                 </div>
               ))}
@@ -249,7 +271,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         )}
 
         {/* WIE IS IEN */}
-        {(page.wieIsTitle || page.wieIsText) && (
+        {(page.wieIsTitle || page.wieIsText) && !hideWieIsIen && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
@@ -286,7 +308,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         )}
 
         {/* FAQ */}
-        {vragen.length > 0 && (
+        {vragen.length > 0 && !hideVragen && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
               <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>
@@ -321,15 +343,15 @@ export function LandingPageView({ slug }: { slug: string }) {
                   </h2>
                 )}
                 {page.finalCtaBody && (
-                  <p className="text-sm leading-relaxed mb-7" style={{ color: "#6b6460", textWrap: "balance" } as React.CSSProperties}>
-                    {page.finalCtaBody}
-                  </p>
+                  <div className="text-sm leading-relaxed mb-7 space-y-3" style={{ color: "#6b6460" }}>
+                    {renderTextWithParagraphs(page.finalCtaBody)}
+                  </div>
                 )}
                 <KoopKnopLink
                   href={ctaUrl}
                   buttonLabel={ctaText}
                   className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm"
-                  style={{ background: "#6d84a8" }}
+                  style={{ background: ctaColor }}
                 >
                   {ctaText}
                 </KoopKnopLink>
