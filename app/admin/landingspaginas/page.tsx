@@ -701,6 +701,7 @@ export default function AdminLandingspaginasPage() {
                   rows={5}
                   className={`${inputClass} font-mono text-xs`}
                 />
+                {form.ervaringenJson.trim() && (() => { try { JSON.parse(form.ervaringenJson); return null; } catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; } })()}
               </div>
             </div>
 
@@ -718,6 +719,7 @@ export default function AdminLandingspaginasPage() {
                   rows={5}
                   className={`${inputClass} font-mono text-xs`}
                 />
+                {form.vragenJson.trim() && (() => { try { JSON.parse(form.vragenJson); return null; } catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; } })()}
               </div>
             </div>
 

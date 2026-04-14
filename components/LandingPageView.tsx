@@ -253,11 +253,21 @@ export function LandingPageView({ slug }: { slug: string }) {
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-                {page.wieIsTitle && (
-                  <h2 className="text-lg font-semibold mb-3" style={{ color: "#3d3530" }}>
-                    {page.wieIsTitle}
-                  </h2>
-                )}
+                <div className="flex items-center gap-4 mb-4">
+                  <Image
+                    src="/images/ien-founder.png"
+                    alt="Ien Vos"
+                    width={64}
+                    height={64}
+                    className="rounded-full object-cover flex-shrink-0"
+                    style={{ width: 64, height: 64 }}
+                  />
+                  {page.wieIsTitle && (
+                    <h2 className="text-lg font-semibold" style={{ color: "#3d3530" }}>
+                      {page.wieIsTitle}
+                    </h2>
+                  )}
+                </div>
                 {page.wieIsText && (
                   <p className="text-sm leading-relaxed mb-4" style={{ color: "#6b6460" }}>
                     {page.wieIsText}
@@ -335,6 +345,12 @@ export function LandingPageView({ slug }: { slug: string }) {
               Vragen?{" "}
               <a href="mailto:contactmetien@talktobenji.com" style={{ color: "#6d84a8" }}>
                 contactmetien@talktobenji.com
+              </a>
+            </p>
+            <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
+              Wil je meer weten over het programma?{" "}
+              <a href="/niet-alleen-nl" style={{ color: "#6d84a8" }}>
+                Bekijk Niet Alleen →
               </a>
             </p>
             {page.footerText && (
