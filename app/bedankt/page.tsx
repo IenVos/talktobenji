@@ -10,7 +10,6 @@ import Image from "next/image";
 import {
   CheckCircle,
   ShoppingBag,
-  Sparkles,
   Star,
   ChevronRight,
   MessageSquare,
@@ -162,51 +161,33 @@ function BedanktContent() {
                 Ontdek meer van Benji
               </p>
               <h2 className="text-base font-semibold text-gray-900">
-                Haal nog meer uit je begeleiding
+                Een heel jaar lang Benji
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                Met een abonnement krijg je toegang tot de volledige Benji-ervaring — check-ins, reflecties, memories en meer.
+                Praten met Benji, dagelijkse check-ins, reflecties, memories, handreikingen en meer — alles inbegrepen voor één prijs.
               </p>
             </div>
 
-            <div className="space-y-3">
-              {(subType === "free" || subType === "trial") && (
-                <Link
-                  href="/account/abonnement?upgrade=true"
-                  className="flex items-center justify-between gap-3 p-4 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                      <Sparkles size={18} className="text-amber-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Benji Uitgebreid</p>
-                      <p className="text-xs text-gray-600">Onbeperkt chatten · Check-ins · Doelen · €&nbsp;6,99/mnd</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={16} className="text-amber-500 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
-                </Link>
-              )}
-
-              <Link
-                href="/account/abonnement?upgrade=true"
-                className="flex items-center justify-between gap-3 p-4 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 transition-colors group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                    <Star size={18} className="text-purple-600" fill="currentColor" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Benji Alles in 1</p>
-                    <p className="text-xs text-gray-600">Alles van Uitgebreid · Memories · Inspiratie · Handreikingen · €&nbsp;11,99/mnd</p>
-                  </div>
+            <Link
+              href="https://talktobenji.kennis.shop/pay/je-hoeft-het-niet-alleen-te-dragen"
+              className="flex items-center justify-between gap-3 p-4 rounded-xl border border-primary-200 bg-primary-50 hover:bg-primary-100 transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+                  <Star size={18} className="text-primary-600" fill="currentColor" />
                 </div>
-                <ChevronRight size={16} className="text-purple-500 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
-              </Link>
-            </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">1 jaar toegang · Alles inbegrepen</p>
+                  <p className="text-xs text-gray-600">€&nbsp;97 eenmalig · Geen abonnement · Geen verplichtingen</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-primary-400 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
 
-            <p className="text-xs text-gray-400 text-center">
-              Maandelijks opzegbaar · Geen verplichtingen
+            <p className="text-xs text-center">
+              <Link href="/lp/jaar-toegang" className="text-primary-500 hover:underline">
+                Bekijk wat er allemaal in zit →
+              </Link>
             </p>
           </div>
         )}
