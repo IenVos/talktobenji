@@ -81,7 +81,14 @@ export function LandingPageView({ slug }: { slug: string }) {
           />
         );
       }
-      return <p key={i}>{para}</p>;
+      const lines = para.split("\n");
+      return (
+        <p key={i}>
+          {lines.map((line, j) => (
+            <span key={j}>{line}{j < lines.length - 1 && <br />}</span>
+          ))}
+        </p>
+      );
     });
 
   return (
@@ -311,15 +318,11 @@ export function LandingPageView({ slug }: { slug: string }) {
                 <KoopKnopLink
                   href={ctaUrl}
                   buttonLabel={ctaText}
-                  className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm mb-4"
+                  className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm"
                   style={{ background: "#6d84a8" }}
                 >
                   {ctaText}
                 </KoopKnopLink>
-                <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
-                  Na aankoop ontvang je direct een bericht van Ien.
-                  Je eerste dag begint de volgende ochtend.
-                </p>
               </div>
             </div>
           </section>
