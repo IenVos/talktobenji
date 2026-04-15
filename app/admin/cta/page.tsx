@@ -13,6 +13,7 @@ type CtaForm = {
   title: string;
   body: string;
   buttonText: string;
+  buttonUrl: string;
   footnote: string;
   showImage: boolean;
   imageStorageId: Id<"_storage"> | null;
@@ -29,6 +30,7 @@ const DEFAULTS: CtaForm = {
   title: "",
   body: "",
   buttonText: "Kijk of het bij je past",
+  buttonUrl: "",
   footnote: "7 dagen volledig toegang · geen creditcard nodig",
   showImage: false,
   imageStorageId: null,
@@ -170,6 +172,7 @@ export default function CtaAdminPage() {
       title: block.title,
       body: block.body,
       buttonText: block.buttonText,
+      buttonUrl: block.buttonUrl ?? "",
       footnote: block.footnote ?? "",
       showImage: block.showImage,
       imageStorageId: block.imageStorageId ?? null,
@@ -207,6 +210,7 @@ export default function CtaAdminPage() {
         title: form.title.trim(),
         body: form.body.trim(),
         buttonText: form.buttonText.trim(),
+        buttonUrl: form.buttonUrl.trim() || undefined,
         footnote: form.footnote.trim() || undefined,
         showImage: form.showImage,
         imageStorageId: form.imageStorageId ?? undefined,
@@ -379,6 +383,18 @@ export default function CtaAdminPage() {
                   <label className="block text-xs font-medium text-gray-700 mb-1">Kleine tekst onder knop</label>
                   <input type="text" value={form.footnote} onChange={set("footnote")} placeholder="7 dagen gratis..." className={inputClass} />
                 </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Knop URL <span className="text-gray-400 font-normal">(leeg = homepage /)</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.buttonUrl}
+                  onChange={set("buttonUrl")}
+                  placeholder="/lp/niet-alleen-nl of https://..."
+                  className={inputClass + " font-mono text-xs"}
+                />
               </div>
               {/* Afbeelding */}
               <div className="border-t border-gray-100 pt-4 space-y-3">

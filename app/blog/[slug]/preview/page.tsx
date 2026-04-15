@@ -106,13 +106,14 @@ function renderInlineCta(data: any, key: number) {
   const bg = data?.bgColor || "#f5f0eb";
   const btnColor = data?.buttonColor || "#6d84a8";
   const borderStyle = data?.borderColor ? { border: `2px solid ${data.borderColor}` } : {};
+  const href = data?.buttonUrl?.trim() || "/";
   return (
     <div key={key} style={{ background: bg, borderRadius: "14px", padding: "20px 24px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const, ...borderStyle }}>
       <div>
         <p style={{ fontWeight: 600, fontSize: "15px", marginBottom: "2px", color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>{data?.title || "Wil je hierover praten?"}</p>
         <p style={{ fontSize: "13px", color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>{data?.body || "Benji luistert — dag en nacht beschikbaar."}</p>
       </div>
-      <a href="/" style={{ background: btnColor, color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
+      <a href={href} style={{ background: btnColor, color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
         {data?.buttonText || "Begin een gesprek →"}
       </a>
     </div>
@@ -141,7 +142,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       return (
         <div key={i} style={{ margin: "28px 0", textAlign: "center" }}>
           <a
-            href="/niet-alleen-nl"
+            href="https://www.talktobenji.com/niet-alleen-b"
             style={{
               display: "inline-block",
               background: btnColor,

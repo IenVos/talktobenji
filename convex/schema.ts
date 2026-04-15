@@ -469,6 +469,7 @@ export default defineSchema({
     bgColor: v.optional(v.string()),    // achtergrondkleur hex, bijv. "#f5f0eb"
     borderColor: v.optional(v.string()), // randkleur hex, leeg = geen rand
     buttonColor: v.optional(v.string()), // knopkleur hex, bijv. "#6d84a8"
+    buttonUrl: v.optional(v.string()),   // URL waar de knop naar linkt, bijv. "/lp/niet-alleen"
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 
