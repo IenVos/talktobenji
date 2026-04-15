@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
-import { Plus, Edit, Trash2, Save, X, ChevronDown, ChevronUp, Copy } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Copy } from "lucide-react";
 
 const THEME_OPTIONS = [
   { key: "primary", label: "Blauw (Reflectie)" },
@@ -92,7 +92,7 @@ export default function BenjiTeasersAdmin() {
 
   const [editing, setEditing] = useState<typeof EMPTY_FORM | null>(null);
   const [saving, setSaving] = useState(false);
-  const [expandedType, setExpandedType] = useState<string | null>(null);
+  const [collapsedTypes, setCollapsedTypes] = useState<Set<string>>(new Set());
 
   type TeaserDoc = { type: string; label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; buttonUrl?: string; vragen: Vraag[] };
   const dbMap = new Map<string, TeaserDoc>((teasers ?? []).map((t: any) => [t.type, t as TeaserDoc]));
@@ -268,24 +268,33 @@ export default function BenjiTeasersAdmin() {
         {[
           ...DEFAULT_TYPES,
           ...(teasers ?? []).filter((t: any) => !DEFAULT_TYPES.some(d => d.type === t.type))
-            .map((t: any) => ({ type: t.type, label: t.label, themeKey: t.themeKey })),
+            .map((t: any) => ({ type: t.type, label: t.label, themeKey: t.themeKey, intro: t.intro ?? "", downloadTitel: t.downloadTitel ?? "", bestandsnaam: t.bestandsnaam ?? "", vragen: t.vragen ?? [] })),
         ].map(({ type, label }) => {
           const db = dbMap.get(type);
-          const isOpen = expandedType === type;
+          const def = DEFAULT_TYPES.find(d => d.type === type);
+          const intro = db?.intro ?? def?.intro ?? "";
+          const vragen: Vraag[] = db?.vragen ?? def?.vragen ?? [];
+          const buttonUrl = db?.buttonUrl;
+          const isCollapsed = collapsedTypes.has(type);
+          const toggle = () => setCollapsedTypes(prev => {
+            const next = new Set(prev);
+            next.has(type) ? next.delete(type) : next.add(type);
+            return next;
+          });
           return (
             <div key={type} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="flex items-center justify-between px-5 py-3">
-                <div className="flex items-center gap-3">
-                  <button onClick={() => setExpandedType(isOpen ? null : type)} className="text-gray-400 hover:text-gray-600">
-                    {isOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                <div className="flex items-center gap-3 min-w-0">
+                  <button onClick={toggle} className="text-gray-400 hover:text-gray-600 shrink-0 text-xs w-4 text-center select-none">
+                    {isCollapsed ? "▶" : "▼"}
                   </button>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-800">{db?.label ?? label}</p>
                     <p className="text-xs text-gray-400 font-mono">[benji:{type}]</p>
                   </div>
-                  {db && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Aangepast</span>}
+                  {db && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full shrink-0">Aangepast</span>}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 shrink-0 ml-3">
                   <button onClick={() => startEdit(type)}
                     className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50">
                     <Edit size={13} /> Bewerken
@@ -303,23 +312,22 @@ export default function BenjiTeasersAdmin() {
                   )}
                 </div>
               </div>
-              {isOpen && (() => {
-                const def = DEFAULT_TYPES.find(d => d.type === type);
-                const intro = db?.intro ?? def?.intro ?? "";
-                const vragen = db?.vragen ?? def?.vragen ?? [];
-                return (
-                  <div className="border-t border-gray-100 px-5 py-4 bg-gray-50 space-y-2">
-                    {intro && <p className="text-xs text-gray-500 italic">{intro}</p>}
-                    {vragen.map((v: Vraag, i: number) => (
-                      <div key={i} className="text-xs">
-                        <span className="font-medium text-gray-700">{i + 1}. {v.vraag}</span>
-                        <span className="text-gray-400"> · {v.placeholder}</span>
-                      </div>
-                    ))}
-                    {!intro && vragen.length === 0 && <p className="text-xs text-gray-400">— geen vragen (visueel blok) —</p>}
-                  </div>
-                );
-              })()}
+              {!isCollapsed && (
+                <div className="border-t border-gray-100 px-5 py-4 bg-gray-50 space-y-2">
+                  {intro && <p className="text-xs text-gray-500 italic mb-1">{intro}</p>}
+                  {vragen.length > 0 ? vragen.map((v, i) => (
+                    <div key={i} className="text-xs">
+                      <span className="font-medium text-gray-700">{i + 1}. {v.vraag}</span>
+                      {v.placeholder && <span className="text-gray-400"> · {v.placeholder}</span>}
+                    </div>
+                  )) : (
+                    <p className="text-xs text-gray-400">— geen vragen (visueel blok) —</p>
+                  )}
+                  {buttonUrl && (
+                    <p className="text-xs text-primary-500 font-mono pt-1">→ {buttonUrl}</p>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
