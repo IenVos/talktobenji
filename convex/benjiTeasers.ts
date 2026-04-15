@@ -30,6 +30,7 @@ export const upsert = mutation({
     downloadTitel: v.string(),
     bestandsnaam: v.string(),
     vragen: v.array(v.object({ vraag: v.string(), placeholder: v.string() })),
+    buttonUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

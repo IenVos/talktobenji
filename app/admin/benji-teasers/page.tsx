@@ -26,7 +26,7 @@ type Vraag = { vraag: string; placeholder: string };
 
 const EMPTY_FORM = {
   type: "", label: "", intro: "", themeKey: "primary",
-  downloadTitel: "", bestandsnaam: "",
+  downloadTitel: "", bestandsnaam: "", buttonUrl: "",
   vragen: [
     { vraag: "", placeholder: "" },
     { vraag: "", placeholder: "" },
@@ -43,7 +43,7 @@ export default function BenjiTeasersAdmin() {
   const [saving, setSaving] = useState(false);
   const [expandedType, setExpandedType] = useState<string | null>(null);
 
-  type TeaserDoc = { type: string; label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; vragen: Vraag[] };
+  type TeaserDoc = { type: string; label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; buttonUrl?: string; vragen: Vraag[] };
   const dbMap = new Map<string, TeaserDoc>((teasers ?? []).map((t: any) => [t.type, t as TeaserDoc]));
 
   function startNew() {
@@ -54,7 +54,7 @@ export default function BenjiTeasersAdmin() {
     const db = dbMap.get(type);
     if (db) {
       setEditing({ type: db.type, label: db.label, intro: db.intro, themeKey: db.themeKey,
-        downloadTitel: db.downloadTitel, bestandsnaam: db.bestandsnaam,
+        downloadTitel: db.downloadTitel, bestandsnaam: db.bestandsnaam, buttonUrl: db.buttonUrl ?? "",
         vragen: db.vragen.length >= 3 ? db.vragen : [...db.vragen, ...EMPTY_FORM.vragen].slice(0, 3) });
     } else {
       const def = DEFAULT_TYPES.find(d => d.type === type);
@@ -74,6 +74,7 @@ export default function BenjiTeasersAdmin() {
         themeKey: editing.themeKey,
         downloadTitel: editing.downloadTitel.trim(),
         bestandsnaam: editing.bestandsnaam.trim(),
+        buttonUrl: editing.buttonUrl.trim() || undefined,
         vragen: editing.vragen.filter(v => v.vraag.trim()),
       });
       setEditing(null);
@@ -137,7 +138,7 @@ export default function BenjiTeasersAdmin() {
             <textarea value={editing.intro} onChange={e => setEditing({ ...editing, intro: e.target.value })}
               rows={2} className={inputClass} />
           </div>
-          <div className="grid grid-cols-2 gap-4 mb-5">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className={labelClass}>Download titel</label>
               <input value={editing.downloadTitel} onChange={e => setEditing({ ...editing, downloadTitel: e.target.value })}
@@ -148,6 +149,12 @@ export default function BenjiTeasersAdmin() {
               <input value={editing.bestandsnaam} onChange={e => setEditing({ ...editing, bestandsnaam: e.target.value })}
                 placeholder="bijv. mijn-reflectie.html" className={inputClass} />
             </div>
+          </div>
+          <div className="mb-5">
+            <label className={labelClass}>Knop URL <span className="text-gray-400 font-normal">(leeg = homepage /)</span></label>
+            <input value={editing.buttonUrl} onChange={e => setEditing({ ...editing, buttonUrl: e.target.value })}
+              placeholder="/ of https://www.talktobenji.com/niet-alleen-b"
+              className={inputClass + " font-mono text-xs"} />
           </div>
 
           <p className="text-xs font-medium text-gray-500 mb-3">Vragen (max. 3)</p>

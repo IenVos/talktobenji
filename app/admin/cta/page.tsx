@@ -305,6 +305,7 @@ export default function CtaAdminPage() {
                     title: block.title,
                     body: block.body,
                     buttonText: block.buttonText,
+                    buttonUrl: block.buttonUrl ?? "",
                     footnote: block.footnote ?? "",
                     showImage: block.showImage,
                     imageStorageId: block.imageStorageId ?? null,

@@ -88,9 +88,9 @@ function buildDownloadHtml(titel: string, vragen: { vraag: string }[], antwoorde
 type Vraag = { vraag: string; placeholder: string };
 type Theme = { bg: string; border: string; accent: string; ring: string; micBg: string };
 
-function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsnaam }: {
+function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsnaam, buttonUrl }: {
   label: string; intro: string; vragen: Vraag[];
-  theme: Theme; downloadTitel: string; bestandsnaam: string;
+  theme: Theme; downloadTitel: string; bestandsnaam: string; buttonUrl: string;
 }) {
   const router = useRouter();
   const [antwoorden, setAntwoorden] = useState(vragen.map(() => ""));
@@ -171,7 +171,7 @@ function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsn
       <div className="px-6 pb-6 pt-2">
         {ingevuld ? (
           <div className="flex flex-col items-start gap-2">
-            <button type="button" onClick={() => { triggerDownload(); setTimeout(() => router.push("/"), 400); }}
+            <button type="button" onClick={() => { triggerDownload(); setTimeout(() => router.push(buttonUrl), 400); }}
               className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
               Bewaar mijn gedachten en praat verder met Benji →
             </button>
@@ -181,7 +181,7 @@ function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsn
             </button>
           </div>
         ) : (
-          <Link href="/" className="inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
+          <Link href={buttonUrl} className="inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
             Praat verder met Benji →
           </Link>
         )}
@@ -224,7 +224,7 @@ const THEMES: Record<string, Theme> = {
   violet: THEME_VIOLET,
 };
 
-type DefaultConfig = { label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; vragen: Vraag[] };
+type DefaultConfig = { label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; vragen: Vraag[]; buttonUrl?: string };
 
 function useTeaserConfig(type: string, defaults: DefaultConfig) {
   const db = useQuery(api.benjiTeasers.getByType, { type });
@@ -236,6 +236,7 @@ function useTeaserConfig(type: string, defaults: DefaultConfig) {
     downloadTitel: config.downloadTitel,
     bestandsnaam: config.bestandsnaam,
     vragen: config.vragen,
+    buttonUrl: (config as any).buttonUrl || defaults.buttonUrl || "/",
   };
 }
 
@@ -312,6 +313,8 @@ export function BenjiTeaserMemories() {
 }
 
 export function BenjiTeaserLanding() {
+  const db = useQuery(api.benjiTeasers.getByType, { type: "landing" });
+  const href = (db as any)?.buttonUrl || "/";
   return (
     <div className="my-8 rounded-2xl bg-primary-50 border border-primary-200 px-7 py-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
       <div className="flex-1">
@@ -319,7 +322,7 @@ export function BenjiTeaserLanding() {
           Soms zijn woorden op een scherm te veel voor een hoofd dat vol zit met verdriet. Als lezen nu niet lukt, kun je direct je hart luchten bij Benji. Hij luistert terwijl jij je weg zoekt.
         </p>
       </div>
-      <Link href="/"
+      <Link href={href}
         className="shrink-0 inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors whitespace-nowrap">
         Praat direct met Benji
       </Link>
@@ -328,6 +331,8 @@ export function BenjiTeaserLanding() {
 }
 
 export function BenjiTeaserNacht() {
+  const db = useQuery(api.benjiTeasers.getByType, { type: "nacht" });
+  const href = (db as any)?.buttonUrl || "/";
   return (
     <div className="my-10 rounded-2xl overflow-hidden relative" style={{ background: "linear-gradient(135deg, #1a1f2e 0%, #2d3561 60%, #1e2a4a 100%)" }}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none select-none" aria-hidden>
@@ -346,7 +351,7 @@ export function BenjiTeaserNacht() {
         <p className="text-[17px] leading-relaxed text-white/70 mb-6">
           Je wilt niemand wakker maken, maar je hart is vol. Benji is de luisteraar die nooit slaapt. Deel je gedachten nu, ongefilterd en in alle rust.
         </p>
-        <Link href="/"
+        <Link href={href}
           className="inline-block text-sm font-semibold px-6 py-3 rounded-xl transition-opacity hover:opacity-90"
           style={{ background: "#4f5fa8", color: "white" }}>
           Lucht nu je hart bij Benji

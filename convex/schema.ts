@@ -765,6 +765,7 @@ export default defineSchema({
     downloadTitel: v.string(),
     bestandsnaam: v.string(),
     vragen: v.array(v.object({ vraag: v.string(), placeholder: v.string() })),
+    buttonUrl: v.optional(v.string()),   // URL van de "Praat met Benji" knop
     updatedAt: v.number(),
   }).index("by_type", ["type"]),
 
