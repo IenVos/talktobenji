@@ -13,13 +13,64 @@ const THEME_OPTIONS = [
 ];
 
 const DEFAULT_TYPES = [
-  { type: "reflectie",  label: "Korte reflectie",        themeKey: "primary" },
-  { type: "nacht",      label: "Nachtgedachte",           themeKey: "primary" },
-  { type: "herinnering",label: "Een herinnering bewaren", themeKey: "violet"  },
-  { type: "landing",    label: "Landing",                 themeKey: "teal"    },
-  { type: "emotie",     label: "Emotie-tracker",          themeKey: "amber"   },
-  { type: "checkin",    label: "Dagelijkse check-in",     themeKey: "teal"    },
-  { type: "memories",   label: "Memories",                themeKey: "violet"  },
+  {
+    type: "reflectie", label: "Korte reflectie", themeKey: "primary",
+    intro: "Neem even de tijd voor jezelf. Je hoeft niets te delen.",
+    downloadTitel: "Mijn reflectie", bestandsnaam: "mijn-reflectie.html",
+    vragen: [
+      { vraag: "Wat draag je vandaag met je mee dat je nog niet hardop hebt gezegd?", placeholder: "Misschien iets wat je al een tijdje met je meedraagt…" },
+      { vraag: "Wat heeft je de laatste tijd het meeste energie gekost?",             placeholder: "Een situatie, een gevoel, of iemand in je omgeving…" },
+      { vraag: "Wat heb je nodig — van jezelf of van anderen?",                       placeholder: "Rust, ruimte, begrip, of gewoon gehoord worden…" },
+    ],
+  },
+  {
+    type: "nacht", label: "Nachtgedachte", themeKey: "primary",
+    intro: "", downloadTitel: "", bestandsnaam: "", vragen: [],
+  },
+  {
+    type: "herinnering", label: "Een herinnering bewaren", themeKey: "violet",
+    intro: "Rouw voelt vaak als een onmogelijke berg. Laten we beginnen met één klein detail.",
+    downloadTitel: "Mijn herinnering", bestandsnaam: "mijn-herinnering.html",
+    vragen: [
+      { vraag: "Welk ding van degene die je mist wil je vandaag absoluut niet vergeten?", placeholder: "Een gebaar, een geur, een stem, een blik…" },
+      { vraag: "Wat deed die persoon dat jou altijd aan hem of haar herinnert?",           placeholder: "Een gewoontetje, een uitdrukking, iets wat hij of zij altijd zei…" },
+      { vraag: "Is er een moment dat je koestert en nooit wil loslaten?",                  placeholder: "Een dag, een uur, een blik die alles zei…" },
+    ],
+  },
+  {
+    type: "landing", label: "Landing", themeKey: "teal",
+    intro: "", downloadTitel: "", bestandsnaam: "", vragen: [],
+  },
+  {
+    type: "emotie", label: "Emotie-tracker", themeKey: "amber",
+    intro: "Hoe voel je je vandaag — echt? Je hoeft het niet te verklaren, alleen te benoemen.",
+    downloadTitel: "Mijn emoties vandaag", bestandsnaam: "mijn-emoties.html",
+    vragen: [
+      { vraag: "Hoe voel je je vandaag — echt?",          placeholder: "Zwaar, leeg, verdrietig, oké, of iets anders…" },
+      { vraag: "Wat triggerde vandaag een gevoel bij je?", placeholder: "Een herinnering, een situatie, een geur, een lied…" },
+      { vraag: "Wat hielp je vandaag, al was het maar even?", placeholder: "Een kopje thee, een wandeling, een gesprek, een moment…" },
+    ],
+  },
+  {
+    type: "checkin", label: "Dagelijkse check-in", themeKey: "teal",
+    intro: "Korte vragen om je gedachten te ordenen. Je kunt dit zo vaak doen als je wil.",
+    downloadTitel: "Mijn check-in", bestandsnaam: "mijn-checkin.html",
+    vragen: [
+      { vraag: "Hoe voel ik me vandaag?",    placeholder: "Beschrijf je stemming in je eigen woorden…" },
+      { vraag: "Wat hielp me vandaag?",      placeholder: "Groot of klein, het mag allemaal…" },
+      { vraag: "Waar ben ik dankbaar voor?", placeholder: "Een persoon, een moment, iets simpels…" },
+    ],
+  },
+  {
+    type: "memories", label: "Memories", themeKey: "violet",
+    intro: "Bewaar wat je niet wil vergeten. Het verdient een plekje.",
+    downloadTitel: "Mijn memories", bestandsnaam: "mijn-memories.html",
+    vragen: [
+      { vraag: "Welke herinnering wil je vandaag bewaren?",                 placeholder: "Een moment, een dag, een detail dat je bijblijft…" },
+      { vraag: "Hoe voelde die herinnering toen je eraan dacht?",            placeholder: "Warm, pijnlijk, lief, gemengd…" },
+      { vraag: "Wat zou je tegen die persoon zeggen als je dat zou kunnen?", placeholder: "Zeg het hier, voor jezelf…" },
+    ],
+  },
 ];
 
 type Vraag = { vraag: string; placeholder: string };
@@ -58,15 +109,25 @@ export default function BenjiTeasersAdmin() {
         vragen: db.vragen.length >= 3 ? db.vragen : [...db.vragen, ...EMPTY_FORM.vragen].slice(0, 3) });
     } else {
       const def = DEFAULT_TYPES.find(d => d.type === type);
-      setEditing({ ...EMPTY_FORM, type, label: def?.label ?? "", themeKey: def?.themeKey ?? "primary",
-        vragen: EMPTY_FORM.vragen.map(v => ({ ...v })) });
+      const defVragen = def?.vragen ?? [];
+      const padded = defVragen.length >= 3 ? defVragen : [...defVragen, ...EMPTY_FORM.vragen].slice(0, 3);
+      setEditing({
+        type,
+        label: def?.label ?? "",
+        intro: def?.intro ?? "",
+        themeKey: def?.themeKey ?? "primary",
+        downloadTitel: def?.downloadTitel ?? "",
+        bestandsnaam: def?.bestandsnaam ?? "",
+        buttonUrl: "",
+        vragen: padded,
+      });
     }
   }
 
   function startDuplicate(type: string) {
     const db = dbMap.get(type);
     const def = DEFAULT_TYPES.find(d => d.type === type);
-    const source = db ?? (def ? { type: def.type, label: def.label, intro: "", themeKey: def.themeKey, downloadTitel: "", bestandsnaam: "", buttonUrl: "", vragen: EMPTY_FORM.vragen } : null);
+    const source = db ?? (def ? { ...def, buttonUrl: "" } : null);
     if (!source) return;
     const vragen = (source.vragen.length >= 3 ? source.vragen : [...source.vragen, ...EMPTY_FORM.vragen]).slice(0, 3);
     setEditing({
@@ -242,17 +303,23 @@ export default function BenjiTeasersAdmin() {
                   )}
                 </div>
               </div>
-              {isOpen && (
-                <div className="border-t border-gray-100 px-5 py-4 bg-gray-50 space-y-2">
-                  <p className="text-xs text-gray-500 italic">{db?.intro ?? "— standaard tekst —"}</p>
-                  {(db?.vragen ?? []).map((v: Vraag, i: number) => (
-                    <div key={i} className="text-xs">
-                      <span className="font-medium text-gray-700">{i + 1}. {v.vraag}</span>
-                      <span className="text-gray-400"> · {v.placeholder}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+              {isOpen && (() => {
+                const def = DEFAULT_TYPES.find(d => d.type === type);
+                const intro = db?.intro ?? def?.intro ?? "";
+                const vragen = db?.vragen ?? def?.vragen ?? [];
+                return (
+                  <div className="border-t border-gray-100 px-5 py-4 bg-gray-50 space-y-2">
+                    {intro && <p className="text-xs text-gray-500 italic">{intro}</p>}
+                    {vragen.map((v: Vraag, i: number) => (
+                      <div key={i} className="text-xs">
+                        <span className="font-medium text-gray-700">{i + 1}. {v.vraag}</span>
+                        <span className="text-gray-400"> · {v.placeholder}</span>
+                      </div>
+                    ))}
+                    {!intro && vragen.length === 0 && <p className="text-xs text-gray-400">— geen vragen (visueel blok) —</p>}
+                  </div>
+                );
+              })()}
             </div>
           );
         })}
