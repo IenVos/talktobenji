@@ -91,37 +91,38 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
   // Prevent focus loss on toolbar button clicks
   const noFocus = (e: React.MouseEvent) => e.preventDefault();
 
+  function insertAtEnd(t: HTMLTextAreaElement, block: string, afterInsert: () => void) {
+    // Als textarea geen focus had, voeg in aan het eind van de tekst
+    const s = document.activeElement === t ? t.selectionStart : value.length;
+    const next = value.slice(0, s) + block + value.slice(s);
+    withScrollLock(t, () => onChange(next), () => {
+      t.focus();
+      const pos = s + block.length;
+      t.setSelectionRange(pos, pos);
+      // Scroll textarea zodat de ingevoegde plek zichtbaar is
+      const lineHeight = parseInt(getComputedStyle(t).lineHeight) || 18;
+      const lines = next.slice(0, pos).split("\n").length;
+      t.scrollTop = Math.max(0, lines * lineHeight - t.clientHeight / 2);
+      afterInsert();
+    });
+  }
+
   function insertCta(key?: string) {
     const t = ta();
-    const s = t.selectionStart;
     const block = key ? `\n\n[cta:${key}]\n\n` : "\n\n[cta]\n\n";
-    withScrollLock(t, () => onChange(value.slice(0, s) + block + value.slice(s)), () => {
-      t.focus();
-      t.setSelectionRange(s + block.length, s + block.length);
-    });
-    setCtaOpen(false);
+    insertAtEnd(t, block, () => setCtaOpen(false));
   }
 
   function insertNietAlleen(color: string) {
     const t = ta();
-    const s = t.selectionStart;
     const block = `\n\n[niet-alleen:${color}]\n\n`;
-    withScrollLock(t, () => onChange(value.slice(0, s) + block + value.slice(s)), () => {
-      t.focus();
-      t.setSelectionRange(s + block.length, s + block.length);
-    });
-    setNaOpen(false);
+    insertAtEnd(t, block, () => setNaOpen(false));
   }
 
   function insertBenji(type: string) {
     const t = ta();
-    const s = t.selectionStart;
     const block = `\n\n[benji:${type}]\n\n`;
-    withScrollLock(t, () => onChange(value.slice(0, s) + block + value.slice(s)), () => {
-      t.focus();
-      t.setSelectionRange(s + block.length, s + block.length);
-    });
-    setBenjiOpen(false);
+    insertAtEnd(t, block, () => setBenjiOpen(false));
   }
 
   function handleLinkMouseDown() {
@@ -290,12 +291,11 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
             </div>
           )}
         </div>
+        {/* Sluit dropdowns bij klik buiten — inside toolbar stacking context zodat z-50 dropdowns erboven blijven */}
+        {(ctaOpen || benjiOpen || naOpen || linkOpen) && (
+          <div className="fixed inset-0 z-40" onClick={() => { setCtaOpen(false); setBenjiOpen(false); setNaOpen(false); setLinkOpen(false); }} />
+        )}
       </div>
-
-      {/* Sluit dropdowns bij klik buiten */}
-      {(ctaOpen || benjiOpen || naOpen || linkOpen) && (
-        <div className="fixed inset-0 z-40" onClick={() => { setCtaOpen(false); setBenjiOpen(false); setNaOpen(false); setLinkOpen(false); }} />
-      )}
     </>
   );
 }
