@@ -167,6 +167,30 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       if (benjiMatch[1] === "checkin") return <BenjiTeaserCheckin key={i} />;
       if (benjiMatch[1] === "memories") return <BenjiTeaserMemories key={i} />;
     }
+    // Niet Alleen CTA: [niet-alleen:#color]
+    const naMatch = block.trim().match(/^\[niet-alleen:([^\]]+)\]$/);
+    if (naMatch) {
+      const btnColor = naMatch[1] || "#6d84a8";
+      return (
+        <div key={i} style={{ margin: "28px 0", textAlign: "center" }}>
+          <a
+            href="/niet-alleen-nl"
+            style={{
+              display: "inline-block",
+              background: btnColor,
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: "15px",
+              padding: "13px 28px",
+              borderRadius: "14px",
+              textDecoration: "none",
+            }}
+          >
+            Ontdek Niet Alleen →
+          </a>
+        </div>
+      );
+    }
     // Inline CTA: [cta] of [cta:key]
     const ctaMatch = block.trim().match(/^\[cta(?::([^\]]+))?\]$/);
     if (ctaMatch) {

@@ -3,6 +3,15 @@
 import { useState, useRef } from "react";
 import { Bold, Italic, Quote, List, ChevronDown, Link as LinkIcon } from "lucide-react";
 
+const NA_COLORS = [
+  { color: "#6d84a8", label: "Blauw" },
+  { color: "#4a7c59", label: "Groen" },
+  { color: "#c07a5a", label: "Terra" },
+  { color: "#7c6d9e", label: "Paars" },
+  { color: "#374151", label: "Donker" },
+  { color: "#be185d", label: "Roze" },
+];
+
 type CtaOption = { key: string; label: string };
 
 type Props = {
@@ -73,6 +82,7 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
   const ta = () => textareaRef.current!;
   const [ctaOpen, setCtaOpen] = useState(false);
   const [benjiOpen, setBenjiOpen] = useState(false);
+  const [naOpen, setNaOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const linkInputRef = useRef<HTMLInputElement>(null);
@@ -90,6 +100,17 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
       t.setSelectionRange(s + block.length, s + block.length);
     });
     setCtaOpen(false);
+  }
+
+  function insertNietAlleen(color: string) {
+    const t = ta();
+    const s = t.selectionStart;
+    const block = `\n\n[niet-alleen:${color}]\n\n`;
+    withScrollLock(t, () => onChange(value.slice(0, s) + block + value.slice(s)), () => {
+      t.focus();
+      t.setSelectionRange(s + block.length, s + block.length);
+    });
+    setNaOpen(false);
   }
 
   function insertBenji(type: string) {
@@ -208,6 +229,35 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
 
         <div className="w-px h-4 bg-gray-300 mx-1" />
 
+        {/* Niet Alleen CTA dropdown */}
+        <div className="relative">
+          <button type="button" title="Niet Alleen CTA invoegen" onMouseDown={noFocus}
+            onClick={() => { setNaOpen(o => !o); setBenjiOpen(false); setCtaOpen(false); setLinkOpen(false); }}
+            className="flex items-center gap-0.5 px-1.5 py-1 rounded hover:bg-rose-100 text-rose-600 hover:text-rose-800 transition-colors text-xs font-bold leading-none">
+            Niet Alleen <ChevronDown size={11} />
+          </button>
+          {naOpen && (
+            <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1.5 px-2 min-w-[160px]">
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1.5 px-1">Kies kleur</p>
+              <div className="flex flex-wrap gap-1.5 px-1">
+                {NA_COLORS.map(({ color, label }) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onMouseDown={noFocus}
+                    onClick={() => insertNietAlleen(color)}
+                    title={label}
+                    className="w-6 h-6 rounded-full border-2 border-white shadow hover:scale-110 transition-transform"
+                    style={{ background: color, outline: "1px solid #e5e7eb" }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="w-px h-4 bg-gray-300 mx-1" />
+
         {/* CTA dropdown */}
         <div className="relative">
           <div className="flex items-center">
@@ -243,8 +293,8 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
       </div>
 
       {/* Sluit dropdowns bij klik buiten */}
-      {(ctaOpen || benjiOpen || linkOpen) && (
-        <div className="fixed inset-0 z-40" onClick={() => { setCtaOpen(false); setBenjiOpen(false); setLinkOpen(false); }} />
+      {(ctaOpen || benjiOpen || naOpen || linkOpen) && (
+        <div className="fixed inset-0 z-40" onClick={() => { setCtaOpen(false); setBenjiOpen(false); setNaOpen(false); setLinkOpen(false); }} />
       )}
     </>
   );

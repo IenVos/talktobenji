@@ -169,7 +169,7 @@ function BedanktContent() {
             </div>
 
             <Link
-              href="https://talktobenji.kennis.shop/pay/je-hoeft-het-niet-alleen-te-dragen"
+              href="/lp/jaar-toegang"
               className="flex items-center justify-between gap-3 p-4 rounded-xl border border-primary-200 bg-primary-50 hover:bg-primary-100 transition-colors group"
             >
               <div className="flex items-center gap-3">
