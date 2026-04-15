@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import { Bold, Italic, Quote, List, ChevronDown, Link as LinkIcon } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 const NA_COLORS = [
   { color: "#6d84a8", label: "Blauw" },
@@ -21,7 +23,7 @@ type Props = {
   ctaBlocks?: CtaOption[];
 };
 
-const BENJI_TYPES = [
+const BENJI_FALLBACK = [
   { type: "reflectie", label: "Reflectie" },
   { type: "nacht", label: "Nacht" },
   { type: "herinnering", label: "Herinnering" },
@@ -80,6 +82,15 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
   const btn = "p-1.5 rounded hover:bg-primary-100 text-gray-600 hover:text-primary-700 transition-colors";
   const btnText = "px-1.5 py-1 rounded hover:bg-primary-100 text-gray-600 hover:text-primary-700 transition-colors text-xs font-bold leading-none";
   const ta = () => textareaRef.current!;
+  const dbTypes = useQuery(api.benjiTeasers.listTypes);
+  const benjiTypes = dbTypes && dbTypes.length > 0
+    ? [
+        // Standaard types met DB-label (of fallback label)
+        ...BENJI_FALLBACK.map(f => ({ type: f.type, label: dbTypes.find(d => d.type === f.type)?.label ?? f.label })),
+        // Extra (aangepaste) types die niet in de fallback zitten
+        ...dbTypes.filter(d => !BENJI_FALLBACK.some(f => f.type === d.type)),
+      ]
+    : BENJI_FALLBACK;;
   const [ctaOpen, setCtaOpen] = useState(false);
   const [benjiOpen, setBenjiOpen] = useState(false);
   const [naOpen, setNaOpen] = useState(false);
@@ -218,7 +229,7 @@ export function FormatToolbar({ textareaRef, value, onChange, ctaBlocks }: Props
           </button>
           {benjiOpen && (
             <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-[150px]">
-              {BENJI_TYPES.map(({ type, label }) => (
+              {benjiTypes.map(({ type, label }) => (
                 <button key={type} type="button" onMouseDown={noFocus} onClick={() => insertBenji(type)}
                   className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-800">
                   {label} <span className="text-gray-400 font-mono text-[10px]">[benji:{type}]</span>

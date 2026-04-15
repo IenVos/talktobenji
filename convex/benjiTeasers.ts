@@ -20,6 +20,15 @@ export const getByType = query({
   },
 });
 
+/** Publiek: alle teaser types voor gebruik in toolbar */
+export const listTypes = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("benjiTeasers").collect();
+    return rows.map(r => ({ type: r.type, label: r.label }));
+  },
+});
+
 export const upsert = mutation({
   args: {
     adminToken: v.string(),

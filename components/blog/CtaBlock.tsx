@@ -9,6 +9,7 @@ export type CtaData = {
   title: string;
   body: string;
   buttonText: string;
+  buttonUrl?: string;
   footnote?: string;
   showImage: boolean;
   imageUrl?: string | null;
@@ -122,7 +123,7 @@ function CtaBlockInner({ data }: { data: CtaData }) {
 
       <div className="px-7 pb-5 pt-4 text-center">
         <Link
-          href="/"
+          href={data.buttonUrl?.trim() || "/"}
           className="inline-block text-white text-sm font-semibold px-6 py-3 rounded-xl transition-opacity hover:opacity-90"
           style={{ background: btnColor }}
         >
