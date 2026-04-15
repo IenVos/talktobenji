@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
-import { Plus, Edit, Trash2, Save, X, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, ChevronDown, ChevronUp, Copy } from "lucide-react";
 
 const THEME_OPTIONS = [
   { key: "primary", label: "Blauw (Reflectie)" },
@@ -63,6 +63,25 @@ export default function BenjiTeasersAdmin() {
     }
   }
 
+  function startDuplicate(type: string) {
+    const db = dbMap.get(type);
+    const def = DEFAULT_TYPES.find(d => d.type === type);
+    const source = db ?? (def ? { type: def.type, label: def.label, intro: "", themeKey: def.themeKey, downloadTitel: "", bestandsnaam: "", buttonUrl: "", vragen: EMPTY_FORM.vragen } : null);
+    if (!source) return;
+    const vragen = (source.vragen.length >= 3 ? source.vragen : [...source.vragen, ...EMPTY_FORM.vragen]).slice(0, 3);
+    setEditing({
+      type: "",
+      label: source.label + " (kopie)",
+      intro: source.intro,
+      themeKey: source.themeKey,
+      downloadTitel: source.downloadTitel,
+      bestandsnaam: source.bestandsnaam,
+      buttonUrl: (source as any).buttonUrl ?? "",
+      vragen,
+    });
+    setTimeout(() => document.getElementById("teaser-type-input")?.focus(), 50);
+  }
+
   async function handleSave() {
     if (!editing) return;
     setSaving(true);
@@ -116,8 +135,8 @@ export default function BenjiTeasersAdmin() {
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className={labelClass}>Type (shortcode sleutel)</label>
-              <input value={editing.type} onChange={e => setEditing({ ...editing, type: e.target.value })}
-                placeholder="bijv. reflectie" className={inputClass}
+              <input id="teaser-type-input" value={editing.type} onChange={e => setEditing({ ...editing, type: e.target.value })}
+                placeholder="bijv. reflectie-niet-alleen" className={inputClass}
                 disabled={DEFAULT_TYPES.some(d => d.type === editing.type)} />
             </div>
             <div>
@@ -209,6 +228,11 @@ export default function BenjiTeasersAdmin() {
                   <button onClick={() => startEdit(type)}
                     className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50">
                     <Edit size={13} /> Bewerken
+                  </button>
+                  <button onClick={() => startDuplicate(type)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 border border-primary-200 rounded-lg text-xs text-primary-600 hover:bg-primary-50"
+                    title="Kopieer vragen naar nieuwe teaser">
+                    <Copy size={13} /> Dupliceer
                   </button>
                   {db && (
                     <button onClick={() => handleDelete(type)}
