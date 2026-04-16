@@ -88,9 +88,9 @@ function buildDownloadHtml(titel: string, vragen: { vraag: string }[], antwoorde
 type Vraag = { vraag: string; placeholder: string };
 type Theme = { bg: string; border: string; accent: string; ring: string; micBg: string };
 
-function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsnaam, buttonUrl }: {
+function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsnaam, buttonUrl, buttonText }: {
   label: string; intro: string; vragen: Vraag[];
-  theme: Theme; downloadTitel: string; bestandsnaam: string; buttonUrl: string;
+  theme: Theme; downloadTitel: string; bestandsnaam: string; buttonUrl: string; buttonText?: string;
 }) {
   const router = useRouter();
   const [antwoorden, setAntwoorden] = useState(vragen.map(() => ""));
@@ -173,7 +173,7 @@ function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsn
           <div className="flex flex-col items-start gap-2">
             <button type="button" onClick={() => { triggerDownload(); setTimeout(() => router.push(buttonUrl), 400); }}
               className="inline-flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
-              Bewaar mijn gedachten en praat verder met Benji →
+              {buttonText ? `Bewaar & ${buttonText}` : "Bewaar mijn gedachten en praat verder met Benji →"}
             </button>
             <button type="button" onClick={triggerDownload}
               className="inline-flex items-center gap-2 text-sm text-stone-400 hover:text-stone-600 transition-colors">
@@ -182,7 +182,7 @@ function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsn
           </div>
         ) : (
           <Link href={buttonUrl} className="inline-block bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors">
-            Praat verder met Benji →
+            {buttonText || "Praat verder met Benji →"}
           </Link>
         )}
       </div>
@@ -224,7 +224,7 @@ const THEMES: Record<string, Theme> = {
   violet: THEME_VIOLET,
 };
 
-type DefaultConfig = { label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; vragen: Vraag[]; buttonUrl?: string };
+type DefaultConfig = { label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; vragen: Vraag[]; buttonUrl?: string; buttonText?: string };
 
 function useTeaserConfig(type: string, defaults: DefaultConfig) {
   const db = useQuery(api.benjiTeasers.getByType, { type });
@@ -237,7 +237,26 @@ function useTeaserConfig(type: string, defaults: DefaultConfig) {
     bestandsnaam: config.bestandsnaam,
     vragen: config.vragen,
     buttonUrl: (config as any).buttonUrl || defaults.buttonUrl || "/",
+    buttonText: (config as any).buttonText || defaults.buttonText,
   };
+}
+
+export function BenjiTeaserCustom({ type }: { type: string }) {
+  const db = useQuery(api.benjiTeasers.getByType, { type });
+  if (!db) return null;
+  const theme = THEMES[db.themeKey] ?? THEME_PRIMARY;
+  return (
+    <BenjiTeaserForm
+      label={db.label}
+      intro={db.intro}
+      theme={theme}
+      downloadTitel={db.downloadTitel}
+      bestandsnaam={db.bestandsnaam}
+      vragen={db.vragen}
+      buttonUrl={(db as any).buttonUrl || "/"}
+      buttonText={(db as any).buttonText}
+    />
+  );
 }
 
 // ─── Exports ──────────────────────────────────────────────────────────────────

@@ -41,6 +41,15 @@ function BedanktContent() {
     }
   }, []);
 
+  // Google Ads – conversie bijhouden bij aankoop
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "conversion", {
+        send_to: "AW-11471624930/Tc0WCKDwo5wcEOK1jN4q",
+      });
+    }
+  }, []);
+
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-start px-4 py-12"

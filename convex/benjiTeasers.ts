@@ -40,6 +40,7 @@ export const upsert = mutation({
     bestandsnaam: v.string(),
     vragen: v.array(v.object({ vraag: v.string(), placeholder: v.string() })),
     buttonUrl: v.optional(v.string()),
+    buttonText: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

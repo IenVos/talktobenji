@@ -5,7 +5,7 @@ import Link from "next/link";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { AuthorCard } from "@/components/blog/AuthorCard";
 import { CtaBlockB } from "@/components/blog/CtaBlock";
-import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering, BenjiTeaserEmotie, BenjiTeaserCheckin, BenjiTeaserMemories } from "@/components/blog/BenjiTeaser";
+import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering, BenjiTeaserEmotie, BenjiTeaserCheckin, BenjiTeaserMemories, BenjiTeaserCustom } from "@/components/blog/BenjiTeaser";
 import { SiteFooter } from "@/components/SiteFooter";
 
 // Altijd vers renderen — geen ISR caching voor preview
@@ -135,6 +135,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       if (benjiMatch[1] === "emotie") return <BenjiTeaserEmotie key={i} />;
       if (benjiMatch[1] === "checkin") return <BenjiTeaserCheckin key={i} />;
       if (benjiMatch[1] === "memories") return <BenjiTeaserMemories key={i} />;
+      return <BenjiTeaserCustom key={i} type={benjiMatch[1]} />;
     }
     const naMatch = block.trim().match(/^\[niet-alleen:([^\]]+)\]$/);
     if (naMatch) {

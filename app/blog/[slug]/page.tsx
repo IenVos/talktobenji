@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { AuthorCard } from "@/components/blog/AuthorCard";
 import { CtaBlockB } from "@/components/blog/CtaBlock";
-import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering, BenjiTeaserEmotie, BenjiTeaserCheckin, BenjiTeaserMemories } from "@/components/blog/BenjiTeaser";
+import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering, BenjiTeaserEmotie, BenjiTeaserCheckin, BenjiTeaserMemories, BenjiTeaserCustom } from "@/components/blog/BenjiTeaser";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const revalidate = 60;
@@ -167,6 +167,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       if (benjiMatch[1] === "emotie") return <BenjiTeaserEmotie key={i} />;
       if (benjiMatch[1] === "checkin") return <BenjiTeaserCheckin key={i} />;
       if (benjiMatch[1] === "memories") return <BenjiTeaserMemories key={i} />;
+      return <BenjiTeaserCustom key={i} type={benjiMatch[1]} />;
     }
     // Niet Alleen CTA: [niet-alleen:#color]
     const naMatch = block.trim().match(/^\[niet-alleen:([^\]]+)\]$/);
