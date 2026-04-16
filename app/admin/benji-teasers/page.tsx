@@ -139,6 +139,7 @@ export default function BenjiTeasersAdmin() {
       downloadTitel: source.downloadTitel,
       bestandsnaam: source.bestandsnaam,
       buttonUrl: (source as any).buttonUrl ?? "",
+      buttonText: (source as any).buttonText ?? "",
       vragen,
     });
     setTimeout(() => document.getElementById("teaser-type-input")?.focus(), 50);
