@@ -41,6 +41,7 @@ export const upsert = mutation({
     vragen: v.array(v.object({ vraag: v.string(), placeholder: v.string() })),
     buttonUrl: v.optional(v.string()),
     buttonText: v.optional(v.string()),
+    featureText: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

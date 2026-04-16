@@ -77,7 +77,7 @@ type Vraag = { vraag: string; placeholder: string };
 
 const EMPTY_FORM = {
   type: "", label: "", intro: "", themeKey: "primary",
-  downloadTitel: "", bestandsnaam: "", buttonUrl: "", buttonText: "",
+  downloadTitel: "", bestandsnaam: "", buttonUrl: "", buttonText: "", featureText: "",
   vragen: [
     { vraag: "", placeholder: "" },
     { vraag: "", placeholder: "" },
@@ -94,7 +94,7 @@ export default function BenjiTeasersAdmin() {
   const [saving, setSaving] = useState(false);
   const [collapsedTypes, setCollapsedTypes] = useState<Set<string>>(new Set());
 
-  type TeaserDoc = { type: string; label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; buttonUrl?: string; buttonText?: string; vragen: Vraag[] };
+  type TeaserDoc = { type: string; label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; buttonUrl?: string; buttonText?: string; featureText?: string; vragen: Vraag[] };
   const dbMap = new Map<string, TeaserDoc>((teasers ?? []).map((t: any) => [t.type, t as TeaserDoc]));
 
   function startNew() {
@@ -105,7 +105,7 @@ export default function BenjiTeasersAdmin() {
     const db = dbMap.get(type);
     if (db) {
       setEditing({ type: db.type, label: db.label, intro: db.intro, themeKey: db.themeKey,
-        downloadTitel: db.downloadTitel, bestandsnaam: db.bestandsnaam, buttonUrl: db.buttonUrl ?? "", buttonText: db.buttonText ?? "",
+        downloadTitel: db.downloadTitel, bestandsnaam: db.bestandsnaam, buttonUrl: db.buttonUrl ?? "", buttonText: db.buttonText ?? "", featureText: db.featureText ?? "",
         vragen: db.vragen.length >= 3 ? db.vragen : [...db.vragen, ...EMPTY_FORM.vragen].slice(0, 3) });
     } else {
       const def = DEFAULT_TYPES.find(d => d.type === type);
@@ -120,6 +120,7 @@ export default function BenjiTeasersAdmin() {
         bestandsnaam: def?.bestandsnaam ?? "",
         buttonUrl: "",
         buttonText: "",
+        featureText: "",
         vragen: padded,
       });
     }
@@ -140,6 +141,7 @@ export default function BenjiTeasersAdmin() {
       bestandsnaam: source.bestandsnaam,
       buttonUrl: (source as any).buttonUrl ?? "",
       buttonText: (source as any).buttonText ?? "",
+      featureText: (source as any).featureText ?? "",
       vragen,
     });
     setTimeout(() => document.getElementById("teaser-type-input")?.focus(), 50);
@@ -158,6 +160,7 @@ export default function BenjiTeasersAdmin() {
         bestandsnaam: editing.bestandsnaam.trim(),
         buttonUrl: editing.buttonUrl.trim() || undefined,
         buttonText: editing.buttonText.trim() || undefined,
+        featureText: editing.featureText.trim() || undefined,
         vragen: editing.vragen.filter(v => v.vraag.trim()),
       });
       setEditing(null);
@@ -246,6 +249,13 @@ export default function BenjiTeasersAdmin() {
                 placeholder="https://www.talktobenji.com/niet-alleen-b"
                 className={inputClass + " font-mono text-xs"} />
             </div>
+          </div>
+
+          <div className="mb-5">
+            <label className={labelClass}>Tekst onderaan <span className="text-gray-400 font-normal">(leeg = standaard)</span></label>
+            <input value={editing.featureText} onChange={e => setEditing({ ...editing, featureText: e.target.value })}
+              placeholder="Ontdek hoe Benji er op elk moment voor je is."
+              className={inputClass} />
           </div>
 
           <p className="text-xs font-medium text-gray-500 mb-3">Vragen (max. 3)</p>

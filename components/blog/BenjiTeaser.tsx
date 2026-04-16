@@ -16,13 +16,13 @@ const FEATURES = [
   { icon: Gem,      kleur: "text-violet-500 bg-violet-50",   naam: "Memories",           omschrijving: "Herinneringen bewaren zodat je ze niet vergeet" },
 ];
 
-function FeaturePreview({ borderColor }: { borderColor: string }) {
+function FeaturePreview({ borderColor, text }: { borderColor: string; text?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <div style={{ borderTopColor: borderColor }} className="border-t">
       <button type="button" onClick={() => setOpen(v => !v)}
         className="w-full flex items-center justify-between px-6 py-3 text-xs text-stone-400 hover:text-stone-600 hover:bg-black/5 transition-colors">
-        <span>Ontdek hoe Benji er op elk moment voor je is.</span>
+        <span>{text || "Ontdek hoe Benji er op elk moment voor je is."}</span>
         {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
       {open && (
@@ -88,9 +88,9 @@ function buildDownloadHtml(titel: string, vragen: { vraag: string }[], antwoorde
 type Vraag = { vraag: string; placeholder: string };
 type Theme = { bg: string; border: string; accent: string; ring: string; micBg: string };
 
-function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsnaam, buttonUrl, buttonText }: {
+function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsnaam, buttonUrl, buttonText, featureText }: {
   label: string; intro: string; vragen: Vraag[];
-  theme: Theme; downloadTitel: string; bestandsnaam: string; buttonUrl: string; buttonText?: string;
+  theme: Theme; downloadTitel: string; bestandsnaam: string; buttonUrl: string; buttonText?: string; featureText?: string;
 }) {
   const router = useRouter();
   const [antwoorden, setAntwoorden] = useState(vragen.map(() => ""));
@@ -187,7 +187,7 @@ function BenjiTeaserForm({ label, intro, vragen, theme, downloadTitel, bestandsn
         )}
       </div>
 
-      <FeaturePreview borderColor="rgb(226 232 240 / 0.6)" />
+      <FeaturePreview borderColor="rgb(226 232 240 / 0.6)" text={featureText} />
     </div>
   );
 }
@@ -224,7 +224,7 @@ const THEMES: Record<string, Theme> = {
   violet: THEME_VIOLET,
 };
 
-type DefaultConfig = { label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; vragen: Vraag[]; buttonUrl?: string; buttonText?: string };
+type DefaultConfig = { label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; vragen: Vraag[]; buttonUrl?: string; buttonText?: string; featureText?: string };
 
 function useTeaserConfig(type: string, defaults: DefaultConfig) {
   const db = useQuery(api.benjiTeasers.getByType, { type });
@@ -238,6 +238,7 @@ function useTeaserConfig(type: string, defaults: DefaultConfig) {
     vragen: config.vragen,
     buttonUrl: (config as any).buttonUrl || defaults.buttonUrl || "/",
     buttonText: (config as any).buttonText || defaults.buttonText,
+    featureText: (config as any).featureText || defaults.featureText,
   };
 }
 
@@ -255,6 +256,7 @@ export function BenjiTeaserCustom({ type }: { type: string }) {
       vragen={db.vragen}
       buttonUrl={(db as any).buttonUrl || "/"}
       buttonText={(db as any).buttonText}
+      featureText={(db as any).featureText}
     />
   );
 }

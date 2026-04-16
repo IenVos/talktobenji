@@ -767,6 +767,7 @@ export default defineSchema({
     vragen: v.array(v.object({ vraag: v.string(), placeholder: v.string() })),
     buttonUrl: v.optional(v.string()),   // URL van de "Praat met Benji" knop
     buttonText: v.optional(v.string()),  // Tekst op de knop
+    featureText: v.optional(v.string()), // Tekst onderaan: "Ontdek hoe Benji..."
     updatedAt: v.number(),
   }).index("by_type", ["type"]),
 

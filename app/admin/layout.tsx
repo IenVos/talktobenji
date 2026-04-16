@@ -11,7 +11,7 @@ import { AdminAuthProvider, useAdminQuery } from "./AdminAuthContext";
 import {
   Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3,
   MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell,
-  ShoppingBag, FlaskConical, Mail, Users, HelpCircle, ThumbsUp,
+  ShoppingBag, Mail, Users, HelpCircle, ThumbsUp,
   ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield, Newspaper, Layers, MousePointerClick, Smile, Network,
 } from "lucide-react";
 
@@ -168,6 +168,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/checkout", label: "Checkout producten", icon: CreditCard },
           { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
           { href: "/admin/niet-alleen-emails", label: "Niet Alleen e-mails", icon: Mail },
+          { href: "/admin/onderweg", label: "Shop", icon: ShoppingBag },
         ],
       },
     },
@@ -209,11 +210,9 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/linkstructuur", label: "Linkstructuur", icon: Network },
           { href: "/admin/cta", label: "CTA blokken", icon: MousePointerClick },
           { href: "/admin/benji-teasers", label: "Benji teasers", icon: Smile },
-          { href: "/admin/zoekwoorden", label: "Zoekwoorden", icon: BarChart3 },
           { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
           { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping },
           { href: "/admin/testimonials", label: "Reviews", icon: Quote },
-          { href: "/admin/onderweg", label: "Iets voor onderweg", icon: ShoppingBag },
           { href: "/admin/notificaties", label: "Notificaties", icon: Bell },
         ],
       },
@@ -229,18 +228,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
           { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen },
           { href: "/admin/bronnen", label: "Bronnen", icon: FileStack },
-        ],
-      },
-    },
-    {
-      type: "group",
-      group: {
-        id: "trials",
-        label: "Trials",
-        icon: FlaskConical,
-        items: [
-          { href: "/admin/trial-test", label: "Trial testen", icon: FlaskConical },
-          { href: "/admin/trial-emails", label: "Trial e-mails", icon: Mail },
         ],
       },
     },

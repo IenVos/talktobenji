@@ -354,7 +354,7 @@ export default async function BlogPostPreviewPage({ params, searchParams }: Prop
               <div className="mt-10">
                 <p className="text-sm font-semibold text-stone-500 uppercase tracking-wide mb-4">Lees ook</p>
                 {hasLinks && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                  <div className={`grid grid-cols-1 gap-4 mb-4 ${articleLinks.length === 1 ? "" : articleLinks.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
                     {articleLinks.map((link: any, i: number) => {
                       const cover = coverMap.get(link.slug);
                       return (
