@@ -1066,11 +1066,15 @@ export default function AdminBlogPage() {
                                 <div className="flex flex-col gap-1">
                                   <span className="text-sm font-semibold text-gray-800 leading-snug">{r.targetTitle}</span>
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="text-xs font-medium text-violet-700 bg-violet-50 border border-violet-200 rounded px-1.5 py-0.5">"{r.matchedPhrase}"</span>
+                                    <span className={`text-xs font-medium rounded px-1.5 py-0.5 ${r.isApproximate ? "text-gray-500 bg-gray-50 border border-gray-200" : "text-violet-700 bg-violet-50 border border-violet-200"}`}>
+                                      "{r.matchedPhrase}"
+                                    </span>
                                     <span className={`text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
-                                    {r.isNewAnchor
-                                      ? <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">nieuw</span>
-                                      : <span className="text-[10px] text-green-600 bg-green-50 border border-green-200 rounded px-1 py-0.5">✓ actief</span>
+                                    {r.isApproximate
+                                      ? <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 rounded px-1 py-0.5">dichtst bij</span>
+                                      : r.isNewAnchor
+                                        ? <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">nieuw</span>
+                                        : <span className="text-[10px] text-green-600 bg-green-50 border border-green-200 rounded px-1 py-0.5">✓ actief</span>
                                     }
                                   </div>
                                 </div>

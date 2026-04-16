@@ -294,6 +294,7 @@ export const scanForLinks = query({
       matchedPhrase: string;
       incomingLinkCount: number;
       isNewAnchor: boolean;
+      isApproximate: boolean;
       score: number;
     }> = [];
 
@@ -357,42 +358,106 @@ export const scanForLinks = query({
         }
       }
 
-      // Stap 3: fallback — kernwoorden-overlap + sliding window
+      // Stap 2b: prefix/stem matching — vindt morfologische varianten (bijv. "verlaten" via "verlaat")
       if (!finalPhrase) {
-        const sources = [post.title, post.focusKeyword ?? "", post.excerpt ?? ""].join(" ");
+        const stemSources = [post.focusKeyword ?? "", post.title].join(" ");
+        const stemWords = stemSources.toLowerCase()
+          .replace(/[^a-z0-9\s]/g, "").split(/\s+/)
+          .filter((w) => w.length >= 5 && !GENERIC.has(w) && !HARD_STOP.has(w));
+        const contentWords = args.content.split(/\s+/);
+        outer2b: for (const stem of stemWords) {
+          const prefix = stem.slice(0, 5);
+          for (let i = 0; i < contentWords.length; i++) {
+            const cw = contentWords[i].toLowerCase().replace(/[^a-z]/g, "");
+            if (cw.startsWith(prefix) && cw.length >= 5) {
+              // Gevonden — zoek dichtstbijzijnd inhoudswoord
+              const original = contentWords[i].replace(/[""„«»]/g, "").replace(/[.,;:!?]$/, "");
+              let companion = "";
+              for (let j = i + 1; j <= Math.min(i + 4, contentWords.length - 1); j++) {
+                const nw = contentWords[j].toLowerCase().replace(/[^a-z]/g, "");
+                if (nw.length > 3 && !GENERIC.has(nw) && !HARD_STOP.has(nw)) {
+                  companion = contentWords[j].replace(/[.,;:!?]$/, "");
+                  break;
+                }
+              }
+              if (!companion) {
+                for (let j = i - 1; j >= Math.max(i - 4, 0); j--) {
+                  const pw = contentWords[j].toLowerCase().replace(/[^a-z]/g, "");
+                  if (pw.length > 3 && !GENERIC.has(pw) && !HARD_STOP.has(pw)) {
+                    companion = contentWords[j].replace(/[.,;:!?]$/, "");
+                    finalPhrase = companion + " " + original;
+                    break outer2b;
+                  }
+                }
+              }
+              if (companion) finalPhrase = original + " " + companion;
+              else finalPhrase = original;
+              break outer2b;
+            }
+          }
+        }
+      }
+
+      // Stap 3: verbeterde fallback — keyword + naastgelegen inhoudswoord (geen sliding window)
+      let isApproximate = false;
+      if (!finalPhrase) {
         const keywords = new Set(
-          sources.toLowerCase()
-            .replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "")
-            .split(/\s+/)
-            .filter((w) => w.length > 3 && !GENERIC.has(w))
+          [post.title, post.focusKeyword ?? ""].join(" ")
+            .toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "")
+            .split(/\s+/).filter((w) => w.length > 3 && !GENERIC.has(w) && !HARD_STOP.has(w))
         );
         if (keywords.size === 0) continue;
 
-        let bestSentence = "";
-        let bestScore = 0;
-        for (const sentence of sentences) {
-          const sentLower = sentence.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
-          const score = sentLower.split(/\s+/).filter((w) => keywords.has(w)).length;
-          if (score > bestScore) { bestScore = score; bestSentence = sentLower; }
-        }
-        if (bestScore < 2) continue;
-
-        const sentWords = bestSentence.split(/\s+/);
-        let bestSpan = "";
-        let bestSpanScore = 0;
-        for (let len = 5; len >= 3; len--) {
-          for (let i = 0; i <= sentWords.length - len; i++) {
-            const span = sentWords.slice(i, i + len);
-            if (GENERIC.has(span[0]) || GENERIC.has(span[span.length - 1])) continue;
-            if (span.some((w) => HARD_STOP.has(w))) continue;
-            const spanScore = span.filter((w) => keywords.has(w)).length;
-            if (spanScore > bestSpanScore) { bestSpanScore = spanScore; bestSpan = span.join(" "); }
+        // Zoek eerste keyword-treffer in de volledige tekst
+        const contentWords = args.content.split(/\s+/);
+        let found = false;
+        for (let i = 0; i < contentWords.length; i++) {
+          const cw = contentWords[i].toLowerCase().replace(/[^a-z]/g, "");
+          if (keywords.has(cw)) {
+            const original = contentWords[i].replace(/[.,;:!?]$/, "");
+            let companion = "";
+            // Zoek naastgelegen inhoudswoord (voorkeur: rechts)
+            for (let j = i + 1; j <= Math.min(i + 4, contentWords.length - 1); j++) {
+              const nw = contentWords[j].toLowerCase().replace(/[^a-z]/g, "");
+              if (nw.length > 3 && !GENERIC.has(nw) && !HARD_STOP.has(nw)) {
+                companion = contentWords[j].replace(/[.,;:!?]$/, "");
+                break;
+              }
+            }
+            if (!companion) {
+              for (let j = i - 1; j >= Math.max(i - 4, 0); j--) {
+                const pw = contentWords[j].toLowerCase().replace(/[^a-z]/g, "");
+                if (pw.length > 3 && !GENERIC.has(pw) && !HARD_STOP.has(pw)) {
+                  companion = contentWords[j].replace(/[.,;:!?]$/, "") + " " + original;
+                  finalPhrase = companion;
+                  found = true;
+                  break;
+                }
+              }
+            }
+            if (!found && companion) finalPhrase = original + " " + companion;
+            else if (!found) finalPhrase = original;
+            found = true;
+            break;
           }
-          if (bestSpanScore >= 2) break;
         }
-        if (!bestSpan || bestSpanScore < 1) continue;
-        // Herstel originele schrijfwijze
-        finalPhrase = findOriginal(bestSpan) ?? bestSpan;
+
+        // Stap 4: geen tekst-match — stel toch voor met focus keyword als anker
+        if (!found) {
+          const kwSet = new Set(
+            [post.title, post.focusKeyword ?? ""].join(" ")
+              .toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/)
+              .filter((w) => w.length > 3 && !GENERIC.has(w))
+          );
+          const overlapScore = args.content.toLowerCase().split(/\s+/).filter((w) => kwSet.has(w)).length;
+          if (overlapScore < 1) continue; // Echt geen relatie — sla over
+          // Gebruik focus keyword (of eerste 2 woorden van titel) als voorgesteld anker
+          const suggested = post.focusKeyword?.trim() ||
+            ngramCandidates(post.title, 2, 2)[0] ||
+            post.title.split(" ").slice(0, 2).join(" ");
+          finalPhrase = suggested;
+          isApproximate = true;
+        }
       }
 
       if (!finalPhrase) continue;
@@ -417,6 +482,7 @@ export const scanForLinks = query({
         matchedPhrase: finalPhrase.trim(),
         incomingLinkCount: incomingCount.get(post.slug) ?? 0,
         isNewAnchor,
+        isApproximate,
         score,
       });
       usedTargets.add(post.slug);
