@@ -119,6 +119,7 @@ export default function BenjiTeasersAdmin() {
         downloadTitel: def?.downloadTitel ?? "",
         bestandsnaam: def?.bestandsnaam ?? "",
         buttonUrl: "",
+        buttonText: "",
         vragen: padded,
       });
     }
