@@ -320,13 +320,16 @@ export const getStats = query({
       try {
         const url = new URL(referrer);
         const host = url.hostname.replace("www.", "");
-        if (host.includes("google")) return "Google";
+        if (host.includes("google") || host.includes("syndicatedsearch")) return "Google";
         if (host.includes("facebook") || host.includes("fb.com")) return "Facebook";
         if (host.includes("instagram")) return "Instagram";
         if (host.includes("bing")) return "Bing";
         if (host.includes("pinterest")) return "Pinterest";
-        if (host.includes("talktobenji")) return "Direct";
-        return host;
+        if (host.includes("youtube")) return "YouTube";
+        if (host.includes("talktobenji") || host.includes("vercel.app")) return "Direct";
+        if (host.includes("niet-alleen")) return "niet-alleen.nl";
+        // Alles wat niet herkend wordt negeren (spambots, scrapers)
+        return "__overig__";
       } catch {
         return "Direct";
       }
@@ -335,9 +338,10 @@ export const getStats = query({
     const sourceMap: Record<string, number> = {};
     for (const view of allViews) {
       const source = parseSource(view.referrer);
+      if (source === "__overig__") continue;
       sourceMap[source] = (sourceMap[source] ?? 0) + 1;
     }
-    const totalViewsForSource = allViews.length || 1;
+    const totalViewsForSource = Object.values(sourceMap).reduce((a, b) => a + b, 0) || 1;
     const bronnen = Object.entries(sourceMap)
       .sort(([, a], [, b]) => b - a)
       .map(([source, count]) => ({ source, count, pct: Math.round((count / totalViewsForSource) * 100) }));
@@ -413,6 +417,60 @@ export const getStats = query({
       topPageDurations,
       koopknopKlikken,
     };
+  },
+});
+
+/** Ad LP statistieken: bezoeken, verblijfsduur en klikken per landingspagina met trackAds=true (admin only). */
+export const getAdLpStats = query({
+  args: { adminToken: v.string(), from: v.number(), to: v.number() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    // Haal alle landingspagina's op die als Ad LP zijn gemarkeerd
+    const allPages = await ctx.db.query("landingPages").collect();
+    const adPages = allPages.filter((p) => (p as any).trackAds === true);
+    if (adPages.length === 0) return [];
+
+    const [excludedIps, rawViews, rawClicks] = await Promise.all([
+      ctx.db.query("analyticsExcludedIps").collect(),
+      ctx.db
+        .query("pageViews")
+        .withIndex("by_timestamp", (q) => q.gte("timestamp", args.from).lte("timestamp", args.to))
+        .collect(),
+      ctx.db
+        .query("buttonClicks")
+        .withIndex("by_timestamp", (q) => q.gte("timestamp", args.from).lte("timestamp", args.to))
+        .collect(),
+    ]);
+
+    const excludedSet = new Set(excludedIps.map((e) => e.ip));
+    const views = rawViews.filter((v) => !v.ip || !excludedSet.has(v.ip));
+    const clicks = rawClicks.filter((c) => !c.ip || !excludedSet.has(c.ip));
+
+    return adPages.map((page) => {
+      const path = `/lp/${page.slug}`;
+      const pageViews = views.filter((v) => v.path === path);
+      const pageClicks = clicks.filter((c) => c.path === path);
+
+      const sessions = new Set(pageViews.map((v) => v.sessionId));
+      const durations = pageViews
+        .map((v) => v.duration)
+        .filter((d): d is number => d !== undefined && d > 0 && d < 3600);
+      const avgDuration =
+        durations.length > 0
+          ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+          : 0;
+
+      return {
+        slug: page.slug,
+        path,
+        title: (page as any).pageTitle ?? page.slug,
+        visits: pageViews.length,
+        unique: sessions.size,
+        avgDuration,
+        clicks: pageClicks.length,
+      };
+    });
   },
 });
 

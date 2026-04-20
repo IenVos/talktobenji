@@ -88,6 +88,7 @@ export const create = mutation({
     hideWieIsIen: v.optional(v.boolean()),
     hideMidCta: v.optional(v.boolean()),
     footerText: v.optional(v.string()),
+    trackAds: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -137,6 +138,7 @@ export const update = mutation({
     hideWieIsIen: v.optional(v.boolean()),
     hideMidCta: v.optional(v.boolean()),
     footerText: v.optional(v.string()),
+    trackAds: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

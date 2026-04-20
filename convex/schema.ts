@@ -672,6 +672,8 @@ export default defineSchema({
     hideMidCta: v.optional(v.boolean()),
     // Footer
     footerText: v.optional(v.string()),
+    // Analytics
+    trackAds: v.optional(v.boolean()), // Toon in advertentie-blok in analytics
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

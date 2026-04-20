@@ -72,6 +72,7 @@ type FormState = {
   finalCtaTitle: string;
   finalCtaBody: string;
   footerText: string;
+  trackAds: boolean;
 };
 
 const EMPTY_FORM: FormState = {
@@ -106,6 +107,7 @@ const EMPTY_FORM: FormState = {
   finalCtaTitle: "",
   finalCtaBody: "",
   footerText: "",
+  trackAds: false,
 };
 
 function opt(val: string): string | undefined {
@@ -202,6 +204,7 @@ export default function AdminLandingspaginasPage() {
       finalCtaTitle: page.finalCtaTitle ?? "",
       finalCtaBody: page.finalCtaBody ?? "",
       footerText: page.footerText ?? "",
+      trackAds: (page as any).trackAds ?? false,
     });
     setEditingProductImageUrl(null); // wordt geladen via aparte query als nodig
     setEditingBgImageUrl(null);
@@ -298,6 +301,7 @@ export default function AdminLandingspaginasPage() {
           finalCtaTitle: form.finalCtaTitle.trim(),
           finalCtaBody: form.finalCtaBody.trim(),
           footerText: form.footerText.trim(),
+          trackAds: form.trackAds,
         });
         setSavedFeedback(true);
         setTimeout(() => setSavedFeedback(false), 2500);
@@ -334,6 +338,7 @@ export default function AdminLandingspaginasPage() {
           finalCtaTitle: opt(form.finalCtaTitle),
           finalCtaBody: opt(form.finalCtaBody),
           footerText: opt(form.footerText),
+          trackAds: form.trackAds,
         });
         resetForm();
       }
@@ -607,6 +612,17 @@ export default function AdminLandingspaginasPage() {
                       </label>
                     ))}
                   </div>
+                </div>
+                <div className="pt-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.trackAds}
+                      onChange={(e) => setForm((f) => ({ ...f, trackAds: e.target.checked }))}
+                      className="rounded"
+                    />
+                    <span className="text-sm font-medium text-primary-700">Ad LP — volg bezoeken in analytics</span>
+                  </label>
                 </div>
               </div>
             </div>

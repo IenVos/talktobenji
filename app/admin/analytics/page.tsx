@@ -27,6 +27,7 @@ import {
   ChevronDown,
   Palette,
   ShoppingCart,
+  Megaphone,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -455,6 +456,7 @@ export default function AdminAnalytics() {
   }, [preset, customFrom, customTo]);
 
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
+  const adLpStats = useAdminQuery(api.siteAnalytics.getAdLpStats, { from, to });
   const featureStats = useAdminQuery(api.siteAnalytics.getFeatureStats, { from, to });
   const allGoals = useAdminQuery(api.siteAnalytics.listGoalsWithOwner, {});
   const liveVisitors = useAdminQuery(api.siteAnalytics.getLiveVisitors, {});
@@ -477,6 +479,7 @@ export default function AdminAnalytics() {
   const [openBezoeken, setOpenBezoeken] = useState(true);
   const [openConversies, setOpenConversies] = useState(true);
   const [openApparaten, setOpenApparaten] = useState(true);
+  const [openAdLp, setOpenAdLp] = useState(true);
   const [openFeatureGebruik, setOpenFeatureGebruik] = useState(true);
   const [openDoelen, setOpenDoelen] = useState(false);
   const [openBeheer, setOpenBeheer] = useState(true);
@@ -1180,6 +1183,53 @@ export default function AdminAnalytics() {
           })()}
         </div>
       </div>}
+
+      {/* Ad LP statistieken */}
+      {adLpStats && adLpStats.length > 0 && (
+        <div className="bg-white rounded-xl border border-primary-200">
+          <button onClick={() => setOpenAdLp((v) => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+            <div className="flex items-center gap-2">
+              <Megaphone size={16} className="text-primary-500" />
+              <span className="text-base font-semibold text-primary-900">Advertentie LP&apos;s</span>
+              <span className="text-xs text-primary-400 font-normal">geselecteerde periode</span>
+            </div>
+            <ChevronDown size={16} className={`text-primary-400 transition-transform ${openAdLp ? "rotate-180" : ""}`} />
+          </button>
+          {openAdLp && (
+            <div className="px-6 pb-6 overflow-x-auto">
+              <table className="w-full text-sm min-w-[480px]">
+                <thead>
+                  <tr className="border-b border-primary-100">
+                    <th className="py-2 text-left text-xs font-medium text-primary-500">Landingspagina</th>
+                    <th className="py-2 text-right text-xs font-medium text-primary-500">Bezoeken</th>
+                    <th className="py-2 text-right text-xs font-medium text-primary-500">Uniek</th>
+                    <th className="py-2 text-right text-xs font-medium text-primary-500">Gem. tijd</th>
+                    <th className="py-2 text-right text-xs font-medium text-primary-500">CTA klikken</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-primary-50">
+                  {adLpStats.map((lp: { slug: string; path: string; title: string; visits: number; unique: number; avgDuration: number; clicks: number }) => (
+                    <tr key={lp.slug}>
+                      <td className="py-2.5">
+                        <span className="font-medium text-primary-800">{lp.title}</span>
+                        <span className="block text-[11px] text-primary-400">{lp.path}</span>
+                      </td>
+                      <td className="py-2.5 text-right font-semibold text-primary-900">{lp.visits}</td>
+                      <td className="py-2.5 text-right text-primary-600">{lp.unique}</td>
+                      <td className="py-2.5 text-right text-primary-600">{lp.avgDuration > 0 ? formatDuration(lp.avgDuration) : "–"}</td>
+                      <td className="py-2.5 text-right">
+                        <span className={`font-semibold ${lp.clicks > 0 ? "text-green-700" : "text-primary-400"}`}>
+                          {lp.clicks > 0 ? `${lp.clicks}×` : "–"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Feature gebruik (standalone collapsible) */}
       <div className="bg-white rounded-xl border border-primary-200">
