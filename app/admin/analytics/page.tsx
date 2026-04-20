@@ -1185,7 +1185,7 @@ export default function AdminAnalytics() {
       </div>}
 
       {/* Ad LP statistieken */}
-      {adLpStats && adLpStats.length > 0 && (
+      {adLpStats && (
         <div className="bg-white rounded-xl border border-primary-200">
           <button onClick={() => setOpenAdLp((v) => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
             <div className="flex items-center gap-2">

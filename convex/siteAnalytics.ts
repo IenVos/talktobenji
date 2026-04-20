@@ -429,7 +429,6 @@ export const getAdLpStats = query({
     // Haal alle landingspagina's op die als Ad LP zijn gemarkeerd
     const allPages = await ctx.db.query("landingPages").collect();
     const adPages = allPages.filter((p) => (p as any).trackAds === true);
-    if (adPages.length === 0) return [];
 
     const [excludedIps, rawViews, rawClicks] = await Promise.all([
       ctx.db.query("analyticsExcludedIps").collect(),
@@ -447,8 +446,17 @@ export const getAdLpStats = query({
     const views = rawViews.filter((v) => !v.ip || !excludedSet.has(v.ip));
     const clicks = rawClicks.filter((c) => !c.ip || !excludedSet.has(c.ip));
 
-    return adPages.map((page) => {
-      const path = `/lp/${page.slug}`;
+    // Bouw lijst van te volgen pagina's: altijd homepagina + alle Ad LPs
+    const trackedPages: { slug: string; path: string; title: string }[] = [
+      { slug: "home", path: "/", title: "Homepagina" },
+      ...adPages.map((page) => ({
+        slug: page.slug,
+        path: `/lp/${page.slug}`,
+        title: (page as any).pageTitle ?? page.slug,
+      })),
+    ];
+
+    return trackedPages.map(({ slug, path, title }) => {
       const pageViews = views.filter((v) => v.path === path);
       const pageClicks = clicks.filter((c) => c.path === path);
 
@@ -462,9 +470,9 @@ export const getAdLpStats = query({
           : 0;
 
       return {
-        slug: page.slug,
+        slug,
         path,
-        title: (page as any).pageTitle ?? page.slug,
+        title,
         visits: pageViews.length,
         unique: sessions.size,
         avgDuration,

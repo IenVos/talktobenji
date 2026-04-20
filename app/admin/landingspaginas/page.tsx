@@ -511,10 +511,21 @@ export default function AdminLandingspaginasPage() {
               </div>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.isLive} onChange={setCheck("isLive")} className="rounded border-primary-300 text-primary-600" />
-              <span className="text-sm text-gray-700">Pagina is live (publiek zichtbaar)</span>
-            </label>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.isLive} onChange={setCheck("isLive")} className="rounded border-primary-300 text-primary-600" />
+                <span className="text-sm text-gray-700">Pagina is live (publiek zichtbaar)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.trackAds}
+                  onChange={(e) => setForm((f) => ({ ...f, trackAds: e.target.checked }))}
+                  className="rounded border-primary-300 text-primary-600"
+                />
+                <span className="text-sm text-gray-700">Ad LP — zichtbaar in analytics</span>
+              </label>
+            </div>
 
             {/* Hero */}
             <div className="pt-2 border-t border-primary-100">
@@ -612,17 +623,6 @@ export default function AdminLandingspaginasPage() {
                       </label>
                     ))}
                   </div>
-                </div>
-                <div className="pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.trackAds}
-                      onChange={(e) => setForm((f) => ({ ...f, trackAds: e.target.checked }))}
-                      className="rounded"
-                    />
-                    <span className="text-sm font-medium text-primary-700">Ad LP — volg bezoeken in analytics</span>
-                  </label>
                 </div>
               </div>
             </div>
