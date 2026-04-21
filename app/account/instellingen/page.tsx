@@ -6,6 +6,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Palette, Trash2, Save, RotateCcw, FileText } from "lucide-react";
 import { Paywall } from "@/components/Paywall";
+import { Camera } from "lucide-react";
 
 // Originele Benji-kleur (primary-600 uit tailwind)
 const ORIGINAL_COLOR = "#6d84a8";
@@ -38,7 +39,9 @@ export default function AccountInstellingenPage() {
   );
   const setPreferences = useMutation(api.preferences.setPreferences);
   const removeBackgroundImage = useMutation(api.preferences.removeBackgroundImage);
+  const removeProfileImage = useMutation(api.preferences.removeProfileImage);
   const generateUploadUrl = useMutation(api.preferences.generateUploadUrl);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
 
   const hasAccess = useQuery(
     api.subscriptions.hasFeatureAccess,
@@ -99,6 +102,30 @@ export default function AccountInstellingenPage() {
 
   const effectiveSelection = accentColor || effectiveSaved;
 
+  const handleProfileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId) return;
+    setUploadingProfile(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const res = await fetch(uploadUrl, { method: "POST", body: file });
+      const { storageId } = await res.json();
+      if (storageId) {
+        await setPreferences({ userId, profileImageStorageId: storageId });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUploadingProfile(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveProfileImage = async () => {
+    if (!userId || !confirm("Profielfoto verwijderen?")) return;
+    await removeProfileImage({ userId });
+  };
+
   const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
@@ -125,6 +152,13 @@ export default function AccountInstellingenPage() {
 
   const pageContent = (
     <div className="space-y-6">
+      <div className="bg-white rounded-xl border border-primary-200 p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <Camera size={24} className="text-primary-500" />
+          <h2 className="text-lg font-semibold text-primary-900">Profielfoto</h2>
+        </div>
+        <div className="w-20 h-20 rounded-full bg-gray-200" />
+      </div>
       <div className="bg-white rounded-xl border border-primary-200 p-6">
         <div className="flex items-center gap-3 mb-4">
           <FileText size={24} className="text-primary-500" />
@@ -160,6 +194,46 @@ export default function AccountInstellingenPage() {
 
   return (
     <div className="space-y-6">
+        {/* Profielfoto */}
+        <div className="bg-white rounded-xl border border-primary-200 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Camera size={24} className="text-primary-500" />
+            <h2 className="text-lg font-semibold text-primary-900">Profielfoto</h2>
+          </div>
+          <div className="flex items-center gap-5">
+            <div className="w-20 h-20 rounded-full border-2 border-primary-200 overflow-hidden flex items-center justify-center bg-primary-50 flex-shrink-0">
+              {preferencesData?.profileImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={preferencesData.profileImageUrl} alt="Profielfoto" className="w-full h-full object-cover" />
+              ) : (
+                <Camera size={28} className="text-primary-300" />
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg cursor-pointer hover:bg-primary-700 transition-colors text-sm font-medium">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfileUpload}
+                  disabled={uploadingProfile}
+                  className="sr-only"
+                />
+                {uploadingProfile ? "Bezig…" : "Foto uploaden"}
+              </label>
+              {preferencesData?.profileImageUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemoveProfileImage}
+                  className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
+                >
+                  <Trash2 size={16} />
+                  Foto verwijderen
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Context voor Benji */}
         <div className="bg-white rounded-xl border border-primary-200 p-6">
           <div className="flex items-center gap-3 mb-4">
