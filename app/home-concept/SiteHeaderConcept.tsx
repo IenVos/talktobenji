@@ -9,8 +9,8 @@ const LINKS = [
   { href: "/waarom-benji", label: "Over" },
   { href: "/blog", label: "Blog" },
   { href: "/voor-jou", label: "Voor jou" },
-  { href: "/aanmelden", label: "Aanmelden" },
-  { href: "/login", label: "Inloggen" },
+  { href: "/registreren", label: "Aanmelden" },
+  { href: "/inloggen", label: "Inloggen" },
 ];
 
 export function SiteHeaderConcept() {

@@ -32,7 +32,7 @@ const TOP_ITEMS = [
   { href: "/account/herinneringen", label: "Memories", icon: Gem, iconClassName: "text-amber-500" },
   { href: "/account/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
   { href: "/account/handreikingen", label: "Handreikingen", icon: HandHelping },
-  { href: "/account/instellingen", label: "Account", icon: UserCircle },
+  { href: "/account/instellingen", label: "Personalisatie", icon: UserCircle },
 ];
 
 const PERSONALISATIE_SUBMENU = [
@@ -64,7 +64,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account/onderweg": { title: "Iets voor onderweg", subtitle: "Producten en items die je kunnen helpen" },
   "/account/herinneringen": { title: "Memories", subtitle: "Mooie herinneringen om naar terug te kijken" },
   "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
-  "/account/instellingen": { title: "Account", subtitle: "Profiel, verhaal en uiterlijk" },
+  "/account/instellingen": { title: "Personaliseer", subtitle: "Personalisatie van je account" },
   "/account/wachtwoord": { title: "Account", subtitle: "Wijzig je naam, e-mailadres of wachtwoord" },
 };
 
