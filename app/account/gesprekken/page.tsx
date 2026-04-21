@@ -38,7 +38,7 @@ export default function AccountGesprekkenPage() {
           <MessageSquare size={48} className="mx-auto text-primary-300 mb-4" />
           <p className="text-gray-600">Je hebt nog geen gesprekken.</p>
           <Link
-            href="/?welcome=1"
+            href="/benji?welcome=1"
             className="inline-block mt-4 text-primary-600 hover:underline font-medium"
           >
             Start een gesprek met Benji
@@ -103,7 +103,7 @@ export default function AccountGesprekkenPage() {
       )}
 
       <p className="mt-6">
-        <Link href="/?welcome=1" className="text-gray-500 hover:text-gray-700 text-sm">
+        <Link href="/benji?welcome=1" className="text-gray-500 hover:text-gray-700 text-sm">
           Terug naar Benji
         </Link>
       </p>

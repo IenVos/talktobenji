@@ -3,6 +3,7 @@ import Image from "next/image";
 import { SiteFooter } from "@/components/SiteFooter";
 import { HouvasteKnop } from "./home-concept/HouvasteKnop";
 import { SiteHeaderConcept } from "./home-concept/SiteHeaderConcept";
+import { FeatureShowcase } from "./home-concept/FeatureShowcase";
 
 function IconChat() {
   return (
@@ -294,6 +295,17 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Screenshot strip */}
+      <section className="py-12 sm:py-16">
+        <div className="max-w-5xl mx-auto px-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 text-center mb-2">Wat je krijgt</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8 text-balance">
+            Meer dan een gesprek
+          </h2>
+          <FeatureShowcase />
         </div>
       </section>
 
