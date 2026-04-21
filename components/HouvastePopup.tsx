@@ -58,16 +58,10 @@ export function HouvastePopup({ onClose }: { onClose: () => void }) {
         ) : (
           <>
             <h2 className="text-base font-semibold text-white mb-3">Helemaal begrijpelijk.</h2>
-            <p className="text-sm text-white/70 leading-relaxed mb-2">
-              Niet iedereen is er klaar voor om meteen te beginnen.
-            </p>
-            <p className="text-sm text-white/70 leading-relaxed mb-2">
-              Soms wil je eerst gewoon even iets hebben om op terug te vallen.
-            </p>
             <p className="text-sm text-white/70 leading-relaxed mb-4">
-              Ontvang &lsquo;Houvast&rsquo; gratis. Voor de momenten dat het verdriet te dichtbij
-              komt en je niet weet wat je moet doen. Vijf herkenbare situaties, met telkens één
-              kleine concrete stap.
+              Ontvang &lsquo;Houvast&rsquo; gratis. Voor de momenten dat het verdriet ineens te
+              groot voelt en je niet weet waar je moet beginnen. Geen grote adviezen, gewoon
+              iets om op terug te vallen.
             </p>
             <form onSubmit={handleSubmit} className="space-y-2">
               <input

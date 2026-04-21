@@ -9,20 +9,26 @@ export function SiteFooter({ variant }: { variant?: "light" | "dark" }) {
   const [popup, setPopup] = useState<"lock" | "warning" | null>(null);
 
   return (
-    <footer className="bg-primary-900 px-4 py-2.5 text-center">
+    <footer className="bg-primary-900 px-4 py-8 text-center">
       <div className="flex items-center justify-center gap-4 flex-wrap">
-        <ErvaringenTrigger className="text-xs text-white/50 hover:text-white/80 transition-colors cursor-pointer">
-          Ervaringen
-        </ErvaringenTrigger>
+        <Link href="/faq" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+          Veelgestelde vragen
+        </Link>
+        <Link href="/privacy" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+          Privacy
+        </Link>
+        <Link href="/algemene-voorwaarden" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+          Algemene voorwaarden
+        </Link>
         <Link href="/contact" className="text-xs text-white/50 hover:text-white/80 transition-colors">
           Contact
         </Link>
-        <Link href="/blog" className="hidden xs:inline text-xs text-white/50 hover:text-white/80 transition-colors sm:inline">
+        <ErvaringenTrigger className="hidden sm:inline text-xs text-white/50 hover:text-white/80 transition-colors cursor-pointer">
+          Ervaringen
+        </ErvaringenTrigger>
+        <Link href="/blog" className="hidden sm:inline text-xs text-white/50 hover:text-white/80 transition-colors">
           Blog
         </Link>
-
-        {/* Scheidingslijn */}
-        <span className="text-white/20 text-xs">·</span>
 
         {/* Slot-icoontje */}
         <div className="relative">
