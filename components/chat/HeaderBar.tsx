@@ -55,7 +55,7 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
           </button>
         ) : (
           <Link
-            href="/"
+            href="/benji"
             className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none"
             aria-label="Naar Talk To Benji"
           >

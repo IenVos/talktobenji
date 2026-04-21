@@ -5,21 +5,25 @@ import Link from "next/link";
 import { Lock, AlertTriangle } from "lucide-react";
 import { ErvaringenTrigger } from "./ErvaringenPopup";
 
-export function SiteFooter({ variant }: { variant?: "light" | "dark" }) {
+export function SiteFooter({ variant, compact }: { variant?: "light" | "dark"; compact?: boolean }) {
   const [popup, setPopup] = useState<"lock" | "warning" | null>(null);
 
   return (
-    <footer className="bg-primary-900 px-4 py-8 text-center">
+    <footer className={`bg-primary-900 px-4 text-center ${compact ? "py-3" : "py-8"}`}>
       <div className="flex items-center justify-center gap-4 flex-wrap">
-        <Link href="/faq" className="text-xs text-white/50 hover:text-white/80 transition-colors">
-          Veelgestelde vragen
-        </Link>
-        <Link href="/privacy" className="text-xs text-white/50 hover:text-white/80 transition-colors">
-          Privacy
-        </Link>
-        <Link href="/algemene-voorwaarden" className="text-xs text-white/50 hover:text-white/80 transition-colors">
-          Algemene voorwaarden
-        </Link>
+        {!compact && (
+          <>
+            <Link href="/faq" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+              Veelgestelde vragen
+            </Link>
+            <Link href="/privacy" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+              Privacy
+            </Link>
+            <Link href="/algemene-voorwaarden" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+              Algemene voorwaarden
+            </Link>
+          </>
+        )}
         <Link href="/contact" className="text-xs text-white/50 hover:text-white/80 transition-colors">
           Contact
         </Link>
@@ -71,7 +75,7 @@ export function SiteFooter({ variant }: { variant?: "light" | "dark" }) {
         </div>
       </div>
 
-      <p className="text-[10px] text-white/40 mt-1">© Talk To Benji · talktobenji.com</p>
+      {!compact && <p className="text-[10px] text-white/40 mt-1">© Talk To Benji · talktobenji.com</p>}
     </footer>
   );
 }

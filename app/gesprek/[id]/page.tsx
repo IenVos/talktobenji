@@ -160,7 +160,7 @@ export default function GesprekPage() {
 
         <div className="mb-4">
           <Link
-            href="/"
+            href="/benji"
             onClick={() => {
               if (typeof window !== "undefined" && id) {
                 localStorage.setItem(CHAT_STORAGE_KEY, id);

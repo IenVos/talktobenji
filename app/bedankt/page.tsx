@@ -120,7 +120,7 @@ function BedanktContent() {
                 Inloggen
               </Link>
               <Link
-                href="/"
+                href="/benji"
                 className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors"
               >
                 <MessageSquare size={16} />

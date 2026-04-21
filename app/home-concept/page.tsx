@@ -8,6 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { SiteFooter } from "@/components/SiteFooter";
 import { HouvasteKnop } from "./HouvasteKnop";
+import { SiteHeaderConcept } from "./SiteHeaderConcept";
 
 function IconChat() {
   return (
@@ -188,10 +189,12 @@ export default function HomeConceptPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }}
       />
 
-      {/* Concept banner */}
-      <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs text-amber-700 font-medium">
+      {/* Concept banner — alleen op mobiel zichtbaar */}
+      <div className="sm:hidden bg-amber-50 border-b border-amber-200 px-4 py-2 text-center text-xs text-amber-700 font-medium">
         Concept — alleen zichtbaar via /home-concept, nog niet live
       </div>
+
+      <SiteHeaderConcept />
 
       {/* Hero */}
       <section className="relative bg-primary-900 text-white overflow-hidden">

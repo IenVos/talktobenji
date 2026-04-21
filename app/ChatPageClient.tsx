@@ -819,7 +819,7 @@ export default function ChatPageClient({
 <footer className="bg-primary-900 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
         {!sessionId && !isAddingOpener ? (
           <>
-            <SiteFooter variant="dark" />
+            <SiteFooter variant="dark" compact />
           </>
         ) : (
           <div className="px-3 sm:px-4 py-4 sm:py-5">
