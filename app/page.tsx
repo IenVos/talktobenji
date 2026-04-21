@@ -311,8 +311,8 @@ export default function HomePage() {
 
       {/* Over Benji / Ien */}
       <section className="bg-primary-50 border-b border-primary-100">
-        <div className="max-w-2xl mx-auto px-6 py-14 text-center">
-          <div className="flex flex-col items-center mb-6">
+        <div className="max-w-2xl mx-auto px-6 py-14">
+          <div className="flex flex-col items-center mb-6 text-center">
             <div className="w-20 h-20 rounded-2xl overflow-hidden mb-3">
               <Image
                 src="/images/ien-founder.png"
@@ -326,23 +326,23 @@ export default function HomePage() {
             <p className="text-xs text-primary-400">Oprichter Talk To Benji</p>
           </div>
 
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-2">Over Benji</p>
-          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-5 text-balance">
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-2 text-center">Over Benji</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-5 text-balance text-center">
             Gemaakt omdat er iets ontbrak en uit eigen ervaring met verlies
           </h2>
           <div className="space-y-4 text-sm text-primary-700 leading-relaxed text-left">
-            <p className="text-balance">
+            <p>
               Ik ben Ien, oprichter van Talk To Benji. Ik vroeg me af waarom er voor mensen
               met verdriet zo weinig is dat echt laagdrempelig is. Geen wachtlijst, geen intake,
               geen afspraak, gewoon iemand die luistert, ook om 03:00 's nachts.
             </p>
-            <p className="text-balance">
+            <p>
               Dat werd Benji. Zes jaar lang zocht ik naar de beste manier om een plek te maken
               waar je je verhaal kwijt kunt, je gedachten kunt ordenen en zo beter zicht krijgt
               op alles wat er in je hoofd zit. Niet om je te vertellen wat je moet doen, maar
               om je te helpen het zelf te begrijpen.
             </p>
-            <p className="text-balance">
+            <p>
               Benji is geen professional, en dat zegt hij ook eerlijk. Maar voor de momenten
               dat de drempel naar echte hulp te hoog is, of als je gewoon wilt zeggen wat er
               is, dan is Benji er.
