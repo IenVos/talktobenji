@@ -505,7 +505,8 @@ export default function HomeConceptPage() {
       </section>
 
       {/* Brug naar Niet Alleen */}
-      <section className="max-w-2xl mx-auto px-6 pb-10 text-center">
+      <section className="bg-primary-50 border-b border-primary-100">
+      <div className="max-w-2xl mx-auto px-6 pb-10 pt-6 text-center">
         <p className="text-sm text-primary-500 text-balance">
           Wil je meer dan één gesprek?{" "}
           <Link href="/niet-alleen-nl" className="text-primary-700 font-medium hover:underline">
@@ -513,6 +514,7 @@ export default function HomeConceptPage() {
           </Link>{" "}
           is een 30-dagen begeleiding via dagelijkse berichten, een kleine stap elke dag.
         </p>
+      </div>
       </section>
 
       {/* Footer */}
