@@ -295,6 +295,8 @@ export const scanForLinks = query({
       incomingLinkCount: number;
       isNewAnchor: boolean;
       isApproximate: boolean;
+      isConceptTarget: boolean;
+      sectionHeading: string | null;
       score: number;
     }> = [];
 
@@ -305,6 +307,19 @@ export const scanForLinks = query({
       const idx = contentLower.indexOf(phrase.toLowerCase());
       if (idx === -1) return null;
       return args.content.slice(idx, idx + phrase.length);
+    }
+
+    // Hulpfunctie: geef de dichtstbijzijnde H2/H3 kop terug vóór de gevonden positie
+    function findSectionHeading(phrase: string): string | null {
+      const idx = contentLower.indexOf(phrase.toLowerCase().trim());
+      if (idx === -1) return null;
+      const before = args.content.slice(0, idx);
+      const lines = before.split("\n");
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const m = lines[i].trim().match(/^#{2,3}\s+(.+)/);
+        if (m) return m[1].trim();
+      }
+      return null;
     }
 
     // Hulpfunctie: genereer n-gram kandidaten uit een tekst (2-4 woorden, no stop-ends)
@@ -483,6 +498,8 @@ export const scanForLinks = query({
         incomingLinkCount: incomingCount.get(post.slug) ?? 0,
         isNewAnchor,
         isApproximate,
+        isConceptTarget: !post.isLive,
+        sectionHeading: findSectionHeading(finalPhrase.trim()),
         score,
       });
       usedTargets.add(post.slug);
@@ -491,6 +508,41 @@ export const scanForLinks = query({
     // Sorteren: eerst score (relevantie), dan minste inkomende links
     return matches
       .sort((a, b) => b.score - a.score || a.incomingLinkCount - b.incomingLinkCount);
+  },
+});
+
+/** Admin: welke live artikelen bevatten al de ankerzinnen van dit (concept)artikel?
+ *  Geeft een vooruitblik: dit zijn de artikelen die straks automatisch linken naar jou. */
+export const previewIncomingLinks = query({
+  args: {
+    adminToken: v.string(),
+    anchorPhrases: v.array(v.string()),
+    pillarSlug: v.optional(v.string()),
+    excludeSlug: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    if (!args.anchorPhrases.length) return [];
+
+    const livePosts = await ctx.db.query("blogPosts")
+      .filter((q) => q.eq(q.field("isLive"), true))
+      .collect();
+
+    const candidates = livePosts.filter(
+      (p) => p.slug !== args.excludeSlug && (!args.pillarSlug || p.pillarSlug === args.pillarSlug)
+    );
+
+    const results: { slug: string; title: string; phrase: string }[] = [];
+    for (const post of candidates) {
+      const contentLower = post.content.toLowerCase();
+      for (const phrase of args.anchorPhrases) {
+        if (phrase.trim().length > 2 && contentLower.includes(phrase.trim().toLowerCase())) {
+          results.push({ slug: post.slug, title: post.title, phrase: phrase.trim() });
+          break;
+        }
+      }
+    }
+    return results;
   },
 });
 

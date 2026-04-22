@@ -115,6 +115,9 @@ export default function AdminBlogPage() {
   const [scanLoading, setScanLoading] = useState(false);
   const [scanResults, setScanResults] = useState<any[] | null>(null);
   const [scanAccepted, setScanAccepted] = useState<Set<string>>(new Set());
+  const [scanApplied, setScanApplied] = useState(0);
+  const [incomingCheck, setIncomingCheck] = useState<{ slug: string; title: string; phrase: string }[] | null>(null);
+  const [incomingLoading, setIncomingLoading] = useState(false);
   const [syncing, setSyncing] = useState<Id<"blogPosts"> | null>(null);
   const [syncDone, setSyncDone] = useState<Id<"blogPosts"> | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -258,6 +261,10 @@ export default function AdminBlogPage() {
     setEditingId(null);
     setCoverPreview(null);
     setShowForm(false);
+    setIncomingCheck(null);
+    setScanResults(null);
+    setScanAccepted(new Set());
+    setScanApplied(0);
   };
 
   // Gesorteerd + gefilterd + gepagineerd voor de artikellijst
@@ -941,6 +948,59 @@ export default function AdminBlogPage() {
                   </div>
                 );
               })()}
+              {/* Incoming links preview — alleen voor concepten met ankerzinnen en pillar */}
+              {!form.isLive && form.anchorPhrases.trim() && form.pillarSlug && (
+                <div className="border border-blue-200 rounded-lg bg-blue-50 p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-medium text-blue-800 leading-snug">Welke live artikelen linken straks automatisch naar jou?</p>
+                    <button
+                      type="button"
+                      disabled={incomingLoading}
+                      onClick={async () => {
+                        setIncomingLoading(true);
+                        setIncomingCheck(null);
+                        try {
+                          const phrases = form.anchorPhrases.split("\n").map(s => s.trim()).filter(Boolean);
+                          const results = await convex.query(api.blogPosts.previewIncomingLinks, {
+                            adminToken: adminToken ?? "",
+                            anchorPhrases: phrases,
+                            pillarSlug: form.pillarSlug || undefined,
+                            excludeSlug: form.slug,
+                          });
+                          setIncomingCheck(results as any[]);
+                        } finally {
+                          setIncomingLoading(false);
+                        }
+                      }}
+                      className="flex-shrink-0 flex items-center gap-1.5 px-2.5 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    >
+                      {incomingLoading ? "Checken…" : "Controleer"}
+                    </button>
+                  </div>
+                  {incomingCheck !== null && (
+                    incomingCheck.length === 0 ? (
+                      <p className="text-xs text-blue-600 italic">
+                        Geen live artikelen bevatten jouw ankerzinnen nu al. Zodra nieuwe artikelen in dezelfde pillar jouw zinnen gebruiken, verschijnen de links automatisch.
+                      </p>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <p className="text-xs text-blue-700 font-medium">
+                          {incomingCheck.length} artikel{incomingCheck.length !== 1 ? "en krijgen" : " krijgt"} automatisch een link naar jou zodra je live gaat:
+                        </p>
+                        {incomingCheck.map((r, i) => (
+                          <div key={i} className="flex items-start gap-2 text-xs">
+                            <span className="text-green-600 font-bold mt-0.5 flex-shrink-0">✓</span>
+                            <span>
+                              <span className="text-blue-900 font-medium">{r.title}</span>
+                              <span className="text-blue-400 ml-1">via &ldquo;{r.phrase}&rdquo;</span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Interne links */}
@@ -1016,6 +1076,7 @@ export default function AdminBlogPage() {
                         setScanLoading(true);
                         setScanResults(null);
                         setScanAccepted(new Set());
+                        setScanApplied(0);
                         try {
                           const results = await convex.query(api.blogPosts.scanForLinks, {
                             adminToken: adminToken ?? "",
@@ -1042,6 +1103,12 @@ export default function AdminBlogPage() {
                       <p className="text-xs text-gray-500 italic">Geen matches gevonden in je tekst.</p>
                     ) : (
                       <div className="space-y-2">
+                        {scanApplied > 0 && (
+                          <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                            <CheckCircle size={12} className="flex-shrink-0" />
+                            {scanApplied} link{scanApplied !== 1 ? "s" : ""} geactiveerd — de ankerzin is opgeslagen in het doelartikell. De link verschijnt zodra het doelartikel live is.
+                          </p>
+                        )}
                         <p className="text-xs text-gray-500">{scanResults.length} zin{scanResults.length !== 1 ? "nen" : ""} gevonden in dit artikel die kunnen linken naar:</p>
                         {scanResults.map((r: any) => {
                           const checked = scanAccepted.has(r.targetSlug);
@@ -1065,9 +1132,12 @@ export default function AdminBlogPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex flex-col gap-1">
                                   <span className="text-sm font-semibold text-gray-800 leading-snug">{r.targetTitle}</span>
+                                  {r.sectionHeading && (
+                                    <span className="text-[10px] text-gray-400 leading-none">onder: {r.sectionHeading}</span>
+                                  )}
                                   <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className={`text-xs font-medium rounded px-1.5 py-0.5 ${r.isApproximate ? "text-gray-500 bg-gray-50 border border-gray-200" : "text-violet-700 bg-violet-50 border border-violet-200"}`}>
-                                      "{r.matchedPhrase}"
+                                      &ldquo;{r.matchedPhrase}&rdquo;
                                     </span>
                                     <span className={`text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
                                     {r.isApproximate
@@ -1076,6 +1146,9 @@ export default function AdminBlogPage() {
                                         ? <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">nieuw</span>
                                         : <span className="text-[10px] text-green-600 bg-green-50 border border-green-200 rounded px-1 py-0.5">✓ actief</span>
                                     }
+                                    {r.isConceptTarget && (
+                                      <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept — link actief zodra live</span>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1091,8 +1164,14 @@ export default function AdminBlogPage() {
                               onClick={async () => {
                                 const toApply = newToApply.map((r: any) => ({ targetId: r.targetId as Id<"blogPosts">, phrase: r.matchedPhrase }));
                                 await applyLinks({ suggestions: toApply });
-                                setScanResults(null);
+                                setScanApplied(newToApply.length);
                                 setScanAccepted(new Set());
+                                // Resultaten bijwerken: geactiveerde links als "actief" markeren
+                                setScanResults(prev => prev ? prev.map(r =>
+                                  newToApply.some((n: any) => n.targetId === r.targetId)
+                                    ? { ...r, isNewAnchor: false }
+                                    : r
+                                ) : null);
                               }}
                               className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                             >
