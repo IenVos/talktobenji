@@ -1106,7 +1106,7 @@ export default function AdminBlogPage() {
                         {scanApplied > 0 && (
                           <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
                             <CheckCircle size={12} className="flex-shrink-0" />
-                            {scanApplied} link{scanApplied !== 1 ? "s" : ""} geactiveerd — de ankerzin is opgeslagen in het doelartikell. De link verschijnt zodra het doelartikel live is.
+                            {scanApplied} link{scanApplied !== 1 ? "s" : ""} geactiveerd — ankerzin opgeslagen. Volgende scan toont ze als ✓ actief.
                           </p>
                         )}
                         <p className="text-xs text-gray-500">{scanResults.length} zin{scanResults.length !== 1 ? "nen" : ""} gevonden in dit artikel die kunnen linken naar:</p>

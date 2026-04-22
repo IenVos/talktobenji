@@ -338,6 +338,22 @@ export const scanForLinks = query({
       return results;
     }
 
+    // Hulpfunctie: is een voorgestelde ankerzin inhoudelijk relevant voor het doelartikel?
+    // Vereist dat minstens één woord letterlijk in de titel of het focuszoekwoord voorkomt.
+    // Voorkomt zinloze 2-woordmatches zoals "nieuwe nemen" voor een artikel over "nieuwe hond".
+    function isPhraseRelevant(phrase: string, targetTitle: string, focusKeyword: string | undefined): boolean {
+      const phraseWords = phrase.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/)
+        .filter(w => w.length > 2 && !GENERIC.has(w) && !HARD_STOP.has(w));
+      if (phraseWords.length === 0) return false;
+      const titleWords = new Set(
+        [targetTitle, focusKeyword ?? ""].join(" ")
+          .toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/)
+          .filter(w => w.length > 3 && !GENERIC.has(w) && !HARD_STOP.has(w))
+      );
+      // Minstens één inhoudelijk woord uit de zin moet in de titel/focuszoekwoord staan
+      return phraseWords.some(w => titleWords.has(w));
+    }
+
     for (const post of candidates) {
       if (usedTargets.has(post.slug)) continue;
 
@@ -476,6 +492,22 @@ export const scanForLinks = query({
       }
 
       if (!finalPhrase) continue;
+
+      // Verifieer: staat de zin ook echt letterlijk in de brontekst?
+      // Stappen 2b en 3 bouwen zinnen uit losse woorden die niet per se
+      // aaneengesloten staan — zo'n zin werkt dan niet als auto-link.
+      if (!isApproximate) {
+        if (!contentLower.includes(finalPhrase.trim().toLowerCase())) {
+          isApproximate = true;
+        }
+      }
+
+      // Verifieer relevantie voor nieuwe (nog niet geactiveerde) zinnen:
+      // minstens één woord moet in de titel of het focuszoekwoord van het doelartikel staan.
+      // Zo voorkomen we zinloze matches zoals "nieuwe nemen" voor "Wanneer is het tijd voor een nieuwe hond".
+      if (isNewAnchor && !isPhraseRelevant(finalPhrase.trim(), post.title, post.focusKeyword)) {
+        continue;
+      }
 
       // Zelfde ankerzin mag niet twee keer voorkomen
       const phraseKey = finalPhrase.toLowerCase().trim();
