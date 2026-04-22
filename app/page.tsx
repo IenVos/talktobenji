@@ -179,7 +179,7 @@ const FAQ_SCHEMA = {
 };
 
 export default async function HomePage() {
-  const saved = await fetchQuery(api.pageContent.getPageContent, { pageKey: "homepage" }).catch(() => null);
+  const saved = await fetchQuery(api.pageContent.getPublicPageContent, { pageKey: "homepage" }).catch(() => null);
   const c = { ...DEFAULTS, ...(saved ?? {}) };
 
   return (
