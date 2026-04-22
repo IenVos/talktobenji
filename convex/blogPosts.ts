@@ -650,6 +650,22 @@ export const applyLinkSuggestions = mutation({
   },
 });
 
+/** Admin: genereer ankerzinnen voor artikelen die er nog geen hebben */
+export const bulkGenerateAnchorPhrases = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const posts = await ctx.db.query("blogPosts").collect();
+    const empty = posts.filter((p) => !p.anchorPhrases || p.anchorPhrases.length === 0);
+    await Promise.all(empty.map((p) => {
+      const phrases = autoAnchorPhrases(p.title, p.focusKeyword ?? undefined);
+      if (phrases.length === 0) return Promise.resolve();
+      return ctx.db.patch(p._id, { anchorPhrases: phrases, updatedAt: Date.now() });
+    }));
+    return empty.length;
+  },
+});
+
 /** Admin: alle ankerzinnen van alle posts leegmaken */
 export const clearAllAnchorPhrases = mutation({
   args: { adminToken: v.string() },

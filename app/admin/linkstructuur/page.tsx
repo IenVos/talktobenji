@@ -14,6 +14,7 @@ export default function LinkStructuurPage() {
   const pillars = useAdminQuery(api.pillars.list, {});
   const updatePost = useAdminMutation(api.blogPosts.update);
   const clearAllAnchors = useAdminMutation(api.blogPosts.clearAllAnchorPhrases);
+  const bulkGenerate = useAdminMutation(api.blogPosts.bulkGenerateAnchorPhrases);
 
   const [filterPillar, setFilterPillar] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "live" | "concept">("all");
@@ -23,6 +24,7 @@ export default function LinkStructuurPage() {
   const [editPhrases, setEditPhrases] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   const pillarMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -102,20 +104,34 @@ export default function LinkStructuurPage() {
             <p className="text-sm text-gray-500">Overzicht van interne links — welke artikelen hebben aandacht nodig?</p>
           </div>
         </div>
-        <button
-          onClick={async () => {
-            if (!confirm("Alle ankerzinnen van alle artikelen verwijderen? Dit is onomkeerbaar.")) return;
-            setClearing(true);
-            const count = await clearAllAnchors({});
-            setClearing(false);
-            alert(`Ankerzinnen verwijderd van ${count} artikelen.`);
-          }}
-          disabled={clearing}
-          className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
-        >
-          <Trash2 size={14} />
-          {clearing ? "Bezig..." : "Alle ankerzinnen wissen"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              setGenerating(true);
+              const count = await bulkGenerate({});
+              setGenerating(false);
+              alert(`Ankerzinnen gegenereerd voor ${count} artikelen.`);
+            }}
+            disabled={generating}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-primary-600 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors disabled:opacity-50"
+          >
+            {generating ? "Bezig..." : "Ankerzinnen aanvullen (lege)"}
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm("Alle ankerzinnen van alle artikelen verwijderen? Dit is onomkeerbaar.")) return;
+              setClearing(true);
+              const count = await clearAllAnchors({});
+              setClearing(false);
+              alert(`Ankerzinnen verwijderd van ${count} artikelen.`);
+            }}
+            disabled={clearing}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+          >
+            <Trash2 size={14} />
+            {clearing ? "Bezig..." : "Alle ankerzinnen wissen"}
+          </button>
+        </div>
       </div>
 
       {/* Gezondheidsindicatoren */}
