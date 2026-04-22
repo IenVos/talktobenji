@@ -11,6 +11,15 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 const nextConfig = {
   reactStrictMode: true,
   distDir: ".next",
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "hardy-turtle-320.convex.cloud",
+        pathname: "/api/storage/**",
+      },
+    ],
+  },
   productionBrowserSourceMaps: false,
   async redirects() {
     return [

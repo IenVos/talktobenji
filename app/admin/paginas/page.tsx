@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import { Save, LayoutTemplate, ExternalLink, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
@@ -237,7 +237,65 @@ function SaveBar({ onSave, saving, saved }: { onSave: () => void; saving: boolea
   );
 }
 
+// ─── Afbeelding upload hulpcomponent ─────────────────────────────────────────
+function ImageUploadButton({ label, currentUrl, onUploaded }: {
+  label: string;
+  currentUrl?: string;
+  onUploaded: (url: string) => void;
+}) {
+  const generateUploadUrl = useAdminMutation(api.pageContent.generateUploadUrl);
+  const getImageUrl = useAdminMutation(api.pageContent.getImageUrl);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleFile = async (file: File) => {
+    setUploading(true); setError("");
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const res = await fetch(uploadUrl, { method: "POST", body: file, headers: { "Content-Type": file.type } });
+      const { storageId } = await res.json();
+      const url = await getImageUrl({ storageId });
+      if (url) onUploaded(url);
+    } catch {
+      setError("Upload mislukt");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="flex items-start gap-3">
+      {currentUrl && (
+        <img src={currentUrl} alt="" className="w-16 h-16 rounded-lg object-cover border border-gray-200 flex-shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-gray-700 mb-1.5">{label}</p>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="px-3 py-1.5 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-200 transition-colors disabled:opacity-50"
+        >
+          {uploading ? "Bezig…" : currentUrl ? "Vervangen" : "Uploaden"}
+        </button>
+        {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+      </div>
+    </div>
+  );
+}
+
 // ─── Tab: Homepage ────────────────────────────────────────────────────────────
+const SCREENSHOT_SLOTS = [
+  { id: "gesprek",        label: "Gesprek met Benji" },
+  { id: "mijn-plek",      label: "Mijn plek" },
+  { id: "memories",       label: "Memories" },
+  { id: "inspiratie",     label: "Inspiratie & troost" },
+  { id: "check-in",       label: "Dagelijkse check-ins" },
+  { id: "handreikingen",  label: "Handreikingen" },
+];
+
 function HomepageTab() {
   const saved = useAdminQuery(api.pageContent.getPageContent, { pageKey: "homepage" });
   const setContent = useAdminMutation(api.pageContent.setPageContent);
@@ -245,14 +303,31 @@ function HomepageTab() {
   const [saving, setSaving] = useState(false);
   const [saved2, setSaved2] = useState(false);
 
-  useEffect(() => { if (saved) setValues({ ...HOMEPAGE_DEFAULTS, ...saved }); }, [saved]);
+  // screenshots: array of FeatureItem stored as JSON in values.screenshots
+  const [screenshots, setScreenshots] = useState<{ id: string; label: string; image: string; imageAlt: string }[]>(
+    SCREENSHOT_SLOTS.map(s => ({ ...s, image: `/images/screenshots/${s.id}.png`, imageAlt: s.label }))
+  );
+
+  useEffect(() => {
+    if (saved) {
+      setValues({ ...HOMEPAGE_DEFAULTS, ...saved });
+      if (saved.screenshots) {
+        try { setScreenshots(JSON.parse(saved.screenshots)); } catch {}
+      }
+    }
+  }, [saved]);
 
   const set = (key: string, val: string) => setValues(p => ({ ...p, [key]: val }));
 
+  const setScreenshotUrl = (id: string, url: string) =>
+    setScreenshots(p => p.map(s => s.id === id ? { ...s, image: url } : s));
+
   const handleSave = async () => {
     setSaving(true); setSaved2(false);
-    try { await setContent({ pageKey: "homepage", content: JSON.stringify(values) }); setSaved2(true); setTimeout(() => setSaved2(false), 2000); }
-    finally { setSaving(false); }
+    try {
+      await setContent({ pageKey: "homepage", content: JSON.stringify({ ...values, screenshots: JSON.stringify(screenshots) }) });
+      setSaved2(true); setTimeout(() => setSaved2(false), 2000);
+    } finally { setSaving(false); }
   };
 
   return (
@@ -267,6 +342,34 @@ function HomepageTab() {
           </div>
         </div>
       ))}
+
+      {/* Screenshot-afbeeldingen */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1 pb-3 border-b border-gray-100">Screenshot-afbeeldingen</h3>
+        <p className="text-xs text-gray-400 mb-4">Upload nieuwe screenshots voor de scrollstrip op de homepage.</p>
+        <div className="space-y-4">
+          {screenshots.map(s => (
+            <ImageUploadButton
+              key={s.id}
+              label={s.label}
+              currentUrl={s.image.startsWith("http") ? s.image : undefined}
+              onUploaded={url => setScreenshotUrl(s.id, url)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Founder foto */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1 pb-3 border-b border-gray-100">Founder foto</h3>
+        <p className="text-xs text-gray-400 mb-4">Foto van Ien in het &apos;Over Benji&apos; blok.</p>
+        <ImageUploadButton
+          label="Foto van Ien"
+          currentUrl={values.founderImageUrl || undefined}
+          onUploaded={url => set("founderImageUrl", url)}
+        />
+      </div>
+
       <SaveBar onSave={handleSave} saving={saving} saved={saved2} />
     </div>
   );

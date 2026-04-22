@@ -35,6 +35,22 @@ export const setPageContent = mutation({
   },
 });
 
+export const generateUploadUrl = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.generateUploadUrl();
+  },
+});
+
+export const getImageUrl = mutation({
+  args: { adminToken: v.string(), storageId: v.id("_storage") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return ctx.storage.getUrl(args.storageId);
+  },
+});
+
 // Publieke query voor de homepage (geen adminToken nodig)
 export const getPublicPageContent = query({
   args: { pageKey: v.string() },

@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { SiteFooter } from "@/components/SiteFooter";
 import { HouvasteKnop } from "./home-concept/HouvasteKnop";
 import { SiteHeaderConcept } from "./home-concept/SiteHeaderConcept";
-import { FeatureShowcase } from "./home-concept/FeatureShowcase";
+import { FeatureShowcase, type FeatureItem } from "./home-concept/FeatureShowcase";
 
 export const revalidate = 60;
 
@@ -185,6 +185,11 @@ export default async function HomePage() {
   ]);
   const c = { ...DEFAULTS, ...(saved ?? {}) };
 
+  let customFeatures: FeatureItem[] | undefined;
+  if (c.screenshots) {
+    try { customFeatures = JSON.parse(c.screenshots); } catch {}
+  }
+
   const ervaringen: { tekst: string; naam: string }[] =
     liveTestimonials && liveTestimonials.length > 0
       ? liveTestimonials.map((t: { quote: string; name: string }) => ({ tekst: t.quote, naam: t.name }))
@@ -319,7 +324,7 @@ export default async function HomePage() {
           <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8 text-balance">
             {c.showcaseTitel}
           </h2>
-          <FeatureShowcase />
+          <FeatureShowcase features={customFeatures} />
         </div>
       </section>
 
@@ -329,7 +334,7 @@ export default async function HomePage() {
           <div className="flex flex-col items-center mb-6 text-center">
             <div className="w-20 h-20 rounded-2xl overflow-hidden mb-3">
               <Image
-                src="/images/ien-founder.png"
+                src={c.founderImageUrl || "/images/ien-founder.png"}
                 alt="Ien, oprichter"
                 width={80}
                 height={80}
