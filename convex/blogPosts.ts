@@ -127,12 +127,41 @@ export const generateUploadUrl = mutation({
 const STOP_NL = new Set(["de","het","een","en","of","in","van","aan","op","is","die","dat","te","ook","zijn","wat","hoe","er","naar","met","voor","door","bij","maar","als","om","tot","dan","zo","wel","niet","nog","je","ik","we","ze","hij","zij","haar","hun","hem"]);
 function autoAnchorPhrases(title: string, focusKeyword?: string): string[] {
   const phrases: string[] = [];
-  if (focusKeyword?.trim() && focusKeyword.trim().includes(" ")) phrases.push(focusKeyword.trim().toLowerCase());
+  const fk = focusKeyword?.trim().toLowerCase() ?? "";
+
+  // 1. Focuszoekwoord altijd eerste keuze (als het meerdere woorden heeft)
+  if (fk && fk.includes(" ")) phrases.push(fk);
+
+  // 2. Genereer aaneengesloten spans van 2–4 woorden uit de titel.
+  //    Stopwoorden MOGEN binnen de span zitten ("verlies van je hond" > "verlies hond"),
+  //    maar niet aan het begin of einde.
   const clean = title.toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim();
-  const words = clean.split(/\s+/).filter(w => w.length > 3 && !STOP_NL.has(w));
-  if (words.length >= 2) phrases.push(words.slice(0, Math.min(3, words.length)).join(" "));
-  if (words.length > 3) phrases.push(words.slice(words.length - 3).join(" "));
-  return [...new Set(phrases)].slice(0, 3).filter(Boolean);
+  const allWords = clean.split(/\s+/).filter(Boolean);
+  const fkWords = new Set(fk.split(/\s+/).filter(w => w.length > 3 && !STOP_NL.has(w)));
+  const contentWords = new Set(allWords.filter(w => w.length > 3 && !STOP_NL.has(w)));
+
+  const candidates: { phrase: string; score: number }[] = [];
+  for (let len = 4; len >= 2; len--) {
+    for (let i = 0; i <= allWords.length - len; i++) {
+      const span = allWords.slice(i, i + len);
+      // Niet starten of eindigen met stopwoord
+      if (STOP_NL.has(span[0]) || STOP_NL.has(span[span.length - 1])) continue;
+      const phrase = span.join(" ");
+      if (phrases.includes(phrase)) continue;
+      // Score: focus-keywordwoorden zwaarst, dan inhoudelijke woorden, dan lengte
+      const fkHits = span.filter(w => fkWords.has(w)).length;
+      const contentHits = span.filter(w => contentWords.has(w)).length;
+      candidates.push({ phrase, score: fkHits * 10 + contentHits * 2 + len });
+    }
+  }
+
+  candidates.sort((a, b) => b.score - a.score);
+  for (const c of candidates) {
+    if (phrases.length >= 3) break;
+    if (!phrases.includes(c.phrase)) phrases.push(c.phrase);
+  }
+
+  return phrases.filter(Boolean);
 }
 
 /** Admin: nieuw artikel aanmaken */

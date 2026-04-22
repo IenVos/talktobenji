@@ -60,21 +60,38 @@ const STOP_WORDS = new Set(["de","het","een","en","of","in","van","aan","op","is
 
 function suggestAnchorPhrases(title: string, focusKeyword: string): string[] {
   const suggestions: string[] = [];
-  // Focus keyword alleen toevoegen als het meerdere woorden bevat
-  if (focusKeyword.trim() && focusKeyword.trim().includes(" ")) suggestions.push(focusKeyword.trim().toLowerCase());
+  const fk = focusKeyword.trim().toLowerCase();
+
+  // Focuszoekwoord altijd eerste keuze
+  if (fk && fk.includes(" ")) suggestions.push(fk);
+
+  // Genereer spans van 2–4 woorden, stopwoorden mogen binnen de span.
+  // Gesorteerd op: focus-keywordwoorden zwaarst, dan inhoudelijke woorden, dan lengte.
   const clean = title.toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "").trim();
-  const words = clean.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
-  // Alleen 2-woordcombinaties
-  for (let i = 0; i < words.length - 1; i++) {
-    const p = `${words[i]} ${words[i + 1]}`;
-    if (!suggestions.includes(p)) suggestions.push(p);
+  const allWords = clean.split(/\s+/).filter(Boolean);
+  const fkWords = new Set(fk.split(/\s+/).filter(w => w.length > 3 && !STOP_WORDS.has(w)));
+  const contentWords = new Set(allWords.filter(w => w.length > 3 && !STOP_WORDS.has(w)));
+
+  const candidates: { phrase: string; score: number }[] = [];
+  for (let len = 4; len >= 2; len--) {
+    for (let i = 0; i <= allWords.length - len; i++) {
+      const span = allWords.slice(i, i + len);
+      if (STOP_WORDS.has(span[0]) || STOP_WORDS.has(span[span.length - 1])) continue;
+      const phrase = span.join(" ");
+      if (suggestions.includes(phrase)) continue;
+      const fkHits = span.filter(w => fkWords.has(w)).length;
+      const contentHits = span.filter(w => contentWords.has(w)).length;
+      candidates.push({ phrase, score: fkHits * 10 + contentHits * 2 + len });
+    }
   }
-  // Alleen 3-woordcombinaties
-  for (let i = 0; i < words.length - 2; i++) {
-    const p = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
-    if (!suggestions.includes(p)) suggestions.push(p);
+
+  candidates.sort((a, b) => b.score - a.score);
+  for (const c of candidates) {
+    if (suggestions.length >= 10) break;
+    if (!suggestions.includes(c.phrase)) suggestions.push(c.phrase);
   }
-  return suggestions.slice(0, 10);
+
+  return suggestions;
 }
 
 function slugify(text: string) {
