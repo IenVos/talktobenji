@@ -607,6 +607,22 @@ export const previewIncomingLinks = query({
   },
 });
 
+/** Admin: één ankerzin verwijderen uit een doelartikel */
+export const removeAnchorPhrase = mutation({
+  args: {
+    adminToken: v.string(),
+    targetId: v.id("blogPosts"),
+    phrase: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const post = await ctx.db.get(args.targetId);
+    if (!post) return;
+    const updated = (post.anchorPhrases ?? []).filter(p => p !== args.phrase);
+    await ctx.db.patch(args.targetId, { anchorPhrases: updated.length ? updated : undefined, updatedAt: Date.now() });
+  },
+});
+
 /** Admin: ankerzinnen toevoegen aan doel-artikelen na scan-goedkeuring */
 export const applyLinkSuggestions = mutation({
   args: {

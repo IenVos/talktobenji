@@ -118,6 +118,7 @@ export default function AdminBlogPage() {
   const generateUploadUrl = useAdminMutation(api.blogPosts.generateUploadUrl);
   const getImageUrl = useAdminMutation(api.blogPosts.getImageUrl);
   const applyLinks = useAdminMutation(api.blogPosts.applyLinkSuggestions);
+  const removeAnchorPhrase = useAdminMutation(api.blogPosts.removeAnchorPhrase);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"blogPosts"> | null>(null);
@@ -1131,7 +1132,7 @@ export default function AdminBlogPage() {
                           const checked = scanAccepted.has(r.targetSlug);
                           const badgeColor = r.incomingLinkCount === 0 ? "bg-red-100 text-red-600" : r.incomingLinkCount === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
                           return (
-                            <label key={r.targetSlug} className={`flex items-start gap-2 ${r.isNewAnchor ? "cursor-pointer" : "cursor-default opacity-60"}`}>
+                            <div key={r.targetSlug} className={`flex items-start gap-2 ${r.isNewAnchor ? "" : "opacity-60"}`}>
                               <input
                                 type="checkbox"
                                 checked={!r.isNewAnchor || checked}
@@ -1144,7 +1145,7 @@ export default function AdminBlogPage() {
                                     return next;
                                   });
                                 }}
-                                className="mt-0.5 rounded border-primary-300 text-primary-600 disabled:opacity-50"
+                                className="mt-0.5 rounded border-primary-300 text-primary-600 disabled:opacity-50 cursor-pointer"
                               />
                               <div className="flex-1 min-w-0">
                                 <div className="flex flex-col gap-1">
@@ -1166,10 +1167,23 @@ export default function AdminBlogPage() {
                                     {r.isConceptTarget && (
                                       <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept — link actief zodra live</span>
                                     )}
+                                    {!r.isNewAnchor && !r.isApproximate && (
+                                      <button
+                                        type="button"
+                                        title="Ankerzin verwijderen"
+                                        onClick={async () => {
+                                          await removeAnchorPhrase({ targetId: r.targetId as Id<"blogPosts">, phrase: r.matchedPhrase });
+                                          setScanResults(prev => prev ? prev.filter(x => x.targetSlug !== r.targetSlug) : null);
+                                        }}
+                                        className="text-[10px] text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded px-1 py-0.5 transition-colors leading-none"
+                                      >
+                                        × verwijder
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
-                            </label>
+                            </div>
                           );
                         })}
                         {(() => {
