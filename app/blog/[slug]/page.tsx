@@ -520,18 +520,25 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
                   <div className={`grid grid-cols-1 gap-4 mb-4 ${articleLinks.length === 1 ? "" : articleLinks.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
                     {articleLinks.map((link: any, i: number) => {
                       const cover = coverMap.get(link.slug);
+                      const isConcept = !cover;
                       return (
                         <Link key={i} href={`/blog/${link.slug}`}
                           className="group bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow">
                           {cover
                             ? <img src={cover} alt={link.label} className="w-full h-36 object-cover" />
-                            : <div className="w-full h-36 bg-primary-50" />}
+                            : (
+                              <div className="w-full h-36 bg-primary-50 flex items-center justify-center">
+                                <span className="text-xs font-medium text-primary-400 bg-primary-100 border border-primary-200 rounded-full px-3 py-1">
+                                  Binnenkort beschikbaar
+                                </span>
+                              </div>
+                            )}
                           <div className="p-4">
                             <p className="font-semibold text-stone-800 leading-snug mb-3 group-hover:text-primary-600 transition-colors text-sm line-clamp-2">
                               {link.label}
                             </p>
-                            <span className="text-sm text-primary-600 border border-primary-200 px-3 py-1 rounded-lg inline-block">
-                              Lees verder →
+                            <span className={`text-sm border px-3 py-1 rounded-lg inline-block ${isConcept ? "text-stone-400 border-stone-200" : "text-primary-600 border-primary-200"}`}>
+                              {isConcept ? "Binnenkort →" : "Lees verder →"}
                             </span>
                           </div>
                         </Link>

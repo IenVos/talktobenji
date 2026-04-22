@@ -406,19 +406,21 @@ export default async function PillarPage({ params }: Props) {
           </div>
         )}
 
-        {/* Artikelen */}
+        {/* Artikelen — max 4, rest via /artikelen */}
         {(articles as any[]).length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-stone-800">
                 Artikelen over {pillar.title}
               </h2>
-              <Link href={`/thema/${pillar.slug}/artikelen`} className="text-sm text-primary-600 hover:text-primary-800 transition-colors whitespace-nowrap">
-                Bekijk alle artikelen →
-              </Link>
+              {(articles as any[]).length > 4 && (
+                <Link href={`/thema/${pillar.slug}/artikelen`} className="text-sm text-primary-600 hover:text-primary-800 transition-colors whitespace-nowrap">
+                  Bekijk alle {(articles as any[]).length} artikelen →
+                </Link>
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {(articles as any[]).map((post) => (
+              {(articles as any[]).slice(0, 4).map((post) => (
                 <Link
                   key={post._id}
                   href={`/blog/${post.slug}`}
@@ -455,11 +457,14 @@ export default async function PillarPage({ params }: Props) {
                 </Link>
               ))}
             </div>
+            {(articles as any[]).length > 4 && (
+              <div className="mt-6 text-center">
+                <Link href={`/thema/${pillar.slug}/artikelen`} className="inline-block text-sm text-primary-600 border border-primary-200 rounded-xl px-5 py-2.5 hover:bg-primary-50 transition-colors">
+                  Bekijk alle {(articles as any[]).length} artikelen →
+                </Link>
+              </div>
+            )}
           </div>
-        )}
-
-        {(articles as any[]).length === 0 && (
-          <p className="text-stone-400 text-sm">Er zijn nog geen artikelen gepubliceerd onder dit thema.</p>
         )}
 
         <CtaBlockA data={ctaData} />
