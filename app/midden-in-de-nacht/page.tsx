@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
 
@@ -139,6 +141,11 @@ const testimonials = [
 
 export default function MiddenInDeNachtPage() {
   const [verhaalOpen, setVerhaalOpen] = useState(false);
+  const liveTestimonials = useQuery(api.testimonials.listActive);
+  const displayTestimonials: { quote: string; name: string }[] =
+    liveTestimonials && liveTestimonials.length > 0
+      ? liveTestimonials
+      : testimonials;
 
   return (
     <div
@@ -223,7 +230,7 @@ export default function MiddenInDeNachtPage() {
         <div className="mt-12 space-y-4">
           <p className="text-xs text-white/40 uppercase tracking-wide">Wat anderen zeggen</p>
           <div className="grid sm:grid-cols-3 gap-3">
-            {testimonials.map((t, i) => (
+            {displayTestimonials.map((t, i) => (
               <div key={i} className="bg-white/8 backdrop-blur-sm rounded-xl border border-white/15 px-4 py-4">
                 <p className="text-xs sm:text-sm text-blue-100/80 leading-relaxed mb-3">
                   &ldquo;{t.quote}&rdquo;

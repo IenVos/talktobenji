@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { VerhaalTrigger } from "@/components/VerhaalPopup";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Als je iemand hebt verloren · Talk To Benji",
@@ -24,7 +28,13 @@ const testimonials = [
   },
 ];
 
-export default function NaVerliesPage() {
+export default async function NaVerliesPage() {
+  const liveTestimonials = await fetchQuery(api.testimonials.listActive, {}).catch(() => []);
+  const displayTestimonials: { quote: string; name: string }[] =
+    liveTestimonials && liveTestimonials.length > 0
+      ? liveTestimonials
+      : testimonials;
+
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -84,7 +94,7 @@ export default function NaVerliesPage() {
 
         {/* Testimonials */}
         <div className="mt-14 grid sm:grid-cols-3 gap-3">
-          {testimonials.map((t, i) => (
+          {displayTestimonials.map((t, i) => (
             <div
               key={i}
               className="rounded-2xl border border-primary-200/70 bg-white/55 px-5 py-5"

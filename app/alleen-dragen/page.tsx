@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { VerhaalTrigger } from "@/components/VerhaalPopup";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Als je het niet kwijt kunt · Talk To Benji",
@@ -24,7 +28,13 @@ const testimonials = [
   },
 ];
 
-export default function AlleenDragenPage() {
+export default async function AlleenDragenPage() {
+  const liveTestimonials = await fetchQuery(api.testimonials.listActive, {}).catch(() => []);
+  const displayTestimonials: { quote: string; name: string }[] =
+    liveTestimonials && liveTestimonials.length > 0
+      ? liveTestimonials
+      : testimonials;
+
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -99,7 +109,7 @@ export default function AlleenDragenPage() {
         <div className="mt-12 space-y-4">
           <p className="text-xs text-gray-400 uppercase tracking-wide">Wat anderen zeggen</p>
           <div className="grid sm:grid-cols-3 gap-3">
-            {testimonials.map((t, i) => (
+            {displayTestimonials.map((t, i) => (
               <div
                 key={i}
                 className="bg-white/70 backdrop-blur-sm rounded-xl border border-gray-300 px-4 py-4"

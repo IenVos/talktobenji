@@ -179,8 +179,16 @@ const FAQ_SCHEMA = {
 };
 
 export default async function HomePage() {
-  const saved = await fetchQuery(api.pageContent.getPublicPageContent, { pageKey: "homepage" }).catch(() => null);
+  const [saved, liveTestimonials] = await Promise.all([
+    fetchQuery(api.pageContent.getPublicPageContent, { pageKey: "homepage" }).catch(() => null),
+    fetchQuery(api.testimonials.listActive, {}).catch(() => []),
+  ]);
   const c = { ...DEFAULTS, ...(saved ?? {}) };
+
+  const ervaringen: { tekst: string; naam: string }[] =
+    liveTestimonials && liveTestimonials.length > 0
+      ? liveTestimonials.map((t: { quote: string; name: string }) => ({ tekst: t.quote, naam: t.name }))
+      : ERVARINGEN;
 
   return (
     <div className="min-h-screen bg-white">
@@ -402,7 +410,7 @@ export default async function HomePage() {
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {ERVARINGEN.map((e) => (
+            {ervaringen.map((e) => (
               <div key={e.naam + e.tekst.slice(0, 20)} className="bg-white rounded-xl border border-gray-100 flex flex-col p-5">
                 <svg viewBox="0 0 24 24" className="w-5 h-5 text-primary-200 mb-2 flex-shrink-0" fill="currentColor">
                   <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />

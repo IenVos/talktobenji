@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { FounderLink } from "@/components/chat/FounderLink";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Veelgestelde vragen · Talk To Benji",
@@ -26,12 +30,55 @@ function FaqItem({ question, children }: { question: string; children: React.Rea
   );
 }
 
-export default function FaqPage() {
+type FaqItem2 = { q: string; a: string };
+type FaqSection2 = { title: string; items: FaqItem2[] };
+
+function renderFaqBody(text: string) {
+  return text.split("\n\n").filter(Boolean).map((block, i) => {
+    const lines = block.split("\n");
+    if (lines.some((l) => l.startsWith("- "))) {
+      const textLines = lines.filter((l) => !l.startsWith("- ") && l.trim());
+      const bulletLines = lines.filter((l) => l.startsWith("- "));
+      return (
+        <div key={i} className="space-y-2">
+          {textLines.map((l, j) => <p key={j}>{l}</p>)}
+          <ul className="list-disc list-inside space-y-1 ml-2">
+            {bulletLines.map((b, j) => <li key={j}>{b.slice(2)}</li>)}
+          </ul>
+        </div>
+      );
+    }
+    return <p key={i}>{block.replace(/\n/g, " ")}</p>;
+  });
+}
+
+export default async function FaqPage() {
+  const saved = await fetchQuery(api.pageContent.getPublicPageContent, { pageKey: "faq" }).catch(() => null);
+  let adminSections: FaqSection2[] | null = null;
+  if (saved?.sections) {
+    try { adminSections = JSON.parse(saved.sections as string); } catch {}
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <HeaderBar />
       <main className="max-w-2xl mx-auto px-4 py-8 text-gray-700 text-sm leading-relaxed space-y-6">
         <h1 className="text-2xl font-semibold text-gray-900">Veelgestelde vragen</h1>
+
+        {adminSections ? (
+          <>
+            {adminSections.map((s, si) => (
+              <FaqSection key={si} title={s.title}>
+                {s.items.map((item, ii) => (
+                  <FaqItem key={ii} question={item.q}>
+                    {renderFaqBody(item.a)}
+                  </FaqItem>
+                ))}
+              </FaqSection>
+            ))}
+          </>
+        ) : (
+          <>
 
         <FaqSection title="Over Benji">
           <FaqItem question="Wat is Talk To Benji?">
@@ -467,6 +514,9 @@ export default function FaqPage() {
           </FaqItem>
         </FaqSection>
 
+          </>
+        )}
+
         <div className="pt-6 border-t border-gray-200 space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Heb je nog andere vragen?</h2>
           <p>
@@ -505,7 +555,7 @@ export default function FaqPage() {
         </div>
 
         <div className="flex flex-wrap gap-4 pt-6">
-          <Link href="/" className="text-primary-600 hover:text-primary-700 font-medium">
+          <Link href="/benji" className="text-primary-600 hover:text-primary-700 font-medium">
             ← Terug naar Benji
           </Link>
           <Link href="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
