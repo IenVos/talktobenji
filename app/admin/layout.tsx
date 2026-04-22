@@ -205,6 +205,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         label: "Content",
         icon: Sparkles,
         items: [
+          { href: "/admin/paginas", label: "Pagina's", icon: LayoutTemplate },
           { href: "/admin/blog", label: "Blog artikelen", icon: Newspaper },
           { href: "/admin/pillars", label: "Pillar pagina's", icon: Layers },
           { href: "/admin/linkstructuur", label: "Linkstructuur", icon: Network },

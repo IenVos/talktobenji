@@ -785,4 +785,11 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_active_order", ["isActive", "order"]),
+
+  // Bewerkbare paginateksten (homepage, landingspagina's, etc.)
+  pageContent: defineTable({
+    pageKey: v.string(),   // bijv. "homepage"
+    content: v.string(),   // JSON string met bewerkbare velden
+    updatedAt: v.number(),
+  }).index("by_pageKey", ["pageKey"]),
 });

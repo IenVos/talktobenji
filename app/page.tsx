@@ -1,9 +1,52 @@
 import Link from "next/link";
 import Image from "next/image";
+import { fetchQuery } from "convex/nextjs";
+import { api } from "@/convex/_generated/api";
 import { SiteFooter } from "@/components/SiteFooter";
 import { HouvasteKnop } from "./home-concept/HouvasteKnop";
 import { SiteHeaderConcept } from "./home-concept/SiteHeaderConcept";
 import { FeatureShowcase } from "./home-concept/FeatureShowcase";
+
+export const revalidate = 60;
+
+const DEFAULTS: Record<string, string> = {
+  heroLabel:       "03:18 's nachts. Niemand om te bellen.",
+  heroTitle:       "Altijd iemand die luistert,",
+  heroTitleAccent: "ook als het moeilijk is",
+  heroSubtitle:    "Benji is er voor je als je verdriet hebt, iets verliest of gewoon je gedachten kwijt wilt. Altijd beschikbaar, zonder oordeel.",
+  heroCta1:        "Praat nu met Benji",
+  heroCta2:        "Lees over verdriet en verlies",
+  heroNote:        "Anoniem · Geen registratie nodig · Direct beschikbaar",
+  blok1Titel:      "Praat gratis met Benji",
+  blok1Tekst:      "Je eerste vijf gesprekken zijn gratis, zonder account. Maak je een account aan, dan kun je tien gesprekken per maand voeren.",
+  blok1Cta:        "Begin een gesprek",
+  blok2Titel:      "Samen Omgaan met Verdriet en Pijn",
+  blok2Tekst:      "Een plek waar je steun, begrip en praktische tips vindt om sterker door moeilijke tijden te komen.",
+  blok2Cta:        "Bekijk alle artikelen",
+  blok3Titel:      "Benji voor een heel jaar",
+  blok3Tekst:      "Voor wie wil dat Benji er altijd is, ook als het even beter gaat. Ontdek wat erbij zit.",
+  blok3Cta:        "Bekijk wat erbij zit",
+  overTitle:       "Gemaakt omdat er iets ontbrak en uit eigen ervaring met verlies",
+  overP1:          "Ik ben Ien, oprichter van Talk To Benji. Ik vroeg me af waarom er voor mensen met verdriet zo weinig is dat echt laagdrempelig is. Geen wachtlijst, geen intake, geen afspraak, gewoon iemand die luistert, ook om 03:00 's nachts.",
+  overP2:          "Dat werd Benji. Zes jaar lang zocht ik naar de beste manier om een plek te maken waar je je verhaal kwijt kunt, je gedachten kunt ordenen en zo beter zicht krijgt op alles wat er in je hoofd zit. Niet om je te vertellen wat je moet doen, maar om je te helpen het zelf te begrijpen.",
+  overP3:          "Benji is geen professional, en dat zegt hij ook eerlijk. Maar voor de momenten dat de drempel naar echte hulp te hoog is, of als je gewoon wilt zeggen wat er is, dan is Benji er.",
+  stappenTitel:    "Zo werkt een gesprek met Benji",
+  stap1Titel:      "Je typt of zegt wat er is",
+  stap1Tekst:      "Geen vragen vooraf, geen verplicht onderwerp. Je begint gewoon, ook als je niet precies weet waar je moet starten.",
+  stap2Titel:      "Benji luistert en vraagt door",
+  stap2Tekst:      "Benji reageert op jou. Stelt vragen, geeft ruimte, en past zich aan wat jij nodig hebt op dat moment.",
+  stap3Titel:      "Jij bepaalt wanneer je stopt",
+  stap3Tekst:      "Je sluit het gesprek af wanneer jij wilt. Geen verplichtingen, geen follow-up die je niet wilt.",
+  stap4Titel:      "Verder waar je gebleven was",
+  stap4Tekst:      "Met een gratis account blijven je gesprekken bewaard. Je kunt op elk moment verder waar je gebleven was.",
+  stap5Titel:      "Er is meer",
+  stap5Tekst:      "Met Benji voor een jaar heb je toegang tot alles: reflecties, doelen, memories, dagelijkse check-ins, inspiratie en een herdenkingskalender.",
+  ctaTitel:        "Klaar om te beginnen?",
+  ctaTekst:        "Je hoeft je niet te registreren. Begin gewoon een gesprek, anoniem en direct beschikbaar.",
+  ctaKnop:         "Praat nu met Benji",
+  showcaseTitel:   "Meer dan een gesprek",
+  showcaseSubtitel: "Maak een gratis account aan en houd bij wat je bezighoudt. Met Benji voor een jaar heb je toegang tot alles.",
+};
 
 function IconChat() {
   return (
@@ -45,41 +88,6 @@ function IconArrow() {
   );
 }
 
-const BLOKKEN = [
-  {
-    icon: <IconChat />,
-    kleur: "bg-primary-600",
-    tekstKleur: "text-primary-700",
-    titel: "Praat gratis met Benji",
-    omschrijving:
-      "Je eerste vijf gesprekken zijn gratis, zonder account. Maak je een account aan, dan kun je tien gesprekken per maand voeren.",
-    cta: "Begin een gesprek",
-    href: "/benji",
-    badge: null,
-  },
-  {
-    icon: <IconBlog />,
-    kleur: "bg-primary-700",
-    tekstKleur: "text-primary-700",
-    titel: "Samen Omgaan met Verdriet en Pijn",
-    omschrijving:
-      "Een plek waar je steun, begrip en praktische tips vindt om sterker door moeilijke tijden te komen.",
-    cta: "Bekijk alle artikelen",
-    href: "/blog",
-    badge: null,
-  },
-  {
-    icon: <IconHeart />,
-    kleur: "bg-primary-800",
-    tekstKleur: "text-primary-700",
-    titel: "Benji voor een heel jaar",
-    omschrijving:
-      "Voor wie wil dat Benji er altijd is, ook als het even beter gaat. Ontdek wat erbij zit.",
-    cta: "Bekijk wat erbij zit",
-    href: "/lp/jaar-toegang",
-    badge: null,
-  },
-];
 
 const KENMERKEN = [
   {
@@ -170,7 +178,10 @@ const FAQ_SCHEMA = {
   })),
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const saved = await fetchQuery(api.pageContent.getPageContent, { pageKey: "homepage" }).catch(() => null);
+  const c = { ...DEFAULTS, ...(saved ?? {}) };
+
   return (
     <div className="min-h-screen bg-white">
       <script
@@ -204,19 +215,18 @@ export default function HomePage() {
           </div>
 
           <p className="text-primary-300 text-base sm:text-lg font-medium mb-4 tracking-wide">
-            03:18 's nachts. Niemand om te bellen.
+            {c.heroLabel}
           </p>
 
           <h1 className="text-3xl sm:text-5xl font-bold leading-tight text-white max-w-3xl mx-auto text-balance">
-            Altijd iemand die luistert,
+            {c.heroTitle}
             <span className="block text-primary-200 mt-1">
-              ook als het moeilijk is
+              {c.heroTitleAccent}
             </span>
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-primary-200 max-w-xl mx-auto leading-relaxed text-balance">
-            Benji is er voor je als je verdriet hebt, iets verliest of gewoon
-            je gedachten kwijt wilt. Altijd beschikbaar, zonder oordeel.
+            {c.heroSubtitle}
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -224,18 +234,18 @@ export default function HomePage() {
               href="/benji"
               className="w-full sm:w-auto px-8 py-4 bg-white text-primary-900 font-semibold rounded-xl hover:bg-primary-50 transition-colors shadow text-base text-center"
             >
-              Praat nu met Benji
+              {c.heroCta1}
             </Link>
             <Link
               href="/blog"
               className="w-full sm:w-auto px-8 py-4 bg-primary-700 text-white font-medium rounded-xl hover:bg-primary-600 transition-colors text-base border border-primary-600 text-center"
             >
-              Lees over verdriet en verlies
+              {c.heroCta2}
             </Link>
           </div>
 
           <p className="mt-6 text-sm text-primary-300">
-            Anoniem · Geen registratie nodig · Direct beschikbaar
+            {c.heroNote}
           </p>
         </div>
       </section>
@@ -251,26 +261,22 @@ export default function HomePage() {
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {BLOKKEN.map((blok) => (
+          {[
+            { icon: <IconChat />, kleur: "bg-primary-600", href: "/benji",          titel: c.blok1Titel, omschrijving: c.blok1Tekst, cta: c.blok1Cta },
+            { icon: <IconBlog />, kleur: "bg-primary-700", href: "/blog",           titel: c.blok2Titel, omschrijving: c.blok2Tekst, cta: c.blok2Cta },
+            { icon: <IconHeart />, kleur: "bg-primary-800", href: "/lp/jaar-toegang", titel: c.blok3Titel, omschrijving: c.blok3Tekst, cta: c.blok3Cta },
+          ].map((blok) => (
             <Link
-              key={blok.titel}
+              key={blok.href}
               href={blok.href}
               className="group relative flex flex-col bg-white border border-primary-100 rounded-2xl p-6 hover:shadow-md hover:border-primary-300 transition-all"
             >
-              {blok.badge && (
-                <span className="absolute top-4 right-4 text-[10px] font-semibold uppercase tracking-wide bg-primary-100 text-primary-600 px-2 py-0.5 rounded-full">
-                  {blok.badge}
-                </span>
-              )}
-
               <div className={`w-12 h-12 rounded-xl ${blok.kleur} text-white flex items-center justify-center mb-4 flex-shrink-0`}>
                 {blok.icon}
               </div>
-
               <h3 className="text-base font-semibold text-primary-900 mb-2 text-balance">{blok.titel}</h3>
               <p className="text-sm text-primary-600 leading-relaxed flex-1 text-balance">{blok.omschrijving}</p>
-
-              <div className={`mt-5 text-sm font-medium ${blok.tekstKleur} flex items-center gap-1.5 group-hover:gap-2.5 transition-all`}>
+              <div className="mt-5 text-sm font-medium text-primary-700 flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
                 {blok.cta}
                 <IconArrow />
               </div>
@@ -303,7 +309,7 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto px-6">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 text-center mb-2">Wat je krijgt</p>
           <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8 text-balance">
-            Meer dan een gesprek
+            {c.showcaseTitel}
           </h2>
           <FeatureShowcase />
         </div>
@@ -328,25 +334,12 @@ export default function HomePage() {
 
           <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-2 text-center">Over Benji</p>
           <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-5 text-balance text-center">
-            Gemaakt omdat er iets ontbrak en uit eigen ervaring met verlies
+            {c.overTitle}
           </h2>
           <div className="space-y-4 text-sm text-primary-700 leading-relaxed text-left">
-            <p>
-              Ik ben Ien, oprichter van Talk To Benji. Ik vroeg me af waarom er voor mensen
-              met verdriet zo weinig is dat echt laagdrempelig is. Geen wachtlijst, geen intake,
-              geen afspraak, gewoon iemand die luistert, ook om 03:00 's nachts.
-            </p>
-            <p>
-              Dat werd Benji. Zes jaar lang zocht ik naar de beste manier om een plek te maken
-              waar je je verhaal kwijt kunt, je gedachten kunt ordenen en zo beter zicht krijgt
-              op alles wat er in je hoofd zit. Niet om je te vertellen wat je moet doen, maar
-              om je te helpen het zelf te begrijpen.
-            </p>
-            <p>
-              Benji is geen professional, en dat zegt hij ook eerlijk. Maar voor de momenten
-              dat de drempel naar echte hulp te hoog is, of als je gewoon wilt zeggen wat er
-              is, dan is Benji er.
-            </p>
+            <p>{c.overP1}</p>
+            <p>{c.overP2}</p>
+            <p>{c.overP3}</p>
           </div>
           <Link
             href="/waarom-benji"
@@ -362,16 +355,16 @@ export default function HomePage() {
       {/* Zo werkt een gesprek met Benji */}
       <section className="max-w-5xl mx-auto px-6 py-16 sm:py-20">
         <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 text-center mb-3 text-balance">
-          Zo werkt een gesprek met Benji
+          {c.stappenTitel}
         </h2>
         <p className="text-primary-500 text-center text-sm mb-10 text-balance">
           Geen formulieren, geen intake. Gewoon beginnen.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
-            { stap: "1", titel: "Je typt of zegt wat er is", tekst: "Geen vragen vooraf, geen verplicht onderwerp. Je begint gewoon, ook als je niet precies weet waar je moet starten." },
-            { stap: "2", titel: "Benji luistert en vraagt door", tekst: "Benji reageert op jou. Stelt vragen, geeft ruimte, en past zich aan wat jij nodig hebt op dat moment." },
-            { stap: "3", titel: "Jij bepaalt wanneer je stopt", tekst: "Je sluit het gesprek af wanneer jij wilt. Geen verplichtingen, geen follow-up die je niet wilt." },
+            { stap: "1", titel: c.stap1Titel, tekst: c.stap1Tekst },
+            { stap: "2", titel: c.stap2Titel, tekst: c.stap2Tekst },
+            { stap: "3", titel: c.stap3Titel, tekst: c.stap3Tekst },
           ].map((s) => (
             <div key={s.stap} className="flex flex-col p-8 bg-white rounded-2xl border" style={{ borderColor: "#7ec8e3" }}>
               <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">
@@ -384,24 +377,20 @@ export default function HomePage() {
         </div>
 
         <div className="mt-6 flex flex-col sm:flex-row justify-center gap-6">
-          {[
-            { stap: "4", titel: "Verder waar je gebleven was", tekst: "Met een gratis account blijven je gesprekken bewaard. Je kunt op elk moment verder waar je gebleven was.", link: null },
-            { stap: "5", titel: "Er is meer", tekst: "Met Benji voor een jaar heb je toegang tot alles: reflecties, doelen, memories, dagelijkse check-ins, inspiratie en een herdenkingskalender.", link: { tekst: "Bekijk wat erbij zit", href: "/lp/jaar-toegang" } },
-          ].map((s) => (
-            <div key={s.stap} className="flex flex-col p-8 bg-white rounded-2xl border sm:w-[calc(33.333%-0.75rem)]" style={{ borderColor: "#7ec8e3" }}>
-              <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">
-                {s.stap}
-              </div>
-              <h3 className="text-base font-semibold text-primary-900 mb-2">{s.titel}</h3>
-              <p className="text-sm text-primary-600 leading-relaxed text-balance flex-1">{s.tekst}</p>
-              {s.link && (
-                <Link href={s.link.href} className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
-                  {s.link.tekst}
-                  <IconArrow />
-                </Link>
-              )}
-            </div>
-          ))}
+          <div className="flex flex-col p-8 bg-white rounded-2xl border sm:w-[calc(33.333%-0.75rem)]" style={{ borderColor: "#7ec8e3" }}>
+            <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">4</div>
+            <h3 className="text-base font-semibold text-primary-900 mb-2">{c.stap4Titel}</h3>
+            <p className="text-sm text-primary-600 leading-relaxed text-balance flex-1">{c.stap4Tekst}</p>
+          </div>
+          <div className="flex flex-col p-8 bg-white rounded-2xl border sm:w-[calc(33.333%-0.75rem)]" style={{ borderColor: "#7ec8e3" }}>
+            <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">5</div>
+            <h3 className="text-base font-semibold text-primary-900 mb-2">{c.stap5Titel}</h3>
+            <p className="text-sm text-primary-600 leading-relaxed text-balance flex-1">{c.stap5Tekst}</p>
+            <Link href="/lp/jaar-toegang" className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
+              Bekijk wat erbij zit
+              <IconArrow />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -477,18 +466,17 @@ export default function HomePage() {
       <section className="bg-primary-50 border-y border-primary-100">
         <div className="max-w-4xl mx-auto px-6 py-16 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-4 text-balance">
-            Klaar om te beginnen?
+            {c.ctaTitel}
           </h2>
           <p className="text-primary-600 mb-8 max-w-sm mx-auto text-balance">
-            Je hoeft je niet te registreren. Begin gewoon een gesprek,
-            anoniem en direct beschikbaar.
+            {c.ctaTekst}
           </p>
           <Link
             href="/benji"
             className="inline-flex items-center gap-2 px-8 py-4 bg-primary-800 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors shadow text-base"
           >
             <IconChat />
-            Praat nu met Benji
+            {c.ctaKnop}
           </Link>
         </div>
       </section>
