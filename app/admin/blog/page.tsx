@@ -1167,7 +1167,7 @@ export default function AdminBlogPage() {
                                     {r.isConceptTarget && (
                                       <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept — link actief zodra live</span>
                                     )}
-                                    {!r.isNewAnchor && !r.isApproximate && (
+                                    {!r.isNewAnchor && (
                                       <button
                                         type="button"
                                         title="Ankerzin verwijderen"
