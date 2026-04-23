@@ -161,25 +161,26 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     {
       type: "group",
       group: {
-        id: "verkoop",
-        label: "Verkoop",
-        icon: CreditCard,
+        id: "overzicht",
+        label: "Overzicht",
+        icon: BarChart3,
         items: [
-          { href: "/admin/checkout", label: "Checkout producten", icon: CreditCard },
-          { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
-          { href: "/admin/revenue", label: "Omzet & verkopen", icon: BarChart3 },
-          { href: "/admin/onderweg", label: "Shop", icon: ShoppingBag },
+          { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+          { href: "/admin/revenue", label: "Omzet & verkopen", icon: CreditCard },
         ],
       },
     },
     {
       type: "group",
       group: {
-        id: "email",
-        label: "E-mail programma's",
-        icon: Mail,
+        id: "producten",
+        label: "Producten",
+        icon: ShoppingBag,
         items: [
+          { href: "/admin/checkout", label: "Producten", icon: CreditCard },
+          { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
           { href: "/admin/niet-alleen-emails", label: "Niet Alleen", icon: Mail },
+          { href: "/admin/onderweg", label: "Shop", icon: ShoppingBag },
         ],
       },
     },
@@ -198,6 +199,40 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     {
       type: "group",
       group: {
+        id: "content",
+        label: "Content",
+        icon: Newspaper,
+        items: [
+          { href: "/admin/blog", label: "Blog artikelen", icon: Newspaper },
+          { href: "/admin/cta", label: "CTA blokken", icon: MousePointerClick },
+          { href: "/admin/benji-teasers", label: "Benji teasers", icon: Smile },
+          { href: "/admin/pillars", label: "Pillar pagina's", icon: Layers },
+          { href: "/admin/paginas", label: "Pagina's", icon: LayoutTemplate },
+          { href: "/admin/linkstructuur", label: "Linkstructuur", icon: Network },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
+        id: "benji",
+        label: "Benji",
+        icon: Sparkles,
+        items: [
+          { href: "/admin/chat-history", label: "Chat history", icon: MessageSquare },
+          { href: "/admin/instellingen", label: "Kennis & regels", icon: Settings },
+          { href: "/admin/knowledge", label: "Benji FAQ", icon: BookOpen },
+          { href: "/admin/bronnen", label: "Bronnen", icon: FileStack },
+          { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
+          { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping },
+          { href: "/admin/testimonials", label: "Reviews", icon: Quote },
+          { href: "/admin/notificaties", label: "Notificaties", icon: Bell },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
         id: "feedback",
         label: "Feedback",
         icon: MessageCircleHeart,
@@ -209,43 +244,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         ],
       },
     },
-    {
-      type: "group",
-      group: {
-        id: "content",
-        label: "Content",
-        icon: Sparkles,
-        items: [
-          { href: "/admin/paginas", label: "Pagina's", icon: LayoutTemplate },
-          { href: "/admin/blog", label: "Blog artikelen", icon: Newspaper },
-          { href: "/admin/pillars", label: "Pillar pagina's", icon: Layers },
-          { href: "/admin/linkstructuur", label: "Linkstructuur", icon: Network },
-          { href: "/admin/cta", label: "CTA blokken", icon: MousePointerClick },
-          { href: "/admin/benji-teasers", label: "Benji teasers", icon: Smile },
-          { href: "/admin/inspiratie", label: "Inspiratie & troost", icon: Sparkles },
-          { href: "/admin/handreikingen", label: "Handreikingen", icon: HandHelping },
-          { href: "/admin/testimonials", label: "Reviews", icon: Quote },
-          { href: "/admin/notificaties", label: "Notificaties", icon: Bell },
-        ],
-      },
-    },
-    {
-      type: "group",
-      group: {
-        id: "data",
-        label: "Data & AI",
-        icon: BarChart3,
-        items: [
-          { href: "/admin/chat-history", label: "Chat history", icon: MessageSquare },
-          { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-          { href: "/admin/knowledge", label: "Knowledge Base", icon: BookOpen },
-          { href: "/admin/bronnen", label: "Bronnen", icon: FileStack },
-        ],
-      },
-    },
     { type: "separator" },
     { type: "item", item: { href: "/admin/beveiliging", label: "Beveiliging", icon: Shield, badge: securityAlertCount } },
-    { type: "item", item: { href: "/admin/instellingen", label: "Instellingen", icon: Settings } },
   ];
 
   function renderEntries(dark: boolean, onItemClick?: () => void) {

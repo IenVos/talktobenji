@@ -60,9 +60,9 @@ function AdminSettingsInner() {
     <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-primary-900">Bot Instellingen</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-primary-900">Kennis & regels</h1>
         <p className="text-sm sm:text-base text-primary-700 mt-1">
-          Configureer de kennis en regels voor je chatbot
+          De kennis en gedragsregels die Benji gebruikt in gesprekken
         </p>
       </div>
 

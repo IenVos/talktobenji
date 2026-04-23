@@ -227,6 +227,12 @@ export const syncToKnowledgeBase = mutation({
     const now = Date.now();
     const tags = [pillar.slug, "pillar", "thema", ...pillar.title.toLowerCase().split(" ").filter((w) => w.length > 3)];
 
+    // Mapping: pillar-titel (publiek/SEO) → KB-categorienaam (admin)
+    const PILLAR_NAAR_KB: Record<string, string> = {
+      "Verdriet dat niet zichtbaar is": "Onzichtbaar verdriet",
+    };
+    const category = PILLAR_NAAR_KB[pillar.title] ?? pillar.title;
+
     const existing = await ctx.db.query("knowledgeBase").collect();
     const existingQuestions = new Set(existing.map((e) => e.question.trim().toLowerCase()));
 
@@ -235,7 +241,7 @@ export const syncToKnowledgeBase = mutation({
       if (existingQuestions.has(question.trim().toLowerCase())) return;
       await ctx.db.insert("knowledgeBase", {
         question, answer,
-        category: "Thema",
+        category,
         tags, isActive: true, usageCount: 0, priority,
         createdBy: "pillar-sync",
         createdAt: now, updatedAt: now,

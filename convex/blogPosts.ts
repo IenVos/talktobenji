@@ -720,13 +720,17 @@ export const syncToKnowledgeBase = mutation({
     const now = Date.now();
     const tags = [post.slug, "blog", ...post.title.toLowerCase().split(" ").filter((w) => w.length > 3)];
 
-    // Bepaal categorie op basis van gekoppelde pillar, anders "Blog"
-    let category = "Blog";
+    // Bepaal categorie op basis van gekoppelde pillar, anders "Rouw & Verdriet"
+    // Mapping: pillar-titel (publiek/SEO) → KB-categorienaam (admin)
+    const PILLAR_NAAR_KB: Record<string, string> = {
+      "Verdriet dat niet zichtbaar is": "Onzichtbaar verdriet",
+    };
+    let category = "Rouw & Verdriet";
     if (post.pillarSlug) {
       const pillar = await ctx.db.query("pillars")
         .withIndex("by_slug", (q) => q.eq("slug", post.pillarSlug!))
         .first();
-      if (pillar?.title) category = pillar.title;
+      if (pillar?.title) category = PILLAR_NAAR_KB[pillar.title] ?? pillar.title;
     }
 
     // Haal alle bestaande vragen op (eenmalig, voor upsert)

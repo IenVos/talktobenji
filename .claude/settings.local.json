@@ -17,7 +17,8 @@
       "Bash(grep:*)",
       "Bash(node:*)",
       "Bash(find:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Read(//tmp/**)"
     ]
   }
 }
