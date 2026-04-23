@@ -581,13 +581,7 @@ export default defineSchema({
     email: v.string(),
     naam: v.string(),
     startDatum: v.number(),
-    verliesType: v.optional(v.union(
-      v.literal("persoon"),
-      v.literal("huisdier"),
-      v.literal("relatie"),
-      v.literal("gezondheid"),
-      v.literal("anders")
-    )),
+    verliesType: v.optional(v.string()), // "persoon" | "huisdier" | "scheiding" | etc.
     verliesNaam: v.optional(v.string()), // naam van wie/wat er gemist wordt
     profielFoto: v.optional(v.id("_storage")), // profielfoto van de gebruiker
     dagPrompts: v.array(v.object({
@@ -696,6 +690,7 @@ export default defineSchema({
     slug: v.string(),
     name: v.string(),
     kortNaam: v.optional(v.string()), // Korte naam voor omzetpagina (bijv. "N.A." i.p.v. volledige naam)
+    verliesType: v.optional(v.string()), // Als ingesteld → Niet Alleen mailreeks starten na aankoop ("persoon" | "huisdier" | "scheiding")
     description: v.optional(v.string()),
     priceInCents: v.number(),
     stripePriceId: v.optional(v.string()),

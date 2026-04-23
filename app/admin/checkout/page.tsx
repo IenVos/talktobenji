@@ -13,6 +13,7 @@ type CheckoutProduct = {
   slug: string;
   name: string;
   kortNaam?: string;
+  verliesType?: string;
   description?: string;
   priceInCents: number;
   stripePriceId?: string;
@@ -31,6 +32,7 @@ type FormState = {
   slug: string;
   name: string;
   kortNaam: string;
+  verliesType: string;
   description: string;
   priceInCents: string;
   stripePriceId: string;
@@ -47,6 +49,7 @@ const EMPTY_FORM: FormState = {
   slug: "",
   name: "",
   kortNaam: "",
+  verliesType: "",
   description: "",
   priceInCents: "",
   stripePriceId: "",
@@ -105,6 +108,7 @@ export default function AdminCheckoutPage() {
       slug: product.slug,
       name: product.name,
       kortNaam: product.kortNaam ?? "",
+      verliesType: product.verliesType ?? "",
       description: product.description ?? "",
       priceInCents: String(product.priceInCents),
       stripePriceId: product.stripePriceId ?? "",
@@ -143,6 +147,7 @@ export default function AdminCheckoutPage() {
         slug: form.slug.trim(),
         name: form.name.trim(),
         kortNaam: opt(form.kortNaam),
+        verliesType: opt(form.verliesType),
         description: opt(form.description),
         priceInCents: price,
         stripePriceId: opt(form.stripePriceId),
@@ -268,6 +273,22 @@ export default function AdminCheckoutPage() {
                 onChange={set("kortNaam")}
                 className={inputClass}
               />
+            </div>
+
+            <div>
+              <label className={labelSmClass}>
+                Dagelijkse mailreeks <span className="text-gray-400">(optioneel — alleen invullen als dit product het Niet Alleen programma activeert)</span>
+              </label>
+              <select
+                value={form.verliesType}
+                onChange={set("verliesType")}
+                className={inputClass}
+              >
+                <option value="">Geen — alleen bevestigingsmail</option>
+                <option value="persoon">Persoon — verlies van iemand</option>
+                <option value="huisdier">Huisdier — verlies van een dier</option>
+                <option value="scheiding">Scheiding — einde van een relatie</option>
+              </select>
             </div>
 
             <div>

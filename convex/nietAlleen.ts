@@ -330,6 +330,7 @@ export const activateNietAlleenDirect = mutation({
   args: {
     email: v.string(),
     naam: v.string(),
+    verliesType: v.optional(v.string()), // "persoon" | "huisdier" | "scheiding" — bepaalt welke mailreeks start
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -347,6 +348,7 @@ export const activateNietAlleenDirect = mutation({
       email,
       naam: args.naam,
       startDatum: now,
+      verliesType: args.verliesType,
       dagPrompts: [],
       createdAt: now,
       updatedAt: now,

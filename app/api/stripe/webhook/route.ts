@@ -136,6 +136,11 @@ export async function POST(req: NextRequest) {
     const { email, name, subscriptionType, slug, productName, optIn } = pi.metadata;
 
     if (email) {
+      // Product ophalen op basis van slug (bevat verliesType en bevestigingsmail)
+      const product = slug
+        ? await convex.query(api.checkoutProducts.getBySlug, { slug }).catch(() => null)
+        : null;
+
       try {
         const subType: string = subscriptionType || "alles_in_1";
 
@@ -154,12 +159,13 @@ export async function POST(req: NextRequest) {
           // Geen account — activatie volgt na registratie
         }
 
-        // Niet Alleen profiel aanmaken voor dagelijkse mails (ook zonder TTB-account)
-        if (subscriptionType === "niet_alleen") {
+        // Niet Alleen profiel aanmaken als het product een verliesType heeft (admin-configureerbaar)
+        if (product?.verliesType) {
           try {
             await convex.mutation(api.nietAlleen.activateNietAlleenDirect, {
               email,
               naam: name || email,
+              verliesType: product.verliesType,
             });
           } catch (err: any) {
             console.error("[Convex] Niet Alleen profiel aanmaken mislukt:", err?.message);
@@ -170,7 +176,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Welkomstmail direct via Resend (geen Convex nodig)
-      if (subscriptionType === "niet_alleen" && process.env.RESEND_API_KEY) {
+      if (product?.verliesType && process.env.RESEND_API_KEY) {
         try {
           const resend = new Resend(process.env.RESEND_API_KEY);
           const voornaam = (name || email).split(" ")[0];
@@ -242,11 +248,6 @@ export async function POST(req: NextRequest) {
           } catch (pdfErr: any) {
             console.error("[PDF] Generatie mislukt, email zonder bijlage:", pdfErr?.message);
           }
-
-          // Haal product op voor bevestigingsmail (als slug bekend)
-          const product = slug
-            ? await convex.query(api.checkoutProducts.getBySlug, { slug }).catch(() => null)
-            : null;
 
           if (product?.followUpEmailSubject && product?.followUpEmailBody) {
             // Bevestigingsmail + factuur als bijlage in één e-mail
