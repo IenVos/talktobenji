@@ -14,6 +14,16 @@ const INGEBOUWDE_TYPEN = [
   { code: "scheiding", naam: "Scheiding — einde van een relatie" },
 ];
 
+/** Alle verliestypen ophalen (publiek — voor onboarding in de app) */
+export const listPublic = query({
+  args: {},
+  handler: async (ctx) => {
+    const opgeslagen = await ctx.db.query("verliesTypen").collect();
+    if (opgeslagen.length === 0) return INGEBOUWDE_TYPEN;
+    return opgeslagen.map(t => ({ code: t.code, naam: t.naam }));
+  },
+});
+
 /** Alle verliestypen ophalen (admin) */
 export const list = query({
   args: { adminToken: v.string() },
@@ -139,17 +149,22 @@ export const dupliceerReeks = mutation({
   },
 });
 
-/** Seed de tabel met de drie ingebouwde typen (eenmalig aanroepen vanuit admin) */
+/** Seed de tabel met de drie ingebouwde typen — voegt alleen ontbrekende toe */
 export const seed = mutation({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const bestaande = await ctx.db.query("verliesTypen").collect();
-    if (bestaande.length > 0) return "Al gevuld";
-
+    let toegevoegd = 0;
     for (const t of INGEBOUWDE_TYPEN) {
-      await ctx.db.insert("verliesTypen", { ...t, createdAt: Date.now() });
+      const bestaand = await ctx.db
+        .query("verliesTypen")
+        .withIndex("by_code", q => q.eq("code", t.code))
+        .first();
+      if (!bestaand) {
+        await ctx.db.insert("verliesTypen", { ...t, createdAt: Date.now() });
+        toegevoegd++;
+      }
     }
-    return "Gevuld";
+    return toegevoegd === 0 ? "Al gevuld" : `${toegevoegd} type(n) toegevoegd`;
   },
 });

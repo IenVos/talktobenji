@@ -101,13 +101,7 @@ export const getDagFotoUrl = query({
 export const setVerliesType = mutation({
   args: {
     userId: v.string(),
-    verliesType: v.union(
-      v.literal("persoon"),
-      v.literal("huisdier"),
-      v.literal("relatie"),
-      v.literal("gezondheid"),
-      v.literal("anders")
-    ),
+    verliesType: v.string(),
   },
   handler: async (ctx, args) => {
     const profiel = await ctx.db

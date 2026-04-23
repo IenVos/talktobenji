@@ -649,6 +649,10 @@ export default function NietAlleenEmailsPage() {
   const dagTemplates = useAdminQuery(api.emailTemplates.listDagTemplates, {});
   const verliesTypen = useAdminQuery(api.verliesTypen.list, {});
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
+  const seedVerliesTypen = useAdminMutation(api.verliesTypen.seed);
+
+  const basisTypesMissing = verliesTypen !== undefined &&
+    !verliesTypen.some((t: { code: string }) => t.code === "persoon");
 
   const getTemplate = (key: TemplateKey) => templates?.find((t: any) => t.key === key);
 
@@ -666,6 +670,18 @@ export default function NietAlleenEmailsPage() {
           Pas de inhoud aan van de automatische e-mails tijdens de 30 dagen begeleiding
         </p>
       </div>
+
+      {basisTypesMissing && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">
+          <p className="text-sm text-amber-800">De basistypes (persoon, huisdier, scheiding) ontbreken nog.</p>
+          <button
+            onClick={() => seedVerliesTypen({})}
+            className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 shrink-0"
+          >
+            Basistypes toevoegen
+          </button>
+        </div>
+      )}
 
       <TestProfielBlok />
       <TestEmailBlok />

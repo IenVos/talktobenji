@@ -14,13 +14,7 @@ import { ImagePlus, X, Mic, MicOff, ChevronLeft } from "lucide-react";
 type Scherm = "laden" | "geen_toegang" | "onboarding" | "dag" | "afgerond" | "gesloten";
 type StapOnboarding = "verlies" | "naam";
 
-const VERLIES_TYPES = [
-  { key: "persoon" as const, label: "Een dierbare persoon" },
-  { key: "huisdier" as const, label: "Een huisdier" },
-  { key: "relatie" as const, label: "Een relatie" },
-  { key: "gezondheid" as const, label: "Mijn gezondheid" },
-  { key: "anders" as const, label: "Iets anders" },
-];
+// Verliestypen worden dynamisch geladen uit de admin (verliesTypen tabel)
 
 const NAAM_PLACEHOLDER: Record<string, string> = {
   persoon: "Bijv. Oma, Floris, Mam…",
@@ -37,6 +31,7 @@ function NietAlleenPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const dagParam = searchParams?.get("dag");
+  const verliesTypen = useQuery(api.verliesTypen.listPublic, {});
   const [scherm, setScherm] = useState<Scherm>("laden");
   const [stapOnboarding, setStapOnboarding] = useState<StapOnboarding>("verlies");
   const [geselecteerdType, setGeselecteerdType] = useState<string | null>(null);
@@ -183,7 +178,7 @@ function NietAlleenPageInner() {
       setStapOnboarding("naam");
     } else {
       setBezig(true);
-      try { await setVerliesType({ userId, verliesType: geselecteerdType as any }); }
+      try { await setVerliesType({ userId, verliesType: geselecteerdType }); }
       finally { setBezig(false); }
     }
   }
@@ -193,7 +188,7 @@ function NietAlleenPageInner() {
     const naam = naamOverride !== undefined ? naamOverride : verliesNaamInput.trim();
     setBezig(true);
     try {
-      await setVerliesType({ userId, verliesType: geselecteerdType as any });
+      await setVerliesType({ userId, verliesType: geselecteerdType });
       if (naam) await setVerliesNaam({ userId, verliesNaam: naam });
     } finally { setBezig(false); }
   }
@@ -334,11 +329,11 @@ function NietAlleenPageInner() {
           </div>
           <div className="space-y-2.5">
             <p className="text-sm font-medium" style={{ color: "#3d3530" }}>Ik verwerk verlies van:</p>
-            {VERLIES_TYPES.map(({ key, label }) => (
-              <button key={key} onClick={() => setGeselecteerdType(key)}
+            {(verliesTypen ?? []).map(({ code, naam }) => (
+              <button key={code} onClick={() => setGeselecteerdType(code)}
                 className="w-full text-left px-4 py-3 rounded-xl border-2 transition-all text-sm"
-                style={{ borderColor: geselecteerdType === key ? "#6d84a8" : "#e8e0d8", background: geselecteerdType === key ? "#eef1f6" : "white", color: "#3d3530" }}>
-                {label}
+                style={{ borderColor: geselecteerdType === code ? "#6d84a8" : "#e8e0d8", background: geselecteerdType === code ? "#eef1f6" : "white", color: "#3d3530" }}>
+                {naam.split(" — ")[0]}
               </button>
             ))}
           </div>

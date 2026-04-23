@@ -9,12 +9,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Camera, CheckCircle2 } from "lucide-react";
 
-const VERLIES_TYPES: { key: "persoon" | "huisdier" | "relatie"; label: string }[] = [
-  { key: "persoon", label: "Een dierbare persoon" },
-  { key: "huisdier", label: "Een huisdier" },
-  { key: "relatie", label: "Een relatie of scheiding" },
-];
-
 const NAAM_PLACEHOLDER: Record<string, string> = {
   persoon: "Bijv. Oma, Floris, Mam...",
   huisdier: "Bijv. Luna, Appie, Boris...",
@@ -25,7 +19,7 @@ export default function NietAlleenWelkomPage() {
   const { data: session, status } = useSession();
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [geselecteerd, setGeselecteerd] = useState<"persoon" | "huisdier" | "relatie" | "gezondheid" | "anders" | null>(null);
+  const [geselecteerd, setGeselecteerd] = useState<string | null>(null);
   const [naamInput, setNaamInput] = useState("");
   const [bezig, setBezig] = useState(false);
   const fotoInputRef = useRef<HTMLInputElement>(null);
@@ -50,8 +44,10 @@ export default function NietAlleenWelkomPage() {
 
   const huidigeFotoUrl = fotoPreview ?? profielFotoUrl ?? null;
 
+  const verliesTypen = useQuery(api.verliesTypen.listPublic, {});
+
   // Pre-fill from existing profile
-  const huidigVerliesType = geselecteerd ?? (profiel?.verliesType as "persoon" | "huisdier" | "relatie" | "gezondheid" | "anders" | undefined) ?? null;
+  const huidigVerliesType = geselecteerd ?? profiel?.verliesType ?? null;
   const toonNaamVeld = huidigVerliesType === "persoon" || huidigVerliesType === "huisdier";
 
   async function handleFotoKiezen(e: React.ChangeEvent<HTMLInputElement>) {
@@ -165,18 +161,18 @@ export default function NietAlleenWelkomPage() {
             Dit helpt ons de dagelijkse teksten persoonlijker te maken.
           </p>
           <div className="flex flex-col gap-2">
-            {VERLIES_TYPES.map((t) => (
+            {(verliesTypen ?? []).map((t) => (
               <button
-                key={t.key}
-                onClick={() => setGeselecteerd(t.key)}
+                key={t.code}
+                onClick={() => setGeselecteerd(t.code)}
                 className="w-full px-4 py-3 rounded-xl text-sm font-medium text-left transition-all border"
                 style={{
-                  background: huidigVerliesType === t.key ? "#6d84a8" : "white",
-                  color: huidigVerliesType === t.key ? "white" : "#4a5568",
-                  borderColor: huidigVerliesType === t.key ? "#6d84a8" : "#e2d9cf",
+                  background: huidigVerliesType === t.code ? "#6d84a8" : "white",
+                  color: huidigVerliesType === t.code ? "white" : "#4a5568",
+                  borderColor: huidigVerliesType === t.code ? "#6d84a8" : "#e2d9cf",
                 }}
               >
-                {t.label}
+                {t.naam.split(" — ")[0]}
               </button>
             ))}
           </div>
