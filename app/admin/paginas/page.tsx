@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { Save, LayoutTemplate, ExternalLink, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "homepage" | "waarom-benji" | "privacy" | "av" | "faq";
+type Tab = "homepage" | "waarom-benji" | "voor-jou" | "privacy" | "av" | "faq";
 type Section = { title: string; body: string };
 type FaqItem = { q: string; a: string };
 type FaqSection = { title: string; items: FaqItem[] };
@@ -526,10 +526,57 @@ function FaqTab() {
   );
 }
 
+// ─── Tab: Voor Jou ───────────────────────────────────────────────────────────
+const VOOR_JOU_DEFAULTS = {
+  label: "Van Talk To Benji",
+  titel: "Voor jou",
+  subtitel: "Producten en programma's die je kunnen helpen als je iets moeilijks meemaakt.",
+};
+
+function VoorJouTab() {
+  const saved = useAdminQuery(api.pageContent.getPageContent, { pageKey: "voor-jou" });
+  const setContent = useAdminMutation(api.pageContent.setPageContent);
+  const [values, setValues] = useState<Record<string, string>>(VOOR_JOU_DEFAULTS);
+  const [saving, setSaving] = useState(false);
+  const [saved2, setSaved2] = useState(false);
+
+  useEffect(() => {
+    if (saved) setValues({ ...VOOR_JOU_DEFAULTS, ...saved });
+  }, [saved]);
+
+  const set = (key: string, val: string) => setValues(p => ({ ...p, [key]: val }));
+
+  const handleSave = async () => {
+    setSaving(true); setSaved2(false);
+    try {
+      await setContent({ pageKey: "voor-jou", content: JSON.stringify(values) });
+      setSaved2(true); setTimeout(() => setSaved2(false), 2000);
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-100">Paginakop</h3>
+        <div className="space-y-4">
+          <Field label="Klein label boven titel" value={values.label ?? ""} onChange={v => set("label", v)} />
+          <Field label="Titel" value={values.titel ?? ""} onChange={v => set("titel", v)} />
+          <Field label="Subtitel" value={values.subtitel ?? ""} onChange={v => set("subtitel", v)} multiline />
+        </div>
+      </div>
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+        De productkaarten beheer je via <strong>Verkoop → Shop</strong>. Zet &ldquo;Toon op Voor Jou&rdquo; aan bij elk product dat hier moet verschijnen.
+      </div>
+      <SaveBar onSave={handleSave} saving={saving} saved={saved2} />
+    </div>
+  );
+}
+
 // ─── Hoofdpagina ──────────────────────────────────────────────────────────────
 const TABS: { key: Tab; label: string; href: string }[] = [
   { key: "homepage",     label: "Homepage",            href: "/" },
   { key: "waarom-benji", label: "Waarom Benji",        href: "/waarom-benji" },
+  { key: "voor-jou",     label: "Voor Jou",            href: "/voor-jou" },
   { key: "privacy",      label: "Privacy",              href: "/privacy" },
   { key: "av",           label: "Alg. voorwaarden",    href: "/algemene-voorwaarden" },
   { key: "faq",          label: "FAQ",                  href: "/faq" },
@@ -569,6 +616,7 @@ export default function PaginasAdminPage() {
       {/* Tab content */}
       {tab === "homepage"     && <HomepageTab />}
       {tab === "waarom-benji" && <WaaromBenjiTab />}
+      {tab === "voor-jou"     && <VoorJouTab />}
       {tab === "privacy"      && <SectionsTab pageKey="privacy" defaults={PRIVACY_DEFAULTS} href="/privacy" />}
       {tab === "av"           && <SectionsTab pageKey="av" defaults={AV_DEFAULTS} href="/algemene-voorwaarden" />}
       {tab === "faq"          && <FaqTab />}

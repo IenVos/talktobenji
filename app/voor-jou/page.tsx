@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+// pageContent wordt gebruikt voor bewerkbare paginateksten
 import {
   Pencil, Waves, BookOpen, Heart, Leaf, Sun, Feather, Star,
   Anchor, Wind, Sparkles, Flame, Music, Compass, Cloud, MessageCircle,
@@ -26,8 +27,16 @@ function CardIcon({ name, size = 18 }: { name?: string | null; size?: number }) 
   return <Icon size={size} className="flex-shrink-0" />;
 }
 
+const VOOR_JOU_DEFAULTS = {
+  label: "Van Talk To Benji",
+  titel: "Voor jou",
+  subtitel: "Producten en programma's die je kunnen helpen als je iets moeilijks meemaakt.",
+};
+
 export default function VoorJouPage() {
   const items = useQuery(api.onderweg.listVoorJou, {});
+  const savedContent = useQuery(api.pageContent.getPublicPageContent, { pageKey: "voor-jou" });
+  const content = savedContent ? { ...VOOR_JOU_DEFAULTS, ...savedContent } : VOOR_JOU_DEFAULTS;
 
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4", display: "flex", flexDirection: "column" }}>
@@ -46,13 +55,13 @@ export default function VoorJouPage() {
         <section className="px-5 pt-8 pb-6 text-center">
           <div className="max-w-xl mx-auto">
             <p className="text-xs uppercase tracking-widest mb-3 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
-              Van Talk To Benji
+              {content.label}
             </p>
             <h1 className="text-2xl sm:text-3xl font-semibold mb-2" style={{ color: "#3d3530" }}>
-              Voor jou
+              {content.titel}
             </h1>
             <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-              Producten en programma's die je kunnen helpen als je iets moeilijks meemaakt.
+              {content.subtitel}
             </p>
           </div>
         </section>
