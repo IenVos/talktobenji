@@ -625,6 +625,13 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_dag_type", ["dag", "verliesType"]),
 
+  // Niet Alleen — beheerbare lijst van verliestypen (voor dropdown in checkout + email admin)
+  verliesTypen: defineTable({
+    code: v.string(),   // bijv. "werkloosheid"
+    naam: v.string(),   // bijv. "Werkloosheid — verlies van werk"
+    createdAt: v.number(),
+  }).index("by_code", ["code"]),
+
   // Landingspagina's (beheerbaar via admin, publiek zichtbaar via /lp/[slug])
   landingPages: defineTable({
     slug: v.string(),           // URL slug, e.g. "niet-alleen-a"

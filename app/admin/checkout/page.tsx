@@ -5,7 +5,7 @@ import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthConte
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
-  CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink, Send,
+  CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink, Send, Copy,
 } from "lucide-react";
 
 type CheckoutProduct = {
@@ -73,6 +73,7 @@ function formatPrice(cents: number): string {
 export default function AdminCheckoutPage() {
   const { adminToken } = useAdminAuth();
   const products = useAdminQuery(api.checkoutProducts.list, {});
+  const verliesTypen = useAdminQuery(api.verliesTypen.list, {});
   const createProduct = useAdminMutation(api.checkoutProducts.create);
   const updateProduct = useAdminMutation(api.checkoutProducts.update);
   const removeProduct = useAdminMutation(api.checkoutProducts.remove);
@@ -285,9 +286,9 @@ export default function AdminCheckoutPage() {
                 className={inputClass}
               >
                 <option value="">Geen — alleen bevestigingsmail</option>
-                <option value="persoon">Persoon — verlies van iemand</option>
-                <option value="huisdier">Huisdier — verlies van een dier</option>
-                <option value="scheiding">Scheiding — einde van een relatie</option>
+                {(verliesTypen ?? []).map((t: { code: string; naam: string }) => (
+                  <option key={t.code} value={t.code}>{t.naam}</option>
+                ))}
               </select>
             </div>
 

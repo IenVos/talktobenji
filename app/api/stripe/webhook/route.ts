@@ -159,13 +159,16 @@ export async function POST(req: NextRequest) {
           // Geen account — activatie volgt na registratie
         }
 
-        // Niet Alleen profiel aanmaken als het product een verliesType heeft (admin-configureerbaar)
-        if (product?.verliesType) {
+        // Niet Alleen profiel aanmaken:
+        // - nieuw systeem: product heeft verliesType ingesteld in admin
+        // - fallback: algemeen niet-alleen product (geen verliesType, klant kiest zelf tijdens onboarding)
+        const isNietAlleen = !!product?.verliesType || subscriptionType === "niet_alleen";
+        if (isNietAlleen) {
           try {
             await convex.mutation(api.nietAlleen.activateNietAlleenDirect, {
               email,
               naam: name || email,
-              verliesType: product.verliesType,
+              verliesType: product?.verliesType, // undefined = klant kiest zelf
             });
           } catch (err: any) {
             console.error("[Convex] Niet Alleen profiel aanmaken mislukt:", err?.message);
@@ -176,7 +179,8 @@ export async function POST(req: NextRequest) {
       }
 
       // Welkomstmail direct via Resend (geen Convex nodig)
-      if (product?.verliesType && process.env.RESEND_API_KEY) {
+      const isNietAlleenMail = !!(product?.verliesType || subscriptionType === "niet_alleen");
+      if (isNietAlleenMail && process.env.RESEND_API_KEY) {
         try {
           const resend = new Resend(process.env.RESEND_API_KEY);
           const voornaam = (name || email).split(" ")[0];

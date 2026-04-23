@@ -61,6 +61,7 @@ import type * as supportFaq from "../supportFaq.js";
 import type * as testimonials from "../testimonials.js";
 import type * as trials from "../trials.js";
 import type * as user from "../user.js";
+import type * as verliesTypen from "../verliesTypen.js";
 
 import type {
   ApiFromModules,
@@ -122,6 +123,7 @@ declare const fullApi: ApiFromModules<{
   testimonials: typeof testimonials;
   trials: typeof trials;
   user: typeof user;
+  verliesTypen: typeof verliesTypen;
 }>;
 
 /**

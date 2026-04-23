@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
-import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil } from "lucide-react";
+import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil, Plus, Trash2, Copy } from "lucide-react";
 import { useMutation } from "convex/react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
 import { NIET_ALLEEN_CONTENT, type NietAlleenVerliesType } from "@/convex/nietAlleenContent";
@@ -355,13 +355,11 @@ function TestEmailBlok() {
   );
 }
 
-const NICHE_LABELS: Record<NietAlleenVerliesType, string> = {
+const NICHE_LABELS: Record<string, string> = {
   persoon: "Persoon",
   huisdier: "Huisdier",
   scheiding: "Scheiding / relatie",
 };
-
-const NICHES: NietAlleenVerliesType[] = ["persoon", "huisdier", "scheiding"];
 
 function DagRij({
   dag,
@@ -371,14 +369,15 @@ function DagRij({
   onReset,
 }: {
   dag: (typeof NIET_ALLEEN_CONTENT)[0];
-  niche: NietAlleenVerliesType;
+  niche: string;
   override: { subject: string; mailTekst: string } | undefined;
   onSave: (dag: number, verliesType: string, subject: string, mailTekst: string) => Promise<void>;
   onReset: (dag: number, verliesType: string) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const defaultSubject = dag.subject;
-  const defaultTekst = dag.mail[niche];
+  const mappedNiche = (niche === "huisdier" ? "huisdier" : niche === "scheiding" || niche === "relatie" ? "scheiding" : "persoon") as NietAlleenVerliesType;
+  const defaultTekst = dag.mail[mappedNiche];
   const [subject, setSubject] = useState(override?.subject ?? defaultSubject);
   const [mailTekst, setMailTekst] = useState(override?.mailTekst ?? defaultTekst);
   const [saving, setSaving] = useState(false);
@@ -474,14 +473,48 @@ function DagRij({
   );
 }
 
-function DertigDagenEditor({ dagTemplates }: { dagTemplates: any[] }) {
+function DertigDagenEditor({ dagTemplates, niches }: { dagTemplates: any[]; niches: { code: string; naam: string }[] }) {
   const upsertDag = useAdminMutation(api.emailTemplates.upsertDagTemplate);
   const deleteDag = useAdminMutation(api.emailTemplates.deleteDagTemplate);
-  const [niche, setNiche] = useState<NietAlleenVerliesType>("persoon");
+  const dupliceerReeks = useAdminMutation(api.verliesTypen.dupliceerReeks);
+  const removeVerliesType = useAdminMutation(api.verliesTypen.remove);
+
+  const [niche, setNiche] = useState<string>(niches[0]?.code ?? "persoon");
+  const [showNieuw, setShowNieuw] = useState(false);
+  const [nieuwCode, setNieuwCode] = useState("");
+  const [nieuwNaam, setNieuwNaam] = useState("");
+  const [bronCode, setBronCode] = useState("persoon");
+  const [bezig, setBezig] = useState(false);
+  const [fout, setFout] = useState("");
 
   const overrideMap = new Map(
     dagTemplates.map(t => [`${t.dag}-${t.verliesType}`, { subject: t.subject, mailTekst: t.mailTekst }])
   );
+
+  // Haal de standaard mailtekst op voor de actieve niche
+  const getNicheDefault = (dag: typeof NIET_ALLEEN_CONTENT[0], code: string) => {
+    const mapped = code === "huisdier" ? "huisdier" : code === "scheiding" || code === "relatie" ? "scheiding" : "persoon";
+    return dag.mail[mapped as NietAlleenVerliesType] ?? dag.mail["persoon"];
+  };
+
+  const handleDuplicate = async () => {
+    if (!nieuwCode.trim() || !nieuwNaam.trim()) return;
+    setBezig(true);
+    setFout("");
+    try {
+      await dupliceerReeks({ bronCode, nieuwCode: nieuwCode.trim(), nieuwNaam: nieuwNaam.trim() });
+      setNiche(nieuwCode.trim().toLowerCase().replace(/\s+/g, "_"));
+      setShowNieuw(false);
+      setNieuwCode("");
+      setNieuwNaam("");
+    } catch (e: any) {
+      setFout(e?.message ?? "Onbekende fout");
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const INGEBOUWD = ["persoon", "huisdier", "scheiding"];
 
   return (
     <div className="space-y-4">
@@ -493,23 +526,103 @@ function DertigDagenEditor({ dagTemplates }: { dagTemplates: any[] }) {
           </h2>
           <p className="text-xs text-gray-500 mt-0.5">Klik op een dag om de inhoud te bewerken. Aanpassingen overschrijven de standaardtekst.</p>
         </div>
-        <div className="flex gap-2">
-          {NICHES.map(n => (
+        <div className="flex gap-2 flex-wrap">
+          {niches.map(n => (
             <button
-              key={n}
-              onClick={() => setNiche(n)}
+              key={n.code}
+              onClick={() => setNiche(n.code)}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
               style={{
-                background: niche === n ? "#6d84a8" : "white",
-                color: niche === n ? "white" : "#6b7280",
-                borderColor: niche === n ? "#6d84a8" : "#d1d5db",
+                background: niche === n.code ? "#6d84a8" : "white",
+                color: niche === n.code ? "white" : "#6b7280",
+                borderColor: niche === n.code ? "#6d84a8" : "#d1d5db",
               }}
             >
-              {NICHE_LABELS[n]}
+              {NICHE_LABELS[n.code] ?? n.naam.split(" — ")[0]}
             </button>
           ))}
+          <button
+            onClick={() => setShowNieuw(v => !v)}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-dashed border-gray-300 text-gray-500 hover:border-primary-400 hover:text-primary-600 transition-colors flex items-center gap-1"
+          >
+            <Plus size={13} />
+            Nieuw type
+          </button>
         </div>
       </div>
+
+      {/* Nieuw verliestype aanmaken */}
+      {showNieuw && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-4">
+          <div className="flex items-center gap-2">
+            <Copy size={15} className="text-blue-600" />
+            <h3 className="text-sm font-semibold text-blue-800">Nieuw verliestype — dupliceer een bestaande reeks</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Code <span className="font-normal text-gray-400">(kleine letters, geen spaties)</span></label>
+              <input
+                type="text"
+                placeholder="werkloosheid"
+                value={nieuwCode}
+                onChange={e => setNieuwCode(e.target.value.toLowerCase().replace(/\s+/g, "_"))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Weergavenaam</label>
+              <input
+                type="text"
+                placeholder="Werkloosheid — verlies van werk"
+                value={nieuwNaam}
+                onChange={e => setNieuwNaam(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Kopieer mails van</label>
+            <div className="flex gap-2 flex-wrap">
+              {niches.map(n => (
+                <button key={n.code} onClick={() => setBronCode(n.code)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                  style={{ background: bronCode === n.code ? "#3b82f6" : "white", color: bronCode === n.code ? "white" : "#6b7280", borderColor: bronCode === n.code ? "#3b82f6" : "#d1d5db" }}>
+                  {NICHE_LABELS[n.code] ?? n.naam.split(" — ")[0]}
+                </button>
+              ))}
+            </div>
+          </div>
+          {fout && <p className="text-sm text-red-600">{fout}</p>}
+          <div className="flex gap-2">
+            <button onClick={handleDuplicate} disabled={bezig || !nieuwCode || !nieuwNaam}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50">
+              <Copy size={14} />
+              {bezig ? "Bezig…" : "Aanmaken & kopiëren"}
+            </button>
+            <button onClick={() => { setShowNieuw(false); setFout(""); }}
+              className="px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+              Annuleren
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Verwijder-knop voor custom types */}
+      {!INGEBOUWD.includes(niche) && (
+        <div className="flex justify-end">
+          <button
+            onClick={async () => {
+              if (!confirm(`Verliestype "${niche}" en alle bijbehorende mails verwijderen?`)) return;
+              await removeVerliesType({ code: niche });
+              setNiche(niches[0]?.code ?? "persoon");
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+          >
+            <Trash2 size={13} />
+            Verliestype verwijderen
+          </button>
+        </div>
+      )}
 
       <div className="space-y-2">
         {NIET_ALLEEN_CONTENT.map(dag => (
@@ -534,6 +647,7 @@ function DertigDagenEditor({ dagTemplates }: { dagTemplates: any[] }) {
 export default function NietAlleenEmailsPage() {
   const templates = useAdminQuery(api.emailTemplates.listTemplates, {});
   const dagTemplates = useAdminQuery(api.emailTemplates.listDagTemplates, {});
+  const verliesTypen = useAdminQuery(api.verliesTypen.list, {});
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
 
   const getTemplate = (key: TemplateKey) => templates?.find((t: any) => t.key === key);
@@ -570,8 +684,11 @@ export default function NietAlleenEmailsPage() {
       })}
 
       <div className="border-t border-gray-200 pt-6">
-        {dagTemplates !== undefined ? (
-          <DertigDagenEditor dagTemplates={dagTemplates} />
+        {dagTemplates !== undefined && verliesTypen !== undefined ? (
+          <DertigDagenEditor
+            dagTemplates={dagTemplates}
+            niches={verliesTypen as { code: string; naam: string }[]}
+          />
         ) : (
           <p className="text-sm text-gray-400">Laden…</p>
         )}
