@@ -695,6 +695,7 @@ export default defineSchema({
   checkoutProducts: defineTable({
     slug: v.string(),
     name: v.string(),
+    kortNaam: v.optional(v.string()), // Korte naam voor omzetpagina (bijv. "N.A." i.p.v. volledige naam)
     description: v.optional(v.string()),
     priceInCents: v.number(),
     stripePriceId: v.optional(v.string()),

@@ -736,7 +736,7 @@ export const getRevenueOverview = query({
     return {
       products: products.map((p) => ({
         slug: p.slug,
-        name: p.name,
+        name: p.kortNaam ?? p.name, // Gebruik korte naam als die ingesteld is
         subscriptionType: p.subscriptionType,
         priceInCents: p.priceInCents,
       })),

@@ -55,6 +55,7 @@ export const create = mutation({
     adminToken: v.string(),
     slug: v.string(),
     name: v.string(),
+    kortNaam: v.optional(v.string()),
     description: v.optional(v.string()),
     priceInCents: v.number(),
     stripePriceId: v.optional(v.string()),
@@ -71,6 +72,7 @@ export const create = mutation({
     return await ctx.db.insert("checkoutProducts", {
       slug: args.slug,
       name: args.name,
+      kortNaam: args.kortNaam,
       description: args.description,
       priceInCents: args.priceInCents,
       stripePriceId: args.stripePriceId,
@@ -93,6 +95,7 @@ export const update = mutation({
     id: v.id("checkoutProducts"),
     slug: v.optional(v.string()),
     name: v.optional(v.string()),
+    kortNaam: v.optional(v.string()),
     description: v.optional(v.string()),
     priceInCents: v.optional(v.number()),
     stripePriceId: v.optional(v.string()),

@@ -12,6 +12,7 @@ type CheckoutProduct = {
   _id: Id<"checkoutProducts">;
   slug: string;
   name: string;
+  kortNaam?: string;
   description?: string;
   priceInCents: number;
   stripePriceId?: string;
@@ -29,6 +30,7 @@ type CheckoutProduct = {
 type FormState = {
   slug: string;
   name: string;
+  kortNaam: string;
   description: string;
   priceInCents: string;
   stripePriceId: string;
@@ -44,6 +46,7 @@ type FormState = {
 const EMPTY_FORM: FormState = {
   slug: "",
   name: "",
+  kortNaam: "",
   description: "",
   priceInCents: "",
   stripePriceId: "",
@@ -101,6 +104,7 @@ export default function AdminCheckoutPage() {
     setForm({
       slug: product.slug,
       name: product.name,
+      kortNaam: product.kortNaam ?? "",
       description: product.description ?? "",
       priceInCents: String(product.priceInCents),
       stripePriceId: product.stripePriceId ?? "",
@@ -138,6 +142,7 @@ export default function AdminCheckoutPage() {
       const payload = {
         slug: form.slug.trim(),
         name: form.name.trim(),
+        kortNaam: opt(form.kortNaam),
         description: opt(form.description),
         priceInCents: price,
         stripePriceId: opt(form.stripePriceId),
@@ -250,6 +255,19 @@ export default function AdminCheckoutPage() {
                   className={inputClass}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className={labelSmClass}>
+                Korte naam <span className="text-gray-400">(optioneel — voor omzetpagina; laat leeg om volledige naam te gebruiken)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="N.A."
+                value={form.kortNaam}
+                onChange={set("kortNaam")}
+                className={inputClass}
+              />
             </div>
 
             <div>
