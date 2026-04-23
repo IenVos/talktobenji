@@ -644,13 +644,14 @@ export const getRecentRegistrations = query({
   },
 });
 
-/** Omzet en aankopen overzicht — laatste 12 maanden */
+/** Omzet en aankopen overzicht — gekoppeld aan checkoutProducts */
 export const getRevenueOverview = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
 
-    const [allSubs, excludedEmails, nietAlleenProfiles] = await Promise.all([
+    const [products, allSubs, excludedEmails, naProfiles] = await Promise.all([
+      ctx.db.query("checkoutProducts").collect(),
       ctx.db.query("userSubscriptions").collect(),
       ctx.db.query("analyticsExcludedEmails").collect(),
       ctx.db.query("nietAlleenProfiles").collect(),
@@ -658,96 +659,96 @@ export const getRevenueOverview = query({
 
     const excludedSet = new Set(excludedEmails.map((e) => e.email.toLowerCase()));
 
-    // Eenmalige aankopen: alles behalve free/trial
-    const aankopen = allSubs.filter(
-      (s) =>
-        s.subscriptionType !== "free" &&
-        s.subscriptionType !== "trial" &&
-        (!s.email || !excludedSet.has(s.email.toLowerCase()))
+    // Alleen echte Stripe-betalingen (pricePaid > 0), geen handmatig ingestelde
+    const echteAankopen = allSubs.filter(
+      (s) => (s.pricePaid ?? 0) > 0 && (!s.email || !excludedSet.has(s.email.toLowerCase()))
     );
-
-    // Niet Alleen aankopen (via nietAlleenProfiles — aparte stroom)
-    const nietAlleenAankopen = nietAlleenProfiles.filter(
+    const echteNA = naProfiles.filter(
       (p) => !excludedSet.has(p.email.toLowerCase())
     );
 
-    // Prijs per type (eenmalig)
-    const PRIJS: Record<string, number> = {
-      alles_in_1: 97,
-      uitgebreid: 0,
-      niet_alleen: 49,
-    };
-
-    // Maand-aggregatie: laatste 12 maanden
+    // Bouw per product een lookup: subscriptionType → { prijs, verkopen[] }
+    // niet_alleen loopt via naProfiles, de rest via userSubscriptions
+    const maandNamen = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
     const now = new Date();
-    const maanden: {
-      maand: string; // "2025-04"
-      label: string; // "apr '25"
-      aankopen: number;
-      omzet: number;
-      benji: number;
-      nietAlleen: number;
-    }[] = [];
+    const jaarStart = new Date(now.getFullYear(), 0, 1).getTime();
+    const maandStart0 = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
 
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    // Verzamel alle individuele verkopen (voor totalen)
+    type Verkoop = { timestamp: number; prijs: number; productSlug: string };
+    const alleVerkopen: Verkoop[] = [];
+
+    for (const p of products) {
+      const prijs = p.priceInCents / 100;
+      if (p.subscriptionType === "niet_alleen") {
+        for (const na of echteNA) {
+          alleVerkopen.push({ timestamp: na.createdAt, prijs, productSlug: p.slug });
+        }
+      } else {
+        for (const s of echteAankopen) {
+          if (s.subscriptionType === p.subscriptionType) {
+            alleVerkopen.push({
+              timestamp: s.startedAt ?? s._creationTime,
+              prijs: s.pricePaid ?? prijs,
+              productSlug: p.slug,
+            });
+          }
+        }
+      }
+    }
+
+    // Maand-aggregatie: vast startpunt maart 2026 t/m huidige maand
+    const START_JAAR = 2026;
+    const START_MAAND = 2; // 0-indexed = maart
+    const maanden = [];
+    const startD = new Date(START_JAAR, START_MAAND, 1);
+    const aantalMaanden = (now.getFullYear() - START_JAAR) * 12 + (now.getMonth() - START_MAAND) + 1;
+    for (let i = 0; i < aantalMaanden; i++) {
+      const d = new Date(startD.getFullYear(), startD.getMonth() + i, 1);
       const maandKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       const maandStart = d.getTime();
       const maandEind = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime();
 
-      const maandSubs = aankopen.filter(
-        (s) => s.startedAt >= maandStart && s.startedAt < maandEind
-      );
-      const maandNA = nietAlleenAankopen.filter(
-        (p) => p.createdAt >= maandStart && p.createdAt < maandEind
+      const maandVerkopen = alleVerkopen.filter(
+        (v) => v.timestamp >= maandStart && v.timestamp < maandEind
       );
 
-      let omzet = 0;
-      for (const s of maandSubs) {
-        omzet += (s as any).pricePaid ?? PRIJS[s.subscriptionType] ?? 0;
-      }
-      for (const _p of maandNA) {
-        omzet += 49; // Niet Alleen eenmalig
+      // Per product: aantal in deze maand
+      const perProduct: Record<string, number> = {};
+      for (const p of products) {
+        perProduct[p.slug] = maandVerkopen.filter((v) => v.productSlug === p.slug).length;
       }
 
-      const maandNamen = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
       maanden.push({
         maand: maandKey,
         label: `${maandNamen[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`,
-        aankopen: maandSubs.length + maandNA.length,
-        omzet: Math.round(omzet * 100) / 100,
-        benji: maandSubs.length,
-        nietAlleen: maandNA.length,
+        aankopen: maandVerkopen.length,
+        omzet: Math.round(maandVerkopen.reduce((s, v) => s + v.prijs, 0) * 100) / 100,
+        perProduct,
       });
     }
 
-    // Totalen
-    const now2 = new Date();
-    const jaarStart = new Date(now2.getFullYear(), 0, 1).getTime();
-    const maandStart = new Date(now2.getFullYear(), now2.getMonth(), 1).getTime();
-
-    const ytdSubs = aankopen.filter((s) => s.startedAt >= jaarStart);
-    const mtdSubs = aankopen.filter((s) => s.startedAt >= maandStart);
-    const ytdNA = nietAlleenAankopen.filter((p) => p.createdAt >= jaarStart);
-    const mtdNA = nietAlleenAankopen.filter((p) => p.createdAt >= maandStart);
-
-    const berekenOmzet = (subs: typeof aankopen, na: typeof nietAlleenAankopen) => {
-      let o = 0;
-      for (const s of subs) o += (s as any).pricePaid ?? PRIJS[s.subscriptionType] ?? 0;
-      for (const _p of na) o += 49;
-      return Math.round(o * 100) / 100;
-    };
+    const programmaStart = startD.getTime();
+    const ytd = alleVerkopen.filter((v) => v.timestamp >= jaarStart);
+    const mtd = alleVerkopen.filter((v) => v.timestamp >= maandStart0);
+    const totaalAlles = alleVerkopen.filter((v) => v.timestamp >= programmaStart).reduce((s, v) => s + v.prijs, 0);
 
     return {
+      products: products.map((p) => ({
+        slug: p.slug,
+        name: p.name,
+        subscriptionType: p.subscriptionType,
+        priceInCents: p.priceInCents,
+      })),
       maanden,
-      totaalYTD: berekenOmzet(ytdSubs, ytdNA),
-      aankopenYTD: ytdSubs.length + ytdNA.length,
-      totaalMTD: berekenOmzet(mtdSubs, mtdNA),
-      aankopenMTD: mtdSubs.length + mtdNA.length,
-      gemiddeldeOrderwaarde: aankopen.length + nietAlleenAankopen.length > 0
-        ? Math.round(berekenOmzet(aankopen, nietAlleenAankopen) / (aankopen.length + nietAlleenAankopen.length) * 100) / 100
+      totaalYTD: Math.round(ytd.reduce((s, v) => s + v.prijs, 0) * 100) / 100,
+      aankopenYTD: ytd.length,
+      totaalMTD: Math.round(mtd.reduce((s, v) => s + v.prijs, 0) * 100) / 100,
+      aankopenMTD: mtd.length,
+      gemiddeldeOrderwaarde: alleVerkopen.length > 0
+        ? Math.round((totaalAlles / alleVerkopen.length) * 100) / 100
         : 0,
-      totaalAllesTijd: berekenOmzet(aankopen, nietAlleenAankopen),
+      totaalAllesTijd: Math.round(totaalAlles * 100) / 100,
     };
   },
 });

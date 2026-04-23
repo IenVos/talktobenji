@@ -140,10 +140,16 @@ export const getCustomerByEmail = query({
 
     // Productenlijst
     const producten: { naam: string; type: string; since: number }[] = [];
-    if (subscription && subscription.subscriptionType !== "free") {
+    const PRODUCT_NAMEN: Record<string, string> = {
+      alles_in_1: "Alles-in-1",
+      uitgebreid: "Uitgebreid",
+      er_zijn: "Er Zijn",
+      niet_alleen: "Niet Alleen (30 dagen)",
+    };
+    if (subscription && subscription.subscriptionType !== "free" && subscription.subscriptionType !== "trial") {
       producten.push({
-        naam: subscription.subscriptionType === "alles_in_1" ? "Alles-in-1" : "Uitgebreid",
-        type: "abonnement",
+        naam: PRODUCT_NAMEN[subscription.subscriptionType] ?? subscription.subscriptionType,
+        type: subscription.subscriptionType === "uitgebreid" || subscription.subscriptionType === "alles_in_1" ? "abonnement" : "eenmalig",
         since: subscription.startedAt ?? subscription._creationTime,
       });
     }
@@ -187,7 +193,8 @@ export const setCustomerSubscription = mutation({
       v.literal("free"),
       v.literal("trial"),
       v.literal("uitgebreid"),
-      v.literal("alles_in_1")
+      v.literal("alles_in_1"),
+      v.literal("er_zijn")
     ),
   },
   handler: async (ctx, args) => {

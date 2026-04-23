@@ -230,7 +230,8 @@ export default defineSchema({
       v.literal("trial"),
       v.literal("niet_alleen"),
       v.literal("uitgebreid"),
-      v.literal("alles_in_1")
+      v.literal("alles_in_1"),
+      v.literal("er_zijn")
     ),
     billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("yearly"))),
     status: v.union(

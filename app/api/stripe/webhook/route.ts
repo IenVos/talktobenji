@@ -137,12 +137,10 @@ export async function POST(req: NextRequest) {
 
     if (email) {
       try {
-        const subType = (
-          subscriptionType === "niet_alleen" ||
-          subscriptionType === "uitgebreid" ||
-          subscriptionType === "alles_in_1"
-        )
-          ? (subscriptionType as "niet_alleen" | "uitgebreid" | "alles_in_1")
+        const BEKENDE_TYPES = ["niet_alleen", "uitgebreid", "alles_in_1", "er_zijn"] as const;
+        type BekendType = typeof BEKENDE_TYPES[number];
+        const subType: BekendType = (BEKENDE_TYPES as readonly string[]).includes(subscriptionType)
+          ? (subscriptionType as BekendType)
           : "alles_in_1";
 
         // Activatie proberen (stille fout als nog geen account)
