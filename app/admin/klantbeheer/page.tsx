@@ -6,7 +6,9 @@ import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import {
   Search, Users, CreditCard, KeyRound, MessageSquare,
   Palette, BookHeart, CheckCircle, AlertCircle, ChevronDown, AtSign, HelpCircle, ArrowRight,
+  Mail, RotateCcw, Send, Package,
 } from "lucide-react";
+import { useAction } from "convex/react";
 import Link from "next/link";
 
 const SUB_LABELS: Record<string, string> = {
@@ -114,6 +116,12 @@ export default function KlantbeheerPage() {
   const resetUsage = useAdminMutation(api.klantbeheer.resetConversationUsage);
   const resetPrefs = useAdminMutation(api.klantbeheer.resetCustomerPreferences);
   const clearContext = useAdminMutation(api.klantbeheer.clearCustomerContext);
+  const resetNietAlleenDag = useAdminMutation(api.klantbeheer.resetNietAlleenDag);
+  const stuurDagNu = useAction(api.klantbeheer.stuurDagNuAdmin);
+
+  const [hervatDag, setHervatDag] = useState(1);
+  const [stuurDag, setStuurDag] = useState(1);
+  const [naActie, setNaActie] = useState<string | null>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,6 +171,7 @@ export default function KlantbeheerPage() {
 
   const sub = customer?.subscription;
   const subType = sub?.subscriptionType ?? "free";
+  const hasAccount = customer?.userId != null;
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -234,12 +243,17 @@ export default function KlantbeheerPage() {
             <div className="bg-primary-50 px-5 py-4 border-b border-primary-100">
               <p className="font-semibold text-primary-900">{customer.name}</p>
               <p className="text-sm text-primary-600">{customer.email}</p>
+              {!hasAccount && (
+                <span className="inline-block mt-1 text-[10px] font-semibold bg-amber-100 text-amber-700 rounded-full px-2 py-0.5">
+                  Geen TalkToBenji account — alleen Niet Alleen klant
+                </span>
+              )}
             </div>
             <div className="px-5 py-4 grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-4 text-sm">
-              <div>
+              {hasAccount && <div>
                 <p className="text-xs text-gray-500 mb-0.5">Abonnement</p>
                 <p className="font-medium text-gray-800">{SUB_LABELS[subType] ?? subType}</p>
-              </div>
+              </div>}
               {sub?.expiresAt && subType === "trial" && (
                 <div>
                   <p className="text-xs text-gray-500 mb-0.5">Trial verloopt</p>
@@ -283,8 +297,138 @@ export default function KlantbeheerPage() {
             </div>
           </div>
 
-          {/* E-mailadres wijzigen */}
-          <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-5 space-y-4">
+          {/* Producten */}
+          <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Package size={16} className="text-primary-600" />
+              <h2 className="text-sm font-semibold text-gray-800">Aangeschafte producten</h2>
+            </div>
+            {customer.producten.length === 0 ? (
+              <p className="text-xs text-gray-400 italic">Geen betaalde producten</p>
+            ) : (
+              <div className="space-y-2">
+                {customer.producten.map((p: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{p.naam}</p>
+                      <p className="text-xs text-gray-400">
+                        {p.type === "abonnement" ? "Abonnement" : "Programma"} · sinds {new Date(p.since).toLocaleDateString("nl-NL")}
+                      </p>
+                    </div>
+                    <span className={`text-[10px] font-semibold rounded-full px-2 py-0.5 ${p.type === "abonnement" ? "bg-blue-100 text-blue-700" : "bg-violet-100 text-violet-700"}`}>
+                      {p.type}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Niet Alleen voortgang */}
+          {customer.nietAlleen && (
+            <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <Mail size={16} className="text-primary-600" />
+                <h2 className="text-sm font-semibold text-gray-800">Niet Alleen — e-mailprogramma</h2>
+                {!customer.nietAlleen.actief && (
+                  <span className="text-[10px] font-semibold bg-red-100 text-red-600 rounded-full px-2 py-0.5">gesloten</span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-4 text-sm">
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Huidige dag</p>
+                  <p className="font-semibold text-gray-900">Dag {customer.nietAlleen.dagNummer} van 30</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Verliestype</p>
+                  <p className="font-medium text-gray-800 capitalize">{customer.nietAlleen.verliesType}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Gestart op</p>
+                  <p className="font-medium text-gray-800">{new Date(customer.nietAlleen.startDatum).toLocaleDateString("nl-NL")}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Dagen ingevuld</p>
+                  <p className="font-medium text-gray-800">{customer.nietAlleen.dagenIngevuld} / 30</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Dag 28 mail</p>
+                  <p className={`font-medium ${customer.nietAlleen.dag28Verzonden ? "text-green-600" : "text-gray-400"}`}>
+                    {customer.nietAlleen.dag28Verzonden ? "✓ verstuurd" : "nog niet"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Dag 30 mail</p>
+                  <p className={`font-medium ${customer.nietAlleen.dag30Verzonden ? "text-green-600" : "text-gray-400"}`}>
+                    {customer.nietAlleen.dag30Verzonden ? "✓ verstuurd" : "nog niet"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 pt-4 space-y-3">
+                <p className="text-xs font-semibold text-gray-600">Bijsturen</p>
+
+                {/* Hervat vanaf dag X */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600 flex-shrink-0">Hervat vanaf dag</span>
+                  <input
+                    type="number"
+                    min={1} max={30}
+                    value={hervatDag}
+                    onChange={e => setHervatDag(Math.max(1, Math.min(30, Number(e.target.value))))}
+                    className="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  />
+                  <ActionRow
+                    label=""
+                    description=""
+                    icon={RotateCcw}
+                    buttonLabel="Instellen"
+                    confirmText={`Startdatum aanpassen zodat dag ${hervatDag} vandaag is? De cron stuurt morgenochtend dag ${hervatDag + 1}.`}
+                    onAction={async () => {
+                      await resetNietAlleenDag({ email: activeEmail, hervatVanafDag: hervatDag });
+                      setNaActie(`Programma hervat — dag ${hervatDag} is nu vandaag.`);
+                      setTimeout(() => setNaActie(null), 5000);
+                    }}
+                  />
+                </div>
+
+                {/* Stuur dag X nu */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600 flex-shrink-0">Stuur dag</span>
+                  <input
+                    type="number"
+                    min={1} max={30}
+                    value={stuurDag}
+                    onChange={e => setStuurDag(Math.max(1, Math.min(30, Number(e.target.value))))}
+                    className="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-400"
+                  />
+                  <span className="text-xs text-gray-600 flex-shrink-0">nu</span>
+                  <ActionRow
+                    label=""
+                    description=""
+                    icon={Send}
+                    buttonLabel="Versturen"
+                    confirmText={`Dag ${stuurDag} direct nu versturen naar ${activeEmail}?`}
+                    onAction={async () => {
+                      await stuurDagNu({ email: activeEmail, dag: stuurDag });
+                      setNaActie(`Dag ${stuurDag} verstuurd naar ${activeEmail}.`);
+                      setTimeout(() => setNaActie(null), 5000);
+                    }}
+                  />
+                </div>
+
+                {naActie && (
+                  <p className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                    <CheckCircle size={13} /> {naActie}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* E-mailadres wijzigen — alleen voor klanten met TTB account */}
+          {hasAccount && <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-5 space-y-4">
             <div className="flex items-center gap-2">
               <AtSign size={16} className="text-primary-600" />
               <h2 className="text-sm font-semibold text-gray-800">E-mailadres wijzigen</h2>
@@ -311,10 +455,10 @@ export default function KlantbeheerPage() {
                 {emailState.message}
               </p>
             )}
-          </div>
+          </div>}
 
-          {/* Abonnement wijzigen */}
-          <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-5 space-y-4">
+          {/* Abonnement wijzigen — alleen voor klanten met TTB account */}
+          {hasAccount && <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-5 space-y-4">
             <div className="flex items-center gap-2">
               <CreditCard size={16} className="text-primary-600" />
               <h2 className="text-sm font-semibold text-gray-800">Abonnement wijzigen</h2>
@@ -346,10 +490,10 @@ export default function KlantbeheerPage() {
                 {subState.message}
               </p>
             )}
-          </div>
+          </div>}
 
-          {/* Overige acties */}
-          <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-5">
+          {/* Overige acties — alleen voor klanten met TTB account */}
+          {hasAccount && <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-5">
             <h2 className="text-sm font-semibold text-gray-800 mb-1">Acties</h2>
             <p className="text-xs text-gray-500 mb-4">Gesprekken, doelen en notities worden nooit gewist</p>
 
@@ -383,7 +527,7 @@ export default function KlantbeheerPage() {
               confirmText={`Weet je zeker dat je 'Jouw verhaal' van ${activeEmail} wilt wissen? Dit kan niet ongedaan worden gemaakt.`}
               onAction={() => clearContext({ email: activeEmail })}
             />
-          </div>
+          </div>}
         </>
       )}
     </div>

@@ -3,7 +3,8 @@
  * Alleen bruikbaar vanuit het admin panel (adminToken check via context).
  */
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { action, internalQuery, mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 /** Zoek klantinfo op basis van e-mailadres */
 export const getCustomerByEmail = query({
@@ -20,11 +21,45 @@ export const getCustomerByEmail = query({
       .withIndex("email", (q) => q.eq("email", email))
       .unique();
 
-    if (!user) return null;
+    // Geen TTB-account? Kijk dan of er een Niet Alleen profiel is
+    if (!user) {
+      const naProfile = await ctx.db
+        .query("nietAlleenProfiles")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+      if (!naProfile) return null;
+
+      const dagNummer = Math.min(
+        Math.floor((Date.now() - naProfile.startDatum) / 86400000) + 1,
+        30
+      );
+      return {
+        userId: null,
+        name: naProfile.naam,
+        email: naProfile.email,
+        subscription: null,
+        nietAlleen: {
+          profileId: naProfile._id.toString(),
+          naam: naProfile.naam,
+          verliesType: naProfile.verliesType ?? "onbekend",
+          startDatum: naProfile.startDatum,
+          dagNummer: Math.max(1, dagNummer),
+          dagenIngevuld: (naProfile.dagPrompts ?? []).length,
+          actief: !naProfile.accountGesloten,
+          dag28Verzonden: !!naProfile.dag28MailVerzonden,
+          dag30Verzonden: !!naProfile.dag30MailVerzonden,
+        },
+        producten: [
+          { naam: "Niet Alleen (30 dagen)", type: "programma", since: naProfile.createdAt },
+        ],
+        preferences: { hasAccentColor: false, hasBackground: false, hasUserContext: false },
+        counts: { notes: 0, goals: 0, memories: 0, checkIns: 0, conversationsThisMonth: 0 },
+      };
+    }
 
     const userId = user._id.toString();
 
-    const [subscription, preferences, notes, goals, memories, checkIns] =
+    const [subscription, preferences, notes, goals, memories, checkIns, nietAlleenProfile] =
       await Promise.all([
         ctx.db
           .query("userSubscriptions")
@@ -50,6 +85,18 @@ export const getCustomerByEmail = query({
           .query("checkInEntries")
           .withIndex("by_user", (q) => q.eq("userId", userId))
           .collect(),
+        // Probeer eerst op email, daarna op userId (voor klanten die kochten met TTB-account)
+        ctx.db
+          .query("nietAlleenProfiles")
+          .withIndex("by_email", (q) => q.eq("email", email))
+          .first()
+          .then(async (byEmail) => {
+            if (byEmail) return byEmail;
+            return ctx.db
+              .query("nietAlleenProfiles")
+              .withIndex("by_user", (q) => q.eq("userId", userId))
+              .first();
+          }),
       ]);
 
     const now = new Date();
@@ -61,11 +108,60 @@ export const getCustomerByEmail = query({
       )
       .first();
 
+    // Bereken Niet Alleen voortgang
+    let nietAlleen: {
+      profileId: string;
+      naam: string;
+      verliesType: string;
+      startDatum: number;
+      dagNummer: number;
+      dagenIngevuld: number;
+      actief: boolean;
+      dag28Verzonden: boolean;
+      dag30Verzonden: boolean;
+    } | null = null;
+    if (nietAlleenProfile) {
+      const dagNummer = Math.min(
+        Math.floor((Date.now() - nietAlleenProfile.startDatum) / 86400000) + 1,
+        30
+      );
+      nietAlleen = {
+        profileId: nietAlleenProfile._id.toString(),
+        naam: nietAlleenProfile.naam,
+        verliesType: nietAlleenProfile.verliesType ?? "onbekend",
+        startDatum: nietAlleenProfile.startDatum,
+        dagNummer: Math.max(1, dagNummer),
+        dagenIngevuld: (nietAlleenProfile.dagPrompts ?? []).length,
+        actief: !nietAlleenProfile.accountGesloten,
+        dag28Verzonden: !!nietAlleenProfile.dag28MailVerzonden,
+        dag30Verzonden: !!nietAlleenProfile.dag30MailVerzonden,
+      };
+    }
+
+    // Productenlijst
+    const producten: { naam: string; type: string; since: number }[] = [];
+    if (subscription && subscription.subscriptionType !== "free") {
+      producten.push({
+        naam: subscription.subscriptionType === "alles_in_1" ? "Alles-in-1" : "Uitgebreid",
+        type: "abonnement",
+        since: subscription.startedAt ?? subscription._creationTime,
+      });
+    }
+    if (nietAlleenProfile) {
+      producten.push({
+        naam: "Niet Alleen (30 dagen)",
+        type: "programma",
+        since: nietAlleenProfile.createdAt,
+      });
+    }
+
     return {
       userId,
       name: user.name,
       email: user.email,
       subscription: subscription ?? null,
+      nietAlleen,
+      producten,
       preferences: {
         hasAccentColor: !!preferences?.accentColor,
         hasBackground: !!preferences?.backgroundImageStorageId,
@@ -266,5 +362,60 @@ export const clearCustomerContext = mutation({
     await ctx.db.replace(prefs._id, { ...rest, updatedAt: Date.now() });
 
     return { success: true, changed: true };
+  },
+});
+
+/** Hervat Niet Alleen programma vanaf een specifieke dag */
+export const resetNietAlleenDag = mutation({
+  args: {
+    adminToken: v.optional(v.string()),
+    email: v.string(),
+    hervatVanafDag: v.number(), // 1-30
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (!profiel) throw new Error("Geen Niet Alleen profiel gevonden voor dit e-mailadres");
+    const dag = Math.max(1, Math.min(30, args.hervatVanafDag));
+    const nieuweStartDatum = Date.now() - (dag - 1) * 86400000;
+    await ctx.db.patch(profiel._id, { startDatum: nieuweStartDatum, updatedAt: Date.now() });
+    return { dag };
+  },
+});
+
+/** Stuur een specifieke dagmail nu naar de klant */
+export const stuurDagNuAdmin = action({
+  args: {
+    adminToken: v.optional(v.string()),
+    email: v.string(),
+    dag: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.runQuery(internal.klantbeheer.getNietAlleenProfielIntern, {
+      email: args.email.toLowerCase().trim(),
+    });
+    if (!profiel) throw new Error("Geen Niet Alleen profiel gevonden");
+    await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
+      email: profiel.email,
+      naam: profiel.naam,
+      dagNummer: args.dag,
+      verliesType: profiel.verliesType ?? "persoon",
+      verliesNaam: profiel.verliesNaam,
+    });
+    return { verstuurd: true };
+  },
+});
+
+/** Intern: haal Niet Alleen profiel op (gebruikt door stuurDagNuAdmin) */
+export const getNietAlleenProfielIntern = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
   },
 });

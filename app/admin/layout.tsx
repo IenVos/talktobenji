@@ -167,6 +167,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         items: [
           { href: "/admin/checkout", label: "Checkout producten", icon: CreditCard },
           { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
+          { href: "/admin/revenue", label: "Omzet & verkopen", icon: BarChart3 },
           { href: "/admin/onderweg", label: "Shop", icon: ShoppingBag },
         ],
       },

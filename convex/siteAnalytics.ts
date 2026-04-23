@@ -643,3 +643,111 @@ export const getRecentRegistrations = query({
     };
   },
 });
+
+/** Omzet en aankopen overzicht — laatste 12 maanden */
+export const getRevenueOverview = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const [allSubs, excludedEmails, nietAlleenProfiles] = await Promise.all([
+      ctx.db.query("userSubscriptions").collect(),
+      ctx.db.query("analyticsExcludedEmails").collect(),
+      ctx.db.query("nietAlleenProfiles").collect(),
+    ]);
+
+    const excludedSet = new Set(excludedEmails.map((e) => e.email.toLowerCase()));
+
+    // Eenmalige aankopen: alles behalve free/trial
+    const aankopen = allSubs.filter(
+      (s) =>
+        s.subscriptionType !== "free" &&
+        s.subscriptionType !== "trial" &&
+        (!s.email || !excludedSet.has(s.email.toLowerCase()))
+    );
+
+    // Niet Alleen aankopen (via nietAlleenProfiles — aparte stroom)
+    const nietAlleenAankopen = nietAlleenProfiles.filter(
+      (p) => !excludedSet.has(p.email.toLowerCase())
+    );
+
+    // Prijs per type (eenmalig)
+    const PRIJS: Record<string, number> = {
+      alles_in_1: 97,
+      uitgebreid: 0,
+      niet_alleen: 49,
+    };
+
+    // Maand-aggregatie: laatste 12 maanden
+    const now = new Date();
+    const maanden: {
+      maand: string; // "2025-04"
+      label: string; // "apr '25"
+      aankopen: number;
+      omzet: number;
+      benji: number;
+      nietAlleen: number;
+    }[] = [];
+
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const maandKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const maandStart = d.getTime();
+      const maandEind = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime();
+
+      const maandSubs = aankopen.filter(
+        (s) => s.startedAt >= maandStart && s.startedAt < maandEind
+      );
+      const maandNA = nietAlleenAankopen.filter(
+        (p) => p.createdAt >= maandStart && p.createdAt < maandEind
+      );
+
+      let omzet = 0;
+      for (const s of maandSubs) {
+        omzet += (s as any).pricePaid ?? PRIJS[s.subscriptionType] ?? 0;
+      }
+      for (const _p of maandNA) {
+        omzet += 49; // Niet Alleen eenmalig
+      }
+
+      const maandNamen = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+      maanden.push({
+        maand: maandKey,
+        label: `${maandNamen[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`,
+        aankopen: maandSubs.length + maandNA.length,
+        omzet: Math.round(omzet * 100) / 100,
+        benji: maandSubs.length,
+        nietAlleen: maandNA.length,
+      });
+    }
+
+    // Totalen
+    const now2 = new Date();
+    const jaarStart = new Date(now2.getFullYear(), 0, 1).getTime();
+    const maandStart = new Date(now2.getFullYear(), now2.getMonth(), 1).getTime();
+
+    const ytdSubs = aankopen.filter((s) => s.startedAt >= jaarStart);
+    const mtdSubs = aankopen.filter((s) => s.startedAt >= maandStart);
+    const ytdNA = nietAlleenAankopen.filter((p) => p.createdAt >= jaarStart);
+    const mtdNA = nietAlleenAankopen.filter((p) => p.createdAt >= maandStart);
+
+    const berekenOmzet = (subs: typeof aankopen, na: typeof nietAlleenAankopen) => {
+      let o = 0;
+      for (const s of subs) o += (s as any).pricePaid ?? PRIJS[s.subscriptionType] ?? 0;
+      for (const _p of na) o += 49;
+      return Math.round(o * 100) / 100;
+    };
+
+    return {
+      maanden,
+      totaalYTD: berekenOmzet(ytdSubs, ytdNA),
+      aankopenYTD: ytdSubs.length + ytdNA.length,
+      totaalMTD: berekenOmzet(mtdSubs, mtdNA),
+      aankopenMTD: mtdSubs.length + mtdNA.length,
+      gemiddeldeOrderwaarde: aankopen.length + nietAlleenAankopen.length > 0
+        ? Math.round(berekenOmzet(aankopen, nietAlleenAankopen) / (aankopen.length + nietAlleenAankopen.length) * 100) / 100
+        : 0,
+      totaalAllesTijd: berekenOmzet(aankopen, nietAlleenAankopen),
+    };
+  },
+});

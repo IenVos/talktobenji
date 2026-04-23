@@ -333,17 +333,18 @@ export const activateNietAlleenDirect = mutation({
   },
   handler: async (ctx, args) => {
     const now = Date.now();
+    const email = args.email.toLowerCase().trim();
 
     // Al een profiel? Dan niets doen
     const bestaand = await ctx.db
       .query("nietAlleenProfiles")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .withIndex("by_email", (q) => q.eq("email", email))
       .first();
     if (bestaand) return { isNieuw: false };
 
     await ctx.db.insert("nietAlleenProfiles", {
-      userId: args.email, // email als userId zodat lookup by_email werkt
-      email: args.email,
+      userId: email, // email als userId zodat lookup by_email werkt
+      email,
       naam: args.naam,
       startDatum: now,
       dagPrompts: [],
