@@ -338,12 +338,17 @@ export default function AdminCheckoutPage() {
             {/* Abonnement type & knoptekst */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Abonnementstype *</label>
-                <select value={form.subscriptionType} onChange={set("subscriptionType")} className={inputClass}>
-                  <option value="alles_in_1">Alles in 1</option>
-                  <option value="niet_alleen">Niet Alleen</option>
-                  <option value="uitgebreid">Uitgebreid</option>
-                </select>
+                <label className={labelClass}>
+                  Producttype * <span className="text-gray-400 font-normal text-xs">(unieke code per product)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="troostende_woorden"
+                  value={form.subscriptionType}
+                  onChange={set("subscriptionType")}
+                  className={inputClass}
+                />
+                <p className="text-xs text-gray-400 mt-1">Gebruik alleen kleine letters en underscores. Voorbeelden: <span className="font-mono">niet_alleen</span>, <span className="font-mono">er_zijn</span>, <span className="font-mono">troostende_woorden</span></p>
               </div>
               <div>
                 <label className={labelSmClass}>Knoptekst (standaard: "Betalen")</label>

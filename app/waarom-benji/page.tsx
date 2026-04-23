@@ -163,7 +163,7 @@ export default async function WaaromBenjiPage() {
               </div>
 
               <p>
-                Er volgde een <Link href="/lp/troostende-woorden" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">troostwoordenboekje</Link>, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen.
+                Er volgde een <Link href="/betalen/troostende-woorden" className="text-primary-600 hover:text-primary-700 underline underline-offset-2">troostwoordenboekje</Link>, omdat mensen behoefte bleken te hebben aan woorden als die van henzelf niet komen.
               </p>
 
               <div className="flex justify-center">

@@ -189,13 +189,7 @@ export const setCustomerSubscription = mutation({
   args: {
     adminToken: v.optional(v.string()),
     email: v.string(),
-    subscriptionType: v.union(
-      v.literal("free"),
-      v.literal("trial"),
-      v.literal("uitgebreid"),
-      v.literal("alles_in_1"),
-      v.literal("er_zijn")
-    ),
+    subscriptionType: v.string(),
   },
   handler: async (ctx, args) => {
     const email = args.email.toLowerCase().trim();

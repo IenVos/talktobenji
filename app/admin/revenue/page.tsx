@@ -171,7 +171,7 @@ export default function RevenuePage() {
                 <div className="flex items-center justify-between">
                   <h2 className="text-sm font-semibold text-gray-800">Omzet per maand — laatste 12 maanden</h2>
                   <div className="flex items-center gap-4 text-xs text-gray-500">
-                    {data.products.map((p, i) => (
+                    {data.products.map((p: Product, i: number) => (
                       <span key={p.slug} className="flex items-center gap-1">
                         <span
                           className="w-3 h-3 rounded-sm inline-block"
@@ -191,7 +191,7 @@ export default function RevenuePage() {
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       <th className="text-left px-4 py-3 font-medium text-gray-600">Maand</th>
-                      {data.products.map((p) => (
+                      {data.products.map((p: Product) => (
                         <th key={p.slug} className="text-center px-4 py-3 font-medium text-gray-600">{p.name}</th>
                       ))}
                       <th className="text-center px-4 py-3 font-medium text-gray-600">Totaal</th>
@@ -202,7 +202,7 @@ export default function RevenuePage() {
                     {[...data.maanden].reverse().map((m) => (
                       <tr key={m.maand} className="hover:bg-gray-50">
                         <td className="px-4 py-3 font-medium text-gray-800">{m.label}</td>
-                        {data.products.map((p) => (
+                        {data.products.map((p: Product) => (
                           <td key={p.slug} className="px-4 py-3 text-center text-gray-600">
                             {m.perProduct[p.slug] || "—"}
                           </td>

@@ -675,6 +675,7 @@ function AbonnementAccordion({ isOpen, onToggle }: { isOpen: boolean; onToggle: 
     niet_alleen: "Niet Alleen",
     uitgebreid: "Benji Uitgebreid",
     alles_in_1: "Benji Alles in 1",
+    er_zijn: "Er Zijn",
   };
 
   const planColors: Record<string, string> = {
@@ -683,9 +684,10 @@ function AbonnementAccordion({ isOpen, onToggle }: { isOpen: boolean; onToggle: 
     niet_alleen: "bg-blue-50 text-blue-700 border-blue-200",
     uitgebreid: "bg-amber-50 text-amber-700 border-amber-200",
     alles_in_1: "bg-purple-50 text-purple-700 border-purple-200",
+    er_zijn: "bg-teal-50 text-teal-700 border-teal-200",
   };
 
-  const PlanIcon = subscription ? { free: Check, trial: Sparkles, niet_alleen: Sparkles, uitgebreid: Sparkles, alles_in_1: Star }[subscription.subscriptionType] : null;
+  const PlanIcon = subscription ? ({ free: Check, trial: Sparkles, niet_alleen: Sparkles, uitgebreid: Sparkles, alles_in_1: Star, er_zijn: Check } as Record<string, React.ElementType>)[subscription.subscriptionType] ?? Check : null;
 
   const currentPlanName = subscription ? (planNames[subscription.subscriptionType] ?? "Onbekend") : "…";
 

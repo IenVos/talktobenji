@@ -23,39 +23,43 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
 
   if (!subscription) return null;
 
-  const planNames = {
+  const planNames: Record<string, string> = {
     free: "Gratis account",
     trial: "Gratis proefperiode",
     niet_alleen: "Niet Alleen",
     uitgebreid: "Benji Uitgebreid",
     alles_in_1: "Benji Alles in 1",
+    er_zijn: "Er Zijn",
   };
 
-  const planColors = {
+  const planColors: Record<string, string> = {
     free: "bg-green-50 text-green-700 border-green-200",
     trial: "bg-amber-50 text-amber-700 border-amber-200",
     niet_alleen: "bg-blue-50 text-blue-700 border-blue-200",
     uitgebreid: "bg-amber-50 text-amber-700 border-amber-200",
     alles_in_1: "bg-purple-50 text-purple-700 border-purple-200",
+    er_zijn: "bg-teal-50 text-teal-700 border-teal-200",
   };
 
-  const iconColors = {
+  const iconColors: Record<string, string> = {
     free: "text-green-600",
     trial: "text-amber-500",
     niet_alleen: "text-blue-600",
     uitgebreid: "text-amber-500",
     alles_in_1: "text-purple-600",
+    er_zijn: "text-teal-600",
   };
 
-  const planIcons = {
+  const planIcons: Record<string, React.ElementType> = {
     free: Check,
     trial: Sparkles,
     niet_alleen: Sparkles,
     uitgebreid: Sparkles,
     alles_in_1: Star,
+    er_zijn: Check,
   };
 
-  const Icon = planIcons[subscription.subscriptionType];
+  const Icon = planIcons[subscription.subscriptionType] ?? Check;
 
   return (
     <div className="bg-white rounded-xl border border-primary-200 p-6">

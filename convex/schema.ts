@@ -225,14 +225,7 @@ export default defineSchema({
   userSubscriptions: defineTable({
     userId: v.string(),
     email: v.string(), // Voor admin override check
-    subscriptionType: v.union(
-      v.literal("free"),
-      v.literal("trial"),
-      v.literal("niet_alleen"),
-      v.literal("uitgebreid"),
-      v.literal("alles_in_1"),
-      v.literal("er_zijn")
-    ),
+    subscriptionType: v.string(), // bijv. "free", "trial", "niet_alleen", "er_zijn", "troostende_woorden"
     billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("yearly"))),
     status: v.union(
       v.literal("active"),

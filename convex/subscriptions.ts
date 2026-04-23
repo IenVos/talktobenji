@@ -247,7 +247,7 @@ export const activateSubscriptionByEmail = mutation({
   args: {
     webhookSecret: v.string(),
     email: v.string(),
-    subscriptionType: v.union(v.literal("uitgebreid"), v.literal("alles_in_1"), v.literal("niet_alleen")),
+    subscriptionType: v.string(),
     billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("yearly"))),
     externalSubscriptionId: v.optional(v.string()),
     paymentProvider: v.optional(v.string()),
