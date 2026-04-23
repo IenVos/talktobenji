@@ -15,6 +15,7 @@ export default function LinkStructuurPage() {
   const updatePost = useAdminMutation(api.blogPosts.update);
   const clearAllAnchors = useAdminMutation(api.blogPosts.clearAllAnchorPhrases);
   const bulkGenerate = useAdminMutation(api.blogPosts.bulkGenerateAnchorPhrases);
+  const bulkRegenerateWeak = useAdminMutation(api.blogPosts.bulkRegenerateWeakAnchorPhrases);
 
   const [filterPillar, setFilterPillar] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "live" | "concept">("all");
@@ -25,6 +26,7 @@ export default function LinkStructuurPage() {
   const [saving, setSaving] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   const pillarMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -107,15 +109,27 @@ export default function LinkStructuurPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={async () => {
+              setRegenerating(true);
+              const count = await bulkRegenerateWeak({});
+              setRegenerating(false);
+              alert(`Zwakke ankerzinnen vervangen bij ${count} artikelen.`);
+            }}
+            disabled={regenerating}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-primary-600 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors disabled:opacity-50"
+          >
+            {regenerating ? "Bezig..." : "Zwakke ankerzinnen vervangen"}
+          </button>
+          <button
+            onClick={async () => {
               setGenerating(true);
               const count = await bulkGenerate({});
               setGenerating(false);
               alert(`Ankerzinnen gegenereerd voor ${count} artikelen.`);
             }}
             disabled={generating}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-primary-600 border border-primary-200 rounded-lg hover:bg-primary-50 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2 text-sm text-stone-500 border border-stone-200 rounded-lg hover:bg-stone-50 transition-colors disabled:opacity-50"
           >
-            {generating ? "Bezig..." : "Ankerzinnen aanvullen (lege)"}
+            {generating ? "Bezig..." : "Aanvullen (lege)"}
           </button>
           <button
             onClick={async () => {

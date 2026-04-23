@@ -666,6 +666,26 @@ export const bulkGenerateAnchorPhrases = mutation({
   },
 });
 
+/** Admin: vervang zwakke ankerzinnen (alle phrases ≤ 2 woorden) met verbeterd algoritme */
+export const bulkRegenerateWeakAnchorPhrases = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const posts = await ctx.db.query("blogPosts").collect();
+    const weak = posts.filter((p) =>
+      p.anchorPhrases &&
+      p.anchorPhrases.length > 0 &&
+      p.anchorPhrases.every((phrase) => phrase.trim().split(/\s+/).length <= 2)
+    );
+    await Promise.all(weak.map((p) => {
+      const phrases = autoAnchorPhrases(p.title, p.focusKeyword ?? undefined);
+      if (phrases.length === 0) return Promise.resolve();
+      return ctx.db.patch(p._id, { anchorPhrases: phrases, updatedAt: Date.now() });
+    }));
+    return weak.length;
+  },
+});
+
 /** Admin: alle ankerzinnen van alle posts leegmaken */
 export const clearAllAnchorPhrases = mutation({
   args: { adminToken: v.string() },
