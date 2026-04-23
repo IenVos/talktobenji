@@ -167,8 +167,18 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         items: [
           { href: "/admin/checkout", label: "Checkout producten", icon: CreditCard },
           { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
-          { href: "/admin/niet-alleen-emails", label: "Niet Alleen e-mails", icon: Mail },
           { href: "/admin/onderweg", label: "Shop", icon: ShoppingBag },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
+        id: "email",
+        label: "E-mail programma's",
+        icon: Mail,
+        items: [
+          { href: "/admin/niet-alleen-emails", label: "Niet Alleen", icon: Mail },
         ],
       },
     },

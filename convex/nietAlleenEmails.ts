@@ -8,6 +8,7 @@ import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
 import { getDagInhoud, getMailTekst, vervangVerliesNaam } from "./nietAlleenContent";
+import { internal as internalApi } from "./_generated/api";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
 
@@ -135,10 +136,15 @@ export const sendDagMail = internalAction({
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) return;
 
+    // Controleer op admin-override, val terug op hardcoded content
+    const override = await ctx.runQuery(internalApi.emailTemplates.getDagTemplateInternal, {
+      dag: args.dagNummer,
+      verliesType: args.verliesType,
+    });
     const inhoud = getDagInhoud(args.dagNummer, args.verliesType);
-    const subject = inhoud?.subject ?? `Dag ${args.dagNummer}`;
+    const subject = override?.subject ?? inhoud?.subject ?? `Dag ${args.dagNummer}`;
 
-    let mailTekst = getMailTekst(args.dagNummer, args.verliesType);
+    let mailTekst = override?.mailTekst ?? getMailTekst(args.dagNummer, args.verliesType);
     mailTekst = vervangVerliesNaam(mailTekst, args.verliesNaam, args.verliesType);
 
     const voornaam = args.naam.split(" ")[0];

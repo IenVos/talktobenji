@@ -628,6 +628,15 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_email", ["email"]),
 
+  // Niet Alleen — bewerkbare dagelijkse mail-overrides
+  nietAlleenDagTemplates: defineTable({
+    dag: v.number(),                      // 1-30
+    verliesType: v.string(),              // "persoon" | "huisdier" | "scheiding"
+    subject: v.string(),
+    mailTekst: v.string(),
+    updatedAt: v.number(),
+  }).index("by_dag_type", ["dag", "verliesType"]),
+
   // Landingspagina's (beheerbaar via admin, publiek zichtbaar via /lp/[slug])
   landingPages: defineTable({
     slug: v.string(),           // URL slug, e.g. "niet-alleen-a"

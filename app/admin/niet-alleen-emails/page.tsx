@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
-import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus } from "lucide-react";
+import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil } from "lucide-react";
 import { useMutation } from "convex/react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
+import { NIET_ALLEEN_CONTENT, type NietAlleenVerliesType } from "@/convex/nietAlleenContent";
 
 type TemplateKey = "niet_alleen_welkom" | "niet_alleen_dag" | "niet_alleen_dag28" | "niet_alleen_dag30";
 
@@ -354,8 +355,185 @@ function TestEmailBlok() {
   );
 }
 
+const NICHE_LABELS: Record<NietAlleenVerliesType, string> = {
+  persoon: "Persoon",
+  huisdier: "Huisdier",
+  scheiding: "Scheiding / relatie",
+};
+
+const NICHES: NietAlleenVerliesType[] = ["persoon", "huisdier", "scheiding"];
+
+function DagRij({
+  dag,
+  niche,
+  override,
+  onSave,
+  onReset,
+}: {
+  dag: (typeof NIET_ALLEEN_CONTENT)[0];
+  niche: NietAlleenVerliesType;
+  override: { subject: string; mailTekst: string } | undefined;
+  onSave: (dag: number, verliesType: string, subject: string, mailTekst: string) => Promise<void>;
+  onReset: (dag: number, verliesType: string) => Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  const defaultSubject = dag.subject;
+  const defaultTekst = dag.mail[niche];
+  const [subject, setSubject] = useState(override?.subject ?? defaultSubject);
+  const [mailTekst, setMailTekst] = useState(override?.mailTekst ?? defaultTekst);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    setSubject(override?.subject ?? defaultSubject);
+    setMailTekst(override?.mailTekst ?? defaultTekst);
+  }, [override?.subject, override?.mailTekst, defaultSubject, defaultTekst]);
+
+  const isEdited = !!override;
+  const isDirty = subject !== (override?.subject ?? defaultSubject) || mailTekst !== (override?.mailTekst ?? defaultTekst);
+
+  return (
+    <div className={`border rounded-xl overflow-hidden ${isEdited ? "border-primary-300 bg-primary-50/30" : "border-gray-200 bg-white"}`}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+      >
+        {open ? <ChevronDown size={15} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-gray-400 flex-shrink-0" />}
+        <span className="text-xs font-bold text-gray-500 w-10 flex-shrink-0">Dag {dag.dag}</span>
+        <span className="text-sm font-medium text-gray-700 flex-1 truncate">{dag.thema}</span>
+        <span className="text-xs text-gray-400 truncate hidden sm:block max-w-[200px]">{subject}</span>
+        {isEdited && (
+          <span className="flex-shrink-0 text-[10px] font-semibold text-primary-600 bg-primary-100 border border-primary-200 rounded-full px-2 py-0.5">
+            aangepast
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 pt-1 space-y-3 border-t border-gray-100">
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Onderwerp</label>
+            <input
+              type="text"
+              value={subject}
+              onChange={e => setSubject(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              Mailtekst <span className="font-normal text-gray-400">(aanhef + handtekening worden automatisch toegevoegd — gebruik &#123;link&#125; voor de CTA-knop)</span>
+            </label>
+            <textarea
+              value={mailTekst}
+              onChange={e => setMailTekst(e.target.value)}
+              rows={8}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 resize-y font-mono"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={async () => {
+                setSaving(true);
+                await onSave(dag.dag, niche, subject, mailTekst);
+                setSaving(false);
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2500);
+              }}
+              disabled={saving || !isDirty}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold transition-colors disabled:opacity-50"
+            >
+              <Save size={14} />
+              {saving ? "Opslaan…" : "Opslaan"}
+            </button>
+            {isEdited && (
+              <button
+                type="button"
+                onClick={async () => {
+                  await onReset(dag.dag, niche);
+                  setSubject(defaultSubject);
+                  setMailTekst(defaultTekst);
+                }}
+                className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <RotateCcw size={13} />
+                Terugzetten naar standaard
+              </button>
+            )}
+            {saved && (
+              <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                <CheckCircle size={14} /> Opgeslagen
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DertigDagenEditor({ dagTemplates }: { dagTemplates: any[] }) {
+  const upsertDag = useAdminMutation(api.emailTemplates.upsertDagTemplate);
+  const deleteDag = useAdminMutation(api.emailTemplates.deleteDagTemplate);
+  const [niche, setNiche] = useState<NietAlleenVerliesType>("persoon");
+
+  const overrideMap = new Map(
+    dagTemplates.map(t => [`${t.dag}-${t.verliesType}`, { subject: t.subject, mailTekst: t.mailTekst }])
+  );
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Pencil size={18} className="text-primary-500" />
+            30 dagelijkse mails
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">Klik op een dag om de inhoud te bewerken. Aanpassingen overschrijven de standaardtekst.</p>
+        </div>
+        <div className="flex gap-2">
+          {NICHES.map(n => (
+            <button
+              key={n}
+              onClick={() => setNiche(n)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
+              style={{
+                background: niche === n ? "#6d84a8" : "white",
+                color: niche === n ? "white" : "#6b7280",
+                borderColor: niche === n ? "#6d84a8" : "#d1d5db",
+              }}
+            >
+              {NICHE_LABELS[n]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {NIET_ALLEEN_CONTENT.map(dag => (
+          <DagRij
+            key={dag.dag}
+            dag={dag}
+            niche={niche}
+            override={overrideMap.get(`${dag.dag}-${niche}`)}
+            onSave={async (d, vType, subject, mailTekst) => {
+              await upsertDag({ dag: d, verliesType: vType, subject, mailTekst });
+            }}
+            onReset={async (d, vType) => {
+              await deleteDag({ dag: d, verliesType: vType });
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function NietAlleenEmailsPage() {
   const templates = useAdminQuery(api.emailTemplates.listTemplates, {});
+  const dagTemplates = useAdminQuery(api.emailTemplates.listDagTemplates, {});
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
 
   const getTemplate = (key: TemplateKey) => templates?.find((t: any) => t.key === key);
@@ -390,6 +568,14 @@ export default function NietAlleenEmailsPage() {
           />
         );
       })}
+
+      <div className="border-t border-gray-200 pt-6">
+        {dagTemplates !== undefined ? (
+          <DertigDagenEditor dagTemplates={dagTemplates} />
+        ) : (
+          <p className="text-sm text-gray-400">Laden…</p>
+        )}
+      </div>
     </div>
   );
 }
