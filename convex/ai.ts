@@ -732,17 +732,22 @@ ALGEMEEN RITME VAN EEN GESPREK:
 FOUT: Na elk antwoord van de gebruiker een nieuw onderwerp of nieuwe vraag introduceren, ook als de conversatie al lang is
 GOED: "We hebben vandaag al veel besproken. Is er nog iets wat je wil delen, of is dit een goed moment om te pauzeren?"`;
 
-      // Regel: anonieme gebruiker aanmoedigen account te maken
-      const accountNudgeRule = isGuest ? `GESPREK BEWAREN — VOOR ANONIEME GEBRUIKERS:
-Deze gebruiker is niet ingelogd. Ze kunnen dit gesprek niet terugvinden als ze de pagina sluiten.
-${messageCount >= 20
-  ? `Dit is een lang gesprek (${messageCount} berichten). Noem ÉÉN keer — op een naturlijk moment, niet als nieuwe vraag — dat ze dit gesprek kunnen bewaren: "[een gratis profiel aanmaken](/registreren) om dit gesprek te bewaren". Doe dit als je toch al een afsluitende of samenvattende zin zegt.`
+      // Regel: anonieme gebruiker aanmoedigen profiel aan te maken
+      const accountNudgeRule = isGuest ? `PROFIEL AANMAKEN — VOOR ANONIEME GEBRUIKERS:
+Deze gebruiker is niet ingelogd. Benji onthoudt niets tussen gesprekken door — bij een volgend bezoek begint alles opnieuw.
+
+Noem het profiel MAXIMAAL ÉÉN keer per gesprek, op een van deze momenten:
+${messageCount >= 8 && messageCount < 20
+  ? `- Nu past het: iemand heeft al wat gedeeld (${messageCount} berichten). Als ze iets persoonlijks of zwaarweegends delen, mag je na je empathische reactie zacht toevoegen: "Wat je nu deelt wil ik goed onthouden. Als je een [gratis profiel aanmaakt](/registreren) neem ik dit mee naar een volgend gesprek — dan hoef je niet opnieuw te beginnen."`
+  : messageCount >= 20
+  ? `- Dit is een lang gesprek. Noem het bij een samenvattend of afsluitend moment: "We hebben vandaag al veel besproken. Als je een [gratis profiel aanmaakt](/registreren) onthoud ik dit — zodat je de volgende keer verder kunt gaan waar je nu bent gebleven."`
   : messageCount >= 6
-  ? `Als iemand aangeeft te willen stoppen of als je een afsluitende zin zegt, voeg dan kort toe dat ze dit gesprek kunnen bewaren: "[een gratis profiel aanmaken](/registreren) zodat je hier op terug kunt komen". Doe dit maximaal één keer en alleen als het naturlijk past.`
+  ? `- Als iemand aangeeft te willen stoppen of als je afsluit, voeg toe: "Als je een [gratis profiel aanmaakt](/registreren) onthoud ik wat je hebt gedeeld — dan hoef je de volgende keer niet opnieuw te beginnen."`
   : ``}
-Zeg dit NOOIT als een verkoop-pitch. Formuleer het als een praktische tip, vlak voor of na je afsluitende zin.
-FOUT: "Wil je een account aanmaken?" (vraagvorm, voelt als druk)
-GOED: "Fijn dat je er even over kon praten. Als je een [gratis profiel aanmaakt](/registreren) onthoud ik wat je hebt gedeeld — dan hoef je de volgende keer niet opnieuw te beginnen."` : "";
+
+Zeg het NOOIT als verkooppraatje of als vraag. Het moet voelen als een vriendelijke tip.
+FOUT: "Wil je een account aanmaken?" of "Maak nu een account aan!"
+GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het voelt als zorg, niet als reclame.` : "";
 
       // Benji-regels (uit instellingen) gaan altijd volledig mee — nooit afkappen
       // De extra hardcoded regels worden apart beperkt tot 2000 chars
