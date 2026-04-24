@@ -735,7 +735,7 @@ export default function ChatPageClient({
                   <div key={`save-card-${msg._id}`} className="flex justify-center my-2">
                     <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
                       <p className="text-sm text-amber-900 font-medium mb-1">Kom je hier graag nog eens op terug?</p>
-                      <p className="text-xs text-amber-700 mb-3">Met een gratis profiel kun je dit gesprek bewaren en verdergaan wanneer je wilt.</p>
+                      <p className="text-xs text-amber-700 mb-3">Met een gratis profiel onthoudt Benji wat je hebt gedeeld — ook als je terugkomt. Zo hoef je niet steeds opnieuw te beginnen.</p>
                       <div className="flex gap-2">
                         <a
                           href="/registreren"
@@ -757,7 +757,7 @@ export default function ChatPageClient({
                   <div key={`limit-warning-${msg._id}`} className="flex justify-center my-2">
                     <div className="bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
                       <p className="text-sm text-rose-900 font-medium mb-1">Nog 2 berichten over</p>
-                      <p className="text-xs text-rose-700 mb-3">Met een gratis profiel kun je onbeperkt doorpraten en dit gesprek bewaren.</p>
+                      <p className="text-xs text-rose-700 mb-3">Met een gratis profiel kun je doorpraten én onthoudt Benji je verhaal de volgende keer. Zo hoef je niet opnieuw te beginnen.</p>
                       <div className="flex gap-2">
                         <a
                           href="/registreren"

@@ -318,12 +318,12 @@ export const handleUserMessage = action({
       
       // Gebruik de al opgehaalde berichten voor de history
       // Geheugen op basis van account type:
-      //   Gast:    eerste 2 + laatste 8  (korte gesprekken)
-      //   Gratis:  eerste 2 + laatste 14
-      //   Betaald: eerste 4 + laatste 20 (beste continuïteit)
+      //   Gast:    eerste 6 + laatste 10  (vangt vroeg gedeelde info op)
+      //   Gratis:  eerste 6 + laatste 16
+      //   Betaald: eerste 8 + laatste 24 (beste continuïteit)
       const charLimit = 2000;
-      const firstCount = isPaid ? 4 : 2;
-      const recentCount = isGuest ? 8 : isFreeUser ? 14 : 20;
+      const firstCount = isPaid ? 8 : 6;
+      const recentCount = isGuest ? 10 : isFreeUser ? 16 : 24;
       const allMsgs = (allMessagesForCount || []).slice(0, -1); // Exclude het laatste bericht
       const firstMsgs = allMsgs.slice(0, firstCount);
       const recentMsgs = allMsgs.slice(-recentCount);
@@ -742,14 +742,15 @@ ${messageCount >= 20
   : ``}
 Zeg dit NOOIT als een verkoop-pitch. Formuleer het als een praktische tip, vlak voor of na je afsluitende zin.
 FOUT: "Wil je een account aanmaken?" (vraagvorm, voelt als druk)
-GOED: "Fijn dat je er even over kon praten. Je kunt dit gesprek bewaren door [een gratis profiel aan te maken](/registreren) — dan staat het er nog als je terugkomt."` : "";
+GOED: "Fijn dat je er even over kon praten. Als je een [gratis profiel aanmaakt](/registreren) onthoud ik wat je hebt gedeeld — dan hoef je de volgende keer niet opnieuw te beginnen."` : "";
 
       // Benji-regels (uit instellingen) gaan altijd volledig mee — nooit afkappen
       // De extra hardcoded regels worden apart beperkt tot 2000 chars
       const customRules = settings?.rules || "";
-      const extraRules = [onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
+      // noRepetitionRule staat buiten de limiet — te belangrijk om weg te vallen
+      const extraRules = [onlyFromKbRule, dutchLanguageRule, noJargonRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
       const limitedExtraRules = extraRules.length > 2000 ? extraRules.slice(0, 2000) : extraRules;
-      const rules = [customRules, crisisAfterRule, withinConversationMemoryRule, practicalHelpRule, noTimeAssumptionsRule, minimalInputRule, conversationClosingRule, accountNudgeRule, limitedExtraRules].filter(Boolean).join("\n\n");
+      const rules = [customRules, crisisAfterRule, withinConversationMemoryRule, practicalHelpRule, noTimeAssumptionsRule, minimalInputRule, noRepetitionRule, conversationClosingRule, accountNudgeRule, limitedExtraRules].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
