@@ -365,34 +365,38 @@ export default function ChatPageClient({
     }
   }, []);
 
-  // Scroll alleen als gebruiker al onderaan was - voorkom verspringen
+  // Auto-scroll: altijd naar beneden bij nieuw bericht, anders alleen als al onderaan
+  const prevMessageCountRef = useRef<number>(0);
   useEffect(() => {
     if (!mainRef.current) return;
-    
+
     if (!sessionId && !isAddingOpener) {
-      // Reset naar boven bij nieuwe sessie
       mainRef.current.scrollTo({ top: 0, behavior: "auto" });
+      prevMessageCountRef.current = 0;
       return;
     }
-    
-    // Check of gebruiker al onderaan was (binnen 200px van de bottom)
-    const main = mainRef.current;
-    const scrollHeight = main.scrollHeight;
-    const scrollTop = main.scrollTop;
-    const clientHeight = main.clientHeight;
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-    const isNearBottom = distanceFromBottom < 200;
-    
-    // Alleen scrollen als gebruiker al onderaan was
-    if (isNearBottom) {
-      // Gebruik requestAnimationFrame voor soepele scroll zonder verspringen
+
+    const currentCount = messages?.length ?? 0;
+    const newMessageArrived = currentCount > prevMessageCountRef.current;
+    prevMessageCountRef.current = currentCount;
+
+    if (newMessageArrived) {
+      // Nieuw bericht: altijd naar beneden scrollen
       requestAnimationFrame(() => {
         if (mainRef.current) {
-          // Scroll naar beneden met smooth behavior
-          mainRef.current.scrollTo({
-            top: mainRef.current.scrollHeight,
-            behavior: "smooth"
-          });
+          mainRef.current.scrollTo({ top: mainRef.current.scrollHeight, behavior: "smooth" });
+        }
+      });
+      return;
+    }
+
+    // Geen nieuw bericht (bijv. isAddingOpener): alleen scrollen als al onderaan
+    const main = mainRef.current;
+    const distanceFromBottom = main.scrollHeight - main.scrollTop - main.clientHeight;
+    if (distanceFromBottom < 200) {
+      requestAnimationFrame(() => {
+        if (mainRef.current) {
+          mainRef.current.scrollTo({ top: mainRef.current.scrollHeight, behavior: "smooth" });
         }
       });
     }
@@ -725,8 +729,8 @@ export default function ChatPageClient({
                 {showSaveCard && (
                   <div key={`save-card-${msg._id}`} className="flex justify-center my-2">
                     <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
-                      <p className="text-sm text-amber-900 font-medium mb-1">Dit gesprek bewaren?</p>
-                      <p className="text-xs text-amber-700 mb-3">Maak een gratis account aan — dan staat dit gesprek er nog als je terugkomt.</p>
+                      <p className="text-sm text-amber-900 font-medium mb-1">Kom je hier graag nog eens op terug?</p>
+                      <p className="text-xs text-amber-700 mb-3">Met een gratis profiel kun je dit gesprek bewaren en verdergaan wanneer je wilt.</p>
                       <div className="flex gap-2">
                         <a
                           href="/registreren"
