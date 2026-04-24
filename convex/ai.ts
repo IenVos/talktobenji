@@ -374,6 +374,13 @@ export const handleUserMessage = action({
       const knowledgeFromSettings = (settings?.knowledge || "").trim();
       const parts: string[] = [];
       const settingsLimit = messageCount > 10 ? 2500 : 4000;
+
+      // Huidige datum — zodat Benji tijdsberekeningen correct kan maken
+      const now = new Date();
+      const dagNamen = ["zondag","maandag","dinsdag","woensdag","donderdag","vrijdag","zaterdag"];
+      const maandNamen = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
+      const currentDateStr = `${dagNamen[now.getUTCDay()]} ${now.getUTCDate()} ${maandNamen[now.getUTCMonth()]} ${now.getUTCFullYear()}`;
+      parts.push(`## Huidige datum\nVandaag is het ${currentDateStr}. Gebruik deze datum om tijdsberekeningen correct te maken (bijv. hoelang geleden iets was).`);
       
       // Persoonlijke context van deze gebruiker — altijd als eerste
       // Gebruik dit om persoonlijker te reageren; verwijs er niet expliciet naar tenzij relevant.
@@ -685,10 +692,14 @@ FOUT: Iemand vraagt "hoe leg ik dit uit aan de arbeidsdeskundige?" → Benji bli
 GOED: Iemand vraagt "hoe leg ik dit uit aan de arbeidsdeskundige?" → Benji geeft een concrete suggestie én biedt aan om te blijven luisteren`;
 
       // Regel: geen tijdsinschattingen zonder verificatie
-      const noTimeAssumptionsRule = isEnglish ? "" : `GEEN TIJDSINSCHATTINGEN ZONDER VERIFICATIE:
-Maak geen uitspraken over hoeveel tijd er verstreken is na een verlies of gebeurtenis, tenzij de gebruiker dat zelf expliciet heeft aangegeven in dit gesprek. Gebruik geen formuleringen als "meer dan een jaar later", "al een tijdje geleden" of "inmiddels" als je de tijdlijn niet zeker weet. Controleer eerst wat de gebruiker heeft gezegd voordat je tijdsreferenties gebruikt. Foutieve tijdsinschattingen ondermijnen het vertrouwen.
-FOUT: Gebruiker noemde geen datum → Benji zegt "meer dan een jaar later"
-GOED: Gebruiker zei "hij overleed in januari" → Benji mag "een paar maanden geleden" zeggen`;
+      const noTimeAssumptionsRule = isEnglish ? "" : `TIJDSBEREKENINGEN — ZELF REKENEN, NOOIT VRAGEN:
+Je weet welke datum het vandaag is (zie boven). Als de gebruiker een jaar of datum noemt, reken dan zelf uit hoeveel tijd er verstreken is. Vraag dit NOOIT aan de gebruiker.
+FOUT: Gebruiker zegt "sinds 2023" → Benji vraagt "Hoe lang geleden precies was dat?"
+GOED: Gebruiker zegt "sinds 2023" → Benji rekent 2026 - 2023 = 3 jaar en zegt "drie jaar geleden"
+
+Maak GEEN tijdsinschattingen als de gebruiker geen jaar of datum heeft genoemd — gok niet.
+FOUT: Gebruiker noemde geen datum → Benji zegt "meer dan een jaar later" of "al een tijdje geleden"
+GOED: Als je de tijdlijn niet weet, laat het dan open of vraag zacht naar het moment — zonder een getal te noemen`;
 
       // Regel: bij minimale input (korte antwoorden)
       const minimalInputRule = isEnglish ? "" : `MINIMALE INPUT — RESPONSPATROON:

@@ -198,7 +198,8 @@ export default function ChatPageClient({
   const showNudgeBanner = !session?.userId && anonymousCount >= 3 && anonymousCount < 5;
   const [saveCardDismissed, setSaveCardDismissed] = useState(false);
   const isAnonymousUser = !session?.userId;
-  const SAVE_CARD_AFTER = 10; // toon na dit aantal berichten
+  const SAVE_CARD_AFTER = 10; // toon save-card na dit aantal berichten
+  const LIMIT_WARNING_AFTER = 13; // toon limiet-waarschuwing na dit aantal berichten (limiet is 15)
 
   const preferencesData = useQuery(
     api.preferences.getPreferencesWithUrl,
@@ -673,6 +674,7 @@ export default function ChatPageClient({
               const parsed = !isUser ? parseMemoryMarker(msg.content) : null;
               const displayContent = parsed ? parsed.cleanContent : msg.content;
               const showSaveCard = isAnonymousUser && !saveCardDismissed && idx === SAVE_CARD_AFTER - 1;
+              const showLimitWarning = isAnonymousUser && idx === LIMIT_WARNING_AFTER - 1;
               return (
                 <>
                 <div key={msg._id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -744,6 +746,28 @@ export default function ChatPageClient({
                         >
                           Niet nu
                         </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {showLimitWarning && (
+                  <div key={`limit-warning-${msg._id}`} className="flex justify-center my-2">
+                    <div className="bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
+                      <p className="text-sm text-rose-900 font-medium mb-1">Nog 2 berichten over</p>
+                      <p className="text-xs text-rose-700 mb-3">Met een gratis profiel kun je onbeperkt doorpraten en dit gesprek bewaren.</p>
+                      <div className="flex gap-2">
+                        <a
+                          href="/registreren"
+                          className="flex-1 text-center text-xs font-medium bg-rose-500 hover:bg-rose-600 text-white rounded-xl px-3 py-2 transition-colors"
+                        >
+                          Gratis profiel aanmaken
+                        </a>
+                        <a
+                          href="/login"
+                          className="text-xs text-rose-600 hover:text-rose-800 px-3 py-2 transition-colors"
+                        >
+                          Inloggen
+                        </a>
                       </div>
                     </div>
                   </div>
