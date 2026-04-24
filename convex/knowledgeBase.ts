@@ -97,11 +97,24 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
 
 // ============================================================================
 // QUERIES (Data ophalen)
 // ============================================================================
+
+/** Snel controleren of er actieve Q&A's zijn (zonder alles op te halen) */
+export const hasActiveItems = query({
+  args: {},
+  handler: async (ctx) => {
+    const first = await ctx.db
+      .query("knowledgeBase")
+      .withIndex("by_active", (q) => q.eq("isActive", true))
+      .first();
+    return first !== null;
+  },
+});
 
 /**
  * Haal ALLE Q&As op uit de kennisbank
@@ -315,6 +328,9 @@ export const addQuestion = mutation({
       updatedAt: now,
     });
 
+    // Plan embedding automatisch in na aanmaken
+    await ctx.scheduler.runAfter(2000, api.embeddings.embedAllKbItems, { batchSize: 5 });
+
     return questionId;
   },
 });
@@ -361,6 +377,13 @@ export const updateQuestion = mutation({
 
     // Update met nieuwe waarden
     await ctx.db.patch(id, cleanedUpdates);
+
+    // Herbereken embedding als vraag of antwoord is gewijzigd
+    if (updates.question !== undefined || updates.answer !== undefined) {
+      const newQuestion = cleanedUpdates.question ?? existing.question;
+      const newAnswer = cleanedUpdates.answer ?? existing.answer;
+      await ctx.scheduler.runAfter(2000, api.embeddings.embedAllKbItems, { batchSize: 5 });
+    }
 
     return id;
   },

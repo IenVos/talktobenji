@@ -40,6 +40,7 @@ export default defineSchema({
     rating: v.optional(v.number()),
     feedbackComment: v.optional(v.string()),
     summary: v.optional(v.string()),
+    summaryEmbedding: v.optional(v.array(v.float64())),
     summarizedAt: v.optional(v.number()), // Tijdstip AI-samenvatting gegenereerd
     adminRapport: v.optional(v.string()), // Kwaliteitsrapport voor beheerder (geen citaten)
     adminRapportAt: v.optional(v.number()), // Tijdstip rapport gegenereerd
@@ -58,7 +59,12 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_status", ["status"])
-    .index("by_anonymous", ["anonymousId"]),
+    .index("by_anonymous", ["anonymousId"])
+    .vectorIndex("by_summary_embedding", {
+      vectorField: "summaryEmbedding",
+      dimensions: 1024,
+      filterFields: ["userId"],
+    }),
 
   // Chat berichten
   chatMessages: defineTable({
@@ -104,10 +110,16 @@ export default defineSchema({
     createdBy: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
+    embedding: v.optional(v.array(v.float64())),
   })
     .index("by_category", ["category"])
     .index("by_active", ["isActive"])
-    .index("by_usage", ["usageCount"]),
+    .index("by_usage", ["usageCount"])
+    .vectorIndex("by_embedding", {
+      vectorField: "embedding",
+      dimensions: 1024,
+      filterFields: ["isActive"],
+    }),
 
   // Escalaties
   escalations: defineTable({

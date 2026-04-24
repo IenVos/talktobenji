@@ -27,16 +27,20 @@ import {
 
 // Voorgestelde categorieën – sluiten aan op Benji's thema's (rouw, verdriet, hulp)
 const SUGGESTED_CATEGORIES = [
-  "Rouw en verlies",
-  "Verdriet",
-  "Huisdier",
-  "Professionele hulp",
+  "Rouw & Verdriet",
+  "Onzichtbaar verdriet",
+  "Verlies van een Huisdier",
   "Emoties",
-  "Eenzaamheid",
-  "Herinneringen",
   "Dagelijks leven",
-  "Boosheid",
-  "Feestdagen",
+  "Herinneringen",
+  "Afstand en eenzaamheid",
+  "Schuld en schaamte",
+  "Scheiding en relatieverlies",
+  "Ziekte en zorgverlies",
+  "Kinderloos",
+  "Burn-out en werkgerelateerd verlies",
+  "Professionele hulp",
+  "Over Benji",
 ];
 
 type KnowledgeBaseItem = {
@@ -70,6 +74,7 @@ export default function KnowledgeBasePage() {
   const generateAlternativeQuestions = useAction(api.ai.generateAlternativeQuestions);
   const generateAlternativeAnswers = useAction(api.ai.generateAlternativeAnswers);
   const generateTags = useAction(api.ai.generateTags);
+  const embedAllKbItems = useAction(api.embeddings.embedAllKbItems);
 
   const [showForm, setShowForm] = useState(false);
   const [generatingAlt, setGeneratingAlt] = useState(false);
@@ -84,6 +89,8 @@ export default function KnowledgeBasePage() {
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [bulkImportText, setBulkImportText] = useState("");
   const [importing, setImporting] = useState(false);
+  const [embedding, setEmbedding] = useState(false);
+  const [embeddingDone, setEmbeddingDone] = useState(false);
   const [quickQ, setQuickQ] = useState("");
   const [quickA, setQuickA] = useState("");
   const [quickCat, setQuickCat] = useState(SUGGESTED_CATEGORIES[0]);
@@ -507,6 +514,29 @@ export default function KnowledgeBasePage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={async () => {
+              setEmbedding(true);
+              setEmbeddingDone(false);
+              try {
+                let done = false;
+                while (!done) {
+                  const result = await embedAllKbItems({ batchSize: 20 });
+                  done = result.done;
+                }
+                setEmbeddingDone(true);
+                setTimeout(() => setEmbeddingDone(false), 4000);
+              } finally {
+                setEmbedding(false);
+              }
+            }}
+            disabled={embedding}
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 font-medium rounded-lg hover:bg-primary-200 transition-colors shadow-sm disabled:opacity-50"
+            title="Berekent embeddings voor Q&A's die er nog geen hebben"
+          >
+            <Sparkles size={18} />
+            {embedding ? "Bezig..." : embeddingDone ? "Klaar ✓" : "Embeddings bijwerken"}
+          </button>
           <button
             onClick={() => setShowBulkImport(!showBulkImport)}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-primary-100 text-primary-700 font-medium rounded-lg hover:bg-primary-200 transition-colors shadow-sm"

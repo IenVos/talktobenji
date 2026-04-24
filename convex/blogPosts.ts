@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
 
 /** Admin: alle blogposts */
@@ -761,10 +762,7 @@ export const syncToKnowledgeBase = mutation({
       }
     };
 
-    // Samenvatting
-    if (post.excerpt) await upsert(post.title, post.excerpt, 5);
-
-    // FAQ-items
+    // FAQ-items (blogtitel+excerpt niet meer synced — te algemeen als antwoord)
     if (post.faqItems) {
       for (const faq of post.faqItems) {
         await upsert(faq.question, faq.answer, 6);
@@ -772,6 +770,10 @@ export const syncToKnowledgeBase = mutation({
     }
 
     await ctx.db.patch(args.id, { kbSynced: true, updatedAt: now });
+
+    // Plan embedding-berekening in voor nieuwe Q&A's (5 seconden vertraging)
+    await ctx.scheduler.runAfter(5000, api.embeddings.embedAllKbItems, { batchSize: 50 });
+
     return true;
   },
 });

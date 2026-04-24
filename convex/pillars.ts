@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
 
 /** Admin: alle pillars */
@@ -257,6 +258,10 @@ export const syncToKnowledgeBase = mutation({
     }
 
     await ctx.db.patch(args.id, { kbSynced: true, updatedAt: now });
+
+    // Plan embedding-berekening in voor nieuwe Q&A's
+    await ctx.scheduler.runAfter(5000, api.embeddings.embedAllKbItems, { batchSize: 50 });
+
     return true;
   },
 });

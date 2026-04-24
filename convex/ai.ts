@@ -89,7 +89,7 @@ const CLAUDE_MODEL = "claude-sonnet-4-6";
 
 import { v } from "convex/values";
 import { action } from "./_generated/server";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 // ============================================================================
 // TYPES EN INTERFACES
@@ -201,11 +201,9 @@ export const handleUserMessage = action({
         content: args.userMessage,
       });
 
-      // STAP 2: Haal bot settings op (rules), knowledge base Q&As en bronnen (RAG)
+      // STAP 2: Haal bot settings op (rules), bronnen en check of KB gevuld is
       const settings = await ctx.runQuery(api.settings.get);
-      const allKnowledgeBaseQuestions = await ctx.runQuery(api.knowledgeBase.getAllQuestions, {
-        isActive: true,
-      });
+      const hasKbItems = await ctx.runQuery(api.knowledgeBase.hasActiveItems);
       const allSources = await ctx.runQuery(api.sources.getActiveSources);
 
       // Gebruikersprofiel al opgehaald (chatSession hierboven)
@@ -222,11 +220,19 @@ export const handleUserMessage = action({
           ctx.runQuery(api.reflecties.listGoals, { userId: uid }),
           ctx.runQuery(api.memories.getMemories, { userId: uid }),
           ctx.runQuery(api.reflecties.listCheckInEntries, { userId: uid, limit: 1 }),
-          ctx.runQuery(api.chat.getRecentSummaries, {
+          ctx.runAction(api.embeddings.searchSessionSummaries, {
+            query: args.userMessage,
             userId: uid,
             excludeSessionId: args.sessionId,
-            limit: 4,
-          }),
+            limit: 3,
+          }).catch(() =>
+            // Fallback naar recente samenvattingen als embedding-zoekopdracht mislukt
+            ctx.runQuery(api.chat.getRecentSummaries, {
+              userId: uid,
+              excludeSessionId: args.sessionId,
+              limit: 3,
+            })
+          ),
         ]);
 
         // Trigger achtergrond-samenvattingen van vorige sessies (alleen bij eerste bericht)
@@ -287,7 +293,7 @@ export const handleUserMessage = action({
       const hasSources = allSources && allSources.length > 0;
 
       // Geen kennis: geen Admin Knowledge, geen Q&As, geen bronnen → duidelijke melding
-      if (!hasKnowledge && allKnowledgeBaseQuestions.length === 0 && !hasSources) {
+      if (!hasKnowledge && !hasKbItems && !hasSources) {
         const botMessageIdEmpty = await ctx.runMutation(api.chat.sendBotMessage, {
           sessionId: args.sessionId,
           content: emptyKbMessage,
@@ -331,115 +337,43 @@ export const handleUserMessage = action({
         }))
         .filter((m: ClaudeMessage) => m.content.trim().length > 0);
 
-      // STAP 4: Filter relevante knowledge base vragen - ALLEEN als er een goede match is
+      // STAP 4: Zoek relevante Q&A's via semantische vector search (Voyage AI embeddings)
       const userMessageLower = args.userMessage.toLowerCase().trim();
-      const userWords = userMessageLower.split(/\s+/).filter(w => w.length > 2);
-      
+
       // Detecteer of gebruiker expliciet om een tip/advies vraagt
-      const isAskingForTip = userMessageLower.includes("tip") || 
-                             userMessageLower.includes("advies") || 
-                             userMessageLower.includes("suggestie") || 
+      const isAskingForTip = userMessageLower.includes("tip") ||
+                             userMessageLower.includes("advies") ||
+                             userMessageLower.includes("suggestie") ||
                              userMessageLower.includes("idee") ||
                              userMessageLower.includes("wat kan helpen") ||
                              userMessageLower.includes("wat zou kunnen helpen") ||
-                             userMessageLower.includes("kun je") && (userMessageLower.includes("geven") || userMessageLower.includes("helpen"));
-      
-      const scoredQuestions = allKnowledgeBaseQuestions.map((q: {
-        question: string;
-        answer: string;
-        alternativeQuestions?: string[];
-        alternativeAnswers?: string[];
-        questionEn?: string;
-        answerEn?: string;
-        tags?: string[];
-        priority?: number;
-        usageCount?: number;
-      }) => {
-        // Start score met prioriteit (1-10) en usage count
-        let score = (q.priority || 1) * 2;
-        if (q.usageCount) {
-          score += Math.min(q.usageCount / 10, 5);
-        }
-        
-        // Combineer alle tekst voor matching
-        const questionText = (q.question + " " + (q.alternativeQuestions || []).join(" ") + " " + (q.tags || []).join(" ")).toLowerCase();
-        const answerText = q.answer.toLowerCase();
-        
-        // Exacte match in vraag = hoogste score
-        if (q.question.toLowerCase().includes(userMessageLower) || userMessageLower.includes(q.question.toLowerCase())) {
-          score += 20;
-        }
-        
-        // Match in alternatieve vragen
-        if (q.alternativeQuestions) {
-          for (const alt of q.alternativeQuestions) {
-            if (alt.toLowerCase().includes(userMessageLower) || userMessageLower.includes(alt.toLowerCase())) {
-              score += 15;
-              break;
-            }
-          }
-        }
-        
-        // Keyword matching: elke matching word geeft punten
-        let keywordMatches = 0;
-        for (const word of userWords) {
-          if (questionText.includes(word)) {
-            score += 3;
-            keywordMatches++;
-          }
-          if (answerText.includes(word)) {
-            score += 1;
-          }
-        }
-        
-        // Bonus als meerdere keywords matchen
-        if (keywordMatches >= 2) {
-          score += 5;
-        }
-        
-        // Tag matching
-        if (q.tags) {
-          for (const tag of q.tags) {
-            if (userMessageLower.includes(tag.toLowerCase())) {
-              score += 4;
-            }
-          }
-        }
-        
-        return { ...q, score };
-      });
-      
-      // Sorteer op score
-      const sortedQuestions = scoredQuestions.sort((a: any, b: any) => b.score - a.score);
-      
-      // BELANGRIJK: Alleen Q&As meesturen als er een goede match is (score >= 15 - verhoogd voor betere filtering)
-      // Dit voorkomt dat we onnodig veel tokens gebruiken
-      const minScoreThreshold = 15; // Minimum score om mee te sturen (verhoogd voor rate limits)
-      const knowledgeBaseQuestions = sortedQuestions
-        .filter((q: any) => q.score >= minScoreThreshold)
-        .slice(0, 5); // Max 5 relevante Q&As (verlaagd van 10 voor rate limits)
+                             (userMessageLower.includes("kun je") && (userMessageLower.includes("geven") || userMessageLower.includes("helpen")));
 
-      // STAP 5: Filter en limiter sources (max 2 sources, max 4000 karakters per source - balans)
+      const kbMaxMatches = isAskingForTip ? (messageCount > 10 ? 3 : 5) : (messageCount > 10 ? 2 : 3);
+
+      // Haal semantisch meest relevante Q&A's op via embeddings
+      let semanticMatches: any[] = [];
+      try {
+        semanticMatches = await ctx.runAction(api.embeddings.searchKb, {
+          query: args.userMessage,
+          limit: kbMaxMatches,
+        });
+      } catch {
+        // Fallback naar lege lijst als embeddings niet beschikbaar zijn
+        semanticMatches = [];
+      }
+      
+      // STAP 5: Filter en limiter sources (max 2 sources, max 4000 karakters per source)
       const sources = (allSources || [])
-        .slice(0, 2) // Max 2 sources
+        .slice(0, 2)
         .map((s: { title: string; type: string; url?: string; extractedText: string }) => ({
           ...s,
-          extractedText: s.extractedText.slice(0, 4000) // Max 4000 karakters per source (balans)
+          extractedText: s.extractedText.slice(0, 4000),
         }));
 
-      // STAP 6: Sources voorbereiden (worden alleen gebruikt als er geen excellent KB matches zijn)
-
-      // NIEUWE STRATEGIE: Gebruik knowledge base ALLEEN als er een EXCELLENTE match is
-      // Bij langere gesprekken (>10 berichten): nog agressiever reduceren
       const knowledgeFromSettings = (settings?.knowledge || "").trim();
       const parts: string[] = [];
-      
-      // Dynamische limieten op basis van gesprekslengte
       const settingsLimit = messageCount > 10 ? 2500 : 4000;
-      // Verlaag threshold als gebruiker expliciet om tip vraagt (meer kennis beschikbaar maken)
-      const baseKbThreshold = messageCount > 10 ? 25 : 20;
-      const kbThreshold = isAskingForTip ? Math.max(10, baseKbThreshold - 10) : baseKbThreshold; // Lagere threshold bij tip-verzoek
-      const kbMaxMatches = isAskingForTip ? (messageCount > 10 ? 3 : 5) : (messageCount > 10 ? 2 : 3); // Meer matches bij tip-verzoek
       
       // Persoonlijke context van deze gebruiker — altijd als eerste
       // Gebruik dit om persoonlijker te reageren; verwijs er niet expliciet naar tenzij relevant.
@@ -459,20 +393,12 @@ export const handleUserMessage = action({
         parts.push("## Algemene kennis en context\n" + limitedSettings);
       }
       
-      // Knowledge base: ALLEEN als er een EXCELLENTE match is (dynamische threshold)
-      const excellentMatches = sortedQuestions
-        .filter((q: any) => q.score >= kbThreshold) // Dynamische threshold
-        .slice(0, kbMaxMatches); // Dynamisch aantal matches
-      
-      if (excellentMatches.length > 0) {
-        // Bouw knowledge base alleen voor excellent matches
-        const excellentKb = excellentMatches
-          .map((q: {
-            question: string;
-            answer: string;
-          }) => {
-            const shortAnswer = q.answer.length > 200 
-              ? q.answer.slice(0, 200) + "..."
+      // Knowledge base: semantisch gevonden Q&A's meesturen
+      if (semanticMatches.length > 0) {
+        const excellentKb = semanticMatches
+          .map((q: { question: string; answer: string }) => {
+            const shortAnswer = q.answer.length > 300
+              ? q.answer.slice(0, 300) + "..."
               : q.answer;
             const shortQuestion = q.question.length > 80
               ? q.question.slice(0, 80) + "..."
@@ -480,14 +406,14 @@ export const handleUserMessage = action({
             return `Vraag: ${shortQuestion}\nAntwoord: ${shortAnswer}`;
           })
           .join("\n\n---\n\n");
-        
-        const limitedKb = excellentKb.slice(0, 3000); // Max 3000 karakters
+
+        const limitedKb = excellentKb.slice(0, 3000);
         parts.push((parts.length ? "\n" : "") + "## Knowledge base (Q&A's)\n" + limitedKb);
       }
       
       // Sources: ALLEEN als er geen knowledge base matches zijn (anders te veel tokens)
       const knowledgeFromSources =
-        sources && sources.length > 0 && excellentMatches.length === 0
+        sources && sources.length > 0 && semanticMatches.length === 0
           ? sources
               .map(
                 (s: { title: string; type: string; url?: string; extractedText: string }) =>
@@ -514,8 +440,8 @@ export const handleUserMessage = action({
       }
 
       const onlyFromKbRule = isEnglish
-        ? "IMPORTANT: Use the knowledge base below first to answer. If the answer is not in the knowledge base, you may use the additional sources (PDFs, URLs) to distill an answer. If neither contains the answer, say clearly that you cannot answer and suggest adding the topic. In that case only, end your response with exactly [UNANSWERED] (nothing else after it) so we can track these questions."
-        : "BELANGRIJK: Gebruik eerst de knowledge base hieronder om te antwoorden. Als het antwoord niet in de knowledge base staat, mag je de aanvullende bronnen (PDF's, websites) gebruiken om een antwoord te destilleren. Als geen van beide het antwoord bevat, zeg dan duidelijk dat je het niet kunt beantwoorden en stel voor het onderwerp toe te voegen. In dat geval alleen: eindig je antwoord met exact [UNANSWERED] (niets anders erna) zodat we deze vragen kunnen bijhouden.";
+        ? "KNOWLEDGE BASE: The Q&As below were semantically matched to this conversation — they are the most relevant available. Use them as grounding for your response, but always prioritize the emotional tone of the conversation over literal Q&A content. If no Q&As are provided, rely on your general knowledge and the rules above. If a question falls completely outside grief/loss/emotions, end your response with exactly [UNANSWERED] so we can track it."
+        : "KNOWLEDGE BASE: De Q&A's hieronder zijn semantisch geselecteerd op basis van dit gesprek — ze zijn de meest relevante die beschikbaar zijn. Gebruik ze als inhoudelijke basis, maar prioriteer altijd de emotionele toon van het gesprek boven letterlijke Q&A-inhoud. Als er geen Q&A's zijn meegegeven, vertrouw dan op je algemene kennis en de regels hierboven. Als een vraag volledig buiten rouw/verlies/emoties valt, eindig je antwoord dan met exact [UNANSWERED] zodat we het kunnen bijhouden.";
 
       const dutchLanguageRule = `TAAL: Antwoord ALTIJD in het Nederlands. Nooit in het Engels, zelfs niet als de gebruiker iets in het Engels schrijft. Reageer dan gewoon in het Nederlands.
 
@@ -617,6 +543,12 @@ SPECIFIEKE REGELS:
 - Vermijd meta-uitspraken over jezelf als AI/chatbot
   FOUT: "Ik ben getraind om...", "Ik ben er om...", "Ik ben hier voor je, dag en nacht", "Zonder oordeel"
   GOED: Toon het in je antwoord in plaats van het te zeggen. Wees gewoon empathisch zonder te benoemen dat je empathisch bent.
+
+- Herhaal NOOIT de zin van de gebruiker als opener voordat je reageert — dit is de meest gemaakte fout
+  FOUT: Gebruiker zegt "ik mis hem zo erg" → Benji begint met "Je mist hem zo erg..." of "Dat je hem zo mist..."
+  FOUT: Gebruiker zegt "ik voel me leeg" → "Die leegte die je voelt..." of "Het gevoel van leegte..."
+  GOED: Spring direct in met erkenning of een vraag zonder de zin eerst te spiegelen
+  GOED: "Dat is zwaar." / "Ik hoor je." / "Wanneer begon dat?" — zonder eerst te herhalen wat ze zeiden
 
 - Herhaal NIET wat de gebruiker net zei in je eigen woorden als dat het hele antwoord is
   FOUT: Gebruiker zegt "ik voel me leeg" → "Die leegte, wat voelt dat als." (voegt niets toe)
@@ -766,12 +698,45 @@ Als een gebruiker herhaaldelijk korte antwoorden geeft (één woord, "ja", "nee"
 FOUT: Gebruiker zegt "weet ik niet" → "Wat speelt er voor je?" (opnieuw vragen)
 GOED: Gebruiker zegt "weet ik niet" → "Dat is helemaal oké. Soms weet je het gewoon niet. Je hoeft nu niets te bedenken."`;
 
+      // Regel: gesprek afronden bij tekenen van uitputting of aan het einde van een gesprek
+      const conversationClosingRule = isEnglish ? "" : `GESPREK AFRONDEN — SIGNALEN HERKENNEN EN REAGEREN:
+Herken signalen dat iemand moe wordt of het gesprek wil afsluiten:
+- Korte, afgeronde antwoorden ("ja", "dank je", "dat klopt", "precies", "oké")
+- Zinnen als "ik ga nu stoppen", "bedankt voor het gesprek", "ik ben moe", "ik moet nu gaan"
+- Een dalende energie in het gesprek — minder uitgebreide antwoorden dan eerder
+
+WANNEER JE DEZE SIGNALEN ZIET:
+- Stel GEEN nieuwe vragen meer — het gesprek afsluiten met een vraag voelt opdringerig
+- Geef een kort samenvattend of verankerd moment: benoem iets wat de persoon heeft gedeeld of gedaan
+- Bied een zachte, warme afsluiting zonder drang om te blijven praten
+FOUT: Iemand zegt "dank je, ik ga nu stoppen" → Benji stelt een nieuwe vraag over iets wat nog niet besproken is
+GOED: "Fijn dat je er even over hebt kunnen praten. Het is niet niks, wat je draagt. Zorg goed voor jezelf."
+
+ALGEMEEN RITME VAN EEN GESPREK:
+- Na 8-10 uitwisselingen: wees bewust van het ritme — niet eindeloos nieuwe onderwerpen openen
+- Als je het gevoel hebt dat een onderwerp is afgerond, mag je zacht samenvatten voordat je verder gaat
+- Een gesprek mag afsluiten zonder dat alles is opgelost — dat is normaal en menselijk
+FOUT: Na elk antwoord van de gebruiker een nieuw onderwerp of nieuwe vraag introduceren, ook als de conversatie al lang is
+GOED: "We hebben vandaag al veel besproken. Is er nog iets wat je wil delen, of is dit een goed moment om te pauzeren?"`;
+
+      // Regel: anonieme gebruiker aanmoedigen account te maken
+      const accountNudgeRule = isGuest ? `GESPREK BEWAREN — VOOR ANONIEME GEBRUIKERS:
+Deze gebruiker is niet ingelogd. Ze kunnen dit gesprek niet terugvinden als ze de pagina sluiten.
+${messageCount >= 20
+  ? `Dit is een lang gesprek (${messageCount} berichten). Noem ÉÉN keer — op een naturlijk moment, niet als nieuwe vraag — dat ze dit gesprek kunnen bewaren: "[hier aanmelden](/registreren) om dit gesprek te bewaren". Doe dit als je toch al een afsluitende of samenvattende zin zegt.`
+  : messageCount >= 6
+  ? `Als iemand aangeeft te willen stoppen of als je een afsluitende zin zegt, voeg dan kort toe dat ze dit gesprek kunnen bewaren: "[hier aanmelden](/registreren) zodat je hier op terug kunt komen". Doe dit maximaal één keer en alleen als het naturlijk past.`
+  : ``}
+Zeg dit NOOIT als een verkoop-pitch. Formuleer het als een praktische tip, vlak voor of na je afsluitende zin.
+FOUT: "Wil je een account aanmaken?" (vraagvorm, voelt als druk)
+GOED: "Fijn dat je er even over kon praten. Je kunt dit gesprek bewaren door [hier aan te melden](/registreren) — dan staat het er nog als je terugkomt."` : "";
+
       // Benji-regels (uit instellingen) gaan altijd volledig mee — nooit afkappen
       // De extra hardcoded regels worden apart beperkt tot 2000 chars
       const customRules = settings?.rules || "";
       const extraRules = [onlyFromKbRule, dutchLanguageRule, noJargonRule, noRepetitionRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
       const limitedExtraRules = extraRules.length > 2000 ? extraRules.slice(0, 2000) : extraRules;
-      const rules = [customRules, crisisAfterRule, withinConversationMemoryRule, practicalHelpRule, noTimeAssumptionsRule, minimalInputRule, limitedExtraRules].filter(Boolean).join("\n\n");
+      const rules = [customRules, crisisAfterRule, withinConversationMemoryRule, practicalHelpRule, noTimeAssumptionsRule, minimalInputRule, conversationClosingRule, accountNudgeRule, limitedExtraRules].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
@@ -1056,6 +1021,8 @@ Schrijf beknopt en feitelijk. Geen inleiding of afsluiting.`,
 
         if (summary) {
           await ctx.runMutation(api.chat.setSessionSummary, { sessionId, summary });
+          // Bereken embedding voor semantisch geheugen
+          await ctx.runAction(api.embeddings.embedSessionSummary, { sessionId, summary });
         }
       } catch (e) {
         console.error("Summarize session error:", e);

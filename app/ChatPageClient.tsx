@@ -196,6 +196,9 @@ export default function ChatPageClient({
   ) ?? 0;
 
   const showNudgeBanner = !session?.userId && anonymousCount >= 3 && anonymousCount < 5;
+  const [saveCardDismissed, setSaveCardDismissed] = useState(false);
+  const isAnonymousUser = !session?.userId;
+  const SAVE_CARD_AFTER = 10; // toon na dit aantal berichten
 
   const preferencesData = useQuery(
     api.preferences.getPreferencesWithUrl,
@@ -661,11 +664,13 @@ export default function ChatPageClient({
           )}
 
           <div className="space-y-3 sm:space-y-4">
-            {messages?.map((msg: Doc<"chatMessages">) => {
+            {messages?.map((msg: Doc<"chatMessages">, idx: number) => {
               const isUser = msg.role === "user";
               const parsed = !isUser ? parseMemoryMarker(msg.content) : null;
               const displayContent = parsed ? parsed.cleanContent : msg.content;
+              const showSaveCard = isAnonymousUser && !saveCardDismissed && idx === SAVE_CARD_AFTER - 1;
               return (
+                <>
                 <div key={msg._id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                   {isUser ? (
                     <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
@@ -717,6 +722,29 @@ export default function ChatPageClient({
                     </div>
                   )}
                 </div>
+                {showSaveCard && (
+                  <div key={`save-card-${msg._id}`} className="flex justify-center my-2">
+                    <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
+                      <p className="text-sm text-amber-900 font-medium mb-1">Dit gesprek bewaren?</p>
+                      <p className="text-xs text-amber-700 mb-3">Maak een gratis account aan — dan staat dit gesprek er nog als je terugkomt.</p>
+                      <div className="flex gap-2">
+                        <a
+                          href="/registreren"
+                          className="flex-1 text-center text-xs font-medium bg-amber-500 hover:bg-amber-600 text-white rounded-xl px-3 py-2 transition-colors"
+                        >
+                          Aanmelden
+                        </a>
+                        <button
+                          onClick={() => setSaveCardDismissed(true)}
+                          className="text-xs text-amber-600 hover:text-amber-800 px-3 py-2 transition-colors"
+                        >
+                          Niet nu
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                </>
               );
             })}
             {pendingUserMessage && (

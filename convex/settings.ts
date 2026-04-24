@@ -109,6 +109,7 @@ export const save = mutation({
     await checkAdmin(ctx, args.adminToken);
     const existing = await ctx.db.query("botSettings").first();
 
+
     if (existing) {
       // Update bestaande instellingen
       await ctx.db.patch(existing._id, {
