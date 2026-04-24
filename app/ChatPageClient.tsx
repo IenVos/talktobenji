@@ -669,12 +669,15 @@ export default function ChatPageClient({
           )}
 
           <div className="space-y-3 sm:space-y-4">
-            {messages?.map((msg: Doc<"chatMessages">, idx: number) => {
+            {(() => {
+              let userMsgCount = 0;
+              return messages?.map((msg: Doc<"chatMessages">, idx: number) => {
               const isUser = msg.role === "user";
+              if (isUser) userMsgCount++;
               const parsed = !isUser ? parseMemoryMarker(msg.content) : null;
               const displayContent = parsed ? parsed.cleanContent : msg.content;
-              const showSaveCard = isAnonymousUser && !saveCardDismissed && idx === SAVE_CARD_AFTER - 1;
-              const showLimitWarning = isAnonymousUser && idx === LIMIT_WARNING_AFTER - 1;
+              const showSaveCard = isAnonymousUser && !saveCardDismissed && userMsgCount === SAVE_CARD_AFTER && !isUser;
+              const showLimitWarning = isAnonymousUser && userMsgCount === LIMIT_WARNING_AFTER && !isUser;
               return (
                 <>
                 <div key={msg._id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
@@ -774,7 +777,8 @@ export default function ChatPageClient({
                 )}
                 </>
               );
-            })}
+            });
+            })()}
             {pendingUserMessage && (
               <div className="flex justify-end">
                 <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
