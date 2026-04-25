@@ -211,12 +211,17 @@ export const getConversationCount = query({
       };
     }
 
-    // Nooit betaald (free tier): geen gate, gewoon toegang
+    // Nooit betaald (free tier): 3 gesprekken totaal dan geblokkeerd
+    const freeSessions = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
     return {
-      count: 0,
-      limit: null,
-      hasUnlimited: true,
+      count: freeSessions.length,
+      limit: 3,
+      hasUnlimited: false,
       isLapsed: false,
+      isFree: true,
     };
   },
 });

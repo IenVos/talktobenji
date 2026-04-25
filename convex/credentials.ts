@@ -113,6 +113,7 @@ export const createUserWithPassword = withSecretMutation({
       userId,
       email: emailLower,
       hashedPassword,
+      lastActiveAt: now2,
     });
     // Maak automatisch een 7-daagse trial subscription aan
     const now = Date.now();

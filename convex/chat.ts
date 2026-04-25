@@ -225,6 +225,20 @@ export const startSession = mutation({
       }
     }
 
+    // Bijwerken lastActiveAt voor inactivity-tracking
+    if (args.userId && args.userEmail) {
+      const cred = await ctx.db
+        .query("credentials")
+        .withIndex("email", (q) => q.eq("email", args.userEmail!.toLowerCase().trim()))
+        .unique();
+      if (cred) {
+        await ctx.db.patch(cred._id, {
+          lastActiveAt: now,
+          deletionWarningSentAt: undefined, // Reset waarschuwing als ze weer actief zijn
+        });
+      }
+    }
+
     // Track conversation count voor logged-in users (niet voor admin)
     const exemptEmail = process.env.ADMIN_EXEMPT_EMAIL;
     if (args.userId && (!exemptEmail || args.userEmail !== exemptEmail)) {

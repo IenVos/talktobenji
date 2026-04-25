@@ -1,6 +1,7 @@
 import { cronJobs } from "convex/server";
 import { api, internal } from "./_generated/api";
 
+
 const crons = cronJobs();
 
 crons.daily(
@@ -36,6 +37,14 @@ crons.interval(
   "mark abandoned sessions",
   { minutes: 30 },
   api.chat.markSessionsAsAbandoned,
+  {}
+);
+
+// Controleer inactieve accounts dagelijks: stuur waarschuwingen + verwijder verlopen accounts
+crons.daily(
+  "check inactive accounts",
+  { hourUTC: 10, minuteUTC: 0 },
+  internal.inactiveAccounts.checkInactiveAccounts,
   {}
 );
 

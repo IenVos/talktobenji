@@ -35,6 +35,7 @@ import type * as handreikingen from "../handreikingen.js";
 import type * as homepageFaq from "../homepageFaq.js";
 import type * as houvast from "../houvast.js";
 import type * as http from "../http.js";
+import type * as inactiveAccounts from "../inactiveAccounts.js";
 import type * as inspiratie from "../inspiratie.js";
 import type * as jaarRenewal from "../jaarRenewal.js";
 import type * as klantbeheer from "../klantbeheer.js";
@@ -99,6 +100,7 @@ declare const fullApi: ApiFromModules<{
   homepageFaq: typeof homepageFaq;
   houvast: typeof houvast;
   http: typeof http;
+  inactiveAccounts: typeof inactiveAccounts;
   inspiratie: typeof inspiratie;
   jaarRenewal: typeof jaarRenewal;
   klantbeheer: typeof klantbeheer;

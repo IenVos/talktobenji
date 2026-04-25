@@ -11,6 +11,8 @@ export default defineSchema({
     email: v.string(),
     hashedPassword: v.string(),
     passwordChangedAt: v.optional(v.number()),
+    lastActiveAt: v.optional(v.number()),       // Laatste keer ingelogd of gesprek gestart
+    deletionWarningSentAt: v.optional(v.number()), // Tijdstip waarschuwingsmail gestuurd
   }).index("email", ["email"]),
 
   // Bot instellingen (knowledge + rules)

@@ -26,31 +26,42 @@ export function ConversationLimitGate({
   // Nog aan het laden — gewoon tonen
   if (userId && usage === undefined) return <>{children}</>;
 
-  // Alleen geblokkeerd als verlopen abonnement + limiet bereikt
+  const count = usage?.count ?? 0;
+  const limit = usage?.limit ?? 3;
   const isLapsed = !!(usage?.isLapsed);
-  const lapsedLimitReached = isLapsed && (usage?.count ?? 0) >= (usage?.limit ?? 3);
+  const isFree = !!(usage as any)?.isFree;
+
+  const limitReached = (isLapsed || isFree) && count >= limit;
+
+  const title = isLapsed
+    ? "Je toegang is verlopen"
+    : "Je gratis gesprekken zijn op";
+
+  const body = isLapsed
+    ? "Je hebt je 3 gratis gesprekken na afloop gebruikt. Verleng je toegang om verder te gaan met Benji."
+    : "Je hebt je 3 gratis gesprekken gebruikt. Neem een abonnement om verder te gaan met Benji.";
 
   return (
     <>
       {children}
-      {lapsedLimitReached && (
+      {limitReached && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 mb-4">
               <Lock size={22} className="text-primary-600" />
             </div>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Je toegang is verlopen
+              {title}
             </h2>
             <p className="text-sm text-gray-600 leading-relaxed mb-5">
-              Je hebt je 3 gratis gesprekken na afloop gebruikt. Verleng je toegang om verder te gaan met Benji.
+              {body}
             </p>
             <div className="flex flex-col gap-2">
               <Link
                 href="/betalen/benji-jaar"
                 className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors"
               >
-                Toegang verlengen
+                {isLapsed ? "Toegang verlengen" : "Abonnement nemen"}
               </Link>
               <Link
                 href="/account"
