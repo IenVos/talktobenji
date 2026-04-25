@@ -209,49 +209,39 @@ export default async function FaqPage() {
         <FaqSection title="Kosten & Abonnementen">
           <FaqItem question="Wat kost Talk To Benji?">
             <p>
-              Je kunt Benji altijd even proberen voordat je een account aanmaakt. Met een gratis account kun je tot 10 gesprekken per maand voeren. Wil je Benji vaker gebruiken en toegang tot extra functies zoals reflecties en doelen? Dan zijn er twee betaalde opties:
+              Je kunt Benji altijd gratis proberen — zonder account, geen creditcard nodig. Wil je Benji vaker gebruiken of toegang tot extra functies? Dan zijn er betaalde abonnementen beschikbaar.
             </p>
-            <ul className="list-disc list-inside space-y-1 ml-2 mt-2">
-              <li><strong>Benji Uitgebreid</strong> — €6,99 per maand (of €54 per jaar): onbeperkte gesprekken, reflecties, doelen en check-ins</li>
-              <li><strong>Benji Alles in 1</strong> — €11,99 per maand (of €89 per jaar): alles van Uitgebreid plus memories, inspiratie en handreikingen</li>
-            </ul>
             <p className="mt-2">
-              <a href="/prijzen" className="text-primary-600 hover:text-primary-700 underline">Bekijk alle opties en prijzen →</a>
+              <a href="/lp/prijzen" className="text-primary-600 hover:text-primary-700 underline">Bekijk alle opties en actuele prijzen →</a>
             </p>
           </FaqItem>
           <FaqItem question="Is er een gratis versie?">
             <p>
-              Ja, je kunt Benji gebruiken met een gratis account. Je krijgt dan tot 10 gesprekken per maand en je gesprekken worden bewaard. Dit is perfect om Benji te proberen en te kijken of het bij je past. Voor onbeperkte gesprekken en extra functies zoals reflecties en doelen heb je een betaald abonnement nodig.
+              Ja. Je kunt gewoon beginnen met praten zonder account aan te maken. Zo kun je Benji leren kennen en kijken of het bij je past. Voor meer gesprekken en extra functies zijn er betaalde abonnementen.
             </p>
           </FaqItem>
           <FaqItem question="Waarom kost Benji geld?">
             <p>
-              AI technologie kost geld per gesprek (API kosten), hosting, onderhoud en doorontwikkeling. Om Benji goed en veilig te houden en door te kunnen ontwikkelen, hebben we inkomsten nodig. We proberen de prijzen zo toegankelijk mogelijk te houden, zodat zoveel mogelijk mensen gebruik kunnen maken van Benji wanneer ze het nodig hebben.
+              AI technologie kost geld per gesprek — denk aan serverkosten, hosting, onderhoud en doorontwikkeling. Om Benji goed en veilig te houden, hebben we inkomsten nodig. We proberen de prijzen zo toegankelijk mogelijk te houden zodat zoveel mogelijk mensen Benji kunnen gebruiken wanneer ze het nodig hebben.
             </p>
           </FaqItem>
           <FaqItem question="Kan ik maandelijks opzeggen?">
             <p>
-              Ja, wanneer we het abonnement introduceren kun je op elk moment opzeggen. Er is geen minimale looptijd of opzegtermijn. Stop wanneer je wilt, geen vragen gesteld.
+              Ja, je kunt op elk moment opzeggen. Er is geen minimale looptijd of opzegtermijn. Stop wanneer je wilt, geen vragen gesteld.
             </p>
           </FaqItem>
           <FaqItem question="Hoe betaal ik?">
-            <p>Wanneer we het abonnement introduceren, kun je betalen via:</p>
-            <ul className="list-disc list-inside space-y-1 ml-2">
-              <li>iDEAL</li>
-              <li>Creditcard (Visa, Mastercard)</li>
-              <li>PayPal</li>
-            </ul>
-            <p>Alle betalingen worden veilig verwerkt via gerenommeerde betaalproviders.</p>
+            <p>Je kunt veilig betalen via iDEAL, creditcard (Visa, Mastercard) of andere gangbare betaalmethoden. Alle betalingen worden verwerkt via Stripe.</p>
           </FaqItem>
           <FaqItem question="Kan ik een factuur krijgen?">
             <p>
-              Ja, na elke betaling ontvang je automatisch een factuur per email. Je kunt ook eerdere facturen downloaden via je accountinstellingen.
+              Ja, na elke betaling ontvang je automatisch een betalingsbewijs per e-mail.
             </p>
           </FaqItem>
-          <FaqItem question="Bieden jullie kortingen voor studenten of mensen in een moeilijke financiële situatie?">
+          <FaqItem question="Bieden jullie kortingen voor mensen in een moeilijke financiële situatie?">
             <p>
-              We begrijpen dat niet iedereen €4,99 per maand kan betalen. Neem contact met ons op via{" "}
-              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> als financiën een barrière vormen: we denken graag mee over oplossingen.
+              We begrijpen dat een abonnement niet voor iedereen haalbaar is. Neem contact op via{" "}
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> als financiën een drempel vormen — we denken graag mee.
             </p>
           </FaqItem>
         </FaqSection>
