@@ -104,6 +104,29 @@ export default function AdminCheckoutPage() {
     setShowForm(false);
   };
 
+  const startDuplicate = (product: CheckoutProduct) => {
+    setForm({
+      slug: `${product.slug}-kopie`,
+      name: `${product.name} (kopie)`,
+      kortNaam: product.kortNaam ?? "",
+      verliesType: product.verliesType ?? "",
+      description: product.description ?? "",
+      priceInCents: String(product.priceInCents),
+      stripePriceId: "",
+      subscriptionType: product.subscriptionType,
+      buttonText: product.buttonText ?? "",
+      imageStorageId: product.imageStorageId,
+      imageFile: null,
+      isLive: false,
+      followUpEmailSubject: product.followUpEmailSubject ?? "",
+      followUpEmailBody: product.followUpEmailBody ?? "",
+    });
+    setEditingImageUrl(product.imageUrl ?? null);
+    setEditingId(null);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const startEdit = (product: CheckoutProduct) => {
     setForm({
       slug: product.slug,
@@ -570,6 +593,14 @@ export default function AdminCheckoutPage() {
                             <ExternalLink size={17} />
                           </a>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => startDuplicate(product)}
+                          className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                          title="Dupliceren"
+                        >
+                          <Copy size={17} />
+                        </button>
                         <button
                           type="button"
                           onClick={() => startEdit(product)}
