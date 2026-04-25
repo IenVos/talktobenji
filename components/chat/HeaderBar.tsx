@@ -32,7 +32,7 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
       </div>
       <div className="flex flex-col items-start min-w-0">
         <span className="font-semibold text-primary-500 text-sm sm:text-base leading-tight group-hover:text-primary-400">
-          Talk To Benji
+          Benji
         </span>
       </div>
     </>

@@ -725,6 +725,16 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),
 
+  // Homepage FAQ (beheerbaar via admin)
+  homepageFaq: defineTable({
+    vraag: v.string(),
+    antwoord: v.string(),
+    linkTekst: v.optional(v.string()),
+    linkHref: v.optional(v.string()),
+    volgorde: v.number(),
+    isActief: v.boolean(),
+  }).index("by_volgorde", ["volgorde"]),
+
   // Pillar pagina's (SEO laag 2 — thematische gezaghebbende pagina's)
   pillars: defineTable({
     slug: v.string(),

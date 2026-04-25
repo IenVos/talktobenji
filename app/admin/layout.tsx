@@ -208,6 +208,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/benji-teasers", label: "Benji teasers", icon: Smile },
           { href: "/admin/pillars", label: "Pillar pagina's", icon: Layers },
           { href: "/admin/paginas", label: "Pagina's", icon: LayoutTemplate },
+          { href: "/admin/homepage-faq", label: "Homepage FAQ", icon: HelpCircle },
           { href: "/admin/linkstructuur", label: "Linkstructuur", icon: Network },
         ],
       },

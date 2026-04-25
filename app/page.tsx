@@ -165,23 +165,12 @@ const FAQ: FaqItem[] = [
   },
 ];
 
-const FAQ_SCHEMA = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: FAQ.map((f) => ({
-    "@type": "Question",
-    name: f.vraag,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: f.link ? `${f.antwoord} ${f.link.tekst}: https://www.talktobenji.com${f.link.href}` : f.antwoord,
-    },
-  })),
-};
 
 export default async function HomePage() {
-  const [saved, liveTestimonials] = await Promise.all([
+  const [saved, liveTestimonials, faqItems] = await Promise.all([
     fetchQuery(api.pageContent.getPublicPageContent, { pageKey: "homepage" }).catch(() => null),
     fetchQuery(api.testimonials.listActive, {}).catch(() => []),
+    fetchQuery(api.homepageFaq.listActief, {}).catch(() => []),
   ]);
   const c = { ...DEFAULTS, ...(saved ?? {}) };
 
@@ -195,11 +184,32 @@ export default async function HomePage() {
       ? liveTestimonials.map((t: { quote: string; name: string }) => ({ tekst: t.quote, naam: t.name }))
       : ERVARINGEN;
 
+  const faqToShow: FaqItem[] = faqItems && faqItems.length > 0
+    ? faqItems.map((f: { vraag: string; antwoord: string; linkTekst?: string; linkHref?: string }) => ({
+        vraag: f.vraag,
+        antwoord: f.antwoord,
+        link: f.linkTekst && f.linkHref ? { tekst: f.linkTekst, href: f.linkHref } : undefined,
+      }))
+    : FAQ;
+
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqToShow.map((f) => ({
+      "@type": "Question",
+      name: f.vraag,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: f.link ? `${f.antwoord} ${f.link.tekst}: https://www.talktobenji.com${f.link.href}` : f.antwoord,
+      },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_SCHEMA) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       <SiteHeaderConcept />
@@ -414,8 +424,8 @@ export default async function HomePage() {
             Wat anderen zeggen
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {ervaringen.map((e) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {ervaringen.slice(0, 4).map((e) => (
               <div key={e.naam + e.tekst.slice(0, 20)} className="bg-white rounded-xl border border-gray-100 flex flex-col p-5">
                 <svg viewBox="0 0 24 24" className="w-5 h-5 text-primary-200 mb-2 flex-shrink-0" fill="currentColor">
                   <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
@@ -443,7 +453,7 @@ export default async function HomePage() {
         </p>
 
         <div className="space-y-3">
-          {FAQ.map((item) => (
+          {faqToShow.map((item) => (
             <details
               key={item.vraag}
               className="group bg-white border border-primary-100 rounded-2xl overflow-hidden"

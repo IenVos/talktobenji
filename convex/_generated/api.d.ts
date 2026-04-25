@@ -32,6 +32,7 @@ import type * as exampleData from "../exampleData.js";
 import type * as featureVotes from "../featureVotes.js";
 import type * as feedback from "../feedback.js";
 import type * as handreikingen from "../handreikingen.js";
+import type * as homepageFaq from "../homepageFaq.js";
 import type * as houvast from "../houvast.js";
 import type * as http from "../http.js";
 import type * as inspiratie from "../inspiratie.js";
@@ -95,6 +96,7 @@ declare const fullApi: ApiFromModules<{
   featureVotes: typeof featureVotes;
   feedback: typeof feedback;
   handreikingen: typeof handreikingen;
+  homepageFaq: typeof homepageFaq;
   houvast: typeof houvast;
   http: typeof http;
   inspiratie: typeof inspiratie;
