@@ -160,7 +160,7 @@ const FAQ: FaqItem[] = [
   {
     vraag: "Kost praten met Benji geld?",
     antwoord:
-      "Je eerste vijf gesprekken zijn gratis, zonder account. Maak je een gratis account aan, dan kun je tien gesprekken per maand voeren. Wil je onbeperkte toegang tot alles, dan kun je Benji kopen voor €97 eenmalig. Geen abonnement, geen verlenging.",
+      "Je eerste drie gesprekken zijn gratis, zonder account.\n\nMaak je een gratis account aan, dan start je een proefperiode van 7 dagen waarin je gebruik kunt maken van alles wat Benji te bieden heeft.\n\nNa 7 dagen heb je verschillende opties: voor €17 kun je een maand onbeperkt gesprekken voeren, en wil je langer, dan is er ook een jaar termijn voor €97.",
     link: { tekst: "Bekijk wat er allemaal bij zit", href: "/lp/jaar-toegang" },
   },
 ];
@@ -467,9 +467,15 @@ export default async function HomePage() {
                 </span>
               </summary>
               <div className="px-6 pb-5 pt-1 space-y-2">
-                <p className="text-sm text-primary-600 leading-relaxed text-balance">
-                  {item.antwoord}
-                </p>
+                <div className="text-sm text-primary-600 leading-relaxed space-y-2">
+                  {item.antwoord.split("\n\n").map((para, pi) => (
+                    <p key={pi}>
+                      {para.split("\n").map((line, li, arr) => (
+                        <span key={li}>{line}{li < arr.length - 1 && <br />}</span>
+                      ))}
+                    </p>
+                  ))}
+                </div>
                 {item.link && (
                   <Link
                     href={item.link.href}

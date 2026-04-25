@@ -469,9 +469,15 @@ export default function HomeConceptPage() {
                 </span>
               </summary>
               <div className="px-6 pb-5 pt-1 space-y-2">
-                <p className="text-sm text-primary-600 leading-relaxed text-balance">
-                  {item.antwoord}
-                </p>
+                <div className="text-sm text-primary-600 leading-relaxed space-y-2">
+                  {item.antwoord.split("\n\n").map((para, pi) => (
+                    <p key={pi}>
+                      {para.split("\n").map((line, li, arr) => (
+                        <span key={li}>{line}{li < arr.length - 1 && <br />}</span>
+                      ))}
+                    </p>
+                  ))}
+                </div>
                 {item.link && (
                   <Link
                     href={item.link.href}
