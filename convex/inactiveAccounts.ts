@@ -72,7 +72,7 @@ export const sendDeletionWarning = internalAction({
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Wil je je account houden? Log dan gewoon één keer in — dan reset de teller automatisch en blijft alles zoals het is.
+          Wil je je account houden? Log dan gewoon één keer in, dan reset de teller automatisch en blijft alles zoals het is.
         </p>
 
         <div style="margin: 28px 0;">
