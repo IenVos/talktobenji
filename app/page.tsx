@@ -20,12 +20,15 @@ const DEFAULTS: Record<string, string> = {
   blok1Titel:      "Praat gratis met Benji",
   blok1Tekst:      "Je eerste vijf gesprekken zijn gratis, zonder account. Maak je een account aan, dan kun je tien gesprekken per maand voeren.",
   blok1Cta:        "Begin een gesprek",
+  blok1Url:        "/benji",
   blok2Titel:      "Samen Omgaan met Verdriet en Pijn",
   blok2Tekst:      "Een plek waar je steun, begrip en praktische tips vindt om sterker door moeilijke tijden te komen.",
   blok2Cta:        "Bekijk alle artikelen",
+  blok2Url:        "/blog",
   blok3Titel:      "Benji voor een heel jaar",
   blok3Tekst:      "Voor wie wil dat Benji er altijd is, ook als het even beter gaat. Ontdek wat erbij zit.",
   blok3Cta:        "Bekijk wat erbij zit",
+  blok3Url:        "/lp/jaar-toegang",
   overTitle:       "Gemaakt omdat er iets ontbrak en uit eigen ervaring met verlies",
   overP1:          "Ik ben Ien, oprichter van Talk To Benji. Ik vroeg me af waarom er voor mensen met verdriet zo weinig is dat echt laagdrempelig is. Geen wachtlijst, geen intake, geen afspraak, gewoon iemand die luistert, ook om 03:00 's nachts.",
   overP2:          "Dat werd Benji. Zes jaar lang zocht ik naar de beste manier om een plek te maken waar je je verhaal kwijt kunt, je gedachten kunt ordenen en zo beter zicht krijgt op alles wat er in je hoofd zit. Niet om je te vertellen wat je moet doen, maar om je te helpen het zelf te begrijpen.",
@@ -285,9 +288,9 @@ export default async function HomePage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
-            { icon: <IconChat />, kleur: "bg-primary-600", href: "/benji",          titel: c.blok1Titel, omschrijving: c.blok1Tekst, cta: c.blok1Cta },
-            { icon: <IconBlog />, kleur: "bg-primary-700", href: "/blog",           titel: c.blok2Titel, omschrijving: c.blok2Tekst, cta: c.blok2Cta },
-            { icon: <IconHeart />, kleur: "bg-primary-800", href: "/lp/jaar-toegang", titel: c.blok3Titel, omschrijving: c.blok3Tekst, cta: c.blok3Cta },
+            { icon: <IconChat />,  kleur: "bg-primary-600", href: c.blok1Url || "/benji",           titel: c.blok1Titel, omschrijving: c.blok1Tekst, cta: c.blok1Cta },
+            { icon: <IconBlog />,  kleur: "bg-primary-700", href: c.blok2Url || "/blog",            titel: c.blok2Titel, omschrijving: c.blok2Tekst, cta: c.blok2Cta },
+            { icon: <IconHeart />, kleur: "bg-primary-800", href: c.blok3Url || "/lp/jaar-toegang", titel: c.blok3Titel, omschrijving: c.blok3Tekst, cta: c.blok3Cta },
           ].map((blok) => (
             <Link
               key={blok.href}
