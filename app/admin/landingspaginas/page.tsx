@@ -88,6 +88,9 @@ type FormState = {
   footerText: string;
   trackAds: boolean;
   pricingBlocks: PricingBlockForm[];
+  featureSliderLabel: string;
+  featureSliderTitel: string;
+  featureSlidesJson: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -124,6 +127,9 @@ const EMPTY_FORM: FormState = {
   footerText: "",
   trackAds: false,
   pricingBlocks: [{ ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }],
+  featureSliderLabel: "",
+  featureSliderTitel: "",
+  featureSlidesJson: "",
 };
 
 function opt(val: string): string | undefined {
@@ -221,6 +227,9 @@ export default function AdminLandingspaginasPage() {
       finalCtaBody: page.finalCtaBody ?? "",
       footerText: page.footerText ?? "",
       trackAds: (page as any).trackAds ?? false,
+      featureSliderLabel: (page as any).featureSliderLabel ?? "",
+      featureSliderTitel: (page as any).featureSliderTitel ?? "",
+      featureSlidesJson: (page as any).featureSlidesJson ?? "",
       pricingBlocks: (() => {
         try {
           const parsed = JSON.parse((page as any).pricingBlocksJson || "[]");
@@ -336,6 +345,9 @@ export default function AdminLandingspaginasPage() {
           pricingBlocksJson: form.pricingBlocks.some(b => b.titel || b.prijs)
             ? JSON.stringify(form.pricingBlocks)
             : "",
+          featureSliderLabel: form.featureSliderLabel.trim(),
+          featureSliderTitel: form.featureSliderTitel.trim(),
+          featureSlidesJson: form.featureSlidesJson.trim(),
         });
         setSavedFeedback(true);
         setTimeout(() => setSavedFeedback(false), 2500);
@@ -376,6 +388,9 @@ export default function AdminLandingspaginasPage() {
           pricingBlocksJson: form.pricingBlocks.some(b => b.titel || b.prijs)
             ? JSON.stringify(form.pricingBlocks)
             : undefined,
+          featureSliderLabel: opt(form.featureSliderLabel),
+          featureSliderTitel: opt(form.featureSliderTitel),
+          featureSlidesJson: opt(form.featureSlidesJson),
         });
         resetForm();
       }
@@ -860,6 +875,40 @@ export default function AdminLandingspaginasPage() {
                     />
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Feature slider */}
+            <div className="pt-2 border-t border-primary-100">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Feature slider</p>
+              <p className="text-xs text-gray-400 mb-3">Schermafbeeldingen met captions naast elkaar (slider op mobiel). Laat leeg om niet te tonen.</p>
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelSmClass}>Klein label boven de titel (bijv. WAT JE KRIJGT)</label>
+                    <input type="text" placeholder="WAT JE KRIJGT" value={form.featureSliderLabel} onChange={set("featureSliderLabel")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Titel boven de slider</label>
+                    <input type="text" placeholder="Meer dan een gesprek" value={form.featureSliderTitel} onChange={set("featureSliderTitel")} className={inputClass} />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelSmClass}>
+                    Slides (JSON) — formaat: {`[{"afbeelding":"/images/...","titel":"Gesprek met Benji","onderschrift":"optioneel"}]`}
+                  </label>
+                  <textarea
+                    placeholder={`[{"afbeelding":"/images/screenshot-chat.png","titel":"Gesprek met Benji"},{"afbeelding":"/images/screenshot-plek.png","titel":"Mijn plek"}]`}
+                    value={form.featureSlidesJson}
+                    onChange={set("featureSlidesJson")}
+                    rows={4}
+                    className={`${inputClass} font-mono text-xs`}
+                  />
+                  {form.featureSlidesJson.trim() && (() => {
+                    try { JSON.parse(form.featureSlidesJson); return null; }
+                    catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; }
+                  })()}
+                </div>
               </div>
             </div>
 

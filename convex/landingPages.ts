@@ -90,6 +90,9 @@ export const create = mutation({
     footerText: v.optional(v.string()),
     trackAds: v.optional(v.boolean()),
     pricingBlocksJson: v.optional(v.string()),
+    featureSlidesJson: v.optional(v.string()),
+    featureSliderLabel: v.optional(v.string()),
+    featureSliderTitel: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -141,6 +144,9 @@ export const update = mutation({
     footerText: v.optional(v.string()),
     trackAds: v.optional(v.boolean()),
     pricingBlocksJson: v.optional(v.string()),
+    featureSlidesJson: v.optional(v.string()),
+    featureSliderLabel: v.optional(v.string()),
+    featureSliderTitel: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
