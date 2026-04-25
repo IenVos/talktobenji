@@ -216,9 +216,9 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         <HeaderBar />
 
-        {/* HERO */}
-        <section className="flex items-center justify-center px-5 pt-12 pb-16">
-          <div className="w-full max-w-md text-center">
+        {/* HERO — tekst gecentreerd, pricing blokken in eigen brede sectie */}
+        <section className="px-5 pt-12 pb-8 text-center">
+          <div className="w-full max-w-md mx-auto">
             {page.heroLabel && (
               <p className="text-xs uppercase tracking-widest mb-5 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
                 {page.heroLabel}
@@ -233,73 +233,19 @@ export function LandingPageView({ slug }: { slug: string }) {
               </p>
             )}
             {page.heroBody && (
-              <p className="text-sm leading-relaxed mb-8" style={{ color: "#8a8078", textWrap: "balance" } as React.CSSProperties}>
+              <p className="text-sm leading-relaxed mb-6" style={{ color: "#8a8078", textWrap: "balance" } as React.CSSProperties}>
                 {page.heroBody}
               </p>
             )}
             {(page as any).heroVideoUrl && (
-              <div className="mb-8">
-                <video
-                  src={(page as any).heroVideoUrl}
-                  controls
-                  playsInline
+              <div className="mb-6">
+                <video src={(page as any).heroVideoUrl} controls playsInline
                   className="w-auto max-w-full mx-auto block rounded-2xl"
                   style={{ maxHeight: "420px" }}
                 />
               </div>
             )}
-            {hasPricing ? (
-              <div className={`grid gap-3 mt-2 text-left ${activePricingBlocks.length === 1 ? "grid-cols-1 max-w-xs mx-auto" : activePricingBlocks.length === 2 ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
-                {activePricingBlocks.map((block, i) => (
-                  <div
-                    key={i}
-                    className="relative flex flex-col rounded-2xl"
-                    style={{
-                      background: block.aanbevolen ? "rgba(109,132,168,0.12)" : "rgba(255,255,255,0.72)",
-                      border: block.aanbevolen ? "2px solid rgba(109,132,168,0.55)" : "1px solid rgba(160,148,136,0.35)",
-                      boxShadow: block.aanbevolen ? "0 8px 32px rgba(61,53,48,0.16)" : "0 4px 16px rgba(61,53,48,0.08)",
-                      padding: "1.25rem",
-                      backdropFilter: "blur(4px)",
-                    }}
-                  >
-                    {block.aanbevolen && (
-                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap" style={{ background: "#6d84a8", color: "#fff" }}>
-                        Meest gekozen
-                      </span>
-                    )}
-                    {block.titel && (
-                      <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#a09088" }}>{block.titel}</p>
-                    )}
-                    {block.subtitel && (
-                      <p className="text-xs mb-2 leading-snug" style={{ color: "#8a8078" }}>{block.subtitel}</p>
-                    )}
-                    {block.prijs && (
-                      <p className="text-xl font-bold mb-3" style={{ color: "#3d3530" }}>{block.prijs}</p>
-                    )}
-                    {block.tekst && (
-                      <ul className="space-y-1.5 mb-4 flex-1">
-                        {block.tekst.split("\n").filter(Boolean).map((line, j) => (
-                          <li key={j} className="flex items-start gap-1.5 text-xs" style={{ color: "#6b6460" }}>
-                            <span style={{ color: "#a09088", flexShrink: 0, marginTop: 1 }}>✓</span>
-                            <span>{line}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {block.ctaTekst && block.ctaUrl && (
-                      <KoopKnopLink
-                        href={block.ctaUrl}
-                        buttonLabel={block.ctaTekst}
-                        className="mt-auto block w-full text-center py-2.5 rounded-xl text-xs font-medium text-white"
-                        style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
-                      >
-                        {block.ctaTekst}
-                      </KoopKnopLink>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
+            {!hasPricing && (
               <KoopKnopLink
                 href={ctaUrl}
                 buttonLabel={ctaText}
@@ -311,6 +257,65 @@ export function LandingPageView({ slug }: { slug: string }) {
             )}
           </div>
         </section>
+
+        {/* PRIJSBLOKKEN BOVENAAN */}
+        {hasPricing && (
+          <section className="px-4 sm:px-6 pb-14">
+            <div className="max-w-2xl mx-auto">
+              <div className={`grid gap-4 ${activePricingBlocks.length === 1 ? "grid-cols-1 max-w-sm mx-auto" : activePricingBlocks.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+                {activePricingBlocks.map((block, i) => (
+                  <div
+                    key={i}
+                    className="relative flex flex-col rounded-2xl"
+                    style={{
+                      background: block.aanbevolen ? "rgba(109,132,168,0.13)" : "rgba(255,255,255,0.82)",
+                      border: block.aanbevolen ? "2px solid rgba(109,132,168,0.55)" : "1px solid rgba(160,148,136,0.35)",
+                      boxShadow: block.aanbevolen ? "0 8px 32px rgba(61,53,48,0.18)" : "0 4px 20px rgba(61,53,48,0.08)",
+                      padding: "1.5rem",
+                      backdropFilter: "blur(6px)",
+                    }}
+                  >
+                    {block.aanbevolen && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap" style={{ background: "#6d84a8", color: "#fff" }}>
+                        Meest gekozen
+                      </span>
+                    )}
+                    {block.titel && (
+                      <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#a09088" }}>{block.titel}</p>
+                    )}
+                    {block.prijs && (
+                      <p className="text-2xl font-bold leading-tight" style={{ color: "#3d3530" }}>{block.prijs}</p>
+                    )}
+                    {block.subtitel && (
+                      <p className="text-xs mt-1 mb-4 leading-snug" style={{ color: "#9ca3af" }}>{block.subtitel}</p>
+                    )}
+                    {!block.subtitel && <div className="mb-4" />}
+                    {block.tekst && (
+                      <ul className="space-y-2 mb-5 flex-1">
+                        {block.tekst.split("\n").filter(Boolean).map((line, j) => (
+                          <li key={j} className="flex items-start gap-2 text-sm" style={{ color: "#6b6460" }}>
+                            <span className="mt-0.5 flex-shrink-0" style={{ color: "#6d84a8" }}>✓</span>
+                            <span>{line}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {block.ctaTekst && block.ctaUrl && (
+                      <KoopKnopLink
+                        href={block.ctaUrl}
+                        buttonLabel={block.ctaTekst}
+                        className="mt-auto block w-full text-center py-3 rounded-xl text-sm font-medium text-white"
+                        style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
+                      >
+                        {block.ctaTekst}
+                      </KoopKnopLink>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* SECTIE 1 */}
         {(page.section1Title || page.section1Text) && (
@@ -515,16 +520,20 @@ export function LandingPageView({ slug }: { slug: string }) {
                       </span>
                     )}
                     {block.titel && (
-                      <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#a09088" }}>{block.titel}</p>
+                      <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: "#a09088" }}>{block.titel}</p>
                     )}
                     {block.prijs && (
-                      <p className="text-lg font-bold mb-3" style={{ color: "#3d3530" }}>{block.prijs}</p>
+                      <p className="text-xl font-bold leading-tight" style={{ color: "#3d3530" }}>{block.prijs}</p>
                     )}
+                    {block.subtitel && (
+                      <p className="text-xs mt-0.5 mb-3 leading-snug" style={{ color: "#9ca3af" }}>{block.subtitel}</p>
+                    )}
+                    {!block.subtitel && <div className="mb-3" />}
                     {block.ctaTekst && block.ctaUrl && (
                       <KoopKnopLink
                         href={block.ctaUrl}
                         buttonLabel={block.ctaTekst}
-                        className="mt-auto block w-full text-center py-2 rounded-xl text-xs font-medium text-white"
+                        className="mt-auto block w-full text-center py-2.5 rounded-xl text-sm font-medium text-white"
                         style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
                       >
                         {block.ctaTekst}
