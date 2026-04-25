@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
+import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Ervaring {
@@ -40,11 +41,15 @@ interface FeatureSlide {
 
 function FeatureSlider({ label, titel, slides }: { label?: string; titel?: string; slides: FeatureSlide[] }) {
   const [active, setActive] = useState(0);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   if (slides.length === 0) return null;
   const prev = () => setActive((a) => (a - 1 + slides.length) % slides.length);
   const next = () => setActive((a) => (a + 1) % slides.length);
   return (
     <section className="px-5 pb-12">
+      {lightboxUrl && (
+        <ImageLightbox imageUrl={lightboxUrl} alt="Screenshot" onClose={() => setLightboxUrl(null)} />
+      )}
       <div className="max-w-2xl mx-auto text-center">
         {label && (
           <p className="text-xs uppercase tracking-widest font-medium mb-2" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>{label}</p>
@@ -74,15 +79,16 @@ function FeatureSlider({ label, titel, slides }: { label?: string; titel?: strin
                       controls
                       playsInline
                       className="w-full rounded-2xl"
-                      style={{ maxHeight: 320, background: "rgba(255,255,255,0.6)" }}
+                      style={{ maxHeight: 380 }}
                     />
                   ) : slide.afbeelding ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={slide.afbeelding}
                       alt={slide.titel}
-                      className="w-full rounded-2xl"
-                      style={{ maxHeight: 320, objectFit: "contain", background: "rgba(255,255,255,0.6)" }}
+                      onClick={() => setLightboxUrl(slide.afbeelding!)}
+                      className="w-full rounded-2xl cursor-zoom-in"
+                      style={{ maxHeight: 380, objectFit: "contain" }}
                     />
                   ) : null}
                   {slide.titel && <p className="text-sm font-medium" style={{ color: "#6d84a8" }}>{slide.titel}</p>}

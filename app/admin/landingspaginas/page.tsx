@@ -147,6 +147,9 @@ const EMPTY_FORM: FormState = {
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+    { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+    { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+    { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
   ],
 };
 
@@ -262,11 +265,14 @@ export default function AdminLandingspaginasPage() {
               titel: s.titel ?? "", onderschrift: s.onderschrift ?? "",
               afbeelding: s.afbeelding ?? "", video: s.video ?? "", file: null, videoFile: null,
             }));
-            while (slides.length < 3) slides.push({ titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null });
-            return slides.slice(0, 3);
+            while (slides.length < 6) slides.push({ titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null });
+            return slides.slice(0, 6);
           }
         } catch {}
         return [
+          { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+          { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+          { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
           { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
           { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
           { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
@@ -980,7 +986,7 @@ export default function AdminLandingspaginasPage() {
                     <input type="text" placeholder="Meer dan een gesprek" value={form.featureSliderTitel} onChange={set("featureSliderTitel")} className={inputClass} />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {form.featureSlides.map((slide, i) => (
                     <div key={i} className="border border-primary-100 rounded-xl p-3 space-y-2 bg-white">
                       <p className="text-xs font-medium text-gray-500">Slide {i + 1}</p>
