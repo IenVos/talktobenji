@@ -282,8 +282,12 @@ export const activateSubscriptionByEmail = mutation({
       .first();
 
     // Toegang loopt af na accessDays (fallback: 365 voor yearly, anders geen expiry)
+    // Bij vroegtijdige verlenging: nieuwe periode start vanaf huidige expiresAt, niet vanaf nu
     const days = args.accessDays ?? (args.billingPeriod === "yearly" ? 365 : undefined);
-    const expiresAt = days ? now + days * 24 * 60 * 60 * 1000 : undefined;
+    const startFrom = (existing?.expiresAt && existing.expiresAt > now)
+      ? existing.expiresAt
+      : now;
+    const expiresAt = days ? startFrom + days * 24 * 60 * 60 * 1000 : undefined;
 
     const subscriptionData = {
       userId,
