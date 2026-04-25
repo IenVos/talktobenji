@@ -489,11 +489,11 @@ export function LandingPageView({ slug }: { slug: string }) {
         )}
 
         {/* WAT JE KRIJGT — icon grid */}
-        <section className="px-5 pb-14">
-          <div className="max-w-lg mx-auto">
+        <section className="px-4 sm:px-6 pb-14">
+          <div className="max-w-2xl mx-auto">
             <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
               <h2 className="text-base font-semibold mb-5" style={{ color: "#3d3530" }}>Wat je krijgt</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {ACCOUNT_FEATURES.map((f) => (
                   <div key={f.naam} className="flex items-start gap-3">
                     <div className={`p-2 rounded-xl flex-shrink-0 ${f.kleur}`}>
