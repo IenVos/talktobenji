@@ -32,8 +32,13 @@ export default function AccountGesprekkenPage() {
     session?.userId ? { userId: session.userId, email: session.user?.email ?? undefined } : "skip"
   );
 
-  const isFree = subscription?.subscriptionType === "free";
-  const isLocked = isFree;
+  const isLocked = (() => {
+    if (!subscription || subscription.isAdmin) return false;
+    if (subscription.subscriptionType === "free") return true;
+    if (subscription.subscriptionType === "trial" && subscription.trialDaysLeft === 0) return true;
+    if (subscription.status === "cancelled" && (subscription as any).expiresAt != null && (subscription as any).expiresAt < Date.now()) return true;
+    return false;
+  })();
 
   return (
     <div>
