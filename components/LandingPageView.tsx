@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
-import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Ervaring {
@@ -39,16 +38,129 @@ interface FeatureSlide {
   onderschrift?: string;
 }
 
+function SliderLightbox({ slides, startIndex, onClose }: { slides: FeatureSlide[]; startIndex: number; onClose: () => void }) {
+  const [index, setIndex] = useState(startIndex);
+  const slide = slides[index];
+  const prev = () => setIndex((i) => (i - 1 + slides.length) % slides.length);
+  const next = () => setIndex((i) => (i + 1) % slides.length);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") setIndex((i) => (i - 1 + slides.length) % slides.length);
+      if (e.key === "ArrowRight") setIndex((i) => (i + 1) % slides.length);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose, slides.length]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4"
+      style={{ background: "rgba(30,24,20,0.92)" }}
+      onClick={onClose}
+    >
+      {/* Sluiten */}
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 rounded-full text-white/70 hover:text-white transition-colors"
+        style={{ background: "rgba(255,255,255,0.12)" }}
+        aria-label="Sluiten"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+      </button>
+
+      {/* Teller */}
+      {slides.length > 1 && (
+        <p className="absolute top-5 left-1/2 -translate-x-1/2 text-xs text-white/50">
+          {index + 1} / {slides.length}
+        </p>
+      )}
+
+      {/* Afbeelding / video */}
+      <div className="relative flex items-center gap-4 w-full max-w-3xl" onClick={(e) => e.stopPropagation()}>
+        {slides.length > 1 && (
+          <button
+            onClick={prev}
+            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+            style={{ background: "rgba(255,255,255,0.15)" }}
+            aria-label="Vorige"
+          >
+            <ChevronLeft size={22} className="text-white" />
+          </button>
+        )}
+
+        <div className="flex-1 flex flex-col items-center gap-4">
+          {slide.video ? (
+            <video
+              src={slide.video}
+              controls
+              playsInline
+              className="rounded-2xl max-h-[70vh] w-auto max-w-full"
+            />
+          ) : slide.afbeelding ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={slide.afbeelding}
+              alt={slide.titel}
+              className="rounded-2xl max-h-[70vh] w-auto max-w-full object-contain"
+            />
+          ) : null}
+
+          {/* Tekst onder de afbeelding */}
+          {(slide.titel || slide.onderschrift) && (
+            <div className="text-center max-w-lg">
+              {slide.titel && (
+                <p className="text-sm font-semibold text-white/90">{slide.titel}</p>
+              )}
+              {slide.onderschrift && (
+                <p className="text-xs leading-relaxed mt-1" style={{ color: "rgba(255,255,255,0.55)" }}>{slide.onderschrift}</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {slides.length > 1 && (
+          <button
+            onClick={next}
+            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+            style={{ background: "rgba(255,255,255,0.15)" }}
+            aria-label="Volgende"
+          >
+            <ChevronRight size={22} className="text-white" />
+          </button>
+        )}
+      </div>
+
+      {/* Dots */}
+      {slides.length > 1 && (
+        <div className="flex justify-center gap-2 mt-5" onClick={(e) => e.stopPropagation()}>
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              className="rounded-full transition-all"
+              style={{ width: i === index ? 20 : 6, height: 6, background: i === index ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.3)" }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FeatureSlider({ label, titel, slides }: { label?: string; titel?: string; slides: FeatureSlide[] }) {
   const [active, setActive] = useState(0);
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   if (slides.length === 0) return null;
   const prev = () => setActive((a) => (a - 1 + slides.length) % slides.length);
   const next = () => setActive((a) => (a + 1) % slides.length);
   return (
     <section className="px-5 pb-12">
-      {lightboxUrl && (
-        <ImageLightbox imageUrl={lightboxUrl} alt="Screenshot" onClose={() => setLightboxUrl(null)} />
+      {lightboxIndex !== null && (
+        <SliderLightbox slides={slides} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
       )}
       <div className="max-w-2xl mx-auto text-center">
         {label && (
@@ -86,7 +198,7 @@ function FeatureSlider({ label, titel, slides }: { label?: string; titel?: strin
                     <img
                       src={slide.afbeelding}
                       alt={slide.titel}
-                      onClick={() => setLightboxUrl(slide.afbeelding!)}
+                      onClick={() => setLightboxIndex(i)}
                       className="w-full rounded-2xl cursor-zoom-in"
                       style={{ maxHeight: 380, objectFit: "contain" }}
                     />
@@ -266,12 +378,12 @@ export function LandingPageView({ slug }: { slug: string }) {
               {page.heroTitle}
             </h1>
             {page.heroSubtitle && (
-              <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460", textWrap: "balance" } as React.CSSProperties}>
+              <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460", textWrap: "pretty" } as React.CSSProperties}>
                 {page.heroSubtitle}
               </p>
             )}
             {page.heroBody && (
-              <p className="text-sm leading-relaxed mb-6" style={{ color: "#8a8078", textWrap: "balance" } as React.CSSProperties}>
+              <p className="text-sm leading-relaxed mb-6" style={{ color: "#8a8078", textWrap: "pretty" } as React.CSSProperties}>
                 {page.heroBody}
               </p>
             )}

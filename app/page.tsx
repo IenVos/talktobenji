@@ -399,7 +399,7 @@ export default async function HomePage() {
                 {s.stap}
               </div>
               <h3 className="text-base font-semibold text-primary-900 mb-2">{s.titel}</h3>
-              <p className="text-sm text-primary-600 leading-relaxed text-balance flex-1">{s.tekst}</p>
+              <p className="text-sm text-primary-600 leading-relaxed text-pretty flex-1">{s.tekst}</p>
               {s.cta && s.url && (
                 <Link href={s.url} className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
                   {s.cta}<IconArrow />
@@ -413,7 +413,7 @@ export default async function HomePage() {
           <div className="flex flex-col p-8 bg-white rounded-2xl border sm:w-[calc(33.333%-0.75rem)]" style={{ borderColor: "#7ec8e3" }}>
             <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">4</div>
             <h3 className="text-base font-semibold text-primary-900 mb-2">{c.stap4Titel}</h3>
-            <p className="text-sm text-primary-600 leading-relaxed text-balance flex-1">{c.stap4Tekst}</p>
+            <p className="text-sm text-primary-600 leading-relaxed text-pretty flex-1">{c.stap4Tekst}</p>
             {c.stap4Cta && c.stap4Url && (
               <Link href={c.stap4Url} className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
                 {c.stap4Cta}<IconArrow />
@@ -423,7 +423,7 @@ export default async function HomePage() {
           <div className="flex flex-col p-8 bg-white rounded-2xl border sm:w-[calc(33.333%-0.75rem)]" style={{ borderColor: "#7ec8e3" }}>
             <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">5</div>
             <h3 className="text-base font-semibold text-primary-900 mb-2">{c.stap5Titel}</h3>
-            <p className="text-sm text-primary-600 leading-relaxed text-balance flex-1">{c.stap5Tekst}</p>
+            <p className="text-sm text-primary-600 leading-relaxed text-pretty flex-1">{c.stap5Tekst}</p>
             {(c.stap5Cta || "Bekijk wat erbij zit") && (
               <Link href={c.stap5Url || "/lp/jaar-toegang"} className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
                 {c.stap5Cta || "Bekijk wat erbij zit"}<IconArrow />
