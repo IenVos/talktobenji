@@ -173,14 +173,14 @@ export const handleUserMessage = action({
           };
         }
       } else if (chatSession?.anonymousId) {
-        // Anonieme bezoeker: max 5 gesprekken
+        // Anonieme bezoeker: max 3 gesprekken
         const anonCount = await ctx.runQuery(api.chat.countAnonymousSessions, {
           anonymousId: chatSession.anonymousId,
         });
-        if (anonCount > 5) {
+        if (anonCount > 3) {
           return {
             success: false,
-            error: "Je hebt je 5 gratis gesprekken gebruikt. Maak een gratis account aan om verder te gaan.",
+            error: "Je hebt je 3 gratis gesprekken gebruikt. Maak een gratis profiel aan om verder te gaan.",
           };
         }
       }

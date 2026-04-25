@@ -198,8 +198,9 @@ export default function ChatPageClient({
   const showNudgeBanner = !session?.userId && anonymousCount >= 3 && anonymousCount < 5;
   const [saveCardDismissed, setSaveCardDismissed] = useState(false);
   const isAnonymousUser = !session?.userId;
-  const SAVE_CARD_AFTER = 10; // toon save-card na dit aantal berichten
-  const LIMIT_WARNING_AFTER = 13; // toon limiet-waarschuwing na dit aantal berichten (limiet is 15)
+  const DEVICE_MEMORY_CARD_AFTER = 2; // toon device-memory info na 2e gebruikersbericht
+  const SAVE_CARD_AFTER = 8;  // toon save-card na 8 gebruikersberichten
+  const LIMIT_WARNING_AFTER = 13; // toon limiet-waarschuwing na 13 gebruikersberichten (limiet is 15)
 
   const preferencesData = useQuery(
     api.preferences.getPreferencesWithUrl,
@@ -676,6 +677,7 @@ export default function ChatPageClient({
               if (isUser) userMsgCount++;
               const parsed = !isUser ? parseMemoryMarker(msg.content) : null;
               const displayContent = parsed ? parsed.cleanContent : msg.content;
+              const showDeviceMemoryCard = isAnonymousUser && userMsgCount === DEVICE_MEMORY_CARD_AFTER && !isUser;
               const showSaveCard = isAnonymousUser && !saveCardDismissed && userMsgCount === SAVE_CARD_AFTER && !isUser;
               const showLimitWarning = isAnonymousUser && userMsgCount === LIMIT_WARNING_AFTER && !isUser;
               return (
@@ -731,11 +733,19 @@ export default function ChatPageClient({
                     </div>
                   )}
                 </div>
+                {showDeviceMemoryCard && (
+                  <div key={`device-memory-${msg._id}`} className="flex justify-center my-2">
+                    <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
+                      <p className="text-sm text-blue-900 font-medium mb-1">Benji onthoudt je verhaal</p>
+                      <p className="text-xs text-blue-700">Als je later terugkomt op dit apparaat en deze browser, onthoudt Benji wat je hebt gedeeld. Je hoeft dan niet opnieuw te beginnen.</p>
+                    </div>
+                  </div>
+                )}
                 {showSaveCard && (
                   <div key={`save-card-${msg._id}`} className="flex justify-center my-2">
                     <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
-                      <p className="text-sm text-amber-900 font-medium mb-1">Kom je hier graag nog eens op terug?</p>
-                      <p className="text-xs text-amber-700 mb-3">Met een gratis profiel onthoudt Benji wat je hebt gedeeld — ook als je terugkomt. Zo hoef je niet steeds opnieuw te beginnen.</p>
+                      <p className="text-sm text-amber-900 font-medium mb-1">Wil je meer dan 3 gesprekken?</p>
+                      <p className="text-xs text-amber-700 mb-3">Met een gratis profiel krijg je een proefperiode van 7 dagen met volledige toegang — én onthoudt Benji je verhaal.</p>
                       <div className="flex gap-2">
                         <a
                           href="/registreren"
