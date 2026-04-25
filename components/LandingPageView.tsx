@@ -8,7 +8,16 @@ import { notFound } from "next/navigation";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageSquare, PencilLine, CalendarCheck, Gem, Sparkles, HandHelping } from "lucide-react";
+
+const ACCOUNT_FEATURES = [
+  { icon: MessageSquare, kleur: "text-primary-600 bg-primary-50",  naam: "Gesprekken",          omschrijving: "Altijd iemand die luistert, dag en nacht" },
+  { icon: PencilLine,    kleur: "text-teal-600 bg-teal-50",        naam: "Reflecties",           omschrijving: "Schrijven of inspreken, wanneer jij wil" },
+  { icon: CalendarCheck, kleur: "text-primary-500 bg-primary-50",  naam: "Dagelijkse check-ins", omschrijving: "Korte vragen om je gedachten te ordenen" },
+  { icon: Gem,           kleur: "text-amber-500 bg-amber-50",      naam: "Memories",             omschrijving: "Herinneringen bewaren die je niet wil vergeten" },
+  { icon: Sparkles,      kleur: "text-violet-500 bg-violet-50",    naam: "Inspiratie & troost",  omschrijving: "Gedichten, citaten en teksten die steunen" },
+  { icon: HandHelping,   kleur: "text-rose-500 bg-rose-50",        naam: "Handreikingen",        omschrijving: "Concrete oefeningen voor zware momenten" },
+];
 
 interface Ervaring {
   tekst: string;
@@ -479,9 +488,31 @@ export function LandingPageView({ slug }: { slug: string }) {
           </section>
         )}
 
+        {/* WAT JE KRIJGT — icon grid */}
+        <section className="px-5 pb-14">
+          <div className="max-w-lg mx-auto">
+            <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
+              <h2 className="text-base font-semibold mb-5" style={{ color: "#3d3530" }}>Wat je krijgt</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {ACCOUNT_FEATURES.map((f) => (
+                  <div key={f.naam} className="flex items-start gap-3">
+                    <div className={`p-2 rounded-xl flex-shrink-0 ${f.kleur}`}>
+                      <f.icon size={16} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold" style={{ color: "#3d3530" }}>{f.naam}</p>
+                      <p className="text-xs leading-snug mt-0.5" style={{ color: "#8a8078" }}>{f.omschrijving}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* SECTIE 1 */}
         {(page.section1Title || page.section1Text) && (
-          <section className="px-5 pb-12">
+          <section className="px-5 pb-16">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 {page.section1Title && (
@@ -501,7 +532,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* SECTIE 2 */}
         {(page.section2Title || page.section2Text) && (
-          <section className="px-5 pb-12">
+          <section className="px-5 pb-16">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 {page.section2Title && (
@@ -585,37 +616,39 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* ERVARINGEN */}
         {ervaringen.length > 0 && !hideErvaringen && (
-          <section className="px-5 pb-12">
-            <div className="max-w-lg mx-auto space-y-4">
-              {/* Titel als eerste kaart */}
-              {(ervaringenTitel || ervaringenSubtitel) && (
-                <div
-                  className="rounded-2xl px-6 py-5"
-                  style={{ background: "rgba(255,255,255,0.55)", border: "1px solid rgba(160,148,136,0.2)" }}
-                >
-                  {ervaringenTitel && (
-                    <h2 className="text-base font-semibold" style={{ color: "#3d3530" }}>{ervaringenTitel}</h2>
-                  )}
-                  {ervaringenSubtitel && (
-                    <p className="text-sm leading-relaxed mt-0.5" style={{ color: "#8a8078" }}>{ervaringenSubtitel}</p>
-                  )}
-                </div>
+          <section className="px-5 pb-16">
+            <div className="max-w-lg mx-auto">
+              {/* Prominente titel boven het blok */}
+              {ervaringenTitel && (
+                <h2 className="text-xl font-semibold mb-1 text-center" style={{ color: "#3d3530" }}>{ervaringenTitel}</h2>
               )}
-              {ervaringen.map((e, i) => (
-                <div
-                  key={i}
-                  className="rounded-2xl p-6 sm:p-7"
-                  style={{ background: "rgba(255,255,255,0.92)", boxShadow: "0 2px 20px rgba(0,0,0,0.08)" }}
-                >
-                  <p className="text-2xl mb-3" style={{ color: "#c8bfb8", lineHeight: 1 }}>"</p>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: "#3d3530" }}>
-                    {e.tekst}
-                  </p>
-                  <p className="text-xs font-medium" style={{ color: "#8a8078" }}>
-                    — {e.naam}{e.context ? `, ${e.context}` : ""}
-                  </p>
-                </div>
-              ))}
+              {ervaringenSubtitel && (
+                <p className="text-sm text-center mb-6" style={{ color: "#8a8078" }}>{ervaringenSubtitel}</p>
+              )}
+              {!ervaringenTitel && !ervaringenSubtitel && <div className="mb-2" />}
+              {ervaringenTitel && !ervaringenSubtitel && <div className="mb-6" />}
+              {/* Alle reviews in 1 blok */}
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{ background: "rgba(255,255,255,0.92)", boxShadow: "0 2px 24px rgba(0,0,0,0.08)" }}
+              >
+                {ervaringen.map((e, i) => (
+                  <div
+                    key={i}
+                    className="px-6 sm:px-8 py-6"
+                    style={{ borderTop: i > 0 ? "1px solid rgba(160,148,136,0.12)" : "none" }}
+                  >
+                    <p className="text-sm leading-relaxed mb-3" style={{ color: "#3d3530" }}>
+                      <span style={{ color: "#c8bfb8", fontSize: "1.1rem", lineHeight: 1, marginRight: 2 }}>"</span>
+                      {e.tekst}
+                      <span style={{ color: "#c8bfb8", fontSize: "1.1rem", lineHeight: 1, marginLeft: 2 }}>"</span>
+                    </p>
+                    <p className="text-xs font-medium" style={{ color: "#a09088" }}>
+                      — {e.naam}{e.context ? `, ${e.context}` : ""}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         )}
