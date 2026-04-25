@@ -717,6 +717,7 @@ export default defineSchema({
     buttonText: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
     isLive: v.boolean(),
+    accessDays: v.optional(v.number()), // Aantal dagen toegang na aankoop (bijv. 30, 90, 365)
     // Bevestigingsmail na aankoop (optioneel, beheerbaar via admin)
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),

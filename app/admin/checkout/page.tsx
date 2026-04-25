@@ -21,6 +21,7 @@ type CheckoutProduct = {
   buttonText?: string;
   imageStorageId?: Id<"_storage">;
   imageUrl?: string | null;
+  accessDays?: number;
   isLive: boolean;
   followUpEmailSubject?: string;
   followUpEmailBody?: string;
@@ -38,6 +39,7 @@ type FormState = {
   stripePriceId: string;
   subscriptionType: string;
   buttonText: string;
+  accessDays: string;
   imageStorageId?: Id<"_storage">;
   imageFile: File | null;
   isLive: boolean;
@@ -55,6 +57,7 @@ const EMPTY_FORM: FormState = {
   stripePriceId: "",
   subscriptionType: "alles_in_1",
   buttonText: "",
+  accessDays: "",
   imageStorageId: undefined,
   imageFile: null,
   isLive: false,
@@ -115,6 +118,7 @@ export default function AdminCheckoutPage() {
       stripePriceId: "",
       subscriptionType: product.subscriptionType,
       buttonText: product.buttonText ?? "",
+      accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
       isLive: false,
@@ -138,6 +142,7 @@ export default function AdminCheckoutPage() {
       stripePriceId: product.stripePriceId ?? "",
       subscriptionType: product.subscriptionType,
       buttonText: product.buttonText ?? "",
+      accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
       isLive: product.isLive,
@@ -167,6 +172,7 @@ export default function AdminCheckoutPage() {
       if (form.imageFile) {
         imageStorageId = await uploadFile(form.imageFile);
       }
+      const accessDaysVal = form.accessDays.trim() ? parseInt(form.accessDays, 10) : undefined;
       const payload = {
         slug: form.slug.trim(),
         name: form.name.trim(),
@@ -177,6 +183,7 @@ export default function AdminCheckoutPage() {
         stripePriceId: opt(form.stripePriceId),
         subscriptionType: form.subscriptionType,
         buttonText: opt(form.buttonText),
+        accessDays: accessDaysVal,
         imageStorageId,
         isLive: form.isLive,
         followUpEmailSubject: opt(form.followUpEmailSubject),
@@ -387,15 +394,29 @@ export default function AdminCheckoutPage() {
                 />
               </div>
               <div>
-                <label className={labelSmClass}>Stripe Price ID (optioneel)</label>
+                <label className={labelClass}>
+                  Toegangsduur in dagen *{" "}
+                  <span className="text-gray-400 font-normal text-xs">(30 = maand · 90 = kwartaal · 365 = jaar)</span>
+                </label>
                 <input
-                  type="text"
-                  placeholder="price_1Abc..."
-                  value={form.stripePriceId}
-                  onChange={set("stripePriceId")}
+                  type="number"
+                  placeholder="365"
+                  min="1"
+                  value={form.accessDays}
+                  onChange={set("accessDays")}
                   className={inputClass}
                 />
               </div>
+            </div>
+            <div>
+              <label className={labelSmClass}>Stripe Price ID (optioneel)</label>
+              <input
+                type="text"
+                placeholder="price_1Abc..."
+                value={form.stripePriceId}
+                onChange={set("stripePriceId")}
+                className={inputClass}
+              />
             </div>
 
             {/* Abonnement type & knoptekst */}
@@ -573,7 +594,9 @@ export default function AdminCheckoutPage() {
                           <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{product.description}</p>
                         )}
                         <p className="text-xs text-gray-400 mt-0.5">
-                          Type: {product.subscriptionType} &middot; Bijgewerkt{" "}
+                          Type: {product.subscriptionType}
+                          {product.accessDays != null && ` · ${product.accessDays} dagen`}
+                          {" · "}Bijgewerkt{" "}
                           {new Date(product.updatedAt).toLocaleDateString("nl-NL", {
                             day: "numeric",
                             month: "short",

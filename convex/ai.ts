@@ -187,7 +187,7 @@ export const handleUserMessage = action({
 
       // BERICHTENLIMIET PER SESSIE — voorkomt open laten staan van chat
       const sessionUserMsgCount = (recentMessages || []).filter((m: any) => m.role === "user").length;
-      const msgLimit = isGuest ? 15 : isFreeUser ? 20 : Infinity;
+      const msgLimit = isGuest ? 15 : isFreeUser ? 15 : Infinity;
       if (sessionUserMsgCount >= msgLimit) {
         return {
           success: false,

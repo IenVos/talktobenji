@@ -188,10 +188,10 @@ export const getConversationCount = query({
       };
     }
 
-    // Free tier: 5 gesprekken per maand
+    // Free tier: 2 gesprekken per maand
     return {
       count,
-      limit: 5,
+      limit: 2,
       hasUnlimited: false,
     };
   },
@@ -249,6 +249,7 @@ export const activateSubscriptionByEmail = mutation({
     email: v.string(),
     subscriptionType: v.string(),
     billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("yearly"))),
+    accessDays: v.optional(v.number()),
     externalSubscriptionId: v.optional(v.string()),
     paymentProvider: v.optional(v.string()),
     pricePaid: v.optional(v.number()),
@@ -280,11 +281,9 @@ export const activateSubscriptionByEmail = mutation({
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .first();
 
-    // Jaar-toegang: access loopt 365 dagen na aankoop af
-    const expiresAt =
-      args.billingPeriod === "yearly"
-        ? now + 365 * 24 * 60 * 60 * 1000
-        : undefined;
+    // Toegang loopt af na accessDays (fallback: 365 voor yearly, anders geen expiry)
+    const days = args.accessDays ?? (args.billingPeriod === "yearly" ? 365 : undefined);
+    const expiresAt = days ? now + days * 24 * 60 * 60 * 1000 : undefined;
 
     const subscriptionData = {
       userId,

@@ -146,11 +146,13 @@ export async function POST(req: NextRequest) {
 
         // Activatie proberen (stille fout als nog geen account)
         try {
+          const accessDays = product?.accessDays ?? 365;
           await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
             webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
             email,
             subscriptionType: subType,
             billingPeriod: "yearly",
+            accessDays,
             pricePaid: pi.amount / 100,
             paymentProvider: "stripe",
             externalSubscriptionId: pi.id,
