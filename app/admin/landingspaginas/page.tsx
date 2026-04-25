@@ -90,7 +90,14 @@ type FormState = {
   pricingBlocks: PricingBlockForm[];
   featureSliderLabel: string;
   featureSliderTitel: string;
-  featureSlidesJson: string;
+  featureSlides: { titel: string; onderschrift: string; afbeelding: string; video: string; file: File | null; videoFile: File | null }[];
+  pricingTitel: string;
+  pricingSubtitel: string;
+  ervaringenTitel: string;
+  ervaringenSubtitel: string;
+  faqTitel: string;
+  faqSubtitel: string;
+  voorWieSubtitel: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -129,7 +136,18 @@ const EMPTY_FORM: FormState = {
   pricingBlocks: [{ ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }],
   featureSliderLabel: "",
   featureSliderTitel: "",
-  featureSlidesJson: "",
+  pricingTitel: "",
+  pricingSubtitel: "",
+  ervaringenTitel: "",
+  ervaringenSubtitel: "",
+  faqTitel: "Misschien vraag je je af...",
+  faqSubtitel: "",
+  voorWieSubtitel: "",
+  featureSlides: [
+    { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+    { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+    { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+  ],
 };
 
 function opt(val: string): string | undefined {
@@ -229,7 +247,31 @@ export default function AdminLandingspaginasPage() {
       trackAds: (page as any).trackAds ?? false,
       featureSliderLabel: (page as any).featureSliderLabel ?? "",
       featureSliderTitel: (page as any).featureSliderTitel ?? "",
-      featureSlidesJson: (page as any).featureSlidesJson ?? "",
+      pricingTitel: (page as any).pricingTitel ?? "",
+      pricingSubtitel: (page as any).pricingSubtitel ?? "",
+      ervaringenTitel: (page as any).ervaringenTitel ?? "",
+      ervaringenSubtitel: (page as any).ervaringenSubtitel ?? "",
+      faqTitel: (page as any).faqTitel ?? "",
+      faqSubtitel: (page as any).faqSubtitel ?? "",
+      voorWieSubtitel: (page as any).voorWieSubtitel ?? "",
+      featureSlides: (() => {
+        try {
+          const parsed = JSON.parse((page as any).featureSlidesJson || "[]");
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const slides = parsed.map((s: any) => ({
+              titel: s.titel ?? "", onderschrift: s.onderschrift ?? "",
+              afbeelding: s.afbeelding ?? "", video: s.video ?? "", file: null, videoFile: null,
+            }));
+            while (slides.length < 3) slides.push({ titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null });
+            return slides.slice(0, 3);
+          }
+        } catch {}
+        return [
+          { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+          { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+          { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+        ];
+      })(),
       pricingBlocks: (() => {
         try {
           const parsed = JSON.parse((page as any).pricingBlocksJson || "[]");
@@ -297,6 +339,27 @@ export default function AdminLandingspaginasPage() {
     }
   };
 
+  const buildFeatureSlidesJson = async (slides: FormState["featureSlides"]) => {
+    const result = [];
+    for (const slide of slides) {
+      if (!slide.titel && !slide.afbeelding && !slide.video && !slide.file && !slide.videoFile) continue;
+      let afbeelding = slide.afbeelding;
+      let video = slide.video;
+      if (slide.file) {
+        const storageId = await uploadFile(slide.file);
+        const url = await getImageUrl({ storageId });
+        if (url) afbeelding = url;
+      }
+      if (slide.videoFile) {
+        const storageId = await uploadFile(slide.videoFile);
+        const url = await getImageUrl({ storageId });
+        if (url) video = url;
+      }
+      result.push({ titel: slide.titel, onderschrift: slide.onderschrift, afbeelding, video });
+    }
+    return result.length ? JSON.stringify(result) : "";
+  };
+
   const handleSave = async () => {
     if (!form.slug.trim() || !form.heroTitle.trim() || !form.pageTitle.trim()) return;
     setSaving(true);
@@ -347,7 +410,14 @@ export default function AdminLandingspaginasPage() {
             : "",
           featureSliderLabel: form.featureSliderLabel.trim(),
           featureSliderTitel: form.featureSliderTitel.trim(),
-          featureSlidesJson: form.featureSlidesJson.trim(),
+          featureSlidesJson: await buildFeatureSlidesJson(form.featureSlides),
+          pricingTitel: form.pricingTitel.trim(),
+          pricingSubtitel: form.pricingSubtitel.trim(),
+          ervaringenTitel: form.ervaringenTitel.trim(),
+          ervaringenSubtitel: form.ervaringenSubtitel.trim(),
+          faqTitel: form.faqTitel.trim(),
+          faqSubtitel: form.faqSubtitel.trim(),
+          voorWieSubtitel: form.voorWieSubtitel.trim(),
         });
         setSavedFeedback(true);
         setTimeout(() => setSavedFeedback(false), 2500);
@@ -390,7 +460,14 @@ export default function AdminLandingspaginasPage() {
             : undefined,
           featureSliderLabel: opt(form.featureSliderLabel),
           featureSliderTitel: opt(form.featureSliderTitel),
-          featureSlidesJson: opt(form.featureSlidesJson),
+          featureSlidesJson: opt(await buildFeatureSlidesJson(form.featureSlides)),
+          pricingTitel: opt(form.pricingTitel),
+          pricingSubtitel: opt(form.pricingSubtitel),
+          ervaringenTitel: opt(form.ervaringenTitel),
+          ervaringenSubtitel: opt(form.ervaringenSubtitel),
+          faqTitel: opt(form.faqTitel),
+          faqSubtitel: opt(form.faqSubtitel),
+          voorWieSubtitel: opt(form.voorWieSubtitel),
         });
         resetForm();
       }
@@ -781,6 +858,16 @@ export default function AdminLandingspaginasPage() {
             <div className="pt-2 border-t border-primary-100">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Prijsblokken</p>
               <p className="text-xs text-gray-400 mb-3">Laat leeg om de sectie niet te tonen. Vul titel of prijs in om te activeren.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div>
+                  <label className={labelSmClass}>Sectietitel boven de blokken</label>
+                  <input type="text" placeholder="Kies jouw abonnement" value={form.pricingTitel} onChange={set("pricingTitel")} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelSmClass}>Subtitel</label>
+                  <input type="text" placeholder="Stap voor stap verder, op jouw tempo." value={form.pricingSubtitel} onChange={set("pricingSubtitel")} className={inputClass} />
+                </div>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {form.pricingBlocks.map((block, i) => (
                   <div
@@ -881,8 +968,8 @@ export default function AdminLandingspaginasPage() {
             {/* Feature slider */}
             <div className="pt-2 border-t border-primary-100">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Feature slider</p>
-              <p className="text-xs text-gray-400 mb-3">Schermafbeeldingen met captions naast elkaar (slider op mobiel). Laat leeg om niet te tonen.</p>
-              <div className="space-y-3">
+              <p className="text-xs text-gray-400 mb-3">Afbeeldingen of video's met titels naast elkaar (slider op mobiel). Laat leeg om niet te tonen.</p>
+              <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelSmClass}>Klein label boven de titel (bijv. WAT JE KRIJGT)</label>
@@ -893,21 +980,81 @@ export default function AdminLandingspaginasPage() {
                     <input type="text" placeholder="Meer dan een gesprek" value={form.featureSliderTitel} onChange={set("featureSliderTitel")} className={inputClass} />
                   </div>
                 </div>
-                <div>
-                  <label className={labelSmClass}>
-                    Slides (JSON) — formaat: {`[{"afbeelding":"/images/...","titel":"Gesprek met Benji","onderschrift":"optioneel"}]`}
-                  </label>
-                  <textarea
-                    placeholder={`[{"afbeelding":"/images/screenshot-chat.png","titel":"Gesprek met Benji"},{"afbeelding":"/images/screenshot-plek.png","titel":"Mijn plek"}]`}
-                    value={form.featureSlidesJson}
-                    onChange={set("featureSlidesJson")}
-                    rows={4}
-                    className={`${inputClass} font-mono text-xs`}
-                  />
-                  {form.featureSlidesJson.trim() && (() => {
-                    try { JSON.parse(form.featureSlidesJson); return null; }
-                    catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; }
-                  })()}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {form.featureSlides.map((slide, i) => (
+                    <div key={i} className="border border-primary-100 rounded-xl p-3 space-y-2 bg-white">
+                      <p className="text-xs font-medium text-gray-500">Slide {i + 1}</p>
+                      <input
+                        type="text"
+                        placeholder="Titel (bijv. Gesprek met Benji)"
+                        value={slide.titel}
+                        onChange={(e) => setForm((f) => {
+                          const slides = [...f.featureSlides];
+                          slides[i] = { ...slides[i], titel: e.target.value };
+                          return { ...f, featureSlides: slides };
+                        })}
+                        className={inputClass}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Onderschrift (optioneel)"
+                        value={slide.onderschrift}
+                        onChange={(e) => setForm((f) => {
+                          const slides = [...f.featureSlides];
+                          slides[i] = { ...slides[i], onderschrift: e.target.value };
+                          return { ...f, featureSlides: slides };
+                        })}
+                        className={inputClass}
+                      />
+                      {/* Afbeelding */}
+                      <div>
+                        <label className={labelSmClass}>Afbeelding</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null;
+                            setForm((f) => {
+                              const slides = [...f.featureSlides];
+                              slides[i] = { ...slides[i], file, afbeelding: file ? "" : slides[i].afbeelding };
+                              return { ...f, featureSlides: slides };
+                            });
+                          }}
+                          className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary-100 file:text-primary-800"
+                        />
+                        {(slide.file || slide.afbeelding) && !slide.video && (
+                          <div className="mt-1 flex items-center gap-2">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={slide.file ? URL.createObjectURL(slide.file) : slide.afbeelding} alt="" className="h-12 rounded object-cover border border-primary-100" />
+                            <button type="button" onClick={() => setForm((f) => { const slides = [...f.featureSlides]; slides[i] = { ...slides[i], file: null, afbeelding: "" }; return { ...f, featureSlides: slides }; })} className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
+                          </div>
+                        )}
+                      </div>
+                      {/* Video */}
+                      <div>
+                        <label className={labelSmClass}>Of video</label>
+                        <input
+                          type="file"
+                          accept="video/mp4,video/webm,video/*"
+                          onChange={(e) => {
+                            const videoFile = e.target.files?.[0] ?? null;
+                            setForm((f) => {
+                              const slides = [...f.featureSlides];
+                              slides[i] = { ...slides[i], videoFile, video: videoFile ? "" : slides[i].video };
+                              return { ...f, featureSlides: slides };
+                            });
+                          }}
+                          className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-purple-100 file:text-purple-800"
+                        />
+                        {(slide.videoFile || slide.video) && (
+                          <div className="mt-1 flex items-center gap-2">
+                            <span className="text-xs text-green-600">✓ {slide.videoFile ? "Nieuwe video" : "Video geladen"}</span>
+                            <button type="button" onClick={() => setForm((f) => { const slides = [...f.featureSlides]; slides[i] = { ...slides[i], videoFile: null, video: "" }; return { ...f, featureSlides: slides }; })} className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -925,51 +1072,87 @@ export default function AdminLandingspaginasPage() {
                   className={inputClass}
                 />
               </div>
-              <div className="mt-3">
-                <label className={labelSmClass}>Titel boven de bullets (standaard: "Dit is voor jou als...")</label>
-                <input
-                  type="text"
-                  placeholder="Dit is voor jou als..."
-                  value={form.voorWieTitle}
-                  onChange={set("voorWieTitle")}
-                  className={inputClass}
-                />
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={labelSmClass}>Titel boven de bullets (standaard: "Dit is voor jou als...")</label>
+                  <input
+                    type="text"
+                    placeholder="Dit is voor jou als..."
+                    value={form.voorWieTitle}
+                    onChange={set("voorWieTitle")}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelSmClass}>Subtitel onder de titel (optioneel)</label>
+                  <input
+                    type="text"
+                    placeholder="Dan is Benji er voor jou."
+                    value={form.voorWieSubtitel}
+                    onChange={set("voorWieSubtitel")}
+                    className={inputClass}
+                  />
+                </div>
               </div>
             </div>
 
             {/* Ervaringen */}
             <div className="pt-2 border-t border-primary-100">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Ervaringen</p>
-              <div>
-                <label className={labelSmClass}>
-                  Ervaringen (JSON) — formaat: {`[{"tekst":"...","naam":"...","context":"..."}]`}
-                </label>
-                <textarea
-                  placeholder={`[{"tekst":"Ik dacht dat ik het wel alleen kon…","naam":"Sandra","context":"verloor haar moeder"}]`}
-                  value={form.ervaringenJson}
-                  onChange={set("ervaringenJson")}
-                  rows={5}
-                  className={`${inputClass} font-mono text-xs`}
-                />
-                {form.ervaringenJson.trim() && (() => { try { JSON.parse(form.ervaringenJson); return null; } catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; } })()}
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelSmClass}>Sectietitel boven ervaringen</label>
+                    <input type="text" placeholder="Wat anderen zeggen" value={form.ervaringenTitel} onChange={set("ervaringenTitel")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Subtitel</label>
+                    <input type="text" placeholder="Echte verhalen van mensen zoals jij." value={form.ervaringenSubtitel} onChange={set("ervaringenSubtitel")} className={inputClass} />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelSmClass}>
+                    Ervaringen (JSON) — formaat: {`[{"tekst":"...","naam":"...","context":"..."}]`}
+                  </label>
+                  <textarea
+                    placeholder={`[{"tekst":"Ik dacht dat ik het wel alleen kon…","naam":"Sandra","context":"verloor haar moeder"}]`}
+                    value={form.ervaringenJson}
+                    onChange={set("ervaringenJson")}
+                    rows={5}
+                    className={`${inputClass} font-mono text-xs`}
+                  />
+                  {form.ervaringenJson.trim() && (() => { try { JSON.parse(form.ervaringenJson); return null; } catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; } })()}
+                </div>
               </div>
             </div>
 
             {/* FAQ */}
             <div className="pt-2 border-t border-primary-100">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">FAQ</p>
-              <div>
-                <label className={labelSmClass}>
-                  FAQ (JSON) — formaat: {`[{"vraag":"...","antwoord":"..."}]`}
-                </label>
-                <textarea
-                  placeholder={`[{"vraag":"Moet ik elke dag meedoen?","antwoord":"Nee. Je schrijft alleen als…"}]`}
-                  value={form.vragenJson}
-                  onChange={set("vragenJson")}
-                  rows={5}
-                  className={`${inputClass} font-mono text-xs`}
-                />
-                {form.vragenJson.trim() && (() => { try { JSON.parse(form.vragenJson); return null; } catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; } })()}
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelSmClass}>Sectietitel boven FAQ</label>
+                    <input type="text" placeholder="Misschien vraag je je af..." value={form.faqTitel} onChange={set("faqTitel")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Subtitel</label>
+                    <input type="text" placeholder="" value={form.faqSubtitel} onChange={set("faqSubtitel")} className={inputClass} />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelSmClass}>
+                    FAQ (JSON) — formaat: {`[{"vraag":"...","antwoord":"..."}]`}
+                  </label>
+                  <textarea
+                    placeholder={`[{"vraag":"Moet ik elke dag meedoen?","antwoord":"Nee. Je schrijft alleen als…"}]`}
+                    value={form.vragenJson}
+                    onChange={set("vragenJson")}
+                    rows={5}
+                    className={`${inputClass} font-mono text-xs`}
+                  />
+                  {form.vragenJson.trim() && (() => { try { JSON.parse(form.vragenJson); return null; } catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; } })()}
+                </div>
               </div>
             </div>
 

@@ -32,7 +32,8 @@ interface PricingBlock {
 }
 
 interface FeatureSlide {
-  afbeelding: string;  // URL of pad
+  afbeelding?: string;
+  video?: string;
   titel: string;
   onderschrift?: string;
 }
@@ -67,14 +68,24 @@ function FeatureSlider({ label, titel, slides }: { label?: string; titel?: strin
             >
               {slides.map((slide, i) => (
                 <div key={i} className="flex-shrink-0 w-full flex flex-col items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={slide.afbeelding}
-                    alt={slide.titel}
-                    className="w-full rounded-2xl"
-                    style={{ maxHeight: 320, objectFit: "contain", background: "rgba(255,255,255,0.6)" }}
-                  />
-                  <p className="text-sm font-medium" style={{ color: "#6d84a8" }}>{slide.titel}</p>
+                  {slide.video ? (
+                    <video
+                      src={slide.video}
+                      controls
+                      playsInline
+                      className="w-full rounded-2xl"
+                      style={{ maxHeight: 320, background: "rgba(255,255,255,0.6)" }}
+                    />
+                  ) : slide.afbeelding ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={slide.afbeelding}
+                      alt={slide.titel}
+                      className="w-full rounded-2xl"
+                      style={{ maxHeight: 320, objectFit: "contain", background: "rgba(255,255,255,0.6)" }}
+                    />
+                  ) : null}
+                  {slide.titel && <p className="text-sm font-medium" style={{ color: "#6d84a8" }}>{slide.titel}</p>}
                   {slide.onderschrift && (
                     <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>{slide.onderschrift}</p>
                   )}
@@ -168,6 +179,13 @@ export function LandingPageView({ slug }: { slug: string }) {
   try { if ((page as any).featureSlidesJson) featureSlides = JSON.parse((page as any).featureSlidesJson); } catch {}
   const featureSliderLabel = (page as any).featureSliderLabel as string | undefined;
   const featureSliderTitel = (page as any).featureSliderTitel as string | undefined;
+  const pricingTitel = (page as any).pricingTitel as string | undefined;
+  const pricingSubtitel = (page as any).pricingSubtitel as string | undefined;
+  const ervaringenTitel = (page as any).ervaringenTitel as string | undefined;
+  const ervaringenSubtitel = (page as any).ervaringenSubtitel as string | undefined;
+  const faqTitel = ((page as any).faqTitel as string | undefined) || "Misschien vraag je je af...";
+  const faqSubtitel = (page as any).faqSubtitel as string | undefined;
+  const voorWieSubtitel = (page as any).voorWieSubtitel as string | undefined;
 
   const renderTextWithParagraphs = (text: string) =>
     text.split("\n\n").map((para, i) => {
@@ -262,6 +280,16 @@ export function LandingPageView({ slug }: { slug: string }) {
         {hasPricing && (
           <section className="px-4 sm:px-6 pb-14">
             <div className="max-w-2xl mx-auto">
+              {(pricingTitel || pricingSubtitel) && (
+                <div className="text-center mb-8">
+                  {pricingTitel && (
+                    <h2 className="text-2xl font-semibold mb-2" style={{ color: "#3d3530" }}>{pricingTitel}</h2>
+                  )}
+                  {pricingSubtitel && (
+                    <p className="text-sm leading-relaxed" style={{ color: "#8a8078" }}>{pricingSubtitel}</p>
+                  )}
+                </div>
+              )}
               <div className={`grid gap-4 ${activePricingBlocks.length === 1 ? "grid-cols-1 max-w-sm mx-auto" : activePricingBlocks.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
                 {activePricingBlocks.map((block, i) => (
                   <div
@@ -378,9 +406,13 @@ export function LandingPageView({ slug }: { slug: string }) {
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-                <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>
+                <h2 className="text-lg font-semibold mb-1" style={{ color: "#3d3530" }}>
                   {(page as any).voorWieTitle || "Dit is voor jou als..."}
                 </h2>
+                {voorWieSubtitel && (
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: "#8a8078" }}>{voorWieSubtitel}</p>
+                )}
+                {!voorWieSubtitel && <div className="mb-5" />}
                 <ul className="space-y-3">
                   {voorWieBullets.map((item, i) => (
                     <li key={i} className="flex gap-3 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
@@ -422,6 +454,18 @@ export function LandingPageView({ slug }: { slug: string }) {
         {/* ERVARINGEN */}
         {ervaringen.length > 0 && !hideErvaringen && (
           <section className="px-5 pb-12">
+            <div className="max-w-lg mx-auto">
+              {(ervaringenTitel || ervaringenSubtitel) && (
+                <div className="mb-6">
+                  {ervaringenTitel && (
+                    <h2 className="text-xl font-semibold mb-1" style={{ color: "#3d3530" }}>{ervaringenTitel}</h2>
+                  )}
+                  {ervaringenSubtitel && (
+                    <p className="text-sm leading-relaxed" style={{ color: "#8a8078" }}>{ervaringenSubtitel}</p>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="max-w-lg mx-auto space-y-4">
               {ervaringen.map((e, i) => (
                 <div
@@ -483,9 +527,13 @@ export function LandingPageView({ slug }: { slug: string }) {
         {vragen.length > 0 && !hideVragen && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <h2 className="text-lg font-semibold mb-5" style={{ color: "#3d3530" }}>
-                Misschien vraag je je af...
+              <h2 className="text-lg font-semibold mb-1" style={{ color: "#3d3530" }}>
+                {faqTitel}
               </h2>
+              {faqSubtitel && (
+                <p className="text-sm leading-relaxed mb-5" style={{ color: "#8a8078" }}>{faqSubtitel}</p>
+              )}
+              {!faqSubtitel && <div className="mb-5" />}
               <div
                 className="rounded-2xl p-6 sm:p-7 space-y-6"
                 style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}
