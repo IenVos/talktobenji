@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { MessageSquare, Trash2 } from "lucide-react";
+import { MessageSquare, Trash2, Lock } from "lucide-react";
 
 
 function formatDate(ts: number) {
@@ -27,6 +27,14 @@ export default function AccountGesprekkenPage() {
     session?.userId ? { userId: session.userId, limit: 50 } : "skip"
   );
 
+  const subscription = useQuery(
+    api.subscriptions.getUserSubscription,
+    session?.userId ? { userId: session.userId, email: session.user?.email ?? undefined } : "skip"
+  );
+
+  const isFree = subscription?.subscriptionType === "free";
+  const isLocked = isFree;
+
   return (
     <div>
       {sessions === undefined ? (
@@ -45,61 +53,85 @@ export default function AccountGesprekkenPage() {
           </Link>
         </div>
       ) : (
-        <ul className="space-y-2">
-          {sessions.map((s) => (
-            <li key={s._id} className="group">
-              <div className="flex items-stretch gap-1 bg-white rounded-xl border border-primary-200 overflow-hidden hover:border-primary-400 transition-colors">
-                <Link
-                  href={`/gesprek/${s._id}`}
-                  className="flex-1 p-4 min-w-0 hover:bg-primary-50/50 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
-                      {formatDate(s.lastActivityAt)}
-                    </span>
-                    <span className="text-xs text-primary-600">
-                      {s.status === "active" ? "Actief" : "Afgesloten"}
-                    </span>
-                  </div>
-                  {s.topic && (
-                    <p className="text-xs text-gray-500 mt-1">{s.topic}</p>
-                  )}
-                </Link>
-                <button
-                  type="button"
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    if (
-                      !confirm(
-                        "Weet je zeker dat je dit gesprek wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
-                      )
-                    )
-                      return;
-                    if (!session?.userId) return;
-                    setDeletingId(s._id);
-                    try {
-                      await deleteSession({
-                        sessionId: s._id,
-                        userId: session.userId,
-                      });
-                    } catch (err) {
-                      console.error(err);
-                      alert("Verwijderen mislukt. Probeer het opnieuw.");
-                    } finally {
-                      setDeletingId(null);
-                    }
-                  }}
-                  disabled={deletingId === s._id}
-                  className="px-3 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
-                  title="Gesprek verwijderen"
-                  aria-label="Gesprek verwijderen"
-                >
-                  <Trash2 size={18} />
-                </button>
+        <>
+          {isLocked && (
+            <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start gap-3">
+              <Lock size={16} className="text-amber-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm text-amber-900 font-medium">Je proefperiode is verlopen</p>
+                <p className="text-xs text-amber-700 mt-0.5">Je eerdere gesprekken zijn bewaard maar tijdelijk niet toegankelijk. Kies een abonnement om ze terug te lezen en verder te gaan.</p>
+                <Link href="/account/abonnement" className="inline-block mt-2 text-xs font-medium text-amber-800 underline underline-offset-2">Abonnement kiezen →</Link>
               </div>
-            </li>
-          ))}
-        </ul>
+            </div>
+          )}
+          <ul className="space-y-2">
+            {sessions.map((s) => (
+              <li key={s._id} className="group">
+                <div className={`flex items-stretch gap-1 bg-white rounded-xl border overflow-hidden transition-colors ${isLocked ? "border-gray-200 opacity-60" : "border-primary-200 hover:border-primary-400"}`}>
+                  {isLocked ? (
+                    <div className="flex-1 p-4 min-w-0 flex items-center gap-3 cursor-not-allowed">
+                      <Lock size={14} className="text-gray-400 shrink-0" />
+                      <div>
+                        <span className="text-sm text-gray-500">{formatDate(s.lastActivityAt)}</span>
+                        {s.topic && <p className="text-xs text-gray-400 mt-0.5">{s.topic}</p>}
+                      </div>
+                    </div>
+                  ) : (
+                    <Link
+                      href={`/gesprek/${s._id}`}
+                      className="flex-1 p-4 min-w-0 hover:bg-primary-50/50 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">
+                          {formatDate(s.lastActivityAt)}
+                        </span>
+                        <span className="text-xs text-primary-600">
+                          {s.status === "active" ? "Actief" : "Afgesloten"}
+                        </span>
+                      </div>
+                      {s.topic && (
+                        <p className="text-xs text-gray-500 mt-1">{s.topic}</p>
+                      )}
+                    </Link>
+                  )}
+                  {!isLocked && (
+                    <button
+                      type="button"
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        if (
+                          !confirm(
+                            "Weet je zeker dat je dit gesprek wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
+                          )
+                        )
+                          return;
+                        if (!session?.userId) return;
+                        setDeletingId(s._id);
+                        try {
+                          await deleteSession({
+                            sessionId: s._id,
+                            userId: session.userId,
+                          });
+                        } catch (err) {
+                          console.error(err);
+                          alert("Verwijderen mislukt. Probeer het opnieuw.");
+                        } finally {
+                          setDeletingId(null);
+                        }
+                      }}
+                      disabled={deletingId === s._id}
+                      className="px-3 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                      title="Gesprek verwijderen"
+                      aria-label="Gesprek verwijderen"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       <p className="mt-6">

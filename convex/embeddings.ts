@@ -161,8 +161,8 @@ export const searchSessionSummaries = action({
       vector: embedding,
       limit: limit + 5,
       filter: args.userId
-        ? (q) => q.eq("userId", args.userId as string)
-        : (q) => q.eq("anonymousId", args.anonymousId as string),
+        ? (q) => q.eq("userId", args.userId!)
+        : (q) => q.eq("anonymousId", args.anonymousId!),
     });
 
     const items = await Promise.all(

@@ -63,7 +63,7 @@ export default defineSchema({
     .vectorIndex("by_summary_embedding", {
       vectorField: "summaryEmbedding",
       dimensions: 1024,
-      filterFields: ["userId"],
+      filterFields: ["userId", "anonymousId"],
     }),
 
   // Chat berichten
