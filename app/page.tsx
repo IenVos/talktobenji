@@ -44,6 +44,8 @@ const DEFAULTS: Record<string, string> = {
   stap4Tekst:      "Met een gratis account blijven je gesprekken bewaard. Je kunt op elk moment verder waar je gebleven was.",
   stap5Titel:      "Er is meer",
   stap5Tekst:      "Met Benji voor een jaar heb je toegang tot alles: reflecties, doelen, memories, dagelijkse check-ins, inspiratie en een herdenkingskalender.",
+  stap5Cta:        "Bekijk wat erbij zit",
+  stap5Url:        "/lp/jaar-toegang",
   ctaTitel:        "Klaar om te beginnen?",
   ctaTekst:        "Je hoeft je niet te registreren. Begin gewoon een gesprek, anoniem en direct beschikbaar.",
   ctaKnop:         "Praat nu met Benji",
@@ -388,16 +390,21 @@ export default async function HomePage() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
-            { stap: "1", titel: c.stap1Titel, tekst: c.stap1Tekst },
-            { stap: "2", titel: c.stap2Titel, tekst: c.stap2Tekst },
-            { stap: "3", titel: c.stap3Titel, tekst: c.stap3Tekst },
+            { stap: "1", titel: c.stap1Titel, tekst: c.stap1Tekst, cta: c.stap1Cta, url: c.stap1Url },
+            { stap: "2", titel: c.stap2Titel, tekst: c.stap2Tekst, cta: c.stap2Cta, url: c.stap2Url },
+            { stap: "3", titel: c.stap3Titel, tekst: c.stap3Tekst, cta: c.stap3Cta, url: c.stap3Url },
           ].map((s) => (
             <div key={s.stap} className="flex flex-col p-8 bg-white rounded-2xl border" style={{ borderColor: "#7ec8e3" }}>
               <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">
                 {s.stap}
               </div>
               <h3 className="text-base font-semibold text-primary-900 mb-2">{s.titel}</h3>
-              <p className="text-sm text-primary-600 leading-relaxed text-balance">{s.tekst}</p>
+              <p className="text-sm text-primary-600 leading-relaxed text-balance flex-1">{s.tekst}</p>
+              {s.cta && s.url && (
+                <Link href={s.url} className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
+                  {s.cta}<IconArrow />
+                </Link>
+              )}
             </div>
           ))}
         </div>
@@ -407,15 +414,21 @@ export default async function HomePage() {
             <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">4</div>
             <h3 className="text-base font-semibold text-primary-900 mb-2">{c.stap4Titel}</h3>
             <p className="text-sm text-primary-600 leading-relaxed text-balance flex-1">{c.stap4Tekst}</p>
+            {c.stap4Cta && c.stap4Url && (
+              <Link href={c.stap4Url} className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
+                {c.stap4Cta}<IconArrow />
+              </Link>
+            )}
           </div>
           <div className="flex flex-col p-8 bg-white rounded-2xl border sm:w-[calc(33.333%-0.75rem)]" style={{ borderColor: "#7ec8e3" }}>
             <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">5</div>
             <h3 className="text-base font-semibold text-primary-900 mb-2">{c.stap5Titel}</h3>
             <p className="text-sm text-primary-600 leading-relaxed text-balance flex-1">{c.stap5Tekst}</p>
-            <Link href="/lp/jaar-toegang" className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
-              Bekijk wat erbij zit
-              <IconArrow />
-            </Link>
+            {(c.stap5Cta || "Bekijk wat erbij zit") && (
+              <Link href={c.stap5Url || "/lp/jaar-toegang"} className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
+                {c.stap5Cta || "Bekijk wat erbij zit"}<IconArrow />
+              </Link>
+            )}
           </div>
         </div>
       </section>
