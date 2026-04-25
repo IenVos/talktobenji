@@ -102,6 +102,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: "Aanmelden",
       icon: UserPlus,
+      badge: "7 dagen gratis",
       onClick: () => {
         setOpen(false);
         router.push("/registreren");
@@ -258,6 +259,9 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
                 >
                   <Icon size={18} strokeWidth={2} className={`flex-shrink-0 ${locked ? "text-gray-400" : isHighlight ? "text-[#6d84a8]" : "text-primary-600"}`} />
                   <span className="truncate">{item.label}</span>
+                  {"badge" in item && item.badge && (
+                    <span className="ml-auto flex-shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "rgba(74,124,89,0.13)", color: "#3d7a58" }}>{item.badge}</span>
+                  )}
                 </button>
                 {locked && (
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1 px-3 py-2 bg-primary-800 text-white text-xs rounded-xl whitespace-nowrap opacity-0 group-hover/locked:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
