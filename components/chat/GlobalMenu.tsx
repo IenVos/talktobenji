@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck, House, Gem, Sparkles } from "lucide-react";
+import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck, House, Gem, Sparkles, Wallet } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
 import { hexToDarker } from "@/lib/utils";
 
@@ -98,6 +98,12 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
         setOpen(false);
         localStorage.removeItem("benji_session_id");
       },
+    },
+    {
+      label: "Kies wat bij je past",
+      icon: Wallet,
+      href: "/lp/prijzen",
+      onBeforeNavigate: () => setOpen(false),
     },
     {
       label: "Aanmelden",
