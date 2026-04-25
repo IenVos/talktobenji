@@ -225,11 +225,6 @@ export default async function FaqPage() {
               AI technologie kost geld per gesprek — denk aan serverkosten, hosting, onderhoud en doorontwikkeling. Om Benji goed en veilig te houden, hebben we inkomsten nodig. We proberen de prijzen zo toegankelijk mogelijk te houden zodat zoveel mogelijk mensen Benji kunnen gebruiken wanneer ze het nodig hebben.
             </p>
           </FaqItem>
-          <FaqItem question="Kan ik maandelijks opzeggen?">
-            <p>
-              Ja, je kunt op elk moment opzeggen. Er is geen minimale looptijd of opzegtermijn. Stop wanneer je wilt, geen vragen gesteld.
-            </p>
-          </FaqItem>
           <FaqItem question="Hoe betaal ik?">
             <p>Je kunt veilig betalen via iDEAL, creditcard (Visa, Mastercard) of andere gangbare betaalmethoden. Alle betalingen worden verwerkt via Stripe.</p>
           </FaqItem>
