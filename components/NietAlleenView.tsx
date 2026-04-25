@@ -152,6 +152,68 @@ export function NietAlleenView({ slug }: { slug: string }) {
           </section>
         )}
 
+        {/* PRIJSBLOKKEN */}
+        {(() => {
+          let blocks: Array<{ titel: string; subtitel?: string; prijs: string; tekst?: string; aanbevolen?: boolean; ctaTekst?: string; ctaUrl?: string }> = [];
+          try { if ((page as any).pricingBlocksJson) blocks = JSON.parse((page as any).pricingBlocksJson); } catch {}
+          const activeBlocks = blocks.filter(b => b.titel || b.prijs);
+          if (activeBlocks.length === 0) return null;
+          return (
+            <section className="px-5 pb-12">
+              <div className="max-w-2xl mx-auto">
+                <div className={`grid gap-4 ${activeBlocks.length === 1 ? "grid-cols-1 max-w-sm mx-auto" : activeBlocks.length === 2 ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
+                  {activeBlocks.map((block, i) => (
+                    <div
+                      key={i}
+                      className="relative rounded-2xl flex flex-col overflow-hidden"
+                      style={{
+                        background: block.aanbevolen ? "#f5f0eb" : "#ffffff",
+                        border: block.aanbevolen ? "2px solid rgba(160,148,136,0.6)" : "1px solid rgba(160,148,136,0.35)",
+                        boxShadow: block.aanbevolen ? "0 8px 32px rgba(61,53,48,0.22)" : "0 4px 20px rgba(61,53,48,0.12)",
+                        padding: "1.5rem",
+                      }}
+                    >
+                      {block.aanbevolen && (
+                        <div className="absolute top-3 right-3">
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full" style={{ background: "#a09088", color: "#fff" }}>Meest gekozen</span>
+                        </div>
+                      )}
+                      {block.titel && (
+                        <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#a09088" }}>{block.titel}</p>
+                      )}
+                      {block.subtitel && (
+                        <p className="text-sm mb-3 leading-snug" style={{ color: "#6b6460" }}>{block.subtitel}</p>
+                      )}
+                      {block.prijs && (
+                        <p className="text-2xl font-bold mb-4" style={{ color: "#3d3530" }}>{block.prijs}</p>
+                      )}
+                      {block.tekst && (
+                        <ul className="space-y-2 mb-5 flex-1">
+                          {block.tekst.split("\n").filter(Boolean).map((line, j) => (
+                            <li key={j} className="flex items-start gap-2 text-sm" style={{ color: "#6b6460" }}>
+                              <span style={{ color: "#a09088", marginTop: 2, flexShrink: 0 }}>✓</span>
+                              <span>{line}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {block.ctaTekst && block.ctaUrl && (
+                        <a
+                          href={block.ctaUrl}
+                          className="mt-auto block w-full text-center py-2.5 rounded-xl text-sm font-medium text-white transition-opacity hover:opacity-90"
+                          style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
+                        >
+                          {block.ctaTekst}
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        })()}
+
         {/* PRODUCTAFBEELDING */}
         {((page as any).productImageUrl || (page as any).productImagePath) && (
           <section className="px-5 pb-12">

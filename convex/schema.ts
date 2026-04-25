@@ -692,6 +692,8 @@ export default defineSchema({
     footerText: v.optional(v.string()),
     // Analytics
     trackAds: v.optional(v.boolean()), // Toon in advertentie-blok in analytics
+    // Prijsblokken (JSON: [{titel, subtitel, prijs, tekst, aanbevolen, ctaTekst, ctaUrl}])
+    pricingBlocksJson: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

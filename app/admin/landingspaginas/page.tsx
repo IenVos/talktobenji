@@ -8,6 +8,20 @@ import {
   LayoutTemplate, Plus, Edit, Trash2, Save, X, Copy, Eye, EyeOff, ExternalLink, Download,
 } from "lucide-react";
 
+type PricingBlockForm = {
+  titel: string;
+  subtitel: string;
+  prijs: string;
+  tekst: string;
+  aanbevolen: boolean;
+  ctaTekst: string;
+  ctaUrl: string;
+};
+
+const EMPTY_PRICING_BLOCK: PricingBlockForm = {
+  titel: "", subtitel: "", prijs: "", tekst: "", aanbevolen: false, ctaTekst: "", ctaUrl: "",
+};
+
 type LandingPage = {
   _id: Id<"landingPages">;
   slug: string;
@@ -73,6 +87,7 @@ type FormState = {
   finalCtaBody: string;
   footerText: string;
   trackAds: boolean;
+  pricingBlocks: PricingBlockForm[];
 };
 
 const EMPTY_FORM: FormState = {
@@ -108,6 +123,7 @@ const EMPTY_FORM: FormState = {
   finalCtaBody: "",
   footerText: "",
   trackAds: false,
+  pricingBlocks: [{ ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }],
 };
 
 function opt(val: string): string | undefined {
@@ -205,6 +221,21 @@ export default function AdminLandingspaginasPage() {
       finalCtaBody: page.finalCtaBody ?? "",
       footerText: page.footerText ?? "",
       trackAds: (page as any).trackAds ?? false,
+      pricingBlocks: (() => {
+        try {
+          const parsed = JSON.parse((page as any).pricingBlocksJson || "[]");
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const blocks = parsed.map((b: Partial<PricingBlockForm>) => ({
+              titel: b.titel ?? "", subtitel: b.subtitel ?? "", prijs: b.prijs ?? "",
+              tekst: b.tekst ?? "", aanbevolen: b.aanbevolen ?? false,
+              ctaTekst: b.ctaTekst ?? "", ctaUrl: b.ctaUrl ?? "",
+            }));
+            while (blocks.length < 3) blocks.push({ ...EMPTY_PRICING_BLOCK });
+            return blocks.slice(0, 3);
+          }
+        } catch {}
+        return [{ ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }];
+      })(),
     });
     setEditingProductImageUrl(null); // wordt geladen via aparte query als nodig
     setEditingBgImageUrl(null);
@@ -302,6 +333,9 @@ export default function AdminLandingspaginasPage() {
           finalCtaBody: form.finalCtaBody.trim(),
           footerText: form.footerText.trim(),
           trackAds: form.trackAds,
+          pricingBlocksJson: form.pricingBlocks.some(b => b.titel || b.prijs)
+            ? JSON.stringify(form.pricingBlocks)
+            : "",
         });
         setSavedFeedback(true);
         setTimeout(() => setSavedFeedback(false), 2500);
@@ -339,6 +373,9 @@ export default function AdminLandingspaginasPage() {
           finalCtaBody: opt(form.finalCtaBody),
           footerText: opt(form.footerText),
           trackAds: form.trackAds,
+          pricingBlocksJson: form.pricingBlocks.some(b => b.titel || b.prijs)
+            ? JSON.stringify(form.pricingBlocks)
+            : undefined,
         });
         resetForm();
       }
@@ -722,6 +759,107 @@ export default function AdminLandingspaginasPage() {
                   </div>
                   <textarea ref={section2TextRef} placeholder="Elke ochtend ontvang je een bericht…" value={form.section2Text} onChange={set("section2Text")} rows={6} className={inputClass} />
                 </div>
+              </div>
+            </div>
+
+            {/* Prijsblokken */}
+            <div className="pt-2 border-t border-primary-100">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Prijsblokken</p>
+              <p className="text-xs text-gray-400 mb-3">Laat leeg om de sectie niet te tonen. Vul titel of prijs in om te activeren.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {form.pricingBlocks.map((block, i) => (
+                  <div
+                    key={i}
+                    className={`rounded-xl border p-4 space-y-2.5 ${
+                      block.aanbevolen
+                        ? "border-primary-400 bg-primary-50/60"
+                        : "border-primary-100 bg-white"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-gray-500">Blok {i + 1}</span>
+                      <label className="flex items-center gap-1.5 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={block.aanbevolen}
+                          onChange={(e) => setForm((f) => {
+                            const blocks = [...f.pricingBlocks];
+                            blocks[i] = { ...blocks[i], aanbevolen: e.target.checked };
+                            return { ...f, pricingBlocks: blocks };
+                          })}
+                          className="rounded border-primary-300 text-primary-600"
+                        />
+                        <span className="text-xs text-primary-700">Aanbevolen</span>
+                      </label>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Titel (bijv. Maand)"
+                      value={block.titel}
+                      onChange={(e) => setForm((f) => {
+                        const blocks = [...f.pricingBlocks];
+                        blocks[i] = { ...blocks[i], titel: e.target.value };
+                        return { ...f, pricingBlocks: blocks };
+                      })}
+                      className={inputClass}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Subtitel (bijv. Probeer vrijblijvend)"
+                      value={block.subtitel}
+                      onChange={(e) => setForm((f) => {
+                        const blocks = [...f.pricingBlocks];
+                        blocks[i] = { ...blocks[i], subtitel: e.target.value };
+                        return { ...f, pricingBlocks: blocks };
+                      })}
+                      className={inputClass}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Prijs (bijv. € 9,97 / maand)"
+                      value={block.prijs}
+                      onChange={(e) => setForm((f) => {
+                        const blocks = [...f.pricingBlocks];
+                        blocks[i] = { ...blocks[i], prijs: e.target.value };
+                        return { ...f, pricingBlocks: blocks };
+                      })}
+                      className={inputClass}
+                    />
+                    <textarea
+                      placeholder={"Wat je krijgt (één punt per regel):\nOnbeperkt gesprekken\nCheck-ins & doelen\nHerinneringen bewaren"}
+                      value={block.tekst}
+                      onChange={(e) => setForm((f) => {
+                        const blocks = [...f.pricingBlocks];
+                        blocks[i] = { ...blocks[i], tekst: e.target.value };
+                        return { ...f, pricingBlocks: blocks };
+                      })}
+                      rows={4}
+                      className={`${inputClass} text-xs`}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Knoptekst (bijv. Start nu)"
+                      value={block.ctaTekst}
+                      onChange={(e) => setForm((f) => {
+                        const blocks = [...f.pricingBlocks];
+                        blocks[i] = { ...blocks[i], ctaTekst: e.target.value };
+                        return { ...f, pricingBlocks: blocks };
+                      })}
+                      className={inputClass}
+                    />
+                    <input
+                      type="url"
+                      placeholder="Knop URL"
+                      value={block.ctaUrl}
+                      onChange={(e) => setForm((f) => {
+                        const blocks = [...f.pricingBlocks];
+                        blocks[i] = { ...blocks[i], ctaUrl: e.target.value };
+                        return { ...f, pricingBlocks: blocks };
+                      })}
+                      className={inputClass}
+                    />
+                  </div>
+                ))}
               </div>
             </div>
 
