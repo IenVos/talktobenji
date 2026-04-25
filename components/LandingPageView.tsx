@@ -564,7 +564,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* VOOR WIE */}
         {voorWieBullets.length > 0 && (
-          <section className="py-14 px-5" style={{ background: "rgba(74,124,89,0.11)" }}>
+          <section className="py-14 px-5">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 <h2 className="text-lg font-semibold mb-1" style={{ color: "#3d3530" }}>
@@ -615,7 +615,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* ERVARINGEN */}
         {ervaringen.length > 0 && !hideErvaringen && (
-          <section className="py-14 px-5" style={{ background: "rgba(109,132,168,0.10)" }}>
+          <section className="py-14 px-5">
             <div className="max-w-lg mx-auto">
               {/* Titel — altijd zichtbaar, fallback als niets ingevuld */}
               <h2 className="text-xl font-semibold mb-1 text-center" style={{ color: "#3d3530" }}>
@@ -690,7 +690,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* FAQ */}
         {vragen.length > 0 && !hideVragen && (
-          <section className="py-14 px-5" style={{ background: "rgba(109,132,168,0.10)" }}>
+          <section className="py-14 px-5">
             <div className="max-w-lg mx-auto">
               <div
                 className="rounded-2xl p-6 sm:p-7"
@@ -758,13 +758,13 @@ export function LandingPageView({ slug }: { slug: string }) {
                     key={i}
                     className="relative flex flex-col rounded-2xl text-center"
                     style={{
-                      background: block.aanbevolen ? "rgba(109,132,168,0.08)" : "rgba(255,255,255,0.55)",
-                      border: block.aanbevolen ? "1.5px solid rgba(109,132,168,0.4)" : "1px solid rgba(160,148,136,0.25)",
+                      background: block.aanbevolen ? "rgba(74,124,89,0.09)" : "rgba(255,255,255,0.55)",
+                      border: block.aanbevolen ? "1.5px solid rgba(74,124,89,0.5)" : "1px solid rgba(160,148,136,0.25)",
                       padding: "1.25rem 1rem",
                     }}
                   >
                     {block.aanbevolen && (
-                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap" style={{ background: "#6d84a8", color: "#fff" }}>
+                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap" style={{ background: "#4a7c59", color: "#fff" }}>
                         Meest gekozen
                       </span>
                     )}
