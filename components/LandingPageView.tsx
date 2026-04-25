@@ -160,14 +160,14 @@ function SliderLightbox({ slides, startIndex, onClose }: { slides: FeatureSlide[
   );
 }
 
-function FeatureSlider({ label, titel, slides }: { label?: string; titel?: string; slides: FeatureSlide[] }) {
+function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: string; slides: FeatureSlide[]; bg?: string }) {
   const [active, setActive] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   if (slides.length === 0) return null;
   const prev = () => setActive((a) => (a - 1 + slides.length) % slides.length);
   const next = () => setActive((a) => (a + 1) % slides.length);
   return (
-    <section className="px-5 pb-12">
+    <section className="py-14 px-5" style={bg ? { background: bg } : undefined}>
       {lightboxIndex !== null && (
         <SliderLightbox slides={slides} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
       )}
@@ -566,7 +566,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* VOOR WIE */}
         {voorWieBullets.length > 0 && (
-          <section className="px-5 pb-12">
+          <section className="py-14 px-5" style={{ background: "rgba(74,124,89,0.06)" }}>
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 <h2 className="text-lg font-semibold mb-1" style={{ color: "#3d3530" }}>
@@ -595,6 +595,7 @@ export function LandingPageView({ slug }: { slug: string }) {
             label={featureSliderLabel}
             titel={featureSliderTitel}
             slides={featureSlides}
+            bg="rgba(160,148,136,0.08)"
           />
         )}
 
@@ -616,17 +617,16 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* ERVARINGEN */}
         {ervaringen.length > 0 && !hideErvaringen && (
-          <section className="px-5 pb-16">
+          <section className="py-14 px-5" style={{ background: "rgba(109,132,168,0.07)" }}>
             <div className="max-w-lg mx-auto">
-              {/* Prominente titel boven het blok */}
-              {ervaringenTitel && (
-                <h2 className="text-xl font-semibold mb-1 text-center" style={{ color: "#3d3530" }}>{ervaringenTitel}</h2>
-              )}
+              {/* Titel — altijd zichtbaar, fallback als niets ingevuld */}
+              <h2 className="text-xl font-semibold mb-1 text-center" style={{ color: "#3d3530" }}>
+                {ervaringenTitel || "Wat anderen zeggen"}
+              </h2>
               {ervaringenSubtitel && (
                 <p className="text-sm text-center mb-6" style={{ color: "#8a8078" }}>{ervaringenSubtitel}</p>
               )}
-              {!ervaringenTitel && !ervaringenSubtitel && <div className="mb-2" />}
-              {ervaringenTitel && !ervaringenSubtitel && <div className="mb-6" />}
+              {!ervaringenSubtitel && <div className="mb-7" />}
               {/* Alle reviews in 1 blok */}
               <div
                 className="rounded-2xl overflow-hidden"
