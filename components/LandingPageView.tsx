@@ -187,6 +187,20 @@ export function LandingPageView({ slug }: { slug: string }) {
   const faqSubtitel = (page as any).faqSubtitel as string | undefined;
   const voorWieSubtitel = (page as any).voorWieSubtitel as string | undefined;
 
+  const renderInline = (text: string): React.ReactNode[] => {
+    // Parse **bold**, *italic*, _underline_ inline
+    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_)/g);
+    return parts.map((part, k) => {
+      if (part.startsWith("**") && part.endsWith("**"))
+        return <strong key={k}>{part.slice(2, -2)}</strong>;
+      if (part.startsWith("*") && part.endsWith("*"))
+        return <em key={k}>{part.slice(1, -1)}</em>;
+      if (part.startsWith("_") && part.endsWith("_"))
+        return <u key={k}>{part.slice(1, -1)}</u>;
+      return part;
+    });
+  };
+
   const renderTextWithParagraphs = (text: string) =>
     text.split("\n\n").map((para, i) => {
       const videoMatch = para.trim().match(/^\[video:(.+)\]$/);
@@ -211,7 +225,7 @@ export function LandingPageView({ slug }: { slug: string }) {
       return (
         <p key={i}>
           {lines.map((line, j) => (
-            <span key={j}>{line}{j < lines.length - 1 && <br />}</span>
+            <span key={j}>{renderInline(line)}{j < lines.length - 1 && <br />}</span>
           ))}
         </p>
       );
@@ -417,7 +431,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                   {voorWieBullets.map((item, i) => (
                     <li key={i} className="flex gap-3 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
                       <span style={{ color: "#b0a8a0", flexShrink: 0, marginTop: 2 }}>·</span>
-                      <span>{item}</span>
+                      <span>{renderInline(item)}</span>
                     </li>
                   ))}
                 </ul>
@@ -541,7 +555,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                 {vragen.map((v, i) => (
                   <div key={i}>
                     <p className="text-sm font-semibold mb-1" style={{ color: "#3d3530" }}>{v.vraag}</p>
-                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{v.antwoord}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{renderInline(v.antwoord)}</p>
                   </div>
                 ))}
               </div>
