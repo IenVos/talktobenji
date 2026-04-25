@@ -765,19 +765,19 @@ export default function ChatPageClient({
                 )}
                 {showLimitWarning && (
                   <div key={`limit-warning-${msg._id}`} className="flex justify-center my-2">
-                    <div className="bg-rose-50 border border-rose-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
-                      <p className="text-sm text-rose-900 font-medium mb-1">Nog 2 berichten over</p>
-                      <p className="text-xs text-rose-700 mb-3">Met een gratis profiel kun je doorpraten én onthoudt Benji je verhaal de volgende keer. Zo hoef je niet opnieuw te beginnen.</p>
+                    <div className="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
+                      <p className="text-sm text-orange-900 font-medium mb-1">Nog 2 berichten over</p>
+                      <p className="text-xs text-orange-700 mb-3">Met een gratis profiel kun je doorpraten én onthoudt Benji je verhaal de volgende keer. Zo hoef je niet opnieuw te beginnen.</p>
                       <div className="flex gap-2">
                         <a
                           href="/registreren"
-                          className="flex-1 text-center text-xs font-medium bg-rose-500 hover:bg-rose-600 text-white rounded-xl px-3 py-2 transition-colors"
+                          className="flex-1 text-center text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-3 py-2 transition-colors"
                         >
                           Gratis profiel aanmaken
                         </a>
                         <a
                           href="/login"
-                          className="text-xs text-rose-600 hover:text-rose-800 px-3 py-2 transition-colors"
+                          className="text-xs text-orange-600 hover:text-orange-800 px-3 py-2 transition-colors"
                         >
                           Inloggen
                         </a>
