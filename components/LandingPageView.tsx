@@ -268,15 +268,15 @@ export function LandingPageView({ slug }: { slug: string }) {
                     key={i}
                     className="relative flex flex-col rounded-2xl text-center"
                     style={{
-                      background: block.aanbevolen ? "rgba(109,132,168,0.13)" : "rgba(255,255,255,0.82)",
-                      border: block.aanbevolen ? "2px solid rgba(109,132,168,0.55)" : "1px solid rgba(160,148,136,0.35)",
+                      background: block.aanbevolen ? "rgba(74,124,89,0.08)" : "rgba(255,255,255,0.82)",
+                      border: block.aanbevolen ? "2px solid rgba(74,124,89,0.55)" : "1px solid rgba(160,148,136,0.35)",
                       boxShadow: block.aanbevolen ? "0 8px 32px rgba(61,53,48,0.18)" : "0 4px 20px rgba(61,53,48,0.08)",
                       padding: "1.5rem",
                       backdropFilter: "blur(6px)",
                     }}
                   >
                     {block.aanbevolen && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap" style={{ background: "#6d84a8", color: "#fff" }}>
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap" style={{ background: "#4a7c59", color: "#fff" }}>
                         Meest gekozen
                       </span>
                     )}
@@ -291,14 +291,16 @@ export function LandingPageView({ slug }: { slug: string }) {
                     )}
                     {!block.subtitel && <div className="mb-4" />}
                     {block.tekst && (
-                      <ul className="space-y-2 mb-5 flex-1 text-left">
-                        {block.tekst.split("\n").filter(Boolean).map((line, j) => (
-                          <li key={j} className="flex items-start gap-2 text-sm" style={{ color: "#6b6460" }}>
-                            <span className="mt-0.5 flex-shrink-0" style={{ color: "#6d84a8" }}>✓</span>
-                            <span>{line}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="flex justify-center mb-5 flex-1">
+                        <ul className="space-y-2 text-left">
+                          {block.tekst.split("\n").filter(Boolean).map((line, j) => (
+                            <li key={j} className="flex items-start gap-2 text-sm" style={{ color: "#6b6460" }}>
+                              <span className="mt-0.5 flex-shrink-0" style={{ color: "#6d84a8" }}>✓</span>
+                              <span>{line}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     )}
                     {block.ctaTekst && block.ctaUrl && (
                       <KoopKnopLink
