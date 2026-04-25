@@ -266,7 +266,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                 {activePricingBlocks.map((block, i) => (
                   <div
                     key={i}
-                    className="relative flex flex-col rounded-2xl"
+                    className="relative flex flex-col rounded-2xl text-center"
                     style={{
                       background: block.aanbevolen ? "rgba(109,132,168,0.13)" : "rgba(255,255,255,0.82)",
                       border: block.aanbevolen ? "2px solid rgba(109,132,168,0.55)" : "1px solid rgba(160,148,136,0.35)",
@@ -291,7 +291,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                     )}
                     {!block.subtitel && <div className="mb-4" />}
                     {block.tekst && (
-                      <ul className="space-y-2 mb-5 flex-1">
+                      <ul className="space-y-2 mb-5 flex-1 text-left">
                         {block.tekst.split("\n").filter(Boolean).map((line, j) => (
                           <li key={j} className="flex items-start gap-2 text-sm" style={{ color: "#6b6460" }}>
                             <span className="mt-0.5 flex-shrink-0" style={{ color: "#6d84a8" }}>✓</span>
@@ -305,7 +305,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                         href={block.ctaUrl}
                         buttonLabel={block.ctaTekst}
                         className="mt-auto block w-full text-center py-3 rounded-xl text-sm font-medium text-white"
-                        style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
+                        style={{ background: block.aanbevolen ? "#4a7c59" : "#6d84a8" }}
                       >
                         {block.ctaTekst}
                       </KoopKnopLink>
@@ -534,7 +534,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                         href={block.ctaUrl}
                         buttonLabel={block.ctaTekst}
                         className="mt-auto block w-full text-center py-2.5 rounded-xl text-sm font-medium text-white"
-                        style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
+                        style={{ background: block.aanbevolen ? "#4a7c59" : "#6d84a8" }}
                       >
                         {block.ctaTekst}
                       </KoopKnopLink>
