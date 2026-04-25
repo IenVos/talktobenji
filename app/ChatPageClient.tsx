@@ -173,6 +173,8 @@ export default function ChatPageClient({
   const lastMessageCountRef = useRef<number>(0);
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [showMicHint, setShowMicHint] = useState(false);
+  const micHintShownRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -231,6 +233,16 @@ export default function ChatPageClient({
       if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
     }
   }, [sessionIdState, storedSession]);
+
+  // Toon mic-hint bij het starten van een nieuw gesprek (eenmalig per sessie)
+  useEffect(() => {
+    if (sessionIdState && speechSupported && !micHintShownRef.current) {
+      micHintShownRef.current = true;
+      setShowMicHint(true);
+      const t = setTimeout(() => setShowMicHint(false), 6000);
+      return () => clearTimeout(t);
+    }
+  }, [sessionIdState, speechSupported]);
 
   // Wis chat zodra gebruiker uitlogt (status "unauthenticated")
   useEffect(() => {
@@ -629,7 +641,7 @@ export default function ChatPageClient({
                       type="button"
                       onClick={toggleRecording}
                       disabled={isLoading || !speechSupported}
-                      className={`p-2 sm:p-2.5 rounded-lg flex-shrink-0 transition-colors ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
+                      className={`p-2.5 rounded-lg flex-shrink-0 transition-colors ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-600 text-white hover:bg-primary-500"} disabled:opacity-40`}
                       title={!speechSupported ? "Spraak niet beschikbaar" : isRecording ? "Stop opname" : "Start spraakopname"}
                     >
                       {isRecording ? <Square size={18} /> : <Mic size={18} />}
@@ -895,15 +907,41 @@ export default function ChatPageClient({
           <div className="px-3 sm:px-4 py-4 sm:py-5">
             <form onSubmit={handleSubmit} className="max-w-3xl mx-auto overflow-visible">
               <div className="flex gap-2 sm:gap-3 overflow-visible">
-                <button
-                  type="button"
-                  onClick={toggleRecording}
-                  disabled={isLoading || !speechSupported}
-                  className={`p-3 sm:p-3.5 rounded-xl transition-colors flex-shrink-0 ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
-                  title={!speechSupported ? "Spraak niet beschikbaar" : isRecording ? "Stop opname" : "Start spraakopname"}
-                >
-                  {isRecording ? <Square size={20} /> : <Mic size={20} />}
-                </button>
+                <div className="relative flex-shrink-0">
+                  {/* Mic hint tooltip */}
+                  {showMicHint && !isRecording && (
+                    <div
+                      className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 whitespace-nowrap z-50"
+                      style={{ filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.18))" }}
+                    >
+                      <div
+                        className="px-3 py-2 rounded-xl text-xs font-medium text-white flex items-center gap-1.5 cursor-pointer"
+                        style={{ background: "rgba(109,132,168,0.95)" }}
+                        onClick={() => { setShowMicHint(false); toggleRecording(); }}
+                      >
+                        <Mic size={13} />
+                        Tik om in te spreken
+                      </div>
+                      {/* Pijltje naar beneden */}
+                      <div className="flex justify-center">
+                        <div style={{ width: 0, height: 0, borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid rgba(109,132,168,0.95)" }} />
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={toggleRecording}
+                    disabled={isLoading || !speechSupported}
+                    className={`relative p-3 sm:p-3.5 rounded-xl transition-colors ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
+                    title={!speechSupported ? "Spraak niet beschikbaar" : isRecording ? "Stop opname" : "Start spraakopname"}
+                  >
+                    {/* Pulse ring als hint actief is */}
+                    {showMicHint && !isRecording && speechSupported && (
+                      <span className="absolute inset-0 rounded-xl animate-ping opacity-40" style={{ background: "#6d84a8" }} />
+                    )}
+                    {isRecording ? <Square size={20} /> : <Mic size={20} />}
+                  </button>
+                </div>
                 <div className="flex-1 relative overflow-visible">
                   <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je bericht..."} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
                   {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
