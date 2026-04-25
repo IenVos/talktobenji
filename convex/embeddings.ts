@@ -147,18 +147,22 @@ export const embedSessionSummary = action({
 export const searchSessionSummaries = action({
   args: {
     query: v.string(),
-    userId: v.string(),
+    userId: v.optional(v.string()),
+    anonymousId: v.optional(v.string()),
     excludeSessionId: v.id("chatSessions"),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args): Promise<{ startedAt: number; summary: string; score: number }[]> => {
+    if (!args.userId && !args.anonymousId) return [];
     const embedding = await embedText(args.query);
     const limit = args.limit ?? 3;
 
     const results = await ctx.vectorSearch("chatSessions", "by_summary_embedding", {
       vector: embedding,
       limit: limit + 5,
-      filter: (q) => q.eq("userId", args.userId),
+      filter: args.userId
+        ? (q) => q.eq("userId", args.userId as string)
+        : (q) => q.eq("anonymousId", args.anonymousId as string),
     });
 
     const items = await Promise.all(

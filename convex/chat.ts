@@ -738,20 +738,21 @@ export const setAdminRapport = mutation({
  */
 export const getSessionsToSummarize = query({
   args: {
-    userId: v.string(),
+    userId: v.optional(v.string()),
+    anonymousId: v.optional(v.string()),
     excludeSessionId: v.id("chatSessions"),
   },
   handler: async (ctx, args) => {
-    const sessions = await ctx.db
-      .query("chatSessions")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .order("desc")
-      .take(15);
+    const sessions = args.userId
+      ? await ctx.db.query("chatSessions").withIndex("by_user", (q) => q.eq("userId", args.userId as string)).order("desc").take(15)
+      : args.anonymousId
+      ? await ctx.db.query("chatSessions").withIndex("by_anonymous", (q) => q.eq("anonymousId", args.anonymousId as string)).order("desc").take(15)
+      : [];
 
-    return sessions
+    return (sessions as any[])
       .filter((s) => s._id !== args.excludeSessionId && !s.summarizedAt)
       .slice(0, 3)
-      .map((s) => ({ sessionId: s._id, startedAt: s.startedAt }));
+      .map((s: any) => ({ sessionId: s._id, startedAt: s.startedAt }));
   },
 });
 
@@ -760,16 +761,17 @@ export const getSessionsToSummarize = query({
  */
 export const getRecentSummaries = query({
   args: {
-    userId: v.string(),
+    userId: v.optional(v.string()),
+    anonymousId: v.optional(v.string()),
     excludeSessionId: v.id("chatSessions"),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const sessions = await ctx.db
-      .query("chatSessions")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .order("desc")
-      .take(25);
+    const sessions = args.userId
+      ? await ctx.db.query("chatSessions").withIndex("by_user", (q) => q.eq("userId", args.userId as string)).order("desc").take(25)
+      : args.anonymousId
+      ? await ctx.db.query("chatSessions").withIndex("by_anonymous", (q) => q.eq("anonymousId", args.anonymousId as string)).order("desc").take(25)
+      : [];
 
     return sessions
       .filter((s) => s._id !== args.excludeSessionId && s.summarizedAt && s.summary)

@@ -226,7 +226,6 @@ export const handleUserMessage = action({
             excludeSessionId: args.sessionId,
             limit: 3,
           }).catch(() =>
-            // Fallback naar recente samenvattingen als embedding-zoekopdracht mislukt
             ctx.runQuery(api.chat.getRecentSummaries, {
               userId: uid,
               excludeSessionId: args.sessionId,
@@ -281,6 +280,37 @@ export const handleUserMessage = action({
           if (lastCheckIn.wat_hielp) checkInLines.push(`Wat hielp: ${lastCheckIn.wat_hielp.slice(0, 100)}`);
           if (lastCheckIn.waar_dankbaar) checkInLines.push(`Dankbaar voor: ${lastCheckIn.waar_dankbaar.slice(0, 100)}`);
           if (checkInLines.length > 0) userCheckIn = checkInLines.join("\n");
+        }
+      } else if (chatSession?.anonymousId) {
+        // Anonieme gebruiker: haal sessiegeheugen op via anonymousId
+        const anonId = chatSession.anonymousId;
+        const recentSummaries = await ctx.runAction(api.embeddings.searchSessionSummaries, {
+          query: args.userMessage,
+          anonymousId: anonId,
+          excludeSessionId: args.sessionId,
+          limit: 3,
+        }).catch(() =>
+          ctx.runQuery(api.chat.getRecentSummaries, {
+            anonymousId: anonId,
+            excludeSessionId: args.sessionId,
+            limit: 3,
+          })
+        );
+
+        if (isFirstMessageInSession) {
+          await ctx.scheduler.runAfter(0, api.ai.summarizeSession, {
+            anonymousId: anonId,
+            excludeSessionId: args.sessionId,
+          });
+        }
+
+        if (recentSummaries && recentSummaries.length > 0) {
+          sessionSummaries = (recentSummaries as any[])
+            .map((s: any) => {
+              const date = new Date(s.startedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long" });
+              return `[${date}]: ${s.summary}`;
+            })
+            .join("\n\n");
         }
       }
 
@@ -962,16 +992,19 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
  */
 export const summarizeSession = action({
   args: {
-    userId: v.string(),
+    userId: v.optional(v.string()),
+    anonymousId: v.optional(v.string()),
     excludeSessionId: v.id("chatSessions"),
   },
   handler: async (ctx, args) => {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey || apiKey === "your-api-key-here") return;
+    if (!args.userId && !args.anonymousId) return;
 
     // Zoek sessies die nog geen AI-samenvatting hebben
     const toSummarize = await ctx.runQuery(api.chat.getSessionsToSummarize, {
       userId: args.userId,
+      anonymousId: args.anonymousId,
       excludeSessionId: args.excludeSessionId,
     });
 
