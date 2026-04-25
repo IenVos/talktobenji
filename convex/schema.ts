@@ -694,6 +694,10 @@ export default defineSchema({
     trackAds: v.optional(v.boolean()), // Toon in advertentie-blok in analytics
     // Prijsblokken (JSON: [{titel, subtitel, prijs, tekst, aanbevolen, ctaTekst, ctaUrl}])
     pricingBlocksJson: v.optional(v.string()),
+    // Feature slider (JSON: [{afbeelding, titel, onderschrift}])
+    featureSlidesJson: v.optional(v.string()),
+    featureSliderLabel: v.optional(v.string()),
+    featureSliderTitel: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

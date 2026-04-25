@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Ervaring {
   tekst: string;
@@ -18,6 +19,98 @@ interface Ervaring {
 interface Vraag {
   vraag: string;
   antwoord: string;
+}
+
+interface PricingBlock {
+  titel: string;
+  subtitel?: string;
+  prijs: string;
+  tekst?: string;
+  aanbevolen?: boolean;
+  ctaTekst?: string;
+  ctaUrl?: string;
+}
+
+interface FeatureSlide {
+  afbeelding: string;  // URL of pad
+  titel: string;
+  onderschrift?: string;
+}
+
+function FeatureSlider({ label, titel, slides }: { label?: string; titel?: string; slides: FeatureSlide[] }) {
+  const [active, setActive] = useState(0);
+  if (slides.length === 0) return null;
+  const prev = () => setActive((a) => (a - 1 + slides.length) % slides.length);
+  const next = () => setActive((a) => (a + 1) % slides.length);
+  return (
+    <section className="px-5 pb-12">
+      <div className="max-w-2xl mx-auto text-center">
+        {label && (
+          <p className="text-xs uppercase tracking-widest font-medium mb-2" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>{label}</p>
+        )}
+        {titel && (
+          <h2 className="text-2xl font-semibold mb-8" style={{ color: "#3d3530" }}>{titel}</h2>
+        )}
+        <div className="relative flex items-center gap-3">
+          <button
+            onClick={prev}
+            className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center border transition-colors"
+            style={{ background: "rgba(255,255,255,0.85)", borderColor: "rgba(160,148,136,0.35)" }}
+            aria-label="Vorige"
+          >
+            <ChevronLeft size={18} style={{ color: "#8a8078" }} />
+          </button>
+          <div className="flex-1 overflow-hidden">
+            <div
+              className="flex transition-transform duration-300 ease-in-out"
+              style={{ transform: `translateX(-${active * 100}%)` }}
+            >
+              {slides.map((slide, i) => (
+                <div key={i} className="flex-shrink-0 w-full flex flex-col items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={slide.afbeelding}
+                    alt={slide.titel}
+                    className="w-full rounded-2xl"
+                    style={{ maxHeight: 320, objectFit: "contain", background: "rgba(255,255,255,0.6)" }}
+                  />
+                  <p className="text-sm font-medium" style={{ color: "#6d84a8" }}>{slide.titel}</p>
+                  {slide.onderschrift && (
+                    <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>{slide.onderschrift}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={next}
+            className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center border transition-colors"
+            style={{ background: "rgba(255,255,255,0.85)", borderColor: "rgba(160,148,136,0.35)" }}
+            aria-label="Volgende"
+          >
+            <ChevronRight size={18} style={{ color: "#8a8078" }} />
+          </button>
+        </div>
+        {/* Dots */}
+        {slides.length > 1 && (
+          <div className="flex justify-center gap-1.5 mt-4">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                className="rounded-full transition-all"
+                style={{
+                  width: i === active ? 20 : 6,
+                  height: 6,
+                  background: i === active ? "#6d84a8" : "rgba(160,148,136,0.4)",
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 
 export function LandingPageView({ slug }: { slug: string }) {
@@ -65,6 +158,16 @@ export function LandingPageView({ slug }: { slug: string }) {
   const hideVragen = (page as any).hideVragen ?? false;
   const hideWieIsIen = (page as any).hideWieIsIen ?? false;
   const hideMidCta = (page as any).hideMidCta ?? false;
+
+  let pricingBlocks: PricingBlock[] = [];
+  try { if ((page as any).pricingBlocksJson) pricingBlocks = JSON.parse((page as any).pricingBlocksJson); } catch {}
+  const activePricingBlocks = pricingBlocks.filter(b => b.titel || b.prijs);
+  const hasPricing = activePricingBlocks.length > 0;
+
+  let featureSlides: FeatureSlide[] = [];
+  try { if ((page as any).featureSlidesJson) featureSlides = JSON.parse((page as any).featureSlidesJson); } catch {}
+  const featureSliderLabel = (page as any).featureSliderLabel as string | undefined;
+  const featureSliderTitel = (page as any).featureSliderTitel as string | undefined;
 
   const renderTextWithParagraphs = (text: string) =>
     text.split("\n\n").map((para, i) => {
@@ -145,14 +248,67 @@ export function LandingPageView({ slug }: { slug: string }) {
                 />
               </div>
             )}
-            <KoopKnopLink
-              href={ctaUrl}
-              buttonLabel={ctaText}
-              className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
-              style={{ background: ctaColor }}
-            >
-              {ctaText}
-            </KoopKnopLink>
+            {hasPricing ? (
+              <div className={`grid gap-3 mt-2 text-left ${activePricingBlocks.length === 1 ? "grid-cols-1 max-w-xs mx-auto" : activePricingBlocks.length === 2 ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
+                {activePricingBlocks.map((block, i) => (
+                  <div
+                    key={i}
+                    className="relative flex flex-col rounded-2xl"
+                    style={{
+                      background: block.aanbevolen ? "rgba(109,132,168,0.12)" : "rgba(255,255,255,0.72)",
+                      border: block.aanbevolen ? "2px solid rgba(109,132,168,0.55)" : "1px solid rgba(160,148,136,0.35)",
+                      boxShadow: block.aanbevolen ? "0 8px 32px rgba(61,53,48,0.16)" : "0 4px 16px rgba(61,53,48,0.08)",
+                      padding: "1.25rem",
+                      backdropFilter: "blur(4px)",
+                    }}
+                  >
+                    {block.aanbevolen && (
+                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap" style={{ background: "#6d84a8", color: "#fff" }}>
+                        Meest gekozen
+                      </span>
+                    )}
+                    {block.titel && (
+                      <p className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: "#a09088" }}>{block.titel}</p>
+                    )}
+                    {block.subtitel && (
+                      <p className="text-xs mb-2 leading-snug" style={{ color: "#8a8078" }}>{block.subtitel}</p>
+                    )}
+                    {block.prijs && (
+                      <p className="text-xl font-bold mb-3" style={{ color: "#3d3530" }}>{block.prijs}</p>
+                    )}
+                    {block.tekst && (
+                      <ul className="space-y-1.5 mb-4 flex-1">
+                        {block.tekst.split("\n").filter(Boolean).map((line, j) => (
+                          <li key={j} className="flex items-start gap-1.5 text-xs" style={{ color: "#6b6460" }}>
+                            <span style={{ color: "#a09088", flexShrink: 0, marginTop: 1 }}>✓</span>
+                            <span>{line}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {block.ctaTekst && block.ctaUrl && (
+                      <KoopKnopLink
+                        href={block.ctaUrl}
+                        buttonLabel={block.ctaTekst}
+                        className="mt-auto block w-full text-center py-2.5 rounded-xl text-xs font-medium text-white"
+                        style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
+                      >
+                        {block.ctaTekst}
+                      </KoopKnopLink>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <KoopKnopLink
+                href={ctaUrl}
+                buttonLabel={ctaText}
+                className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
+                style={{ background: ctaColor }}
+              >
+                {ctaText}
+              </KoopKnopLink>
+            )}
           </div>
         </section>
 
@@ -231,8 +387,17 @@ export function LandingPageView({ slug }: { slug: string }) {
           </section>
         )}
 
+        {/* FEATURE SLIDER */}
+        {featureSlides.length > 0 && (
+          <FeatureSlider
+            label={featureSliderLabel}
+            titel={featureSliderTitel}
+            slides={featureSlides}
+          />
+        )}
+
         {/* MID-PAGE CTA */}
-        {!hideMidCta && (
+        {!hideMidCta && !hasPricing && (
           <section className="px-5 pb-12">
             <div className="max-w-md mx-auto text-center">
               <KoopKnopLink
@@ -329,6 +494,49 @@ export function LandingPageView({ slug }: { slug: string }) {
           </section>
         )}
 
+        {/* PRIJSBLOKKEN ONDERAAN — compacte versie */}
+        {hasPricing && (
+          <section className="px-5 pb-12">
+            <div className="max-w-2xl mx-auto">
+              <div className={`grid gap-3 ${activePricingBlocks.length === 1 ? "grid-cols-1 max-w-xs mx-auto" : activePricingBlocks.length === 2 ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
+                {activePricingBlocks.map((block, i) => (
+                  <div
+                    key={i}
+                    className="relative flex flex-col rounded-2xl text-center"
+                    style={{
+                      background: block.aanbevolen ? "rgba(109,132,168,0.08)" : "rgba(255,255,255,0.55)",
+                      border: block.aanbevolen ? "1.5px solid rgba(109,132,168,0.4)" : "1px solid rgba(160,148,136,0.25)",
+                      padding: "1.25rem 1rem",
+                    }}
+                  >
+                    {block.aanbevolen && (
+                      <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 text-xs font-medium px-2.5 py-0.5 rounded-full whitespace-nowrap" style={{ background: "#6d84a8", color: "#fff" }}>
+                        Meest gekozen
+                      </span>
+                    )}
+                    {block.titel && (
+                      <p className="text-xs font-semibold uppercase tracking-wide mb-0.5" style={{ color: "#a09088" }}>{block.titel}</p>
+                    )}
+                    {block.prijs && (
+                      <p className="text-lg font-bold mb-3" style={{ color: "#3d3530" }}>{block.prijs}</p>
+                    )}
+                    {block.ctaTekst && block.ctaUrl && (
+                      <KoopKnopLink
+                        href={block.ctaUrl}
+                        buttonLabel={block.ctaTekst}
+                        className="mt-auto block w-full text-center py-2 rounded-xl text-xs font-medium text-white"
+                        style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
+                      >
+                        {block.ctaTekst}
+                      </KoopKnopLink>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* FINALE CTA */}
         {(page.finalCtaTitle || page.finalCtaBody) && (
           <section className="px-5 pb-20">
@@ -347,14 +555,16 @@ export function LandingPageView({ slug }: { slug: string }) {
                     {renderTextWithParagraphs(page.finalCtaBody)}
                   </div>
                 )}
-                <KoopKnopLink
-                  href={ctaUrl}
-                  buttonLabel={ctaText}
-                  className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm"
-                  style={{ background: ctaColor }}
-                >
-                  {ctaText}
-                </KoopKnopLink>
+                {!hasPricing && (
+                  <KoopKnopLink
+                    href={ctaUrl}
+                    buttonLabel={ctaText}
+                    className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm"
+                    style={{ background: ctaColor }}
+                  >
+                    {ctaText}
+                  </KoopKnopLink>
+                )}
               </div>
             </div>
           </section>
