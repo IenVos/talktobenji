@@ -32,7 +32,7 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
       </div>
       <div className="flex flex-col items-start min-w-0">
         <span className="font-semibold text-primary-500 text-sm sm:text-base leading-tight group-hover:text-primary-400">
-          Benji
+          Talk To Benji
         </span>
       </div>
     </>
@@ -55,7 +55,7 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
           </button>
         ) : (
           <Link
-            href="/benji"
+            href="/"
             className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none"
             aria-label="Naar Talk To Benji"
           >

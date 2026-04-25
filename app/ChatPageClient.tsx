@@ -606,7 +606,7 @@ export default function ChatPageClient({
         } as React.CSSProperties
       }
     >
-      <HeaderBar onLogoClick={() => { setSessionId(null); setShowTopicButtons(true); }} />
+      <HeaderBar />
 
       <ConversationLimitGate
         userId={session?.userId as string | undefined}
