@@ -67,7 +67,7 @@ function SliderLightbox({ slides, startIndex, onClose }: { slides: FeatureSlide[
   return (
     <div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4"
-      style={{ background: "rgba(30,24,20,0.92)" }}
+      style={{ background: "rgba(40,54,78,0.94)" }}
       onClick={onClose}
     >
       {/* Sluiten */}
@@ -314,12 +314,32 @@ export function LandingPageView({ slug }: { slug: string }) {
   const faqSubtitel = (page as any).faqSubtitel as string | undefined;
   const voorWieSubtitel = (page as any).voorWieSubtitel as string | undefined;
 
+  const FEATURE_ICON_MAP: Record<string, { icon: React.ElementType; kleur: string }> = {
+    "Gesprekken":          { icon: MessageSquare, kleur: "#6d84a8" },
+    "Reflecties":          { icon: PencilLine,    kleur: "#2d8a7a" },
+    "Dagelijkse check-ins":{ icon: CalendarCheck, kleur: "#6d84a8" },
+    "Memories":            { icon: Gem,           kleur: "#d97706" },
+    "Inspiratie & troost": { icon: Sparkles,      kleur: "#7c3aed" },
+    "Handreikingen":       { icon: HandHelping,   kleur: "#e11d48" },
+  };
+
   const renderInline = (text: string): React.ReactNode[] => {
-    // Parse **bold**, *italic*, _underline_ inline
     const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_)/g);
     return parts.map((part, k) => {
-      if (part.startsWith("**") && part.endsWith("**"))
-        return <strong key={k}>{part.slice(2, -2)}</strong>;
+      if (part.startsWith("**") && part.endsWith("**")) {
+        const label = part.slice(2, -2);
+        const feat = FEATURE_ICON_MAP[label];
+        if (feat) {
+          const Icon = feat.icon;
+          return (
+            <span key={k} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <Icon size={15} style={{ color: feat.kleur, flexShrink: 0 }} />
+              <strong>{label}</strong>
+            </span>
+          );
+        }
+        return <strong key={k}>{label}</strong>;
+      }
       if (part.startsWith("*") && part.endsWith("*"))
         return <em key={k}>{part.slice(1, -1)}</em>;
       if (part.startsWith("_") && part.endsWith("_"))
@@ -488,28 +508,6 @@ export function LandingPageView({ slug }: { slug: string }) {
           </section>
         )}
 
-        {/* WAT JE KRIJGT — icon grid */}
-        <section className="px-4 sm:px-6 pb-14">
-          <div className="max-w-2xl mx-auto">
-            <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-              <h2 className="text-base font-semibold mb-5" style={{ color: "#3d3530" }}>Wat je krijgt</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {ACCOUNT_FEATURES.map((f) => (
-                  <div key={f.naam} className="flex items-start gap-3">
-                    <div className={`p-2 rounded-xl flex-shrink-0 ${f.kleur}`}>
-                      <f.icon size={16} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold" style={{ color: "#3d3530" }}>{f.naam}</p>
-                      <p className="text-xs leading-snug mt-0.5" style={{ color: "#8a8078" }}>{f.omschrijving}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* SECTIE 1 */}
         {(page.section1Title || page.section1Text) && (
           <section className="px-5 pb-16">
@@ -566,7 +564,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* VOOR WIE */}
         {voorWieBullets.length > 0 && (
-          <section className="py-14 px-5" style={{ background: "rgba(74,124,89,0.06)" }}>
+          <section className="py-14 px-5" style={{ background: "rgba(74,124,89,0.11)" }}>
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 <h2 className="text-lg font-semibold mb-1" style={{ color: "#3d3530" }}>
@@ -617,7 +615,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* ERVARINGEN */}
         {ervaringen.length > 0 && !hideErvaringen && (
-          <section className="py-14 px-5" style={{ background: "rgba(109,132,168,0.07)" }}>
+          <section className="py-14 px-5" style={{ background: "rgba(109,132,168,0.10)" }}>
             <div className="max-w-lg mx-auto">
               {/* Titel — altijd zichtbaar, fallback als niets ingevuld */}
               <h2 className="text-xl font-semibold mb-1 text-center" style={{ color: "#3d3530" }}>
@@ -692,11 +690,11 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* FAQ */}
         {vragen.length > 0 && !hideVragen && (
-          <section className="px-5 pb-12">
+          <section className="py-14 px-5" style={{ background: "rgba(109,132,168,0.10)" }}>
             <div className="max-w-lg mx-auto">
               <div
                 className="rounded-2xl p-6 sm:p-7"
-                style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}
+                style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}
               >
                 {/* Titel met logo — IN het witte blok */}
                 <div className="flex items-center gap-3 mb-6">
@@ -727,6 +725,28 @@ export function LandingPageView({ slug }: { slug: string }) {
             </div>
           </section>
         )}
+
+        {/* WAT JE KRIJGT — icon grid */}
+        <section className="px-4 sm:px-6 pb-14">
+          <div className="max-w-2xl mx-auto">
+            <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
+              <h2 className="text-base font-semibold mb-5" style={{ color: "#3d3530" }}>Wat je krijgt</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {ACCOUNT_FEATURES.map((f) => (
+                  <div key={f.naam} className="flex items-start gap-3">
+                    <div className={`p-2 rounded-xl flex-shrink-0 ${f.kleur}`}>
+                      <f.icon size={16} />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold" style={{ color: "#3d3530" }}>{f.naam}</p>
+                      <p className="text-xs leading-snug mt-0.5" style={{ color: "#8a8078" }}>{f.omschrijving}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* PRIJSBLOKKEN ONDERAAN — compacte versie */}
         {hasPricing && (
