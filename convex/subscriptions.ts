@@ -185,14 +185,38 @@ export const getConversationCount = query({
         count,
         limit: null,
         hasUnlimited: true,
+        isLapsed: false,
       };
     }
 
-    // Free tier: 2 gesprekken per maand
+    // Verlopen abonnement (ooit betaald, nu gestopt):
+    // 3 gesprekken totaal na afloop, daarna volledig geblokkeerd
+    const isLapsed =
+      subscription != null &&
+      subscription.status === "cancelled" &&
+      subscription.expiresAt != null &&
+      subscription.expiresAt <= Date.now();
+
+    if (isLapsed && subscription?.expiresAt) {
+      const lapsedSessions = await ctx.db
+        .query("chatSessions")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId))
+        .filter((q) => q.gte(q.field("startedAt"), subscription!.expiresAt!))
+        .collect();
+      return {
+        count: lapsedSessions.length,
+        limit: 3,
+        hasUnlimited: false,
+        isLapsed: true,
+      };
+    }
+
+    // Nooit betaald (free tier): geen gate, gewoon toegang
     return {
-      count,
-      limit: 2,
-      hasUnlimited: false,
+      count: 0,
+      limit: null,
+      hasUnlimited: true,
+      isLapsed: false,
     };
   },
 });
