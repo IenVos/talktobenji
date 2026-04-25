@@ -468,19 +468,21 @@ export function LandingPageView({ slug }: { slug: string }) {
         {/* ERVARINGEN */}
         {ervaringen.length > 0 && !hideErvaringen && (
           <section className="px-5 pb-12">
-            <div className="max-w-lg mx-auto">
+            <div className="max-w-lg mx-auto space-y-4">
+              {/* Titel als eerste kaart */}
               {(ervaringenTitel || ervaringenSubtitel) && (
-                <div className="mb-6">
+                <div
+                  className="rounded-2xl px-6 py-5"
+                  style={{ background: "rgba(255,255,255,0.55)", border: "1px solid rgba(160,148,136,0.2)" }}
+                >
                   {ervaringenTitel && (
-                    <h2 className="text-xl font-semibold mb-1" style={{ color: "#3d3530" }}>{ervaringenTitel}</h2>
+                    <h2 className="text-base font-semibold" style={{ color: "#3d3530" }}>{ervaringenTitel}</h2>
                   )}
                   {ervaringenSubtitel && (
-                    <p className="text-sm leading-relaxed" style={{ color: "#8a8078" }}>{ervaringenSubtitel}</p>
+                    <p className="text-sm leading-relaxed mt-0.5" style={{ color: "#8a8078" }}>{ervaringenSubtitel}</p>
                   )}
                 </div>
               )}
-            </div>
-            <div className="max-w-lg mx-auto space-y-4">
               {ervaringen.map((e, i) => (
                 <div
                   key={i}
@@ -541,23 +543,35 @@ export function LandingPageView({ slug }: { slug: string }) {
         {vragen.length > 0 && !hideVragen && (
           <section className="px-5 pb-12">
             <div className="max-w-lg mx-auto">
-              <h2 className="text-lg font-semibold mb-1" style={{ color: "#3d3530" }}>
-                {faqTitel}
-              </h2>
-              {faqSubtitel && (
-                <p className="text-sm leading-relaxed mb-5" style={{ color: "#8a8078" }}>{faqSubtitel}</p>
-              )}
-              {!faqSubtitel && <div className="mb-5" />}
               <div
-                className="rounded-2xl p-6 sm:p-7 space-y-6"
+                className="rounded-2xl p-6 sm:p-7"
                 style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}
               >
-                {vragen.map((v, i) => (
-                  <div key={i}>
-                    <p className="text-sm font-semibold mb-1" style={{ color: "#3d3530" }}>{v.vraag}</p>
-                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{renderInline(v.antwoord)}</p>
+                {/* Titel met logo — IN het witte blok */}
+                <div className="flex items-center gap-3 mb-6">
+                  <Image
+                    src="/images/benji-logo-2.png"
+                    alt="Benji"
+                    width={36}
+                    height={36}
+                    className="rounded-xl flex-shrink-0"
+                    style={{ width: 36, height: 36, objectFit: "cover" }}
+                  />
+                  <div>
+                    <h2 className="text-base font-semibold leading-snug" style={{ color: "#3d3530" }}>{faqTitel}</h2>
+                    {faqSubtitel && (
+                      <p className="text-xs leading-relaxed mt-0.5" style={{ color: "#8a8078" }}>{faqSubtitel}</p>
+                    )}
                   </div>
-                ))}
+                </div>
+                <div className="space-y-6">
+                  {vragen.map((v, i) => (
+                    <div key={i}>
+                      <p className="text-sm font-semibold mb-1" style={{ color: "#3d3530" }}>{v.vraag}</p>
+                      <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{renderInline(v.antwoord)}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </section>
