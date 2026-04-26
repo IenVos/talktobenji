@@ -83,6 +83,12 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       },
     },
     {
+      label: "Kies wat bij je past",
+      icon: Wallet,
+      href: "/lp/prijzen",
+      onBeforeNavigate: () => setOpen(false),
+    },
+    {
       label: "Veelgestelde vragen",
       icon: HelpCircle,
       onClick: () => {
@@ -98,12 +104,6 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
         setOpen(false);
         localStorage.removeItem("benji_session_id");
       },
-    },
-    {
-      label: "Kies wat bij je past",
-      icon: Wallet,
-      href: "/lp/prijzen",
-      onBeforeNavigate: () => setOpen(false),
     },
     {
       label: "Aanmelden",
@@ -222,7 +222,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
           )}
           {menuItems.map((item, index) => {
             const Icon = item.icon;
-            const showDividerBefore = index === 3 || index === 5;
+            const showDividerBefore = index === 4 || index === 6;
             const locked = "requiresAuth" in item && item.requiresAuth && !isLoggedIn;
             const isHighlight = "highlight" in item && item.highlight;
             const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-all duration-200 ${
