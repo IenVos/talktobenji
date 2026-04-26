@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
 export const createGiftCode = mutation({
@@ -83,33 +83,3 @@ export const getByCode = query({
   },
 });
 
-// Internal — aangeroepen vanuit giftActions.ts (aparte file = geen circulaire import)
-export const markRedeemedInternal = internalMutation({
-  args: {
-    code: v.string(),
-    recipientEmail: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const gift = await ctx.db
-      .query("giftCodes")
-      .withIndex("by_code", (q) => q.eq("code", args.code.toUpperCase()))
-      .first();
-
-    if (!gift) throw new Error("Code niet gevonden");
-    if (gift.status === "redeemed") throw new Error("Deze code is al gebruikt");
-
-    await ctx.db.patch(gift._id, {
-      status: "redeemed",
-      redeemedByEmail: args.recipientEmail,
-      redeemedAt: Date.now(),
-    });
-
-    return {
-      subscriptionType: gift.subscriptionType as string,
-      billingPeriod: gift.billingPeriod as "monthly" | "quarterly" | "yearly" | undefined,
-      accessDays: (gift.accessDays ?? 365) as number,
-      productName: gift.productName as string,
-      giverName: gift.giverName as string,
-    };
-  },
-});

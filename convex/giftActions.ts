@@ -1,37 +1,78 @@
 /**
- * Gift code actions — in aparte file om circulaire import met giftCodes.ts te vermijden.
- * giftCodes.ts exporteert internal mutations → giftActions.ts roept die aan via internal.*
+ * Gift code mutations — aparte file zodat giftCodes.ts schoon blijft.
  */
 import { v } from "convex/values";
-import { action } from "./_generated/server";
-import { api, internal } from "./_generated/api";
+import { mutation } from "./_generated/server";
 
-export const redeemGiftCode = action({
+export const redeemGiftCode = mutation({
   args: {
     code: v.string(),
     recipientEmail: v.string(),
   },
   handler: async (ctx, args) => {
-    const gift = await ctx.runMutation(internal.giftCodes.markRedeemedInternal, {
-      code: args.code,
-      recipientEmail: args.recipientEmail,
+    const normalized = args.code.trim().toUpperCase();
+
+    const gift = await ctx.db
+      .query("giftCodes")
+      .withIndex("by_code", (q) => q.eq("code", normalized))
+      .first();
+
+    if (!gift) throw new Error("Code niet gevonden");
+    if (gift.status === "redeemed") throw new Error("Deze code is al gebruikt");
+
+    await ctx.db.patch(gift._id, {
+      status: "redeemed",
+      redeemedByEmail: args.recipientEmail.trim().toLowerCase(),
+      redeemedAt: Date.now(),
     });
 
-    // Activeer abonnement als account al bestaat; silently fail als dat niet zo is
-    try {
-      await ctx.runMutation(api.subscriptions.activateSubscriptionByEmail, {
-        webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
-        email: args.recipientEmail,
-        subscriptionType: gift.subscriptionType,
-        billingPeriod: gift.billingPeriod,
-        accessDays: gift.accessDays,
-        pricePaid: 0,
-        paymentProvider: "gift",
-      });
-    } catch {
-      // Account bestaat nog niet — abonnement wordt geactiveerd bij registratie
-    }
+    // Abonnement activeren als dit e-mailadres al een account heeft
+    const emailLower = args.recipientEmail.trim().toLowerCase();
+    const cred = await ctx.db
+      .query("credentials")
+      .withIndex("email", (q) => q.eq("email", emailLower))
+      .unique();
 
-    return gift;
+    if (cred) {
+      const now = Date.now();
+      const accessDays = gift.accessDays ?? 365;
+      const existing = await ctx.db
+        .query("userSubscriptions")
+        .withIndex("by_user", (q) => q.eq("userId", cred.userId.toString()))
+        .first();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          subscriptionType: gift.subscriptionType,
+          billingPeriod: gift.billingPeriod,
+          status: "active",
+          startedAt: now,
+          expiresAt: now + accessDays * 24 * 60 * 60 * 1000,
+          pricePaid: 0,
+          paymentProvider: "gift",
+          updatedAt: now,
+        });
+      } else {
+        await ctx.db.insert("userSubscriptions", {
+          userId: cred.userId.toString(),
+          email: emailLower,
+          subscriptionType: gift.subscriptionType,
+          billingPeriod: gift.billingPeriod,
+          status: "active",
+          startedAt: now,
+          expiresAt: now + accessDays * 24 * 60 * 60 * 1000,
+          pricePaid: 0,
+          paymentProvider: "gift",
+          updatedAt: now,
+        });
+      }
+    }
+    // Geen account → activatie volgt automatisch bij registratie via credentials.ts
+
+    return {
+      productName: gift.productName,
+      giverName: gift.giverName,
+      personalMessage: gift.personalMessage,
+    };
   },
 });

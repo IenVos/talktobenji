@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAction, useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,7 +18,7 @@ export default function CadeauInwisselenPage() {
     api.giftCodes.getByCode,
     code ? { code } : "skip"
   );
-  const redeemAction = useAction(api.giftActions.redeemGiftCode);
+  const redeemMutation = useMutation(api.giftActions.redeemGiftCode);
 
   // Verwerk resultaat van code-lookup
   useEffect(() => {
@@ -52,7 +52,7 @@ export default function CadeauInwisselenPage() {
     setSubmitting(true);
     setError(null);
     try {
-      await redeemAction({ code, recipientEmail });
+      await redeemMutation({ code, recipientEmail });
       setStep("done");
     } catch (err: any) {
       setError(err.message || "Er is iets misgegaan. Probeer het opnieuw.");
