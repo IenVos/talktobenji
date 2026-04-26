@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Stripe niet geconfigureerd" }, { status: 500 });
   }
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" });
-  const { slug, email, name, paymentIntentId, optIn } = await req.json();
+  const { slug, email, name, paymentIntentId, optIn, isGift, recipientEmail, personalMessage, deliveryMethod } = await req.json();
 
   if (!slug) {
     return NextResponse.json({ error: "Slug ontbreekt" }, { status: 400 });
@@ -29,7 +29,17 @@ export async function POST(req: NextRequest) {
   // Update bestaande PaymentIntent met e-mail/naam (bij formulierindiening)
   if (paymentIntentId && email) {
     await stripe.paymentIntents.update(paymentIntentId, {
-      metadata: { email, name: name || "", optIn: optIn ? "true" : "false" },
+      metadata: {
+        email,
+        name: name || "",
+        optIn: optIn ? "true" : "false",
+        ...(isGift && {
+          isGift: "true",
+          recipientEmail: recipientEmail || "",
+          personalMessage: personalMessage || "",
+          deliveryMethod: deliveryMethod || "manual",
+        }),
+      },
     });
     return NextResponse.json({ success: true });
   }

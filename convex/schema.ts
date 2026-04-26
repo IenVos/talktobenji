@@ -494,6 +494,28 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 
+  // Cadeaucodes (gift codes — gegeven via checkout)
+  giftCodes: defineTable({
+    code: v.string(),                   // bijv. "BENJI-AB12"
+    slug: v.string(),                   // product slug
+    productName: v.string(),            // voor weergave op inwisselpage
+    subscriptionType: v.string(),
+    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly"))),
+    accessDays: v.optional(v.number()),
+    pricePaid: v.optional(v.number()),
+    giverName: v.string(),
+    giverEmail: v.string(),
+    recipientEmail: v.optional(v.string()), // ingevuld door gever (optioneel)
+    personalMessage: v.optional(v.string()),
+    deliveryMethod: v.union(v.literal("direct"), v.literal("manual")),
+    status: v.union(v.literal("pending"), v.literal("redeemed")),
+    redeemedByEmail: v.optional(v.string()),
+    redeemedAt: v.optional(v.number()),
+    paymentIntentId: v.string(),
+    createdAt: v.number(),
+  }).index("by_code", ["code"])
+    .index("by_payment_intent", ["paymentIntentId"]),
+
   // Admin sessies (voor admin panel beveiliging)
   adminSessions: defineTable({
     token: v.string(),

@@ -115,17 +115,44 @@ export const createUserWithPassword = withSecretMutation({
       hashedPassword,
       lastActiveAt: now2,
     });
-    // Maak automatisch een 7-daagse trial subscription aan
+    // Controleer of er een ingewisselde cadeaucode is voor dit e-mailadres
+    const giftForEmail = await ctx.db
+      .query("giftCodes")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("redeemedByEmail"), emailLower),
+          q.eq(q.field("status"), "redeemed")
+        )
+      )
+      .first();
+
+    // Maak subscription aan: cadeau-abonnement of gratis 7-daagse trial
     const now = Date.now();
-    await ctx.db.insert("userSubscriptions", {
-      userId: userId.toString(),
-      email: emailLower,
-      subscriptionType: "trial",
-      status: "active",
-      startedAt: now,
-      expiresAt: now + 7 * 24 * 60 * 60 * 1000,
-      updatedAt: now,
-    });
+    if (giftForEmail) {
+      const accessDays = giftForEmail.accessDays ?? 365;
+      await ctx.db.insert("userSubscriptions", {
+        userId: userId.toString(),
+        email: emailLower,
+        subscriptionType: giftForEmail.subscriptionType,
+        billingPeriod: giftForEmail.billingPeriod,
+        status: "active",
+        startedAt: now,
+        expiresAt: now + accessDays * 24 * 60 * 60 * 1000,
+        pricePaid: 0,
+        paymentProvider: "gift",
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.insert("userSubscriptions", {
+        userId: userId.toString(),
+        email: emailLower,
+        subscriptionType: "trial",
+        status: "active",
+        startedAt: now,
+        expiresAt: now + 7 * 24 * 60 * 60 * 1000,
+        updatedAt: now,
+      });
+    }
     // Stuur welkomstmail als e-mail al geverifieerd is (bijv. via Houvast magic link)
     if (emailVerified) {
       await ctx.scheduler.runAfter(0, internal.emails.sendWelcomeEmail, {

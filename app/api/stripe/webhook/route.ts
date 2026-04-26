@@ -133,7 +133,96 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object as Stripe.PaymentIntent;
-    const { email, name, subscriptionType, slug, productName, optIn } = pi.metadata;
+    const { email, name, subscriptionType, slug, productName, optIn, isGift, recipientEmail, personalMessage, deliveryMethod } = pi.metadata;
+
+    // ── Cadeau-afhandeling ──
+    if (isGift === "true" && email) {
+      try {
+        // Genereer unieke code
+        const codeRaw = Math.random().toString(36).slice(2, 6).toUpperCase() +
+                        Math.random().toString(36).slice(2, 6).toUpperCase();
+        const code = `BENJI-${codeRaw.slice(0, 4)}-${codeRaw.slice(4, 8)}`;
+
+        const product = slug
+          ? await convex.query(api.checkoutProducts.getBySlug, { slug }).catch(() => null)
+          : null;
+        const subType: string = subscriptionType || "alles_in_1";
+        const billingPeriod: "monthly" | "quarterly" | "yearly" =
+          subType === "maand_toegang" ? "monthly" :
+          subType === "kwartaal_toegang" ? "quarterly" :
+          "yearly";
+
+        await convex.mutation(api.giftCodes.createGiftCode, {
+          webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
+          code,
+          slug: slug || "",
+          productName: productName || product?.name || slug || "Talk To Benji",
+          subscriptionType: subType,
+          billingPeriod,
+          accessDays: product?.accessDays ?? 365,
+          pricePaid: pi.amount / 100,
+          giverName: name || email,
+          giverEmail: email,
+          recipientEmail: recipientEmail || undefined,
+          personalMessage: personalMessage || undefined,
+          deliveryMethod: (deliveryMethod === "direct" ? "direct" : "manual") as "direct" | "manual",
+          paymentIntentId: pi.id,
+        });
+
+        if (process.env.RESEND_API_KEY) {
+          const resend = new Resend(process.env.RESEND_API_KEY);
+          const giverVoornaam = (name || email).split(" ")[0];
+          const displayProduct = productName || product?.name || "Talk To Benji";
+
+          // Mail aan gever (altijd)
+          await resend.emails.send({
+            from: "Talk To Benji <noreply@talktobenji.com>",
+            to: email,
+            subject: `Je cadeaucode: ${code}`,
+            html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
+              <p style="font-size:16px;margin-bottom:8px;">Hi ${giverVoornaam},</p>
+              <p style="font-size:15px;line-height:1.8;color:#4a5568;">Bedankt voor je aankoop! Hieronder vind je de cadeaucode voor <strong>${displayProduct}</strong>.</p>
+              <div style="background:#fff;border:2px dashed #6d84a8;border-radius:12px;padding:20px 24px;margin:24px 0;text-align:center;">
+                <p style="font-size:12px;color:#a0aec0;margin:0 0 6px 0;text-transform:uppercase;letter-spacing:0.1em;">Cadeaucode</p>
+                <p style="font-size:28px;font-weight:700;color:#2d3748;letter-spacing:0.08em;margin:0;">${code}</p>
+              </div>
+              <p style="font-size:15px;line-height:1.8;color:#4a5568;">De ontvanger kan de code inwisselen op:</p>
+              <p style="font-size:15px;"><a href="https://talktobenji.com/cadeau-inwisselen" style="color:#6d84a8;font-weight:600;">talktobenji.com/cadeau-inwisselen</a></p>
+              <p style="font-size:14px;color:#718096;margin-top:24px;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
+            </div>`,
+          }).catch((err: any) => console.error("[Resend] Gever-cadeaumail mislukt:", err?.message));
+
+          // Mail aan ontvanger (alleen bij direct + recipientEmail)
+          if (deliveryMethod === "direct" && recipientEmail) {
+            const bericht = personalMessage
+              ? `<p style="background:#fff;border-left:3px solid #6d84a8;padding:12px 16px;border-radius:0 8px 8px 0;font-style:italic;color:#4a5568;">"${personalMessage}"</p>`
+              : "";
+            await resend.emails.send({
+              from: "Talk To Benji <noreply@talktobenji.com>",
+              to: recipientEmail,
+              subject: `${giverVoornaam} heeft iets voor je`,
+              html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
+                <p style="font-size:16px;margin-bottom:8px;">Hoi,</p>
+                <p style="font-size:15px;line-height:1.8;color:#4a5568;"><strong>${giverVoornaam}</strong> heeft je een cadeau gegeven: toegang tot <strong>${displayProduct}</strong>.</p>
+                ${bericht}
+                <div style="background:#fff;border:2px dashed #6d84a8;border-radius:12px;padding:20px 24px;margin:24px 0;text-align:center;">
+                  <p style="font-size:12px;color:#a0aec0;margin:0 0 6px 0;text-transform:uppercase;letter-spacing:0.1em;">Jouw cadeaucode</p>
+                  <p style="font-size:28px;font-weight:700;color:#2d3748;letter-spacing:0.08em;margin:0;">${code}</p>
+                </div>
+                <p style="font-size:15px;line-height:1.8;color:#4a5568;">Wissel je code in en maak een gratis account aan:</p>
+                <div style="margin:20px 0;">
+                  <a href="https://talktobenji.com/cadeau-inwisselen" style="background:#6d84a8;color:#fff;padding:13px 26px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">Cadeau inwisselen</a>
+                </div>
+                <p style="font-size:14px;color:#718096;margin-top:24px;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
+              </div>`,
+            }).catch((err: any) => console.error("[Resend] Ontvanger-cadeaumail mislukt:", err?.message));
+          }
+        }
+      } catch (err: any) {
+        console.error("[Cadeau] Fout bij verwerken gift:", err?.message);
+      }
+      return NextResponse.json({ received: true });
+    }
 
     if (email) {
       // Product ophalen op basis van slug (bevat verliesType en bevestigingsmail)
