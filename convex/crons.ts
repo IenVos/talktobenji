@@ -33,6 +33,13 @@ crons.daily(
 );
 
 crons.daily(
+  "jaar renewal emails avond",
+  { hourUTC: 18, minuteUTC: 0 },
+  internal.jaarRenewal.checkJaarRenewal,
+  {}
+);
+
+crons.daily(
   "kwartaal renewal emails",
   { hourUTC: 9, minuteUTC: 0 },
   internal.jaarRenewal.checkKwartaalRenewal,
@@ -40,8 +47,22 @@ crons.daily(
 );
 
 crons.daily(
+  "kwartaal renewal emails avond",
+  { hourUTC: 18, minuteUTC: 0 },
+  internal.jaarRenewal.checkKwartaalRenewal,
+  {}
+);
+
+crons.daily(
   "maand renewal emails",
   { hourUTC: 9, minuteUTC: 0 },
+  internal.jaarRenewal.checkMaandRenewal,
+  {}
+);
+
+crons.daily(
+  "maand renewal emails avond",
+  { hourUTC: 18, minuteUTC: 0 },
   internal.jaarRenewal.checkMaandRenewal,
   {}
 );
