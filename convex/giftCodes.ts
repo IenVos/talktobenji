@@ -50,6 +50,17 @@ export const createGiftCode = mutation({
   },
 });
 
+export const listAll = query({
+  args: { webhookSecret: v.string() },
+  handler: async (ctx, args) => {
+    if (args.webhookSecret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
+      throw new Error("Unauthorized");
+    }
+    const codes = await ctx.db.query("giftCodes").order("desc").collect();
+    return codes;
+  },
+});
+
 export const getByCode = query({
   args: { code: v.string() },
   handler: async (ctx, args) => {
