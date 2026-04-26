@@ -99,6 +99,9 @@ export const upsertTemplate = mutation({
     key: v.string(),
     subject: v.string(),
     bodyText: v.string(),
+    aanhef: v.optional(v.string()),
+    buttonText: v.optional(v.string()),
+    buttonUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -106,20 +109,20 @@ export const upsertTemplate = mutation({
       .withIndex("by_key", (q) => q.eq("key", args.key))
       .unique();
 
+    const fields = {
+      subject: args.subject,
+      bodyText: args.bodyText,
+      aanhef: args.aanhef,
+      buttonText: args.buttonText,
+      buttonUrl: args.buttonUrl,
+      updatedAt: Date.now(),
+    };
+
     if (existing) {
-      await ctx.db.patch(existing._id, {
-        subject: args.subject,
-        bodyText: args.bodyText,
-        updatedAt: Date.now(),
-      });
+      await ctx.db.patch(existing._id, fields);
       return existing._id;
     }
 
-    return await ctx.db.insert("emailTemplates", {
-      key: args.key,
-      subject: args.subject,
-      bodyText: args.bodyText,
-      updatedAt: Date.now(),
-    });
+    return await ctx.db.insert("emailTemplates", { key: args.key, ...fields });
   },
 });

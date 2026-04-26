@@ -483,9 +483,12 @@ export default defineSchema({
 
   // E-mail templates (bewerkbaar via admin)
   emailTemplates: defineTable({
-    key: v.string(),      // "trial_day5" | "trial_day7"
+    key: v.string(),
     subject: v.string(),
     bodyText: v.string(), // platte tekst, \n\n = alinea-scheiding
+    aanhef: v.optional(v.string()),
+    buttonText: v.optional(v.string()),
+    buttonUrl: v.optional(v.string()),
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 

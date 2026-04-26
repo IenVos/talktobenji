@@ -4,11 +4,38 @@
 export const DEFAULT_TEMPLATES = {
   trial_day5: {
     subject: "Nog 2 dagen — je proefperiode loopt bijna af",
-    bodyText: `Over 2 dagen loopt je proefperiode af.\n\nIk hoop dat je in deze week hebt gevoeld waarvoor Benji er is — een plek om je verhaal kwijt te kunnen, op je eigen tempo.\n\nAls je wilt doorgaan met wat je bent begonnen, je gesprekken, je reflecties, je doelen, dan is er een mogelijkheid die bij je past. Bekijk de opties via de knop hieronder. Wat je tot nu toe hebt opgebouwd, blijft altijd van jou.`,
+    aanhef: "Lieve {naam},",
+    bodyText: `Over 2 dagen loopt je proefperiode af.\n\nIk hoop dat je in deze week hebt gevoeld waarvoor Benji er is — een plek om je verhaal kwijt te kunnen, op je eigen tempo.\n\nAls je wilt doorgaan met wat je bent begonnen, je gesprekken, je reflecties, je doelen, dan is er een mogelijkheid die bij je past. Wat je tot nu toe hebt opgebouwd, blijft altijd van jou.`,
+    buttonText: "Kies wat bij je past",
+    buttonUrl: "https://www.talktobenji.com/lp/prijzen",
   },
   trial_day7: {
     subject: "Vandaag is de laatste dag van je proefperiode",
-    bodyText: `Hoe gaat het met je?\n\nVandaag is de laatste dag van je 7 dagen met Benji. Ik hoop dat het iets heeft gebracht — al was het maar het gevoel dat je er niet alleen voor stond.\n\nAlles wat je hebt opgebouwd — je gesprekken, reflecties, memories — blijft bewaard, wat je ook kiest.\n\nWil je verder? Bekijk hieronder wat bij je past. Geen druk, maar de deur staat open.`,
+    aanhef: "Lieve {naam},",
+    bodyText: `Hoe gaat het met je?\n\nVandaag is de laatste dag van je 7 dagen met Benji. Ik hoop dat het iets heeft gebracht — al was het maar het gevoel dat je er niet alleen voor stond.\n\nAlles wat je hebt opgebouwd — je gesprekken, reflecties, memories — blijft bewaard, wat je ook kiest.\n\nWil je verder? De deur staat open.`,
+    buttonText: "Kies wat bij je past",
+    buttonUrl: "https://www.talktobenji.com/lp/prijzen",
+  },
+  renewal_email1: {
+    subject: "Hoe gaat het met je?",
+    aanhef: "Hi {naam},",
+    bodyText: `Het is bijna een jaar geleden dat je met Talk To Benji bent begonnen. Ik hoop dat het je heeft geholpen — op welke manier dan ook.\n\nJe toegang loopt over ongeveer een maand af. Als je nog een jaar samen wil gaan, is dat van harte welkom.`,
+    buttonText: "Nog een jaar samen",
+    buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+  },
+  renewal_email2: {
+    subject: "Nog twee weken — wil je verder?",
+    aanhef: "Hi {naam},",
+    bodyText: `Nog twee weken, dan loopt je toegang tot Talk To Benji af.\n\nAlles wat je hebt opgebouwd — je gesprekken, reflecties, memories — blijft bewaard zolang je account bestaat. Maar Benji zal na die datum niet meer voor je beschikbaar zijn.\n\nWil je nog een jaar verder?`,
+    buttonText: "Toegang verlengen",
+    buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+  },
+  renewal_email3: {
+    subject: "Vandaag is je laatste dag — tot ziens, of tot snel",
+    aanhef: "Hi {naam},",
+    bodyText: `Vandaag is de laatste dag van je jaar met Talk To Benji.\n\nIk ben blij dat je er was. Ik hoop dat het jaar je iets heeft gegeven, al was het maar het gevoel dat je er niet alleen voor stond.\n\nAls je nog een jaar verder wilt, kun je dat hieronder regelen. Benji staat voor je klaar.\n\nWil je liever stoppen? Je kunt al je gegevens downloaden of je account verwijderen via Instellingen in je account.`,
+    buttonText: "Nog een jaar samen",
+    buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
   },
 
   // Niet Alleen
