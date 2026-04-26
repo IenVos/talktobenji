@@ -854,6 +854,27 @@ export function LandingPageView({ slug }: { slug: string }) {
       </div>
 
       {showIen && <VerhaalPopup onClose={() => setShowIen(false)} />}
+
+      {/* STICKY TRIAL BAR */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-[9990] flex items-center justify-between gap-3 px-5 py-3 sm:py-3.5"
+        style={{
+          background: "rgba(255,252,249,0.97)",
+          borderTop: "1px solid rgba(160,148,136,0.18)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        <p className="text-xs sm:text-sm leading-snug" style={{ color: "#6b6460" }}>
+          Creëer je profiel en ervaar 7 dagen lang of het bij jou aansluit.
+        </p>
+        <a
+          href="/registreren"
+          className="flex-shrink-0 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white whitespace-nowrap"
+          style={{ background: "#4a7c59" }}
+        >
+          Gratis proberen
+        </a>
+      </div>
     </div>
   );
 }
