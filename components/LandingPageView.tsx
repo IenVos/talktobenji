@@ -837,12 +837,6 @@ export function LandingPageView({ slug }: { slug: string }) {
                 contactmetien@talktobenji.com
               </a>
             </p>
-            <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
-              Wil je meer weten over het programma?{" "}
-              <a href="/niet-alleen-nl" style={{ color: "#6d84a8" }}>
-                Bekijk Niet Alleen →
-              </a>
-            </p>
             {page.footerText && (
               <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
                 {page.footerText}
