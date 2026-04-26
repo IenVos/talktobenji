@@ -32,6 +32,20 @@ crons.daily(
   {}
 );
 
+crons.daily(
+  "kwartaal renewal emails",
+  { hourUTC: 9, minuteUTC: 0 },
+  internal.jaarRenewal.checkKwartaalRenewal,
+  {}
+);
+
+crons.daily(
+  "maand renewal emails",
+  { hourUTC: 9, minuteUTC: 0 },
+  internal.jaarRenewal.checkMaandRenewal,
+  {}
+);
+
 // Markeer inactieve sessies als abandoned (elke 30 min) + genereer rapporten
 crons.interval(
   "mark abandoned sessions",

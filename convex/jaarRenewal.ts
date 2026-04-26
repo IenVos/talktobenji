@@ -18,6 +18,26 @@ export const getJaarSubscriptions = internalQuery({
   },
 });
 
+export const getKwartaalSubscriptions = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("userSubscriptions")
+      .filter((q) => q.eq(q.field("billingPeriod"), "quarterly"))
+      .collect();
+  },
+});
+
+export const getMaandSubscriptions = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("userSubscriptions")
+      .filter((q) => q.eq(q.field("billingPeriod"), "monthly"))
+      .collect();
+  },
+});
+
 export const getUserByEmail = internalQuery({
   args: { email: v.string() },
   handler: async (ctx, args) => {
@@ -38,6 +58,64 @@ export const markRenewalEmailSent = internalMutation({
       args.emailNumber === 2 ? "renewalEmail2SentAt" :
       "renewalEmail3SentAt";
     await ctx.db.patch(args.subscriptionId, { [field]: Date.now() });
+  },
+});
+
+export const checkKwartaalRenewal = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const d = (days: number) => days * 24 * 60 * 60 * 1000;
+    const subscriptions: any[] = await ctx.runQuery(internal.jaarRenewal.getKwartaalSubscriptions, {});
+    for (const sub of subscriptions) {
+      if (!sub.expiresAt || !sub.email) continue;
+      const user: any = await ctx.runQuery(internal.jaarRenewal.getUserByEmail, { email: sub.email });
+      const name = user?.name || sub.email.split("@")[0];
+      // Email 1 — 14 dagen voor afloop
+      if (sub.expiresAt >= now + d(13) && sub.expiresAt <= now + d(15) && !sub.renewalEmail1SentAt) {
+        await ctx.runAction(internal.emails.sendKwartaalRenewalEmail1, { email: sub.email, name, expiresAt: sub.expiresAt });
+        await ctx.runMutation(internal.jaarRenewal.markRenewalEmailSent, { subscriptionId: sub._id, emailNumber: 1 });
+      }
+      // Email 2 — 7 dagen voor afloop
+      if (sub.expiresAt >= now + d(6) && sub.expiresAt <= now + d(8) && !sub.renewalEmail2SentAt) {
+        await ctx.runAction(internal.emails.sendKwartaalRenewalEmail2, { email: sub.email, name, expiresAt: sub.expiresAt });
+        await ctx.runMutation(internal.jaarRenewal.markRenewalEmailSent, { subscriptionId: sub._id, emailNumber: 2 });
+      }
+      // Email 3 — laatste dag
+      if (sub.expiresAt >= now && sub.expiresAt <= now + d(1) && !sub.renewalEmail3SentAt) {
+        await ctx.runAction(internal.emails.sendKwartaalRenewalEmail3, { email: sub.email, name, expiresAt: sub.expiresAt });
+        await ctx.runMutation(internal.jaarRenewal.markRenewalEmailSent, { subscriptionId: sub._id, emailNumber: 3 });
+      }
+    }
+  },
+});
+
+export const checkMaandRenewal = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const d = (days: number) => days * 24 * 60 * 60 * 1000;
+    const subscriptions: any[] = await ctx.runQuery(internal.jaarRenewal.getMaandSubscriptions, {});
+    for (const sub of subscriptions) {
+      if (!sub.expiresAt || !sub.email) continue;
+      const user: any = await ctx.runQuery(internal.jaarRenewal.getUserByEmail, { email: sub.email });
+      const name = user?.name || sub.email.split("@")[0];
+      // Email 1 — 7 dagen voor afloop
+      if (sub.expiresAt >= now + d(6) && sub.expiresAt <= now + d(8) && !sub.renewalEmail1SentAt) {
+        await ctx.runAction(internal.emails.sendMaandRenewalEmail1, { email: sub.email, name, expiresAt: sub.expiresAt });
+        await ctx.runMutation(internal.jaarRenewal.markRenewalEmailSent, { subscriptionId: sub._id, emailNumber: 1 });
+      }
+      // Email 2 — 3 dagen voor afloop
+      if (sub.expiresAt >= now + d(2) && sub.expiresAt <= now + d(4) && !sub.renewalEmail2SentAt) {
+        await ctx.runAction(internal.emails.sendMaandRenewalEmail2, { email: sub.email, name, expiresAt: sub.expiresAt });
+        await ctx.runMutation(internal.jaarRenewal.markRenewalEmailSent, { subscriptionId: sub._id, emailNumber: 2 });
+      }
+      // Email 3 — laatste dag
+      if (sub.expiresAt >= now && sub.expiresAt <= now + d(1) && !sub.renewalEmail3SentAt) {
+        await ctx.runAction(internal.emails.sendMaandRenewalEmail3, { email: sub.email, name, expiresAt: sub.expiresAt });
+        await ctx.runMutation(internal.jaarRenewal.markRenewalEmailSent, { subscriptionId: sub._id, emailNumber: 3 });
+      }
+    }
   },
 });
 

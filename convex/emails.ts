@@ -293,67 +293,94 @@ export const sendTestWelcomeEmail = action({
   },
 });
 
+async function sendRenewalEmail(
+  ctx: any,
+  args: { email: string; name: string; expiresAt: number },
+  templateKey: string,
+  def: { subject: string; aanhef?: string; bodyText: string; buttonText?: string; buttonUrl?: string },
+  apiKey: string,
+) {
+  const einddatum = new Date(args.expiresAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
+  const template = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: templateKey });
+  const bodyText = (template?.bodyText ?? def.bodyText).replace(/\{einddatum\}/g, einddatum);
+  await sendEmail({
+    to: args.email,
+    subject: (template?.subject ?? def.subject).replace(/\{einddatum\}/g, einddatum),
+    html: buildEmailHtml(args.name, bodyText, {
+      aanhef: template?.aanhef ?? def.aanhef,
+      buttonText: template?.buttonText ?? def.buttonText,
+      buttonUrl: template?.buttonUrl ?? def.buttonUrl,
+    }),
+    apiKey,
+  });
+}
+
+// ── Jaar ──
 export const sendJaarRenewalEmail1 = internalAction({
   args: { email: v.string(), name: v.string(), expiresAt: v.number() },
   handler: async (ctx, args) => {
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    if (!RESEND_API_KEY) return;
-    const einddatum = new Date(args.expiresAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
-    const template = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "renewal_email1" });
-    const def = DEFAULT_TEMPLATES.renewal_email1;
-    const bodyText = (template?.bodyText ?? def.bodyText).replace("{einddatum}", einddatum);
-    await sendEmail({
-      to: args.email,
-      subject: template?.subject ?? def.subject,
-      html: buildEmailHtml(args.name, bodyText, {
-        aanhef: template?.aanhef ?? def.aanhef,
-        buttonText: template?.buttonText ?? def.buttonText,
-        buttonUrl: template?.buttonUrl ?? def.buttonUrl,
-      }),
-      apiKey: RESEND_API_KEY,
-    });
+    const k = process.env.RESEND_API_KEY; if (!k) return;
+    await sendRenewalEmail(ctx, args, "renewal_jaar_1", DEFAULT_TEMPLATES.renewal_jaar_1, k);
   },
 });
-
 export const sendJaarRenewalEmail2 = internalAction({
   args: { email: v.string(), name: v.string(), expiresAt: v.number() },
   handler: async (ctx, args) => {
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    if (!RESEND_API_KEY) return;
-    const einddatum = new Date(args.expiresAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
-    const template = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "renewal_email2" });
-    const def = DEFAULT_TEMPLATES.renewal_email2;
-    const bodyText = (template?.bodyText ?? def.bodyText).replace("{einddatum}", einddatum);
-    await sendEmail({
-      to: args.email,
-      subject: template?.subject ?? def.subject,
-      html: buildEmailHtml(args.name, bodyText, {
-        aanhef: template?.aanhef ?? def.aanhef,
-        buttonText: template?.buttonText ?? def.buttonText,
-        buttonUrl: template?.buttonUrl ?? def.buttonUrl,
-      }),
-      apiKey: RESEND_API_KEY,
-    });
+    const k = process.env.RESEND_API_KEY; if (!k) return;
+    await sendRenewalEmail(ctx, args, "renewal_jaar_2", DEFAULT_TEMPLATES.renewal_jaar_2, k);
   },
 });
-
 export const sendJaarRenewalEmail3 = internalAction({
   args: { email: v.string(), name: v.string(), expiresAt: v.number() },
   handler: async (ctx, args) => {
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    if (!RESEND_API_KEY) return;
-    const template = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "renewal_email3" });
-    const def = DEFAULT_TEMPLATES.renewal_email3;
-    await sendEmail({
-      to: args.email,
-      subject: template?.subject ?? def.subject,
-      html: buildEmailHtml(args.name, template?.bodyText ?? def.bodyText, {
-        aanhef: template?.aanhef ?? def.aanhef,
-        buttonText: template?.buttonText ?? def.buttonText,
-        buttonUrl: template?.buttonUrl ?? def.buttonUrl,
-      }),
-      apiKey: RESEND_API_KEY,
-    });
+    const k = process.env.RESEND_API_KEY; if (!k) return;
+    await sendRenewalEmail(ctx, args, "renewal_jaar_3", DEFAULT_TEMPLATES.renewal_jaar_3, k);
+  },
+});
+
+// ── Kwartaal ──
+export const sendKwartaalRenewalEmail1 = internalAction({
+  args: { email: v.string(), name: v.string(), expiresAt: v.number() },
+  handler: async (ctx, args) => {
+    const k = process.env.RESEND_API_KEY; if (!k) return;
+    await sendRenewalEmail(ctx, args, "renewal_kwartaal_1", DEFAULT_TEMPLATES.renewal_kwartaal_1, k);
+  },
+});
+export const sendKwartaalRenewalEmail2 = internalAction({
+  args: { email: v.string(), name: v.string(), expiresAt: v.number() },
+  handler: async (ctx, args) => {
+    const k = process.env.RESEND_API_KEY; if (!k) return;
+    await sendRenewalEmail(ctx, args, "renewal_kwartaal_2", DEFAULT_TEMPLATES.renewal_kwartaal_2, k);
+  },
+});
+export const sendKwartaalRenewalEmail3 = internalAction({
+  args: { email: v.string(), name: v.string(), expiresAt: v.number() },
+  handler: async (ctx, args) => {
+    const k = process.env.RESEND_API_KEY; if (!k) return;
+    await sendRenewalEmail(ctx, args, "renewal_kwartaal_3", DEFAULT_TEMPLATES.renewal_kwartaal_3, k);
+  },
+});
+
+// ── Maand ──
+export const sendMaandRenewalEmail1 = internalAction({
+  args: { email: v.string(), name: v.string(), expiresAt: v.number() },
+  handler: async (ctx, args) => {
+    const k = process.env.RESEND_API_KEY; if (!k) return;
+    await sendRenewalEmail(ctx, args, "renewal_maand_1", DEFAULT_TEMPLATES.renewal_maand_1, k);
+  },
+});
+export const sendMaandRenewalEmail2 = internalAction({
+  args: { email: v.string(), name: v.string(), expiresAt: v.number() },
+  handler: async (ctx, args) => {
+    const k = process.env.RESEND_API_KEY; if (!k) return;
+    await sendRenewalEmail(ctx, args, "renewal_maand_2", DEFAULT_TEMPLATES.renewal_maand_2, k);
+  },
+});
+export const sendMaandRenewalEmail3 = internalAction({
+  args: { email: v.string(), name: v.string(), expiresAt: v.number() },
+  handler: async (ctx, args) => {
+    const k = process.env.RESEND_API_KEY; if (!k) return;
+    await sendRenewalEmail(ctx, args, "renewal_maand_3", DEFAULT_TEMPLATES.renewal_maand_3, k);
   },
 });
 

@@ -6,7 +6,11 @@ import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { ChevronDown, ChevronRight, Save, CheckCircle, RotateCcw } from "lucide-react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplates";
 
-type TemplateKey = "trial_day5" | "trial_day7" | "renewal_email1" | "renewal_email2" | "renewal_email3";
+type TemplateKey =
+  | "trial_day5" | "trial_day7"
+  | "renewal_jaar_1" | "renewal_jaar_2" | "renewal_jaar_3"
+  | "renewal_kwartaal_1" | "renewal_kwartaal_2" | "renewal_kwartaal_3"
+  | "renewal_maand_1" | "renewal_maand_2" | "renewal_maand_3";
 
 const SECTIONS = [
   {
@@ -19,13 +23,33 @@ const SECTIONS = [
     ],
   },
   {
-    id: "renewal",
-    label: "Verlengingsmails",
-    subtitle: "Automatisch verstuurd in de laatste maand voor afloop van de toegang",
+    id: "renewal_jaar",
+    label: "Verlengingsmails — Jaar",
+    subtitle: "Mail 1 op 30 dagen voor afloop · Mail 2 op 15 dagen · Mail 3 op de laatste dag",
     emails: [
-      { key: "renewal_email1" as TemplateKey, title: "Mail 1 — 30 dagen voor afloop", subtitle: "Gebruik {einddatum} voor de exacte datum, {naam} voor de voornaam" },
-      { key: "renewal_email2" as TemplateKey, title: "Mail 2 — 15 dagen voor afloop", subtitle: "Gebruik {einddatum} voor de exacte datum, {naam} voor de voornaam" },
-      { key: "renewal_email3" as TemplateKey, title: "Mail 3 — Laatste dag", subtitle: "Gebruik {naam} voor de voornaam" },
+      { key: "renewal_jaar_1" as TemplateKey, title: "Mail 1 — 30 dagen voor afloop", subtitle: "Gebruik {einddatum} en {naam}" },
+      { key: "renewal_jaar_2" as TemplateKey, title: "Mail 2 — 15 dagen voor afloop", subtitle: "Gebruik {einddatum} en {naam}" },
+      { key: "renewal_jaar_3" as TemplateKey, title: "Mail 3 — Laatste dag", subtitle: "Gebruik {naam}" },
+    ],
+  },
+  {
+    id: "renewal_kwartaal",
+    label: "Verlengingsmails — Kwartaal",
+    subtitle: "Mail 1 op 14 dagen voor afloop · Mail 2 op 7 dagen · Mail 3 op de laatste dag",
+    emails: [
+      { key: "renewal_kwartaal_1" as TemplateKey, title: "Mail 1 — 14 dagen voor afloop", subtitle: "Gebruik {einddatum} en {naam}" },
+      { key: "renewal_kwartaal_2" as TemplateKey, title: "Mail 2 — 7 dagen voor afloop", subtitle: "Gebruik {einddatum} en {naam}" },
+      { key: "renewal_kwartaal_3" as TemplateKey, title: "Mail 3 — Laatste dag", subtitle: "Gebruik {naam}" },
+    ],
+  },
+  {
+    id: "renewal_maand",
+    label: "Verlengingsmails — Maand",
+    subtitle: "Mail 1 op 7 dagen voor afloop · Mail 2 op 3 dagen · Mail 3 op de laatste dag",
+    emails: [
+      { key: "renewal_maand_1" as TemplateKey, title: "Mail 1 — 7 dagen voor afloop", subtitle: "Gebruik {einddatum} en {naam}" },
+      { key: "renewal_maand_2" as TemplateKey, title: "Mail 2 — 3 dagen voor afloop", subtitle: "Gebruik {einddatum} en {naam}" },
+      { key: "renewal_maand_3" as TemplateKey, title: "Mail 3 — Laatste dag", subtitle: "Gebruik {naam}" },
     ],
   },
 ];
