@@ -73,7 +73,9 @@ function TemplateEditor({
   savedAanhef?: string;
   savedButtonText?: string;
   savedButtonUrl?: string;
-  onSave: (key: TemplateKey, data: { subject: string; bodyText: string; aanhef: string; buttonText: string; buttonUrl: string }) => Promise<void>;
+  savedUpsellText?: string;
+  savedUpsellUrl?: string;
+  onSave: (key: TemplateKey, data: { subject: string; bodyText: string; aanhef: string; buttonText: string; buttonUrl: string; upsellText: string; upsellUrl: string }) => Promise<void>;
 }) {
   const def = DEFAULT_TEMPLATES[templateKey];
   const [open, setOpen] = useState(false);
@@ -82,6 +84,8 @@ function TemplateEditor({
   const [aanhef, setAanhef] = useState(savedAanhef ?? def.aanhef ?? "Lieve {naam},");
   const [buttonText, setButtonText] = useState(savedButtonText ?? def.buttonText ?? "Kies wat bij je past");
   const [buttonUrl, setButtonUrl] = useState(savedButtonUrl ?? def.buttonUrl ?? "");
+  const [upsellText, setUpsellText] = useState(savedUpsellText ?? (def as any).upsellText ?? "");
+  const [upsellUrl, setUpsellUrl] = useState(savedUpsellUrl ?? (def as any).upsellUrl ?? "");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -91,13 +95,15 @@ function TemplateEditor({
     if (savedAanhef !== undefined) setAanhef(savedAanhef);
     if (savedButtonText !== undefined) setButtonText(savedButtonText);
     if (savedButtonUrl !== undefined) setButtonUrl(savedButtonUrl);
-  }, [savedSubject, savedBodyText, savedAanhef, savedButtonText, savedButtonUrl]);
+    if (savedUpsellText !== undefined) setUpsellText(savedUpsellText);
+    if (savedUpsellUrl !== undefined) setUpsellUrl(savedUpsellUrl);
+  }, [savedSubject, savedBodyText, savedAanhef, savedButtonText, savedButtonUrl, savedUpsellText, savedUpsellUrl]);
 
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
     try {
-      await onSave(templateKey, { subject, bodyText, aanhef, buttonText, buttonUrl });
+      await onSave(templateKey, { subject, bodyText, aanhef, buttonText, buttonUrl, upsellText, upsellUrl });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } finally {
@@ -111,6 +117,8 @@ function TemplateEditor({
     setAanhef(def.aanhef ?? "Lieve {naam},");
     setButtonText(def.buttonText ?? "Kies wat bij je past");
     setButtonUrl(def.buttonUrl ?? "");
+    setUpsellText((def as any).upsellText ?? "");
+    setUpsellUrl((def as any).upsellUrl ?? "");
   };
 
   const previewAanhef = aanhef.replace("{naam}", "Sofie");
@@ -192,6 +200,29 @@ function TemplateEditor({
             </div>
           </div>
 
+          {/* Upsell */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">
+              Extra link <span className="font-normal text-gray-400">— optioneel, verschijnt als subtiele tekstlink onder de knop ("Of kies voor meer rust: …")</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={upsellText}
+                onChange={(e) => setUpsellText(e.target.value)}
+                placeholder="bijv. Een heel jaar voor €97"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              <input
+                type="url"
+                value={upsellUrl}
+                onChange={(e) => setUpsellUrl(e.target.value)}
+                placeholder="https://..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
+          </div>
+
           {/* Preview */}
           <details className="group">
             <summary className="text-xs font-semibold text-primary-600 cursor-pointer hover:text-primary-800 select-none">
@@ -206,6 +237,11 @@ function TemplateEditor({
                 <span className="inline-block bg-[#6d84a8] text-white px-6 py-3 rounded-lg text-sm font-semibold">
                   {buttonText}
                 </span>
+                {upsellText && upsellUrl && (
+                  <p className="mt-3 text-xs text-gray-400">
+                    Of kies voor meer rust: <span className="text-[#6d84a8] underline">{upsellText} →</span>
+                  </p>
+                )}
               </div>
               <p className="text-gray-600 pt-2">Met warme groet,</p>
               <p className="font-semibold text-gray-800">Ien</p>
@@ -281,6 +317,8 @@ function Section({ id, label, subtitle, emails, templates, onSave }: {
                 savedAanhef={t?.aanhef}
                 savedButtonText={t?.buttonText}
                 savedButtonUrl={t?.buttonUrl}
+                savedUpsellText={t?.upsellText}
+                savedUpsellUrl={t?.upsellUrl}
                 onSave={onSave}
               />
             );

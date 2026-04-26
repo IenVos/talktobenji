@@ -240,7 +240,7 @@ export default defineSchema({
     userId: v.string(),
     email: v.string(), // Voor admin override check
     subscriptionType: v.string(), // bijv. "free", "trial", "niet_alleen", "er_zijn", "troostende_woorden"
-    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("yearly"))),
+    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly"))),
     status: v.union(
       v.literal("active"),
       v.literal("cancelled"),
@@ -489,6 +489,8 @@ export default defineSchema({
     aanhef: v.optional(v.string()),
     buttonText: v.optional(v.string()),
     buttonUrl: v.optional(v.string()),
+    upsellText: v.optional(v.string()),
+    upsellUrl: v.optional(v.string()),
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 

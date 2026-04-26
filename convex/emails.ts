@@ -43,6 +43,8 @@ function buildEmailHtml(name: string, bodyText: string, opts?: {
   aanhef?: string;
   buttonText?: string;
   buttonUrl?: string;
+  upsellText?: string;
+  upsellUrl?: string;
 }): string {
   const aanhef = (opts?.aanhef ?? "Lieve {naam},").replace("{naam}", name);
   const buttonText = opts?.buttonText ?? "Kies wat bij je past";
@@ -58,11 +60,16 @@ function buildEmailHtml(name: string, bodyText: string, opts?: {
     <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748; background: #fdf9f4; padding: 32px 24px;">
       <p style="font-size: 16px; margin-bottom: 16px; font-family: system-ui, -apple-system, sans-serif;">${aanhef}</p>
       ${paragraphsHtml}
-      <div style="margin: 32px 0;">
+      <div style="margin: 32px 0 0 0;">
         <a href="${buttonUrl}"
            style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block; font-family: system-ui, -apple-system, sans-serif;">
           ${buttonText}
         </a>
+        ${opts?.upsellText && opts?.upsellUrl ? `
+        <p style="margin: 14px 0 24px 0; font-size: 13px; color: #9a9088; font-family: system-ui, -apple-system, sans-serif;">
+          Of kies voor meer rust:
+          <a href="${opts.upsellUrl}" style="color: #6d84a8; text-decoration: underline;">${opts.upsellText} →</a>
+        </p>` : '<div style="margin-bottom: 32px;"></div>'}
       </div>
       <p style="font-size: 15px; margin-top: 24px; color: #4a5568; font-family: system-ui, -apple-system, sans-serif;">Met warme groet,</p>
       <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 12px;">
@@ -297,7 +304,7 @@ async function sendRenewalEmail(
   ctx: any,
   args: { email: string; name: string; expiresAt: number },
   templateKey: string,
-  def: { subject: string; aanhef?: string; bodyText: string; buttonText?: string; buttonUrl?: string },
+  def: { subject: string; aanhef?: string; bodyText: string; buttonText?: string; buttonUrl?: string; upsellText?: string; upsellUrl?: string },
   apiKey: string,
 ) {
   const einddatum = new Date(args.expiresAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
@@ -310,6 +317,8 @@ async function sendRenewalEmail(
       aanhef: template?.aanhef ?? def.aanhef,
       buttonText: template?.buttonText ?? def.buttonText,
       buttonUrl: template?.buttonUrl ?? def.buttonUrl,
+      upsellText: template?.upsellText ?? def.upsellText,
+      upsellUrl: template?.upsellUrl ?? def.upsellUrl,
     }),
     apiKey,
   });

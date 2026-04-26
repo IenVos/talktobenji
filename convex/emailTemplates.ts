@@ -102,6 +102,8 @@ export const upsertTemplate = mutation({
     aanhef: v.optional(v.string()),
     buttonText: v.optional(v.string()),
     buttonUrl: v.optional(v.string()),
+    upsellText: v.optional(v.string()),
+    upsellUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -115,6 +117,8 @@ export const upsertTemplate = mutation({
       aanhef: args.aanhef,
       buttonText: args.buttonText,
       buttonUrl: args.buttonUrl,
+      upsellText: args.upsellText,
+      upsellUrl: args.upsellUrl,
       updatedAt: Date.now(),
     };
 
