@@ -99,14 +99,16 @@ export default function CadeaucodesPage() {
   const [filter, setFilter] = useState<"all" | "pending" | "redeemed">("all");
   const [redeemModal, setRedeemModal] = useState<{ id: string; code: string } | null>(null);
 
-  const filtered = (codes ?? []).filter((c) => {
+  const list = (codes ?? []) as Array<{ status: string; [key: string]: unknown }>;
+
+  const filtered = list.filter((c) => {
     if (filter === "pending") return c.status === "pending";
     if (filter === "redeemed") return c.status === "redeemed";
     return true;
   });
 
-  const pendingCount = (codes ?? []).filter((c) => c.status === "pending").length;
-  const redeemedCount = (codes ?? []).filter((c) => c.status === "redeemed").length;
+  const pendingCount = list.filter((c) => c.status === "pending").length;
+  const redeemedCount = list.filter((c) => c.status === "redeemed").length;
 
   const handleManualRedeem = async (id: string, email: string) => {
     await markRedeemedAdmin({ id: id as any, recipientEmail: email });
