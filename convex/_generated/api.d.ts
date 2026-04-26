@@ -31,6 +31,7 @@ import type * as embeddings from "../embeddings.js";
 import type * as exampleData from "../exampleData.js";
 import type * as featureVotes from "../featureVotes.js";
 import type * as feedback from "../feedback.js";
+import type * as giftCodes from "../giftCodes.js";
 import type * as handreikingen from "../handreikingen.js";
 import type * as homepageFaq from "../homepageFaq.js";
 import type * as houvast from "../houvast.js";
@@ -96,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   exampleData: typeof exampleData;
   featureVotes: typeof featureVotes;
   feedback: typeof feedback;
+  giftCodes: typeof giftCodes;
   handreikingen: typeof handreikingen;
   homepageFaq: typeof homepageFaq;
   houvast: typeof houvast;
