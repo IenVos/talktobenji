@@ -12,6 +12,13 @@ crons.daily(
 );
 
 crons.daily(
+  "process trials avond",
+  { hourUTC: 18, minuteUTC: 0 },
+  api.trials.checkAndProcessTrials,
+  {}
+);
+
+crons.daily(
   "process niet alleen",
   { hourUTC: 8, minuteUTC: 0 },
   internal.nietAlleen.processNietAlleenUsers,
