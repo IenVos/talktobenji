@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { action, mutation, query } from "./_generated/server";
-import { api } from "./_generated/api";
+import { action, internalMutation, mutation, query } from "./_generated/server";
+import { api, internal } from "./_generated/api";
+import { checkAdmin } from "./adminAuth";
 
 export const createGiftCode = mutation({
   args: {
@@ -23,7 +24,6 @@ export const createGiftCode = mutation({
     if (args.webhookSecret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
       throw new Error("Unauthorized");
     }
-    // Voorkom duplicaten
     const existing = await ctx.db
       .query("giftCodes")
       .withIndex("by_payment_intent", (q) => q.eq("paymentIntentId", args.paymentIntentId))
@@ -51,13 +51,26 @@ export const createGiftCode = mutation({
 });
 
 export const listAll = query({
-  args: { webhookSecret: v.string() },
+  args: { adminToken: v.string() },
   handler: async (ctx, args) => {
-    if (args.webhookSecret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
-      throw new Error("Unauthorized");
-    }
-    const codes = await ctx.db.query("giftCodes").order("desc").collect();
-    return codes;
+    await checkAdmin(ctx, args.adminToken);
+    return await ctx.db.query("giftCodes").order("desc").collect();
+  },
+});
+
+export const markRedeemedAdmin = mutation({
+  args: {
+    adminToken: v.string(),
+    id: v.id("giftCodes"),
+    recipientEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    await ctx.db.patch(args.id, {
+      status: "redeemed",
+      redeemedByEmail: args.recipientEmail,
+      redeemedAt: Date.now(),
+    });
   },
 });
 
@@ -71,12 +84,19 @@ export const getByCode = query({
   },
 });
 
-export const markRedeemed = mutation({
+// Internal variant — gebruikt door redeemGiftCode action (vermijdt circulaire import)
+export const markRedeemedInternal = internalMutation({
   args: {
     code: v.string(),
     recipientEmail: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{
+    subscriptionType: string;
+    billingPeriod: "monthly" | "quarterly" | "yearly" | undefined;
+    accessDays: number;
+    productName: string;
+    giverName: string;
+  }> => {
     const gift = await ctx.db
       .query("giftCodes")
       .withIndex("by_code", (q) => q.eq("code", args.code.toUpperCase()))
@@ -106,13 +126,18 @@ export const redeemGiftCode = action({
     code: v.string(),
     recipientEmail: v.string(),
   },
-  handler: async (ctx, args) => {
-    const gift = await ctx.runMutation(api.giftCodes.markRedeemed, {
+  handler: async (ctx, args): Promise<{
+    subscriptionType: string;
+    billingPeriod: "monthly" | "quarterly" | "yearly" | undefined;
+    accessDays: number;
+    productName: string;
+    giverName: string;
+  }> => {
+    const gift = await ctx.runMutation(internal.giftCodes.markRedeemedInternal, {
       code: args.code,
       recipientEmail: args.recipientEmail,
     });
 
-    // Activeer abonnement voor dit e-mailadres
     try {
       await ctx.runMutation(api.subscriptions.activateSubscriptionByEmail, {
         webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
