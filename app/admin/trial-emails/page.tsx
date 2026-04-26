@@ -63,6 +63,8 @@ function TemplateEditor({
   savedAanhef,
   savedButtonText,
   savedButtonUrl,
+  savedUpsellText,
+  savedUpsellUrl,
   onSave,
 }: {
   templateKey: TemplateKey;
