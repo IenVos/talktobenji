@@ -5,32 +5,53 @@ import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { Gift, CheckCircle, Clock, Mail, User, Calendar, Package, Copy, Check } from "lucide-react";
 
+type GiftCode = {
+  _id: string;
+  code: string;
+  slug: string;
+  productName: string;
+  subscriptionType: string;
+  billingPeriod?: "monthly" | "quarterly" | "yearly";
+  accessDays?: number;
+  pricePaid?: number;
+  giverName: string;
+  giverEmail: string;
+  recipientEmail?: string;
+  personalMessage?: string;
+  deliveryMethod: "direct" | "manual";
+  status: "pending" | "redeemed";
+  redeemedByEmail?: string;
+  redeemedAt?: number;
+  paymentIntentId: string;
+  createdAt: number;
+};
+
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard.writeText(text).catch(() => {});
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
   return (
-    <button onClick={copy} className="ml-1.5 text-gray-400 hover:text-gray-600 transition-colors">
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(text).catch(() => {});
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1500);
+      }}
+      className="ml-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+    >
       {copied ? <Check size={13} className="text-green-500" /> : <Copy size={13} />}
     </button>
   );
 }
 
 function ManualRedeemModal({
-  giftId,
-  code,
+  gift,
   onClose,
   onSave,
 }: {
-  giftId: string;
-  code: string;
+  gift: GiftCode;
   onClose: () => void;
   onSave: (id: string, email: string) => Promise<void>;
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(gift.recipientEmail ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +60,7 @@ function ManualRedeemModal({
     setSaving(true);
     setError(null);
     try {
-      await onSave(giftId, email);
+      await onSave(gift._id, email);
       onClose();
     } catch (err: any) {
       setError(err.message || "Er is iets misgegaan.");
@@ -52,7 +73,7 @@ function ManualRedeemModal({
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
         <h3 className="text-base font-semibold text-gray-900 mb-1">Handmatig inwisselen</h3>
         <p className="text-sm text-gray-500 mb-4">
-          Code <span className="font-mono font-semibold text-gray-800">{code}</span> markeren als gebruikt
+          Code <span className="font-mono font-semibold text-gray-800">{gift.code}</span> markeren als gebruikt
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
@@ -72,11 +93,7 @@ function ManualRedeemModal({
             >
               {saving ? "Opslaan…" : "Markeren als gebruikt"}
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl text-sm"
-            >
+            <button type="button" onClick={onClose} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl text-sm">
               Annuleren
             </button>
           </div>
@@ -93,22 +110,17 @@ const BILLING_LABEL: Record<string, string> = {
 };
 
 export default function CadeaucodesPage() {
-  const codes = useAdminQuery(api.giftCodes.listAll, {});
+  const rawCodes = useAdminQuery(api.giftCodes.listAll, {});
+  const codes = rawCodes as GiftCode[] | undefined;
   const markRedeemedAdmin = useAdminMutation(api.giftCodes.markRedeemedAdmin);
 
   const [filter, setFilter] = useState<"all" | "pending" | "redeemed">("all");
-  const [redeemModal, setRedeemModal] = useState<{ id: string; code: string } | null>(null);
+  const [redeemModal, setRedeemModal] = useState<GiftCode | null>(null);
 
-  const list = (codes ?? []) as Array<{ status: string; [key: string]: unknown }>;
-
-  const filtered = list.filter((c) => {
-    if (filter === "pending") return c.status === "pending";
-    if (filter === "redeemed") return c.status === "redeemed";
-    return true;
-  });
-
-  const pendingCount = list.filter((c) => c.status === "pending").length;
-  const redeemedCount = list.filter((c) => c.status === "redeemed").length;
+  const all = codes ?? [];
+  const filtered = filter === "all" ? all : all.filter((c) => c.status === filter);
+  const pendingCount = all.filter((c) => c.status === "pending").length;
+  const redeemedCount = all.filter((c) => c.status === "redeemed").length;
 
   const handleManualRedeem = async (id: string, email: string) => {
     await markRedeemedAdmin({ id: id as any, recipientEmail: email });
@@ -126,7 +138,7 @@ export default function CadeaucodesPage() {
         <a
           href="/cadeau-inwisselen"
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
           className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
         >
           <Gift size={15} />
@@ -137,7 +149,7 @@ export default function CadeaucodesPage() {
       {/* Statistieken */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: "Totaal uitgegeven", value: (codes ?? []).length, icon: Gift, color: "text-primary-600 bg-primary-50" },
+          { label: "Totaal uitgegeven", value: all.length, icon: Gift, color: "text-primary-600 bg-primary-50" },
           { label: "Nog niet ingewisseld", value: pendingCount, icon: Clock, color: "text-amber-600 bg-amber-50" },
           { label: "Ingewisseld", value: redeemedCount, icon: CheckCircle, color: "text-green-600 bg-green-50" },
         ].map(({ label, value, icon: Icon, color }) => (
@@ -176,7 +188,9 @@ export default function CadeaucodesPage() {
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
           <Gift size={32} className="mx-auto text-gray-300 mb-3" />
-          <p className="text-gray-500 text-sm">Nog geen cadeaucodes{filter !== "all" ? " in deze categorie" : ""}</p>
+          <p className="text-gray-500 text-sm">
+            Nog geen cadeaucodes{filter !== "all" ? " in deze categorie" : ""}
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -189,7 +203,6 @@ export default function CadeaucodesPage() {
                   day: "numeric", month: "long", year: "numeric",
                 })
               : null;
-
             const isPending = gift.status === "pending";
 
             return (
@@ -199,7 +212,7 @@ export default function CadeaucodesPage() {
                   isPending ? "border-amber-200" : "border-gray-200"
                 }`}
               >
-                {/* Header rij */}
+                {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
@@ -208,7 +221,7 @@ export default function CadeaucodesPage() {
                       {isPending ? <Clock size={16} /> : <CheckCircle size={16} />}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <span className="font-mono font-bold text-gray-900 text-base tracking-wider">{gift.code}</span>
                         <CopyButton text={gift.code} />
                       </div>
@@ -221,7 +234,7 @@ export default function CadeaucodesPage() {
                   </div>
                   {isPending && (
                     <button
-                      onClick={() => setRedeemModal({ id: gift._id, code: gift.code })}
+                      onClick={() => setRedeemModal(gift)}
                       className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
                     >
                       Handmatig inwisselen
@@ -229,7 +242,7 @@ export default function CadeaucodesPage() {
                   )}
                 </div>
 
-                {/* Details grid */}
+                {/* Details */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                   <div className="flex items-start gap-2">
                     <Package size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
@@ -254,19 +267,13 @@ export default function CadeaucodesPage() {
                   <div className="flex items-start gap-2">
                     <Mail size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-xs text-gray-400">
-                        {isPending ? "Gericht aan" : "Ingewisseld door"}
-                      </p>
+                      <p className="text-xs text-gray-400">{isPending ? "Gericht aan" : "Ingewisseld door"}</p>
                       <p className="font-medium text-gray-800">
-                        {isPending
-                          ? (gift.recipientEmail || "—")
-                          : (gift.redeemedByEmail || "—")}
+                        {isPending ? (gift.recipientEmail ?? "—") : (gift.redeemedByEmail ?? "—")}
                       </p>
-                      {gift.deliveryMethod && (
-                        <p className="text-xs text-gray-400">
-                          {gift.deliveryMethod === "direct" ? "Direct verstuurd" : "Handmatig bezorgd"}
-                        </p>
-                      )}
+                      <p className="text-xs text-gray-400">
+                        {gift.deliveryMethod === "direct" ? "Direct verstuurd" : "Handmatig bezorgd"}
+                      </p>
                     </div>
                   </div>
 
@@ -293,7 +300,7 @@ export default function CadeaucodesPage() {
                       <span className="text-gray-400 mt-0.5 text-xs flex-shrink-0">€</span>
                       <div>
                         <p className="text-xs text-gray-400">Betaald</p>
-                        <p className="text-gray-700">€{gift.pricePaid?.toFixed(2)}</p>
+                        <p className="text-gray-700">€{gift.pricePaid.toFixed(2)}</p>
                       </div>
                     </div>
                   )}
@@ -301,7 +308,7 @@ export default function CadeaucodesPage() {
 
                 {/* Persoonlijk bericht */}
                 {gift.personalMessage && (
-                  <div className="border-l-3 border-primary-200 pl-3 py-1 bg-primary-50 rounded-r-lg">
+                  <div className="border-l-4 border-primary-200 pl-3 py-1 bg-primary-50 rounded-r-lg">
                     <p className="text-xs text-gray-400 mb-0.5">Persoonlijk bericht</p>
                     <p className="text-sm text-gray-600 italic">"{gift.personalMessage}"</p>
                   </div>
@@ -312,11 +319,9 @@ export default function CadeaucodesPage() {
         </div>
       )}
 
-      {/* Modal */}
       {redeemModal && (
         <ManualRedeemModal
-          giftId={redeemModal.id}
-          code={redeemModal.code}
+          gift={redeemModal}
           onClose={() => setRedeemModal(null)}
           onSave={handleManualRedeem}
         />
