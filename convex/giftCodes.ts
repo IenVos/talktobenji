@@ -1,6 +1,5 @@
 import { v } from "convex/values";
-import { action, internalMutation, mutation, query } from "./_generated/server";
-import { api, internal } from "./_generated/api";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
 export const createGiftCode = mutation({
@@ -84,19 +83,13 @@ export const getByCode = query({
   },
 });
 
-// Internal variant — gebruikt door redeemGiftCode action (vermijdt circulaire import)
+// Internal — aangeroepen vanuit giftActions.ts (aparte file = geen circulaire import)
 export const markRedeemedInternal = internalMutation({
   args: {
     code: v.string(),
     recipientEmail: v.string(),
   },
-  handler: async (ctx, args): Promise<{
-    subscriptionType: string;
-    billingPeriod: "monthly" | "quarterly" | "yearly" | undefined;
-    accessDays: number;
-    productName: string;
-    giverName: string;
-  }> => {
+  handler: async (ctx, args) => {
     const gift = await ctx.db
       .query("giftCodes")
       .withIndex("by_code", (q) => q.eq("code", args.code.toUpperCase()))
@@ -112,46 +105,11 @@ export const markRedeemedInternal = internalMutation({
     });
 
     return {
-      subscriptionType: gift.subscriptionType,
-      billingPeriod: gift.billingPeriod,
-      accessDays: gift.accessDays ?? 365,
-      productName: gift.productName,
-      giverName: gift.giverName,
+      subscriptionType: gift.subscriptionType as string,
+      billingPeriod: gift.billingPeriod as "monthly" | "quarterly" | "yearly" | undefined,
+      accessDays: (gift.accessDays ?? 365) as number,
+      productName: gift.productName as string,
+      giverName: gift.giverName as string,
     };
-  },
-});
-
-export const redeemGiftCode = action({
-  args: {
-    code: v.string(),
-    recipientEmail: v.string(),
-  },
-  handler: async (ctx, args): Promise<{
-    subscriptionType: string;
-    billingPeriod: "monthly" | "quarterly" | "yearly" | undefined;
-    accessDays: number;
-    productName: string;
-    giverName: string;
-  }> => {
-    const gift = await ctx.runMutation(internal.giftCodes.markRedeemedInternal, {
-      code: args.code,
-      recipientEmail: args.recipientEmail,
-    });
-
-    try {
-      await ctx.runMutation(api.subscriptions.activateSubscriptionByEmail, {
-        webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
-        email: args.recipientEmail,
-        subscriptionType: gift.subscriptionType,
-        billingPeriod: gift.billingPeriod,
-        accessDays: gift.accessDays,
-        pricePaid: 0,
-        paymentProvider: "gift",
-      });
-    } catch {
-      // Account bestaat nog niet — activatie volgt bij registratie
-    }
-
-    return gift;
   },
 });

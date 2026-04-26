@@ -18,7 +18,7 @@ export default function CadeauInwisselenPage() {
     api.giftCodes.getByCode,
     code ? { code } : "skip"
   );
-  const redeemAction = useAction(api.giftCodes.redeemGiftCode);
+  const redeemAction = useAction(api.giftActions.redeemGiftCode);
 
   // Verwerk resultaat van code-lookup
   useEffect(() => {
