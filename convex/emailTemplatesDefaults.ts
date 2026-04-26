@@ -4,11 +4,11 @@
 export const DEFAULT_TEMPLATES = {
   trial_day5: {
     subject: "Nog 2 dagen — je proefperiode loopt bijna af",
-    bodyText: `We wilden je even laten weten dat je proefperiode over 2 dagen afloopt.\n\nWe hopen dat je de afgelopen dagen hebt kunnen voelen waarvoor Benji er is: een plek waar je je verhaal kwijt kunt, op je eigen tempo.\n\nAls je wilt blijven werken aan wat je bent begonnen, je reflecties, je doelen, je gesprekken, dan is er een abonnement dat daarbij past. En wat je tot nu toe hebt opgebouwd, blijft altijd van jou.`,
+    bodyText: `Over 2 dagen loopt je proefperiode af.\n\nIk hoop dat je in deze week hebt gevoeld waarvoor Benji er is — een plek om je verhaal kwijt te kunnen, op je eigen tempo.\n\nAls je wilt doorgaan met wat je bent begonnen, je gesprekken, je reflecties, je doelen, dan is er een mogelijkheid die bij je past. Bekijk de opties via de knop hieronder. Wat je tot nu toe hebt opgebouwd, blijft altijd van jou.`,
   },
   trial_day7: {
     subject: "Vandaag is de laatste dag van je proefperiode",
-    bodyText: `Hoe gaat het met je? We hopen dat de afgelopen week met Benji een beetje steun heeft gebracht.\n\nDe afgelopen 7 dagen hebben we je laten proeven van alles wat Benji te bieden heeft, en vandaag is de laatste dag dat je volledige toegang hebt.\n\nHeb je gemerkt dat bepaalde dingen je goed deden? De gesprekken, je reflecties, de check-ins of de memories? Dan is het fijn om te weten dat die gewoon voor je bewaard blijven, wat je ook kiest.\n\nMocht je willen blijven gebruiken wat je de afgelopen tijd hebt ontdekt, dan kan dat via een abonnement dat bij je past. Geen druk, maar we willen je er wel even op wijzen.`,
+    bodyText: `Hoe gaat het met je?\n\nVandaag is de laatste dag van je 7 dagen met Benji. Ik hoop dat het iets heeft gebracht — al was het maar het gevoel dat je er niet alleen voor stond.\n\nAlles wat je hebt opgebouwd — je gesprekken, reflecties, memories — blijft bewaard, wat je ook kiest.\n\nWil je verder? Bekijk hieronder wat bij je past. Geen druk, maar de deur staat open.`,
   },
 
   // Niet Alleen

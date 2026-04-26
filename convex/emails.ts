@@ -53,9 +53,9 @@ function buildEmailHtml(name: string, bodyText: string): string {
       <p style="font-size: 16px; margin-bottom: 8px;">Lieve ${name},</p>
       ${paragraphsHtml}
       <div style="margin: 32px 0;">
-        <a href="https://www.talktobenji.com/lp/jaar-toegang"
+        <a href="https://www.talktobenji.com/lp/prijzen"
            style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
-          Ja, ik wil doorgaan
+          Kies wat bij je past
         </a>
       </div>
       <p style="font-size: 15px; margin-top: 24px; color: #4a5568;">Met warme groet,</p>

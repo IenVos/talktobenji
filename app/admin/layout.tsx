@@ -179,7 +179,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         items: [
           { href: "/admin/checkout", label: "Producten", icon: CreditCard },
           { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
-          { href: "/admin/niet-alleen-emails", label: "Niet Alleen", icon: Mail },
+          { href: "/admin/trial-emails", label: "Trial emails", icon: Mail },
+          { href: "/admin/niet-alleen-emails", label: "Niet Alleen emails", icon: Mail },
           { href: "/admin/onderweg", label: "Shop", icon: ShoppingBag },
         ],
       },
