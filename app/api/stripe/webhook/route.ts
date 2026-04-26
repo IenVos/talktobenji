@@ -143,6 +143,10 @@ export async function POST(req: NextRequest) {
 
       try {
         const subType: string = subscriptionType || "alles_in_1";
+        const billingPeriod =
+          subType === "maand_toegang" ? "monthly" :
+          subType === "kwartaal_toegang" ? "quarterly" :
+          "yearly";
 
         // Activatie proberen (stille fout als nog geen account)
         try {
@@ -151,7 +155,7 @@ export async function POST(req: NextRequest) {
             webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
             email,
             subscriptionType: subType,
-            billingPeriod: "yearly",
+            billingPeriod,
             accessDays,
             pricePaid: pi.amount / 100,
             paymentProvider: "stripe",
