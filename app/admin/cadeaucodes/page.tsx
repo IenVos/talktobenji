@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
-import { Gift, CheckCircle, Clock, Mail, User, Calendar, Package, Copy, Check } from "lucide-react";
+import { Gift, CheckCircle, Clock, Mail, User, Calendar, Package, Copy, Check, FlaskConical, X } from "lucide-react";
 
 type GiftCode = {
   _id: string;
@@ -109,13 +109,141 @@ const BILLING_LABEL: Record<string, string> = {
   yearly: "Jaar",
 };
 
+type TestForm = {
+  productName: string;
+  subscriptionType: string;
+  accessDays: string;
+  giverName: string;
+  giverEmail: string;
+  recipientEmail: string;
+  personalMessage: string;
+};
+
+const EMPTY_TEST: TestForm = {
+  productName: "Talk To Benji — Jaartoegang",
+  subscriptionType: "alles_in_1",
+  accessDays: "365",
+  giverName: "Testgever",
+  giverEmail: "gever@test.nl",
+  recipientEmail: "",
+  personalMessage: "",
+};
+
+function TestCodeModal({ onClose, onCreate }: { onClose: () => void; onCreate: (f: TestForm) => Promise<string> }) {
+  const [form, setForm] = useState<TestForm>(EMPTY_TEST);
+  const [saving, setSaving] = useState(false);
+  const [createdCode, setCreatedCode] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const set = (field: keyof TestForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const code = await onCreate(form);
+      setCreatedCode(code);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
+
+  return (
+    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+            <FlaskConical size={16} className="text-primary-500" />
+            Testcode aanmaken
+          </h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+        </div>
+
+        {createdCode ? (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">Code aangemaakt. Kopieer hem en ga naar <strong>/cadeau-inwisselen</strong> om de flow te testen.</p>
+            <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 text-center">
+              <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Testcode</p>
+              <p className="font-mono font-bold text-2xl tracking-widest text-gray-900">{createdCode}</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { navigator.clipboard.writeText(createdCode).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                className="flex-1 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700"
+              >
+                {copied ? "Gekopieerd ✓" : "Kopieer code"}
+              </button>
+              <a
+                href="/cadeau-inwisselen"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 text-center"
+              >
+                Inwisselpagina →
+              </a>
+            </div>
+            <button onClick={onClose} className="w-full text-sm text-gray-400 hover:text-gray-600 py-1">Sluiten</button>
+          </div>
+        ) : (
+          <form onSubmit={handleCreate} className="space-y-3">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Productnaam</label>
+              <input type="text" value={form.productName} onChange={set("productName")} required className={inputClass} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Producttype</label>
+                <input type="text" value={form.subscriptionType} onChange={set("subscriptionType")} required className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Toegangsdagen</label>
+                <input type="number" value={form.accessDays} onChange={set("accessDays")} required min="1" className={inputClass} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Naam gever</label>
+                <input type="text" value={form.giverName} onChange={set("giverName")} required className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Email gever</label>
+                <input type="email" value={form.giverEmail} onChange={set("giverEmail")} required className={inputClass} />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Email ontvanger <span className="text-gray-400">(optioneel)</span></label>
+              <input type="email" value={form.recipientEmail} onChange={set("recipientEmail")} className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Persoonlijk bericht <span className="text-gray-400">(optioneel)</span></label>
+              <textarea value={form.personalMessage} onChange={set("personalMessage")} rows={2} className={inputClass} />
+            </div>
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700 disabled:opacity-50"
+            >
+              {saving ? "Aanmaken…" : "Testcode aanmaken"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function CadeaucodesPage() {
   const rawCodes = useAdminQuery(api.giftCodes.listAll, {});
   const codes = rawCodes as GiftCode[] | undefined;
   const markRedeemedAdmin = useAdminMutation(api.giftCodes.markRedeemedAdmin);
+  const adminCreateTestCode = useAdminMutation(api.giftCodes.adminCreateTestCode);
 
   const [filter, setFilter] = useState<"all" | "pending" | "redeemed">("all");
   const [redeemModal, setRedeemModal] = useState<GiftCode | null>(null);
+  const [showTestModal, setShowTestModal] = useState(false);
 
   const all = codes ?? [];
   const filtered = filter === "all" ? all : all.filter((c) => c.status === filter);
@@ -124,6 +252,18 @@ export default function CadeaucodesPage() {
 
   const handleManualRedeem = async (id: string, email: string) => {
     await markRedeemedAdmin({ id: id as any, recipientEmail: email });
+  };
+
+  const handleCreateTestCode = async (form: TestForm): Promise<string> => {
+    return await adminCreateTestCode({
+      productName: form.productName,
+      subscriptionType: form.subscriptionType,
+      accessDays: parseInt(form.accessDays, 10),
+      giverName: form.giverName,
+      giverEmail: form.giverEmail,
+      recipientEmail: form.recipientEmail || undefined,
+      personalMessage: form.personalMessage || undefined,
+    }) as string;
   };
 
   return (
@@ -135,15 +275,24 @@ export default function CadeaucodesPage() {
             Overzicht van alle uitgegeven cadeaucodes — aangemaakt via de checkout
           </p>
         </div>
-        <a
-          href="/cadeau-inwisselen"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-        >
-          <Gift size={15} />
-          Inwisselpagina
-        </a>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowTestModal(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-primary-200 bg-primary-50 rounded-xl text-sm text-primary-700 hover:bg-primary-100 transition-colors"
+          >
+            <FlaskConical size={15} />
+            Testcode
+          </button>
+          <a
+            href="/cadeau-inwisselen"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <Gift size={15} />
+            Inwisselpagina
+          </a>
+        </div>
       </div>
 
       {/* Statistieken */}
@@ -324,6 +473,13 @@ export default function CadeaucodesPage() {
           gift={redeemModal}
           onClose={() => setRedeemModal(null)}
           onSave={handleManualRedeem}
+        />
+      )}
+
+      {showTestModal && (
+        <TestCodeModal
+          onClose={() => setShowTestModal(false)}
+          onCreate={handleCreateTestCode}
         />
       )}
     </div>

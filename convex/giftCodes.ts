@@ -51,6 +51,45 @@ export const createGiftCode = mutation({
   },
 });
 
+/** Admin: maak een testcode aan zonder Stripe (voor testen) */
+export const adminCreateTestCode = mutation({
+  args: {
+    adminToken: v.string(),
+    productName: v.string(),
+    subscriptionType: v.string(),
+    accessDays: v.number(),
+    giverName: v.string(),
+    giverEmail: v.string(),
+    recipientEmail: v.optional(v.string()),
+    personalMessage: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const codeRaw =
+      Math.random().toString(36).slice(2, 6).toUpperCase() +
+      Math.random().toString(36).slice(2, 6).toUpperCase();
+    const code = `TEST-${codeRaw.slice(0, 4)}-${codeRaw.slice(4, 8)}`;
+    await ctx.db.insert("giftCodes", {
+      code,
+      slug: "test",
+      productName: args.productName,
+      subscriptionType: args.subscriptionType,
+      billingPeriod: "yearly",
+      accessDays: args.accessDays,
+      pricePaid: 0,
+      giverName: args.giverName,
+      giverEmail: args.giverEmail,
+      recipientEmail: args.recipientEmail,
+      personalMessage: args.personalMessage,
+      deliveryMethod: "manual",
+      status: "pending",
+      paymentIntentId: `test_${Date.now()}`,
+      createdAt: Date.now(),
+    });
+    return code;
+  },
+});
+
 export const listAll = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
