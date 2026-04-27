@@ -12,8 +12,26 @@ import {
   Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3,
   MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell,
   ShoppingBag, Mail, Users, HelpCircle, ThumbsUp,
-  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield, Newspaper, Layers, MousePointerClick, Smile, Network, Gift,
+  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield, Newspaper, Layers, MousePointerClick, Smile, Network,
 } from "lucide-react";
+
+function GiftCodeIcon({ size = 17, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      {/* Hart achtergrond — licht grijs */}
+      <path
+        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+        fill="#d1d5db"
+      />
+      {/* Diamant — goud, gecentreerd in het hart */}
+      <g transform="translate(6.6 7.4) scale(0.45)">
+        <polygon points="6,3 18,3 22,9 12,22 2,9" fill="#f59e0b" stroke="#b45309" strokeWidth="1.5" strokeLinejoin="round" />
+        <polyline points="2,9 12,12 22,9" fill="none" stroke="#b45309" strokeWidth="1.2" strokeLinejoin="round" />
+        <line x1="12" y1="3" x2="12" y2="22" stroke="#b45309" strokeWidth="1.2" />
+      </g>
+    </svg>
+  );
+}
 
 type NavItem = {
   href: string;
@@ -181,7 +199,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
           { href: "/admin/trial-emails", label: "E-mails", icon: Mail },
           { href: "/admin/niet-alleen-emails", label: "Niet Alleen emails", icon: Mail },
-          { href: "/admin/cadeaucodes", label: "Cadeaucodes", icon: Gift },
+          { href: "/admin/cadeaucodes", label: "Cadeaucodes", icon: GiftCodeIcon },
           { href: "/admin/onderweg", label: "Shop", icon: ShoppingBag },
         ],
       },
