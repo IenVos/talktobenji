@@ -174,11 +174,29 @@ export async function POST(req: NextRequest) {
           const giverVoornaam = (name || email).split(" ")[0];
           const displayProduct = productName || product?.name || "Talk To Benji";
 
-          // Mail aan gever (altijd)
+          // ── Factuur voor gever ──
+          const invoiceNr = `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
+          const invoiceDate = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
+          let attachments: { filename: string; content: string }[] = [];
+          try {
+            const pdfBytes = await buildInvoicePdf({
+              invoiceNr,
+              date: invoiceDate,
+              customerName: name || email,
+              customerEmail: email,
+              productName: displayProduct,
+              totalInclBtw: pi.amount / 100,
+            });
+            attachments = [{ filename: `${invoiceNr}.pdf`, content: Buffer.from(pdfBytes).toString("base64") }];
+          } catch (pdfErr: any) {
+            console.error("[PDF] Cadeau factuur mislukt:", pdfErr?.message);
+          }
+
+          // ── Mail aan gever: cadeaucode + factuur als bijlage ──
           await resend.emails.send({
             from: "Talk To Benji <noreply@talktobenji.com>",
             to: email,
-            subject: `Je cadeaucode: ${code}`,
+            subject: `Je cadeaucode voor ${displayProduct}`,
             html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
               <p style="font-size:16px;margin-bottom:8px;">Hi ${giverVoornaam},</p>
               <p style="font-size:15px;line-height:1.8;color:#4a5568;">Bedankt voor je aankoop! Hieronder vind je de cadeaucode voor <strong>${displayProduct}</strong>.</p>
@@ -186,16 +204,17 @@ export async function POST(req: NextRequest) {
                 <p style="font-size:12px;color:#a0aec0;margin:0 0 6px 0;text-transform:uppercase;letter-spacing:0.1em;">Cadeaucode</p>
                 <p style="font-size:28px;font-weight:700;color:#2d3748;letter-spacing:0.08em;margin:0;">${code}</p>
               </div>
-              <p style="font-size:15px;line-height:1.8;color:#4a5568;">De ontvanger kan de code inwisselen op:</p>
-              <p style="font-size:15px;"><a href="https://talktobenji.com/cadeau-inwisselen" style="color:#6d84a8;font-weight:600;">talktobenji.com/cadeau-inwisselen</a></p>
-              <p style="font-size:14px;color:#718096;margin-top:24px;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
+              <p style="font-size:15px;line-height:1.8;color:#4a5568;">De ontvanger kan de code inwisselen op <a href="https://talktobenji.com/cadeau-inwisselen" style="color:#6d84a8;font-weight:600;">talktobenji.com/cadeau-inwisselen</a>.</p>
+              <p style="font-size:13px;color:#a0aec0;margin-top:24px;">Je factuur (${invoiceNr}) vind je als bijlage bij deze e-mail.</p>
+              <p style="font-size:14px;color:#718096;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
             </div>`,
+            ...(attachments.length > 0 && { attachments }),
           }).catch((err: any) => console.error("[Resend] Gever-cadeaumail mislukt:", err?.message));
 
-          // Mail aan ontvanger (alleen bij direct + recipientEmail)
+          // ── Mail aan ontvanger: alleen bij direct + recipientEmail, geen prijs ──
           if (deliveryMethod === "direct" && recipientEmail) {
             const bericht = personalMessage
-              ? `<p style="background:#fff;border-left:3px solid #6d84a8;padding:12px 16px;border-radius:0 8px 8px 0;font-style:italic;color:#4a5568;">"${personalMessage}"</p>`
+              ? `<p style="background:#fff;border-left:3px solid #6d84a8;padding:12px 16px;border-radius:0 8px 8px 0;font-style:italic;color:#4a5568;margin:16px 0;">"${personalMessage}"</p>`
               : "";
             await resend.emails.send({
               from: "Talk To Benji <noreply@talktobenji.com>",
