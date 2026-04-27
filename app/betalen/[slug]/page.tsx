@@ -162,83 +162,96 @@ function CheckoutForm({
 
         {isGift && (
           <div className="border-t border-stone-100 bg-stone-50 px-4 py-4 space-y-4">
+            {/* Stap 1: bezorgmethode */}
             <div>
-              <label className={labelClass}>E-mailadres van de ontvanger <span className="font-normal text-stone-400">(optioneel)</span></label>
-              <input
-                type="email"
-                placeholder="ontvanger@email.nl"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Persoonlijk bericht <span className="font-normal text-stone-400">(optioneel)</span></label>
-              <textarea
-                placeholder="Bijv. 'Ik denk aan je. ❤️'"
-                value={personalMessage}
-                onChange={(e) => setPersonalMessage(e.target.value)}
-                rows={3}
-                className={`${inputClass} resize-none`}
-              />
-            </div>
-
-            {/* Bezorgmethode — alleen tonen als recipientEmail ingevuld */}
-            {recipientEmail && (
-              <div>
-                <p className={labelClass}>Hoe wil je de code bezorgen?</p>
-                <div className="space-y-2">
-                  {(["direct", "manual"] as const).map((method) => (
-                    <label key={method} className="flex items-start gap-3 cursor-pointer group">
-                      <div
-                        onClick={() => setDeliveryMethod(method)}
-                        className={`mt-0.5 w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                          deliveryMethod === method
-                            ? "border-primary-600 bg-primary-600"
-                            : "border-stone-300 group-hover:border-primary-400"
-                        }`}
-                        style={{ width: 18, height: 18 }}
-                      >
-                        {deliveryMethod === method && (
-                          <div className="w-2 h-2 rounded-full bg-white" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm text-stone-700">
-                          {method === "direct"
-                            ? "Stuur de cadeaucode naar de ontvanger"
-                            : "Ik geef de code zelf (je krijgt de code per mail)"}
-                        </p>
-                        <p className="text-xs text-stone-400 mt-0.5">
-                          {method === "direct"
-                            ? "Wij sturen een e-mail naar " + recipientEmail
-                            : "Jij bepaalt wanneer je de code deelt"}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-
-                {/* Verzenddatum — alleen bij direct */}
-                {deliveryMethod === "direct" && (
-                  <div className="mt-3 pt-3 border-t border-stone-200">
-                    <label className={labelClass}>
-                      Versturen op <span className="font-normal text-stone-400">(optioneel — leeg = direct na betaling)</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                      min={minDate}
-                      className={`${inputClass} cursor-pointer`}
-                    />
-                    {scheduledDate && (
-                      <p className="text-xs text-stone-400 mt-1.5">
-                        De ontvanger krijgt de mail op {new Date(scheduledDate).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}. Jij krijgt dan ook een bevestiging.
+              <p className={labelClass}>Hoe wil je de code bezorgen?</p>
+              <div className="space-y-2">
+                {(["direct", "manual"] as const).map((method) => (
+                  <label key={method} className="flex items-start gap-3 cursor-pointer group">
+                    <div
+                      onClick={() => setDeliveryMethod(method)}
+                      className={`mt-0.5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        deliveryMethod === method
+                          ? "border-primary-600 bg-primary-600"
+                          : "border-stone-300 group-hover:border-primary-400"
+                      }`}
+                      style={{ width: 18, height: 18 }}
+                    >
+                      {deliveryMethod === method && (
+                        <div className="w-2 h-2 rounded-full bg-white" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm text-stone-700">
+                        {method === "direct"
+                          ? "Wij sturen de cadeaucode naar de ontvanger"
+                          : "Ik geef de code zelf (ik krijg de code per mail)"}
                       </p>
-                    )}
-                  </div>
-                )}
+                      <p className="text-xs text-stone-400 mt-0.5">
+                        {method === "direct"
+                          ? "Vul het e-mailadres in — wij verzenden de code"
+                          : "Jij bepaalt wanneer je de code deelt"}
+                      </p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Stap 2: ontvanger-details — alleen bij direct */}
+            {deliveryMethod === "direct" && (
+              <>
+                <div>
+                  <label className={labelClass}>E-mailadres van de ontvanger</label>
+                  <input
+                    type="email"
+                    placeholder="ontvanger@email.nl"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelClass}>Persoonlijk bericht <span className="font-normal text-stone-400">(optioneel)</span></label>
+                  <textarea
+                    placeholder="Bijv. 'Ik denk aan je. ❤️'"
+                    value={personalMessage}
+                    onChange={(e) => setPersonalMessage(e.target.value)}
+                    rows={3}
+                    className={`${inputClass} resize-none`}
+                  />
+                </div>
+                <div className="pt-1 border-t border-stone-200">
+                  <label className={labelClass}>
+                    Versturen op <span className="font-normal text-stone-400">(optioneel — leeg = direct na betaling)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                    min={minDate}
+                    className={`${inputClass} cursor-pointer`}
+                  />
+                  {scheduledDate && (
+                    <p className="text-xs text-stone-400 mt-1.5">
+                      De ontvanger krijgt de mail op {new Date(scheduledDate).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}. Jij krijgt dan ook een bevestiging.
+                    </p>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* Persoonlijk bericht ook beschikbaar bij manual */}
+            {deliveryMethod === "manual" && (
+              <div>
+                <label className={labelClass}>Persoonlijk bericht <span className="font-normal text-stone-400">(optioneel — voor jouw eigen gebruik)</span></label>
+                <textarea
+                  placeholder="Bijv. 'Ik denk aan je. ❤️'"
+                  value={personalMessage}
+                  onChange={(e) => setPersonalMessage(e.target.value)}
+                  rows={3}
+                  className={`${inputClass} resize-none`}
+                />
               </div>
             )}
           </div>
