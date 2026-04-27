@@ -67,6 +67,7 @@ export const create = mutation({
     accessDays: v.optional(v.number()),
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),
+    giftEnabled: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -86,6 +87,7 @@ export const create = mutation({
       accessDays: args.accessDays,
       followUpEmailSubject: args.followUpEmailSubject,
       followUpEmailBody: args.followUpEmailBody,
+      giftEnabled: args.giftEnabled,
       createdAt: now,
       updatedAt: now,
     });
@@ -111,6 +113,7 @@ export const update = mutation({
     accessDays: v.optional(v.number()),
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),
+    giftEnabled: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

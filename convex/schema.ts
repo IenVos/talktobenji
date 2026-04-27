@@ -766,6 +766,7 @@ export default defineSchema({
     // Bevestigingsmail na aankoop (optioneel, beheerbaar via admin)
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),
+    giftEnabled: v.optional(v.boolean()), // Cadeau-optie tonen op checkout
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

@@ -43,10 +43,12 @@ function CheckoutForm({
   slug,
   buttonText,
   clientSecret,
+  giftEnabled,
 }: {
   slug: string;
   buttonText?: string;
   clientSecret: string;
+  giftEnabled?: boolean;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -150,8 +152,8 @@ function CheckoutForm({
         </div>
       </div>
 
-      {/* Cadeau toggle */}
-      <div className="border border-stone-200 rounded-xl overflow-hidden">
+      {/* Cadeau toggle — alleen tonen als product dit ondersteunt */}
+      {giftEnabled && <div className="border border-stone-200 rounded-xl overflow-hidden">
         <label className="flex items-center gap-3 px-4 py-3.5 cursor-pointer bg-white hover:bg-stone-50 transition-colors">
           <Checkbox checked={isGift} onChange={setIsGift} />
           <div>
@@ -256,7 +258,7 @@ function CheckoutForm({
             )}
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Opt-in nieuwsbrief */}
       <label className="flex items-start gap-3 cursor-pointer group">
@@ -465,6 +467,7 @@ export default function BetalenPage() {
                 slug={slug}
                 buttonText={product.buttonText}
                 clientSecret={clientSecret}
+                giftEnabled={product.giftEnabled ?? false}
               />
             </Elements>
           )}

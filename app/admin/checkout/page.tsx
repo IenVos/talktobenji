@@ -25,6 +25,7 @@ type CheckoutProduct = {
   isLive: boolean;
   followUpEmailSubject?: string;
   followUpEmailBody?: string;
+  giftEnabled?: boolean;
   createdAt: number;
   updatedAt: number;
 };
@@ -45,6 +46,7 @@ type FormState = {
   isLive: boolean;
   followUpEmailSubject: string;
   followUpEmailBody: string;
+  giftEnabled: boolean;
 };
 
 const EMPTY_FORM: FormState = {
@@ -63,6 +65,7 @@ const EMPTY_FORM: FormState = {
   isLive: false,
   followUpEmailSubject: "",
   followUpEmailBody: "",
+  giftEnabled: false,
 };
 
 function opt(val: string): string | undefined {
@@ -124,6 +127,7 @@ export default function AdminCheckoutPage() {
       isLive: false,
       followUpEmailSubject: product.followUpEmailSubject ?? "",
       followUpEmailBody: product.followUpEmailBody ?? "",
+      giftEnabled: product.giftEnabled ?? false,
     });
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(null);
@@ -148,6 +152,7 @@ export default function AdminCheckoutPage() {
       isLive: product.isLive,
       followUpEmailSubject: product.followUpEmailSubject ?? "",
       followUpEmailBody: product.followUpEmailBody ?? "",
+      giftEnabled: product.giftEnabled ?? false,
     });
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(product._id);
@@ -188,6 +193,7 @@ export default function AdminCheckoutPage() {
         isLive: form.isLive,
         followUpEmailSubject: opt(form.followUpEmailSubject),
         followUpEmailBody: opt(form.followUpEmailBody),
+        giftEnabled: form.giftEnabled,
       };
       if (editingId) {
         await updateProduct({ id: editingId, ...payload });
@@ -524,15 +530,31 @@ export default function AdminCheckoutPage() {
               )}
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.isLive}
-                onChange={setCheck("isLive")}
-                className="rounded border-primary-300 text-primary-600"
-              />
-              <span className="text-sm text-gray-700">Pagina is live (publiek zichtbaar)</span>
-            </label>
+            <div className="border-t border-primary-100 pt-4 space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.giftEnabled}
+                  onChange={setCheck("giftEnabled")}
+                  className="rounded border-primary-300 text-primary-600"
+                />
+                <span className="text-sm text-gray-700">
+                  Cadeau-optie tonen op checkout{" "}
+                  <span className="text-xs text-gray-400 font-normal">
+                    — koper kan aanvinken dat het een cadeau is en een code ontvangen
+                  </span>
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.isLive}
+                  onChange={setCheck("isLive")}
+                  className="rounded border-primary-300 text-primary-600"
+                />
+                <span className="text-sm text-gray-700">Pagina is live (publiek zichtbaar)</span>
+              </label>
+            </div>
 
             <div className="flex gap-2 pt-2">
               <button
@@ -596,6 +618,7 @@ export default function AdminCheckoutPage() {
                         <p className="text-xs text-gray-400 mt-0.5">
                           Type: {product.subscriptionType}
                           {product.accessDays != null && ` · ${product.accessDays} dagen`}
+                          {product.giftEnabled && " · 🎁 cadeau-optie aan"}
                           {" · "}Bijgewerkt{" "}
                           {new Date(product.updatedAt).toLocaleDateString("nl-NL", {
                             day: "numeric",
