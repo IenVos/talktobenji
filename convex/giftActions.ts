@@ -66,6 +66,26 @@ export const redeemGiftCode = mutation({
           updatedAt: now,
         });
       }
+
+      // Niet Alleen profiel aanmaken als het product dat vereist
+      if (gift.subscriptionType === "niet_alleen") {
+        const user = await ctx.db.get(cred.userId);
+        const bestaandProfiel = await ctx.db
+          .query("nietAlleenProfiles")
+          .withIndex("by_email", (q) => q.eq("email", emailLower))
+          .first();
+        if (!bestaandProfiel) {
+          await ctx.db.insert("nietAlleenProfiles", {
+            userId: emailLower,
+            email: emailLower,
+            naam: user?.name ?? emailLower.split("@")[0],
+            startDatum: Date.now(),
+            dagPrompts: [],
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          });
+        }
+      }
     }
     // Geen account → activatie volgt automatisch bij registratie via credentials.ts
 

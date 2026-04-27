@@ -362,16 +362,43 @@ export const findOrCreateOAuthUser = mutation({
       emailVerified: now,
     });
 
-    // 7-daagse trial aanmaken
-    await ctx.db.insert("userSubscriptions", {
-      userId: userId.toString(),
-      email: emailLower,
-      subscriptionType: "trial",
-      status: "active",
-      startedAt: now,
-      expiresAt: now + 7 * 24 * 60 * 60 * 1000,
-      updatedAt: now,
-    });
+    // Controleer of er een ingewisselde cadeaucode is voor dit e-mailadres
+    const giftForOAuth = await ctx.db
+      .query("giftCodes")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("redeemedByEmail"), emailLower),
+          q.eq(q.field("status"), "redeemed")
+        )
+      )
+      .first();
+
+    if (giftForOAuth) {
+      const accessDays = giftForOAuth.accessDays ?? 365;
+      await ctx.db.insert("userSubscriptions", {
+        userId: userId.toString(),
+        email: emailLower,
+        subscriptionType: giftForOAuth.subscriptionType,
+        billingPeriod: giftForOAuth.billingPeriod,
+        status: "active",
+        startedAt: now,
+        expiresAt: now + accessDays * 24 * 60 * 60 * 1000,
+        pricePaid: 0,
+        paymentProvider: "gift",
+        updatedAt: now,
+      });
+    } else {
+      // 7-daagse trial aanmaken
+      await ctx.db.insert("userSubscriptions", {
+        userId: userId.toString(),
+        email: emailLower,
+        subscriptionType: "trial",
+        status: "active",
+        startedAt: now,
+        expiresAt: now + 7 * 24 * 60 * 60 * 1000,
+        updatedAt: now,
+      });
+    }
 
     // Welkomstmail sturen
     await ctx.scheduler.runAfter(0, internal.emails.sendWelcomeEmail, {
