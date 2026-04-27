@@ -158,6 +158,34 @@ Je hebt nog 7 dagen om alles te bewaren en te beslissen wat je wilt.
 
 We zijn blij dat je er was.`,
   },
+  // ── Cadeau ──
+  gift_gever: {
+    subject: "Je cadeaucode voor {product}",
+    aanhef: "Hi {naam},",
+    bodyText: `Bedankt voor je aankoop! Hieronder vind je de cadeaucode voor {product}.\n\nDe ontvanger kan de code inwisselen via talktobenji.com/cadeau-inwisselen.\n\nJe factuur vind je als bijlage bij deze e-mail.`,
+    buttonText: "Naar de inwisselpagina",
+    buttonUrl: "https://www.talktobenji.com/cadeau-inwisselen",
+    upsellText: "",
+    upsellUrl: "",
+  },
+  gift_ontvanger: {
+    subject: "{gever} heeft iets voor je",
+    aanhef: "Hoi,",
+    bodyText: `{gever} heeft je een cadeau gegeven: toegang tot {product}.\n\n{bericht}\n\nWissel je code in en maak een gratis account aan.`,
+    buttonText: "Cadeau inwisselen",
+    buttonUrl: "https://www.talktobenji.com/cadeau-inwisselen",
+    upsellText: "",
+    upsellUrl: "",
+  },
+  gift_verzonden: {
+    subject: "Je cadeau is verstuurd",
+    aanhef: "Hi {naam},",
+    bodyText: `Je cadeau voor {product} is zojuist verstuurd naar {ontvanger}.\n\nAls de ontvanger vragen heeft, kunnen ze jou bereiken of mailen naar contactmetien@talktobenji.com.`,
+    buttonText: "",
+    buttonUrl: "",
+    upsellText: "",
+    upsellUrl: "",
+  },
 } as const;
 
 export type TemplateKey = keyof typeof DEFAULT_TEMPLATES;

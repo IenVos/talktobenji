@@ -511,6 +511,8 @@ export default defineSchema({
     status: v.union(v.literal("pending"), v.literal("redeemed")),
     redeemedByEmail: v.optional(v.string()),
     redeemedAt: v.optional(v.number()),
+    scheduledSendDate: v.optional(v.number()),    // timestamp: wanneer ontvanger-mail verstuurd moet worden
+    recipientEmailSentAt: v.optional(v.number()), // timestamp: wanneer ontvanger-mail daadwerkelijk verstuurd is
     paymentIntentId: v.string(),
     createdAt: v.number(),
   }).index("by_code", ["code"])

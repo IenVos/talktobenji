@@ -90,4 +90,12 @@ crons.daily(
   {}
 );
 
+// Verwerk ingeplande cadeau-mails (ontvanger-mail op gewenste datum)
+crons.daily(
+  "process scheduled gifts",
+  { hourUTC: 9, minuteUTC: 0 },
+  internal.giftScheduled.processScheduledGifts,
+  {}
+);
+
 export default crons;

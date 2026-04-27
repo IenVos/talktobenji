@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
 export const createGiftCode = mutation({
@@ -17,6 +17,7 @@ export const createGiftCode = mutation({
     recipientEmail: v.optional(v.string()),
     personalMessage: v.optional(v.string()),
     deliveryMethod: v.union(v.literal("direct"), v.literal("manual")),
+    scheduledSendDate: v.optional(v.number()),
     paymentIntentId: v.string(),
   },
   handler: async (ctx, args) => {
@@ -42,6 +43,7 @@ export const createGiftCode = mutation({
       recipientEmail: args.recipientEmail,
       personalMessage: args.personalMessage,
       deliveryMethod: args.deliveryMethod,
+      scheduledSendDate: args.scheduledSendDate,
       status: "pending",
       paymentIntentId: args.paymentIntentId,
       createdAt: Date.now(),
@@ -80,6 +82,32 @@ export const getByCode = query({
       .query("giftCodes")
       .withIndex("by_code", (q) => q.eq("code", args.code.toUpperCase()))
       .first();
+  },
+});
+
+/** Intern: haal alle cadeau-codes op die vandaag verstuurd moeten worden */
+export const getPendingScheduledGifts = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const all = await ctx.db.query("giftCodes").collect();
+    return all.filter(
+      (g) =>
+        g.scheduledSendDate !== undefined &&
+        g.scheduledSendDate <= now &&
+        !g.recipientEmailSentAt &&
+        g.recipientEmail &&
+        g.deliveryMethod === "direct" &&
+        g.status === "pending"
+    );
+  },
+});
+
+/** Intern: markeer dat de ontvanger-mail verstuurd is */
+export const markRecipientEmailSent = internalMutation({
+  args: { id: v.id("giftCodes") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { recipientEmailSentAt: Date.now() });
   },
 });
 

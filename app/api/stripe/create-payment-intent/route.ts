@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Stripe niet geconfigureerd" }, { status: 500 });
   }
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" });
-  const { slug, email, name, paymentIntentId, optIn, isGift, recipientEmail, personalMessage, deliveryMethod } = await req.json();
+  const { slug, email, name, paymentIntentId, optIn, isGift, recipientEmail, personalMessage, deliveryMethod, scheduledSendDate } = await req.json();
 
   if (!slug) {
     return NextResponse.json({ error: "Slug ontbreekt" }, { status: 400 });
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
           recipientEmail: recipientEmail || "",
           personalMessage: personalMessage || "",
           deliveryMethod: deliveryMethod || "manual",
+          scheduledSendDate: scheduledSendDate ? String(scheduledSendDate) : "",
         }),
       },
     });

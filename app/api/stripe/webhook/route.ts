@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object as Stripe.PaymentIntent;
-    const { email, name, subscriptionType, slug, productName, optIn, isGift, recipientEmail, personalMessage, deliveryMethod } = pi.metadata;
+    const { email, name, subscriptionType, slug, productName, optIn, isGift, recipientEmail, personalMessage, deliveryMethod, scheduledSendDate } = pi.metadata;
 
     // ── Cadeau-afhandeling ──
     if (isGift === "true" && email) {
@@ -152,6 +152,9 @@ export async function POST(req: NextRequest) {
           subType === "kwartaal_toegang" ? "quarterly" :
           "yearly";
 
+        const scheduledTs = scheduledSendDate ? parseInt(scheduledSendDate, 10) : undefined;
+        const sendNow = !scheduledTs || scheduledTs <= Date.now();
+
         await convex.mutation(api.giftCodes.createGiftCode, {
           webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
           code,
@@ -166,6 +169,7 @@ export async function POST(req: NextRequest) {
           recipientEmail: recipientEmail || undefined,
           personalMessage: personalMessage || undefined,
           deliveryMethod: (deliveryMethod === "direct" ? "direct" : "manual") as "direct" | "manual",
+          scheduledSendDate: scheduledTs,
           paymentIntentId: pi.id,
         });
 
@@ -174,65 +178,91 @@ export async function POST(req: NextRequest) {
           const giverVoornaam = (name || email).split(" ")[0];
           const displayProduct = productName || product?.name || "Talk To Benji";
 
+          // Haal admin-templates op (vallen terug op defaults als niet aangepast)
+          const [tplGever, tplOntvanger] = await Promise.all([
+            convex.query(api.emailTemplates.getTemplatePublic, { key: "gift_gever" }).catch(() => null),
+            convex.query(api.emailTemplates.getTemplatePublic, { key: "gift_ontvanger" }).catch(() => null),
+          ]);
+
+          const buildBody = (text: string) =>
+            text
+              .split(/\n\n+/)
+              .map((p) => `<p style="font-size:15px;line-height:1.8;color:#4a5568;">${p.replace(/\n/g, "<br/>")}</p>`)
+              .join("");
+
           // ── Factuur voor gever ──
           const invoiceNr = `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
           const invoiceDate = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
           let attachments: { filename: string; content: string }[] = [];
           try {
             const pdfBytes = await buildInvoicePdf({
-              invoiceNr,
-              date: invoiceDate,
-              customerName: name || email,
-              customerEmail: email,
-              productName: displayProduct,
-              totalInclBtw: pi.amount / 100,
+              invoiceNr, date: invoiceDate,
+              customerName: name || email, customerEmail: email,
+              productName: displayProduct, totalInclBtw: pi.amount / 100,
             });
             attachments = [{ filename: `${invoiceNr}.pdf`, content: Buffer.from(pdfBytes).toString("base64") }];
           } catch (pdfErr: any) {
             console.error("[PDF] Cadeau factuur mislukt:", pdfErr?.message);
           }
 
-          // ── Mail aan gever: cadeaucode + factuur als bijlage ──
+          // ── Mail aan gever: cadeaucode + factuur ──
+          const geverSubject = (tplGever?.subject ?? "Je cadeaucode voor {product}")
+            .replace("{product}", displayProduct).replace("{naam}", giverVoornaam);
+          const geverAanhef = (tplGever?.aanhef ?? "Hi {naam},").replace("{naam}", giverVoornaam);
+          const geverBody = (tplGever?.bodyText ?? "Bedankt voor je aankoop! Hieronder vind je de cadeaucode voor {product}.\n\nJe factuur vind je als bijlage.")
+            .replace(/{product}/g, displayProduct).replace(/{naam}/g, giverVoornaam);
+
+          const scheduledNote = scheduledTs && !sendNow
+            ? `<p style="font-size:14px;color:#718096;margin-top:16px;">📅 De ontvanger-mail wordt verstuurd op <strong>${new Date(scheduledTs).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</strong>.</p>`
+            : "";
+
           await resend.emails.send({
             from: "Talk To Benji <noreply@talktobenji.com>",
             to: email,
-            subject: `Je cadeaucode voor ${displayProduct}`,
+            subject: geverSubject,
             html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
-              <p style="font-size:16px;margin-bottom:8px;">Hi ${giverVoornaam},</p>
-              <p style="font-size:15px;line-height:1.8;color:#4a5568;">Bedankt voor je aankoop! Hieronder vind je de cadeaucode voor <strong>${displayProduct}</strong>.</p>
+              <p style="font-size:16px;margin-bottom:16px;">${geverAanhef}</p>
+              ${buildBody(geverBody)}
               <div style="background:#fff;border:2px dashed #6d84a8;border-radius:12px;padding:20px 24px;margin:24px 0;text-align:center;">
                 <p style="font-size:12px;color:#a0aec0;margin:0 0 6px 0;text-transform:uppercase;letter-spacing:0.1em;">Cadeaucode</p>
                 <p style="font-size:28px;font-weight:700;color:#2d3748;letter-spacing:0.08em;margin:0;">${code}</p>
               </div>
-              <p style="font-size:15px;line-height:1.8;color:#4a5568;">De ontvanger kan de code inwisselen op <a href="https://talktobenji.com/cadeau-inwisselen" style="color:#6d84a8;font-weight:600;">talktobenji.com/cadeau-inwisselen</a>.</p>
-              <p style="font-size:13px;color:#a0aec0;margin-top:24px;">Je factuur (${invoiceNr}) vind je als bijlage bij deze e-mail.</p>
-              <p style="font-size:14px;color:#718096;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
+              ${scheduledNote}
+              <p style="font-size:13px;color:#a0aec0;margin-top:24px;">Je factuur (${invoiceNr}) vind je als bijlage.</p>
+              <p style="font-size:14px;color:#718096;">Vragen? <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a></p>
             </div>`,
             ...(attachments.length > 0 && { attachments }),
           }).catch((err: any) => console.error("[Resend] Gever-cadeaumail mislukt:", err?.message));
 
-          // ── Mail aan ontvanger: alleen bij direct + recipientEmail, geen prijs ──
-          if (deliveryMethod === "direct" && recipientEmail) {
-            const bericht = personalMessage
+          // ── Mail aan ontvanger: alleen bij direct + recipientEmail + sendNow ──
+          if (deliveryMethod === "direct" && recipientEmail && sendNow) {
+            const berichtHtml = personalMessage
               ? `<p style="background:#fff;border-left:3px solid #6d84a8;padding:12px 16px;border-radius:0 8px 8px 0;font-style:italic;color:#4a5568;margin:16px 0;">"${personalMessage}"</p>`
               : "";
+            const ontvSubject = (tplOntvanger?.subject ?? "{gever} heeft iets voor je")
+              .replace("{gever}", giverVoornaam).replace("{product}", displayProduct);
+            const ontvAanhef = (tplOntvanger?.aanhef ?? "Hoi,");
+            const ontvBody = (tplOntvanger?.bodyText ?? "{gever} heeft je een cadeau gegeven: toegang tot {product}.\n\n{bericht}\n\nWissel je code in en maak een gratis account aan.")
+              .replace(/{gever}/g, giverVoornaam)
+              .replace(/{product}/g, displayProduct)
+              .replace(/{bericht}/g, personalMessage || "");
+
             await resend.emails.send({
               from: "Talk To Benji <noreply@talktobenji.com>",
               to: recipientEmail,
-              subject: `${giverVoornaam} heeft iets voor je`,
+              subject: ontvSubject,
               html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
-                <p style="font-size:16px;margin-bottom:8px;">Hoi,</p>
-                <p style="font-size:15px;line-height:1.8;color:#4a5568;"><strong>${giverVoornaam}</strong> heeft je een cadeau gegeven: toegang tot <strong>${displayProduct}</strong>.</p>
-                ${bericht}
+                <p style="font-size:16px;margin-bottom:16px;">${ontvAanhef}</p>
+                ${buildBody(ontvBody)}
+                ${berichtHtml}
                 <div style="background:#fff;border:2px dashed #6d84a8;border-radius:12px;padding:20px 24px;margin:24px 0;text-align:center;">
                   <p style="font-size:12px;color:#a0aec0;margin:0 0 6px 0;text-transform:uppercase;letter-spacing:0.1em;">Jouw cadeaucode</p>
                   <p style="font-size:28px;font-weight:700;color:#2d3748;letter-spacing:0.08em;margin:0;">${code}</p>
                 </div>
-                <p style="font-size:15px;line-height:1.8;color:#4a5568;">Wissel je code in en maak een gratis account aan:</p>
                 <div style="margin:20px 0;">
-                  <a href="https://talktobenji.com/cadeau-inwisselen" style="background:#6d84a8;color:#fff;padding:13px 26px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">Cadeau inwisselen</a>
+                  <a href="https://talktobenji.com/cadeau-inwisselen" style="background:#6d84a8;color:#fff;padding:13px 26px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">${tplOntvanger?.buttonText ?? "Cadeau inwisselen"}</a>
                 </div>
-                <p style="font-size:14px;color:#718096;margin-top:24px;">Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>.</p>
+                <p style="font-size:14px;color:#718096;margin-top:24px;">Vragen? <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a></p>
               </div>`,
             }).catch((err: any) => console.error("[Resend] Ontvanger-cadeaumail mislukt:", err?.message));
           }

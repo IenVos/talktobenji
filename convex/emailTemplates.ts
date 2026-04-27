@@ -7,6 +7,17 @@ import { internalQuery, mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 export { DEFAULT_TEMPLATES, type TemplateKey } from "./emailTemplatesDefaults";
 
+/** Publiek opvragen (gebruikt in webhook/server-side) */
+export const getTemplatePublic = query({
+  args: { key: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("emailTemplates")
+      .withIndex("by_key", (q) => q.eq("key", args.key))
+      .unique();
+  },
+});
+
 /** Intern opvragen (gebruikt in emails.ts) */
 export const getTemplateInternal = internalQuery({
   args: { key: v.string() },

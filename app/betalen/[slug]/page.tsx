@@ -61,6 +61,12 @@ function CheckoutForm({
   const [recipientEmail, setRecipientEmail] = useState("");
   const [personalMessage, setPersonalMessage] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState<"direct" | "manual">("manual");
+  const [scheduledDate, setScheduledDate] = useState(""); // YYYY-MM-DD
+
+  // Minimum datum = morgen
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split("T")[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +88,9 @@ function CheckoutForm({
             recipientEmail: recipientEmail || undefined,
             personalMessage: personalMessage || undefined,
             deliveryMethod,
+            scheduledSendDate: (deliveryMethod === "direct" && scheduledDate)
+              ? new Date(scheduledDate).getTime()
+              : undefined,
           }),
         }),
       });
@@ -197,7 +206,7 @@ function CheckoutForm({
                       <div>
                         <p className="text-sm text-stone-700">
                           {method === "direct"
-                            ? "Stuur de cadeaucode direct naar de ontvanger"
+                            ? "Stuur de cadeaucode naar de ontvanger"
                             : "Ik geef de code zelf (je krijgt de code per mail)"}
                         </p>
                         <p className="text-xs text-stone-400 mt-0.5">
@@ -209,6 +218,27 @@ function CheckoutForm({
                     </label>
                   ))}
                 </div>
+
+                {/* Verzenddatum — alleen bij direct */}
+                {deliveryMethod === "direct" && (
+                  <div className="mt-3 pt-3 border-t border-stone-200">
+                    <label className={labelClass}>
+                      Versturen op <span className="font-normal text-stone-400">(optioneel — leeg = direct na betaling)</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      min={minDate}
+                      className={`${inputClass} cursor-pointer`}
+                    />
+                    {scheduledDate && (
+                      <p className="text-xs text-stone-400 mt-1.5">
+                        De ontvanger krijgt de mail op {new Date(scheduledDate).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}. Jij krijgt dan ook een bevestiging.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

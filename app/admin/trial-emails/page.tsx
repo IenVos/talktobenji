@@ -10,7 +10,8 @@ type TemplateKey =
   | "trial_day5" | "trial_day7"
   | "renewal_jaar_1" | "renewal_jaar_2" | "renewal_jaar_3"
   | "renewal_kwartaal_1" | "renewal_kwartaal_2" | "renewal_kwartaal_3"
-  | "renewal_maand_1" | "renewal_maand_2" | "renewal_maand_3";
+  | "renewal_maand_1" | "renewal_maand_2" | "renewal_maand_3"
+  | "gift_gever" | "gift_ontvanger" | "gift_verzonden";
 
 const SECTIONS = [
   {
@@ -50,6 +51,16 @@ const SECTIONS = [
       { key: "renewal_maand_1" as TemplateKey, title: "Mail 1 — 7 dagen voor afloop", subtitle: "Gebruik {einddatum} en {naam}" },
       { key: "renewal_maand_2" as TemplateKey, title: "Mail 2 — 3 dagen voor afloop", subtitle: "Gebruik {einddatum} en {naam}" },
       { key: "renewal_maand_3" as TemplateKey, title: "Mail 3 — Laatste dag", subtitle: "Gebruik {naam}" },
+    ],
+  },
+  {
+    id: "cadeau",
+    label: "Cadeau-mails",
+    subtitle: "Verstuurd bij aankoop als cadeau · gebruik {naam}, {product}, {gever}, {ontvanger}, {bericht}, {code}",
+    emails: [
+      { key: "gift_gever" as TemplateKey, title: "Mail aan gever — Bevestiging + code", subtitle: "Altijd verstuurd na aankoop · bevat de cadeaucode + factuur als bijlage" },
+      { key: "gift_ontvanger" as TemplateKey, title: "Mail aan ontvanger — Cadeau", subtitle: "Verstuurd direct of op de ingestelde datum · geen prijs zichtbaar" },
+      { key: "gift_verzonden" as TemplateKey, title: "Mail aan gever — Cadeau verstuurd", subtitle: "Verstuurd als geplande mail op de gekozen datum wordt verzonden" },
     ],
   },
 ];
