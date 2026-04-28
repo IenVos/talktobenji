@@ -1,12 +1,13 @@
 "use client";
 
-import { Heart, PawPrint, MessageSquare } from "lucide-react";
+import { Heart, PawPrint, MessageSquare, Users } from "lucide-react";
 import Image from "next/image";
 
 const TOPICS = [
   { id: "verlies-dierbare", label: "Ik heb iemand verloren", icon: "heart" },
   { id: "omgaan-verdriet", label: "Ik zit met verdriet", icon: "verdriet" },
   { id: "afscheid-huisdier", label: "Ik mis mijn huisdier", icon: "paw" },
+  { id: "voel-me-alleen", label: "Ik voel me alleen", icon: "alone" },
   { id: "gewoon-praten", label: "Deel je gevoel. Soms is dat al genoeg.", icon: "message" },
 ] as const;
 
@@ -41,6 +42,7 @@ export function TopicButtons({ onSelect }: TopicButtonsProps) {
               </span>
             )}
             {icon === "paw" && <PawPrint size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
+            {icon === "alone" && <Users size={18} strokeWidth={2} className="flex-shrink-0 text-primary-700" />}
             <span className="break-words text-pretty">{label}</span>
           </span>
           <span className="inline-flex flex-shrink-0 text-primary-600 group-hover:translate-x-0.5 transition-transform duration-200" aria-hidden>→</span>
