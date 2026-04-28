@@ -13,7 +13,7 @@ import { api } from "./_generated/api";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
-  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon",
+  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon" | "alleen",
   [string, string, string]
 > = {
   gewoon: [
@@ -41,17 +41,23 @@ const OPENERS: Record<
     "Soms heb je iemand nodig die getraind is om te helpen. Zal ik je laten zien welke mogelijkheden er zijn?",
     "De stap zetten om hulp te zoeken is niet makkelijk. Wat zou je het meest helpen op dit moment?",
   ],
+  alleen: [
+    "Alleen voelen is een van de zwaarste dingen die er zijn. Vertel me eens — hoe lang draag je dit al?",
+    "Ik ben hier. Dat alleen zijn kan zwaar wegen. Wil je me vertellen hoe het voelt voor jou?",
+    "Het kost moed om dat te zeggen. Je bent hier niet alleen. Wat speelt er op dit moment?",
+  ],
 };
 
 const TOPIC_ID_TO_OPENER_KEY: Record<
   string,
-  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon"
+  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon" | "alleen"
 > = {
   "verlies-dierbare": "verlies",
   "omgaan-verdriet": "verdriet",
   "afscheid-huisdier": "huisdier",
   "professionele-hulp": "hulp",
   "gewoon-praten": "gewoon",
+  "voel-me-alleen": "alleen",
 };
 
 // ============================================================================
