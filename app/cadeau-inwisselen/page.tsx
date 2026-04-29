@@ -242,7 +242,7 @@ export default function CadeauInwisselenPage() {
 
   const handleLookupWithSparkle = (e: React.FormEvent) => {
     setSparkle(true);
-    setTimeout(() => setSparkle(false), 800);
+    setTimeout(() => setSparkle(false), 1600);
     handleLookup(e);
   };
 
@@ -254,8 +254,9 @@ export default function CadeauInwisselenPage() {
     <div className="min-h-screen bg-stone-50">
       <style>{`
         @keyframes sparkle-up {
-          0%   { transform: translateY(0) scale(1); opacity: 1; }
-          100% { transform: translateY(-28px) scale(0); opacity: 0; }
+          0%   { transform: translateY(0) scale(1.2); opacity: 1; }
+          60%  { opacity: 1; }
+          100% { transform: translateY(-44px) scale(0); opacity: 0; }
         }
       `}</style>
       <header className="bg-white border-b border-stone-100 py-4 px-4">
@@ -313,16 +314,17 @@ export default function CadeauInwisselenPage() {
               <div className="relative">
                 {sparkle && (
                   <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
-                    {[...Array(8)].map((_, i) => (
+                    {[...Array(10)].map((_, i) => (
                       <span
                         key={i}
                         className="absolute block rounded-full"
                         style={{
-                          width: 6, height: 6,
-                          background: i % 2 === 0 ? "#f59e0b" : "#fbbf24",
-                          left: `${15 + i * 10}%`,
-                          top: "50%",
-                          animation: `sparkle-up 0.7s ease-out ${i * 0.06}s forwards`,
+                          width: i % 3 === 0 ? 9 : 6,
+                          height: i % 3 === 0 ? 9 : 6,
+                          background: i % 3 === 0 ? "#f59e0b" : i % 3 === 1 ? "#fbbf24" : "#fde68a",
+                          left: `${8 + i * 8.5}%`,
+                          top: "45%",
+                          animation: `sparkle-up 1.3s ease-out ${i * 0.08}s forwards`,
                         }}
                       />
                     ))}
