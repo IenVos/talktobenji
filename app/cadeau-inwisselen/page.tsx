@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Image from "next/image";
@@ -182,11 +182,14 @@ export default function CadeauInwisselenPage() {
   );
   const redeemMutation = useMutation(api.giftActions.redeemGiftCode);
 
-  // Verwerk resultaat van code-lookup
-  // Let op: skip als stap al "done" is — de live query zou anders terugspringen
-  // naar "enter" met "al gebruikt" zodra de code net is ingewisseld.
+  // Verwerk resultaat van code-lookup.
+  // Gebruik een ref om de "done" toestand bij te houden zodat de live query
+  // niet opnieuw evalueert nadat de code is ingewisseld (zou anders terugspringen
+  // naar "enter" met "al gebruikt").
+  const redeemed = useRef(false);
+
   useEffect(() => {
-    if (step === "done") return; // code is zojuist ingewisseld, niet opnieuw evalueren
+    if (redeemed.current) return; // flow is al afgerond
     if (code === null || giftCode === undefined) return; // nog laden of geen code
     if (giftCode === null) {
       setError("Deze code bestaat niet. Controleer de code en probeer het opnieuw.");
@@ -200,8 +203,9 @@ export default function CadeauInwisselenPage() {
       setStep("enter");
       return;
     }
-    setStep("confirm");
-  }, [code, giftCode, step]);
+    // Alleen doorgaan naar "confirm" als we nog op stap "enter" staan
+    setStep((prev) => (prev === "enter" ? "confirm" : prev));
+  }, [code, giftCode]);
 
   const handleLookup = (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,6 +222,7 @@ export default function CadeauInwisselenPage() {
     setError(null);
     try {
       await redeemMutation({ code, recipientEmail });
+      redeemed.current = true; // blokkeer live query van terugspringen
       setStep("done");
     } catch (err: any) {
       setError(err.message || "Er is iets misgegaan. Probeer het opnieuw.");
