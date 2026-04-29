@@ -235,16 +235,18 @@ export default function CadeauInwisselenPage() {
 
   const [sparkle, setSparkle] = useState(false);
 
+  // Trigger sparkle wanneer de confirm-kaart verschijnt
+  useEffect(() => {
+    if (step === "confirm") {
+      setSparkle(true);
+      setTimeout(() => setSparkle(false), 5000);
+    }
+  }, [step]);
+
   const inputClass =
     "w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white";
 
   const isLooking = code !== null && giftCode === undefined;
-
-  const handleLookupWithSparkle = (e: React.FormEvent) => {
-    setSparkle(true);
-    setTimeout(() => setSparkle(false), 1600);
-    handleLookup(e);
-  };
 
   // Zorg dat productnaam altijd met hoofdletter begint per woord
   const formatProductName = (name: string) =>
@@ -254,9 +256,9 @@ export default function CadeauInwisselenPage() {
     <div className="min-h-screen bg-stone-50">
       <style>{`
         @keyframes sparkle-fall {
-          0%   { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
-          60%  { opacity: 0.9; }
-          100% { transform: translateY(260px) scale(0.2) rotate(180deg); opacity: 0; }
+          0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+          75%  { opacity: 0.8; }
+          100% { transform: translateY(480px) rotate(240deg); opacity: 0; }
         }
       `}</style>
       <header className="bg-white border-b border-stone-100 py-4 px-4">
@@ -278,36 +280,7 @@ export default function CadeauInwisselenPage() {
 
         {/* Stap 1 — code invoeren */}
         {step === "enter" && (
-          <div className="relative bg-white rounded-2xl p-8 shadow-sm overflow-hidden" style={{ border: "2px solid #f59e0b" }}>
-            {/* Glinstering die over het hele blokje valt */}
-            {sparkle && (
-              <div className="absolute inset-0 pointer-events-none z-10">
-                {[...Array(14)].map((_, i) => {
-                  const colors = ["#f59e0b", "#fbbf24", "#fde68a", "#d97706", "#fef3c7"];
-                  const color = colors[i % colors.length];
-                  const left = 5 + (i * 7) % 90;
-                  const delay = (i * 0.11) % 0.8;
-                  const size = 7 + (i * 3) % 8;
-                  return (
-                    <span
-                      key={i}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: `${left}%`,
-                        width: size,
-                        height: size,
-                        borderRadius: i % 3 === 0 ? "50%" : "2px",
-                        background: color,
-                        opacity: 0,
-                        transform: "translateY(0) rotate(0deg)",
-                        animation: `sparkle-fall 1.4s ease-in ${delay}s forwards`,
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            )}
+          <div className="bg-white rounded-2xl p-8 shadow-sm" style={{ border: "2px solid #f59e0b" }}>
             <div className="text-center mb-8">
               <div className="text-4xl mb-3">🎁</div>
               <h1 className="text-2xl font-bold text-stone-800">Cadeau inwisselen</h1>
@@ -316,7 +289,7 @@ export default function CadeauInwisselenPage() {
               </p>
             </div>
 
-            <form onSubmit={handleLookupWithSparkle} className="space-y-4">
+            <form onSubmit={handleLookup} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1.5">
                   Cadeaucode
@@ -356,7 +329,35 @@ export default function CadeauInwisselenPage() {
 
         {/* Stap 2 — cadeau bevestigen (envelop-stijl) */}
         {step === "confirm" && giftCode && (
-          <div className="space-y-3">
+          <div className="relative space-y-3">
+            {/* Sparkle-deeltjes vallen langzaam over de hele kaart */}
+            {sparkle && (
+              <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden rounded-2xl">
+                {[...Array(16)].map((_, i) => {
+                  const colors = ["#f59e0b", "#fbbf24", "#fde68a", "#d97706", "#fef3c7", "#fb923c"];
+                  const color = colors[i % colors.length];
+                  const left = 3 + (i * 6) % 94;
+                  const delay = (i * 0.18) % 2.2;
+                  const size = 6 + (i * 4) % 9;
+                  return (
+                    <span
+                      key={i}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: `${left}%`,
+                        width: size,
+                        height: size,
+                        borderRadius: i % 3 === 0 ? "50%" : "3px",
+                        background: color,
+                        opacity: 0,
+                        animation: `sparkle-fall 2.8s ease-in ${delay}s forwards`,
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
             {/* Kaart */}
             <div
               className="rounded-2xl shadow-md overflow-hidden"
