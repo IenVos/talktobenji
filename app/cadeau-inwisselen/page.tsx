@@ -253,10 +253,10 @@ export default function CadeauInwisselenPage() {
   return (
     <div className="min-h-screen bg-stone-50">
       <style>{`
-        @keyframes sparkle-up {
-          0%   { transform: translateY(0) scale(1.2); opacity: 1; }
-          60%  { opacity: 1; }
-          100% { transform: translateY(-44px) scale(0); opacity: 0; }
+        @keyframes sparkle-fall {
+          0%   { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+          60%  { opacity: 0.9; }
+          100% { transform: translateY(260px) scale(0.2) rotate(180deg); opacity: 0; }
         }
       `}</style>
       <header className="bg-white border-b border-stone-100 py-4 px-4">
@@ -278,7 +278,36 @@ export default function CadeauInwisselenPage() {
 
         {/* Stap 1 — code invoeren */}
         {step === "enter" && (
-          <div className="bg-white rounded-2xl p-8 shadow-sm" style={{ border: "2px solid #f59e0b" }}>
+          <div className="relative bg-white rounded-2xl p-8 shadow-sm overflow-hidden" style={{ border: "2px solid #f59e0b" }}>
+            {/* Glinstering die over het hele blokje valt */}
+            {sparkle && (
+              <div className="absolute inset-0 pointer-events-none z-10">
+                {[...Array(14)].map((_, i) => {
+                  const colors = ["#f59e0b", "#fbbf24", "#fde68a", "#d97706", "#fef3c7"];
+                  const color = colors[i % colors.length];
+                  const left = 5 + (i * 7) % 90;
+                  const delay = (i * 0.11) % 0.8;
+                  const size = 7 + (i * 3) % 8;
+                  return (
+                    <span
+                      key={i}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: `${left}%`,
+                        width: size,
+                        height: size,
+                        borderRadius: i % 3 === 0 ? "50%" : "2px",
+                        background: color,
+                        opacity: 0,
+                        transform: "translateY(0) rotate(0deg)",
+                        animation: `sparkle-fall 1.4s ease-in ${delay}s forwards`,
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
             <div className="text-center mb-8">
               <div className="text-4xl mb-3">🎁</div>
               <h1 className="text-2xl font-bold text-stone-800">Cadeau inwisselen</h1>
@@ -310,26 +339,8 @@ export default function CadeauInwisselenPage() {
                 </p>
               )}
 
-              {/* Knop met gouden glinstering */}
+              {/* Knop */}
               <div className="relative">
-                {sparkle && (
-                  <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
-                    {[...Array(10)].map((_, i) => (
-                      <span
-                        key={i}
-                        className="absolute block rounded-full"
-                        style={{
-                          width: i % 3 === 0 ? 9 : 6,
-                          height: i % 3 === 0 ? 9 : 6,
-                          background: i % 3 === 0 ? "#f59e0b" : i % 3 === 1 ? "#fbbf24" : "#fde68a",
-                          left: `${8 + i * 8.5}%`,
-                          top: "45%",
-                          animation: `sparkle-up 1.3s ease-out ${i * 0.08}s forwards`,
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
                 <button
                   type="submit"
                   disabled={isLooking}
@@ -413,12 +424,6 @@ export default function CadeauInwisselenPage() {
               </div>
             </div>
 
-            <div className="text-center text-xs text-stone-400 leading-relaxed">
-              <p>Heb je vragen?</p>
-              <a href="mailto:contactmetien@talktobenji.com" className="hover:underline">
-                contactmetien@talktobenji.com
-              </a>
-            </div>
           </div>
         )}
 
@@ -467,12 +472,12 @@ export default function CadeauInwisselenPage() {
           />
         )}
 
-        <p className="text-center text-xs text-stone-400 mt-6">
-          Vragen? Mail naar{" "}
+        <div className="text-center text-xs text-stone-400 mt-6 leading-relaxed">
+          <p>Heb je vragen?</p>
           <a href="mailto:contactmetien@talktobenji.com" className="hover:underline">
             contactmetien@talktobenji.com
           </a>
-        </p>
+        </div>
       </main>
     </div>
   );
