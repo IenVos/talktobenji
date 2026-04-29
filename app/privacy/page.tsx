@@ -118,16 +118,13 @@ export default async function PrivacyPage() {
             <section className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">Benji en AI</h2>
               <p>
-                Benji gebruikt AI om te reageren op wat je schrijft. Dit betekent:
+                Benji gebruikt AI om te reageren op wat je schrijft. Elk gesprek staat volledig op zichzelf — de AI ziet alleen jouw huidige gesprek, nooit de gesprekken van andere gebruikers.
               </p>
-              <ul className="list-disc list-inside space-y-1 text-gray-700">
-                <li>Je berichten worden verwerkt door een AI-model</li>
-                <li>De AI heeft geen toegang tot eerdere gesprekken van andere gebruikers</li>
-                <li>Elk gesprek staat op zichzelf</li>
-                <li>Reacties van Benji zijn geen medisch of psychologisch advies</li>
-              </ul>
               <p>
-                We werken continu aan het verbeteren van Benji. Geanonimiseerde gesprekken — waaruit alle persoonlijke informatie is verwijderd — helpen ons daarbij.
+                Ook wij als beheerder lezen de inhoud van gesprekken niet mee. Om Benji te verbeteren worden er automatisch geanonimiseerde kwaliteitsrapporten gegenereerd. Die rapporten bevatten geen persoonlijke informatie of herkenbare gespreksinhoud — alleen technische signalen over de kwaliteit van Benji's reacties.
+              </p>
+              <p>
+                Reacties van Benji zijn geen medisch of psychologisch advies.
               </p>
             </section>
 
