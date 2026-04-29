@@ -150,7 +150,7 @@ export default async function PrivacyPage() {
             <section className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">Hoe lang bewaren we je gegevens</h2>
               <p>
-                We bewaren je gesprekken zolang je account actief is, zodat je ze zelf kunt terugvinden. Als je 24 maanden niet hebt ingelogd, verwijderen we je gegevens — tenzij je hebt aangegeven ze te willen bewaren.
+                We bewaren je gesprekken zolang je account actief is, zodat je ze zelf kunt terugvinden. Als je 12 maanden niet hebt ingelogd, verwijderen we je gegevens — tenzij je hebt aangegeven ze te willen bewaren.
               </p>
               <p>
                 Wanneer je een gesprek verwijdert, heb je twee opties:
@@ -160,7 +160,7 @@ export default async function PrivacyPage() {
                 <li><strong>Anonimiseren</strong>: je gesprek wordt losgekoppeld van jou en kan (zonder enige persoonlijke details) worden gebruikt om Benji te verbeteren</li>
               </ul>
               <p>
-                Betalingsgegevens bewaren we conform de wettelijke bewaarplicht van 7 jaar.
+                Facturen bewaren we conform de wettelijke bewaarplicht van 7 jaar.
               </p>
             </section>
 
@@ -192,8 +192,9 @@ export default async function PrivacyPage() {
                 <li>Verwijdering van je gegevens ("recht op vergetelheid")</li>
                 <li>Beperking van de verwerking</li>
                 <li>Bezwaar tegen verwerking op grond van gerechtvaardigd belang</li>
-                <li>Overdraagbaarheid van je gegevens</li>
+                <li>Overdraagbaarheid van je gegevens — je kunt je gegevens downloaden via je account</li>
                 <li>Intrekking van toestemming (zonder dat dit gevolgen heeft voor eerdere verwerking)</li>
+                <li>Verwijdering van je account — dit kan direct via je accountinstellingen</li>
               </ul>
               <p>
                 Je hebt ook het recht om een klacht in te dienen bij de toezichthoudende autoriteit: de{" "}
@@ -209,7 +210,7 @@ export default async function PrivacyPage() {
                 Vragen over je privacy of een verzoek indienen? Neem contact op via{" "}
                 <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:text-primary-700 underline">
                   contactmetien@talktobenji.com
-                </a>. We reageren binnen 4 weken.
+                </a>. We reageren binnen 48 uur.
               </p>
             </section>
           </>

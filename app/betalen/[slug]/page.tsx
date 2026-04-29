@@ -66,6 +66,8 @@ function CheckoutForm({
   const [naam, setNaam] = useState("");
   const [email, setEmail] = useState("");
   const [optIn, setOptIn] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [herroepingAccepted, setHerroepingAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -380,9 +382,28 @@ function CheckoutForm({
         </div>
       )}
 
+      {/* Verplichte vinkjes */}
+      <div className="space-y-3">
+        <label className="flex items-start gap-3 cursor-pointer" onClick={() => setTermsAccepted(v => !v)}>
+          <Checkbox checked={termsAccepted} onChange={setTermsAccepted} />
+          <span className="text-xs text-stone-600 leading-snug pt-0.5">
+            Ik ga akkoord met de{" "}
+            <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">algemene voorwaarden</a>
+            {" "}en het{" "}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">privacybeleid</a>.
+          </span>
+        </label>
+        <label className="flex items-start gap-3 cursor-pointer" onClick={() => setHerroepingAccepted(v => !v)}>
+          <Checkbox checked={herroepingAccepted} onChange={setHerroepingAccepted} />
+          <span className="text-xs text-stone-600 leading-snug pt-0.5">
+            Ik begrijp dat de dienst direct start na betaling en dat daarmee het herroepingsrecht vervalt.
+          </span>
+        </label>
+      </div>
+
       <button
         type="submit"
-        disabled={submitting || !stripe || !elements}
+        disabled={submitting || !stripe || !elements || !termsAccepted || !herroepingAccepted}
         className="w-full py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-base"
       >
         {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
