@@ -233,13 +233,31 @@ export default function CadeauInwisselenPage() {
     }
   };
 
+  const [sparkle, setSparkle] = useState(false);
+
   const inputClass =
-    "w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white";
+    "w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white";
 
   const isLooking = code !== null && giftCode === undefined;
 
+  const handleLookupWithSparkle = (e: React.FormEvent) => {
+    setSparkle(true);
+    setTimeout(() => setSparkle(false), 800);
+    handleLookup(e);
+  };
+
+  // Zorg dat productnaam altijd met hoofdletter begint per woord
+  const formatProductName = (name: string) =>
+    name.replace(/\b\w/g, (c) => c.toUpperCase());
+
   return (
     <div className="min-h-screen bg-stone-50">
+      <style>{`
+        @keyframes sparkle-up {
+          0%   { transform: translateY(0) scale(1); opacity: 1; }
+          100% { transform: translateY(-28px) scale(0); opacity: 0; }
+        }
+      `}</style>
       <header className="bg-white border-b border-stone-100 py-4 px-4">
         <div className="max-w-md mx-auto flex items-center justify-center">
           <Link href="/">
@@ -259,7 +277,7 @@ export default function CadeauInwisselenPage() {
 
         {/* Stap 1 — code invoeren */}
         {step === "enter" && (
-          <div className="bg-white rounded-2xl border border-stone-200 p-8 shadow-sm">
+          <div className="bg-white rounded-2xl p-8 shadow-sm" style={{ border: "2px solid #f59e0b" }}>
             <div className="text-center mb-8">
               <div className="text-4xl mb-3">🎁</div>
               <h1 className="text-2xl font-bold text-stone-800">Cadeau inwisselen</h1>
@@ -268,7 +286,7 @@ export default function CadeauInwisselenPage() {
               </p>
             </div>
 
-            <form onSubmit={handleLookup} className="space-y-4">
+            <form onSubmit={handleLookupWithSparkle} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-stone-700 mb-1.5">
                   Cadeaucode
@@ -291,13 +309,34 @@ export default function CadeauInwisselenPage() {
                 </p>
               )}
 
-              <button
-                type="submit"
-                disabled={isLooking}
-                className="w-full py-3.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-60 text-sm"
-              >
-                {isLooking ? "Controleren…" : "Code controleren"}
-              </button>
+              {/* Knop met gouden glinstering */}
+              <div className="relative">
+                {sparkle && (
+                  <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                    {[...Array(8)].map((_, i) => (
+                      <span
+                        key={i}
+                        className="absolute block rounded-full"
+                        style={{
+                          width: 6, height: 6,
+                          background: i % 2 === 0 ? "#f59e0b" : "#fbbf24",
+                          left: `${15 + i * 10}%`,
+                          top: "50%",
+                          animation: `sparkle-up 0.7s ease-out ${i * 0.06}s forwards`,
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={isLooking}
+                  className="w-full py-3.5 font-semibold rounded-xl transition-all text-sm text-white shadow-sm disabled:opacity-60"
+                  style={{ background: isLooking ? "#d97706" : "linear-gradient(135deg, #d97706, #f59e0b)" }}
+                >
+                  {isLooking ? "Controleren…" : "Code controleren"}
+                </button>
+              </div>
             </form>
           </div>
         )}
@@ -335,7 +374,7 @@ export default function CadeauInwisselenPage() {
                   )}
                   <p className="text-base text-stone-600 leading-snug">
                     {giftCode.giverName} heeft je{" "}
-                    <span className="font-semibold text-stone-800">{giftCode.productName}</span>{" "}
+                    <span className="font-semibold text-stone-800">{formatProductName(giftCode.productName)}</span>{" "}
                     cadeau gegeven.
                   </p>
                 </div>
@@ -372,8 +411,8 @@ export default function CadeauInwisselenPage() {
               </div>
             </div>
 
-            <p className="text-center text-xs text-stone-400">
-              Van harte! 🌿
+            <p className="text-center text-xs text-stone-400 leading-relaxed">
+              Wij hopen dat dit waardevol voor je is.
             </p>
           </div>
         )}
