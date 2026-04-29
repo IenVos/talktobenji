@@ -253,6 +253,7 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
 
 export function LandingPageView({ slug }: { slug: string }) {
   const [showIen, setShowIen] = useState(false);
+  const [stickyBarDismissed, setStickyBarDismissed] = useState(false);
   const page = useQuery(api.landingPages.getBySlug, { slug });
 
   if (page === undefined) {
@@ -298,7 +299,6 @@ export function LandingPageView({ slug }: { slug: string }) {
   const hideMidCta = (page as any).hideMidCta ?? false;
   const hideWatJeKrijgt = (page as any).hideWatJeKrijgt ?? false;
   const hideStickyBar = (page as any).hideStickyBar ?? false;
-  const [stickyBarDismissed, setStickyBarDismissed] = useState(false);
 
   let pricingBlocks: PricingBlock[] = [];
   try { if ((page as any).pricingBlocksJson) pricingBlocks = JSON.parse((page as any).pricingBlocksJson); } catch {}
