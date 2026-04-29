@@ -402,8 +402,8 @@ function CheckoutForm({
 
       {/* Herroepingsrecht info */}
       <p className="text-center text-xs text-stone-400 leading-relaxed px-2">
-        De dienst start direct na betaling. Nog niet gebruikt en wil je annuleren?{" "}
-        <a href="mailto:contactmetien@talktobenji.com" className="underline hover:text-stone-600">Mail ons binnen 14 dagen</a>.
+        Het herroepingsrecht vervalt zodra de dienst na betaling start. Nog niet gebruikt en toch annuleren?{" "}
+        <a href="mailto:contactmetien@talktobenji.com" className="underline hover:text-stone-600">Neem contact op</a> binnen 14 dagen.
       </p>
 
       <p className="text-center text-xs text-stone-400">
