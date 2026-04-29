@@ -413,9 +413,12 @@ export default function CadeauInwisselenPage() {
               </div>
             </div>
 
-            <p className="text-center text-xs text-stone-400 leading-relaxed">
-              Wij hopen dat dit waardevol voor je is.
-            </p>
+            <div className="text-center text-xs text-stone-400 leading-relaxed">
+              <p>Heb je vragen?</p>
+              <a href="mailto:contactmetien@talktobenji.com" className="hover:underline">
+                contactmetien@talktobenji.com
+              </a>
+            </div>
           </div>
         )}
 
