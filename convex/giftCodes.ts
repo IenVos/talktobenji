@@ -9,7 +9,7 @@ export const createGiftCode = mutation({
     slug: v.string(),
     productName: v.string(),
     subscriptionType: v.string(),
-    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly"))),
+    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly"))),
     accessDays: v.optional(v.number()),
     pricePaid: v.optional(v.number()),
     giverName: v.string(),

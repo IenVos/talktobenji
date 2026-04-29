@@ -241,7 +241,7 @@ export default defineSchema({
     userId: v.string(),
     email: v.string(), // Voor admin override check
     subscriptionType: v.string(), // bijv. "free", "trial", "niet_alleen", "er_zijn", "troostende_woorden"
-    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly"))),
+    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly"))),
     status: v.union(
       v.literal("active"),
       v.literal("cancelled"),
@@ -501,7 +501,7 @@ export default defineSchema({
     slug: v.string(),                   // product slug
     productName: v.string(),            // voor weergave op inwisselpage
     subscriptionType: v.string(),
-    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly"))),
+    billingPeriod: v.optional(v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly"))),
     accessDays: v.optional(v.number()),
     pricePaid: v.optional(v.number()),
     giverName: v.string(),
@@ -771,7 +771,7 @@ export default defineSchema({
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),       // "Maand", "Kwartaal", "Jaar"
       priceInCents: v.number(),
-      billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly")),
+      billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly")),
       accessDays: v.number(),
     }))),
     createdAt: v.number(),

@@ -149,8 +149,8 @@ export async function POST(req: NextRequest) {
         const subType: string = subscriptionType || "alles_in_1";
 
         // Als er een variant geselecteerd is gebruik die billing period; anders afleiden uit subscriptionType
-        const billingPeriod: "monthly" | "quarterly" | "yearly" =
-          (giftBillingPeriod === "monthly" || giftBillingPeriod === "quarterly" || giftBillingPeriod === "yearly")
+        const billingPeriod: "monthly" | "quarterly" | "half_yearly" | "yearly" =
+          (giftBillingPeriod === "monthly" || giftBillingPeriod === "quarterly" || giftBillingPeriod === "half_yearly" || giftBillingPeriod === "yearly")
             ? giftBillingPeriod
             : subType === "maand_toegang" ? "monthly"
             : subType === "kwartaal_toegang" ? "quarterly"

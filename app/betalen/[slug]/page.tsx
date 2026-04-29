@@ -42,7 +42,7 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: (v: boole
 type GiftVariant = {
   label: string;
   priceInCents: number;
-  billingPeriod: "monthly" | "quarterly" | "yearly";
+  billingPeriod: "monthly" | "quarterly" | "half_yearly" | "yearly";
   accessDays: number;
 };
 
@@ -52,12 +52,14 @@ function CheckoutForm({
   clientSecret,
   giftEnabled,
   giftVariants,
+  onPriceChange,
 }: {
   slug: string;
   buttonText?: string;
   clientSecret: string;
   giftEnabled?: boolean;
   giftVariants?: GiftVariant[];
+  onPriceChange?: (cents: number | null) => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -78,6 +80,20 @@ function CheckoutForm({
   const [scheduledDate, setScheduledDate] = useState(""); // YYYY-MM-DD
 
   const hasVariants = giftEnabled && giftVariants && giftVariants.length > 0;
+
+  // Meldt de gekozen prijs aan de parent zodat de header mee-update
+  const handleVariantSelect = (variant: GiftVariant) => {
+    setSelectedVariant(variant);
+    onPriceChange?.(variant.priceInCents);
+  };
+  const handleGiftToggle = (val: boolean) => {
+    setIsGift(val);
+    if (!val) {
+      onPriceChange?.(null); // terug naar productprijs
+    } else if (hasVariants && selectedVariant) {
+      onPriceChange?.(selectedVariant.priceInCents);
+    }
+  };
 
   // Minimum datum = morgen
   const tomorrow = new Date();
@@ -175,7 +191,7 @@ function CheckoutForm({
       {/* Cadeau toggle — alleen tonen als product dit ondersteunt */}
       {giftEnabled && <div className="border border-stone-200 rounded-xl overflow-hidden">
         <label className="flex items-center gap-3 px-4 py-3.5 cursor-pointer bg-white hover:bg-stone-50 transition-colors">
-          <Checkbox checked={isGift} onChange={setIsGift} />
+          <Checkbox checked={isGift} onChange={handleGiftToggle} />
           <div>
             <p className="text-sm font-medium text-stone-700">Dit is een cadeau 🎁</p>
             <p className="text-xs text-stone-400">Je ontvangt een unieke cadeaucode na betaling</p>
@@ -199,7 +215,7 @@ function CheckoutForm({
                     return (
                       <div
                         key={vi}
-                        onClick={() => setSelectedVariant(variant)}
+                        onClick={() => handleVariantSelect(variant)}
                         className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors select-none ${
                           isSelected
                             ? "border-primary-400 bg-primary-50"
@@ -338,6 +354,18 @@ function CheckoutForm({
         </p>
       )}
 
+      {/* Prijsoverzicht vlak voor betaalknop */}
+      {isGift && hasVariants && selectedVariant && (
+        <div className="flex items-center justify-between px-4 py-3 bg-stone-50 rounded-xl border border-stone-200">
+          <span className="text-sm text-stone-500">
+            Cadeau: <span className="text-stone-700 font-medium">{selectedVariant.label}</span>
+          </span>
+          <span className="text-base font-bold text-primary-700">
+            {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(selectedVariant.priceInCents / 100)}
+          </span>
+        </div>
+      )}
+
       <button
         type="submit"
         disabled={submitting || !stripe || !elements}
@@ -362,6 +390,8 @@ export default function BetalenPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadingSecret, setLoadingSecret] = useState(false);
   const [secretError, setSecretError] = useState<string | null>(null);
+  // Overschrijf de getoonde prijs als een cadeauvariant gekozen is
+  const [overridePriceInCents, setOverridePriceInCents] = useState<number | null>(null);
 
   // Haal de client secret op zodra het product geladen is
   useEffect(() => {
@@ -434,10 +464,11 @@ export default function BetalenPage() {
     );
   }
 
+  const displayPrice = overridePriceInCents ?? product.priceInCents;
   const priceFormatted = new Intl.NumberFormat("nl-NL", {
     style: "currency",
     currency: "EUR",
-  }).format(product.priceInCents / 100);
+  }).format(displayPrice / 100);
 
   const elementsOptions: StripeElementsOptions = clientSecret
     ? {
@@ -530,6 +561,7 @@ export default function BetalenPage() {
                 clientSecret={clientSecret}
                 giftEnabled={product.giftEnabled ?? false}
                 giftVariants={product.giftVariants ?? undefined}
+                onPriceChange={setOverridePriceInCents}
               />
             </Elements>
           )}

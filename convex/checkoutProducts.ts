@@ -71,7 +71,7 @@ export const create = mutation({
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),
       priceInCents: v.number(),
-      billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly")),
+      billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly")),
       accessDays: v.number(),
     }))),
   },
@@ -124,7 +124,7 @@ export const update = mutation({
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),
       priceInCents: v.number(),
-      billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly")),
+      billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly")),
       accessDays: v.number(),
     }))),
   },

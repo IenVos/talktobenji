@@ -33,6 +33,7 @@ import type * as featureVotes from "../featureVotes.js";
 import type * as feedback from "../feedback.js";
 import type * as giftActions from "../giftActions.js";
 import type * as giftCodes from "../giftCodes.js";
+import type * as giftScheduled from "../giftScheduled.js";
 import type * as handreikingen from "../handreikingen.js";
 import type * as homepageFaq from "../homepageFaq.js";
 import type * as houvast from "../houvast.js";
@@ -100,6 +101,7 @@ declare const fullApi: ApiFromModules<{
   feedback: typeof feedback;
   giftActions: typeof giftActions;
   giftCodes: typeof giftCodes;
+  giftScheduled: typeof giftScheduled;
   handreikingen: typeof handreikingen;
   homepageFaq: typeof homepageFaq;
   houvast: typeof houvast;

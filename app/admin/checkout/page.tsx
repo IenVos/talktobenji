@@ -11,7 +11,7 @@ import {
 type GiftVariantForm = {
   label: string;
   priceInCents: string;
-  billingPeriod: "monthly" | "quarterly" | "yearly";
+  billingPeriod: "monthly" | "quarterly" | "half_yearly" | "yearly";
   accessDays: string;
 };
 
@@ -33,7 +33,7 @@ type CheckoutProduct = {
   followUpEmailSubject?: string;
   followUpEmailBody?: string;
   giftEnabled?: boolean;
-  giftVariants?: { label: string; priceInCents: number; billingPeriod: "monthly" | "quarterly" | "yearly"; accessDays: number }[];
+  giftVariants?: { label: string; priceInCents: number; billingPeriod: "monthly" | "quarterly" | "half_yearly" | "yearly"; accessDays: number }[];
   createdAt: number;
   updatedAt: number;
 };
@@ -88,6 +88,7 @@ const EMPTY_VARIANT: GiftVariantForm = { label: "", priceInCents: "", billingPer
 const BILLING_OPTIONS = [
   { value: "monthly", label: "Maand" },
   { value: "quarterly", label: "Kwartaal" },
+  { value: "half_yearly", label: "Half jaar" },
   { value: "yearly", label: "Jaar" },
 ] as const;
 
