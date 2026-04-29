@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
-import { Gift, CheckCircle, Clock, Mail, User, Calendar, Package, Copy, Check, FlaskConical, X } from "lucide-react";
+import { Gift, CheckCircle, Clock, Mail, User, Calendar, Package, Copy, Check, FlaskConical, X, Trash2 } from "lucide-react";
 
 type GiftCode = {
   _id: string;
@@ -241,6 +241,7 @@ export default function CadeaucodesPage() {
   const markRedeemedAdmin = useAdminMutation(api.giftCodes.markRedeemedAdmin);
   const adminCreateTestCode = useAdminMutation(api.giftCodes.adminCreateTestCode);
   const adminResetTestCode = useAdminMutation(api.giftCodes.adminResetTestCode);
+  const adminDeleteTestCode = useAdminMutation(api.giftCodes.adminDeleteTestCode);
 
   const [filter, setFilter] = useState<"all" | "pending" | "redeemed">("all");
   const [redeemModal, setRedeemModal] = useState<GiftCode | null>(null);
@@ -257,6 +258,11 @@ export default function CadeaucodesPage() {
 
   const handleResetTestCode = async (id: string) => {
     await adminResetTestCode({ id: id as any });
+  };
+
+  const handleDeleteTestCode = async (id: string) => {
+    if (!confirm("Testcode permanent verwijderen?")) return;
+    await adminDeleteTestCode({ id: id as any });
   };
 
   const handleCreateTestCode = async (form: TestForm): Promise<string> => {
@@ -395,13 +401,24 @@ export default function CadeaucodesPage() {
                         Handmatig inwisselen
                       </button>
                     )}
-                    {!isPending && gift.code.startsWith("TEST-") && (
-                      <button
-                        onClick={() => handleResetTestCode(gift._id)}
-                        className="text-xs text-amber-600 hover:text-amber-800 border border-amber-200 rounded-lg px-3 py-1.5 transition-colors"
-                      >
-                        Reset testcode
-                      </button>
+                    {gift.code.startsWith("TEST-") && (
+                      <>
+                        {!isPending && (
+                          <button
+                            onClick={() => handleResetTestCode(gift._id)}
+                            className="text-xs text-amber-600 hover:text-amber-800 border border-amber-200 rounded-lg px-3 py-1.5 transition-colors"
+                          >
+                            Reset
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDeleteTestCode(gift._id)}
+                          className="text-xs text-red-500 hover:text-red-700 border border-red-200 rounded-lg px-2 py-1.5 transition-colors"
+                          title="Testcode verwijderen"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

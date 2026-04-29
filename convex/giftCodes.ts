@@ -145,6 +145,21 @@ export const adminResetTestCode = mutation({
   },
 });
 
+/** Admin: verwijder een testcode permanent */
+export const adminDeleteTestCode = mutation({
+  args: {
+    adminToken: v.string(),
+    id: v.id("giftCodes"),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const gc = await ctx.db.get(args.id);
+    if (!gc) throw new Error("Code niet gevonden");
+    if (!gc.code.startsWith("TEST-")) throw new Error("Alleen testcodes kunnen worden verwijderd");
+    await ctx.db.delete(args.id);
+  },
+});
+
 /** Intern: haal alle cadeau-codes op die vandaag verstuurd moeten worden */
 export const getPendingScheduledGifts = internalQuery({
   args: {},
