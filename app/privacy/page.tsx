@@ -68,7 +68,7 @@ export default async function PrivacyPage() {
             <section className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">Wie is verantwoordelijk voor je gegevens</h2>
               <p>
-                Talk To Benji is een initiatief van <strong>[OFFICIËLE BEDRIJFSNAAM]</strong>, gevestigd aan [STRAAT EN HUISNUMMER], [POSTCODE EN PLAATSNAAM], ingeschreven bij de Kamer van Koophandel onder nummer [KVK-NUMMER]. Je kunt ons bereiken via{" "}
+                Talk To Benji is een initiatief van <strong>LAAV</strong>, gevestigd te Hässleholm, Zweden, ingeschreven onder organisatienummer 671123-0422, btw-nummer SE671123042201. Je kunt ons bereiken via{" "}
                 <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:text-primary-700 underline">
                   contactmetien@talktobenji.com
                 </a>.

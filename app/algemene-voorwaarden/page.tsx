@@ -58,7 +58,7 @@ export default async function AlgemeneVoorwaardenPage() {
         ) : (
           <>
             <p>
-              Door Talk To Benji te gebruiken ga je akkoord met deze voorwaarden. Talk To Benji is een initiatief van <strong>[OFFICIËLE BEDRIJFSNAAM]</strong>, gevestigd aan [STRAAT EN HUISNUMMER], [POSTCODE EN PLAATSNAAM], KvK-nummer: [KVK-NUMMER], btw-nummer: [BTW-NUMMER].
+              Door Talk To Benji te gebruiken ga je akkoord met deze voorwaarden. Talk To Benji is een initiatief van <strong>LAAV</strong>, gevestigd te Hässleholm, Zweden, organisatienummer 671123-0422, btw-nummer SE671123042201.
             </p>
 
             <section className="space-y-4">
@@ -184,7 +184,7 @@ export default async function AlgemeneVoorwaardenPage() {
             <section className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">Toepasselijk recht en geschillen</h2>
               <p>
-                Op deze voorwaarden is Nederlands recht van toepassing. Geschillen worden bij voorkeur in onderling overleg opgelost. Lukt dat niet, dan is de rechtbank [BEVOEGDE RECHTBANK, bijv. Rechtbank Amsterdam] bevoegd. Als consument kun je ook gebruik maken van het Europese ODR-platform voor online geschillenbeslechting:{" "}
+                Op deze voorwaarden is Nederlands recht van toepassing. Geschillen worden bij voorkeur in onderling overleg opgelost. Lukt dat niet, dan is de bevoegde rechtbank in Hässleholm, Zweden bevoegd. Als consument kun je ook gebruik maken van het Europese ODR-platform voor online geschillenbeslechting:{" "}
                 <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline">
                   ec.europa.eu/consumers/odr
                 </a>.
