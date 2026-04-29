@@ -124,6 +124,25 @@ export const getByCode = query({
   },
 });
 
+/** Admin: reset een testcode terug naar 'pending' zodat je hem opnieuw kunt testen */
+export const adminResetTestCode = mutation({
+  args: {
+    adminToken: v.string(),
+    id: v.id("giftCodes"),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const gc = await ctx.db.get(args.id);
+    if (!gc) throw new Error("Code niet gevonden");
+    if (!gc.code.startsWith("TEST-")) throw new Error("Alleen testcodes kunnen worden gereset");
+    await ctx.db.patch(args.id, {
+      status: "pending",
+      redeemedByEmail: undefined,
+      redeemedAt: undefined,
+    });
+  },
+});
+
 /** Intern: haal alle cadeau-codes op die vandaag verstuurd moeten worden */
 export const getPendingScheduledGifts = internalQuery({
   args: {},

@@ -240,6 +240,7 @@ export default function CadeaucodesPage() {
   const codes = rawCodes as GiftCode[] | undefined;
   const markRedeemedAdmin = useAdminMutation(api.giftCodes.markRedeemedAdmin);
   const adminCreateTestCode = useAdminMutation(api.giftCodes.adminCreateTestCode);
+  const adminResetTestCode = useAdminMutation(api.giftCodes.adminResetTestCode);
 
   const [filter, setFilter] = useState<"all" | "pending" | "redeemed">("all");
   const [redeemModal, setRedeemModal] = useState<GiftCode | null>(null);
@@ -252,6 +253,10 @@ export default function CadeaucodesPage() {
 
   const handleManualRedeem = async (id: string, email: string) => {
     await markRedeemedAdmin({ id: id as any, recipientEmail: email });
+  };
+
+  const handleResetTestCode = async (id: string) => {
+    await adminResetTestCode({ id: id as any });
   };
 
   const handleCreateTestCode = async (form: TestForm): Promise<string> => {
@@ -381,14 +386,24 @@ export default function CadeaucodesPage() {
                       </span>
                     </div>
                   </div>
-                  {isPending && (
-                    <button
-                      onClick={() => setRedeemModal(gift)}
-                      className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
-                    >
-                      Handmatig inwisselen
-                    </button>
-                  )}
+                  <div className="flex gap-2">
+                    {isPending && (
+                      <button
+                        onClick={() => setRedeemModal(gift)}
+                        className="text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+                      >
+                        Handmatig inwisselen
+                      </button>
+                    )}
+                    {!isPending && gift.code.startsWith("TEST-") && (
+                      <button
+                        onClick={() => handleResetTestCode(gift._id)}
+                        className="text-xs text-amber-600 hover:text-amber-800 border border-amber-200 rounded-lg px-3 py-1.5 transition-colors"
+                      >
+                        Reset testcode
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Details */}
