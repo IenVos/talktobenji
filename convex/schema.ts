@@ -719,6 +719,8 @@ export default defineSchema({
     hideVragen: v.optional(v.boolean()),
     hideWieIsIen: v.optional(v.boolean()),
     hideMidCta: v.optional(v.boolean()),
+    hideWatJeKrijgt: v.optional(v.boolean()),
+    hideStickyBar: v.optional(v.boolean()),
     // Footer
     footerText: v.optional(v.string()),
     // Analytics

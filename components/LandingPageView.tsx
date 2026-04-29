@@ -296,6 +296,9 @@ export function LandingPageView({ slug }: { slug: string }) {
   const hideVragen = (page as any).hideVragen ?? false;
   const hideWieIsIen = (page as any).hideWieIsIen ?? false;
   const hideMidCta = (page as any).hideMidCta ?? false;
+  const hideWatJeKrijgt = (page as any).hideWatJeKrijgt ?? false;
+  const hideStickyBar = (page as any).hideStickyBar ?? false;
+  const [stickyBarDismissed, setStickyBarDismissed] = useState(false);
 
   let pricingBlocks: PricingBlock[] = [];
   try { if ((page as any).pricingBlocksJson) pricingBlocks = JSON.parse((page as any).pricingBlocksJson); } catch {}
@@ -727,7 +730,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         )}
 
         {/* WAT JE KRIJGT — icon grid */}
-        <section className="px-4 sm:px-6 pb-14">
+        {!hideWatJeKrijgt && <section className="px-4 sm:px-6 pb-14">
           <div className="max-w-2xl mx-auto">
             <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
               <h2 className="text-base font-semibold mb-5" style={{ color: "#3d3530" }}>Wat je krijgt</h2>
@@ -746,7 +749,7 @@ export function LandingPageView({ slug }: { slug: string }) {
               </div>
             </div>
           </div>
-        </section>
+        </section>}
 
         {/* PRIJSBLOKKEN ONDERAAN — compacte versie */}
         {hasPricing && (
@@ -856,25 +859,39 @@ export function LandingPageView({ slug }: { slug: string }) {
       {showIen && <VerhaalPopup onClose={() => setShowIen(false)} />}
 
       {/* STICKY TRIAL BAR */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-[9990] flex items-center justify-between gap-3 px-5 py-3 sm:py-3.5"
-        style={{
-          background: "rgba(255,252,249,0.97)",
-          borderTop: "1px solid rgba(160,148,136,0.18)",
-          backdropFilter: "blur(8px)",
-        }}
-      >
-        <p className="text-xs sm:text-sm leading-snug" style={{ color: "#6b6460" }}>
-          Creëer je profiel en ervaar 7 dagen lang of het bij jou aansluit.
-        </p>
-        <a
-          href="/registreren"
-          className="flex-shrink-0 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white whitespace-nowrap"
-          style={{ background: "#4a7c59" }}
+      {!hideStickyBar && !stickyBarDismissed && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-[9990] flex items-center justify-between gap-3 px-5 py-3 sm:py-3.5"
+          style={{
+            background: "rgba(255,252,249,0.97)",
+            borderTop: "1px solid rgba(160,148,136,0.18)",
+            backdropFilter: "blur(8px)",
+          }}
         >
-          Gratis proberen
-        </a>
-      </div>
+          <p className="text-xs sm:text-sm leading-snug" style={{ color: "#6b6460" }}>
+            Creëer je profiel en ervaar 7 dagen lang of het bij jou aansluit.
+          </p>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <a
+              href="/registreren"
+              className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white whitespace-nowrap"
+              style={{ background: "#4a7c59" }}
+            >
+              Gratis proberen
+            </a>
+            <button
+              onClick={() => setStickyBarDismissed(true)}
+              aria-label="Sluiten"
+              className="p-1 rounded-full hover:bg-stone-100 transition-colors"
+              style={{ color: "#a09488" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

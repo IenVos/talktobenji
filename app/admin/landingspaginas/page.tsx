@@ -70,6 +70,8 @@ type FormState = {
   hideVragen: boolean;
   hideWieIsIen: boolean;
   hideMidCta: boolean;
+  hideWatJeKrijgt: boolean;
+  hideStickyBar: boolean;
   section1Title: string;
   section1Text: string;
   section2Title: string;
@@ -116,6 +118,8 @@ const EMPTY_FORM: FormState = {
   hideVragen: false,
   hideWieIsIen: false,
   hideMidCta: false,
+  hideWatJeKrijgt: false,
+  hideStickyBar: false,
   section1Title: "",
   section1Text: "",
   section2Title: "",
@@ -231,6 +235,8 @@ export default function AdminLandingspaginasPage() {
       hideVragen: (page as any).hideVragen ?? false,
       hideWieIsIen: (page as any).hideWieIsIen ?? false,
       hideMidCta: (page as any).hideMidCta ?? false,
+      hideWatJeKrijgt: (page as any).hideWatJeKrijgt ?? false,
+      hideStickyBar: (page as any).hideStickyBar ?? false,
       section1Title: page.section1Title ?? "",
       section1Text: page.section1Text ?? "",
       section2Title: page.section2Title ?? "",
@@ -394,6 +400,8 @@ export default function AdminLandingspaginasPage() {
           hideVragen: form.hideVragen,
           hideWieIsIen: form.hideWieIsIen,
           hideMidCta: form.hideMidCta,
+          hideWatJeKrijgt: form.hideWatJeKrijgt,
+          hideStickyBar: form.hideStickyBar,
           section1Title: form.section1Title.trim(),
           section1Text: form.section1Text.trim(),
           section2Title: form.section2Title.trim(),
@@ -444,6 +452,8 @@ export default function AdminLandingspaginasPage() {
           hideVragen: form.hideVragen,
           hideWieIsIen: form.hideWieIsIen,
           hideMidCta: form.hideMidCta,
+          hideWatJeKrijgt: form.hideWatJeKrijgt,
+          hideStickyBar: form.hideStickyBar,
           section1Title: opt(form.section1Title),
           section1Text: opt(form.section1Text),
           section2Title: opt(form.section2Title),
@@ -724,6 +734,8 @@ export default function AdminLandingspaginasPage() {
                       ["hideErvaringen", "Ervaringen"],
                       ["hideVragen", "FAQ"],
                       ["hideWieIsIen", "Wie is Ien"],
+                      ["hideWatJeKrijgt", "Wat je krijgt"],
+                      ["hideStickyBar", "Onderste balk"],
                     ] as const).map(([field, label]) => (
                       <label key={field} className="flex items-center gap-2 cursor-pointer">
                         <input
