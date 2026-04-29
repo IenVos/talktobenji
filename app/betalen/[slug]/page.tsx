@@ -190,15 +190,17 @@ function CheckoutForm({
               <div>
                 <p className={labelClass}>Kies een looptijd</p>
                 <div className="space-y-2">
-                  {giftVariants!.map((variant) => {
-                    const isSelected = selectedVariant?.billingPeriod === variant.billingPeriod;
+                  {giftVariants!.map((variant, vi) => {
+                    const isSelected = selectedVariant === variant ||
+                      (selectedVariant?.billingPeriod === variant.billingPeriod && selectedVariant?.priceInCents === variant.priceInCents);
                     const priceFormatted = new Intl.NumberFormat("nl-NL", {
                       style: "currency", currency: "EUR",
                     }).format(variant.priceInCents / 100);
                     return (
-                      <label
-                        key={variant.billingPeriod}
-                        className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                      <div
+                        key={vi}
+                        onClick={() => setSelectedVariant(variant)}
+                        className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors select-none ${
                           isSelected
                             ? "border-primary-400 bg-primary-50"
                             : "border-stone-200 bg-white hover:border-primary-300"
@@ -206,7 +208,6 @@ function CheckoutForm({
                       >
                         <span className="flex items-center gap-3">
                           <div
-                            onClick={() => setSelectedVariant(variant)}
                             className={`rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
                               isSelected ? "border-primary-600 bg-primary-600" : "border-stone-300"
                             }`}
@@ -217,7 +218,7 @@ function CheckoutForm({
                           <span className="text-sm font-medium text-stone-700">{variant.label}</span>
                         </span>
                         <span className="text-sm text-stone-400">{priceFormatted}</span>
-                      </label>
+                      </div>
                     );
                   })}
                 </div>
