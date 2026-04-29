@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object as Stripe.PaymentIntent;
-    const { email, name, subscriptionType, slug, productName, optIn, isGift, recipientEmail, personalMessage, deliveryMethod, scheduledSendDate } = pi.metadata;
+    const { email, name, subscriptionType, slug, productName, optIn, isGift, recipientEmail, personalMessage, deliveryMethod, scheduledSendDate, giftBillingPeriod, giftAccessDays, giftLabel } = pi.metadata;
 
     // ── Cadeau-afhandeling ──
     if (isGift === "true" && email) {
@@ -147,22 +147,37 @@ export async function POST(req: NextRequest) {
           ? await convex.query(api.checkoutProducts.getBySlug, { slug }).catch(() => null)
           : null;
         const subType: string = subscriptionType || "alles_in_1";
+
+        // Als er een variant geselecteerd is gebruik die billing period; anders afleiden uit subscriptionType
         const billingPeriod: "monthly" | "quarterly" | "yearly" =
-          subType === "maand_toegang" ? "monthly" :
-          subType === "kwartaal_toegang" ? "quarterly" :
-          "yearly";
+          (giftBillingPeriod === "monthly" || giftBillingPeriod === "quarterly" || giftBillingPeriod === "yearly")
+            ? giftBillingPeriod
+            : subType === "maand_toegang" ? "monthly"
+            : subType === "kwartaal_toegang" ? "quarterly"
+            : "yearly";
+
+        // accessDays: variant heeft voorrang, daarna product, daarna default
+        const accessDays =
+          (giftAccessDays && parseInt(giftAccessDays, 10) > 0)
+            ? parseInt(giftAccessDays, 10)
+            : product?.accessDays ?? 365;
 
         const scheduledTs = scheduledSendDate ? parseInt(scheduledSendDate, 10) : undefined;
         const sendNow = !scheduledTs || scheduledTs <= Date.now();
+
+        // Productnaam: gebruik giftLabel als er een variant is, anders productName
+        const displayProductName = giftLabel
+          ? `${productName || product?.name || "Talk To Benji"} — ${giftLabel}`
+          : productName || product?.name || slug || "Talk To Benji";
 
         await convex.mutation(api.giftCodes.createGiftCode, {
           webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
           code,
           slug: slug || "",
-          productName: productName || product?.name || slug || "Talk To Benji",
+          productName: displayProductName,
           subscriptionType: subType,
           billingPeriod,
-          accessDays: product?.accessDays ?? 365,
+          accessDays,
           pricePaid: pi.amount / 100,
           giverName: name || email,
           giverEmail: email,
@@ -176,7 +191,7 @@ export async function POST(req: NextRequest) {
         if (process.env.RESEND_API_KEY) {
           const resend = new Resend(process.env.RESEND_API_KEY);
           const giverVoornaam = (name || email).split(" ")[0];
-          const displayProduct = productName || product?.name || "Talk To Benji";
+          const displayProduct = displayProductName;
 
           // Haal admin-templates op (vallen terug op defaults als niet aangepast)
           const [tplGever, tplOntvanger] = await Promise.all([

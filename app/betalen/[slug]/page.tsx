@@ -39,16 +39,25 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: (v: boole
 }
 
 // ——— Checkout Form ———
+type GiftVariant = {
+  label: string;
+  priceInCents: number;
+  billingPeriod: "monthly" | "quarterly" | "yearly";
+  accessDays: number;
+};
+
 function CheckoutForm({
   slug,
   buttonText,
   clientSecret,
   giftEnabled,
+  giftVariants,
 }: {
   slug: string;
   buttonText?: string;
   clientSecret: string;
   giftEnabled?: boolean;
+  giftVariants?: GiftVariant[];
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -60,10 +69,15 @@ function CheckoutForm({
 
   // Cadeau-velden
   const [isGift, setIsGift] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<GiftVariant | null>(
+    giftVariants && giftVariants.length > 0 ? giftVariants[0] : null
+  );
   const [recipientEmail, setRecipientEmail] = useState("");
   const [personalMessage, setPersonalMessage] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState<"direct" | "manual">("manual");
   const [scheduledDate, setScheduledDate] = useState(""); // YYYY-MM-DD
+
+  const hasVariants = giftEnabled && giftVariants && giftVariants.length > 0;
 
   // Minimum datum = morgen
   const tomorrow = new Date();
@@ -93,6 +107,12 @@ function CheckoutForm({
             scheduledSendDate: (deliveryMethod === "direct" && scheduledDate)
               ? new Date(scheduledDate).getTime()
               : undefined,
+            ...(hasVariants && selectedVariant && {
+              giftVariantPriceInCents: selectedVariant.priceInCents,
+              giftVariantBillingPeriod: selectedVariant.billingPeriod,
+              giftVariantAccessDays: selectedVariant.accessDays,
+              giftVariantLabel: selectedVariant.label,
+            }),
           }),
         }),
       });
@@ -164,6 +184,46 @@ function CheckoutForm({
 
         {isGift && (
           <div className="border-t border-stone-100 bg-stone-50 px-4 py-4 space-y-4">
+
+            {/* Looptijdkeuze — alleen als het product varianten heeft */}
+            {hasVariants && (
+              <div>
+                <p className={labelClass}>Kies een looptijd</p>
+                <div className="space-y-2">
+                  {giftVariants!.map((variant) => {
+                    const isSelected = selectedVariant?.billingPeriod === variant.billingPeriod;
+                    const priceFormatted = new Intl.NumberFormat("nl-NL", {
+                      style: "currency", currency: "EUR",
+                    }).format(variant.priceInCents / 100);
+                    return (
+                      <label
+                        key={variant.billingPeriod}
+                        className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+                          isSelected
+                            ? "border-primary-400 bg-primary-50"
+                            : "border-stone-200 bg-white hover:border-primary-300"
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <div
+                            onClick={() => setSelectedVariant(variant)}
+                            className={`rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                              isSelected ? "border-primary-600 bg-primary-600" : "border-stone-300"
+                            }`}
+                            style={{ width: 18, height: 18 }}
+                          >
+                            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                          </div>
+                          <span className="text-sm font-medium text-stone-700">{variant.label}</span>
+                        </span>
+                        <span className="text-sm text-stone-400">{priceFormatted}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Stap 1: bezorgmethode */}
             <div>
               <p className={labelClass}>Hoe wil je de code bezorgen?</p>
@@ -468,6 +528,7 @@ export default function BetalenPage() {
                 buttonText={product.buttonText}
                 clientSecret={clientSecret}
                 giftEnabled={product.giftEnabled ?? false}
+                giftVariants={product.giftVariants ?? undefined}
               />
             </Elements>
           )}

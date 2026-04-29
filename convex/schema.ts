@@ -768,6 +768,12 @@ export default defineSchema({
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),
     giftEnabled: v.optional(v.boolean()), // Cadeau-optie tonen op checkout
+    giftVariants: v.optional(v.array(v.object({
+      label: v.string(),       // "Maand", "Kwartaal", "Jaar"
+      priceInCents: v.number(),
+      billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly")),
+      accessDays: v.number(),
+    }))),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

@@ -68,6 +68,12 @@ export const create = mutation({
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),
     giftEnabled: v.optional(v.boolean()),
+    giftVariants: v.optional(v.array(v.object({
+      label: v.string(),
+      priceInCents: v.number(),
+      billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly")),
+      accessDays: v.number(),
+    }))),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -88,6 +94,7 @@ export const create = mutation({
       followUpEmailSubject: args.followUpEmailSubject,
       followUpEmailBody: args.followUpEmailBody,
       giftEnabled: args.giftEnabled,
+      giftVariants: args.giftVariants,
       createdAt: now,
       updatedAt: now,
     });
@@ -114,6 +121,12 @@ export const update = mutation({
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),
     giftEnabled: v.optional(v.boolean()),
+    giftVariants: v.optional(v.array(v.object({
+      label: v.string(),
+      priceInCents: v.number(),
+      billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("yearly")),
+      accessDays: v.number(),
+    }))),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

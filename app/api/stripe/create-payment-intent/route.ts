@@ -20,7 +20,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Stripe niet geconfigureerd" }, { status: 500 });
   }
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" });
-  const { slug, email, name, paymentIntentId, optIn, isGift, recipientEmail, personalMessage, deliveryMethod, scheduledSendDate } = await req.json();
+  const {
+    slug, email, name, paymentIntentId, optIn,
+    isGift, recipientEmail, personalMessage, deliveryMethod, scheduledSendDate,
+    giftVariantPriceInCents, giftVariantBillingPeriod, giftVariantAccessDays, giftVariantLabel,
+  } = await req.json();
 
   if (!slug) {
     return NextResponse.json({ error: "Slug ontbreekt" }, { status: 400 });
@@ -28,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   // Update bestaande PaymentIntent met e-mail/naam (bij formulierindiening)
   if (paymentIntentId && email) {
-    await stripe.paymentIntents.update(paymentIntentId, {
+    const updateParams: Stripe.PaymentIntentUpdateParams = {
       metadata: {
         email,
         name: name || "",
@@ -39,9 +43,19 @@ export async function POST(req: NextRequest) {
           personalMessage: personalMessage || "",
           deliveryMethod: deliveryMethod || "manual",
           scheduledSendDate: scheduledSendDate ? String(scheduledSendDate) : "",
+          ...(giftVariantBillingPeriod && {
+            giftBillingPeriod: giftVariantBillingPeriod,
+            giftAccessDays: giftVariantAccessDays ? String(giftVariantAccessDays) : "",
+            giftLabel: giftVariantLabel || "",
+          }),
         }),
       },
-    });
+    };
+    // Als cadeau met variant: pas ook het bedrag aan
+    if (isGift && giftVariantPriceInCents && typeof giftVariantPriceInCents === "number" && giftVariantPriceInCents > 0) {
+      updateParams.amount = giftVariantPriceInCents;
+    }
+    await stripe.paymentIntents.update(paymentIntentId, updateParams);
     return NextResponse.json({ success: true });
   }
 

@@ -5,8 +5,15 @@ import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthConte
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
-  CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink, Send, Copy,
+  CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink, Send, Copy, ChevronDown,
 } from "lucide-react";
+
+type GiftVariantForm = {
+  label: string;
+  priceInCents: string;
+  billingPeriod: "monthly" | "quarterly" | "yearly";
+  accessDays: string;
+};
 
 type CheckoutProduct = {
   _id: Id<"checkoutProducts">;
@@ -26,6 +33,7 @@ type CheckoutProduct = {
   followUpEmailSubject?: string;
   followUpEmailBody?: string;
   giftEnabled?: boolean;
+  giftVariants?: { label: string; priceInCents: number; billingPeriod: "monthly" | "quarterly" | "yearly"; accessDays: number }[];
   createdAt: number;
   updatedAt: number;
 };
@@ -76,6 +84,13 @@ function formatPrice(cents: number): string {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
 }
 
+const EMPTY_VARIANT: GiftVariantForm = { label: "", priceInCents: "", billingPeriod: "monthly", accessDays: "30" };
+const BILLING_OPTIONS = [
+  { value: "monthly", label: "Maand" },
+  { value: "quarterly", label: "Kwartaal" },
+  { value: "yearly", label: "Jaar" },
+] as const;
+
 export default function AdminCheckoutPage() {
   const { adminToken } = useAdminAuth();
   const products = useAdminQuery(api.checkoutProducts.list, {});
@@ -90,6 +105,7 @@ export default function AdminCheckoutPage() {
   const [editingImageUrl, setEditingImageUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [giftVariants, setGiftVariants] = useState<GiftVariantForm[]>([]);
   const [testEmail, setTestEmail] = useState("");
   const [sendingTest, setSendingTest] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "sent" | "error">("idle");
@@ -105,10 +121,19 @@ export default function AdminCheckoutPage() {
 
   const resetForm = () => {
     setForm(EMPTY_FORM);
+    setGiftVariants([]);
     setEditingId(null);
     setEditingImageUrl(null);
     setShowForm(false);
   };
+
+  const variantsToForm = (v?: CheckoutProduct["giftVariants"]): GiftVariantForm[] =>
+    (v ?? []).map((x) => ({
+      label: x.label,
+      priceInCents: String(x.priceInCents),
+      billingPeriod: x.billingPeriod,
+      accessDays: String(x.accessDays),
+    }));
 
   const startDuplicate = (product: CheckoutProduct) => {
     setForm({
@@ -129,6 +154,7 @@ export default function AdminCheckoutPage() {
       followUpEmailBody: product.followUpEmailBody ?? "",
       giftEnabled: product.giftEnabled ?? false,
     });
+    setGiftVariants(variantsToForm(product.giftVariants));
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(null);
     setShowForm(true);
@@ -154,6 +180,7 @@ export default function AdminCheckoutPage() {
       followUpEmailBody: product.followUpEmailBody ?? "",
       giftEnabled: product.giftEnabled ?? false,
     });
+    setGiftVariants(variantsToForm(product.giftVariants));
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(product._id);
     setShowForm(true);
@@ -178,6 +205,16 @@ export default function AdminCheckoutPage() {
         imageStorageId = await uploadFile(form.imageFile);
       }
       const accessDaysVal = form.accessDays.trim() ? parseInt(form.accessDays, 10) : undefined;
+      const parsedVariants = giftVariants
+        .filter((v) => v.label.trim() && v.priceInCents.trim() && v.accessDays.trim())
+        .map((v) => ({
+          label: v.label.trim(),
+          priceInCents: parseInt(v.priceInCents, 10),
+          billingPeriod: v.billingPeriod,
+          accessDays: parseInt(v.accessDays, 10),
+        }))
+        .filter((v) => !isNaN(v.priceInCents) && !isNaN(v.accessDays) && v.priceInCents > 0);
+
       const payload = {
         slug: form.slug.trim(),
         name: form.name.trim(),
@@ -194,6 +231,7 @@ export default function AdminCheckoutPage() {
         followUpEmailSubject: opt(form.followUpEmailSubject),
         followUpEmailBody: opt(form.followUpEmailBody),
         giftEnabled: form.giftEnabled,
+        giftVariants: parsedVariants.length > 0 ? parsedVariants : undefined,
       };
       if (editingId) {
         await updateProduct({ id: editingId, ...payload });
@@ -530,7 +568,7 @@ export default function AdminCheckoutPage() {
               )}
             </div>
 
-            <div className="border-t border-primary-100 pt-4 space-y-2">
+            <div className="border-t border-primary-100 pt-4 space-y-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -545,6 +583,68 @@ export default function AdminCheckoutPage() {
                   </span>
                 </span>
               </label>
+
+              {/* Cadeau-varianten (looptijdkeuze) */}
+              {form.giftEnabled && (
+                <div className="pl-6 space-y-2">
+                  <p className="text-xs text-gray-500">
+                    Looptijdvarianten <span className="text-gray-400">(optioneel — bij meerdere varianten kan de koper kiezen)</span>
+                  </p>
+                  {giftVariants.map((v, i) => (
+                    <div key={i} className="flex items-center gap-2 flex-wrap">
+                      <input
+                        type="text"
+                        placeholder="Label (bijv. Maand)"
+                        value={v.label}
+                        onChange={(e) => setGiftVariants((prev) => prev.map((x, j) => j === i ? { ...x, label: e.target.value } : x))}
+                        className="flex-1 min-w-[90px] px-2.5 py-1.5 border border-primary-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Prijs centen"
+                        value={v.priceInCents}
+                        min="1"
+                        onChange={(e) => setGiftVariants((prev) => prev.map((x, j) => j === i ? { ...x, priceInCents: e.target.value } : x))}
+                        className="w-28 px-2.5 py-1.5 border border-primary-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <select
+                        value={v.billingPeriod}
+                        onChange={(e) => setGiftVariants((prev) => prev.map((x, j) => j === i ? { ...x, billingPeriod: e.target.value as GiftVariantForm["billingPeriod"] } : x))}
+                        className="px-2 py-1.5 border border-primary-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      >
+                        {BILLING_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Dagen"
+                        value={v.accessDays}
+                        min="1"
+                        onChange={(e) => setGiftVariants((prev) => prev.map((x, j) => j === i ? { ...x, accessDays: e.target.value } : x))}
+                        className="w-20 px-2.5 py-1.5 border border-primary-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setGiftVariants((prev) => prev.filter((_, j) => j !== i))}
+                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setGiftVariants((prev) => [...prev, { ...EMPTY_VARIANT }])}
+                    className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 px-2 py-1.5 border border-dashed border-primary-300 rounded-lg hover:bg-primary-50 transition-colors"
+                  >
+                    <Plus size={13} />
+                    Variant toevoegen
+                  </button>
+                  {giftVariants.length > 0 && (
+                    <p className="text-xs text-gray-400">Prijs in centen · Looptijd · Dagen toegang</p>
+                  )}
+                </div>
+              )}
+
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
