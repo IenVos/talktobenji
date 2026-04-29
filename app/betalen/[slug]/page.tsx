@@ -369,18 +369,6 @@ function CheckoutForm({
         </p>
       )}
 
-      {/* Prijsoverzicht vlak voor betaalknop */}
-      {isGift && hasVariants && selectedVariant && (
-        <div className="flex items-center justify-between px-4 py-3 bg-stone-50 rounded-xl border border-stone-200">
-          <span className="text-sm text-stone-500">
-            Cadeau: <span className="text-stone-700 font-medium">{selectedVariant.label}</span>
-          </span>
-          <span className="text-base font-bold text-primary-700">
-            {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(selectedVariant.priceInCents / 100)}
-          </span>
-        </div>
-      )}
-
       {/* Verplicht vinkje */}
       <label className="flex items-start gap-3 cursor-pointer" onClick={() => setTermsAccepted(v => !v)}>
         <Checkbox checked={termsAccepted} onChange={setTermsAccepted} />
@@ -402,11 +390,11 @@ function CheckoutForm({
 
       {/* Herroepingsrecht info */}
       <div className="rounded-xl bg-stone-50 border border-stone-200 px-4 py-3 space-y-1 text-center">
-        <p className="text-xs font-medium text-stone-500">
-          <span className="text-stone-500">ℹ</span>️ Herroepingsrecht
-        </p>
+        <p className="text-xs font-medium text-stone-500">Herroepingsrecht</p>
         <p className="text-xs text-stone-400 leading-relaxed">
-          Het herroepingsrecht vervalt zodra de dienst na betaling start. Nog niet gebruikt en toch annuleren?{" "}
+          Het herroepingsrecht vervalt zodra de dienst na betaling start. Nog niet gebruikt en toch annuleren?
+        </p>
+        <p className="text-xs text-stone-400">
           <a href="mailto:contactmetien@talktobenji.com" className="underline hover:text-stone-600">Neem contact op</a> binnen 14 dagen.
         </p>
       </div>
