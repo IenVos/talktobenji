@@ -401,8 +401,10 @@ function CheckoutForm({
       </button>
 
       {/* Herroepingsrecht info */}
-      <div className="rounded-xl bg-stone-50 border border-stone-200 px-4 py-3 space-y-1">
-        <p className="text-xs font-medium text-stone-500">ℹ️ Herroepingsrecht</p>
+      <div className="rounded-xl bg-stone-50 border border-stone-200 px-4 py-3 space-y-1 text-center">
+        <p className="text-xs font-medium text-stone-500">
+          <span className="text-stone-500">ℹ</span>️ Herroepingsrecht
+        </p>
         <p className="text-xs text-stone-400 leading-relaxed">
           Het herroepingsrecht vervalt zodra de dienst na betaling start. Nog niet gebruikt en toch annuleren?{" "}
           <a href="mailto:contactmetien@talktobenji.com" className="underline hover:text-stone-600">Neem contact op</a> binnen 14 dagen.
