@@ -7,8 +7,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 
-function GiftRegisterForm({ recipientEmail }: { recipientEmail: string }) {
-  const [name, setName] = useState("");
+function GiftRegisterForm({ recipientEmail, recipientName }: { recipientEmail: string; recipientName?: string }) {
+  const [name, setName] = useState(recipientName ?? "");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -67,7 +67,9 @@ function GiftRegisterForm({ recipientEmail }: { recipientEmail: string }) {
     <div className="bg-white rounded-2xl border border-stone-200 p-8 shadow-sm space-y-5">
       <div className="text-center">
         <div className="text-4xl mb-3">✨</div>
-        <h2 className="text-xl font-bold text-stone-800">Cadeau geactiveerd!</h2>
+        <h2 className="text-xl font-bold text-stone-800">
+          {recipientName ? `Hoi ${recipientName}! Je cadeau is geactiveerd.` : "Cadeau geactiveerd!"}
+        </h2>
         <p className="text-sm text-stone-500 mt-1">
           Maak je account aan met <strong>{recipientEmail}</strong>
         </p>
@@ -306,6 +308,9 @@ export default function CadeauInwisselenPage() {
             <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
               <div className="text-center mb-5">
                 <div className="text-3xl mb-2">🎁</div>
+                {giftCode.recipientName ? (
+                  <p className="text-sm font-medium text-primary-600 mb-1">Hoi {giftCode.recipientName}!</p>
+                ) : null}
                 <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-1">Jouw cadeau</p>
                 <h2 className="text-xl font-bold text-stone-800">{giftCode.productName}</h2>
                 <p className="text-sm text-stone-500 mt-1">van <strong>{giftCode.giverName}</strong></p>
@@ -366,7 +371,10 @@ export default function CadeauInwisselenPage() {
 
         {/* Stap 4 — account aanmaken */}
         {step === "done" && (
-          <GiftRegisterForm recipientEmail={recipientEmail} />
+          <GiftRegisterForm
+            recipientEmail={recipientEmail}
+            recipientName={giftCode?.recipientName ?? ""}
+          />
         )}
 
         <p className="text-center text-xs text-stone-400 mt-6">

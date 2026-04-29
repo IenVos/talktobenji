@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" });
   const {
     slug, email, name, paymentIntentId, optIn,
-    isGift, recipientEmail, personalMessage, deliveryMethod, scheduledSendDate,
+    isGift, recipientEmail, recipientName, personalMessage, deliveryMethod, scheduledSendDate,
     giftVariantPriceInCents, giftVariantBillingPeriod, giftVariantAccessDays, giftVariantLabel,
   } = await req.json();
 
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
         ...(isGift && {
           isGift: "true",
           recipientEmail: recipientEmail || "",
+          recipientName: recipientName || "",
           personalMessage: personalMessage || "",
           deliveryMethod: deliveryMethod || "manual",
           scheduledSendDate: scheduledSendDate ? String(scheduledSendDate) : "",

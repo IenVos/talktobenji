@@ -506,7 +506,8 @@ export default defineSchema({
     pricePaid: v.optional(v.number()),
     giverName: v.string(),
     giverEmail: v.string(),
-    recipientEmail: v.optional(v.string()), // ingevuld door gever (optioneel)
+    recipientEmail: v.optional(v.string()),    // ingevuld door gever (optioneel)
+    recipientName: v.optional(v.string()),     // naam ontvanger (optioneel, voor begroeting)
     personalMessage: v.optional(v.string()),
     deliveryMethod: v.union(v.literal("direct"), v.literal("manual")),
     status: v.union(v.literal("pending"), v.literal("redeemed")),

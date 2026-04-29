@@ -133,7 +133,7 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object as Stripe.PaymentIntent;
-    const { email, name, subscriptionType, slug, productName, optIn, isGift, recipientEmail, personalMessage, deliveryMethod, scheduledSendDate, giftBillingPeriod, giftAccessDays, giftLabel } = pi.metadata;
+    const { email, name, subscriptionType, slug, productName, optIn, isGift, recipientEmail, recipientName, personalMessage, deliveryMethod, scheduledSendDate, giftBillingPeriod, giftAccessDays, giftLabel } = pi.metadata;
 
     // ── Cadeau-afhandeling ──
     if (isGift === "true" && email) {
@@ -182,6 +182,7 @@ export async function POST(req: NextRequest) {
           giverName: name || email,
           giverEmail: email,
           recipientEmail: recipientEmail || undefined,
+          recipientName: recipientName || undefined,
           personalMessage: personalMessage || undefined,
           deliveryMethod: (deliveryMethod === "direct" ? "direct" : "manual") as "direct" | "manual",
           scheduledSendDate: scheduledTs,

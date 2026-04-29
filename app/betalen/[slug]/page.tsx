@@ -75,6 +75,7 @@ function CheckoutForm({
     giftVariants && giftVariants.length > 0 ? giftVariants[0] : null
   );
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipientName, setRecipientName] = useState("");
   const [personalMessage, setPersonalMessage] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState<"direct" | "manual">("manual");
   const [scheduledDate, setScheduledDate] = useState(""); // YYYY-MM-DD
@@ -118,6 +119,7 @@ function CheckoutForm({
           ...(isGift && {
             isGift: true,
             recipientEmail: recipientEmail || undefined,
+            recipientName: recipientName || undefined,
             personalMessage: personalMessage || undefined,
             deliveryMethod,
             scheduledSendDate: (deliveryMethod === "direct" && scheduledDate)
@@ -200,6 +202,18 @@ function CheckoutForm({
 
         {isGift && (
           <div className="border-t border-stone-100 bg-stone-50 px-4 py-4 space-y-4">
+
+            {/* Naam ontvanger — altijd tonen bij cadeau */}
+            <div>
+              <label className={labelClass}>Naam van de ontvanger <span className="font-normal text-stone-400">(optioneel)</span></label>
+              <input
+                type="text"
+                placeholder="Voornaam"
+                value={recipientName}
+                onChange={(e) => setRecipientName(e.target.value)}
+                className={inputClass}
+              />
+            </div>
 
             {/* Looptijdkeuze — alleen als het product varianten heeft */}
             {hasVariants && (
