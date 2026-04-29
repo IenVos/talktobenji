@@ -184,7 +184,7 @@ export default async function AlgemeneVoorwaardenPage() {
             <section className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">Toepasselijk recht en geschillen</h2>
               <p>
-                Op deze voorwaarden is Nederlands recht van toepassing. Geschillen worden bij voorkeur in onderling overleg opgelost. Lukt dat niet, dan is de bevoegde rechtbank in Hässleholm, Zweden bevoegd. Als consument kun je ook gebruik maken van het Europese ODR-platform voor online geschillenbeslechting:{" "}
+                Op deze voorwaarden is Zweeds recht van toepassing. Geschillen worden bij voorkeur in onderling overleg opgelost. Lukt dat niet, dan is de bevoegde rechtbank in Hässleholm, Zweden bevoegd. Als consument kun je ook gebruik maken van het Europese ODR-platform voor online geschillenbeslechting:{" "}
                 <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:text-primary-700 underline">
                   ec.europa.eu/consumers/odr
                 </a>.
@@ -205,7 +205,7 @@ export default async function AlgemeneVoorwaardenPage() {
         )}
 
         <p className="text-xs text-gray-500 italic pt-4 border-t border-gray-200">
-          Talk To Benji is een initiatief om mensen te ondersteunen in moeilijke tijden. We geloven dat iedereen een luisterend oor verdient.
+          Versie: 29 april 2026. Talk To Benji is een initiatief om mensen te ondersteunen in moeilijke tijden. We geloven dat iedereen een luisterend oor verdient.
         </p>
 
         <div className="flex flex-wrap gap-4 pt-4">

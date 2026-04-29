@@ -214,7 +214,7 @@ export default async function PrivacyPage() {
         )}
 
         <p className="text-xs text-gray-500 italic pt-4 border-t border-gray-200">
-          Talk To Benji verwerkt gegevens volgens de AVG (Algemene Verordening Gegevensbescherming). We bewaren niet meer dan nodig en beschermen wat we bewaren.
+          Versie: 29 april 2026. Talk To Benji verwerkt gegevens volgens de AVG (Algemene Verordening Gegevensbescherming). We bewaren niet meer dan nodig en beschermen wat we bewaren.
         </p>
 
         <div className="flex flex-wrap gap-4 pt-4">
