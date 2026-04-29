@@ -67,7 +67,6 @@ function CheckoutForm({
   const [email, setEmail] = useState("");
   const [optIn, setOptIn] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [herroepingAccepted, setHerroepingAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -162,37 +161,7 @@ function CheckoutForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className={labelClass}>Jouw naam</label>
-        <input
-          type="text"
-          placeholder="Voornaam"
-          value={naam}
-          onChange={(e) => setNaam(e.target.value)}
-          required
-          className={inputClass}
-        />
-      </div>
-      <div>
-        <label className={labelClass}>Jouw e-mailadres</label>
-        <input
-          type="email"
-          placeholder="jouw@email.nl"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className={inputClass}
-        />
-      </div>
-
-      <div className="pt-1">
-        <label className={`${labelClass} mb-2`}>Betaalgegevens</label>
-        <div className="border border-stone-200 rounded-xl p-4 bg-white">
-          <PaymentElement />
-        </div>
-      </div>
-
-      {/* Cadeau toggle — alleen tonen als product dit ondersteunt */}
+      {/* Cadeau toggle — bovenaan */}
       {giftEnabled && <div className="border border-stone-200 rounded-xl overflow-hidden">
         <label className="flex items-center gap-3 px-4 py-3.5 cursor-pointer bg-white hover:bg-stone-50 transition-colors">
           <Checkbox checked={isGift} onChange={handleGiftToggle} />
@@ -353,6 +322,36 @@ function CheckoutForm({
         )}
       </div>}
 
+      <div>
+        <label className={labelClass}>Jouw naam</label>
+        <input
+          type="text"
+          placeholder="Voornaam"
+          value={naam}
+          onChange={(e) => setNaam(e.target.value)}
+          required
+          className={inputClass}
+        />
+      </div>
+      <div>
+        <label className={labelClass}>Jouw e-mailadres</label>
+        <input
+          type="email"
+          placeholder="jouw@email.nl"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className={inputClass}
+        />
+      </div>
+
+      <div className="pt-1">
+        <label className={`${labelClass} mb-2`}>Betaalgegevens</label>
+        <div className="border border-stone-200 rounded-xl p-4 bg-white">
+          <PaymentElement />
+        </div>
+      </div>
+
       {/* Opt-in nieuwsbrief */}
       <label className="flex items-start gap-3 cursor-pointer group">
         <div className="mt-0.5">
@@ -382,32 +381,30 @@ function CheckoutForm({
         </div>
       )}
 
-      {/* Verplichte vinkjes */}
-      <div className="space-y-3">
-        <label className="flex items-start gap-3 cursor-pointer" onClick={() => setTermsAccepted(v => !v)}>
-          <Checkbox checked={termsAccepted} onChange={setTermsAccepted} />
-          <span className="text-xs text-stone-600 leading-snug pt-0.5">
-            Ik ga akkoord met de{" "}
-            <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">algemene voorwaarden</a>
-            {" "}en het{" "}
-            <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">privacybeleid</a>.
-          </span>
-        </label>
-        <label className="flex items-start gap-3 cursor-pointer" onClick={() => setHerroepingAccepted(v => !v)}>
-          <Checkbox checked={herroepingAccepted} onChange={setHerroepingAccepted} />
-          <span className="text-xs text-stone-600 leading-snug pt-0.5">
-            Ik begrijp dat de dienst direct start na betaling en dat daarmee het herroepingsrecht vervalt.
-          </span>
-        </label>
-      </div>
+      {/* Verplicht vinkje */}
+      <label className="flex items-start gap-3 cursor-pointer" onClick={() => setTermsAccepted(v => !v)}>
+        <Checkbox checked={termsAccepted} onChange={setTermsAccepted} />
+        <span className="text-xs text-stone-600 leading-snug pt-0.5">
+          Ik ga akkoord met de{" "}
+          <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">algemene voorwaarden</a>
+          {" "}en het{" "}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">privacybeleid</a>.
+        </span>
+      </label>
 
       <button
         type="submit"
-        disabled={submitting || !stripe || !elements || !termsAccepted || !herroepingAccepted}
+        disabled={submitting || !stripe || !elements || !termsAccepted}
         className="w-full py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-base"
       >
         {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
       </button>
+
+      {/* Herroepingsrecht info */}
+      <p className="text-center text-xs text-stone-400 leading-relaxed px-2">
+        De dienst start direct na betaling. Nog niet gebruikt en wil je annuleren?{" "}
+        <a href="mailto:contactmetien@talktobenji.com" className="underline hover:text-stone-600">Mail ons binnen 14 dagen</a>.
+      </p>
 
       <p className="text-center text-xs text-stone-400">
         🔒 Veilig betaald via Stripe
