@@ -134,10 +134,10 @@ export default async function PrivacyPage() {
                 Om Benji te kunnen laten werken, maken we gebruik van de volgende dienstverleners (sub-verwerkers):
               </p>
               <ul className="list-disc list-inside space-y-1 text-gray-700">
-                <li><strong>Anthropic</strong> — AI-technologie (VS)</li>
-                <li><strong>Convex</strong> — dataopslag (VS)</li>
-                <li><strong>Vercel</strong> — hosting (VS)</li>
-                <li><strong>Stripe</strong> — betalingsverwerking (VS/EU)</li>
+                <li><strong><a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Anthropic</a></strong> — AI-technologie (VS)</li>
+                <li><strong><a href="https://www.convex.dev/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Convex</a></strong> — dataopslag (VS)</li>
+                <li><strong><a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Vercel</a></strong> — hosting (VS)</li>
+                <li><strong><a href="https://stripe.com/nl/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 hover:underline">Stripe</a></strong> — betalingsverwerking (VS/EU)</li>
               </ul>
               <p>
                 Hierdoor kan het voorkomen dat je (geanonimiseerde) gegevens worden verwerkt op servers buiten de Europese Unie, met name in de Verenigde Staten. Al deze partijen zijn gecertificeerd onder het EU-US Data Privacy Framework en hanteren de door de Europese Commissie goedgekeurde modelcontractbepalingen (Standard Contractual Clauses). Daarmee is jouw privacy ook buiten de EU wettelijk beschermd.
