@@ -83,6 +83,7 @@ type FormState = {
   voorWieTitle: string;
   ervaringenJson: string;
   vragenJson: string;
+  vragen: { vraag: string; antwoord: string }[];
   wieIsTitle: string;
   wieIsText: string;
   finalCtaTitle: string;
@@ -131,6 +132,7 @@ const EMPTY_FORM: FormState = {
   voorWieTitle: "",
   ervaringenJson: "",
   vragenJson: "",
+  vragen: [],
   wieIsTitle: "",
   wieIsText: "",
   finalCtaTitle: "",
@@ -248,6 +250,7 @@ export default function AdminLandingspaginasPage() {
       voorWieTitle: page.voorWieTitle ?? "",
       ervaringenJson: page.ervaringenJson ?? "",
       vragenJson: page.vragenJson ?? "",
+      vragen: (() => { try { const p = JSON.parse(page.vragenJson ?? "[]"); return Array.isArray(p) ? p : []; } catch { return []; } })(),
       wieIsTitle: page.wieIsTitle ?? "",
       wieIsText: page.wieIsText ?? "",
       finalCtaTitle: page.finalCtaTitle ?? "",
@@ -412,7 +415,7 @@ export default function AdminLandingspaginasPage() {
           voorWieBullets: form.voorWieBullets.trim(),
           voorWieTitle: form.voorWieTitle.trim(),
           ervaringenJson: form.ervaringenJson.trim(),
-          vragenJson: form.vragenJson.trim(),
+          vragenJson: form.vragen.filter(v => v.vraag.trim()).length > 0 ? JSON.stringify(form.vragen.filter(v => v.vraag.trim())) : "",
           wieIsTitle: form.wieIsTitle.trim(),
           wieIsText: form.wieIsText.trim(),
           finalCtaTitle: form.finalCtaTitle.trim(),
@@ -464,7 +467,7 @@ export default function AdminLandingspaginasPage() {
           voorWieBullets: opt(form.voorWieBullets),
           voorWieTitle: opt(form.voorWieTitle),
           ervaringenJson: opt(form.ervaringenJson),
-          vragenJson: opt(form.vragenJson),
+          vragenJson: opt(form.vragen.filter(v => v.vraag.trim()).length > 0 ? JSON.stringify(form.vragen.filter(v => v.vraag.trim())) : ""),
           wieIsTitle: opt(form.wieIsTitle),
           wieIsText: opt(form.wieIsText),
           finalCtaTitle: opt(form.finalCtaTitle),
@@ -1158,18 +1161,49 @@ export default function AdminLandingspaginasPage() {
                     <input type="text" placeholder="" value={form.faqSubtitel} onChange={set("faqSubtitel")} className={inputClass} />
                   </div>
                 </div>
-                <div>
-                  <label className={labelSmClass}>
-                    FAQ (JSON) — formaat: {`[{"vraag":"...","antwoord":"..."}]`}
-                  </label>
-                  <textarea
-                    placeholder={`[{"vraag":"Moet ik elke dag meedoen?","antwoord":"Nee. Je schrijft alleen als…"}]`}
-                    value={form.vragenJson}
-                    onChange={set("vragenJson")}
-                    rows={5}
-                    className={`${inputClass} font-mono text-xs`}
-                  />
-                  {form.vragenJson.trim() && (() => { try { JSON.parse(form.vragenJson); return null; } catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; } })()}
+                <div className="space-y-2">
+                  <label className={labelSmClass}>Vragen & antwoorden</label>
+                  {form.vragen.map((v, i) => (
+                    <div key={i} className="border border-stone-200 rounded-xl p-3 space-y-2 bg-stone-50">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-stone-400 font-medium w-4">{i + 1}</span>
+                        <input
+                          type="text"
+                          placeholder="Vraag"
+                          value={v.vraag}
+                          onChange={e => {
+                            const updated = form.vragen.map((x, j) => j === i ? { ...x, vraag: e.target.value } : x);
+                            setForm(f => ({ ...f, vragen: updated }));
+                          }}
+                          className={`${inputClass} flex-1`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setForm(f => ({ ...f, vragen: f.vragen.filter((_, j) => j !== i) }))}
+                          className="text-stone-400 hover:text-red-500 transition-colors flex-shrink-0"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                      <textarea
+                        placeholder="Antwoord"
+                        value={v.antwoord}
+                        onChange={e => {
+                          const updated = form.vragen.map((x, j) => j === i ? { ...x, antwoord: e.target.value } : x);
+                          setForm(f => ({ ...f, vragen: updated }));
+                        }}
+                        rows={2}
+                        className={`${inputClass} ml-6 resize-none`}
+                      />
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, vragen: [...f.vragen, { vraag: "", antwoord: "" }] }))}
+                    className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 font-medium"
+                  >
+                    <Plus size={14} /> Vraag toevoegen
+                  </button>
                 </div>
               </div>
             </div>
