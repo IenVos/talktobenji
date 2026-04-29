@@ -183,7 +183,10 @@ export default function CadeauInwisselenPage() {
   const redeemMutation = useMutation(api.giftActions.redeemGiftCode);
 
   // Verwerk resultaat van code-lookup
+  // Let op: skip als stap al "done" is — de live query zou anders terugspringen
+  // naar "enter" met "al gebruikt" zodra de code net is ingewisseld.
   useEffect(() => {
+    if (step === "done") return; // code is zojuist ingewisseld, niet opnieuw evalueren
     if (code === null || giftCode === undefined) return; // nog laden of geen code
     if (giftCode === null) {
       setError("Deze code bestaat niet. Controleer de code en probeer het opnieuw.");
@@ -198,7 +201,7 @@ export default function CadeauInwisselenPage() {
       return;
     }
     setStep("confirm");
-  }, [code, giftCode]);
+  }, [code, giftCode, step]);
 
   const handleLookup = (e: React.FormEvent) => {
     e.preventDefault();
