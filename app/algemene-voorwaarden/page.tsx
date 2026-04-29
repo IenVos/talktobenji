@@ -108,12 +108,8 @@ export default async function AlgemeneVoorwaardenPage() {
             <section className="space-y-4">
               <h2 className="text-lg font-semibold text-gray-900">Abonnement en betaling</h2>
               <p>
-                Talk To Benji biedt toegang via een eenmalige betaling of abonnement. Na je aankoop:
+                Talk To Benji biedt toegang via een eenmalige betaling of abonnement. Na je aankoop ontvang je direct toegang tot de dienst. De betaling wordt verwerkt via Stripe.
               </p>
-              <ul className="list-disc list-inside space-y-1 text-gray-700">
-                <li>Ontvang je direct toegang tot de dienst</li>
-                <li>Wordt de betaling verwerkt via Stripe</li>
-              </ul>
               <p>
                 Prijswijzigingen worden minimaal 30 dagen van tevoren aangekondigd via e-mail.
               </p>
