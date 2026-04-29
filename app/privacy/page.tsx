@@ -140,7 +140,7 @@ export default async function PrivacyPage() {
                 <li><strong>Stripe</strong> — betalingsverwerking (VS/EU)</li>
               </ul>
               <p>
-                Hierdoor kan het voorkomen dat je (geanonimiseerde) gegevens worden verwerkt op servers buiten de Europese Unie, met name in de Verenigde Staten. Om te waarborgen dat je privacy daarbij altijd beschermd blijft, hebben we contractuele afspraken gemaakt via de door de Europese Commissie goedgekeurde modelcontractbepalingen (Standard Contractual Clauses, onderdeel van het EU-US Data Privacy Framework).
+                Hierdoor kan het voorkomen dat je (geanonimiseerde) gegevens worden verwerkt op servers buiten de Europese Unie, met name in de Verenigde Staten. Al deze partijen zijn gecertificeerd onder het EU-US Data Privacy Framework en hanteren de door de Europese Commissie goedgekeurde modelcontractbepalingen (Standard Contractual Clauses). Daarmee is jouw privacy ook buiten de EU wettelijk beschermd.
               </p>
             </section>
 
