@@ -302,33 +302,79 @@ export default function CadeauInwisselenPage() {
           </div>
         )}
 
-        {/* Stap 2 — cadeau bevestigen */}
+        {/* Stap 2 — cadeau bevestigen (envelop-stijl) */}
         {step === "confirm" && giftCode && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-              <div className="text-center mb-5">
-                <div className="text-3xl mb-2">🎁</div>
-                {giftCode.recipientName ? (
-                  <p className="text-sm font-medium text-primary-600 mb-1">Hoi {giftCode.recipientName}!</p>
-                ) : null}
-                <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-1">Jouw cadeau</p>
-                <h2 className="text-xl font-bold text-stone-800">{giftCode.productName}</h2>
-                <p className="text-sm text-stone-500 mt-1">van <strong>{giftCode.giverName}</strong></p>
-              </div>
+          <div className="space-y-3">
+            {/* Kaart */}
+            <div
+              className="rounded-2xl shadow-md overflow-hidden"
+              style={{ background: "linear-gradient(145deg, #fdf8f0 0%, #fef3e2 60%, #fde8c8 100%)" }}
+            >
+              {/* Decoratieve bovenkant */}
+              <div className="h-2 w-full" style={{ background: "linear-gradient(90deg, #d97706, #f59e0b, #fbbf24, #f59e0b, #d97706)" }} />
 
-              {giftCode.personalMessage && (
-                <div className="border-l-4 border-primary-300 pl-4 py-2 mb-4 bg-primary-50 rounded-r-lg">
-                  <p className="text-sm text-stone-600 italic">"{giftCode.personalMessage}"</p>
+              <div className="px-7 pt-8 pb-7">
+                {/* Icoon */}
+                <div className="flex justify-center mb-5">
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center shadow-sm"
+                    style={{ background: "linear-gradient(135deg, #fef3c7, #fde68a)" }}>
+                    <span className="text-3xl">🎁</span>
+                  </div>
                 </div>
-              )}
 
-              <button
-                onClick={() => setStep("redeem")}
-                className="w-full py-3.5 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors text-sm"
-              >
-                Dit cadeau inwisselen
-              </button>
+                {/* Aanhef */}
+                <div className="text-center mb-6">
+                  {giftCode.recipientName ? (
+                    <p className="text-2xl font-bold mb-1" style={{ color: "#92400e" }}>
+                      Hoi {giftCode.recipientName},
+                    </p>
+                  ) : (
+                    <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#b45309" }}>
+                      Jouw cadeau
+                    </p>
+                  )}
+                  <p className="text-base text-stone-600 leading-snug">
+                    {giftCode.giverName} heeft je{" "}
+                    <span className="font-semibold text-stone-800">{giftCode.productName}</span>{" "}
+                    cadeau gegeven.
+                  </p>
+                </div>
+
+                {/* Persoonlijk bericht */}
+                {giftCode.personalMessage && (
+                  <div className="relative mb-6">
+                    <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-full" style={{ background: "#f59e0b" }} />
+                    <div className="pl-4">
+                      <p className="text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: "#b45309" }}>
+                        Bericht van {giftCode.giverName}
+                      </p>
+                      <p className="text-sm text-stone-600 italic leading-relaxed">
+                        "{giftCode.personalMessage}"
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Decoratieve lijn */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex-1 border-t border-dashed" style={{ borderColor: "#f59e0b60" }} />
+                  <span className="text-xs" style={{ color: "#d97706" }}>✦</span>
+                  <div className="flex-1 border-t border-dashed" style={{ borderColor: "#f59e0b60" }} />
+                </div>
+
+                <button
+                  onClick={() => setStep("redeem")}
+                  className="w-full py-3.5 font-semibold rounded-xl transition-all text-sm text-white shadow-sm hover:shadow-md active:scale-[0.98]"
+                  style={{ background: "linear-gradient(135deg, #d97706, #f59e0b)" }}
+                >
+                  Mijn cadeau inwisselen →
+                </button>
+              </div>
             </div>
+
+            <p className="text-center text-xs text-stone-400">
+              Van harte! 🌿
+            </p>
           </div>
         )}
 
