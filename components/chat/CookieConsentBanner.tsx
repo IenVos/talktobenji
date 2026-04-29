@@ -52,14 +52,11 @@ export function CookieConsentBanner() {
   if (!show) return null;
 
   return (
-    <div
-      className="fixed bottom-0 left-0 right-0 z-[100] p-4 sm:p-5 bg-primary-800 border-t border-primary-700 shadow-[0_-4px_12px_rgba(0,0,0,0.2)]"
-      style={{ paddingBottom: "max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))" }}
-    >
-      <div className="max-w-2xl mx-auto space-y-4">
-        <p className="text-sm text-primary-100">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.45)" }}>
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6 space-y-4">
+        <p className="text-sm text-stone-600 leading-relaxed">
           We gebruiken cookies om de site goed te laten werken en om anonieme statistieken te verzamelen. Lees meer in ons{" "}
-          <Link href="/privacy" className="text-primary-300 hover:text-primary-200 underline">
+          <Link href="/privacy" className="text-primary-600 hover:underline">
             privacybeleid
           </Link>
           .
@@ -67,39 +64,39 @@ export function CookieConsentBanner() {
 
         {showSettings ? (
           <div className="space-y-3">
-            <div className="flex items-center justify-between py-2 border-t border-primary-700">
-              <span className="text-sm text-primary-100">Noodzakelijke cookies</span>
-              <span className="text-xs text-primary-300">Altijd actief</span>
+            <div className="flex items-center justify-between py-2 border-t border-stone-100">
+              <span className="text-sm text-stone-700">Noodzakelijke cookies</span>
+              <span className="text-xs text-stone-400">Altijd actief</span>
             </div>
-            <div className="flex items-center justify-between py-2 border-t border-primary-700">
+            <div className="flex items-center justify-between py-2 border-t border-stone-100">
               <div>
-                <span className="text-sm text-primary-100">Statistieken</span>
-                <p className="text-xs text-primary-400">Anonieme data om de site te verbeteren</p>
+                <span className="text-sm text-stone-700">Statistieken</span>
+                <p className="text-xs text-stone-400">Anonieme data om de site te verbeteren</p>
               </div>
               <button
                 type="button"
                 role="switch"
                 aria-checked={analytics}
                 onClick={() => setAnalytics((a) => !a)}
-                className={`relative w-11 h-6 rounded-full transition-colors ${analytics ? "bg-primary-500" : "bg-primary-700"}`}
+                className={`relative w-11 h-6 rounded-full transition-colors ${analytics ? "bg-primary-500" : "bg-stone-200"}`}
               >
                 <span
-                  className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${analytics ? "left-6" : "left-1"}`}
+                  className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-sm ${analytics ? "left-6" : "left-1"}`}
                 />
               </button>
             </div>
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 pt-1">
               <button
                 type="button"
                 onClick={handleSaveSettings}
-                className="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-400 transition-colors"
+                className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
               >
-                Instellingen opslaan
+                Opslaan
               </button>
               <button
                 type="button"
                 onClick={() => setShowSettings(false)}
-                className="px-4 py-2 text-primary-300 hover:text-primary-100 text-sm font-medium"
+                className="px-4 py-2 text-stone-500 hover:text-stone-700 text-sm font-medium"
               >
                 Terug
               </button>
@@ -110,21 +107,21 @@ export function CookieConsentBanner() {
             <button
               type="button"
               onClick={handleAcceptAll}
-              className="px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-lg hover:bg-primary-400 transition-colors"
+              className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
             >
               Akkoord
             </button>
             <button
               type="button"
               onClick={handleNecessaryOnly}
-              className="px-4 py-2 bg-primary-700 text-primary-100 text-sm font-medium rounded-lg hover:bg-primary-600 transition-colors border border-primary-600"
+              className="px-4 py-2 bg-stone-100 text-stone-700 text-sm font-medium rounded-lg hover:bg-stone-200 transition-colors"
             >
               Alleen noodzakelijke
             </button>
             <button
               type="button"
               onClick={() => setShowSettings(true)}
-              className="px-4 py-2 text-primary-300 hover:text-primary-100 text-sm font-medium inline-flex items-center gap-1"
+              className="px-4 py-2 text-stone-500 hover:text-stone-700 text-sm font-medium inline-flex items-center gap-1"
             >
               Instellingen
               <ChevronDown size={16} />
