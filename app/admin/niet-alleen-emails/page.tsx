@@ -376,8 +376,7 @@ function DagRij({
 }) {
   const [open, setOpen] = useState(false);
   const defaultSubject = dag.subject;
-  const mappedNiche = (niche === "huisdier" ? "huisdier" : niche === "scheiding" || niche === "relatie" ? "scheiding" : "persoon") as NietAlleenVerliesType;
-  const defaultTekst = dag.mail[mappedNiche];
+  const defaultTekst = getMailTekst(dag.dag, niche);
   const [subject, setSubject] = useState(override?.subject ?? defaultSubject);
   const [mailTekst, setMailTekst] = useState(override?.mailTekst ?? defaultTekst);
   const [saving, setSaving] = useState(false);
