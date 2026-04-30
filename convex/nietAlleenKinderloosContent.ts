@@ -27,7 +27,7 @@ export const KINDERLOOS_CONTENT: KinderloosDAg[] = [
     subject: "Je hoeft vandaag maar één ding te doen",
     mail: `Jij bent er. Op dag één. Dat vraagt moed, ook al voelt het misschien niet zo.
 
-Er is een verlangen dat jij draagt — naar een kind dat er niet is gekomen. Dat verlangen is echt. Het verdriet daarover ook. En het feit dat de wereld dat niet altijd ziet of begrijpt, maakt het zwaarder, niet makkelijker.
+Er is een verlangen dat jij draagt: naar een kind dat er niet is gekomen. Dat verlangen is echt. Het verdriet daarover ook. En het feit dat de wereld dat niet altijd ziet of begrijpt, maakt het zwaarder, niet makkelijker.
 
 Je hoeft het vandaag niet op te lossen. Je hoeft het niet eens te begrijpen.
 
@@ -45,7 +45,7 @@ Benji is er.`,
     dag: 2,
     thema: "Wanneer je voor het eerst wist dat het anders zou lopen",
     subject: "Het moment waarop alles veranderde",
-    mail: `Er is een moment waarop je wist — of begon te begrijpen — dat het anders zou lopen dan je had gehoopt.
+    mail: `Er is een moment waarop je wist, of begon te begrijpen, dat het anders zou lopen dan je had gehoopt.
 
 Voor sommigen was dat een uitslag. Een gesprek met een arts. Een zoveelste teleurstelling na een behandeling. Voor anderen was het een langzaam besef, zonder één duidelijk moment.
 
@@ -59,7 +59,7 @@ Je hoeft het niet volledig te maken. Een paar zinnen is genoeg.
 
 {link}
 
-Tot morgen. Benji`,
+Spreek je morgen. Benji`,
     inHetAccount: "Er was een moment waarop je wist dat het anders zou lopen. Beschrijf het zo kort of uitgebreid als je wilt. Waar was je, wat hoorde je, hoe voelde dat?",
     alsjewilt: "Wat deed je vlak daarna? Hoe zorgde je voor jezelf op dat moment, of lukte dat niet?",
   },
@@ -80,7 +80,7 @@ Vandaag de vraag: wat is het kleine, alledaagse ding dat jou steeds herinnert aa
 
 Je bent niet alleen. Benji`,
     inHetAccount: "Verlies leeft in kleine dingen. Wat is het alledaagse moment of ding dat jou steeds herinnert aan het gemis? Schrijf het op, hoe klein het ook lijkt.",
-    doedingetje: "Kies één plek of situatie die je de laatste tijd uit de weg gaat. Je hoeft er niet naartoe — maar schrijf op wat je eigenlijk zou willen dat anders was.",
+    doedingetje: "Kies één plek of situatie die je de laatste tijd uit de weg gaat. Je hoeft er niet naartoe, maar schrijf op wat je eigenlijk zou willen dat anders was.",
   },
 
   {
@@ -89,7 +89,7 @@ Je bent niet alleen. Benji`,
     subject: "Verdriet zit niet alleen in je hoofd",
     mail: `Verdriet is niet alleen iets wat je denkt of voelt. Het zit ook in je lichaam.
 
-Een zwaar gevoel in je borst. Moe zijn zonder reden. Gespannen zijn bij bepaalde situaties. Je lichaam dat maanden of jaren onder druk heeft gestaan — van behandelingen, van hopen, van teleurstellingen.
+Een zwaar gevoel in je borst. Moe zijn zonder reden. Gespannen zijn bij bepaalde situaties. Je lichaam dat maanden of jaren onder druk heeft gestaan, van behandelingen, van hopen, van teleurstellingen.
 
 Je lichaam heeft veel gedragen. Dat is niet zwak, dat is menselijk.
 
@@ -97,16 +97,16 @@ Vandaag de vraag: waar draag jij het verdriet in je lichaam? Welke plek of welk 
 
 {link}
 
-Je bent niet alleen. Benji`,
+Rust goed. Benji`,
     inHetAccount: "Verdriet zit ook in je lichaam. Waar voel jij het? Een spanning, een zwaarte, een vermoeidheid? Schrijf op wat je herkent.",
-    alsjewilt: "Wat heeft je lichaam doorgemaakt in deze periode? Schrijf het op — niet als klacht, maar als erkenning.",
+    alsjewilt: "Wat heeft je lichaam doorgemaakt in deze periode? Schrijf het op, niet als klacht, maar als erkenning.",
   },
 
   {
     dag: 5,
     thema: "Wat je de laatste tijd vermijdt",
     subject: "Wat je liever niet ziet of voelt",
-    mail: `Er zijn dingen die je vermijdt. Plekken, mensen, gesprekken, sociale media. Niet uit zwakte — maar omdat het gewoon te veel is.
+    mail: `Er zijn dingen die je vermijdt. Plekken, mensen, gesprekken, sociale media. Niet uit zwakte, maar omdat het gewoon te veel is.
 
 Een kraamvisitatie. De speelgoedafdeling. Een WhatsApp-groep vol kinderfoto's. Het gesprek met die ene vriendin die het niet begrijpt. Dat is niet raar. Dat is zelfbescherming.
 
@@ -116,8 +116,8 @@ Wat is het, voor jou? Wat ga je liever uit de weg?
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Wat vermijd je de laatste tijd? Plekken, mensen, situaties? Schrijf het op — zonder oordeel over jezelf.",
+Zie je morgen. Benji`,
+    inHetAccount: "Wat vermijd je de laatste tijd? Plekken, mensen, situaties? Schrijf het op, zonder oordeel over jezelf.",
   },
 
   {
@@ -126,7 +126,7 @@ Tot morgen. Benji`,
     subject: "Wie staat er naast je?",
     mail: `Niet iedereen begrijpt wat jij draagt. Dat kan eenzaam zijn.
 
-Maar ergens is er iemand — of misschien meer dan één — die er voor je probeert te zijn. Misschien zegt die persoon niet altijd de goede dingen. Misschien is het meer een gevoel dan een gesprek. Maar hij of zij is er.
+Maar ergens is er iemand, of misschien meer dan één, die er voor je probeert te zijn. Misschien zegt die persoon niet altijd de goede dingen. Misschien is het meer een gevoel dan een gesprek. Maar hij of zij is er.
 
 Vandaag de vraag: wie staat er naast jou in dit verdriet, ook als het onhandig of onvolledig is?
 
@@ -134,8 +134,8 @@ En als je het gevoel hebt dat er niemand is: schrijf dat dan op. Dat is ook iets
 
 {link}
 
-Benji is er. Elke dag.`,
-    inHetAccount: "Wie staat er naast jou? Iemand die het begrijpt, of in ieder geval probeert? Schrijf op wie er is — en wat je van hen nodig hebt.",
+Denk aan je. Benji`,
+    inHetAccount: "Wie staat er naast jou? Iemand die het begrijpt, of in ieder geval probeert? Schrijf op wie er is, en wat je van hen nodig hebt.",
     alsjewilt: "Is er iemand van wie je wilt dat ze het beter begreep, maar het niet doet? Wat zou je willen dat ze wist?",
   },
 
@@ -145,7 +145,7 @@ Benji is er. Elke dag.`,
     subject: "Een kleine check-in",
     mail: `Je bent nu een week onderweg. Dat is niet niets.
 
-Elke dag hier zijn — ook als je niets schreef, ook als je alleen maar opende en weer sloot — dat telt.
+Elke dag hier zijn, ook als je niets schreef, ook als je alleen maar opende en weer sloot, dat telt.
 
 Vandaag de vraag: hoe heb je jezelf deze week verzorgd? Niet wat je had moeten doen. Maar wat je wel deed.
 
@@ -156,7 +156,7 @@ Dat is genoeg. Meer hoeft niet.
 {link}
 
 Tot morgen. Benji`,
-    inHetAccount: "Hoe heb je jezelf deze week verzorgd? Niet wat je had moeten doen — maar wat je wel deed. Schrijf het op, hoe klein ook.",
+    inHetAccount: "Hoe heb je jezelf deze week verzorgd? Niet wat je had moeten doen, maar wat je wel deed. Schrijf het op, hoe klein ook.",
     doedingetje: "Doe vandaag iets alleen voor jezelf. Niet om productief te zijn of iemand tevreden te stellen. Gewoon voor jou.",
   },
 
@@ -165,7 +165,7 @@ Tot morgen. Benji`,
     dag: 8,
     thema: "Het verlangen zelf",
     subject: "Wat je eigenlijk wilde",
-    mail: `Vandaag gaan we een stap dieper. Niet naar het verdriet over wat er niet is gekomen — maar naar het verlangen zelf.
+    mail: `Vandaag gaan we een stap dieper. Niet naar het verdriet over wat er niet is gekomen, maar naar het verlangen zelf.
 
 Wat wilde je eigenlijk? Niet als abstract idee, maar concreet. Hoe zag dat kind eruit in je hoofd? Wat voor moeder of vader wilde jij zijn? Welk moment had je het liefst gehad?
 
@@ -175,8 +175,8 @@ Schrijf op wat jij verlangde. In zoveel detail als je kunt.
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Niet het verdriet over wat er niet is — maar het verlangen zelf. Wat wilde jij? Hoe zag dat eruit in je hoofd? Schrijf het op.",
+Fijne dag. Groet Benji`,
+    inHetAccount: "Niet het verdriet over wat er niet is, maar het verlangen zelf. Wat wilde jij? Hoe zag dat eruit in je hoofd? Schrijf het op.",
     alsjewilt: "Welk moment had je het liefst gehad? Beschrijf het zo concreet mogelijk.",
   },
 
@@ -186,7 +186,7 @@ Tot morgen. Benji`,
     subject: "Iets wat bewaard mag blijven",
     mail: `Er zijn dingen die je niet wilt vergeten. Misschien een moment van hoop. Een gesprek dat je heeft geraakt. Een behandeling die even goed leek te gaan. De manier waarop je partner naar je keek.
 
-Of misschien iets meer tastbaars — een foto, een datum, een gedachte die je had op een heel gewone dag.
+Of misschien iets meer tastbaars: een foto, een datum, een gedachte die je had op een heel gewone dag.
 
 Niet alles van deze periode is alleen pijn. Sommige dingen zijn het waard om te bewaren.
 
@@ -194,7 +194,7 @@ Vandaag de vraag: wat wil jij onthouden? Wat mag er blijven?
 
 {link}
 
-Tot morgen. Benji`,
+Morgen weer. Benji`,
     inHetAccount: "Wat wil je nooit vergeten uit deze periode? Een moment, een gevoel, een gesprek? Schrijf het op zodat het bewaard blijft.",
   },
 
@@ -202,7 +202,7 @@ Tot morgen. Benji`,
     dag: 10,
     thema: "Iets wat je even deed lachen of opluchten",
     subject: "Even adem halen",
-    mail: `Verdriet duurt lang. En in die lange periode zijn er ook momenten geweest — hoe klein ook — waarop je even kon lachen, ontspannen, of gewoon adem halen.
+    mail: `Verdriet duurt lang. En in die lange periode zijn er ook momenten geweest, hoe klein ook, waarop je even kon lachen, ontspannen, of gewoon adem halen.
 
 Dat is geen verraad aan je verdriet. Dat is overleven.
 
@@ -212,8 +212,8 @@ Schrijf het op. Het mag klein zijn.
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Wat gaf je de afgelopen tijd even lucht? Een lach, een opluchting, een moment van rust? Schrijf het op — ook al voelt het onbelangrijk.",
+Geniet van de dag. Groet Benji`,
+    inHetAccount: "Wat gaf je de afgelopen tijd even lucht? Een lach, een opluchting, een moment van rust? Schrijf het op, ook al voelt het onbelangrijk.",
     doedingetje: "Doe vandaag iets wat je de laatste tijd niet hebt gedaan omdat het 'niet passend' leek bij hoe je je voelt. Gewoon proberen.",
   },
 
@@ -231,7 +231,7 @@ Vandaag de vraag: waar ben je stiekem trots op jezelf om? Niet op grote prestati
 
 {link}
 
-Tot morgen. Benji`,
+Spreek je morgen. Benji`,
     inHetAccount: "Waar ben je trots op jezelf om, uit deze periode? Iets wat je hebt gedaan, gezegd of volgehouden terwijl het zwaar was. Schrijf het op.",
     alsjewilt: "Wat had je van jezelf nooit verwacht dat je dit aankon? Klopt dat beeld nog?",
   },
@@ -244,12 +244,12 @@ Tot morgen. Benji`,
 
 Onafgemaakt betekent niet mislukt. Maar het verdient wel een plek.
 
-Vandaag de vraag: wat voelt voor jou nog onafgemaakt? Niet wat anderen vinden — maar wat jij voelt.
+Vandaag de vraag: wat voelt voor jou nog onafgemaakt? Niet wat anderen vinden, maar wat jij voelt.
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Wat voelt nog onafgemaakt voor jou? Een beslissing, een gesprek, een gevoel? Schrijf het op — zonder het te hoeven oplossen.",
+Zie je morgen. Benji`,
+    inHetAccount: "Wat voelt nog onafgemaakt voor jou? Een beslissing, een gesprek, een gevoel? Schrijf het op, zonder het te hoeven oplossen.",
   },
 
   {
@@ -258,7 +258,7 @@ Tot morgen. Benji`,
     subject: "Wat heeft dit jou gebracht?",
     mail: `Dit is misschien een moeilijke vraag. Maar hij is eerlijk bedoeld.
 
-Je hebt iets verloren. Maar in die periode heb je ook iets geleerd — over jezelf, over anderen, over wat er echt toe doet.
+Je hebt iets verloren. Maar in die periode heb je ook iets geleerd: over jezelf, over anderen, over wat er echt toe doet.
 
 Misschien is er duidelijker geworden wat je wilt. Misschien heeft het je dichter bij iemand gebracht, of juist laten zien wie er echt voor je staat. Misschien heb je een kracht ontdekt die je niet wist dat je had.
 
@@ -266,7 +266,7 @@ Vandaag de vraag: wat heeft dit jou gegeven? Hoe klein of onverwacht ook.
 
 {link}
 
-Tot morgen. Benji`,
+Rust goed. Benji`,
     inHetAccount: "Wat heeft deze periode jou gegeven? Over jezelf, over anderen, over wat er echt toe doet. Schrijf het op, hoe onverwacht ook.",
     alsjewilt: "Is er iets in je leven veranderd door dit verlies wat je eigenlijk niet had willen missen?",
   },
@@ -279,15 +279,15 @@ Tot morgen. Benji`,
 
 Die hoop was echt. En hoewel het pijn doet dat ze niet is uitgekomen zoals je wilde, zegt die hoop ook iets over jou. Over hoe graag je het wilde. Over hoe lief je al had.
 
-Vandaag vragen we je die hoop terug te halen — niet om er verdrietig van te worden, maar om hem te eren.
+Vandaag vragen we je die hoop terug te halen, niet om er verdrietig van te worden, maar om hem te eren.
 
 Hoe zag die hoop eruit? Wat geloofde je, op je hoopvolste momenten?
 
 {link}
 
 Tot morgen. Benji`,
-    inHetAccount: "Hoe zag jouw hoop eruit? Op de momenten dat je geloofde dat het zou lukken — wat dacht je, wat voelde je? Schrijf het op om het te eren.",
-    doedingetje: "Schrijf een zin op over iets wat je hoopte. Niet om er verdrietig van te worden — maar om het een plek te geven.",
+    inHetAccount: "Hoe zag jouw hoop eruit? Op de momenten dat je geloofde dat het zou lukken, wat dacht je, wat voelde je? Schrijf het op om het te eren.",
+    doedingetje: "Schrijf een zin op over iets wat je hoopte. Niet om er verdrietig van te worden, maar om het een plek te geven.",
   },
 
   // ─────────────── WEEK 3 — WAT JE DRAAGT ───────────────
@@ -295,18 +295,18 @@ Tot morgen. Benji`,
     dag: 15,
     thema: "Hoe dit jou heeft veranderd",
     subject: "Jij bent niet meer dezelfde",
-    mail: `Dit heeft je veranderd. Dat is niet erg — het is onvermijdelijk.
+    mail: `Dit heeft je veranderd. Dat is niet erg, het is onvermijdelijk.
 
 Misschien ben je stiller geworden op feestjes. Misschien kijk je anders aan tegen vriendschappen. Misschien heb je grenzen getrokken die je vroeger nooit had durven trekken. Misschien ben je zachter geworden voor anderen die pijn dragen.
 
-Verandering door verlies is niet altijd mooier — maar het is altijd dieper.
+Verandering door verlies is niet altijd mooier, maar het is altijd dieper.
 
 Vandaag de vraag: hoe ben jij veranderd? Wat zie je in jezelf wat er vroeger niet of anders was?
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Hoe heeft dit jou veranderd? Wat zie je in jezelf nu wat er vroeger niet of anders was? Schrijf het op — ook wat pijnlijk is.",
+Denk aan je. Benji`,
+    inHetAccount: "Hoe heeft dit jou veranderd? Wat zie je in jezelf nu wat er vroeger niet of anders was? Schrijf het op, ook wat pijnlijk is.",
     alsjewilt: "Is er iets in die verandering wat je eigenlijk wel waardeert, ook al had je het liever anders gehad?",
   },
 
@@ -322,7 +322,7 @@ Vandaag de vraag: wat weet je nu van jezelf, wat je vroeger niet zo duidelijk wi
 
 {link}
 
-Tot morgen. Benji`,
+Fijne dag. Groet Benji`,
     inHetAccount: "Wat weet je nu van jezelf dat je vroeger niet zo duidelijk wist? Over je kracht, je grenzen, je behoeften? Schrijf het op.",
   },
 
@@ -330,7 +330,7 @@ Tot morgen. Benji`,
     dag: 17,
     thema: "Wat je tegen je jongere zelf zou zeggen",
     subject: "Een bericht aan jezelf van vroeger",
-    mail: `Stel je voor dat je terug kon gaan naar de jij van een paar jaar geleden — voor dit allemaal begon, of midden in de moeilijkste periode.
+    mail: `Stel je voor dat je terug kon gaan naar de jij van een paar jaar geleden, voor dit allemaal begon, of midden in de moeilijkste periode.
 
 Wat zou je tegen haar of hem zeggen?
 
@@ -340,8 +340,8 @@ Schrijf het op. Zo lang of zo kort als het wil komen.
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Wat zou je tegen je jongere zelf zeggen — de jij van voor dit allemaal, of midden erin? Schrijf het op als een brief.",
+Morgen weer. Benji`,
+    inHetAccount: "Wat zou je tegen je jongere zelf zeggen, de jij van voor dit allemaal, of midden erin? Schrijf het op als een brief.",
     alsjewilt: "Wat zou je willen dat iemand je destijds had gezegd, maar niemand zei?",
   },
 
@@ -349,7 +349,7 @@ Tot morgen. Benji`,
     dag: 18,
     thema: "Waar je boos op bent",
     subject: "Boosheid mag er zijn",
-    mail: `Boosheid hoort bij rouw. Niet altijd, niet voor iedereen — maar vaak.
+    mail: `Boosheid hoort bij rouw. Niet altijd, niet voor iedereen, maar wel vaak.
 
 Misschien ben je boos op je lichaam. Op de oneerlijkheid van het leven. Op mensen die het zomaar lijkt te lukken. Op artsen, op behandelingen, op omstandigheden buiten je macht. Op jezelf, soms. Op hoe anderen reageren.
 
@@ -359,9 +359,9 @@ Vandaag: waar ben je boos op? Schrijf het op zonder het te censureren.
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Waar ben je boos op? Op je lichaam, op het leven, op de oneerlijkheid ervan? Schrijf het op — boosheid mag er zijn.",
-    doedingetje: "Schrijf alles op waar je boos over bent, zonder filter. Daarna mag je het bewaren of weggooien — jouw keuze.",
+Geniet van de dag. Groet Benji`,
+    inHetAccount: "Waar ben je boos op? Op je lichaam, op het leven, op de oneerlijkheid ervan? Schrijf het op, boosheid mag er zijn.",
+    doedingetje: "Schrijf alles op waar je boos over bent, zonder filter. Daarna mag je het bewaren of weggooien, jouw keuze.",
   },
 
   {
@@ -378,9 +378,9 @@ Vandaag de vraag: wat maakt je bang als je aan de toekomst denkt? Benoem het zo 
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Wat maakt je bang als je aan de toekomst denkt? Benoem het zo eerlijk als je kunt — angst verdient een plek, geen oordeel.",
-    alsjewilt: "Wat zou er moeten veranderen — aan jezelf, aan je leven, aan de wereld — om die angst een beetje minder te maken?",
+Spreek je morgen. Benji`,
+    inHetAccount: "Wat maakt je bang als je aan de toekomst denkt? Benoem het zo eerlijk als je kunt, angst verdient een plek, geen oordeel.",
+    alsjewilt: "Wat zou er moeten veranderen, aan jezelf, aan je leven, aan de wereld, om die angst een beetje minder te maken?",
   },
 
   {
@@ -395,8 +395,8 @@ Vandaag de vraag: wanneer was zo'n moment de laatste tijd? Wat deed je, met wie 
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Wanneer was je de laatste tijd gewoon jezelf — niet de persoon die rouwt of uitlegt? Schrijf dat moment op.",
+Zie je morgen. Benji`,
+    inHetAccount: "Wanneer was je de laatste tijd gewoon jezelf, niet de persoon die rouwt of uitlegt? Schrijf dat moment op.",
   },
 
   {
@@ -407,13 +407,13 @@ Tot morgen. Benji`,
 
 Loslaten betekent niet vergeten. Het betekent niet dat het niet mocht zijn of niet echt was.
 
-Maar soms helpt het om te benoemen wat je bij je houdt — en wat je daarin koestert.
+Maar soms helpt het om te benoemen wat je bij je houdt, en wat je daarin koestert.
 
 Vandaag de vraag: wat draag je bij je wat je niet wilt missen, ook al is het pijnlijk?
 
 {link}
 
-Tot morgen. Benji`,
+Rust goed. Benji`,
     inHetAccount: "Wat draag je bij je uit deze periode wat je niet wilt loslaten? De hoop, een gevoel, een deel van je? Schrijf het op.",
     doedingetje: "Zoek een voorwerp, een foto of een woord dat staat voor iets wat je wil bewaren. Leg het ergens neer waar je het kunt zien.",
   },
@@ -423,7 +423,7 @@ Tot morgen. Benji`,
     dag: 22,
     thema: "Wat draaglijker is geworden",
     subject: "Wat iets lichter aanvoelt",
-    mail: `Niet alles is even zwaar meer als in het begin. Sommige dingen zijn draaglijker geworden — misschien maar een klein beetje, maar toch.
+    mail: `Niet alles is even zwaar meer als in het begin. Sommige dingen zijn draaglijker geworden, misschien maar een klein beetje, maar toch.
 
 Dat is geen verraad. Dat is hoe mensen overleven.
 
@@ -440,7 +440,7 @@ Tot morgen. Benji`,
     dag: 23,
     thema: "Iemand die je heeft verrast",
     subject: "Iemand die er was toen je het niet verwachtte",
-    mail: `In moeilijke tijden leer je mensen kennen. Soms vallen ze tegen — dat is ook een les. Maar soms verrassen ze je positief.
+    mail: `In moeilijke tijden leer je mensen kennen. Soms vallen ze tegen, dat is ook een les. Maar soms verrassen ze je positief.
 
 Iemand die iets zei wat raak was. Die er gewoon was, zonder grote woorden. Die niet probeerde het op te lossen maar het wel erkende. Die contact bleef houden ook als het ongemakkelijk was.
 
@@ -448,8 +448,8 @@ Vandaag de vraag: wie heeft jou verrast in deze periode? En wat deed of zei die 
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Wie heeft jou verrast in deze periode — op een goede manier? Wat deed of zei die persoon? Schrijf het op.",
+Denk aan je. Benji`,
+    inHetAccount: "Wie heeft jou verrast in deze periode, op een goede manier? Wat deed of zei die persoon? Schrijf het op.",
   },
 
   {
@@ -466,8 +466,8 @@ Vandaag de vraag: wat heb jij nodig?
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Wat heb jij nodig de komende tijd? Niet wat zou moeten — maar wat voelt als iets wat jou echt zou helpen? Schrijf het op.",
+Fijne dag. Groet Benji`,
+    inHetAccount: "Wat heb jij nodig de komende tijd? Niet wat zou moeten, maar wat voelt als iets wat jou echt zou helpen? Schrijf het op.",
     doedingetje: "Vraag één ding wat je nodig hebt vandaag aan iemand. Of geef het jezelf, als je dat kunt.",
   },
 
@@ -475,7 +475,7 @@ Tot morgen. Benji`,
     dag: 25,
     thema: "Een gewoonte of ritueel dat je troost",
     subject: "Wat je houvast geeft",
-    mail: `Wat geeft jou houvast? Niet per se iets groots of betekenisvols — maar gewoon iets wat werkt.
+    mail: `Wat geeft jou houvast? Niet per se iets groots of betekenisvols, maar gewoon iets wat werkt.
 
 Een kopje thee op een vaste tijd. Een wandeling. Een liedje. Een boek voor het slapen. Contact met een bepaalde persoon. Een plek waar je naartoe gaat.
 
@@ -485,9 +485,9 @@ Vandaag de vraag: welk ritueel of welke gewoonte geeft jou houvast?
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Welk ritueel of welke gewoonte geeft jou houvast? Hoe klein ook — schrijf het op en erken dat het ertoe doet.",
-    alsjewilt: "Is er een ritueel dat je zou willen beginnen — iets wat je tot nu toe niet hebt gedaan maar wat je aantrekt?",
+Morgen weer. Benji`,
+    inHetAccount: "Welk ritueel of welke gewoonte geeft jou houvast? Hoe klein ook, schrijf het op en erken dat het ertoe doet.",
+    alsjewilt: "Is er een ritueel dat je zou willen beginnen: iets wat je tot nu toe niet hebt gedaan maar wat je aantrekt?",
   },
 
   {
@@ -496,7 +496,7 @@ Tot morgen. Benji`,
     subject: "Wat mag er blijven",
     mail: `Je bent bijna aan het einde van deze 30 dagen.
 
-Voordat je afsluit, een vraag over wat je meeneemt. Niet het verdriet — dat draag je al. Maar wat wil je bewust onthouden van deze periode?
+Voordat je afsluit, een vraag over wat je meeneemt. Niet het verdriet, dat draag je al. Maar wat wil je bewust onthouden van deze periode?
 
 Een inzicht. Een gevoel. Een beslissing die je hebt genomen. Een les over jezelf. Iemand die er was.
 
@@ -504,7 +504,7 @@ Wat wil jij meenemen?
 
 {link}
 
-Tot morgen. Benji`,
+Geniet van de dag. Groet Benji`,
     inHetAccount: "Wat wil je meenemen uit deze 30 dagen? Een inzicht, een gevoel, een beslissing? Schrijf op wat je bewust wilt onthouden.",
   },
 
@@ -512,7 +512,7 @@ Tot morgen. Benji`,
     dag: 27,
     thema: "Een brief aan de toekomst",
     subject: "Een brief aan jezelf",
-    mail: `Vandaag schrijf je een brief — aan jezelf in de toekomst.
+    mail: `Vandaag schrijf je een brief: aan jezelf in de toekomst.
 
 Niet een list van wat je wil bereiken. Maar een bericht van wie je nu bent, aan wie je dan zult zijn.
 
@@ -522,7 +522,7 @@ Er is geen goede manier om dit te doen. Schrijf gewoon.
 
 {link}
 
-Tot morgen. Benji`,
+Spreek je morgen. Benji`,
     inHetAccount: "Schrijf een brief aan jezelf in de toekomst. Wat wil jij dat die toekomstige jij weet, onthoudt, of niet vergeet?",
     doedingetje: "Bewaar deze brief ergens waar je hem over een jaar terug kunt vinden.",
   },
@@ -541,14 +541,14 @@ Vandaag de vraag: wat is er iets wat jij kunt loslaten?
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Wat kun jij loslaten? Een schuldgevoel, een verwachting, een 'had ik maar'? Schrijf het op — loslaten begint met benoemen.",
+Rust goed. Benji`,
+    inHetAccount: "Wat kun jij loslaten? Een schuldgevoel, een verwachting, een 'had ik maar'? Schrijf het op: loslaten begint met benoemen.",
     alsjewilt: "Wat houdt je ervan te loslaten? Wat maakt het moeilijk?",
   },
 
   {
     dag: 29,
-    thema: "Hoe je verder gaat — met dit gemis als deel van je, niet achter je",
+    thema: "Hoe je verder gaat, met dit gemis als deel van je, niet achter je",
     subject: "Dit gemis gaat mee",
     mail: `Morgen is de laatste dag. En het gemis gaat mee.
 
@@ -556,23 +556,23 @@ Het verdwijnt niet na 30 dagen. Het wordt misschien zachter, meer vertrouwd, mee
 
 Dat is geen tragedie. Mensen die hebben gerouwd dragen iets diepers in zich. Ze weten wat er echt toe doet. Ze zien dingen die anderen missen.
 
-Vandaag de vraag: hoe ga jij verder — met dit gemis als deel van je verhaal, niet als iets wat achter je ligt?
+Vandaag de vraag: hoe ga jij verder, met dit gemis als deel van je verhaal, niet als iets wat achter je ligt?
 
 {link}
 
-Tot morgen. Benji`,
-    inHetAccount: "Hoe ga jij verder — met dit gemis als deel van je, niet als iets wat achter je ligt? Wat betekent dat voor jou concreet?",
+Zie je morgen. Benji`,
+    inHetAccount: "Hoe ga jij verder, met dit gemis als deel van je, niet als iets wat achter je ligt? Wat betekent dat voor jou concreet?",
   },
 
   {
     dag: 30,
     thema: "Een brief aan jezelf",
-    subject: "Je laatste dag — en een brief",
+    subject: "Je laatste dag, en een brief",
     mail: `Dit is dag 30.
 
-Je hebt 30 dagen lang geschreven — over wat je draagt, wat je verloor, wat je hoopte, wat je voelt. Dat is niet niks. Dat vraagt moed.
+Je hebt 30 dagen lang geschreven: over wat je draagt, wat je verloor, wat je hoopte, wat je voelt. Dat is niet niks. Dat vraagt moed.
 
-Vandaag schrijf je een brief aan jezelf. Niet aan wie je had willen zijn. Maar aan wie je bent — nu, na deze 30 dagen.
+Vandaag schrijf je een brief aan jezelf. Niet aan wie je had willen zijn. Maar aan wie je bent, nu, na deze 30 dagen.
 
 Schrijf over wat je hebt ontdekt. Over wat je wil zeggen aan de jij die hier begon. Over wat je meeneemt.
 
@@ -582,7 +582,7 @@ Er is geen goede manier. Schrijf gewoon.
 
 Ik ben trots op je.
 Benji`,
-    inHetAccount: "Schrijf een brief aan jezelf — aan wie je nu bent, na deze 30 dagen. Over wat je hebt ontdekt, wat je meeneemt, wat je wil zeggen.",
+    inHetAccount: "Schrijf een brief aan jezelf, aan wie je nu bent, na deze 30 dagen. Over wat je hebt ontdekt, wat je meeneemt, wat je wil zeggen.",
     alsjewilt: "Wat wil je dat de mensen om je heen weten, nu je deze 30 dagen achter de rug hebt?",
   },
 ];

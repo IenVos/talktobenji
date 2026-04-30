@@ -442,7 +442,7 @@ Wat maakte jou aan het lachen in jullie relatie? Een inside joke, een eigenaardi
 Lachen mag. Benji`,
     },
     inHetAccount: "Wat maakte jou aan het lachen bij hem, haar of hen? Een eigenaardigheid, een grap, iets kleins dat alleen jullie begrepen?",
-    alsjewilt: "Als je aan die herinnering denkt, wat voel je dan? Mogen die twee dingen tegelijk bestaan — het lachen en het gemis?",
+    alsjewilt: "Als je aan die herinnering denkt, wat voel je dan? Mogen die twee dingen tegelijk bestaan, het lachen en het gemis?",
   },
 
   {
@@ -458,7 +458,7 @@ Beschrijf zo'n moment. Wanneer was je trots op hem of haar? Of wanneer wist je d
 
 {link}
 
-Benji`,
+Spreek je morgen. Benji`,
 
       huisdier: `Er zijn momenten waarop je trots was op je dier. Een nieuwe vaardigheid, een moment van vertrouwen, iets wat alleen jullie samen hadden opgebouwd.
 
@@ -466,7 +466,7 @@ Beschrijf zo'n moment. Wanneer was je trots, of wanneer voelde jullie verbinding
 
 {link}
 
-Benji`,
+Spreek je morgen. Benji`,
 
       scheiding: `Er waren ook momenten in jullie relatie waarop je trots was. Op de ander, of op wat jullie samen hadden gebouwd.
 
@@ -474,7 +474,7 @@ Beschrijf zo'n moment. Wanneer was je trots op hem of haar, of op jullie samen?
 
 {link}
 
-Benji`,
+Spreek je morgen. Benji`,
     },
     inHetAccount: "Beschrijf een moment van trots. Wanneer was je trots op hem of haar? Of wanneer voelde je dat zij trots op jou waren?",
   },
@@ -633,7 +633,7 @@ Wat heb jij geleerd van hem of haar? Niet wat ze je letterlijk hebben verteld, m
 
 {link}
 
-Benji`,
+Zie je morgen. Benji`,
 
       huisdier: `Dieren leren ons dingen die mensen ons soms niet kunnen leren. Aanwezig zijn. Liefhebben zonder oordeel. Genieten van een klein moment.
 
@@ -641,7 +641,7 @@ Wat heb jij geleerd van hem of haar?
 
 {link}
 
-Benji`,
+Zie je morgen. Benji`,
 
       scheiding: `Elke relatie leert ons iets over onszelf en over liefde. Ook als ze eindigt.
 
@@ -649,7 +649,7 @@ Wat heb jij geleerd van deze relatie, van deze persoon, of van het einde ervan?
 
 {link}
 
-Benji`,
+Zie je morgen. Benji`,
     },
     inHetAccount: "Wat heb jij geleerd van hem, haar of deze relatie? Niet wat je letterlijk bent verteld, maar wat je hebt meegekregen.",
     doedingetje: "Probeer deze week iets te doen op een manier die hij of zij jou heeft geleerd. En merk op hoe dat voelt.",
@@ -945,7 +945,7 @@ Dat hoeft niet diepzinnig te zijn. Een kop thee op dezelfde plek. Een wandeling.
 
 {link}
 
-Benji`,
+Fijne dag. Groet Benji`,
 
       huisdier: `Is er iets wat jou troost of structuur geeft in deze tijd? Een gewoonte, een ritueel, iets kleins dat houvast biedt?
 
@@ -953,7 +953,7 @@ Het mag iets nieuws zijn wat je hebt gevonden, of iets wat er altijd al was.
 
 {link}
 
-Benji`,
+Fijne dag. Groet Benji`,
 
       scheiding: `Is er iets wat jou houvast geeft in deze periode? Een gewoonte, een ritueel, iets kleins dat structuur brengt?
 
@@ -961,7 +961,7 @@ Soms vinden mensen nieuwe gewoontes na een verlies die ze nooit hadden verwacht.
 
 {link}
 
-Benji`,
+Fijne dag. Groet Benji`,
     },
     inHetAccount: "Wat geeft jou troost of houvast in deze periode? Een gewoonte, een ritueel, iets kleins? Schrijf het op.",
     doedingetje: "Doe dat ding deze week bewust. Niet automatisch, maar met aandacht. Merk op wat het doet.",
@@ -1069,7 +1069,7 @@ Over twee dagen zijn je 30 dagen klaar. Benji`,
 
   {
     dag: 29,
-    thema: "Hoe je verder gaat met dit gemis als deel van je — niet achter je",
+    thema: "Hoe je verder gaat met dit gemis als deel van je, niet achter je",
     subject: "Verder, niet voorbij",
     mail: {
       persoon: `Nog één dag.
@@ -1106,7 +1106,7 @@ Hoe ga jij verder met dit als deel van je verhaal? Niet erover heen, maar ermee.
 
 Morgen de laatste dag. Benji`,
     },
-    inHetAccount: "Bijna aan het einde. Hoe wil jij verder met dit gemis als deel van je — niet achter je? Wat neem je mee?",
+    inHetAccount: "Bijna aan het einde. Hoe wil jij verder met dit gemis als deel van je, niet achter je? Wat neem je mee?",
     alsjewilt: "Is er iets wat je anders wilt doen of zijn in de komende tijd, nu je dit hebt doorlopen?",
   },
 
@@ -1147,7 +1147,7 @@ Schrijf een brief aan de versie van jou die hier vandaag is. Wat neem je mee? Wa
 
 Je hebt het gedaan. Benji`,
     },
-    inHetAccount: "Dit is de laatste dag. Schrijf een brief aan jezelf — aan de versie van jou die hier nu is. Wat neem je mee van deze 30 dagen?",
+    inHetAccount: "Dit is de laatste dag. Schrijf een brief aan jezelf, aan de versie van jou die hier nu is. Wat neem je mee van deze 30 dagen?",
   },
 ];
 

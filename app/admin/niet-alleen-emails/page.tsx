@@ -186,10 +186,12 @@ const VERLIES_TYPES_TEST = [
   { key: "persoon", label: "Persoon" },
   { key: "huisdier", label: "Huisdier" },
   { key: "relatie", label: "Scheiding / relatie" },
+  { key: "kinderloos", label: "Kinderloos" },
 ];
 
 function TestProfielBlok() {
   const maakTestProfiel = useMutation(api.nietAlleen.maakTestProfiel);
+  const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [naam, setNaam] = useState("");
   const [verliesType, setVerliesType] = useState("persoon");
@@ -215,63 +217,73 @@ function TestProfielBlok() {
   };
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-4">
-      <div className="flex items-center gap-2">
-        <UserPlus className="w-4 h-4 text-blue-600" />
-        <h2 className="text-sm font-semibold text-blue-800">Testprofiel aanmaken</h2>
-      </div>
-      <p className="text-xs text-blue-700">
-        Vul je e-mailadres in. Als er al een profiel bestaat wordt het volledig gereset — dagboek, anker, alles begint opnieuw.
-      </p>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">E-mailadres</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-            placeholder="jouw@email.nl" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">Naam</label>
-          <input type="text" value={naam} onChange={(e) => setNaam(e.target.value)}
-            placeholder="Voornaam" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">Startdag simuleren</label>
-          <select value={dagOffset} onChange={(e) => setDagOffset(Number(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none">
-            {[0,1,2,3,4,5,6,7,10,13,14,15,17,18,20,21,25,27,28,29].map(d => (
-              <option key={d} value={d}>Dag {d + 1} (gestart {d} dagen geleden)</option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-gray-600 mb-1">Verliestype</label>
-        <div className="flex gap-2">
-          {VERLIES_TYPES_TEST.map((t) => (
-            <button key={t.key} onClick={() => setVerliesType(t.key)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
-              style={{ background: verliesType === t.key ? "#3b82f6" : "white", color: verliesType === t.key ? "white" : "#6b7280", borderColor: verliesType === t.key ? "#3b82f6" : "#d1d5db" }}>
-              {t.label}
+    <div className="bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-blue-100 transition-colors"
+      >
+        <UserPlus className="w-4 h-4 text-blue-600 flex-shrink-0" />
+        <span className="text-sm font-semibold text-blue-800 flex-1">Testprofiel aanmaken</span>
+        {open ? <ChevronDown size={16} className="text-blue-400 flex-shrink-0" /> : <ChevronRight size={16} className="text-blue-400 flex-shrink-0" />}
+      </button>
+      {open && (
+        <div className="px-5 pb-5 space-y-4 border-t border-blue-200">
+          <p className="text-xs text-blue-700 pt-3">
+            Vul je e-mailadres in. Als er al een profiel bestaat wordt het volledig gereset — dagboek, anker, alles begint opnieuw.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">E-mailadres</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder="jouw@email.nl" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Naam</label>
+              <input type="text" value={naam} onChange={(e) => setNaam(e.target.value)}
+                placeholder="Voornaam" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Startdag simuleren</label>
+              <select value={dagOffset} onChange={(e) => setDagOffset(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none">
+                {[0,1,2,3,4,5,6,7,10,13,14,15,17,18,20,21,25,27,28,29].map(d => (
+                  <option key={d} value={d}>Dag {d + 1} (gestart {d} dagen geleden)</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Verliestype</label>
+            <div className="flex flex-wrap gap-2">
+              {VERLIES_TYPES_TEST.map((t) => (
+                <button key={t.key} onClick={() => setVerliesType(t.key)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                  style={{ background: verliesType === t.key ? "#3b82f6" : "white", color: verliesType === t.key ? "white" : "#6b7280", borderColor: verliesType === t.key ? "#3b82f6" : "#d1d5db" }}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={handleMaak} disabled={!email || !naam || bezig}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
+              style={{ background: "#3b82f6" }}>
+              <UserPlus size={14} />
+              {bezig ? "Bezig…" : "Maak testprofiel"}
             </button>
-          ))}
+            {resultaat && <span className="text-sm text-green-600">{resultaat}</span>}
+            {fout && <span className="text-sm text-red-600">{fout}</span>}
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <button onClick={handleMaak} disabled={!email || !naam || bezig}
-          className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-50"
-          style={{ background: "#3b82f6" }}>
-          <UserPlus size={14} />
-          {bezig ? "Bezig…" : "Maak testprofiel"}
-        </button>
-        {resultaat && <span className="text-sm text-green-600">{resultaat}</span>}
-        {fout && <span className="text-sm text-red-600">{fout}</span>}
-      </div>
+      )}
     </div>
   );
 }
 
 function TestEmailBlok() {
   const stuurTestEmails = useAction(api.nietAlleen.stuurTestEmails);
+  const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [naam, setNaam] = useState("");
   const [verliesType, setVerliesType] = useState("persoon");
@@ -296,72 +308,81 @@ function TestEmailBlok() {
   };
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 space-y-4">
-      <div className="flex items-center gap-2">
-        <FlaskConical className="w-4 h-4 text-amber-600" />
-        <h2 className="text-sm font-semibold text-amber-800">Test — stuur alle 32 emails naar je inbox</h2>
-      </div>
-      <p className="text-xs text-amber-700">
-        Verstuurt de welkomstmail + alle 30 dagelijkse emails + dag 28 voorbereiding + dag 30 afsluiting.
-      </p>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">E-mailadres</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="jouw@email.nl"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1">Naam</label>
-          <input
-            type="text"
-            value={naam}
-            onChange={(e) => setNaam(e.target.value)}
-            placeholder="Voornaam"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
-          />
-        </div>
-      </div>
-      <div>
-        <label className="block text-xs font-semibold text-gray-600 mb-1">Verliestype</label>
-        <div className="flex gap-2">
-          {VERLIES_TYPES_TEST.map((t) => (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-amber-100 transition-colors"
+      >
+        <FlaskConical className="w-4 h-4 text-amber-600 flex-shrink-0" />
+        <span className="text-sm font-semibold text-amber-800 flex-1">Test — stuur alle 32 emails naar je inbox</span>
+        {open ? <ChevronDown size={16} className="text-amber-400 flex-shrink-0" /> : <ChevronRight size={16} className="text-amber-400 flex-shrink-0" />}
+      </button>
+      {open && (
+        <div className="px-5 pb-5 space-y-4 border-t border-amber-200">
+          <p className="text-xs text-amber-700 pt-3">
+            Verstuurt de welkomstmail + alle 30 dagelijkse emails + dag 28 voorbereiding + dag 30 afsluiting.
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">E-mailadres</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="jouw@email.nl"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Naam</label>
+              <input
+                type="text"
+                value={naam}
+                onChange={(e) => setNaam(e.target.value)}
+                placeholder="Voornaam"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Verliestype</label>
+            <div className="flex flex-wrap gap-2">
+              {VERLIES_TYPES_TEST.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setVerliesType(t.key)}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
+                  style={{
+                    background: verliesType === t.key ? "#f59e0b" : "white",
+                    color: verliesType === t.key ? "white" : "#6b7280",
+                    borderColor: verliesType === t.key ? "#f59e0b" : "#d1d5db",
+                  }}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
             <button
-              key={t.key}
-              onClick={() => setVerliesType(t.key)}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors"
-              style={{
-                background: verliesType === t.key ? "#f59e0b" : "white",
-                color: verliesType === t.key ? "white" : "#6b7280",
-                borderColor: verliesType === t.key ? "#f59e0b" : "#d1d5db",
-              }}
+              onClick={handleTest}
+              disabled={!email || !naam || bezig}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50"
+              style={{ background: "#f59e0b" }}
             >
-              {t.label}
+              <Send size={14} />
+              {bezig ? "Bezig met versturen (even geduld)…" : "Stuur alle 32 emails"}
             </button>
-          ))}
+            {klaar && (
+              <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                <CheckCircle size={15} /> Verstuurd!
+              </span>
+            )}
+            {fout && <span className="text-sm text-red-600">{fout}</span>}
+          </div>
         </div>
-      </div>
-      <div className="flex items-center gap-3">
-        <button
-          onClick={handleTest}
-          disabled={!email || !naam || bezig}
-          className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white transition-colors disabled:opacity-50"
-          style={{ background: "#f59e0b" }}
-        >
-          <Send size={14} />
-          {bezig ? "Bezig met versturen (even geduld)…" : "Stuur alle 32 emails"}
-        </button>
-        {klaar && (
-          <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
-            <CheckCircle size={15} /> Verstuurd!
-          </span>
-        )}
-        {fout && <span className="text-sm text-red-600">{fout}</span>}
-      </div>
+      )}
     </div>
   );
 }
