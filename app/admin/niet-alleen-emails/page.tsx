@@ -560,6 +560,27 @@ function DertigDagenEditor({ dagTemplates, niches }: { dagTemplates: any[]; nich
         </div>
       </div>
 
+      {/* Reset alle aanpassingen voor actieve niche */}
+      {dagTemplates.some(t => t.verliesType === niche) && (
+        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5">
+          <p className="text-xs text-amber-700">
+            Er zijn opgeslagen aanpassingen voor <strong>{NICHE_LABELS[niche] ?? niche}</strong> die de standaardtekst overschrijven.
+          </p>
+          <button
+            onClick={async () => {
+              if (!confirm(`Alle aanpassingen voor ${NICHE_LABELS[niche] ?? niche} verwijderen en terugzetten naar standaard?`)) return;
+              await Promise.all(
+                dagTemplates.filter(t => t.verliesType === niche).map(t => deleteDag({ dag: t.dag, verliesType: t.verliesType }))
+              );
+            }}
+            className="ml-4 flex-shrink-0 px-3 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors flex items-center gap-1.5"
+          >
+            <RotateCcw size={12} />
+            Reset alle dagen
+          </button>
+        </div>
+      )}
+
       {/* Nieuw verliestype aanmaken */}
       {showNieuw && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 space-y-4">
