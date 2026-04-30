@@ -570,6 +570,19 @@ function NietAlleenPageInner() {
             </>
           )}
 
+        {/* Alsjewilt + doedingetje — ook in terugkijkweergave */}
+        {oudeInhoud?.alsjewilt && (
+          <p className="text-sm leading-relaxed px-1" style={{ color: "#8a8078" }}>
+            Als je wilt: {oudeInhoud.alsjewilt}
+          </p>
+        )}
+        {oudeInhoud?.doedingetje && (
+          <p className="text-sm leading-relaxed px-1" style={{ color: "#8a8078" }}>
+            <span className="font-medium" style={{ color: "#3d3530" }}>Klein doedingetje: </span>
+            {oudeInhoud.doedingetje}
+          </p>
+        )}
+
         {/* Vorige dagen grid — ook in terugkijkweergave */}
         {ingevuldeDagen.length > 1 && (
           <div className="space-y-2 pt-2">
