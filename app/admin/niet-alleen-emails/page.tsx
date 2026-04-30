@@ -79,17 +79,27 @@ function TemplateEditor({
     subject !== (savedSubject ?? defaults.subject) ||
     bodyText !== (savedBodyText ?? defaults.bodyText);
 
+  const [open, setOpen] = useState(false);
+
   return (
-    <div className="bg-white rounded-xl border border-primary-200 p-5 sm:p-6 shadow-sm space-y-4">
-      <div className="flex items-start gap-3">
-        <div className="w-9 h-9 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0 border border-primary-200">
+    <div className="bg-white rounded-xl border border-primary-200 shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-primary-50 transition-colors"
+      >
+        <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center flex-shrink-0 border border-primary-200">
           <Mail className="w-4 h-4 text-primary-600" />
         </div>
-        <div>
-          <h2 className="text-base font-semibold text-primary-900">{meta.title}</h2>
-          <p className="text-xs text-primary-600">{meta.subtitle}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-primary-900">{meta.title}</p>
+          <p className="text-xs text-primary-500">{meta.subtitle}</p>
         </div>
-      </div>
+        {isDirty && <span className="text-xs text-amber-600 font-medium flex-shrink-0">Gewijzigd</span>}
+        {open ? <ChevronDown size={16} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={16} className="text-gray-400 flex-shrink-0" />}
+      </button>
+
+      {open && <div className="px-5 pb-5 space-y-4 border-t border-primary-100">
 
       <div>
         <label className="block text-xs font-semibold text-gray-600 mb-1">Onderwerp</label>
@@ -167,6 +177,7 @@ function TemplateEditor({
           </span>
         )}
       </div>
+    </div>}
     </div>
   );
 }
