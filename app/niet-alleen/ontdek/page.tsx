@@ -106,7 +106,7 @@ export default function OntdekPage() {
         {/* CTA */}
         <div className="space-y-3">
           <Link
-            href="/prijzen"
+            href="/lp/prijzen"
             className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-medium text-white text-sm"
             style={{ background: "#6d84a8" }}
           >

@@ -99,12 +99,16 @@ function NietAlleenPageInner() {
   );
 
   // Scherm bepalen
+  const isAdminUser = session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EXEMPT_EMAIL;
+
   useEffect(() => {
     if (status === "loading") return;
     if (status === "unauthenticated") { setScherm("geen_toegang"); return; }
     if (profiel === undefined) return;
 
     if (!profiel || profiel.accountGesloten) {
+      // Admin heeft altijd toegang, ook als account gesloten is
+      if (isAdminUser) { setScherm(profiel?.verliesType ? "dag" : "onboarding"); return; }
       setScherm(profiel?.accountGesloten ? "gesloten" : "geen_toegang");
       return;
     }
@@ -112,7 +116,8 @@ function NietAlleenPageInner() {
     if (!profiel.verliesType) { setScherm("onboarding"); return; }
 
     const dag = Math.floor((Date.now() - profiel.startDatum) / 86400000) + 1;
-    if (dag > 30) { setScherm("afgerond"); return; }
+    // Admin mag ook na dag 30 nog inloggen
+    if (dag > 30 && !isAdminUser) { setScherm("afgerond"); return; }
 
     const vandaag = profiel.dagPrompts.find((p) => p.dag === activeDag);
     if (vandaag) setTekst(vandaag.tekst);
@@ -303,7 +308,7 @@ function NietAlleenPageInner() {
           <p style={{ color: "#6b6460" }}>
             Je 30 dagen zijn afgelopen en je gratis account is gesloten. Wil je alles bewaren?
           </p>
-          <Link href="/prijzen" className="inline-block px-5 py-2.5 rounded-xl text-sm font-medium text-white" style={{ background: "#6d84a8" }}>
+          <Link href="/lp/prijzen" className="inline-block px-5 py-2.5 rounded-xl text-sm font-medium text-white" style={{ background: "#6d84a8" }}>
             Bekijk abonnementen
           </Link>
         </div>
