@@ -1,3 +1,5 @@
+import { KINDERLOOS_CONTENT } from "./nietAlleenKinderloosContent";
+
 /**
  * Niet Alleen — volledige 30-dagen content
  *
@@ -1154,7 +1156,6 @@ Je hebt het gedaan. Benji`,
  * Als het verliestype "relatie" is, wordt "scheiding" gebruikt.
  * Als het verliestype onbekend is, wordt "persoon" als fallback gebruikt.
  */
-import { KINDERLOOS_CONTENT } from "./nietAlleenKinderloosContent";
 
 export function getDagInhoud(dag: number, verliesType: string): DagInhoud | null {
   const dagIndex = Math.min(Math.max(dag - 1, 0), 29);
