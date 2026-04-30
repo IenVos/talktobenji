@@ -7,7 +7,7 @@ import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil, Plus, Trash2, Copy } from "lucide-react";
 import { useMutation } from "convex/react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
-import { NIET_ALLEEN_CONTENT, type NietAlleenVerliesType } from "@/convex/nietAlleenContent";
+import { NIET_ALLEEN_CONTENT, type NietAlleenVerliesType, getMailTekst } from "@/convex/nietAlleenContent";
 
 type TemplateKey = "niet_alleen_welkom" | "niet_alleen_dag" | "niet_alleen_dag28" | "niet_alleen_dag30";
 
@@ -493,8 +493,7 @@ function DertigDagenEditor({ dagTemplates, niches }: { dagTemplates: any[]; nich
 
   // Haal de standaard mailtekst op voor de actieve niche
   const getNicheDefault = (dag: typeof NIET_ALLEEN_CONTENT[0], code: string) => {
-    const mapped = code === "huisdier" ? "huisdier" : code === "scheiding" || code === "relatie" ? "scheiding" : "persoon";
-    return dag.mail[mapped as NietAlleenVerliesType] ?? dag.mail["persoon"];
+    return getMailTekst(dag.dag, code);
   };
 
   const handleDuplicate = async () => {
