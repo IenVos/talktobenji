@@ -842,7 +842,11 @@ export function LandingPageView({ slug }: { slug: string }) {
             </p>
             {page.footerText && (
               <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
-                {page.footerText}
+                {(page as any).footerCtaUrl ? (
+                  <a href={(page as any).footerCtaUrl} style={{ color: "#6d84a8", textDecoration: "underline" }}>
+                    {page.footerText}
+                  </a>
+                ) : page.footerText}
               </p>
             )}
             <p className="text-xs" style={{ color: "#8a8078" }}>

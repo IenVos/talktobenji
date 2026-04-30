@@ -723,6 +723,7 @@ export default defineSchema({
     hideStickyBar: v.optional(v.boolean()),
     // Footer
     footerText: v.optional(v.string()),
+    footerCtaUrl: v.optional(v.string()),
     // Analytics
     trackAds: v.optional(v.boolean()), // Toon in advertentie-blok in analytics
     // Prijsblokken (JSON: [{titel, subtitel, prijs, tekst, aanbevolen, ctaTekst, ctaUrl}])

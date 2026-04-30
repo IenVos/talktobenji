@@ -89,6 +89,7 @@ type FormState = {
   finalCtaTitle: string;
   finalCtaBody: string;
   footerText: string;
+  footerCtaUrl: string;
   trackAds: boolean;
   pricingBlocks: PricingBlockForm[];
   featureSliderLabel: string;
@@ -138,6 +139,7 @@ const EMPTY_FORM: FormState = {
   finalCtaTitle: "",
   finalCtaBody: "",
   footerText: "",
+  footerCtaUrl: "",
   trackAds: false,
   pricingBlocks: [{ ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }],
   featureSliderLabel: "",
@@ -256,6 +258,7 @@ export default function AdminLandingspaginasPage() {
       finalCtaTitle: page.finalCtaTitle ?? "",
       finalCtaBody: page.finalCtaBody ?? "",
       footerText: page.footerText ?? "",
+      footerCtaUrl: (page as any).footerCtaUrl ?? "",
       trackAds: (page as any).trackAds ?? false,
       featureSliderLabel: (page as any).featureSliderLabel ?? "",
       featureSliderTitel: (page as any).featureSliderTitel ?? "",
@@ -421,6 +424,7 @@ export default function AdminLandingspaginasPage() {
           finalCtaTitle: form.finalCtaTitle.trim(),
           finalCtaBody: form.finalCtaBody.trim(),
           footerText: form.footerText.trim(),
+          footerCtaUrl: form.footerCtaUrl.trim(),
           trackAds: form.trackAds,
           pricingBlocksJson: form.pricingBlocks.some(b => b.titel || b.prijs)
             ? JSON.stringify(form.pricingBlocks)
@@ -473,6 +477,7 @@ export default function AdminLandingspaginasPage() {
           finalCtaTitle: opt(form.finalCtaTitle),
           finalCtaBody: opt(form.finalCtaBody),
           footerText: opt(form.footerText),
+          footerCtaUrl: opt(form.footerCtaUrl),
           trackAds: form.trackAds,
           pricingBlocksJson: form.pricingBlocks.some(b => b.titel || b.prijs)
             ? JSON.stringify(form.pricingBlocks)
@@ -1241,9 +1246,15 @@ export default function AdminLandingspaginasPage() {
             {/* Footer */}
             <div className="pt-2 border-t border-primary-100">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Footer</p>
-              <div>
-                <label className={labelSmClass}>Footertekst</label>
-                <textarea placeholder='"Niet Alleen" is onderdeel van Talk To Benji…' value={form.footerText} onChange={set("footerText")} rows={3} className={inputClass} />
+              <div className="space-y-3">
+                <div>
+                  <label className={labelSmClass}>Footertekst</label>
+                  <textarea placeholder='"Niet Alleen" is onderdeel van Talk To Benji…' value={form.footerText} onChange={set("footerText")} rows={3} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelSmClass}>Link in footertekst (URL) — als ingevuld wordt de footertekst klikbaar</label>
+                  <input type="url" placeholder="https://www.talktobenji.com/lp/prijzen" value={form.footerCtaUrl} onChange={set("footerCtaUrl")} className={inputClass} />
+                </div>
               </div>
             </div>
 
