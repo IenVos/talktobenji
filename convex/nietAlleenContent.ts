@@ -1154,12 +1154,32 @@ Je hebt het gedaan. Benji`,
  * Als het verliestype "relatie" is, wordt "scheiding" gebruikt.
  * Als het verliestype onbekend is, wordt "persoon" als fallback gebruikt.
  */
+import { KINDERLOOS_CONTENT } from "./nietAlleenKinderloosContent";
+
 export function getDagInhoud(dag: number, verliesType: string): DagInhoud | null {
   const dagIndex = Math.min(Math.max(dag - 1, 0), 29);
+  if (verliesType === "kinderloos") {
+    const k = KINDERLOOS_CONTENT[dagIndex];
+    if (!k) return null;
+    // Wrap kinderloos content in DagInhoud shape for compatibility
+    return {
+      dag: k.dag,
+      thema: k.thema,
+      subject: k.subject,
+      mail: { persoon: k.mail, huisdier: k.mail, scheiding: k.mail },
+      inHetAccount: k.inHetAccount,
+      alsjewilt: k.alsjewilt,
+      doedingetje: k.doedingetje,
+    };
+  }
   return NIET_ALLEEN_CONTENT[dagIndex] ?? null;
 }
 
 export function getMailTekst(dag: number, verliesType: string): string {
+  if (verliesType === "kinderloos") {
+    const dagIndex = Math.min(Math.max(dag - 1, 0), 29);
+    return KINDERLOOS_CONTENT[dagIndex]?.mail ?? "";
+  }
   const inhoud = getDagInhoud(dag, verliesType);
   if (!inhoud) return "";
 
