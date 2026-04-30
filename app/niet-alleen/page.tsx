@@ -106,9 +106,14 @@ function NietAlleenPageInner() {
     if (status === "unauthenticated") { setScherm("geen_toegang"); return; }
     if (profiel === undefined) return;
 
+    // Admin heeft altijd toegang — ook als account gesloten is of na dag 30
+    if (isAdminUser) {
+      if (!profiel?.verliesType) { setScherm("onboarding"); return; }
+      setScherm("dag");
+      return;
+    }
+
     if (!profiel || profiel.accountGesloten) {
-      // Admin heeft altijd toegang, ook als account gesloten is
-      if (isAdminUser) { setScherm(profiel?.verliesType ? "dag" : "onboarding"); return; }
       setScherm(profiel?.accountGesloten ? "gesloten" : "geen_toegang");
       return;
     }
@@ -116,8 +121,7 @@ function NietAlleenPageInner() {
     if (!profiel.verliesType) { setScherm("onboarding"); return; }
 
     const dag = Math.floor((Date.now() - profiel.startDatum) / 86400000) + 1;
-    // Admin mag ook na dag 30 nog inloggen
-    if (dag > 30 && !isAdminUser) { setScherm("afgerond"); return; }
+    if (dag > 30) { setScherm("afgerond"); return; }
 
     const vandaag = profiel.dagPrompts.find((p) => p.dag === activeDag);
     if (vandaag) setTekst(vandaag.tekst);
