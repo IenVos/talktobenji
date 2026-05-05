@@ -18,7 +18,7 @@ const INGEBOUWDE_TYPEN = [
 export const listPublic = query({
   args: {},
   handler: async (ctx) => {
-    const opgeslagen = await ctx.db.query("verliesTypen").collect();
+    const opgeslagen = await ctx.db.query("verliesTypen").order("asc").collect();
     if (opgeslagen.length === 0) return INGEBOUWDE_TYPEN;
     return opgeslagen.map(t => ({ code: t.code, naam: t.naam }));
   },
@@ -29,7 +29,7 @@ export const list = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const opgeslagen = await ctx.db.query("verliesTypen").collect();
+    const opgeslagen = await ctx.db.query("verliesTypen").order("asc").collect();
 
     // Als de tabel nog leeg is, geef ingebouwde typen terug als fallback
     if (opgeslagen.length === 0) return INGEBOUWDE_TYPEN.map(t => ({ ...t, _id: null, createdAt: 0 }));
