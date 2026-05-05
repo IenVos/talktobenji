@@ -273,7 +273,19 @@ export function LandingPageView({ slug }: { slug: string }) {
   }
 
   if ((page as any).lpType === "niet_alleen_keuze") {
-    return <NietAlleenKeuzeLpView />;
+    return (
+      <NietAlleenKeuzeLpView
+        typeCtaUrlPersoon={(page as any).typeCtaUrlPersoon}
+        typeCtaUrlHuisdier={(page as any).typeCtaUrlHuisdier}
+        typeCtaUrlRelatie={(page as any).typeCtaUrlRelatie}
+        typeCtaUrlKinderloos={(page as any).typeCtaUrlKinderloos}
+        typeButtonLabelPersoon={(page as any).typeButtonLabelPersoon}
+        typeButtonLabelHuisdier={(page as any).typeButtonLabelHuisdier}
+        typeButtonLabelRelatie={(page as any).typeButtonLabelRelatie}
+        typeButtonLabelKinderloos={(page as any).typeButtonLabelKinderloos}
+        defaultCtaUrl={(page as any).ctaUrl}
+      />
+    );
   }
 
   const voorWieBullets: string[] = page.voorWieBullets
@@ -554,6 +566,31 @@ export function LandingPageView({ slug }: { slug: string }) {
             </div>
           </section>
         )}
+
+        {/* INHOUDSBLOKKEN */}
+        {(() => {
+          let blocks: { titel: string; tekst: string }[] = [];
+          try { if ((page as any).contentBlocksJson) blocks = JSON.parse((page as any).contentBlocksJson); } catch {}
+          if (!blocks.length) return null;
+          return (
+            <section className="px-5 pb-4">
+              <div className="max-w-lg mx-auto space-y-4">
+                {blocks.map((block, i) => (
+                  <div key={i} className="bg-white rounded-2xl p-6 shadow-sm space-y-3">
+                    {block.titel && <h3 className="text-base font-semibold" style={{ color: "#3d3530" }}>{block.titel}</h3>}
+                    {block.tekst && (
+                      <div className="text-sm leading-relaxed space-y-2" style={{ color: "#6b6460" }}>
+                        {block.tekst.split("\n\n").map((p, j) => (
+                          <p key={j}>{p.split("\n").map((line, k, arr) => <span key={k}>{line}{k < arr.length - 1 && <br />}</span>)}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })()}
 
         {/* PRODUCTAFBEELDING */}
         {((page as any).productImageUrl || page.productImagePath) && (

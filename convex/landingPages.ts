@@ -112,6 +112,7 @@ export const create = mutation({
     typeButtonLabelHuisdier: v.optional(v.string()),
     typeButtonLabelRelatie: v.optional(v.string()),
     typeButtonLabelKinderloos: v.optional(v.string()),
+    contentBlocksJson: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -185,6 +186,7 @@ export const update = mutation({
     typeButtonLabelHuisdier: v.optional(v.string()),
     typeButtonLabelRelatie: v.optional(v.string()),
     typeButtonLabelKinderloos: v.optional(v.string()),
+    contentBlocksJson: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

@@ -120,6 +120,7 @@ type FormState = {
   typeButtonLabelHuisdier: string;
   typeButtonLabelRelatie: string;
   typeButtonLabelKinderloos: string;
+  contentBlocks: { titel: string; tekst: string }[];
 };
 
 const EMPTY_FORM: FormState = {
@@ -178,6 +179,7 @@ const EMPTY_FORM: FormState = {
   typeButtonLabelHuisdier: "",
   typeButtonLabelRelatie: "",
   typeButtonLabelKinderloos: "",
+  contentBlocks: [],
   featureSlides: [
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
@@ -307,6 +309,7 @@ export default function AdminLandingspaginasPage() {
       typeButtonLabelHuisdier: (page as any).typeButtonLabelHuisdier ?? "",
       typeButtonLabelRelatie: (page as any).typeButtonLabelRelatie ?? "",
       typeButtonLabelKinderloos: (page as any).typeButtonLabelKinderloos ?? "",
+      contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p : []; } catch { return []; } })(),
       featureSlides: (() => {
         try {
           const parsed = JSON.parse((page as any).featureSlidesJson || "[]");
@@ -486,6 +489,7 @@ export default function AdminLandingspaginasPage() {
           typeButtonLabelHuisdier: form.typeButtonLabelHuisdier.trim(),
           typeButtonLabelRelatie: form.typeButtonLabelRelatie.trim(),
           typeButtonLabelKinderloos: form.typeButtonLabelKinderloos.trim(),
+          contentBlocksJson: form.contentBlocks.filter(b => b.titel || b.tekst).length > 0 ? JSON.stringify(form.contentBlocks.filter(b => b.titel || b.tekst)) : "",
         });
         setSavedFeedback(true);
         setTimeout(() => setSavedFeedback(false), 2500);
@@ -548,6 +552,7 @@ export default function AdminLandingspaginasPage() {
           typeButtonLabelHuisdier: opt(form.typeButtonLabelHuisdier),
           typeButtonLabelRelatie: opt(form.typeButtonLabelRelatie),
           typeButtonLabelKinderloos: opt(form.typeButtonLabelKinderloos),
+          contentBlocksJson: form.contentBlocks.filter(b => b.titel || b.tekst).length > 0 ? JSON.stringify(form.contentBlocks.filter(b => b.titel || b.tekst)) : undefined,
         });
         resetForm();
       }
@@ -1341,6 +1346,47 @@ export default function AdminLandingspaginasPage() {
                   <label className={labelSmClass}>Link in footertekst (URL) — als ingevuld wordt de footertekst klikbaar</label>
                   <input type="url" placeholder="https://www.talktobenji.com/lp/prijzen" value={form.footerCtaUrl} onChange={set("footerCtaUrl")} className={inputClass} />
                 </div>
+              </div>
+            </div>
+
+            {/* Inhoudsblokken */}
+            <div className="pt-2 border-t border-primary-100">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Inhoudsblokken</p>
+              <p className="text-xs text-gray-400 mb-3">Witte kaarten die onder sectie 2 verschijnen. Voeg toe, verwijder of dupliceer blokken.</p>
+              <div className="space-y-3">
+                {form.contentBlocks.map((block, i) => (
+                  <div key={i} className="border border-primary-100 rounded-xl p-3 space-y-2 bg-white">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-500">Blok {i + 1}</span>
+                      <div className="flex gap-1">
+                        <button type="button" title="Dupliceer"
+                          onClick={() => setForm(f => ({ ...f, contentBlocks: [...f.contentBlocks.slice(0, i + 1), { ...f.contentBlocks[i] }, ...f.contentBlocks.slice(i + 1)] }))}
+                          className="text-xs px-2 py-1 border border-primary-200 rounded hover:bg-primary-50 text-primary-600">
+                          Dupliceer
+                        </button>
+                        <button type="button" onClick={() => setForm(f => ({ ...f, contentBlocks: f.contentBlocks.filter((_, j) => j !== i) }))}
+                          className="text-xs px-2 py-1 border border-red-200 rounded hover:bg-red-50 text-red-500">
+                          Verwijder
+                        </button>
+                      </div>
+                    </div>
+                    <input type="text" placeholder="Titel (optioneel)"
+                      value={block.titel}
+                      onChange={e => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], titel: e.target.value }; return { ...f, contentBlocks: b }; })}
+                      className={inputClass}
+                    />
+                    <textarea placeholder="Tekst (dubbele enter = nieuwe alinea)"
+                      value={block.tekst} rows={4}
+                      onChange={e => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], tekst: e.target.value }; return { ...f, contentBlocks: b }; })}
+                      className={inputClass}
+                    />
+                  </div>
+                ))}
+                <button type="button"
+                  onClick={() => setForm(f => ({ ...f, contentBlocks: [...f.contentBlocks, { titel: "", tekst: "" }] }))}
+                  className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 font-medium">
+                  <Plus size={14} /> Blok toevoegen
+                </button>
               </div>
             </div>
 

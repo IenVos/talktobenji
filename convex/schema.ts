@@ -753,6 +753,8 @@ export default defineSchema({
     faqTitel: v.optional(v.string()),
     faqSubtitel: v.optional(v.string()),
     voorWieSubtitel: v.optional(v.string()),
+    // Vrije inhoudsblokken (JSON: [{titel, tekst}])
+    contentBlocksJson: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),
