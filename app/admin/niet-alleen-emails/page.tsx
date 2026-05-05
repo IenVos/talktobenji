@@ -4,10 +4,18 @@ import { useState, useEffect } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
-import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil, Plus, Trash2, Copy } from "lucide-react";
+import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil, Plus, Trash2, Copy, Eye } from "lucide-react";
 import { useMutation } from "convex/react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
-import { NIET_ALLEEN_CONTENT, type NietAlleenVerliesType, getMailTekst } from "@/convex/nietAlleenContent";
+import { NIET_ALLEEN_CONTENT, type NietAlleenVerliesType, getMailTekst, getDagInhoud } from "@/convex/nietAlleenContent";
+import { ANKER_DAGEN } from "@/convex/nietAlleenAnkerContent";
+
+const OEFENING_DAGEN = [2, 12, 18] as const;
+const OEFENING_TEKSTEN: Record<number, string> = {
+  2: "Ga zitten zoals je zit. Je hoeft niets te veranderen.\n\nLeg een hand op je borst als dat goed voelt. Voel hoe je ademhaalt, niet om het te veranderen, alleen om het te merken.\n\nEr is een moment dat je vandaag gaat aanraken. Dat vraagt iets van je. Je lichaam weet dat al, ook voor je begint.\n\nAdem één keer langzaam in. Gewoon een ademhaling die iets ruimer is dan de vorige.\n\nEn terwijl je uitademt: je hoeft dit moment niet te dragen alsof het te zwaar is om aan te raken. Je mag er gewoon naar kijken. Van een kleine afstand. Het is van jou, het gaat nergens heen.\n\nNog één ademhaling. En dan begin je, als je er klaar voor bent.",
+  12: "Er zijn dingen die we met ons meedragen zonder dat we ze een naam geven. Onuitgesproken woorden. Gemiste momenten. Dingen die er niet van zijn gekomen.\n\nDat gewicht zit ergens in je lichaam. Misschien in je keel. Misschien in je schouders. Misschien dieper.\n\nLeg je handen in je schoot. Voel het gewicht van je eigen handen.\n\nAdem in, en stel je voor dat je even ruimte maakt voor wat er is. Niet om het op te lossen. Alleen om het een plek te geven naast je, in plaats van in je.\n\nAdem uit, en laat je schouders zakken, ook als ze maar een millimeter zakken.\n\nWat onafgemaakt is gebleven hoeft vandaag niet af te worden. Je schrijft het alleen op. Dat is genoeg.",
+  18: "Boosheid heeft een slechte reputatie. We leren vroeg dat we hem moeten inslikken, ombuigen, verklaren. Maar boosheid is informatie. Het vertelt je wat je belangrijk vond. Wat je pijn heeft gedaan. Wat er niet klopte.\n\nVoordat je schrijft: laat de boosheid er even gewoon zijn, zonder er iets mee te doen.\n\nAdem in door je neus. Voel of er spanning zit in je kaak, je handen, je buik. Je hoeft het niet weg te ademen.\n\nAdem uit door je mond, iets langzamer dan normaal.\n\nZeg in jezelf, of hardop als je dat wilt: het is logisch dat ik boos ben.\n\nNiet als oordeel. Niet als excuus. Gewoon als erkenning.\n\nNog één keer. En dan schrijf je.",
+};
 
 type TemplateKey = "niet_alleen_welkom" | "niet_alleen_dag" | "niet_alleen_dag28" | "niet_alleen_dag30";
 
@@ -188,6 +196,140 @@ const VERLIES_TYPES_TEST = [
   { key: "relatie", label: "Scheiding / relatie" },
   { key: "kinderloos", label: "Kinderloos" },
 ];
+
+function ProgrammaPreviewBlok({ verliesTypen }: { verliesTypen: { code: string; naam: string }[] | undefined }) {
+  const [open, setOpen] = useState(false);
+  const [niche, setNiche] = useState("persoon");
+  const [gekozenDag, setGekozenDag] = useState<number>(1);
+
+  const types = verliesTypen ?? VERLIES_TYPES_TEST.map(t => ({ code: t.key, naam: t.label }));
+
+  const gekozenInhoud = getDagInhoud(gekozenDag, niche);
+  const heeftOefening = (OEFENING_DAGEN as readonly number[]).includes(gekozenDag);
+  const isAnkerDag = (ANKER_DAGEN as readonly number[]).includes(gekozenDag);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+      >
+        <Eye className="w-4 h-4 text-gray-500 flex-shrink-0" />
+        <span className="text-sm font-semibold text-gray-700 flex-1">Dagprogramma bekijken</span>
+        <span className="text-xs text-gray-400 mr-1">wat de gebruiker ziet per dag</span>
+        {open ? <ChevronDown size={16} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={16} className="text-gray-400 flex-shrink-0" />}
+      </button>
+
+      {open && (
+        <div className="px-5 pb-5 border-t border-gray-100 space-y-4 pt-4">
+          {/* Verliestype tabs */}
+          <div className="flex gap-2 flex-wrap">
+            {types.map(n => (
+              <button
+                key={n.code}
+                onClick={() => { setNiche(n.code); setGekozenDag(1); }}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
+                style={{
+                  background: niche === n.code ? "#6d84a8" : "white",
+                  color: niche === n.code ? "white" : "#6b7280",
+                  borderColor: niche === n.code ? "#6d84a8" : "#d1d5db",
+                }}
+              >
+                {NICHE_LABELS[n.code] ?? n.naam.split(" — ")[0]}
+              </button>
+            ))}
+          </div>
+
+          {/* Legenda */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block" /> luisteroefening</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-green-400 inline-block" /> ankerzin-dag</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block" /> als je wilt</span>
+            <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-yellow-400 inline-block" /> doedingetje</span>
+          </div>
+
+          {/* Grid 10 × 3 */}
+          <div className="grid grid-cols-10 gap-1.5">
+            {Array.from({ length: 30 }, (_, i) => {
+              const d = i + 1;
+              const inhoud = getDagInhoud(d, niche);
+              const isGekomen = gekozenDag === d;
+              return (
+                <button
+                  key={d}
+                  onClick={() => setGekozenDag(d)}
+                  className="rounded-lg border py-1.5 flex flex-col items-center transition-colors"
+                  style={{
+                    background: isGekomen ? "#eef1f6" : "#f9f9f9",
+                    borderColor: isGekomen ? "#6d84a8" : "#e5e7eb",
+                  }}
+                >
+                  <span className="text-xs font-semibold" style={{ color: isGekomen ? "#6d84a8" : "#6b7280" }}>{d}</span>
+                  <div className="flex gap-0.5 mt-0.5">
+                    {(OEFENING_DAGEN as readonly number[]).includes(d) && <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />}
+                    {(ANKER_DAGEN as readonly number[]).includes(d) && <span className="w-1.5 h-1.5 rounded-full bg-green-400" />}
+                    {inhoud?.alsjewilt && <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />}
+                    {inhoud?.doedingetje && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Detail panel */}
+          {gekozenInhoud && (
+            <div className="bg-[#fdf9f4] border border-[#e8e0d8] rounded-xl p-5 space-y-4">
+              <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#b0a8a0" }}>
+                Dag {gekozenDag} · {gekozenInhoud.thema}
+              </p>
+
+              {heeftOefening && (
+                <details className="group">
+                  <summary className="cursor-pointer text-xs font-semibold text-blue-700 flex items-center gap-1.5 list-none">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block flex-shrink-0" />
+                    Luisteroefening (wordt getoond vóór het schrijven)
+                    <ChevronRight size={13} className="text-blue-400 group-open:hidden" />
+                    <ChevronDown size={13} className="text-blue-400 hidden group-open:block" />
+                  </summary>
+                  <p className="mt-2 text-xs leading-relaxed whitespace-pre-wrap text-blue-600 pl-4 border-l-2 border-blue-200">
+                    {OEFENING_TEKSTEN[gekozenDag]}
+                  </p>
+                </details>
+              )}
+
+              {isAnkerDag && (
+                <div className="flex items-center gap-2 text-xs font-medium text-green-700">
+                  <span className="w-2.5 h-2.5 rounded-full bg-green-400 flex-shrink-0" />
+                  Ankerzin-dag — gebruiker kiest een persoonlijke zin als anker voor de komende dagen
+                </div>
+              )}
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-1.5">Schrijfprompt (in het account)</p>
+                <p className="text-sm leading-relaxed" style={{ color: "#3d3530" }}>{gekozenInhoud.inHetAccount}</p>
+              </div>
+
+              {gekozenInhoud.alsjewilt && (
+                <div className="border-l-2 border-purple-200 pl-3 space-y-0.5">
+                  <p className="text-xs font-semibold text-purple-600">Als je wilt</p>
+                  <p className="text-sm leading-relaxed text-gray-600">{gekozenInhoud.alsjewilt}</p>
+                </div>
+              )}
+
+              {gekozenInhoud.doedingetje && (
+                <div className="border-l-2 border-yellow-300 pl-3 space-y-0.5">
+                  <p className="text-xs font-semibold text-yellow-700">Klein doedingetje</p>
+                  <p className="text-sm leading-relaxed text-gray-600">{gekozenInhoud.doedingetje}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function TestProfielBlok() {
   const maakTestProfiel = useMutation(api.nietAlleen.maakTestProfiel);
@@ -736,6 +878,7 @@ export default function NietAlleenEmailsPage() {
 
       <TestProfielBlok />
       <TestEmailBlok />
+      <ProgrammaPreviewBlok verliesTypen={verliesTypen as { code: string; naam: string }[] | undefined} />
 
       {keys.map((key) => {
         const t = getTemplate(key);
