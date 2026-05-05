@@ -84,6 +84,11 @@ export function NietAlleenKeuzeLpView({ typeCtaUrlPersoon, typeCtaUrlHuisdier, t
   };
 
   function kiesType(key: TypeKey) {
+    const url = ctaUrls[key];
+    if (url) {
+      window.location.href = url;
+      return;
+    }
     setActief(key);
     sectionRefs[key].current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
