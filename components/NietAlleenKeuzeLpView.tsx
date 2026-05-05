@@ -65,8 +65,8 @@ export function NietAlleenKeuzeLpView({
   const buttonLabels: Record<TypeKey, string> = {
     persoon:    typeButtonLabelPersoon    || "Ik mis iemand",
     huisdier:   typeButtonLabelHuisdier   || "Ik heb mijn dier verloren",
-    relatie:    typeButtonLabelRelatie    || "Mijn relatie is voorbij",
-    kinderloos: typeButtonLabelKinderloos || "Ongewenst kinderloos",
+    relatie:    typeButtonLabelRelatie    || "Relatie voorbij? Laat los en vind rust.",
+    kinderloos: typeButtonLabelKinderloos || "Ongewenst kinderloos vind steun en ruimte",
   };
 
   function kiesType(key: TypeKey) {
