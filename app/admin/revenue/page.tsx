@@ -151,69 +151,79 @@ export default function RevenuePage() {
             <p className="text-sm text-gray-400">Laden…</p>
           ) : (
             <>
-              {/* KPI strip */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <KpiCard label="Dit jaar" value={fmt(data.totaalYTD)} sub={`${data.aankopenYTD} aankopen`} />
-                <KpiCard label="Deze maand" value={fmt(data.totaalMTD)} sub={`${data.aankopenMTD} aankopen`} />
-                <KpiCard label="Gem. orderwaarde" value={fmt(data.gemiddeldeOrderwaarde)} />
-                <KpiCard label="Totaal" value={fmt(data.totaalAllesTijd)} />
-              </div>
-
-              {/* Chart + tabel in één kaart */}
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                {/* Chart */}
-                <div className="px-6 pt-5 pb-2">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-sm font-semibold text-gray-800">Omzet per maand</p>
-                    <div className="flex items-center gap-3">
-                      {data.products.map((p: Product, i: number) => (
-                        <span key={p.slug} className="flex items-center gap-1.5 text-xs text-gray-500">
-                          <span className="w-2.5 h-2.5 rounded-sm inline-block flex-shrink-0"
-                            style={{ background: PRODUCT_COLORS[i % PRODUCT_COLORS.length] }} />
-                          {p.name}
-                        </span>
-                      ))}
+              {/* Alleen producten met minstens één verkoop tonen */}
+              {(() => {
+                const actieveProducts = (data.products as Product[]).filter(p =>
+                  (data.maanden as Maand[]).some(m => (m.perProduct[p.slug] ?? 0) > 0)
+                );
+                return (
+                  <>
+                    {/* KPI strip */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <KpiCard label="Dit jaar" value={fmt(data.totaalYTD)} sub={`${data.aankopenYTD} aankopen`} />
+                      <KpiCard label="Deze maand" value={fmt(data.totaalMTD)} sub={`${data.aankopenMTD} aankopen`} />
+                      <KpiCard label="Gem. orderwaarde" value={fmt(data.gemiddeldeOrderwaarde)} />
+                      <KpiCard label="Totaal" value={fmt(data.totaalAllesTijd)} />
                     </div>
-                  </div>
-                  <BarChart data={data.maanden} products={data.products} />
-                </div>
 
-                {/* Tabel */}
-                <div className="border-t border-gray-100">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-100">
-                        <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Maand</th>
-                        {data.products.map((p: Product) => (
-                          <th key={p.slug} className="text-center px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">{p.name}</th>
-                        ))}
-                        <th className="text-center px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Totaal</th>
-                        <th className="text-right px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Omzet</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {[...data.maanden].reverse().map((m, ri) => (
-                        <tr key={m.maand} className={ri === 0 ? "bg-blue-50/40" : "hover:bg-gray-50/60"}>
-                          <td className="px-5 py-3 font-medium text-gray-800 text-sm">{m.label}</td>
-                          {data.products.map((p: Product) => (
-                            <td key={p.slug} className="px-4 py-3 text-center text-gray-500 tabular-nums text-sm">
-                              {m.perProduct[p.slug] || <span className="text-gray-200">—</span>}
-                            </td>
-                          ))}
-                          <td className="px-4 py-3 text-center font-semibold text-gray-700 tabular-nums text-sm">
-                            {m.aankopen || <span className="text-gray-200">—</span>}
-                          </td>
-                          <td className="px-5 py-3 text-right tabular-nums text-sm">
-                            {m.omzet > 0
-                              ? <span className="font-semibold text-gray-900">{fmt(m.omzet)}</span>
-                              : <span className="text-gray-200">—</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                    {/* Chart + tabel in één kaart */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                      {/* Chart */}
+                      <div className="px-6 pt-5 pb-2">
+                        <div className="flex items-center justify-between mb-4">
+                          <p className="text-sm font-semibold text-gray-800">Omzet per maand</p>
+                          <div className="flex items-center gap-3">
+                            {actieveProducts.map((p: Product, i: number) => (
+                              <span key={p.slug} className="flex items-center gap-1.5 text-xs text-gray-500">
+                                <span className="w-2.5 h-2.5 rounded-sm inline-block flex-shrink-0"
+                                  style={{ background: PRODUCT_COLORS[i % PRODUCT_COLORS.length] }} />
+                                {p.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <BarChart data={data.maanden} products={actieveProducts} />
+                      </div>
+
+                      {/* Tabel */}
+                      <div className="border-t border-gray-100">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-100">
+                              <th className="text-left px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Maand</th>
+                              {actieveProducts.map((p: Product) => (
+                                <th key={p.slug} className="text-center px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">{p.name}</th>
+                              ))}
+                              <th className="text-center px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Totaal</th>
+                              <th className="text-right px-5 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wide">Omzet</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-50">
+                            {[...data.maanden].reverse().map((m, ri) => (
+                              <tr key={m.maand} className={ri === 0 ? "bg-blue-50/40" : "hover:bg-gray-50/60"}>
+                                <td className="px-5 py-3 font-medium text-gray-800 text-sm">{m.label}</td>
+                                {actieveProducts.map((p: Product) => (
+                                  <td key={p.slug} className="px-4 py-3 text-center text-gray-500 tabular-nums text-sm">
+                                    {m.perProduct[p.slug] || <span className="text-gray-200">—</span>}
+                                  </td>
+                                ))}
+                                <td className="px-4 py-3 text-center font-semibold text-gray-700 tabular-nums text-sm">
+                                  {m.aankopen || <span className="text-gray-200">—</span>}
+                                </td>
+                                <td className="px-5 py-3 text-right tabular-nums text-sm">
+                                  {m.omzet > 0
+                                    ? <span className="font-semibold text-gray-900">{fmt(m.omzet)}</span>
+                                    : <span className="text-gray-200">—</span>}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </>
           )}
         </>

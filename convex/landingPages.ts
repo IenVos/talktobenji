@@ -103,6 +103,11 @@ export const create = mutation({
     faqTitel: v.optional(v.string()),
     faqSubtitel: v.optional(v.string()),
     voorWieSubtitel: v.optional(v.string()),
+    lpType: v.optional(v.string()),
+    typeCtaUrlPersoon: v.optional(v.string()),
+    typeCtaUrlHuisdier: v.optional(v.string()),
+    typeCtaUrlRelatie: v.optional(v.string()),
+    typeCtaUrlKinderloos: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -167,6 +172,11 @@ export const update = mutation({
     faqTitel: v.optional(v.string()),
     faqSubtitel: v.optional(v.string()),
     voorWieSubtitel: v.optional(v.string()),
+    lpType: v.optional(v.string()),
+    typeCtaUrlPersoon: v.optional(v.string()),
+    typeCtaUrlHuisdier: v.optional(v.string()),
+    typeCtaUrlRelatie: v.optional(v.string()),
+    typeCtaUrlKinderloos: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -388,6 +398,32 @@ export const seedJaarToegang = mutation({
       ]),
       finalCtaTitle: "Een jaar lang niet alleen",
       finalCtaBody: "Voor één prijs, één jaar lang alles beschikbaar.\n\nVeilig betalen · direct toegang · geen automatische verlenging",
+      createdAt: now,
+      updatedAt: now,
+    });
+    return { seeded: true, id };
+  },
+});
+
+/** Admin: maak de Niet Alleen keuzepagina aan als die nog niet bestaat */
+export const seedNietAlleenKeuzeLp = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const slug = "je-hoeft-het-niet-alleen-te-doen";
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (existing) return { seeded: false, id: existing._id };
+    const now = Date.now();
+    const id = await ctx.db.insert("landingPages", {
+      slug,
+      pageTitle: "Je hoeft het niet alleen te doen · Niet Alleen",
+      isLive: false,
+      lpType: "niet_alleen_keuze",
+      heroTitle: "Overdag hou je het vol.",
+      trackAds: true,
       createdAt: now,
       updatedAt: now,
     });

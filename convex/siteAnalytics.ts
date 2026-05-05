@@ -267,10 +267,11 @@ export const getStats = query({
       returningVisitors,
     };
 
-    // -- Dagelijkse conversies (userSubscriptions) --
-    const [allSubs, excludedEmails] = await Promise.all([
+    // -- Dagelijkse conversies (userSubscriptions + nietAlleenProfiles) --
+    const [allSubs, excludedEmails, allNAProfiles] = await Promise.all([
       ctx.db.query("userSubscriptions").collect(),
       ctx.db.query("analyticsExcludedEmails").collect(),
+      ctx.db.query("nietAlleenProfiles").collect(),
     ]);
     const excludedEmailSet = new Set(excludedEmails.map((e) => e.email.toLowerCase()));
     const subsInRange = allSubs.filter(
@@ -279,6 +280,15 @@ export const getStats = query({
         s.startedAt <= args.to &&
         (!s.email || !excludedEmailSet.has(s.email.toLowerCase()))
     );
+    // Niet Alleen: gebruik profiles als gezaghebbende bron (zoals revenue-pagina)
+    const naInRange = allNAProfiles.filter(
+      (p) =>
+        p.createdAt >= args.from &&
+        p.createdAt <= args.to &&
+        !excludedEmailSet.has(p.email.toLowerCase())
+    );
+    // Dedupliceer: emails die al via naInRange geteld worden, niet nogmaals als paid tellen
+    const naEmails = new Set(naInRange.map((p) => p.email.toLowerCase()));
 
     const convMap: Record<
       string,
@@ -294,10 +304,18 @@ export const getStats = query({
         sub.subscriptionType === "uitgebreid" ||
         sub.subscriptionType === "alles_in_1"
       ) {
-        convMap[date].paid++;
-      } else if (sub.subscriptionType === "niet_alleen") {
-        convMap[date].nietAlleen++;
+        // Niet tellen als het een Niet Alleen aankoop is (die loopt via naInRange)
+        if (!sub.email || !naEmails.has(sub.email.toLowerCase())) {
+          convMap[date].paid++;
+        }
       }
+    }
+    // Niet Alleen conversies via profiles (authoritative)
+    for (const na of naInRange) {
+      const date = new Date(na.createdAt).toISOString().slice(0, 10);
+      if (!convMap[date])
+        convMap[date] = { freeAccounts: 0, paid: 0, nietAlleen: 0 };
+      convMap[date].nietAlleen++;
     }
 
     const dailyConversions = Object.entries(convMap)
@@ -346,13 +364,14 @@ export const getStats = query({
       .sort(([, a], [, b]) => b - a)
       .map(([source, count]) => ({ source, count, pct: Math.round((count / totalViewsForSource) * 100) }));
 
-    // -- Conversie ratio (alleen bekende types, zelfde als dailyConversions) --
-    const geteldConversies = subsInRange.filter((s) =>
-      s.subscriptionType === "free" ||
-      s.subscriptionType === "uitgebreid" ||
-      s.subscriptionType === "alles_in_1" ||
-      s.subscriptionType === "niet_alleen"
-    ).length;
+    // -- Conversie ratio: subs (free/paid) + Niet Alleen profiles --
+    const geteldConversies =
+      subsInRange.filter((s) =>
+        (s.subscriptionType === "free" ||
+          s.subscriptionType === "uitgebreid" ||
+          s.subscriptionType === "alles_in_1") &&
+        (!s.email || !naEmails.has(s.email.toLowerCase()))
+      ).length + naInRange.length;
     const conversieRatio = allSessionIds.size > 0 ? Math.round((geteldConversies / allSessionIds.size) * 1000) / 10 : 0;
     // Debug: alle unieke subscription types die voorkomen
     const allSubTypes = [...new Set(subsInRange.map((s) => s.subscriptionType))];
@@ -381,6 +400,19 @@ export const getStats = query({
         const typeMap = PRIJS_SCHATTING[s.subscriptionType] ?? { monthly: 0 };
         omzet += typeMap[periode] ?? 0;
         omzetGeschat = true;
+      }
+    }
+    // Niet Alleen omzet: voeg toe voor profielen zonder bijbehorende userSubscription
+    for (const na of naInRange) {
+      const heeftSub = betaaldeSubs.some(
+        (s) => s.email?.toLowerCase() === na.email.toLowerCase()
+      );
+      if (!heeftSub) {
+        // Zoek pricePaid in allSubs (ook buiten datumbereik)
+        const sub = allSubs.find(
+          (s) => s.email?.toLowerCase() === na.email.toLowerCase() && (s as any).pricePaid
+        );
+        if (sub) omzet += (sub as any).pricePaid;
       }
     }
     omzet = Math.round(omzet * 100) / 100;

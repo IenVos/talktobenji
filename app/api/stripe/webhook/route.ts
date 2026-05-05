@@ -455,6 +455,29 @@ export async function POST(req: NextRequest) {
           console.error("[Resend] E-mail versturen mislukt:", err?.message);
         }
       }
+
+      // Admin-notificatie bij elke echte verkoop
+      const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL;
+      if (adminEmail && process.env.RESEND_API_KEY) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const bedrag = `€ ${(pi.amount / 100).toFixed(2).replace(".", ",")}`;
+        const product = slug ? await convex.query(api.checkoutProducts.getBySlug, { slug }).catch(() => null) : null;
+        const productLabel = product?.name ?? productName ?? slug ?? "onbekend product";
+        await resend.emails.send({
+          from: "TalkToBenji <noreply@talktobenji.com>",
+          to: adminEmail,
+          subject: `💰 Nieuwe verkoop: ${bedrag} — ${productLabel}`,
+          html: `<div style="font-family:system-ui,sans-serif;padding:24px;color:#2d3748;">
+            <p style="font-size:18px;font-weight:700;margin:0 0 12px 0;">Nieuwe verkoop ontvangen</p>
+            <table style="font-size:14px;border-collapse:collapse;">
+              <tr><td style="color:#718096;padding:3px 12px 3px 0;">Bedrag</td><td style="font-weight:600;">${bedrag}</td></tr>
+              <tr><td style="color:#718096;padding:3px 12px 3px 0;">Product</td><td>${productLabel}</td></tr>
+              <tr><td style="color:#718096;padding:3px 12px 3px 0;">Klant</td><td>${name || "—"} &lt;${email}&gt;</td></tr>
+              <tr><td style="color:#718096;padding:3px 12px 3px 0;">Tijdstip</td><td>${new Date().toLocaleString("nl-NL", { timeZone: "Europe/Amsterdam" })}</td></tr>
+            </table>
+          </div>`,
+        }).catch((err: any) => console.error("[Resend] Admin-notificatie mislukt:", err?.message));
+      }
     }
   }
 

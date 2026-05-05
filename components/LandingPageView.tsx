@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
+import { NietAlleenKeuzeLpView } from "@/components/NietAlleenKeuzeLpView";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
@@ -270,6 +271,17 @@ export function LandingPageView({ slug }: { slug: string }) {
   if (page === null) {
     notFound();
     return null;
+  }
+
+  if ((page as any).lpType === "niet_alleen_keuze") {
+    return (
+      <NietAlleenKeuzeLpView
+        typeCtaUrlPersoon={(page as any).typeCtaUrlPersoon}
+        typeCtaUrlHuisdier={(page as any).typeCtaUrlHuisdier}
+        typeCtaUrlRelatie={(page as any).typeCtaUrlRelatie}
+        typeCtaUrlKinderloos={(page as any).typeCtaUrlKinderloos}
+      />
+    );
   }
 
   const voorWieBullets: string[] = page.voorWieBullets

@@ -726,6 +726,12 @@ export default defineSchema({
     footerCtaUrl: v.optional(v.string()),
     // Analytics
     trackAds: v.optional(v.boolean()), // Toon in advertentie-blok in analytics
+    // Type-keuzepagina (lpType === "niet_alleen_keuze")
+    lpType: v.optional(v.string()),
+    typeCtaUrlPersoon: v.optional(v.string()),
+    typeCtaUrlHuisdier: v.optional(v.string()),
+    typeCtaUrlRelatie: v.optional(v.string()),
+    typeCtaUrlKinderloos: v.optional(v.string()),
     // Prijsblokken (JSON: [{titel, subtitel, prijs, tekst, aanbevolen, ctaTekst, ctaUrl}])
     pricingBlocksJson: v.optional(v.string()),
     pricingTitel: v.optional(v.string()),

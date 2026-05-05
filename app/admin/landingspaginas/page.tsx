@@ -50,6 +50,11 @@ type LandingPage = {
   finalCtaTitle?: string;
   finalCtaBody?: string;
   footerText?: string;
+  lpType?: string;
+  typeCtaUrlPersoon?: string;
+  typeCtaUrlHuisdier?: string;
+  typeCtaUrlRelatie?: string;
+  typeCtaUrlKinderloos?: string;
   createdAt: number;
   updatedAt: number;
 };
@@ -102,6 +107,11 @@ type FormState = {
   faqTitel: string;
   faqSubtitel: string;
   voorWieSubtitel: string;
+  lpType: string;
+  typeCtaUrlPersoon: string;
+  typeCtaUrlHuisdier: string;
+  typeCtaUrlRelatie: string;
+  typeCtaUrlKinderloos: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -151,6 +161,11 @@ const EMPTY_FORM: FormState = {
   faqTitel: "Misschien vraag je je af...",
   faqSubtitel: "",
   voorWieSubtitel: "",
+  lpType: "",
+  typeCtaUrlPersoon: "",
+  typeCtaUrlHuisdier: "",
+  typeCtaUrlRelatie: "",
+  typeCtaUrlKinderloos: "",
   featureSlides: [
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
@@ -174,7 +189,9 @@ export default function AdminLandingspaginasPage() {
   const toggleLive = useAdminMutation(api.landingPages.toggleLive);
   const seedPages = useAdminMutation(api.landingPages.seed);
   const seedJaarToegang = useAdminMutation(api.landingPages.seedJaarToegang);
+  const seedNietAlleenKeuzeLp = useAdminMutation(api.landingPages.seedNietAlleenKeuzeLp);
   const [jaarSeedStatus, setJaarSeedStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [naKeuzeSeedStatus, setNaKeuzeSeedStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const generateUploadUrl = useAdminMutation(api.landingPages.generateUploadUrl);
   const getImageUrl = useAdminMutation(api.landingPages.getImageUrl);
 
@@ -269,6 +286,11 @@ export default function AdminLandingspaginasPage() {
       faqTitel: (page as any).faqTitel ?? "",
       faqSubtitel: (page as any).faqSubtitel ?? "",
       voorWieSubtitel: (page as any).voorWieSubtitel ?? "",
+      lpType: (page as any).lpType ?? "",
+      typeCtaUrlPersoon: (page as any).typeCtaUrlPersoon ?? "",
+      typeCtaUrlHuisdier: (page as any).typeCtaUrlHuisdier ?? "",
+      typeCtaUrlRelatie: (page as any).typeCtaUrlRelatie ?? "",
+      typeCtaUrlKinderloos: (page as any).typeCtaUrlKinderloos ?? "",
       featureSlides: (() => {
         try {
           const parsed = JSON.parse((page as any).featureSlidesJson || "[]");
@@ -439,6 +461,11 @@ export default function AdminLandingspaginasPage() {
           faqTitel: form.faqTitel.trim(),
           faqSubtitel: form.faqSubtitel.trim(),
           voorWieSubtitel: form.voorWieSubtitel.trim(),
+          lpType: form.lpType.trim(),
+          typeCtaUrlPersoon: form.typeCtaUrlPersoon.trim(),
+          typeCtaUrlHuisdier: form.typeCtaUrlHuisdier.trim(),
+          typeCtaUrlRelatie: form.typeCtaUrlRelatie.trim(),
+          typeCtaUrlKinderloos: form.typeCtaUrlKinderloos.trim(),
         });
         setSavedFeedback(true);
         setTimeout(() => setSavedFeedback(false), 2500);
@@ -492,6 +519,11 @@ export default function AdminLandingspaginasPage() {
           faqTitel: opt(form.faqTitel),
           faqSubtitel: opt(form.faqSubtitel),
           voorWieSubtitel: opt(form.voorWieSubtitel),
+          lpType: opt(form.lpType),
+          typeCtaUrlPersoon: opt(form.typeCtaUrlPersoon),
+          typeCtaUrlHuisdier: opt(form.typeCtaUrlHuisdier),
+          typeCtaUrlRelatie: opt(form.typeCtaUrlRelatie),
+          typeCtaUrlKinderloos: opt(form.typeCtaUrlKinderloos),
         });
         resetForm();
       }
@@ -589,6 +621,36 @@ export default function AdminLandingspaginasPage() {
               >
                 <Download size={14} />
                 {jaarSeedStatus === "loading" ? "Bezig…" : jaarSeedStatus === "done" ? "Geïmporteerd!" : "Importeer"}
+              </button>
+            </li>
+          )}
+          {!pages?.find((p: LandingPage) => p.slug === "je-hoeft-het-niet-alleen-te-doen") && (
+            <li className="flex items-center justify-between p-3 rounded-lg border border-blue-200 bg-blue-50/40">
+              <div>
+                <p className="text-sm font-medium text-primary-900">Niet Alleen — Keuzepagina (insta/ads)</p>
+                <div className="flex items-center gap-3 mt-0.5">
+                  <code className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">/lp/je-hoeft-het-niet-alleen-te-doen</code>
+                  <span className="text-xs text-blue-600">Nog niet aangemaakt — importeer eerst</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={async () => {
+                  setNaKeuzeSeedStatus("loading");
+                  try {
+                    await seedNietAlleenKeuzeLp({});
+                    setNaKeuzeSeedStatus("done");
+                    setTimeout(() => setNaKeuzeSeedStatus("idle"), 3000);
+                  } catch {
+                    setNaKeuzeSeedStatus("error");
+                    setTimeout(() => setNaKeuzeSeedStatus("idle"), 3000);
+                  }
+                }}
+                disabled={naKeuzeSeedStatus === "loading"}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white rounded-lg text-xs font-medium hover:bg-primary-700 disabled:opacity-50"
+              >
+                <Download size={14} />
+                {naKeuzeSeedStatus === "loading" ? "Bezig…" : naKeuzeSeedStatus === "done" ? "Aangemaakt!" : "Importeer"}
               </button>
             </li>
           )}
@@ -1254,6 +1316,36 @@ export default function AdminLandingspaginasPage() {
                 <div>
                   <label className={labelSmClass}>Link in footertekst (URL) — als ingevuld wordt de footertekst klikbaar</label>
                   <input type="url" placeholder="https://www.talktobenji.com/lp/prijzen" value={form.footerCtaUrl} onChange={set("footerCtaUrl")} className={inputClass} />
+                </div>
+              </div>
+            </div>
+
+            {/* Niet Alleen Keuze LP */}
+            <div className="pt-2 border-t border-primary-100">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Niet Alleen — Keuzepagina</p>
+              <p className="text-xs text-gray-400 mb-3">Stel <code>lpType</code> in op <code>niet_alleen_keuze</code> om de keuzepagina te renderen (in plaats van de standaard LP). Vul de CTA-URL's in per verliestype — laat leeg om de knop uit te grijzen.</p>
+              <div className="space-y-3">
+                <div>
+                  <label className={labelSmClass}>LP type (leeg = standaard, <code>niet_alleen_keuze</code> = keuzepagina)</label>
+                  <input type="text" placeholder="niet_alleen_keuze" value={form.lpType} onChange={set("lpType")} className={inputClass} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelSmClass}>💔 Persoon — CTA URL</label>
+                    <input type="url" placeholder="https://…" value={form.typeCtaUrlPersoon} onChange={set("typeCtaUrlPersoon")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>🐾 Huisdier — CTA URL</label>
+                    <input type="url" placeholder="https://…" value={form.typeCtaUrlHuisdier} onChange={set("typeCtaUrlHuisdier")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>💭 Relatie — CTA URL</label>
+                    <input type="url" placeholder="https://…" value={form.typeCtaUrlRelatie} onChange={set("typeCtaUrlRelatie")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>🌱 Kinderloos — CTA URL</label>
+                    <input type="url" placeholder="https://…" value={form.typeCtaUrlKinderloos} onChange={set("typeCtaUrlKinderloos")} className={inputClass} />
+                  </div>
                 </div>
               </div>
             </div>
