@@ -21,8 +21,8 @@ interface Props {
 const TYPES: { key: TypeKey; emoji: string; defaultLabel: string }[] = [
   { key: "persoon",    emoji: "💔", defaultLabel: "Ik mis iemand" },
   { key: "huisdier",  emoji: "🐾", defaultLabel: "Ik heb mijn dier verloren" },
-  { key: "relatie",   emoji: "💭", defaultLabel: "Mijn relatie is voorbij" },
-  { key: "kinderloos",emoji: "🌱", defaultLabel: "Ongewenst kinderloos" },
+  { key: "relatie",   emoji: "💭", defaultLabel: "Relatie voorbij? Laat los en vind rust." },
+  { key: "kinderloos",emoji: "🌱", defaultLabel: "Ongewenst kinderloos vind steun en ruimte" },
 ];
 
 function CtaButton({ url, fallback, label }: { url?: string; fallback?: string; label: string }) {
