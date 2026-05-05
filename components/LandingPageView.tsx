@@ -273,18 +273,7 @@ export function LandingPageView({ slug }: { slug: string }) {
   }
 
   if ((page as any).lpType === "niet_alleen_keuze") {
-    return (
-      <NietAlleenKeuzeLpView
-        typeCtaUrlPersoon={(page as any).typeCtaUrlPersoon}
-        typeCtaUrlHuisdier={(page as any).typeCtaUrlHuisdier}
-        typeCtaUrlRelatie={(page as any).typeCtaUrlRelatie}
-        typeCtaUrlKinderloos={(page as any).typeCtaUrlKinderloos}
-        typeButtonLabelPersoon={(page as any).typeButtonLabelPersoon}
-        typeButtonLabelHuisdier={(page as any).typeButtonLabelHuisdier}
-        typeButtonLabelRelatie={(page as any).typeButtonLabelRelatie}
-        typeButtonLabelKinderloos={(page as any).typeButtonLabelKinderloos}
-      />
-    );
+    return <NietAlleenKeuzeLpView />;
   }
 
   const voorWieBullets: string[] = page.voorWieBullets

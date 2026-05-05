@@ -675,6 +675,9 @@ export default defineSchema({
     code: v.string(),   // bijv. "werkloosheid"
     naam: v.string(),   // bijv. "Werkloosheid — verlies van werk"
     createdAt: v.number(),
+    keuzePaginaLabel: v.optional(v.string()),   // knoptekst op keuzepagina
+    keuzePaginaEmoji: v.optional(v.string()),   // emoji voor knop
+    keuzePaginaLpSlug: v.optional(v.string()),  // slug van type-LP, bijv. "niet-alleen-voor-hulp-bij-verlies-van-huisdier"
   }).index("by_code", ["code"]),
 
   // Landingspagina's (beheerbaar via admin, publiek zichtbaar via /lp/[slug])

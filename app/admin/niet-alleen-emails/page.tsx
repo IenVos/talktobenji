@@ -651,6 +651,7 @@ function DertigDagenEditor({ dagTemplates, niches }: { dagTemplates: any[]; nich
   const deleteDag = useAdminMutation(api.emailTemplates.deleteDagTemplate);
   const dupliceerReeks = useAdminMutation(api.verliesTypen.dupliceerReeks);
   const removeVerliesType = useAdminMutation(api.verliesTypen.remove);
+  const updateKeuzePagina = useAdminMutation(api.verliesTypen.updateKeuzePagina);
 
   const [niche, setNiche] = useState<string>(niches[0]?.code ?? "persoon");
   const [showNieuw, setShowNieuw] = useState(false);
@@ -659,6 +660,11 @@ function DertigDagenEditor({ dagTemplates, niches }: { dagTemplates: any[]; nich
   const [bronCode, setBronCode] = useState("persoon");
   const [bezig, setBezig] = useState(false);
   const [fout, setFout] = useState("");
+  const [showKeuzePagina, setShowKeuzePagina] = useState(false);
+  const [kpLabel, setKpLabel] = useState("");
+  const [kpEmoji, setKpEmoji] = useState("");
+  const [kpLpSlug, setKpLpSlug] = useState("");
+  const [kpBezig, setKpBezig] = useState(false);
 
   const overrideMap = new Map(
     dagTemplates.map(t => [`${t.dag}-${t.verliesType}`, { subject: t.subject, mailTekst: t.mailTekst }])
@@ -799,6 +805,57 @@ function DertigDagenEditor({ dagTemplates, niches }: { dagTemplates: any[]; nich
           </div>
         </div>
       )}
+
+      {/* Keuzepagina-instellingen per type */}
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-indigo-800">Keuzepagina-instellingen voor &ldquo;{niches.find(n => n.code === niche)?.naam.split(" — ")[0] ?? niche}&rdquo;</p>
+          <button onClick={() => {
+            const t = (niches as any[]).find(n => n.code === niche);
+            setKpLabel(t?.keuzePaginaLabel ?? "");
+            setKpEmoji(t?.keuzePaginaEmoji ?? "");
+            setKpLpSlug(t?.keuzePaginaLpSlug ?? "");
+            setShowKeuzePagina(v => !v);
+          }} className="text-xs text-indigo-600 hover:underline">
+            {showKeuzePagina ? "Sluiten" : "Bewerken"}
+          </button>
+        </div>
+        {showKeuzePagina && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Emoji</label>
+                <input type="text" placeholder="💔" value={kpEmoji} onChange={e => setKpEmoji(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-gray-600 mb-1">Knoptekst op keuzepagina</label>
+                <input type="text" placeholder="Ik mis iemand" value={kpLabel} onChange={e => setKpLabel(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">LP-slug voor dit type <span className="font-normal text-gray-400">(bijv. niet-alleen-voor-hulp-bij-verlies-van-huisdier)</span></label>
+              <input type="text" placeholder="niet-alleen-voor-hulp-bij-verlies-van-huisdier" value={kpLpSlug} onChange={e => setKpLpSlug(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              <p className="text-xs text-gray-400 mt-1">Als ingesteld → klik op knop gaat direct naar /lp/[slug]. Leeg laten → scrolt naar sectie op keuzepagina.</p>
+            </div>
+            <button
+              onClick={async () => {
+                setKpBezig(true);
+                try {
+                  await updateKeuzePagina({ code: niche, keuzePaginaLabel: kpLabel || undefined, keuzePaginaEmoji: kpEmoji || undefined, keuzePaginaLpSlug: kpLpSlug || undefined });
+                  setShowKeuzePagina(false);
+                } finally { setKpBezig(false); }
+              }}
+              disabled={kpBezig}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold disabled:opacity-50"
+            >
+              {kpBezig ? "Opslaan…" : "Opslaan"}
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Verwijder-knop voor custom types */}
       {!INGEBOUWD.includes(niche) && (
