@@ -198,8 +198,7 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
                   {slide.video ? (
                     <video
                       src={slide.video}
-                      controls
-                      playsInline
+                      autoPlay muted loop playsInline
                       className="w-full rounded-2xl"
                       style={{ maxHeight: 380 }}
                     />
@@ -280,6 +279,10 @@ export function LandingPageView({ slug }: { slug: string }) {
         typeCtaUrlHuisdier={(page as any).typeCtaUrlHuisdier}
         typeCtaUrlRelatie={(page as any).typeCtaUrlRelatie}
         typeCtaUrlKinderloos={(page as any).typeCtaUrlKinderloos}
+        typeButtonLabelPersoon={(page as any).typeButtonLabelPersoon}
+        typeButtonLabelHuisdier={(page as any).typeButtonLabelHuisdier}
+        typeButtonLabelRelatie={(page as any).typeButtonLabelRelatie}
+        typeButtonLabelKinderloos={(page as any).typeButtonLabelKinderloos}
       />
     );
   }
@@ -372,13 +375,13 @@ export function LandingPageView({ slug }: { slug: string }) {
         const src = isCenter ? inner.slice(0, -7) : inner;
         return isCenter ? (
           <div key={i} className="my-4 flex justify-center">
-            <video src={src} controls playsInline
+            <video src={src} autoPlay muted loop playsInline
               className="rounded-xl max-h-[360px] w-auto max-w-full"
               style={{ maxWidth: "60%" }}
             />
           </div>
         ) : (
-          <video key={i} src={src} controls playsInline
+          <video key={i} src={src} autoPlay muted loop playsInline
             className="w-auto max-w-full rounded-xl my-4 max-h-[360px] mx-auto block"
           />
         );
@@ -433,7 +436,7 @@ export function LandingPageView({ slug }: { slug: string }) {
             )}
             {(page as any).heroVideoUrl && (
               <div className="mb-6">
-                <video src={(page as any).heroVideoUrl} controls playsInline
+                <video src={(page as any).heroVideoUrl} autoPlay muted loop playsInline
                   className="w-auto max-w-full mx-auto block rounded-2xl"
                   style={{ maxHeight: "420px" }}
                 />

@@ -55,6 +55,10 @@ type LandingPage = {
   typeCtaUrlHuisdier?: string;
   typeCtaUrlRelatie?: string;
   typeCtaUrlKinderloos?: string;
+  typeButtonLabelPersoon?: string;
+  typeButtonLabelHuisdier?: string;
+  typeButtonLabelRelatie?: string;
+  typeButtonLabelKinderloos?: string;
   createdAt: number;
   updatedAt: number;
 };
@@ -112,6 +116,10 @@ type FormState = {
   typeCtaUrlHuisdier: string;
   typeCtaUrlRelatie: string;
   typeCtaUrlKinderloos: string;
+  typeButtonLabelPersoon: string;
+  typeButtonLabelHuisdier: string;
+  typeButtonLabelRelatie: string;
+  typeButtonLabelKinderloos: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -166,6 +174,10 @@ const EMPTY_FORM: FormState = {
   typeCtaUrlHuisdier: "",
   typeCtaUrlRelatie: "",
   typeCtaUrlKinderloos: "",
+  typeButtonLabelPersoon: "",
+  typeButtonLabelHuisdier: "",
+  typeButtonLabelRelatie: "",
+  typeButtonLabelKinderloos: "",
   featureSlides: [
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
@@ -291,6 +303,10 @@ export default function AdminLandingspaginasPage() {
       typeCtaUrlHuisdier: (page as any).typeCtaUrlHuisdier ?? "",
       typeCtaUrlRelatie: (page as any).typeCtaUrlRelatie ?? "",
       typeCtaUrlKinderloos: (page as any).typeCtaUrlKinderloos ?? "",
+      typeButtonLabelPersoon: (page as any).typeButtonLabelPersoon ?? "",
+      typeButtonLabelHuisdier: (page as any).typeButtonLabelHuisdier ?? "",
+      typeButtonLabelRelatie: (page as any).typeButtonLabelRelatie ?? "",
+      typeButtonLabelKinderloos: (page as any).typeButtonLabelKinderloos ?? "",
       featureSlides: (() => {
         try {
           const parsed = JSON.parse((page as any).featureSlidesJson || "[]");
@@ -466,6 +482,10 @@ export default function AdminLandingspaginasPage() {
           typeCtaUrlHuisdier: form.typeCtaUrlHuisdier.trim(),
           typeCtaUrlRelatie: form.typeCtaUrlRelatie.trim(),
           typeCtaUrlKinderloos: form.typeCtaUrlKinderloos.trim(),
+          typeButtonLabelPersoon: form.typeButtonLabelPersoon.trim(),
+          typeButtonLabelHuisdier: form.typeButtonLabelHuisdier.trim(),
+          typeButtonLabelRelatie: form.typeButtonLabelRelatie.trim(),
+          typeButtonLabelKinderloos: form.typeButtonLabelKinderloos.trim(),
         });
         setSavedFeedback(true);
         setTimeout(() => setSavedFeedback(false), 2500);
@@ -524,6 +544,10 @@ export default function AdminLandingspaginasPage() {
           typeCtaUrlHuisdier: opt(form.typeCtaUrlHuisdier),
           typeCtaUrlRelatie: opt(form.typeCtaUrlRelatie),
           typeCtaUrlKinderloos: opt(form.typeCtaUrlKinderloos),
+          typeButtonLabelPersoon: opt(form.typeButtonLabelPersoon),
+          typeButtonLabelHuisdier: opt(form.typeButtonLabelHuisdier),
+          typeButtonLabelRelatie: opt(form.typeButtonLabelRelatie),
+          typeButtonLabelKinderloos: opt(form.typeButtonLabelKinderloos),
         });
         resetForm();
       }
@@ -1331,16 +1355,32 @@ export default function AdminLandingspaginasPage() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
+                    <label className={labelSmClass}>💔 Persoon — knoptekst (standaard: Ik mis iemand)</label>
+                    <input type="text" placeholder="Ik mis iemand" value={form.typeButtonLabelPersoon} onChange={set("typeButtonLabelPersoon")} className={inputClass} />
+                  </div>
+                  <div>
                     <label className={labelSmClass}>💔 Persoon — CTA URL</label>
                     <input type="url" placeholder="https://…" value={form.typeCtaUrlPersoon} onChange={set("typeCtaUrlPersoon")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>🐾 Huisdier — knoptekst (standaard: Ik heb mijn dier verloren)</label>
+                    <input type="text" placeholder="Ik heb mijn dier verloren" value={form.typeButtonLabelHuisdier} onChange={set("typeButtonLabelHuisdier")} className={inputClass} />
                   </div>
                   <div>
                     <label className={labelSmClass}>🐾 Huisdier — CTA URL</label>
                     <input type="url" placeholder="https://…" value={form.typeCtaUrlHuisdier} onChange={set("typeCtaUrlHuisdier")} className={inputClass} />
                   </div>
                   <div>
+                    <label className={labelSmClass}>💭 Relatie — knoptekst (standaard: Mijn relatie is voorbij)</label>
+                    <input type="text" placeholder="Mijn relatie is voorbij" value={form.typeButtonLabelRelatie} onChange={set("typeButtonLabelRelatie")} className={inputClass} />
+                  </div>
+                  <div>
                     <label className={labelSmClass}>💭 Relatie — CTA URL</label>
                     <input type="url" placeholder="https://…" value={form.typeCtaUrlRelatie} onChange={set("typeCtaUrlRelatie")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>🌱 Kinderloos — knoptekst (standaard: Ongewenst kinderloos)</label>
+                    <input type="text" placeholder="Ongewenst kinderloos" value={form.typeButtonLabelKinderloos} onChange={set("typeButtonLabelKinderloos")} className={inputClass} />
                   </div>
                   <div>
                     <label className={labelSmClass}>🌱 Kinderloos — CTA URL</label>

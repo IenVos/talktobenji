@@ -732,6 +732,10 @@ export default defineSchema({
     typeCtaUrlHuisdier: v.optional(v.string()),
     typeCtaUrlRelatie: v.optional(v.string()),
     typeCtaUrlKinderloos: v.optional(v.string()),
+    typeButtonLabelPersoon: v.optional(v.string()),
+    typeButtonLabelHuisdier: v.optional(v.string()),
+    typeButtonLabelRelatie: v.optional(v.string()),
+    typeButtonLabelKinderloos: v.optional(v.string()),
     // Prijsblokken (JSON: [{titel, subtitel, prijs, tekst, aanbevolen, ctaTekst, ctaUrl}])
     pricingBlocksJson: v.optional(v.string()),
     pricingTitel: v.optional(v.string()),

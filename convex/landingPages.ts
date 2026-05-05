@@ -108,6 +108,10 @@ export const create = mutation({
     typeCtaUrlHuisdier: v.optional(v.string()),
     typeCtaUrlRelatie: v.optional(v.string()),
     typeCtaUrlKinderloos: v.optional(v.string()),
+    typeButtonLabelPersoon: v.optional(v.string()),
+    typeButtonLabelHuisdier: v.optional(v.string()),
+    typeButtonLabelRelatie: v.optional(v.string()),
+    typeButtonLabelKinderloos: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -177,6 +181,10 @@ export const update = mutation({
     typeCtaUrlHuisdier: v.optional(v.string()),
     typeCtaUrlRelatie: v.optional(v.string()),
     typeCtaUrlKinderloos: v.optional(v.string()),
+    typeButtonLabelPersoon: v.optional(v.string()),
+    typeButtonLabelHuisdier: v.optional(v.string()),
+    typeButtonLabelRelatie: v.optional(v.string()),
+    typeButtonLabelKinderloos: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

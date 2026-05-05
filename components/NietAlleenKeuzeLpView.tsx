@@ -11,13 +11,24 @@ interface Props {
   typeCtaUrlHuisdier?: string;
   typeCtaUrlRelatie?: string;
   typeCtaUrlKinderloos?: string;
+  typeButtonLabelPersoon?: string;
+  typeButtonLabelHuisdier?: string;
+  typeButtonLabelRelatie?: string;
+  typeButtonLabelKinderloos?: string;
 }
 
-const TYPES: { key: TypeKey; emoji: string; label: string }[] = [
-  { key: "persoon",    emoji: "💔", label: "Ik mis iemand" },
-  { key: "huisdier",  emoji: "🐾", label: "Ik heb mijn dier verloren" },
-  { key: "relatie",   emoji: "💭", label: "Mijn relatie is voorbij" },
-  { key: "kinderloos",emoji: "🌱", label: "Ongewenst kinderloos" },
+const DEFAULT_LABELS: Record<TypeKey, string> = {
+  persoon:    "Ik mis iemand",
+  huisdier:   "Ik heb mijn dier verloren",
+  relatie:    "Mijn relatie is voorbij",
+  kinderloos: "Ongewenst kinderloos",
+};
+
+const TYPES: { key: TypeKey; emoji: string }[] = [
+  { key: "persoon",    emoji: "💔" },
+  { key: "huisdier",  emoji: "🐾" },
+  { key: "relatie",   emoji: "💭" },
+  { key: "kinderloos",emoji: "🌱" },
 ];
 
 function CtaButton({ url, label }: { url?: string; label: string }) {
@@ -50,7 +61,13 @@ function Voordelen({ items }: { items: string[] }) {
   );
 }
 
-export function NietAlleenKeuzeLpView({ typeCtaUrlPersoon, typeCtaUrlHuisdier, typeCtaUrlRelatie, typeCtaUrlKinderloos }: Props) {
+export function NietAlleenKeuzeLpView({ typeCtaUrlPersoon, typeCtaUrlHuisdier, typeCtaUrlRelatie, typeCtaUrlKinderloos, typeButtonLabelPersoon, typeButtonLabelHuisdier, typeButtonLabelRelatie, typeButtonLabelKinderloos }: Props) {
+  const buttonLabels: Record<TypeKey, string> = {
+    persoon:    typeButtonLabelPersoon    || DEFAULT_LABELS.persoon,
+    huisdier:   typeButtonLabelHuisdier   || DEFAULT_LABELS.huisdier,
+    relatie:    typeButtonLabelRelatie    || DEFAULT_LABELS.relatie,
+    kinderloos: typeButtonLabelKinderloos || DEFAULT_LABELS.kinderloos,
+  };
   const [actief, setActief] = useState<TypeKey | null>(null);
   const sectionRefs: Record<TypeKey, React.RefObject<HTMLDivElement>> = {
     persoon:    useRef<HTMLDivElement>(null),
@@ -119,7 +136,7 @@ export function NietAlleenKeuzeLpView({ typeCtaUrlPersoon, typeCtaUrlHuisdier, t
             <p className="text-base font-semibold" style={{ color: "#3d3530" }}>Kies gewoon wat het dichtst bij je ligt:</p>
           </div>
           <div className="space-y-3">
-            {TYPES.map(({ key, emoji, label }) => (
+            {TYPES.map(({ key, emoji }) => (
               <button
                 key={key}
                 onClick={() => kiesType(key)}
@@ -131,7 +148,7 @@ export function NietAlleenKeuzeLpView({ typeCtaUrlPersoon, typeCtaUrlHuisdier, t
                 }}
               >
                 <span className="text-2xl flex-shrink-0">{emoji}</span>
-                <span className="text-sm font-medium">{label}</span>
+                <span className="text-sm font-medium">{buttonLabels[key]}</span>
                 {actief === key && (
                   <span className="ml-auto text-xs font-semibold flex-shrink-0" style={{ color: "#6d84a8" }}>↓</span>
                 )}
@@ -328,12 +345,12 @@ Ook de dingen die je normaal inslikt.`)}
 
           <div className="text-center space-y-4 pt-4">
             <p className="text-base leading-relaxed" style={{ color: "#6b6460" }}>
-              Je hoeft het niet op te lossen.<br />
-              Alleen… niet meer alleen te dragen.
+              Samen maken we het lichter.<br />
+              Je hoeft het niet meer Alleen te dragen.
             </p>
             <p className="text-sm font-semibold" style={{ color: "#3d3530" }}>Kies wat bij je past en begin vandaag</p>
             <div className="space-y-3">
-              {TYPES.map(({ key, emoji, label }) => (
+              {TYPES.map(({ key, emoji }) => (
                 <button
                   key={key}
                   onClick={() => kiesType(key)}
@@ -345,7 +362,7 @@ Ook de dingen die je normaal inslikt.`)}
                   }}
                 >
                   <span className="text-xl">{emoji}</span>
-                  <span className="text-sm font-medium">{label}</span>
+                  <span className="text-sm font-medium">{buttonLabels[key]}</span>
                 </button>
               ))}
             </div>
