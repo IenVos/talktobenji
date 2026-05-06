@@ -64,13 +64,16 @@ export async function GET(req: NextRequest) {
     for (const pi of list.data) {
       if (pi.status !== "succeeded") continue;
       const m = pi.metadata;
-      if (!m.invoice_number) continue; // Sla oude betalingen zonder factuurnummer over
+
+      // Fallback factuurnummer voor betalingen van vóór de BTW-implementatie
+      const invoiceNr = m.invoice_number ||
+        `TTB-${new Date(pi.created * 1000).getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
 
       const datum = new Date(pi.created * 1000).toLocaleDateString("nl-NL", {
         day: "2-digit", month: "2-digit", year: "numeric",
       });
       const land = m.country_code ?? "";
-      const vatRatePct = m.vat_rate ? `${Math.round(parseFloat(m.vat_rate) * 100)}` : "0";
+      const vatRatePct = m.vat_rate ? `${Math.round(parseFloat(m.vat_rate) * 100)}` : "";
       const vatAmountEur = m.vat_amount_cents
         ? (parseInt(m.vat_amount_cents, 10) / 100).toFixed(2).replace(".", ",")
         : "0,00";
@@ -82,7 +85,7 @@ export async function GET(req: NextRequest) {
       const vatNummer = m.vat_number ?? "";
 
       rows.push(
-        [m.invoice_number, datum, land, vatRatePct, vatAmountEur, baseEur, totalEur, zakelijk, vatNummer]
+        [invoiceNr, datum, land, vatRatePct, vatAmountEur, baseEur, totalEur, zakelijk, vatNummer]
           .map((v) => `"${v.replace(/"/g, '""')}"`)
           .join(",")
       );
