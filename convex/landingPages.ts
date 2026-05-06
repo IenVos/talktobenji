@@ -569,3 +569,65 @@ export const seedNietAlleenRelatie = mutation({
     return { seeded: true, id };
   },
 });
+
+export const seedOngewenstKinderloos = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "ongewenst-kinderloos-die-pijn-gaat-nooit-weg";
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (existing) return { skipped: true, id: existing._id };
+    const now = Date.now();
+    const id = await ctx.db.insert("landingPages", {
+      slug,
+      pageTitle: "Niet Alleen — Ongewenst Kinderloos",
+      isLive: false,
+      heroLabel: "30 dagen | dagelijkse e-mails | reageren wanneer jij wilt",
+      heroTitle: "Je mist iets wat er nooit is geweest.\nEn dat maakt het moeilijk uit te leggen.",
+      heroSubtitle: "Aan anderen.\nMaar soms ook… aan jezelf.",
+      section1Title: "Er zijn momenten dat het stil is.",
+      section1Text: "En momenten dat het ineens overal is.\n\nIn gesprekken.\nIn aankondigingen.\nIn beelden die je niet had zien aankomen.\n\nEn je glimlacht.\nJe zegt de juiste dingen.\n\nMaar vanbinnen…\n\nvoelt het anders.",
+      section2Title: "Wat je misschien niet hardop zegt",
+      section2Text: "Misschien herken je dit:\n\nDat je blij bent voor een ander… en tegelijk iets voelt knijpen\nDat je situaties vermijdt omdat het gewoon te veel is\nDat je jezelf afvraagt: waarom voelt dit nog zo zwaar?\nDat je denkt: mag ik dit eigenlijk wel zo voelen?\n\nWant het is geen zichtbaar verlies.\n\nEn juist dat… maakt het soms zo eenzaam.\n\nAlsof je het eerst moet uitleggen voordat het er mag zijn.",
+      voorWieTitle: "Wat als je dat hier niet hoeft te doen?",
+      voorWieSubtitel: "Niet uitleggen. Niet relativeren. Niet kleiner maken.\n\nMaar gewoon voelen wat er is.",
+      voorWieBullets: "Je bent blij voor anderen, maar tegelijk voel je iets knijpen\nJe vermijdt situaties omdat het gewoon te veel is\nJe vraagt jezelf af: waarom voelt dit nog zo zwaar?\nJe denkt: mag ik dit eigenlijk wel zo voelen?\nJe moet het steeds uitleggen voordat het er mag zijn\nHet voelt eenzaam, juist omdat het onzichtbaar is",
+      contentBlocksJson: JSON.stringify([
+        {
+          titel: "Niet Alleen is geen traject.",
+          tekst: "Geen poging om het 'een plek te geven'.\n\nHet is een plek waar je even kunt landen.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een rustig gesprek. Van Benji.\n\nGeen oplossingen.\nGeen stappenplan.\n\nMaar woorden die snappen dat dit verdriet anders is.\nEn ruimte voor alles wat jij misschien nergens zegt.",
+        },
+        {
+          titel: "Een plek waar je kunt denken of schrijven:",
+          tekst: "\"Vandaag kwam het weer onverwacht binnen.\"\n\"Ik weet niet precies wat ik voel, maar het is er.\"\n\"Ik wil dit niet steeds wegduwen.\"\n\nZonder dat iemand het probeert te verklaren.\nOf te verzachten.",
+        },
+        {
+          titel: "Wat je gaat merken:",
+          tekst: "Dat je jezelf minder afremt in wat je voelt\nDat er ruimte komt voor gedachten die je normaal inslikt\nDat het iets minder alleen voelt\n\nNiet opgelost.\nMaar wel… erkend.",
+        },
+        {
+          titel: "Soms zit de zwaarte niet alleen in het gemis.",
+          tekst: "Maar in het gevoel dat je het niet helemaal mag voelen.\n\nEn juist dat… mag hier wel.",
+        },
+      ]),
+      wieIsTitle: "Wie is Ien?",
+      wieIsText: "Ien is de oprichter van TalkToBenji, het platform waar \"Niet Alleen\" onderdeel van is. Ze weet hoe zwaar het is als verdriet geen plek krijgt. \"Niet Alleen\" is wat ze zelf had willen hebben.",
+      finalCtaTitle: "Je hoeft het niet te verklaren.",
+      finalCtaBody: "Je hoeft het niet kleiner te maken.\n\nMaar je hoeft het ook niet meer alleen te dragen.",
+      ctaText: "Ik wil dit niet meer alleen voelen",
+      ctaUrl: "/betalen/niet-alleen-kinderloos",
+      vragenJson: JSON.stringify([
+        { vraag: "Is dit niet te confronterend?", antwoord: "Nee. Het is juist zacht. Je bepaalt zelf hoe diep je erin gaat." },
+        { vraag: "Wat als ik niet precies weet wat ik voel?", antwoord: "Dat is precies waar dit voor is. Je hoeft het nog niet te weten." },
+        { vraag: "Is dit voor een specifieke fase?", antwoord: "Nee. Dit mag op elk moment in jouw proces." },
+      ]),
+      hideStickyBar: false,
+      hideHeader: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return { seeded: true, id };
+  },
+});

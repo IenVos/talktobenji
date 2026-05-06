@@ -60,7 +60,6 @@ import type * as pushSubscriptions from "../pushSubscriptions.js";
 import type * as reflecties from "../reflecties.js";
 import type * as security from "../security.js";
 import type * as seedData from "../seedData.js";
-import type * as seedNietAlleenRelatie from "../seedNietAlleenRelatie.js";
 import type * as settings from "../settings.js";
 import type * as siteAnalytics from "../siteAnalytics.js";
 import type * as sources from "../sources.js";
@@ -130,7 +129,6 @@ declare const fullApi: ApiFromModules<{
   reflecties: typeof reflecties;
   security: typeof security;
   seedData: typeof seedData;
-  seedNietAlleenRelatie: typeof seedNietAlleenRelatie;
   settings: typeof settings;
   siteAnalytics: typeof siteAnalytics;
   sources: typeof sources;
