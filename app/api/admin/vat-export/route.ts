@@ -76,10 +76,10 @@ export async function GET(req: NextRequest) {
       const vatRatePct = m.vat_rate ? `${Math.round(parseFloat(m.vat_rate) * 100)}` : "";
       const vatAmountEur = m.vat_amount_cents
         ? (parseInt(m.vat_amount_cents, 10) / 100).toFixed(2).replace(".", ",")
-        : "0,00";
+        : "";
       const baseEur = m.base_price_cents
         ? (parseInt(m.base_price_cents, 10) / 100).toFixed(2).replace(".", ",")
-        : (pi.amount / 100).toFixed(2).replace(".", ",");
+        : "";
       const totalEur = (pi.amount / 100).toFixed(2).replace(".", ",");
       const zakelijk = m.is_business === "true" ? "Ja" : "Nee";
       const vatNummer = m.vat_number ?? "";
