@@ -443,20 +443,20 @@ export function LandingPageView({ slug }: { slug: string }) {
           <div className="w-full max-w-md mx-auto">
             {page.heroLabel && (
               <p className="text-xs uppercase tracking-widest mb-5 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
-                {page.heroLabel}
+                {page.heroLabel.split("\n").map((line, i, arr) => <span key={i}>{line}{i < arr.length - 1 && <br />}</span>)}
               </p>
             )}
             <h1 className="text-3xl sm:text-4xl font-semibold mb-4 leading-snug" style={{ color: "#3d3530", textWrap: "balance" } as React.CSSProperties}>
-              {page.heroTitle}
+              {page.heroTitle.split("\n").map((line, i, arr) => <span key={i}>{line}{i < arr.length - 1 && <br />}</span>)}
             </h1>
             {page.heroSubtitle && (
               <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460", textWrap: "pretty" } as React.CSSProperties}>
-                {page.heroSubtitle}
+                {page.heroSubtitle.split("\n").map((line, i, arr) => <span key={i}>{line}{i < arr.length - 1 && <br />}</span>)}
               </p>
             )}
             {page.heroBody && (
               <p className="text-sm leading-relaxed mb-6" style={{ color: "#8a8078", textWrap: "pretty" } as React.CSSProperties}>
-                {page.heroBody}
+                {page.heroBody.split("\n").map((line, i, arr) => <span key={i}>{line}{i < arr.length - 1 && <br />}</span>)}
               </p>
             )}
             {(page as any).heroVideoUrl && (
