@@ -494,3 +494,48 @@ export const seedNietAlleenKeuzeLp = mutation({
     return { seeded: true, id };
   },
 });
+
+/** Eenmalig: maak Niet Alleen Relatie LP aan */
+export const seedNietAlleenRelatie = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "niet-alleen-verlies-persoon";
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (existing) return { skipped: true, id: existing._id };
+    const now = Date.now();
+    const id = await ctx.db.insert("landingPages", {
+      slug,
+      pageTitle: "Niet Alleen — Relatie",
+      isLive: false,
+      heroLabel: "30 dagen | dagelijkse e-mails | reageren wanneer jij wilt",
+      heroTitle: "Je relatie is voorbij.\nMaar in je hoofd is het nog niet klaar.",
+      heroSubtitle: "Overdag gaat het wel. Je werkt. Je praat. Je leidt jezelf af.\n\nMaar zodra het stil wordt… begint het weer.",
+      section1Title: "Je denkt terug.",
+      section1Text: "Aan gesprekken.\nAan momenten.\nAan wat je misschien anders had kunnen doen.\n\nJe analyseert alles.\n\nWas dit de juiste keuze?\nHad ik harder moeten vechten?\nMist hij mij ook?\n\nEn het gekke is…\n\nJe weet rationeel dat het voorbij is.\nMaar je gevoel loopt achter.",
+      section2Title: "De dingen die je niet hardop zegt",
+      section2Text: "Misschien herken je dit:\n\nDat je hun naam nog opzoekt\nDat je oude gesprekken terugleest\nDat je hoopt op een berichtje\nOf juist boos bent… en dat ook niet goed snapt\n\nEn je wil er best over praten.\nMaar niet elke keer.\nNiet met iedereen.\nNiet weer hetzelfde verhaal.\n\nDus je blijft erin hangen. In je eigen hoofd.",
+      voorWieTitle: "Wat als je je gedachten niet meer alleen hoeft te dragen?",
+      voorWieSubtitel: "Zonder dat iemand meteen zegt wat je moet doen. Zonder advies waar je niet op zit te wachten. Gewoon… ruimte.",
+      voorWieBullets: "Je denkt steeds terug aan gesprekken en momenten\nJe analyseert wat je anders had kunnen doen\nJe zoekt hun naam nog op of leest oude gesprekken terug\nJe wil er soms over praten, maar niet altijd\nJe zit gevangen in je eigen hoofd\nJe weet dat het voorbij is, maar je gevoel loopt achter",
+      wieIsTitle: "Niet Alleen is geen coaching.",
+      wieIsText: "Geen stappenplan om 'los te laten'.\n\nHet is iets veel zachters.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nIemand die niet oordeelt. Niet stuurt. Niet probeert het voor je op te lossen. Maar er gewoon even is.\n\nEen plek waar je kunt zeggen:\n\"Ik mis hem vandaag weer.\"\n\"Ik weet niet wat ik voel.\"\n\"Waarom denk ik hier nog steeds aan?\"\n\nZonder dat iemand zegt: je moet door.",
+      finalCtaTitle: "Je hoeft het niet meteen los te laten.",
+      finalCtaBody: "Je hoeft het niet te snappen.\n\nMaar je hoeft er ook niet alleen doorheen.",
+      ctaText: "Ik wil dit niet meer alleen verwerken",
+      ctaUrl: "/betalen/niet-alleen-relatie",
+      vragenJson: JSON.stringify([
+        { vraag: "Wat als ik nog hoop heb dat het goedkomt?", antwoord: "Dat mag er gewoon zijn. Alles wat je voelt, mag er zijn." },
+        { vraag: "Moet ik elke dag reageren?", antwoord: "Nee. Je leest en reageert wanneer het goed voelt." },
+        { vraag: "Is dit niet te zwaar?", antwoord: "Juist niet. Het is zacht. Zonder druk of verwachtingen." },
+      ]),
+      hideStickyBar: false,
+      hideHeader: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return { seeded: true, id };
+  },
+});
