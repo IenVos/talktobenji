@@ -341,6 +341,7 @@ export function LandingPageView({ slug }: { slug: string }) {
   const hideMidCta = (page as any).hideMidCta ?? false;
   const hideWatJeKrijgt = (page as any).hideWatJeKrijgt ?? false;
   const hideStickyBar = (page as any).hideStickyBar ?? false;
+  const hideHeader = (page as any).hideHeader ?? false;
 
   let pricingBlocks: PricingBlock[] = [];
   try { if ((page as any).pricingBlocksJson) pricingBlocks = JSON.parse((page as any).pricingBlocksJson); } catch {}
@@ -438,7 +439,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
       <div style={{ position: "relative", zIndex: 1 }}>
 
-        <HeaderBar />
+        {!hideHeader && <HeaderBar />}
 
         {/* HERO — tekst gecentreerd, pricing blokken in eigen brede sectie */}
         <section className="px-5 pt-12 pb-8 text-center">

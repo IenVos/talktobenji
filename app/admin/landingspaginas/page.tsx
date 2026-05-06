@@ -81,6 +81,7 @@ type FormState = {
   hideMidCta: boolean;
   hideWatJeKrijgt: boolean;
   hideStickyBar: boolean;
+  hideHeader: boolean;
   section1Title: string;
   section1Text: string;
   section2Title: string;
@@ -167,6 +168,7 @@ const EMPTY_FORM: FormState = {
   hideMidCta: false,
   hideWatJeKrijgt: false,
   hideStickyBar: false,
+  hideHeader: false,
   section1Title: "",
   section1Text: "",
   section2Title: "",
@@ -324,6 +326,7 @@ export default function AdminLandingspaginasPage() {
       hideMidCta: (page as any).hideMidCta ?? false,
       hideWatJeKrijgt: (page as any).hideWatJeKrijgt ?? false,
       hideStickyBar: (page as any).hideStickyBar ?? false,
+      hideHeader: (page as any).hideHeader ?? false,
       section1Title: page.section1Title ?? "",
       section1Text: page.section1Text ?? "",
       section2Title: page.section2Title ?? "",
@@ -529,6 +532,7 @@ export default function AdminLandingspaginasPage() {
           hideMidCta: form.hideMidCta,
           hideWatJeKrijgt: form.hideWatJeKrijgt,
           hideStickyBar: form.hideStickyBar,
+          hideHeader: form.hideHeader,
           section1Title: form.section1Title.trim(),
           section1Text: form.section1Text.trim(),
           section2Title: form.section2Title.trim(),
@@ -618,6 +622,7 @@ export default function AdminLandingspaginasPage() {
           hideMidCta: form.hideMidCta,
           hideWatJeKrijgt: form.hideWatJeKrijgt,
           hideStickyBar: form.hideStickyBar,
+          hideHeader: form.hideHeader,
           section1Title: opt(form.section1Title),
           section1Text: opt(form.section1Text),
           section2Title: opt(form.section2Title),
@@ -941,6 +946,7 @@ export default function AdminLandingspaginasPage() {
                       ["hideWieIsIen", "Wie is Ien"],
                       ["hideWatJeKrijgt", "Wat je krijgt"],
                       ["hideStickyBar", "Onderste balk"],
+                      ["hideHeader", "Header"],
                     ] as const).map(([field, label]) => (
                       <label key={field} className="flex items-center gap-2 cursor-pointer">
                         <input
