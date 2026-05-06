@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!process.env.ADMIN_SECRET || authHeader !== process.env.ADMIN_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const adminToken = req.headers.get("authorization") ?? "";
+  try {
+    await convex.query(api.adminAuth.validateToken, { adminToken });
+  } catch {
+    return NextResponse.json({ error: "Niet geautoriseerd" }, { status: 401 });
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {

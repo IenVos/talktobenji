@@ -185,6 +185,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         items: [
           { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
           { href: "/admin/revenue", label: "Omzet & verkopen", icon: CreditCard },
+          { href: "/admin/btw-export", label: "BTW-export", icon: FileStack },
         ],
       },
     },
