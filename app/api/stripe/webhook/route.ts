@@ -9,13 +9,17 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 async function buildInvoicePdf({
   invoiceNr, date, customerName, customerEmail, productName, totalInclBtw,
+  vatRate, vatAmountCents, basePriceCents, isBusiness, customerVatNumber,
 }: {
   invoiceNr: string; date: string; customerName: string; customerEmail: string;
   productName: string; totalInclBtw: number;
+  vatRate?: number; vatAmountCents?: number; basePriceCents?: number;
+  isBusiness?: boolean; customerVatNumber?: string;
 }): Promise<Uint8Array> {
-  const BTW_RATE = 0.25;
-  const exclBtw = totalInclBtw / (1 + BTW_RATE);
-  const btwBedrag = totalInclBtw - exclBtw;
+  // Use VAT from metadata when available, fall back to 25% for old payments
+  const effectiveVatRate = isBusiness ? 0 : (vatRate ?? 0.25);
+  const exclBtw = basePriceCents != null ? basePriceCents / 100 : totalInclBtw / (1 + effectiveVatRate);
+  const btwBedrag = vatAmountCents != null ? (isBusiness ? 0 : vatAmountCents / 100) : totalInclBtw - exclBtw;
   const fmt = (n: number) => `€ ${n.toFixed(2).replace(".", ",")}`;
 
   const doc = await PDFDocument.create();
@@ -31,8 +35,8 @@ async function buildInvoicePdf({
   const green = rgb(0.09, 0.64, 0.26);
   const line = rgb(0.91, 0.9, 0.89);
 
-  const L = 56; // left margin
-  const R = width - 56; // right margin
+  const L = 56;
+  const R = width - 56;
 
   // ── Header balk ──
   page.drawRectangle({ x: 0, y: height - 72, width, height: 72, color: rgb(0.96, 0.95, 0.94) });
@@ -42,7 +46,6 @@ async function buildInvoicePdf({
   // ── FACTUUR + VOLDAAN ──
   let y = height - 110;
   page.drawText("FACTUUR", { x: L, y, size: 8, font: fontBold, color: gray });
-  // VOLDAAN badge
   page.drawRectangle({ x: R - 72, y: y - 4, width: 72, height: 18, color: rgb(0.86, 0.99, 0.87) });
   page.drawText("VOLDAAN", { x: R - 58, y: y + 1, size: 8, font: fontBold, color: green });
 
@@ -57,7 +60,8 @@ async function buildInvoicePdf({
   page.drawText("AAN", { x: width / 2, y, size: 8, font: fontBold, color: gray });
 
   const vanLines = ["TalkToBenji", "contactmetien@talktobenji.com", "Hässleholm, 28192", "Zweden", "BTW: SE671123042201"];
-  const aanLines = [customerName, customerEmail];
+  const aanLines: string[] = [customerName, customerEmail];
+  if (customerVatNumber) aanLines.push(`Btw-nummer: ${customerVatNumber}`);
 
   y -= 16;
   for (const l of vanLines) {
@@ -95,13 +99,28 @@ async function buildInvoicePdf({
   page.drawText("Subtotaal excl. btw", { x: col1, y, size: 9.5, font: fontReg, color: mid });
   page.drawText(fmt(exclBtw), { x: col2, y, size: 9.5, font: fontReg, color: mid });
   y -= 16;
-  page.drawText("BTW (25%)", { x: col1, y, size: 9.5, font: fontReg, color: mid });
-  page.drawText(fmt(btwBedrag), { x: col2, y, size: 9.5, font: fontReg, color: mid });
-  y -= 14;
-  page.drawLine({ start: { x: col1, y }, end: { x: R, y }, thickness: 1, color: dark });
-  y -= 16;
-  page.drawText("Totaal incl. btw", { x: col1, y, size: 11, font: fontBold, color: dark });
-  page.drawText(fmt(totalInclBtw), { x: col2, y, size: 11, font: fontBold, color: dark });
+  if (isBusiness) {
+    page.drawText("BTW 0%", { x: col1, y, size: 9.5, font: fontReg, color: mid });
+    page.drawText(fmt(0), { x: col2, y, size: 9.5, font: fontReg, color: mid });
+    y -= 14;
+    page.drawLine({ start: { x: col1, y }, end: { x: R, y }, thickness: 1, color: dark });
+    y -= 16;
+    page.drawText("Totaal", { x: col1, y, size: 11, font: fontBold, color: dark });
+    page.drawText(fmt(exclBtw), { x: col2, y, size: 11, font: fontBold, color: dark });
+    y -= 18;
+    page.drawText("BTW 0% – Btw verlegd volgens artikel 196 van Richtlijn 2006/112/EG", {
+      x: col1, y, size: 8, font: fontReg, color: mid,
+    });
+  } else {
+    const btwLabel = `BTW (${Math.round(effectiveVatRate * 100)}%)`;
+    page.drawText(btwLabel, { x: col1, y, size: 9.5, font: fontReg, color: mid });
+    page.drawText(fmt(btwBedrag), { x: col2, y, size: 9.5, font: fontReg, color: mid });
+    y -= 14;
+    page.drawLine({ start: { x: col1, y }, end: { x: R, y }, thickness: 1, color: dark });
+    y -= 16;
+    page.drawText("Totaal incl. btw", { x: col1, y, size: 11, font: fontBold, color: dark });
+    page.drawText(fmt(totalInclBtw), { x: col2, y, size: 11, font: fontBold, color: dark });
+  }
 
   // ── Betaald-balk ──
   y -= 36;
@@ -133,7 +152,18 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object as Stripe.PaymentIntent;
-    const { email, name, subscriptionType, slug, productName, optIn, isGift, recipientEmail, recipientName, personalMessage, deliveryMethod, scheduledSendDate, giftBillingPeriod, giftAccessDays, giftLabel } = pi.metadata;
+    const {
+      email, name, subscriptionType, slug, productName, optIn,
+      isGift, recipientEmail, recipientName, personalMessage, deliveryMethod, scheduledSendDate,
+      giftBillingPeriod, giftAccessDays, giftLabel,
+      invoice_number: metaInvoiceNumber,
+      vat_rate: metaVatRate, vat_amount_cents: metaVatAmountCents, base_price_cents: metaBasePriceCents,
+      is_business: metaIsBusiness, vat_number: metaVatNumber,
+    } = pi.metadata;
+    const isBusiness = metaIsBusiness === "true";
+    const vatRate = metaVatRate ? parseFloat(metaVatRate) : undefined;
+    const vatAmountCents = metaVatAmountCents ? parseInt(metaVatAmountCents, 10) : undefined;
+    const basePriceCents = metaBasePriceCents ? parseInt(metaBasePriceCents, 10) : undefined;
 
     // ── Cadeau-afhandeling ──
     if (isGift === "true" && email) {
@@ -207,7 +237,7 @@ export async function POST(req: NextRequest) {
               .join("");
 
           // ── Factuur voor gever ──
-          const invoiceNr = `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
+          const invoiceNr = metaInvoiceNumber || `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
           const invoiceDate = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
           let attachments: { filename: string; content: string }[] = [];
           try {
@@ -215,6 +245,8 @@ export async function POST(req: NextRequest) {
               invoiceNr, date: invoiceDate,
               customerName: name || email, customerEmail: email,
               productName: displayProduct, totalInclBtw: pi.amount / 100,
+              vatRate, vatAmountCents, basePriceCents,
+              isBusiness, customerVatNumber: metaVatNumber,
             });
             attachments = [{ filename: `${invoiceNr}.pdf`, content: Buffer.from(pdfBytes).toString("base64") }];
           } catch (pdfErr: any) {
@@ -390,7 +422,7 @@ export async function POST(req: NextRequest) {
       if (process.env.RESEND_API_KEY) {
         try {
           const resend = new Resend(process.env.RESEND_API_KEY);
-          const invoiceNr = `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
+          const invoiceNr = metaInvoiceNumber || `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
           const date = new Date().toLocaleDateString("nl-NL", {
             day: "numeric", month: "long", year: "numeric",
           });
@@ -407,6 +439,8 @@ export async function POST(req: NextRequest) {
               customerEmail: email,
               productName: omschrijving,
               totalInclBtw,
+              vatRate, vatAmountCents, basePriceCents,
+              isBusiness, customerVatNumber: metaVatNumber,
             });
             attachments = [{ filename: `${invoiceNr}.pdf`, content: Buffer.from(pdfBytes).toString("base64") }];
           } catch (pdfErr: any) {

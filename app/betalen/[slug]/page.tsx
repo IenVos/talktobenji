@@ -16,10 +16,15 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { calculateVat, EU_COUNTRY_NAMES_NL } from "@/lib/vat";
 
-// Initialiseer Stripe buiten de component zodat het niet opnieuw geladen wordt
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
+
+// NL en BE vooraan, daarna Buiten EU, dan de rest alfabetisch
+const EU_REST = Object.entries(EU_COUNTRY_NAMES_NL)
+  .filter(([code]) => code !== "NL" && code !== "BE")
+  .sort(([, a], [, b]) => a.localeCompare(b, "nl"));
 
 function Checkbox({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -38,7 +43,6 @@ function Checkbox({ checked, onChange }: { checked: boolean; onChange: (v: boole
   );
 }
 
-// ——— Checkout Form ———
 type GiftVariant = {
   label: string;
   priceInCents: number;
@@ -50,6 +54,8 @@ function CheckoutForm({
   slug,
   buttonText,
   clientSecret,
+  naam,
+  email,
   giftEnabled,
   giftVariants,
   onPriceChange,
@@ -57,20 +63,19 @@ function CheckoutForm({
   slug: string;
   buttonText?: string;
   clientSecret: string;
+  naam: string;
+  email: string;
   giftEnabled?: boolean;
   giftVariants?: GiftVariant[];
   onPriceChange?: (cents: number | null) => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
-  const [naam, setNaam] = useState("");
-  const [email, setEmail] = useState("");
   const [optIn, setOptIn] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Cadeau-velden
   const [isGift, setIsGift] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<GiftVariant | null>(
     giftVariants && giftVariants.length > 0 ? giftVariants[0] : null
@@ -79,11 +84,10 @@ function CheckoutForm({
   const [recipientName, setRecipientName] = useState("");
   const [personalMessage, setPersonalMessage] = useState("");
   const [deliveryMethod, setDeliveryMethod] = useState<"direct" | "manual">("manual");
-  const [scheduledDate, setScheduledDate] = useState(""); // YYYY-MM-DD
+  const [scheduledDate, setScheduledDate] = useState("");
 
   const hasVariants = giftEnabled && giftVariants && giftVariants.length > 0;
 
-  // Meldt de gekozen prijs aan de parent zodat de header mee-update
   const handleVariantSelect = (variant: GiftVariant) => {
     setSelectedVariant(variant);
     onPriceChange?.(variant.priceInCents);
@@ -91,13 +95,12 @@ function CheckoutForm({
   const handleGiftToggle = (val: boolean) => {
     setIsGift(val);
     if (!val) {
-      onPriceChange?.(null); // terug naar productprijs
+      onPriceChange?.(null);
     } else if (hasVariants && selectedVariant) {
       onPriceChange?.(selectedVariant.priceInCents);
     }
   };
 
-  // Minimum datum = morgen
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const minDate = tomorrow.toISOString().split("T")[0];
@@ -109,7 +112,6 @@ function CheckoutForm({
     setSubmitting(true);
     setError(null);
 
-    // Update bestaande PaymentIntent met e-mail en naam (+ cadeau-info)
     try {
       const paymentIntentId = clientSecret.split("_secret_")[0];
       await fetch("/api/stripe/create-payment-intent", {
@@ -161,7 +163,6 @@ function CheckoutForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Cadeau toggle — bovenaan */}
       {giftEnabled && <div className="border border-stone-200 rounded-xl overflow-hidden">
         <label className="flex items-center gap-3 px-4 py-3.5 cursor-pointer bg-white hover:bg-stone-50 transition-colors">
           <Checkbox checked={isGift} onChange={handleGiftToggle} />
@@ -173,8 +174,6 @@ function CheckoutForm({
 
         {isGift && (
           <div className="border-t border-stone-100 bg-stone-50 px-4 py-4 space-y-4">
-
-            {/* Naam ontvanger — altijd tonen bij cadeau */}
             <div>
               <label className={labelClass}>Naam van de ontvanger <span className="font-normal text-stone-400">(optioneel)</span></label>
               <input
@@ -186,7 +185,6 @@ function CheckoutForm({
               />
             </div>
 
-            {/* Looptijdkeuze — alleen als het product varianten heeft */}
             {hasVariants && (
               <div>
                 <p className={labelClass}>Kies een looptijd</p>
@@ -226,7 +224,6 @@ function CheckoutForm({
               </div>
             )}
 
-            {/* Stap 1: bezorgmethode */}
             <div>
               <p className={labelClass}>Hoe wil je de code bezorgen?</p>
               <div className="space-y-2">
@@ -262,7 +259,6 @@ function CheckoutForm({
               </div>
             </div>
 
-            {/* Stap 2: ontvanger-details — alleen bij direct */}
             {deliveryMethod === "direct" && (
               <>
                 <div>
@@ -305,7 +301,6 @@ function CheckoutForm({
               </>
             )}
 
-            {/* Persoonlijk bericht ook beschikbaar bij manual */}
             {deliveryMethod === "manual" && (
               <div>
                 <label className={labelClass}>Persoonlijk bericht <span className="font-normal text-stone-400">(optioneel — voor jouw eigen gebruik)</span></label>
@@ -322,29 +317,6 @@ function CheckoutForm({
         )}
       </div>}
 
-      <div>
-        <label className={labelClass}>Jouw naam</label>
-        <input
-          type="text"
-          placeholder="Voornaam"
-          value={naam}
-          onChange={(e) => setNaam(e.target.value)}
-          required
-          className={inputClass}
-        />
-      </div>
-      <div>
-        <label className={labelClass}>Jouw e-mailadres</label>
-        <input
-          type="email"
-          placeholder="jouw@email.nl"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className={inputClass}
-        />
-      </div>
-
       <div className="pt-1">
         <label className={`${labelClass} mb-2`}>Betaalgegevens</label>
         <div className="border border-stone-200 rounded-xl p-4 bg-white">
@@ -352,7 +324,6 @@ function CheckoutForm({
         </div>
       </div>
 
-      {/* Opt-in nieuwsbrief */}
       <label className="flex items-start gap-3 cursor-pointer group">
         <div className="mt-0.5">
           <Checkbox checked={optIn} onChange={setOptIn} />
@@ -369,7 +340,6 @@ function CheckoutForm({
         </p>
       )}
 
-      {/* Verplicht vinkje */}
       <label className="flex items-start gap-3 cursor-pointer" onClick={() => setTermsAccepted(v => !v)}>
         <Checkbox checked={termsAccepted} onChange={setTermsAccepted} />
         <span className="text-xs text-stone-600 leading-snug pt-0.5">
@@ -388,7 +358,6 @@ function CheckoutForm({
         {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
       </button>
 
-      {/* Herroepingsrecht info */}
       <div className="rounded-xl bg-stone-50 border border-stone-200 px-4 py-3 space-y-1 text-center">
         <p className="text-xs font-medium text-stone-500">Herroepingsrecht</p>
         <p className="text-xs text-stone-400 leading-relaxed">
@@ -406,7 +375,6 @@ function CheckoutForm({
   );
 }
 
-// ——— Hoofd checkout pagina ———
 export default function BetalenPage() {
   const params = useParams()!;
   const slug = typeof params?.slug === "string" ? params.slug : Array.isArray(params?.slug) ? params.slug[0] : "";
@@ -415,21 +383,39 @@ export default function BetalenPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadingSecret, setLoadingSecret] = useState(false);
   const [secretError, setSecretError] = useState<string | null>(null);
-  // Overschrijf de getoonde prijs als een cadeauvariant gekozen is
   const [overridePriceInCents, setOverridePriceInCents] = useState<number | null>(null);
 
-  // Haal de client secret op zodra het product geladen is
+  // Naam + email — hier zodat ze zichtbaar zijn voor landkeuze
+  const [naam, setNaam] = useState("");
+  const [email, setEmail] = useState("");
+
+  // Land + BTW state
+  const [countryCode, setCountryCode] = useState("");
+  const [vatNumber, setVatNumber] = useState("");
+  const [vatNumberCommitted, setVatNumberCommitted] = useState("");
+  const [b2bOpen, setB2bOpen] = useState(false);
+
+  const liveIsBusiness = vatNumber.trim().length >= 4;
+  const liveEffectiveCountry = liveIsBusiness ? "OTHER" : countryCode;
+  const liveVatInfo = countryCode && product
+    ? calculateVat(overridePriceInCents ?? product.priceInCents, liveEffectiveCountry)
+    : null;
+
   useEffect(() => {
-    if (!product) return;
-    if (clientSecret) return; // Niet opnieuw ophalen
+    if (!product || !countryCode) return;
 
     setLoadingSecret(true);
     setSecretError(null);
+    setClientSecret(null);
 
     fetch("/api/stripe/create-payment-intent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug }),
+      body: JSON.stringify({
+        slug,
+        countryCode,
+        ...(vatNumberCommitted && { vatNumber: vatNumberCommitted }),
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
@@ -441,9 +427,16 @@ export default function BetalenPage() {
       })
       .catch(() => setSecretError("Verbindingsfout. Probeer het opnieuw."))
       .finally(() => setLoadingSecret(false));
-  }, [product, slug, clientSecret]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, slug, countryCode, vatNumberCommitted]);
 
-  // Loading state van product
+  const handleVatNumberBlur = () => {
+    const committed = vatNumber.trim().length >= 4 ? vatNumber.trim() : "";
+    if (committed !== vatNumberCommitted) {
+      setVatNumberCommitted(committed);
+    }
+  };
+
   if (product === undefined) {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center">
@@ -452,7 +445,6 @@ export default function BetalenPage() {
     );
   }
 
-  // Product niet gevonden of niet live
   if (!product) {
     return (
       <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center px-4">
@@ -472,7 +464,6 @@ export default function BetalenPage() {
     );
   }
 
-  // Stripe niet geconfigureerd
   if (!stripePromise) {
     return (
       <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center px-4">
@@ -514,9 +505,24 @@ export default function BetalenPage() {
       }
     : {};
 
+  const inputClass =
+    "w-full px-4 py-3 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white";
+  const labelClass = "block text-sm font-medium text-stone-700 mb-1.5";
+
+  let vatLine: string | null = null;
+  if (countryCode && liveVatInfo) {
+    if (liveIsBusiness) {
+      vatLine = "Geen btw — zakelijke aankoop (reverse charge)";
+    } else if (countryCode === "OTHER" || liveVatInfo.vatRate === 0) {
+      vatLine = "Geen btw (buiten EU)";
+    } else {
+      const countryName = EU_COUNTRY_NAMES_NL[countryCode] ?? countryCode;
+      vatLine = `Inclusief ${Math.round(liveVatInfo.vatRate * 100)}% btw (${countryName})`;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* Header */}
       <header className="bg-white border-b border-stone-100 py-4 px-4">
         <div className="max-w-md mx-auto flex items-center justify-center">
           <Link href="/">
@@ -550,45 +556,138 @@ export default function BetalenPage() {
           {product.imageUrl && (
             <div className="mb-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full rounded-xl"
-              />
+              <img src={product.imageUrl} alt={product.name} className="w-full rounded-xl" />
             </div>
           )}
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center">
             <span className="text-3xl font-bold text-primary-700">{priceFormatted}</span>
+            {vatLine && (
+              <p className="text-xs text-stone-400 mt-1">{vatLine}</p>
+            )}
           </div>
         </div>
 
-        {/* Checkout sectie */}
+        {/* Checkout kaart — naam, email, land, betaalgegevens */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-stone-800 mb-5">Jouw gegevens & betaling</h2>
+          <h2 className="text-base font-semibold text-stone-800 mb-5">Jouw gegevens &amp; betaling</h2>
 
-          {secretError && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-              {secretError}
-            </div>
-          )}
-
-          {loadingSecret && (
-            <div className="py-8 flex justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
-            </div>
-          )}
-
-          {clientSecret && (
-            <Elements stripe={stripePromise} options={elementsOptions}>
-              <CheckoutForm
-                slug={slug}
-                buttonText={product.buttonText}
-                clientSecret={clientSecret}
-                giftEnabled={product.giftEnabled ?? false}
-                giftVariants={product.giftVariants ?? undefined}
-                onPriceChange={setOverridePriceInCents}
+          <div className="space-y-4">
+            {/* Naam */}
+            <div>
+              <label className={labelClass}>Jouw naam</label>
+              <input
+                type="text"
+                placeholder="Voornaam"
+                value={naam}
+                onChange={(e) => setNaam(e.target.value)}
+                className={inputClass}
               />
-            </Elements>
+            </div>
+
+            {/* E-mail */}
+            <div>
+              <label className={labelClass}>Jouw e-mailadres</label>
+              <input
+                type="email"
+                placeholder="jouw@email.nl"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+
+            {/* Land */}
+            <div>
+              <label className={labelClass}>Jouw land</label>
+              <select
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className={`${inputClass} cursor-pointer`}
+              >
+                <option value="">Kies je land</option>
+                <option value="NL">Nederland</option>
+                <option value="BE">België</option>
+                <option value="OTHER">Buiten de EU / overig</option>
+                {EU_REST.map(([code, name]) => (
+                  <option key={code} value={code}>{name}</option>
+                ))}
+              </select>
+              {vatLine && (
+                <p className="text-xs text-stone-500 mt-2">{vatLine}</p>
+              )}
+            </div>
+
+            {/* B2B toggle */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setB2bOpen(v => !v)}
+                className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors"
+              >
+                <svg
+                  className={`w-3.5 h-3.5 transition-transform ${b2bOpen ? "rotate-90" : ""}`}
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+                Zakelijke aankoop?
+              </button>
+
+              {b2bOpen && (
+                <div className="mt-3 space-y-2">
+                  <div>
+                    <label className={labelClass}>Btw-nummer</label>
+                    <input
+                      type="text"
+                      placeholder="NL123456789B01"
+                      value={vatNumber}
+                      onChange={(e) => setVatNumber(e.target.value)}
+                      onBlur={handleVatNumberBlur}
+                      className={inputClass}
+                    />
+                  </div>
+                  <p className="text-xs text-stone-400 leading-relaxed">
+                    Vul je btw-nummer in. Je bevestigt hiermee dat je als btw-plichtige ondernemer koopt (reverse charge). Jij bent verantwoordelijk voor correcte opgave.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Scheidslijn voor betaalgegevens */}
+          {countryCode && <div className="mt-6 pt-6 border-t border-stone-100">
+            {secretError && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                {secretError}
+              </div>
+            )}
+
+            {loadingSecret && (
+              <div className="py-8 flex justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
+              </div>
+            )}
+
+            {clientSecret && (
+              <Elements stripe={stripePromise} options={elementsOptions}>
+                <CheckoutForm
+                  slug={slug}
+                  buttonText={product.buttonText}
+                  clientSecret={clientSecret}
+                  naam={naam}
+                  email={email}
+                  giftEnabled={product.giftEnabled ?? false}
+                  giftVariants={product.giftVariants ?? undefined}
+                  onPriceChange={setOverridePriceInCents}
+                />
+              </Elements>
+            )}
+          </div>}
+
+          {!countryCode && (
+            <p className="text-sm text-stone-400 text-center mt-6 pt-6 border-t border-stone-100">
+              Kies je land om door te gaan met betalen.
+            </p>
           )}
         </div>
 
