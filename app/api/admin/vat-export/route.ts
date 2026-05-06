@@ -27,11 +27,9 @@ export async function GET(req: NextRequest) {
 
   if (yearParam && monthParam) {
     const year = parseInt(yearParam, 10);
-    const month = parseInt(monthParam, 10); // 1-based
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 1);
-    createdGte = Math.floor(start.getTime() / 1000);
-    createdLte = Math.floor(end.getTime() / 1000);
+    const month = parseInt(monthParam, 10);
+    createdGte = Math.floor(new Date(year, month - 1, 1).getTime() / 1000);
+    createdLte = Math.floor(new Date(year, month, 1).getTime() / 1000);
     filenameSuffix = `${year}-${String(month).padStart(2, "0")}`;
   } else if (yearParam) {
     const year = parseInt(yearParam, 10);
@@ -39,7 +37,6 @@ export async function GET(req: NextRequest) {
     createdLte = Math.floor(new Date(year + 1, 0, 1).getTime() / 1000);
     filenameSuffix = `${year}`;
   } else {
-    // Laatste 12 maanden
     const now = new Date();
     const past = new Date(now);
     past.setFullYear(past.getFullYear() - 1);
@@ -50,6 +47,52 @@ export async function GET(req: NextRequest) {
 
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2025-02-24.acacia" });
 
+  // Bouw een map van charge_id → uitbetaling-info via payouts in een ruimere periode
+  const chargeToPayoutMap = new Map<string, { payoutId: string; payoutDate: string }>();
+  const BUFFER = 14 * 24 * 3600; // 14 dagen buffer (betalingen komen vertraagd binnen)
+
+  let payoutHasMore = true;
+  let payoutStartingAfter: string | undefined;
+  while (payoutHasMore) {
+    const payoutList = await stripe.payouts.list({
+      status: "paid",
+      created: { gte: createdGte - BUFFER, lte: createdLte + BUFFER },
+      limit: 100,
+      ...(payoutStartingAfter && { starting_after: payoutStartingAfter }),
+    });
+
+    for (const payout of payoutList.data) {
+      const payoutDate = new Date(payout.arrival_date * 1000).toLocaleDateString("nl-NL", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+      });
+
+      let btHasMore = true;
+      let btStartingAfter: string | undefined;
+      while (btHasMore) {
+        const btList = await stripe.balanceTransactions.list({
+          payout: payout.id,
+          type: "payment",
+          limit: 100,
+          ...(btStartingAfter && { starting_after: btStartingAfter }),
+        });
+
+        for (const bt of btList.data) {
+          const sourceId = typeof bt.source === "string" ? bt.source : (bt.source as Stripe.Charge | null)?.id;
+          if (sourceId) chargeToPayoutMap.set(sourceId, { payoutId: payout.id, payoutDate });
+        }
+
+        btHasMore = btList.has_more;
+        btStartingAfter = btList.data.length > 0 ? btList.data[btList.data.length - 1].id : undefined;
+        if (!btStartingAfter) btHasMore = false;
+      }
+    }
+
+    payoutHasMore = payoutList.has_more;
+    payoutStartingAfter = payoutList.data.length > 0 ? payoutList.data[payoutList.data.length - 1].id : undefined;
+    if (!payoutStartingAfter) payoutHasMore = false;
+  }
+
+  // Haal alle geslaagde betalingen op en bouw CSV-rijen
   const rows: string[] = [];
   let hasMore = true;
   let startingAfter: string | undefined;
@@ -65,7 +108,6 @@ export async function GET(req: NextRequest) {
       if (pi.status !== "succeeded") continue;
       const m = pi.metadata;
 
-      // Fallback factuurnummer voor betalingen van vóór de BTW-implementatie
       const invoiceNr = m.invoice_number ||
         `TTB-${new Date(pi.created * 1000).getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
 
@@ -84,8 +126,16 @@ export async function GET(req: NextRequest) {
       const zakelijk = m.is_business === "true" ? "Ja" : "Nee";
       const vatNummer = m.vat_number ?? "";
 
+      // Zoek uitbetaling op via de charge ID van deze PaymentIntent
+      const chargeId = typeof pi.latest_charge === "string"
+        ? pi.latest_charge
+        : (pi.latest_charge as Stripe.Charge | null)?.id ?? "";
+      const payoutInfo = chargeId ? chargeToPayoutMap.get(chargeId) : undefined;
+      const uitbetalingId = payoutInfo?.payoutId ?? "";
+      const uitbetalingDatum = payoutInfo?.payoutDate ?? "";
+
       rows.push(
-        [invoiceNr, datum, land, vatRatePct, vatAmountEur, baseEur, totalEur, zakelijk, vatNummer]
+        [invoiceNr, datum, land, vatRatePct, vatAmountEur, baseEur, totalEur, zakelijk, vatNummer, uitbetalingId, uitbetalingDatum]
           .map((v) => `"${v.replace(/"/g, '""')}"`)
           .join(",")
       );
@@ -99,7 +149,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const header = "Factuurnummer,Datum,Land,BTW-tarief (%),BTW-bedrag (€),Nettobedrag (€),Totaalbedrag (€),Zakelijk,BTW-nummer klant";
+  const header = "Factuurnummer,Datum,Land,BTW-tarief (%),BTW-bedrag (€),Nettobedrag (€),Totaalbedrag (€),Zakelijk,BTW-nummer klant,Uitbetaling ID,Uitbetalingsdatum";
   const csv = [header, ...rows].join("\r\n");
 
   return new NextResponse(csv, {
