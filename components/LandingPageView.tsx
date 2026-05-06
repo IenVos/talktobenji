@@ -645,7 +645,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                 <ul className="space-y-3">
                   {voorWieBullets.map((item, i) => (
                     <li key={i} className="flex gap-3 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-                      <span style={{ color: "#b0a8a0", flexShrink: 0, marginTop: 2 }}>·</span>
+                      <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full" style={{ background: "#6d84a8" }} />
                       <span>{renderInline(item)}</span>
                     </li>
                   ))}

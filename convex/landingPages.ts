@@ -635,3 +635,65 @@ export const seedOngewenstKinderloos = mutation({
     return { seeded: true, id };
   },
 });
+
+export const seedVerliesPersoon = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "je-mist-iemand";
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (existing) return { skipped: true, id: existing._id };
+    const now = Date.now();
+    const id = await ctx.db.insert("landingPages", {
+      slug,
+      pageTitle: "Niet Alleen — Verlies Persoon",
+      isLive: false,
+      heroLabel: "30 dagen | dagelijkse e-mails | reageren wanneer jij wilt",
+      heroTitle: "Je mist iemand.\nEn dat stopt niet na een paar weken.",
+      heroSubtitle: "Overdag lukt het nog wel.\nJe doet wat er moet gebeuren.\nJe lacht als iemand iets zegt.\n\nMaar er zijn momenten…\n\nDat je automatisch aan ze denkt.\nDat je iets wilt delen — en dan beseft dat het niet meer kan.\nDat het ineens weer binnenkomt, alsof het gisteren was.\n\nEn 's nachts?\n\nDan is het stil.\nTe stil.",
+      section1Title: "Mensen vragen hoe het met je gaat.",
+      section1Text: "En je zegt: 'gaat wel.'\n\nNiet omdat het zo is.\nMaar omdat je niet weet waar je moet beginnen.\n\nHoe leg je uit dat het gemis in alles zit?\n\nIn kleine dingen.\nIn routines.\nIn momenten die niemand anders ziet.\n\nEn je wil er best over praten…\nmaar niet elke keer het hele verhaal vertellen.\nNiet weer die blik.\nNiet weer dat ongemak.\n\nDus je houdt het bij jezelf.",
+      section2Title: "Wat je misschien niet hardop zegt",
+      section2Text: "\"Ik wil niemand tot last zijn.\"\n\"Iedereen heeft z'n eigen leven alweer opgepakt.\"\n\nMaar van binnen…\n\ndraag je het nog steeds alleen.",
+      voorWieTitle: "Dit is voor jou als...",
+      voorWieSubtitel: "Wat als je het niet hoeft op te lossen… maar gewoon even ergens kwijt kunt? Zonder uitleg. Zonder verwachtingen. Zonder iemand te belasten.",
+      voorWieBullets: "Je mist iemand en het verdriet is er nog steeds, ook al is het al een tijdje geleden\nJe wil er over praten maar wil niemand belasten\nJe zegt 'gaat wel' terwijl het eigenlijk niet zo is\nJe draagt het gemis vaak stilletjes alleen\nJe wordt overvallen door herinneringen op onverwachte momenten\nJe zoekt een plek waar je even mag voelen zonder dat je het moet uitleggen",
+      contentBlocksJson: JSON.stringify([
+        {
+          titel: "Niet Alleen is geen traject.",
+          tekst: "Geen therapie.\nGeen stappenplan.\n\nHet is iets veel zachters dan dat.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nGeen adviezen.\nGeen 'je moet dit doen'.\n\nMaar woorden die begrijpen hoe het voelt.\nEn ruimte voor jou om te reageren.\n\nWanneer jij daar behoefte aan hebt.",
+        },
+        {
+          titel: "Zie het als iemand die even naast je komt zitten.",
+          tekst: "Niet om het op te lossen.\nMaar om het samen even te dragen.\n\nOp jouw moment.\nIn jouw tempo.",
+        },
+        {
+          titel: "Wat je gaat merken:",
+          tekst: "Dat je je gedachten niet meer allemaal hoeft vast te houden\nDat er elke dag een moment is waarop je even mag voelen\nDat het iets minder zwaar wordt om het alleen te dragen",
+        },
+        {
+          titel: "Misschien voelt dit klein.",
+          tekst: "Maar juist dat kleine moment per dag…\nkan het verschil maken tussen alles alleen dragen\nof even kunnen ademen.",
+        },
+      ]),
+      wieIsTitle: "Wie is Ien?",
+      wieIsText: "Ien is de oprichter van TalkToBenji, het platform waar \"Niet Alleen\" onderdeel van is. Ze weet hoe zwaar het is als verdriet geen plek krijgt. \"Niet Alleen\" is wat ze zelf had willen hebben.",
+      finalCtaTitle: "Je hoeft het niet minder te maken.",
+      finalCtaBody: "Je hoeft het niet sneller te verwerken.\n\nMaar je hoeft het ook niet meer alleen te dragen.",
+      ctaText: "Ik wil dit niet meer alleen doen",
+      ctaUrl: "/betalen/niet-alleen-verlies-persoon",
+      vragenJson: JSON.stringify([
+        { vraag: "Wat als ik niet elke dag reageer?", antwoord: "Dat hoeft niet. Je leest en reageert wanneer het goed voelt." },
+        { vraag: "Is dit vervanging voor therapie?", antwoord: "Nee. Het is een aanvulling. Iets voor de momenten tussendoor." },
+        { vraag: "Wat als mijn verlies al langer geleden is?", antwoord: "Dan is dit juist voor jou. Verdriet heeft geen einddatum." },
+      ]),
+      hideStickyBar: false,
+      hideHeader: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return { seeded: true, id };
+  },
+});
