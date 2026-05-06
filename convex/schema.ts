@@ -725,6 +725,9 @@ export default defineSchema({
     hideWatJeKrijgt: v.optional(v.boolean()),
     hideStickyBar: v.optional(v.boolean()),
     hideHeader: v.optional(v.boolean()),
+    // Categorie en volgorde voor admin-overzicht
+    categorie: v.optional(v.string()),
+    volgorde: v.optional(v.number()),
     // Footer
     footerText: v.optional(v.string()),
     footerCtaUrl: v.optional(v.string()),

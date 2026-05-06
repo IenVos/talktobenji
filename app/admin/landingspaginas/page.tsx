@@ -59,6 +59,8 @@ type LandingPage = {
   typeButtonLabelHuisdier?: string;
   typeButtonLabelRelatie?: string;
   typeButtonLabelKinderloos?: string;
+  categorie?: string;
+  volgorde?: number;
   createdAt: number;
   updatedAt: number;
 };
@@ -148,6 +150,8 @@ type FormState = {
   kpCitaatKinderloos: string;
   kpVoordelenKinderloos: string;
   kpCtaTekstKinderloos: string;
+  categorie: string;
+  volgorde: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -234,6 +238,8 @@ const EMPTY_FORM: FormState = {
   kpCitaatKinderloos: "",
   kpVoordelenKinderloos: "",
   kpCtaTekstKinderloos: "",
+  categorie: "",
+  volgorde: "",
   featureSlides: [
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
@@ -391,6 +397,8 @@ export default function AdminLandingspaginasPage() {
       kpCitaatKinderloos: (page as any).kpCitaatKinderloos ?? "",
       kpVoordelenKinderloos: (page as any).kpVoordelenKinderloos ?? "",
       kpCtaTekstKinderloos: (page as any).kpCtaTekstKinderloos ?? "",
+      categorie: (page as any).categorie ?? "",
+      volgorde: (page as any).volgorde?.toString() ?? "",
       featureSlides: (() => {
         try {
           const parsed = JSON.parse((page as any).featureSlidesJson || "[]");
@@ -600,6 +608,8 @@ export default function AdminLandingspaginasPage() {
           kpCitaatKinderloos: form.kpCitaatKinderloos.trim(),
           kpVoordelenKinderloos: form.kpVoordelenKinderloos.trim(),
           kpCtaTekstKinderloos: form.kpCtaTekstKinderloos.trim(),
+          categorie: form.categorie.trim(),
+          volgorde: form.volgorde.trim() ? parseInt(form.volgorde.trim(), 10) : undefined,
         });
         setSavedFeedback(true);
         setTimeout(() => setSavedFeedback(false), 2500);
@@ -664,6 +674,8 @@ export default function AdminLandingspaginasPage() {
           typeButtonLabelRelatie: opt(form.typeButtonLabelRelatie),
           typeButtonLabelKinderloos: opt(form.typeButtonLabelKinderloos),
           contentBlocksJson: form.contentBlocks.filter(b => b.titel || b.tekst).length > 0 ? JSON.stringify(form.contentBlocks.filter(b => b.titel || b.tekst)) : undefined,
+          categorie: opt(form.categorie),
+          volgorde: form.volgorde.trim() ? parseInt(form.volgorde.trim(), 10) : undefined,
         });
         resetForm();
       }
@@ -841,6 +853,23 @@ export default function AdminLandingspaginasPage() {
               <div>
                 <label className={labelClass}>Paginatitel (browsertabblad)</label>
                 <input type="text" placeholder="Niet Alleen — 30 dagen begeleiding" value={form.pageTitle} onChange={set("pageTitle")} className={inputClass} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Categorie</label>
+                <select value={form.categorie} onChange={set("categorie")} className={inputClass}>
+                  <option value="">— geen categorie —</option>
+                  <option value="Niet Alleen">Niet Alleen</option>
+                  <option value="Prijzen">Prijzen</option>
+                  <option value="Er Zijn — Troostende Woorden">Er Zijn — Troostende Woorden</option>
+                  <option value="Overig">Overig</option>
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}>Volgorde <span className="text-gray-400 font-normal text-xs">(lager = hoger in lijst)</span></label>
+                <input type="number" placeholder="1" value={form.volgorde} onChange={set("volgorde")} className={inputClass} min="1" />
               </div>
             </div>
 
@@ -1655,25 +1684,23 @@ export default function AdminLandingspaginasPage() {
                 Nog geen landingspagina's. Voeg er een toe of importeer de bestaande.
               </p>
             ) : (
-              <ul className="space-y-3">
-                {pages.map((page: LandingPage) => (
-                  <li
-                    key={page._id}
-                    className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50"
-                  >
+              (() => {
+                const CATEGORY_ORDER = ["Niet Alleen", "Prijzen", "Er Zijn — Troostende Woorden", "Overig", ""];
+                const grouped = CATEGORY_ORDER.reduce<Record<string, LandingPage[]>>((acc, cat) => { acc[cat] = []; return acc; }, {});
+                for (const page of pages as LandingPage[]) {
+                  const cat = (page as any).categorie ?? "";
+                  const key = CATEGORY_ORDER.includes(cat) ? cat : "";
+                  grouped[key].push(page);
+                }
+                for (const cat of CATEGORY_ORDER) {
+                  grouped[cat].sort((a, b) => ((a as any).volgorde ?? 999) - ((b as any).volgorde ?? 999));
+                }
+                const renderPage = (page: LandingPage) => (
+                  <li key={page._id} className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50">
                     <div className="flex justify-between items-start gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          {page.slug.startsWith("niet-alleen-") && (
-                            <span title="niet-alleen.nl" className="inline-block w-2.5 h-2.5 rounded-full bg-orange-400 shrink-0" />
-                          )}
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                              page.isLive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${page.isLive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
                             {page.isLive ? "Live" : "Verborgen"}
                           </span>
                           <code className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
@@ -1682,63 +1709,48 @@ export default function AdminLandingspaginasPage() {
                         </div>
                         <h3 className="font-medium text-primary-900 truncate">{page.pageTitle}</h3>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          Bijgewerkt{" "}
-                          {new Date(page.updatedAt).toLocaleDateString("nl-NL", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          Bijgewerkt {new Date(page.updatedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" })}
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         {page.isLive && (
-                          <a
-                            href={`/lp/${page.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
-                            title="Bekijk pagina"
-                          >
+                          <a href={`/lp/${page.slug}`} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Bekijk pagina">
                             <ExternalLink size={17} />
                           </a>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => handleToggleLive(page._id)}
-                          className={`p-2 rounded-lg ${page.isLive ? "text-green-600 hover:bg-green-50" : "text-gray-400 hover:bg-gray-100"}`}
-                          title={page.isLive ? "Zet offline" : "Zet online"}
-                        >
+                        <button type="button" onClick={() => handleToggleLive(page._id)} className={`p-2 rounded-lg ${page.isLive ? "text-green-600 hover:bg-green-50" : "text-gray-400 hover:bg-gray-100"}`} title={page.isLive ? "Zet offline" : "Zet online"}>
                           {page.isLive ? <Eye size={17} /> : <EyeOff size={17} />}
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDuplicate(page._id)}
-                          className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
-                          title="Dupliceer"
-                        >
+                        <button type="button" onClick={() => handleDuplicate(page._id)} className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Dupliceer">
                           <Copy size={17} />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => startEdit(page)}
-                          className="p-2 text-primary-600 hover:bg-primary-100 rounded-lg"
-                          title="Bewerken"
-                        >
+                        <button type="button" onClick={() => startEdit(page)} className="p-2 text-primary-600 hover:bg-primary-100 rounded-lg" title="Bewerken">
                           <Edit size={17} />
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(page._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                          title="Verwijderen"
-                        >
+                        <button type="button" onClick={() => handleDelete(page._id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Verwijderen">
                           <Trash2 size={17} />
                         </button>
                       </div>
                     </div>
                   </li>
-                ))}
-              </ul>
+                );
+                return (
+                  <div className="space-y-6">
+                    {CATEGORY_ORDER.map((cat) => {
+                      const items = grouped[cat];
+                      if (!items.length) return null;
+                      return (
+                        <div key={cat || "__geen__"}>
+                          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 px-1">
+                            {cat || "Zonder categorie"}
+                          </h3>
+                          <ul className="space-y-2">{items.map(renderPage)}</ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()
             )}
           </>
         )}
