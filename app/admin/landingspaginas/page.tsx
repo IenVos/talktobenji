@@ -859,7 +859,7 @@ export default function AdminLandingspaginasPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Categorie</label>
-                <select value={form.categorie} onChange={set("categorie")} className={inputClass}>
+                <select value={form.categorie} onChange={(e) => setForm((f) => ({ ...f, categorie: e.target.value }))} className={inputClass}>
                   <option value="">— geen categorie —</option>
                   <option value="Niet Alleen">Niet Alleen</option>
                   <option value="Prijzen">Prijzen</option>
