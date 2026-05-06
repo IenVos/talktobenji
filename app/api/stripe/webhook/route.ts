@@ -107,10 +107,6 @@ async function buildInvoicePdf({
     y -= 16;
     page.drawText("Totaal", { x: col1, y, size: 11, font: fontBold, color: dark });
     page.drawText(fmt(exclBtw), { x: col2, y, size: 11, font: fontBold, color: dark });
-    y -= 18;
-    page.drawText("BTW 0% – Btw verlegd volgens artikel 196 van Richtlijn 2006/112/EG", {
-      x: col1, y, size: 8, font: fontReg, color: mid,
-    });
   } else {
     const btwLabel = `BTW (${Math.round(effectiveVatRate * 100)}%)`;
     page.drawText(btwLabel, { x: col1, y, size: 9.5, font: fontReg, color: mid });
@@ -122,8 +118,16 @@ async function buildInvoicePdf({
     page.drawText(fmt(totalInclBtw), { x: col2, y, size: 11, font: fontBold, color: dark });
   }
 
+  // ── Reverse charge zin net boven Betaald-balk ──
+  if (isBusiness) {
+    y -= 24;
+    page.drawText("BTW 0% – Btw verlegd volgens artikel 196 van Richtlijn 2006/112/EG", {
+      x: L + 14, y, size: 8, font: fontReg, color: mid,
+    });
+  }
+
   // ── Betaald-balk ──
-  y -= 36;
+  y -= 28;
   page.drawRectangle({ x: L, y: y - 8, width: R - L, height: 28, color: rgb(0.96, 0.95, 0.94) });
   page.drawText(`Betaald via Stripe  -  ${date}`, { x: L + 14, y: y + 4, size: 9.5, font: fontBold, color: mid });
 
