@@ -284,6 +284,32 @@ export function LandingPageView({ slug }: { slug: string }) {
         typeButtonLabelRelatie={(page as any).typeButtonLabelRelatie}
         typeButtonLabelKinderloos={(page as any).typeButtonLabelKinderloos}
         defaultCtaUrl={(page as any).ctaUrl}
+        kpHeroKop1={(page as any).kpHeroKop1}
+        kpHeroKop2={(page as any).kpHeroKop2}
+        kpHeroTekst={(page as any).kpHeroTekst}
+        kpHeroSlotzin={(page as any).kpHeroSlotzin}
+        kpKeuzeLabel1={(page as any).kpKeuzeLabel1}
+        kpKeuzeLabel2={(page as any).kpKeuzeLabel2}
+        kpH2Persoon={(page as any).kpH2Persoon}
+        kpTekstPersoon={(page as any).kpTekstPersoon}
+        kpCitaatPersoon={(page as any).kpCitaatPersoon}
+        kpVoordelenPersoon={(page as any).kpVoordelenPersoon}
+        kpCtaTekstPersoon={(page as any).kpCtaTekstPersoon}
+        kpH2Huisdier={(page as any).kpH2Huisdier}
+        kpTekstHuisdier={(page as any).kpTekstHuisdier}
+        kpCitaatHuisdier={(page as any).kpCitaatHuisdier}
+        kpVoordelenHuisdier={(page as any).kpVoordelenHuisdier}
+        kpCtaTekstHuisdier={(page as any).kpCtaTekstHuisdier}
+        kpH2Relatie={(page as any).kpH2Relatie}
+        kpTekstRelatie={(page as any).kpTekstRelatie}
+        kpCitaatRelatie={(page as any).kpCitaatRelatie}
+        kpVoordelenRelatie={(page as any).kpVoordelenRelatie}
+        kpCtaTekstRelatie={(page as any).kpCtaTekstRelatie}
+        kpH2Kinderloos={(page as any).kpH2Kinderloos}
+        kpTekstKinderloos={(page as any).kpTekstKinderloos}
+        kpCitaatKinderloos={(page as any).kpCitaatKinderloos}
+        kpVoordelenKinderloos={(page as any).kpVoordelenKinderloos}
+        kpCtaTekstKinderloos={(page as any).kpCtaTekstKinderloos}
       />
     );
   }

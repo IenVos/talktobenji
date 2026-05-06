@@ -121,6 +121,32 @@ type FormState = {
   typeButtonLabelRelatie: string;
   typeButtonLabelKinderloos: string;
   contentBlocks: { titel: string; tekst: string }[];
+  kpHeroKop1: string;
+  kpHeroKop2: string;
+  kpHeroTekst: string;
+  kpHeroSlotzin: string;
+  kpKeuzeLabel1: string;
+  kpKeuzeLabel2: string;
+  kpH2Persoon: string;
+  kpTekstPersoon: string;
+  kpCitaatPersoon: string;
+  kpVoordelenPersoon: string;
+  kpCtaTekstPersoon: string;
+  kpH2Huisdier: string;
+  kpTekstHuisdier: string;
+  kpCitaatHuisdier: string;
+  kpVoordelenHuisdier: string;
+  kpCtaTekstHuisdier: string;
+  kpH2Relatie: string;
+  kpTekstRelatie: string;
+  kpCitaatRelatie: string;
+  kpVoordelenRelatie: string;
+  kpCtaTekstRelatie: string;
+  kpH2Kinderloos: string;
+  kpTekstKinderloos: string;
+  kpCitaatKinderloos: string;
+  kpVoordelenKinderloos: string;
+  kpCtaTekstKinderloos: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -180,6 +206,32 @@ const EMPTY_FORM: FormState = {
   typeButtonLabelRelatie: "",
   typeButtonLabelKinderloos: "",
   contentBlocks: [],
+  kpHeroKop1: "",
+  kpHeroKop2: "",
+  kpHeroTekst: "",
+  kpHeroSlotzin: "",
+  kpKeuzeLabel1: "",
+  kpKeuzeLabel2: "",
+  kpH2Persoon: "",
+  kpTekstPersoon: "",
+  kpCitaatPersoon: "",
+  kpVoordelenPersoon: "",
+  kpCtaTekstPersoon: "",
+  kpH2Huisdier: "",
+  kpTekstHuisdier: "",
+  kpCitaatHuisdier: "",
+  kpVoordelenHuisdier: "",
+  kpCtaTekstHuisdier: "",
+  kpH2Relatie: "",
+  kpTekstRelatie: "",
+  kpCitaatRelatie: "",
+  kpVoordelenRelatie: "",
+  kpCtaTekstRelatie: "",
+  kpH2Kinderloos: "",
+  kpTekstKinderloos: "",
+  kpCitaatKinderloos: "",
+  kpVoordelenKinderloos: "",
+  kpCtaTekstKinderloos: "",
   featureSlides: [
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
@@ -310,6 +362,32 @@ export default function AdminLandingspaginasPage() {
       typeButtonLabelRelatie: (page as any).typeButtonLabelRelatie ?? "",
       typeButtonLabelKinderloos: (page as any).typeButtonLabelKinderloos ?? "",
       contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p : []; } catch { return []; } })(),
+      kpHeroKop1: (page as any).kpHeroKop1 ?? "",
+      kpHeroKop2: (page as any).kpHeroKop2 ?? "",
+      kpHeroTekst: (page as any).kpHeroTekst ?? "",
+      kpHeroSlotzin: (page as any).kpHeroSlotzin ?? "",
+      kpKeuzeLabel1: (page as any).kpKeuzeLabel1 ?? "",
+      kpKeuzeLabel2: (page as any).kpKeuzeLabel2 ?? "",
+      kpH2Persoon: (page as any).kpH2Persoon ?? "",
+      kpTekstPersoon: (page as any).kpTekstPersoon ?? "",
+      kpCitaatPersoon: (page as any).kpCitaatPersoon ?? "",
+      kpVoordelenPersoon: (page as any).kpVoordelenPersoon ?? "",
+      kpCtaTekstPersoon: (page as any).kpCtaTekstPersoon ?? "",
+      kpH2Huisdier: (page as any).kpH2Huisdier ?? "",
+      kpTekstHuisdier: (page as any).kpTekstHuisdier ?? "",
+      kpCitaatHuisdier: (page as any).kpCitaatHuisdier ?? "",
+      kpVoordelenHuisdier: (page as any).kpVoordelenHuisdier ?? "",
+      kpCtaTekstHuisdier: (page as any).kpCtaTekstHuisdier ?? "",
+      kpH2Relatie: (page as any).kpH2Relatie ?? "",
+      kpTekstRelatie: (page as any).kpTekstRelatie ?? "",
+      kpCitaatRelatie: (page as any).kpCitaatRelatie ?? "",
+      kpVoordelenRelatie: (page as any).kpVoordelenRelatie ?? "",
+      kpCtaTekstRelatie: (page as any).kpCtaTekstRelatie ?? "",
+      kpH2Kinderloos: (page as any).kpH2Kinderloos ?? "",
+      kpTekstKinderloos: (page as any).kpTekstKinderloos ?? "",
+      kpCitaatKinderloos: (page as any).kpCitaatKinderloos ?? "",
+      kpVoordelenKinderloos: (page as any).kpVoordelenKinderloos ?? "",
+      kpCtaTekstKinderloos: (page as any).kpCtaTekstKinderloos ?? "",
       featureSlides: (() => {
         try {
           const parsed = JSON.parse((page as any).featureSlidesJson || "[]");
@@ -420,7 +498,9 @@ export default function AdminLandingspaginasPage() {
   };
 
   const handleSave = async () => {
-    if (!form.slug.trim() || !form.heroTitle.trim() || !form.pageTitle.trim()) return;
+    const isKeuzepagina = form.lpType === "niet_alleen_keuze";
+    if (!form.slug.trim() || !form.pageTitle.trim()) return;
+    if (!isKeuzepagina && !form.heroTitle.trim()) return;
     setSaving(true);
     try {
       let productImageStorageId: Id<"_storage"> | undefined;
@@ -490,6 +570,32 @@ export default function AdminLandingspaginasPage() {
           typeButtonLabelRelatie: form.typeButtonLabelRelatie.trim(),
           typeButtonLabelKinderloos: form.typeButtonLabelKinderloos.trim(),
           contentBlocksJson: form.contentBlocks.filter(b => b.titel || b.tekst).length > 0 ? JSON.stringify(form.contentBlocks.filter(b => b.titel || b.tekst)) : "",
+          kpHeroKop1: form.kpHeroKop1.trim(),
+          kpHeroKop2: form.kpHeroKop2.trim(),
+          kpHeroTekst: form.kpHeroTekst.trim(),
+          kpHeroSlotzin: form.kpHeroSlotzin.trim(),
+          kpKeuzeLabel1: form.kpKeuzeLabel1.trim(),
+          kpKeuzeLabel2: form.kpKeuzeLabel2.trim(),
+          kpH2Persoon: form.kpH2Persoon.trim(),
+          kpTekstPersoon: form.kpTekstPersoon.trim(),
+          kpCitaatPersoon: form.kpCitaatPersoon.trim(),
+          kpVoordelenPersoon: form.kpVoordelenPersoon.trim(),
+          kpCtaTekstPersoon: form.kpCtaTekstPersoon.trim(),
+          kpH2Huisdier: form.kpH2Huisdier.trim(),
+          kpTekstHuisdier: form.kpTekstHuisdier.trim(),
+          kpCitaatHuisdier: form.kpCitaatHuisdier.trim(),
+          kpVoordelenHuisdier: form.kpVoordelenHuisdier.trim(),
+          kpCtaTekstHuisdier: form.kpCtaTekstHuisdier.trim(),
+          kpH2Relatie: form.kpH2Relatie.trim(),
+          kpTekstRelatie: form.kpTekstRelatie.trim(),
+          kpCitaatRelatie: form.kpCitaatRelatie.trim(),
+          kpVoordelenRelatie: form.kpVoordelenRelatie.trim(),
+          kpCtaTekstRelatie: form.kpCtaTekstRelatie.trim(),
+          kpH2Kinderloos: form.kpH2Kinderloos.trim(),
+          kpTekstKinderloos: form.kpTekstKinderloos.trim(),
+          kpCitaatKinderloos: form.kpCitaatKinderloos.trim(),
+          kpVoordelenKinderloos: form.kpVoordelenKinderloos.trim(),
+          kpCtaTekstKinderloos: form.kpCtaTekstKinderloos.trim(),
         });
         setSavedFeedback(true);
         setTimeout(() => setSavedFeedback(false), 2500);
@@ -1435,6 +1541,77 @@ export default function AdminLandingspaginasPage() {
                 </div>
               </div>
             </div>
+
+            {/* Keuzepagina inhoud */}
+            {form.lpType === "niet_alleen_keuze" && (
+              <div className="pt-2 border-t border-primary-100 space-y-5">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Keuzepagina — inhoud</p>
+
+                {/* Hero */}
+                <div className="space-y-3">
+                  <p className="text-xs font-medium text-gray-400">Hero</p>
+                  <div>
+                    <label className={labelSmClass}>Kop regel 1 — vetgedrukt</label>
+                    <input type="text" placeholder="Overdag hou je het vol." value={form.kpHeroKop1} onChange={set("kpHeroKop1")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Kop regel 2 — licht</label>
+                    <input type="text" placeholder="Maar 's nachts… voelt het zwaarder." value={form.kpHeroKop2} onChange={set("kpHeroKop2")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Bodytekst (lege regel = nieuwe alinea, nieuwe regel = &lt;br&gt;)</label>
+                    <textarea rows={4} placeholder={"Je gaat door. Voor de buitenwereld.\nMaar er is zoveel dat je nergens kwijt kunt.\n\nNiet omdat er niemand is.\nMaar omdat je niemand wilt belasten."} value={form.kpHeroTekst} onChange={set("kpHeroTekst")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Slotzin hero</label>
+                    <input type="text" placeholder="Je hoeft het niet langer alleen te dragen." value={form.kpHeroSlotzin} onChange={set("kpHeroSlotzin")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Keuzemoment — label boven knoppen (grijs)</label>
+                    <input type="text" placeholder="Je hoeft het hier niet uit te leggen." value={form.kpKeuzeLabel1} onChange={set("kpKeuzeLabel1")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Keuzemoment — label onder (zwart)</label>
+                    <input type="text" placeholder="Kies gewoon wat het dichtst bij je ligt:" value={form.kpKeuzeLabel2} onChange={set("kpKeuzeLabel2")} className={inputClass} />
+                  </div>
+                </div>
+
+                {/* Per type */}
+                {[
+                  { key: "Persoon" as const, emoji: "💔", h2default: "Je mist iemand.|En niemand kan dat echt opvangen.", ctaDefault: "Start met Niet Alleen – Verlies Persoon (€37)" },
+                  { key: "Huisdier" as const, emoji: "🐾", h2default: "Ze zeggen: “het was maar een dier.”|Maar voor jou was het zoveel meer.", ctaDefault: "Start met Niet Alleen – Verlies Huisdier (€37)" },
+                  { key: "Relatie" as const, emoji: "💭", h2default: "Je relatie is voorbij.|Maar je hoofd is dat nog niet.", ctaDefault: "Start met Niet Alleen – Relatie (€37)" },
+                  { key: "Kinderloos" as const, emoji: "🌱", h2default: "Ongewenst kinderloos.|Iets wat mensen niet kunnen zien.", ctaDefault: "Start met Niet Alleen – Ongewenst kinderloos (€37)" },
+                ].map(({ key, emoji, h2default, ctaDefault }) => {
+                  const k = key.toLowerCase() as "persoon" | "huisdier" | "relatie" | "kinderloos";
+                  return (
+                    <div key={key} className="border border-primary-100 rounded-xl p-4 space-y-3 bg-white">
+                      <p className="text-xs font-semibold text-gray-500">{emoji} {key}</p>
+                      <div>
+                        <label className={labelSmClass}>Kop (gebruik | om vetgedrukt en licht te scheiden)</label>
+                        <input type="text" placeholder={h2default} value={(form as any)[`kpH2${key}`]} onChange={set(`kpH2${key}` as keyof FormState)} className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelSmClass}>Bodytekst (lege regel = nieuwe alinea)</label>
+                        <textarea rows={5} placeholder="Eerste alinea...\n\nTweede alinea..." value={(form as any)[`kpTekst${key}`]} onChange={set(`kpTekst${key}` as keyof FormState)} className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelSmClass}>Citaatblok — "Dit is waar Niet Alleen begint"</label>
+                        <textarea rows={3} placeholder="30 dagen lang ontvang je elke dag een e-mail..." value={(form as any)[`kpCitaat${key}`]} onChange={set(`kpCitaat${key}` as keyof FormState)} className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelSmClass}>Voordelen (één per regel)</label>
+                        <textarea rows={4} placeholder={"Iemand die elke dag even naast je zit\nRuimte om te voelen zonder oordeel"} value={(form as any)[`kpVoordelen${key}`]} onChange={set(`kpVoordelen${key}` as keyof FormState)} className={inputClass} />
+                      </div>
+                      <div>
+                        <label className={labelSmClass}>Knoptekst betalen</label>
+                        <input type="text" placeholder={ctaDefault} value={(form as any)[`kpCtaTekst${key}`]} onChange={set(`kpCtaTekst${key}` as keyof FormState)} className={inputClass} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Knoppen */}
             <div className="flex items-center gap-3 pt-2">

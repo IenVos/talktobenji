@@ -755,6 +755,34 @@ export default defineSchema({
     voorWieSubtitel: v.optional(v.string()),
     // Vrije inhoudsblokken (JSON: [{titel, tekst}])
     contentBlocksJson: v.optional(v.string()),
+    // Keuzepagina hero + keuzemoment
+    kpHeroKop1: v.optional(v.string()),       // "Overdag hou je het vol."
+    kpHeroKop2: v.optional(v.string()),       // "Maar 's nachts… voelt het zwaarder."
+    kpHeroTekst: v.optional(v.string()),      // body tekst, alinea's gescheiden door lege regel
+    kpHeroSlotzin: v.optional(v.string()),    // "Je hoeft het niet langer alleen te dragen."
+    kpKeuzeLabel1: v.optional(v.string()),    // "Je hoeft het hier niet uit te leggen."
+    kpKeuzeLabel2: v.optional(v.string()),    // "Kies gewoon wat het dichtst bij je ligt:"
+    // Keuzepagina per-type inhoud (4 types: persoon, huisdier, relatie, kinderloos)
+    kpH2Persoon: v.optional(v.string()),      // "Je mist iemand.|En niemand kan dat echt opvangen."
+    kpTekstPersoon: v.optional(v.string()),   // body + vetgedrukte slotzin, alinea's via lege regel
+    kpCitaatPersoon: v.optional(v.string()),  // tekst in het blauwe citaatblok
+    kpVoordelenPersoon: v.optional(v.string()),// voordelen, één per regel
+    kpCtaTekstPersoon: v.optional(v.string()),// "Start met Niet Alleen – Verlies Persoon (€37)"
+    kpH2Huisdier: v.optional(v.string()),
+    kpTekstHuisdier: v.optional(v.string()),
+    kpCitaatHuisdier: v.optional(v.string()),
+    kpVoordelenHuisdier: v.optional(v.string()),
+    kpCtaTekstHuisdier: v.optional(v.string()),
+    kpH2Relatie: v.optional(v.string()),
+    kpTekstRelatie: v.optional(v.string()),
+    kpCitaatRelatie: v.optional(v.string()),
+    kpVoordelenRelatie: v.optional(v.string()),
+    kpCtaTekstRelatie: v.optional(v.string()),
+    kpH2Kinderloos: v.optional(v.string()),
+    kpTekstKinderloos: v.optional(v.string()),
+    kpCitaatKinderloos: v.optional(v.string()),
+    kpVoordelenKinderloos: v.optional(v.string()),
+    kpCtaTekstKinderloos: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),
