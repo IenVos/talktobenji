@@ -470,6 +470,30 @@ export const seedJaarToegang = mutation({
 });
 
 /** Admin: maak de Niet Alleen keuzepagina aan als die nog niet bestaat */
+export const fixNietAlleenRelatieWieIs = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "niet-alleen-verlies-persoon";
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!existing) return { error: "niet gevonden" };
+    await ctx.db.patch(existing._id, {
+      contentBlocksJson: JSON.stringify([
+        {
+          titel: "Niet Alleen is geen coaching.",
+          tekst: "Geen stappenplan om 'los te laten'.\n\nHet is iets veel zachters.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nIemand die niet oordeelt. Niet stuurt. Niet probeert het voor je op te lossen. Maar er gewoon even is.\n\nEen plek waar je kunt zeggen:\n\"Ik mis hem vandaag weer.\"\n\"Ik weet niet wat ik voel.\"\n\"Waarom denk ik hier nog steeds aan?\"\n\nZonder dat iemand zegt: je moet door.",
+        },
+      ]),
+      wieIsTitle: "Wie is Ien?",
+      wieIsText: "Ien is de oprichter van TalkToBenji, het platform waar \"Niet Alleen\" onderdeel van is. Ze weet hoe zwaar het is als verdriet geen plek krijgt. \"Niet Alleen\" is wat ze zelf had willen hebben.",
+      updatedAt: Date.now(),
+    });
+    return { fixed: true };
+  },
+});
+
 export const seedNietAlleenKeuzeLp = mutation({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
@@ -520,8 +544,14 @@ export const seedNietAlleenRelatie = mutation({
       voorWieTitle: "Wat als je je gedachten niet meer alleen hoeft te dragen?",
       voorWieSubtitel: "Zonder dat iemand meteen zegt wat je moet doen. Zonder advies waar je niet op zit te wachten. Gewoon… ruimte.",
       voorWieBullets: "Je denkt steeds terug aan gesprekken en momenten\nJe analyseert wat je anders had kunnen doen\nJe zoekt hun naam nog op of leest oude gesprekken terug\nJe wil er soms over praten, maar niet altijd\nJe zit gevangen in je eigen hoofd\nJe weet dat het voorbij is, maar je gevoel loopt achter",
-      wieIsTitle: "Niet Alleen is geen coaching.",
-      wieIsText: "Geen stappenplan om 'los te laten'.\n\nHet is iets veel zachters.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nIemand die niet oordeelt. Niet stuurt. Niet probeert het voor je op te lossen. Maar er gewoon even is.\n\nEen plek waar je kunt zeggen:\n\"Ik mis hem vandaag weer.\"\n\"Ik weet niet wat ik voel.\"\n\"Waarom denk ik hier nog steeds aan?\"\n\nZonder dat iemand zegt: je moet door.",
+      contentBlocksJson: JSON.stringify([
+        {
+          titel: "Niet Alleen is geen coaching.",
+          tekst: "Geen stappenplan om 'los te laten'.\n\nHet is iets veel zachters.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nIemand die niet oordeelt. Niet stuurt. Niet probeert het voor je op te lossen. Maar er gewoon even is.\n\nEen plek waar je kunt zeggen:\n\"Ik mis hem vandaag weer.\"\n\"Ik weet niet wat ik voel.\"\n\"Waarom denk ik hier nog steeds aan?\"\n\nZonder dat iemand zegt: je moet door.",
+        },
+      ]),
+      wieIsTitle: "Wie is Ien?",
+      wieIsText: "Ien is de oprichter van TalkToBenji, het platform waar \"Niet Alleen\" onderdeel van is. Ze weet hoe zwaar het is als verdriet geen plek krijgt. \"Niet Alleen\" is wat ze zelf had willen hebben.",
       finalCtaTitle: "Je hoeft het niet meteen los te laten.",
       finalCtaBody: "Je hoeft het niet te snappen.\n\nMaar je hoeft er ook niet alleen doorheen.",
       ctaText: "Ik wil dit niet meer alleen verwerken",
