@@ -866,11 +866,11 @@ export default function AdminLandingspaginasPage() {
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Kleine tekst boven de titel (heroLabel)</label>
-                  <input type="text" placeholder="30 dagen begeleiding bij verlies en gemis" value={form.heroLabel} onChange={set("heroLabel")} className={inputClass} />
+                  <textarea placeholder="30 dagen begeleiding bij verlies en gemis" value={form.heroLabel} onChange={set("heroLabel")} rows={2} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Hoofdtitel (heroTitle) *</label>
-                  <input type="text" placeholder="Je hoeft dit niet alleen te dragen." value={form.heroTitle} onChange={set("heroTitle")} className={inputClass} />
+                  <textarea placeholder="Je hoeft dit niet alleen te dragen." value={form.heroTitle} onChange={set("heroTitle")} rows={3} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelSmClass}>Subtitel (heroSubtitle)</label>
