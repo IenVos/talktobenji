@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     isGift, recipientEmail, recipientName, personalMessage, deliveryMethod, scheduledSendDate,
     giftVariantPriceInCents, giftVariantBillingPeriod, giftVariantAccessDays, giftVariantLabel,
     countryCode, vatNumber, benjiAddon,
+    addOnPriceInCents, addOnType, addOnAccessDays,
   } = await req.json();
 
   if (!slug) {
@@ -90,13 +91,21 @@ export async function POST(req: NextRequest) {
 
   const isBusiness = typeof vatNumber === "string" && vatNumber.trim().length >= 4;
   const effectiveCountry = isBusiness ? "OTHER" : (isOutsideEU ? "OTHER" : normalizedCountry);
-  const hasAddon = benjiAddon === true;
-  const basePrice = product.priceInCents + (hasAddon ? 1000 : 0);
-  const vat = calculateVat(basePrice, effectiveCountry);
+  // Addon: generiek (addOnPriceInCents) of legacy benjiAddon vlag
+  const addonPrice = typeof addOnPriceInCents === "number" && addOnPriceInCents > 0
+    ? addOnPriceInCents
+    : benjiAddon === true ? 1000 : 0;
+  const addonType = addonPrice > 0
+    ? (typeof addOnType === "string" && addOnType ? addOnType : benjiAddon === true ? "benji_access" : "")
+    : "";
+  const addonAccessDays = typeof addOnAccessDays === "number" ? addOnAccessDays : 30;
+
+  const totalPrice = product.priceInCents + addonPrice;
+  const vat = calculateVat(totalPrice, effectiveCountry);
   const invoiceNumber = generateInvoiceNumber();
 
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: basePrice,
+    amount: totalPrice,
     currency: "eur",
     metadata: {
       slug,
@@ -113,7 +122,10 @@ export async function POST(req: NextRequest) {
         is_business: "true",
         vat_number: vatNumber.trim(),
       }),
-      ...(hasAddon && { addon: "benji_30" }),
+      ...(addonType && {
+        addon: addonType,
+        addon_access_days: String(addonAccessDays),
+      }),
     },
   });
 

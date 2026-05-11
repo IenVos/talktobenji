@@ -832,6 +832,12 @@ export default defineSchema({
       billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly")),
       accessDays: v.number(),
     }))),
+    // Kassakoopje: optioneel extra product dat de koper kan aanvinken
+    addOnLabel: v.optional(v.string()),           // bijv. "30 dagen Benji"
+    addOnDescription: v.optional(v.string()),     // bijv. "Praat 30 dagen met Benji"
+    addOnPriceInCents: v.optional(v.number()),    // bijv. 1000 (€10)
+    addOnType: v.optional(v.string()),            // "benji_access" | "" (leeg = geen speciale actie)
+    addOnAccessDays: v.optional(v.number()),      // dagen toegang bij benji_access
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

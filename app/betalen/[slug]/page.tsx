@@ -384,6 +384,7 @@ export default function BetalenPage() {
   const [loadingSecret, setLoadingSecret] = useState(false);
   const [secretError, setSecretError] = useState<string | null>(null);
   const [overridePriceInCents, setOverridePriceInCents] = useState<number | null>(null);
+  const [addOnSelected, setAddOnSelected] = useState(false);
 
   // Naam + email — hier zodat ze zichtbaar zijn voor landkeuze
   const [naam, setNaam] = useState("");
@@ -415,6 +416,11 @@ export default function BetalenPage() {
         slug,
         countryCode,
         ...(vatNumberCommitted && { vatNumber: vatNumberCommitted }),
+        ...(addOnSelected && product?.addOnPriceInCents && {
+          addOnPriceInCents: product.addOnPriceInCents,
+          addOnType: product.addOnType ?? "",
+          addOnAccessDays: product.addOnAccessDays ?? 30,
+        }),
       }),
     })
       .then((res) => res.json())
@@ -428,7 +434,7 @@ export default function BetalenPage() {
       .catch(() => setSecretError("Verbindingsfout. Probeer het opnieuw."))
       .finally(() => setLoadingSecret(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product, slug, countryCode, vatNumberCommitted]);
+  }, [product, slug, countryCode, vatNumberCommitted, addOnSelected]);
 
   const handleVatNumberBlur = () => {
     const committed = vatNumber.trim().length >= 4 ? vatNumber.trim() : "";
@@ -480,7 +486,8 @@ export default function BetalenPage() {
     );
   }
 
-  const displayPrice = overridePriceInCents ?? product.priceInCents;
+  const addonPrice = addOnSelected && product.addOnPriceInCents ? product.addOnPriceInCents : 0;
+  const displayPrice = (overridePriceInCents ?? product.priceInCents) + addonPrice;
   const priceFormatted = new Intl.NumberFormat("nl-NL", {
     style: "currency",
     currency: "EUR",
@@ -566,6 +573,43 @@ export default function BetalenPage() {
             )}
           </div>
         </div>
+
+        {/* Kassakoopje */}
+        {product.addOnLabel && product.addOnPriceInCents && (
+          <button
+            type="button"
+            onClick={() => setAddOnSelected((v) => !v)}
+            className="w-full text-left bg-white rounded-2xl border-2 p-5 shadow-sm mb-6 transition-all"
+            style={{ borderColor: addOnSelected ? "#6d84a8" : "#e7e0d8" }}
+          >
+            <div className="flex items-start gap-4">
+              <div
+                className="flex-shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center mt-0.5 transition-all"
+                style={{
+                  borderColor: addOnSelected ? "#6d84a8" : "#c4bdb6",
+                  background: addOnSelected ? "#6d84a8" : "white",
+                }}
+              >
+                {addOnSelected && (
+                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                    <path d="M1 5l3.5 3.5L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <p className="text-sm font-semibold text-stone-800">{product.addOnLabel}</p>
+                  <span className="text-sm font-bold shrink-0" style={{ color: "#6d84a8" }}>
+                    +{new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(product.addOnPriceInCents / 100)}
+                  </span>
+                </div>
+                {product.addOnDescription && (
+                  <p className="text-sm text-stone-500 leading-relaxed">{product.addOnDescription}</p>
+                )}
+              </div>
+            </div>
+          </button>
+        )}
 
         {/* Checkout kaart — naam, email, land, betaalgegevens */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">

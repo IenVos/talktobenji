@@ -371,21 +371,22 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Benji addon: 30 dagen chattoegang
-        if (addon === "benji_30") {
+        // Addon: chat-toegang verlenen (benji_access of legacy benji_30)
+        const addonAccessDays = pi.metadata.addon_access_days ? parseInt(pi.metadata.addon_access_days, 10) : 30;
+        if (addon === "benji_access" || addon === "benji_30") {
           try {
             await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
               webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
               email,
               subscriptionType: "alles_in_1",
               billingPeriod: "yearly",
-              accessDays: 30,
-              pricePaid: 10,
+              accessDays: addonAccessDays,
+              pricePaid: 0,
               paymentProvider: "stripe",
-              externalSubscriptionId: `${pi.id}_benji_addon`,
+              externalSubscriptionId: `${pi.id}_addon`,
             });
           } catch (err: any) {
-            console.error("[Convex] Benji addon activatie mislukt:", err?.message);
+            console.error("[Convex] Addon activatie mislukt:", err?.message);
           }
         }
       } catch (err: any) {

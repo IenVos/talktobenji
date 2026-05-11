@@ -34,6 +34,11 @@ type CheckoutProduct = {
   followUpEmailBody?: string;
   giftEnabled?: boolean;
   giftVariants?: { label: string; priceInCents: number; billingPeriod: "monthly" | "quarterly" | "half_yearly" | "yearly"; accessDays: number }[];
+  addOnLabel?: string;
+  addOnDescription?: string;
+  addOnPriceInCents?: number;
+  addOnType?: string;
+  addOnAccessDays?: number;
   createdAt: number;
   updatedAt: number;
 };
@@ -55,6 +60,11 @@ type FormState = {
   followUpEmailSubject: string;
   followUpEmailBody: string;
   giftEnabled: boolean;
+  addOnLabel: string;
+  addOnDescription: string;
+  addOnPriceInCents: string;
+  addOnType: string;
+  addOnAccessDays: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -74,6 +84,11 @@ const EMPTY_FORM: FormState = {
   followUpEmailSubject: "",
   followUpEmailBody: "",
   giftEnabled: false,
+  addOnLabel: "",
+  addOnDescription: "",
+  addOnPriceInCents: "",
+  addOnType: "",
+  addOnAccessDays: "",
 };
 
 function opt(val: string): string | undefined {
@@ -154,6 +169,11 @@ export default function AdminCheckoutPage() {
       followUpEmailSubject: product.followUpEmailSubject ?? "",
       followUpEmailBody: product.followUpEmailBody ?? "",
       giftEnabled: product.giftEnabled ?? false,
+      addOnLabel: product.addOnLabel ?? "",
+      addOnDescription: product.addOnDescription ?? "",
+      addOnPriceInCents: product.addOnPriceInCents != null ? String(product.addOnPriceInCents) : "",
+      addOnType: product.addOnType ?? "",
+      addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
     });
     setGiftVariants(variantsToForm(product.giftVariants));
     setEditingImageUrl(product.imageUrl ?? null);
@@ -180,6 +200,11 @@ export default function AdminCheckoutPage() {
       followUpEmailSubject: product.followUpEmailSubject ?? "",
       followUpEmailBody: product.followUpEmailBody ?? "",
       giftEnabled: product.giftEnabled ?? false,
+      addOnLabel: product.addOnLabel ?? "",
+      addOnDescription: product.addOnDescription ?? "",
+      addOnPriceInCents: product.addOnPriceInCents != null ? String(product.addOnPriceInCents) : "",
+      addOnType: product.addOnType ?? "",
+      addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
     });
     setGiftVariants(variantsToForm(product.giftVariants));
     setEditingImageUrl(product.imageUrl ?? null);
@@ -233,6 +258,11 @@ export default function AdminCheckoutPage() {
         followUpEmailBody: opt(form.followUpEmailBody),
         giftEnabled: form.giftEnabled,
         giftVariants: parsedVariants.length > 0 ? parsedVariants : undefined,
+        addOnLabel: opt(form.addOnLabel),
+        addOnDescription: opt(form.addOnDescription),
+        addOnPriceInCents: form.addOnPriceInCents.trim() ? parseInt(form.addOnPriceInCents, 10) : undefined,
+        addOnType: opt(form.addOnType),
+        addOnAccessDays: form.addOnAccessDays.trim() ? parseInt(form.addOnAccessDays, 10) : undefined,
       };
       if (editingId) {
         await updateProduct({ id: editingId, ...payload });
@@ -645,6 +675,39 @@ export default function AdminCheckoutPage() {
                   )}
                 </div>
               )}
+
+              {/* Kassakoopje */}
+              <div className="border border-primary-100 rounded-lg p-4 space-y-3 bg-primary-50">
+                <p className="text-sm font-semibold text-primary-800">Kassakoopje (optioneel)</p>
+                <p className="text-xs text-primary-600">Extra product dat de koper kan aanvinken op de checkout. Prijs wordt opgeteld bij het totaal.</p>
+                <div>
+                  <label className={labelClass}>Label <span className="text-gray-400 font-normal">(bijv. &quot;30 dagen Benji&quot;)</span></label>
+                  <input className={inputClass} value={form.addOnLabel} onChange={set("addOnLabel")} placeholder="30 dagen Benji" />
+                </div>
+                <div>
+                  <label className={labelClass}>Omschrijving</label>
+                  <input className={inputClass} value={form.addOnDescription} onChange={set("addOnDescription")} placeholder="Praat 30 dagen één-op-één met Benji" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelClass}>Prijs in centen <span className="text-gray-400 font-normal">(bijv. 1000 = €10)</span></label>
+                    <input className={inputClass} type="number" value={form.addOnPriceInCents} onChange={set("addOnPriceInCents")} placeholder="1000" />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Type toegang</label>
+                    <select className={inputClass} value={form.addOnType} onChange={set("addOnType")}>
+                      <option value="">— geen speciale toegang —</option>
+                      <option value="benji_access">TTB chat-toegang</option>
+                    </select>
+                  </div>
+                </div>
+                {form.addOnType === "benji_access" && (
+                  <div>
+                    <label className={labelClass}>Dagen toegang</label>
+                    <input className={inputClass} type="number" value={form.addOnAccessDays} onChange={set("addOnAccessDays")} placeholder="30" />
+                  </div>
+                )}
+              </div>
 
               <label className="flex items-center gap-2 cursor-pointer">
                 <input

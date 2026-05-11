@@ -74,6 +74,11 @@ export const create = mutation({
       billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly")),
       accessDays: v.number(),
     }))),
+    addOnLabel: v.optional(v.string()),
+    addOnDescription: v.optional(v.string()),
+    addOnPriceInCents: v.optional(v.number()),
+    addOnType: v.optional(v.string()),
+    addOnAccessDays: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -95,6 +100,11 @@ export const create = mutation({
       followUpEmailBody: args.followUpEmailBody,
       giftEnabled: args.giftEnabled,
       giftVariants: args.giftVariants,
+      addOnLabel: args.addOnLabel,
+      addOnDescription: args.addOnDescription,
+      addOnPriceInCents: args.addOnPriceInCents,
+      addOnType: args.addOnType,
+      addOnAccessDays: args.addOnAccessDays,
       createdAt: now,
       updatedAt: now,
     });
@@ -127,6 +137,11 @@ export const update = mutation({
       billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly")),
       accessDays: v.number(),
     }))),
+    addOnLabel: v.optional(v.string()),
+    addOnDescription: v.optional(v.string()),
+    addOnPriceInCents: v.optional(v.number()),
+    addOnType: v.optional(v.string()),
+    addOnAccessDays: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
