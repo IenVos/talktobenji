@@ -86,25 +86,40 @@ function CheckoutForm({ clientSecret, buttonText }: { clientSecret: string; butt
   );
 }
 
+const BENJI_ADDON_PRICE = 10;
+
 export default function NietAlleenBetalenPage() {
   const product = useQuery(api.checkoutProducts.getBySlug, { slug: SLUG });
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadingSecret, setLoadingSecret] = useState(false);
   const [secretError, setSecretError] = useState<string | null>(null);
+  const [benjiAddon, setBenjiAddon] = useState(false);
 
-  useEffect(() => {
-    if (!product || clientSecret) return;
+  const fetchPaymentIntent = (addon: boolean) => {
+    setClientSecret(null);
     setLoadingSecret(true);
+    setSecretError(null);
     fetch("/api/stripe/create-payment-intent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug: SLUG }),
+      body: JSON.stringify({ slug: SLUG, benjiAddon: addon }),
     })
       .then((r) => r.json())
       .then((d) => d.clientSecret ? setClientSecret(d.clientSecret) : setSecretError(d.error || "Kon betaalsessie niet starten."))
       .catch(() => setSecretError("Verbindingsfout. Probeer het opnieuw."))
       .finally(() => setLoadingSecret(false));
-  }, [product, clientSecret]);
+  };
+
+  useEffect(() => {
+    if (!product) return;
+    fetchPaymentIntent(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product]);
+
+  const handleToggleAddon = (checked: boolean) => {
+    setBenjiAddon(checked);
+    fetchPaymentIntent(checked);
+  };
 
   if (product === undefined) {
     return <div className="min-h-screen bg-stone-50 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" /></div>;
@@ -118,8 +133,6 @@ export default function NietAlleenBetalenPage() {
       </div>
     );
   }
-
-  const priceFormatted = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(product.priceInCents / 100);
 
   const elementsOptions: StripeElementsOptions = clientSecret ? {
     clientSecret,
@@ -161,9 +174,44 @@ export default function NietAlleenBetalenPage() {
             <img src={product.imageUrl} alt={product.name} className="w-full rounded-xl mb-4" />
           )}
           <div className="flex justify-center">
-            <span className="text-3xl font-bold text-primary-700">{priceFormatted}</span>
+            <span className="text-3xl font-bold text-primary-700">
+              {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format((product.priceInCents + (benjiAddon ? 1000 : 0)) / 100)}
+            </span>
           </div>
         </div>
+
+        {/* Kassakoopje: Benji addon */}
+        <button
+          type="button"
+          onClick={() => handleToggleAddon(!benjiAddon)}
+          className="w-full text-left bg-white rounded-2xl border-2 p-5 shadow-sm mb-6 transition-all"
+          style={{ borderColor: benjiAddon ? "#6d84a8" : "#e7e0d8" }}
+        >
+          <div className="flex items-start gap-4">
+            <div
+              className="flex-shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center mt-0.5 transition-all"
+              style={{
+                borderColor: benjiAddon ? "#6d84a8" : "#c4bdb6",
+                background: benjiAddon ? "#6d84a8" : "white",
+              }}
+            >
+              {benjiAddon && (
+                <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
+                  <path d="M1 5l3.5 3.5L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <p className="text-sm font-semibold text-stone-800">Voeg 30 dagen Benji toe</p>
+                <span className="text-sm font-bold shrink-0" style={{ color: "#6d84a8" }}>+€{BENJI_ADDON_PRICE}</span>
+              </div>
+              <p className="text-sm text-stone-500 leading-relaxed">
+                Praat 30 dagen één-op-één met Benji. Hij luistert, stelt vragen en is er wanneer jij dat nodig hebt — dag én nacht.
+              </p>
+            </div>
+          </div>
+        </button>
 
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
           <h2 className="text-base font-semibold text-stone-800 mb-5">Jouw gegevens & betaling</h2>

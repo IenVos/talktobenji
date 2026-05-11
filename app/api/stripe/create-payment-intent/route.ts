@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     slug, email, name, paymentIntentId, optIn,
     isGift, recipientEmail, recipientName, personalMessage, deliveryMethod, scheduledSendDate,
     giftVariantPriceInCents, giftVariantBillingPeriod, giftVariantAccessDays, giftVariantLabel,
-    countryCode, vatNumber,
+    countryCode, vatNumber, benjiAddon,
   } = await req.json();
 
   if (!slug) {
@@ -90,11 +90,13 @@ export async function POST(req: NextRequest) {
 
   const isBusiness = typeof vatNumber === "string" && vatNumber.trim().length >= 4;
   const effectiveCountry = isBusiness ? "OTHER" : (isOutsideEU ? "OTHER" : normalizedCountry);
-  const vat = calculateVat(product.priceInCents, effectiveCountry);
+  const hasAddon = benjiAddon === true;
+  const basePrice = product.priceInCents + (hasAddon ? 1000 : 0);
+  const vat = calculateVat(basePrice, effectiveCountry);
   const invoiceNumber = generateInvoiceNumber();
 
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: product.priceInCents,
+    amount: basePrice,
     currency: "eur",
     metadata: {
       slug,
@@ -111,6 +113,7 @@ export async function POST(req: NextRequest) {
         is_business: "true",
         vat_number: vatNumber.trim(),
       }),
+      ...(hasAddon && { addon: "benji_30" }),
     },
   });
 

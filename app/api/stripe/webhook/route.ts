@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
     const {
       email, name, subscriptionType, slug, productName, optIn,
       isGift, recipientEmail, recipientName, personalMessage, deliveryMethod, scheduledSendDate,
-      giftBillingPeriod, giftAccessDays, giftLabel,
+      giftBillingPeriod, giftAccessDays, giftLabel, addon,
       invoice_number: metaInvoiceNumber,
       vat_rate: metaVatRate, vat_amount_cents: metaVatAmountCents, base_price_cents: metaBasePriceCents,
       is_business: metaIsBusiness, vat_number: metaVatNumber,
@@ -368,6 +368,24 @@ export async function POST(req: NextRequest) {
             });
           } catch (err: any) {
             console.error("[Convex] Niet Alleen profiel aanmaken mislukt:", err?.message);
+          }
+        }
+
+        // Benji addon: 30 dagen chattoegang
+        if (addon === "benji_30") {
+          try {
+            await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
+              webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
+              email,
+              subscriptionType: "alles_in_1",
+              billingPeriod: "yearly",
+              accessDays: 30,
+              pricePaid: 10,
+              paymentProvider: "stripe",
+              externalSubscriptionId: `${pi.id}_benji_addon`,
+            });
+          } catch (err: any) {
+            console.error("[Convex] Benji addon activatie mislukt:", err?.message);
           }
         }
       } catch (err: any) {
