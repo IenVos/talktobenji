@@ -572,44 +572,50 @@ export default function BetalenPage() {
               <p className="text-xs text-stone-400 mt-1">{vatLine}</p>
             )}
           </div>
-        </div>
 
-        {/* Kassakoopje */}
-        {product.addOnLabel && product.addOnPriceInCents && (
-          <button
-            type="button"
-            onClick={() => setAddOnSelected((v) => !v)}
-            className="w-full text-left bg-white rounded-2xl border-2 p-5 shadow-sm mb-6 transition-all"
-            style={{ borderColor: addOnSelected ? "#6d84a8" : "#e7e0d8" }}
-          >
-            <div className="flex items-start gap-4">
-              <div
-                className="flex-shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center mt-0.5 transition-all"
-                style={{
-                  borderColor: addOnSelected ? "#6d84a8" : "#c4bdb6",
-                  background: addOnSelected ? "#6d84a8" : "white",
-                }}
-              >
-                {addOnSelected && (
-                  <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
-                    <path d="M1 5l3.5 3.5L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <p className="text-sm font-semibold text-stone-800">{product.addOnLabel}</p>
-                  <span className="text-sm font-bold shrink-0" style={{ color: "#6d84a8" }}>
-                    +{new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(product.addOnPriceInCents / 100)}
-                  </span>
+          {/* Kassakoopje — in hetzelfde blok, onder de prijs */}
+          {product.addOnLabel && product.addOnPriceInCents && (
+            <button
+              type="button"
+              onClick={() => setAddOnSelected((v) => !v)}
+              className="w-full text-left mt-5 rounded-xl p-4 transition-all border-2"
+              style={{
+                borderColor: addOnSelected ? "#6d84a8" : "#e2d9cf",
+                background: addOnSelected ? "#f0f4f9" : "#fdf9f4",
+              }}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-all"
+                  style={{
+                    borderColor: addOnSelected ? "#6d84a8" : "#b0a8a0",
+                    background: addOnSelected ? "#6d84a8" : "white",
+                  }}
+                >
+                  {addOnSelected && (
+                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                      <path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
                 </div>
-                {product.addOnDescription && (
-                  <p className="text-sm text-stone-500 leading-relaxed">{product.addOnDescription}</p>
-                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <p className="text-sm font-semibold" style={{ color: "#3d3530" }}>{product.addOnLabel}</p>
+                    <span
+                      className="text-sm font-bold shrink-0 px-2 py-0.5 rounded-full"
+                      style={{ color: "#6d84a8", background: addOnSelected ? "white" : "#e8f0f8" }}
+                    >
+                      +{new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(product.addOnPriceInCents / 100)}
+                    </span>
+                  </div>
+                  {product.addOnDescription && (
+                    <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>{product.addOnDescription}</p>
+                  )}
+                </div>
               </div>
-            </div>
-          </button>
-        )}
+            </button>
+          )}
+        </div>
 
         {/* Checkout kaart — naam, email, land, betaalgegevens */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
