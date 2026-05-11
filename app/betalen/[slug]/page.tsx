@@ -599,17 +599,17 @@ export default function BetalenPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <p className="text-sm font-semibold" style={{ color: "#3d3530" }}>{product.addOnLabel}</p>
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-sm font-semibold leading-snug" style={{ color: "#3d3530" }}>{product.addOnLabel}</p>
                     <span
-                      className="text-sm font-bold shrink-0 px-2 py-0.5 rounded-full"
+                      className="text-sm font-bold whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full"
                       style={{ color: "#6d84a8", background: addOnSelected ? "white" : "#e8f0f8" }}
                     >
                       +{new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(product.addOnPriceInCents / 100)}
                     </span>
                   </div>
                   {product.addOnDescription && (
-                    <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>{product.addOnDescription}</p>
+                    <p className="text-xs leading-relaxed mt-0.5" style={{ color: "#b0a8a0" }}>{product.addOnDescription}</p>
                   )}
                 </div>
               </div>
