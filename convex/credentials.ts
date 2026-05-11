@@ -126,9 +126,38 @@ export const createUserWithPassword = withSecretMutation({
       )
       .first();
 
-    // Maak subscription aan: cadeau-abonnement of gratis 7-daagse trial
+    // Controleer of er een pending addon is (bijv. Benji chat-toegang gekocht zonder account)
+    const nietAlleenProfiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", emailLower))
+      .first();
+    const pendingAddon = nietAlleenProfiel?.pendingAddonType;
+    const pendingAddonDays = nietAlleenProfiel?.pendingAddonAccessDays ?? 30;
+
+    // Maak subscription aan: pending addon > cadeau-abonnement > gratis 7-daagse trial
     const now = Date.now();
-    if (giftForEmail) {
+    if (pendingAddon === "benji_access") {
+      await ctx.db.insert("userSubscriptions", {
+        userId: userId.toString(),
+        email: emailLower,
+        subscriptionType: "alles_in_1",
+        billingPeriod: "yearly",
+        status: "active",
+        startedAt: now,
+        expiresAt: now + pendingAddonDays * 24 * 60 * 60 * 1000,
+        pricePaid: 0,
+        paymentProvider: "stripe",
+        updatedAt: now,
+      });
+      // Pending addon wissen zodat het niet opnieuw wordt geactiveerd
+      if (nietAlleenProfiel) {
+        await ctx.db.patch(nietAlleenProfiel._id, {
+          pendingAddonType: undefined,
+          pendingAddonAccessDays: undefined,
+          updatedAt: now,
+        });
+      }
+    } else if (giftForEmail) {
       const accessDays = giftForEmail.accessDays ?? 365;
       await ctx.db.insert("userSubscriptions", {
         userId: userId.toString(),

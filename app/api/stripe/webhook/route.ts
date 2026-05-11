@@ -374,6 +374,7 @@ export async function POST(req: NextRequest) {
         // Addon: chat-toegang verlenen (benji_access of legacy benji_30)
         const addonAccessDays = pi.metadata.addon_access_days ? parseInt(pi.metadata.addon_access_days, 10) : 30;
         if (addon === "benji_access" || addon === "benji_30") {
+          let addonActivated = false;
           try {
             await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
               webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
@@ -385,8 +386,20 @@ export async function POST(req: NextRequest) {
               paymentProvider: "stripe",
               externalSubscriptionId: `${pi.id}_addon`,
             });
-          } catch (err: any) {
-            console.error("[Convex] Addon activatie mislukt:", err?.message);
+            addonActivated = true;
+          } catch {
+            // Geen account nog — sla op als pending, activeert bij registratie
+          }
+          if (!addonActivated) {
+            try {
+              await convex.mutation(api.nietAlleen.setPendingAddon, {
+                email,
+                addonType: "benji_access",
+                accessDays: addonAccessDays,
+              });
+            } catch (err: any) {
+              console.error("[Convex] setPendingAddon mislukt:", err?.message);
+            }
           }
         }
       } catch (err: any) {

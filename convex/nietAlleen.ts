@@ -352,6 +352,28 @@ export const activateNietAlleenDirect = mutation({
   },
 });
 
+/** Sla een pending addon op voor activatie bij registratie (als er nog geen account is). */
+export const setPendingAddon = mutation({
+  args: {
+    email: v.string(),
+    addonType: v.string(),
+    accessDays: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (!profiel) return;
+    await ctx.db.patch(profiel._id, {
+      pendingAddonType: args.addonType,
+      pendingAddonAccessDays: args.accessDays,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 /** Upgrade naar volledig abonnement (bij aankoop abo met zelfde e-mail). */
 export const upgradeNaarVolledig = internalMutation({
   args: {

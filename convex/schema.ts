@@ -655,6 +655,8 @@ export default defineSchema({
     dag30MailVerzonden: v.optional(v.boolean()),
     dag37Verwerkt: v.optional(v.boolean()),
     accountGesloten: v.optional(v.boolean()),
+    pendingAddonType: v.optional(v.string()),       // bijv. "benji_access" — activeren bij registratie
+    pendingAddonAccessDays: v.optional(v.number()), // bijv. 30
     createdAt: v.number(),
     updatedAt: v.number(),
   })
