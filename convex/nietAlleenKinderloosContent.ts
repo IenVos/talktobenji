@@ -118,6 +118,7 @@ Wat is het, voor jou? Wat ga je liever uit de weg?
 
 Zie je morgen. Benji`,
     inHetAccount: "Wat vermijd je de laatste tijd? Plekken, mensen, situaties? Schrijf het op, zonder oordeel over jezelf.",
+    doedingetje: "Kies één situatie die je de laatste tijd uit de weg gaat. Schrijf op wat je eigenlijk zou willen dat anders was, en wat er zou zijn als je er wél naartoe zou gaan.",
   },
 
   {
@@ -196,6 +197,7 @@ Vandaag de vraag: wat wil jij onthouden? Wat mag er blijven?
 
 Morgen weer. Benji`,
     inHetAccount: "Wat wil je nooit vergeten uit deze periode? Een moment, een gevoel, een gesprek? Schrijf het op zodat het bewaard blijft.",
+    doedingetje: "Zoek een foto, voorwerp of woord op dat staat voor iets wat je wil bewaren uit deze periode. Leg het ergens neer waar je het kunt zien.",
   },
 
   {
@@ -269,6 +271,7 @@ Vandaag de vraag: wat heeft dit jou gegeven? Hoe klein of onverwacht ook.
 Rust goed. Benji`,
     inHetAccount: "Wat heeft deze periode jou gegeven? Over jezelf, over anderen, over wat er echt toe doet. Schrijf het op, hoe onverwacht ook.",
     alsjewilt: "Is er iets in je leven veranderd door dit verlies wat je eigenlijk niet had willen missen?",
+    doedingetje: "Schrijf drie dingen op die je over jezelf hebt ontdekt in deze periode — dingen die je niet had geweten zonder dit verlies.",
   },
 
   {
@@ -324,6 +327,7 @@ Vandaag de vraag: wat weet je nu van jezelf, wat je vroeger niet zo duidelijk wi
 
 Fijne dag. Groet Benji`,
     inHetAccount: "Wat weet je nu van jezelf dat je vroeger niet zo duidelijk wist? Over je kracht, je grenzen, je behoeften? Schrijf het op.",
+    doedingetje: "Doe vandaag iets dat je fijn vindt, puur voor jezelf. Niet om productief te zijn. Let bewust op hoe het voelt om iets voor jezelf te doen.",
   },
 
   {
@@ -397,6 +401,7 @@ Vandaag de vraag: wanneer was zo'n moment de laatste tijd? Wat deed je, met wie 
 
 Zie je morgen. Benji`,
     inHetAccount: "Wanneer was je de laatste tijd gewoon jezelf, niet de persoon die rouwt of uitlegt? Schrijf dat moment op.",
+    doedingetje: "Plan vandaag één moment voor jezelf: iets wat jou goed doet, zonder dat het iets met het verlies te maken heeft. Jij mag er ook nog zijn.",
   },
 
   {
@@ -450,6 +455,7 @@ Vandaag de vraag: wie heeft jou verrast in deze periode? En wat deed of zei die 
 
 Denk aan je. Benji`,
     inHetAccount: "Wie heeft jou verrast in deze periode, op een goede manier? Wat deed of zei die persoon? Schrijf het op.",
+    doedingetje: "Laat die persoon weten dat je aan hem of haar denkt. Een kort berichtje is genoeg: dank je wel, of ik denk aan je.",
   },
 
   {
@@ -488,6 +494,7 @@ Vandaag de vraag: welk ritueel of welke gewoonte geeft jou houvast?
 Morgen weer. Benji`,
     inHetAccount: "Welk ritueel of welke gewoonte geeft jou houvast? Hoe klein ook, schrijf het op en erken dat het ertoe doet.",
     alsjewilt: "Is er een ritueel dat je zou willen beginnen: iets wat je tot nu toe niet hebt gedaan maar wat je aantrekt?",
+    doedingetje: "Bescherm één moment deze week bewust voor jezelf. Zet het in je agenda als afspraak. Jij bent de moeite waard.",
   },
 
   {

@@ -54,10 +54,12 @@ type LandingPage = {
   typeCtaUrlPersoon?: string;
   typeCtaUrlHuisdier?: string;
   typeCtaUrlRelatie?: string;
+  typeCtaUrlEenzaamheid?: string;
   typeCtaUrlKinderloos?: string;
   typeButtonLabelPersoon?: string;
   typeButtonLabelHuisdier?: string;
   typeButtonLabelRelatie?: string;
+  typeButtonLabelEenzaamheid?: string;
   typeButtonLabelKinderloos?: string;
   categorie?: string;
   volgorde?: number;
@@ -118,10 +120,12 @@ type FormState = {
   typeCtaUrlPersoon: string;
   typeCtaUrlHuisdier: string;
   typeCtaUrlRelatie: string;
+  typeCtaUrlEenzaamheid: string;
   typeCtaUrlKinderloos: string;
   typeButtonLabelPersoon: string;
   typeButtonLabelHuisdier: string;
   typeButtonLabelRelatie: string;
+  typeButtonLabelEenzaamheid: string;
   typeButtonLabelKinderloos: string;
   contentBlocks: { titel: string; tekst: string }[];
   kpHeroKop1: string;
@@ -145,6 +149,11 @@ type FormState = {
   kpCitaatRelatie: string;
   kpVoordelenRelatie: string;
   kpCtaTekstRelatie: string;
+  kpH2Eenzaamheid: string;
+  kpTekstEenzaamheid: string;
+  kpCitaatEenzaamheid: string;
+  kpVoordelenEenzaamheid: string;
+  kpCtaTekstEenzaamheid: string;
   kpH2Kinderloos: string;
   kpTekstKinderloos: string;
   kpCitaatKinderloos: string;
@@ -206,10 +215,12 @@ const EMPTY_FORM: FormState = {
   typeCtaUrlPersoon: "",
   typeCtaUrlHuisdier: "",
   typeCtaUrlRelatie: "",
+  typeCtaUrlEenzaamheid: "",
   typeCtaUrlKinderloos: "",
   typeButtonLabelPersoon: "",
   typeButtonLabelHuisdier: "",
   typeButtonLabelRelatie: "",
+  typeButtonLabelEenzaamheid: "",
   typeButtonLabelKinderloos: "",
   contentBlocks: [],
   kpHeroKop1: "",
@@ -233,6 +244,11 @@ const EMPTY_FORM: FormState = {
   kpCitaatRelatie: "",
   kpVoordelenRelatie: "",
   kpCtaTekstRelatie: "",
+  kpH2Eenzaamheid: "",
+  kpTekstEenzaamheid: "",
+  kpCitaatEenzaamheid: "",
+  kpVoordelenEenzaamheid: "",
+  kpCtaTekstEenzaamheid: "",
   kpH2Kinderloos: "",
   kpTekstKinderloos: "",
   kpCitaatKinderloos: "",
@@ -365,10 +381,12 @@ export default function AdminLandingspaginasPage() {
       typeCtaUrlPersoon: (page as any).typeCtaUrlPersoon ?? "",
       typeCtaUrlHuisdier: (page as any).typeCtaUrlHuisdier ?? "",
       typeCtaUrlRelatie: (page as any).typeCtaUrlRelatie ?? "",
+      typeCtaUrlEenzaamheid: (page as any).typeCtaUrlEenzaamheid ?? "",
       typeCtaUrlKinderloos: (page as any).typeCtaUrlKinderloos ?? "",
       typeButtonLabelPersoon: (page as any).typeButtonLabelPersoon ?? "",
       typeButtonLabelHuisdier: (page as any).typeButtonLabelHuisdier ?? "",
       typeButtonLabelRelatie: (page as any).typeButtonLabelRelatie ?? "",
+      typeButtonLabelEenzaamheid: (page as any).typeButtonLabelEenzaamheid ?? "",
       typeButtonLabelKinderloos: (page as any).typeButtonLabelKinderloos ?? "",
       contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p : []; } catch { return []; } })(),
       kpHeroKop1: (page as any).kpHeroKop1 ?? "",
@@ -392,6 +410,11 @@ export default function AdminLandingspaginasPage() {
       kpCitaatRelatie: (page as any).kpCitaatRelatie ?? "",
       kpVoordelenRelatie: (page as any).kpVoordelenRelatie ?? "",
       kpCtaTekstRelatie: (page as any).kpCtaTekstRelatie ?? "",
+      kpH2Eenzaamheid: (page as any).kpH2Eenzaamheid ?? "",
+      kpTekstEenzaamheid: (page as any).kpTekstEenzaamheid ?? "",
+      kpCitaatEenzaamheid: (page as any).kpCitaatEenzaamheid ?? "",
+      kpVoordelenEenzaamheid: (page as any).kpVoordelenEenzaamheid ?? "",
+      kpCtaTekstEenzaamheid: (page as any).kpCtaTekstEenzaamheid ?? "",
       kpH2Kinderloos: (page as any).kpH2Kinderloos ?? "",
       kpTekstKinderloos: (page as any).kpTekstKinderloos ?? "",
       kpCitaatKinderloos: (page as any).kpCitaatKinderloos ?? "",
@@ -576,10 +599,12 @@ export default function AdminLandingspaginasPage() {
           typeCtaUrlPersoon: form.typeCtaUrlPersoon.trim(),
           typeCtaUrlHuisdier: form.typeCtaUrlHuisdier.trim(),
           typeCtaUrlRelatie: form.typeCtaUrlRelatie.trim(),
+          typeCtaUrlEenzaamheid: form.typeCtaUrlEenzaamheid.trim(),
           typeCtaUrlKinderloos: form.typeCtaUrlKinderloos.trim(),
           typeButtonLabelPersoon: form.typeButtonLabelPersoon.trim(),
           typeButtonLabelHuisdier: form.typeButtonLabelHuisdier.trim(),
           typeButtonLabelRelatie: form.typeButtonLabelRelatie.trim(),
+          typeButtonLabelEenzaamheid: form.typeButtonLabelEenzaamheid.trim(),
           typeButtonLabelKinderloos: form.typeButtonLabelKinderloos.trim(),
           contentBlocksJson: form.contentBlocks.filter(b => b.titel || b.tekst).length > 0 ? JSON.stringify(form.contentBlocks.filter(b => b.titel || b.tekst)) : "",
           kpHeroKop1: form.kpHeroKop1.trim(),
@@ -603,6 +628,11 @@ export default function AdminLandingspaginasPage() {
           kpCitaatRelatie: form.kpCitaatRelatie.trim(),
           kpVoordelenRelatie: form.kpVoordelenRelatie.trim(),
           kpCtaTekstRelatie: form.kpCtaTekstRelatie.trim(),
+          kpH2Eenzaamheid: form.kpH2Eenzaamheid.trim(),
+          kpTekstEenzaamheid: form.kpTekstEenzaamheid.trim(),
+          kpCitaatEenzaamheid: form.kpCitaatEenzaamheid.trim(),
+          kpVoordelenEenzaamheid: form.kpVoordelenEenzaamheid.trim(),
+          kpCtaTekstEenzaamheid: form.kpCtaTekstEenzaamheid.trim(),
           kpH2Kinderloos: form.kpH2Kinderloos.trim(),
           kpTekstKinderloos: form.kpTekstKinderloos.trim(),
           kpCitaatKinderloos: form.kpCitaatKinderloos.trim(),
@@ -668,10 +698,12 @@ export default function AdminLandingspaginasPage() {
           typeCtaUrlPersoon: opt(form.typeCtaUrlPersoon),
           typeCtaUrlHuisdier: opt(form.typeCtaUrlHuisdier),
           typeCtaUrlRelatie: opt(form.typeCtaUrlRelatie),
+          typeCtaUrlEenzaamheid: opt(form.typeCtaUrlEenzaamheid),
           typeCtaUrlKinderloos: opt(form.typeCtaUrlKinderloos),
           typeButtonLabelPersoon: opt(form.typeButtonLabelPersoon),
           typeButtonLabelHuisdier: opt(form.typeButtonLabelHuisdier),
           typeButtonLabelRelatie: opt(form.typeButtonLabelRelatie),
+          typeButtonLabelEenzaamheid: opt(form.typeButtonLabelEenzaamheid),
           typeButtonLabelKinderloos: opt(form.typeButtonLabelKinderloos),
           contentBlocksJson: form.contentBlocks.filter(b => b.titel || b.tekst).length > 0 ? JSON.stringify(form.contentBlocks.filter(b => b.titel || b.tekst)) : undefined,
           categorie: opt(form.categorie),
@@ -1566,6 +1598,14 @@ export default function AdminLandingspaginasPage() {
                     <input type="url" placeholder="https://…" value={form.typeCtaUrlRelatie} onChange={set("typeCtaUrlRelatie")} className={inputClass} />
                   </div>
                   <div>
+                    <label className={labelSmClass}>😔 Eenzaamheid — knoptekst (standaard: Ik voel me eenzaam)</label>
+                    <input type="text" placeholder="Ik voel me eenzaam" value={form.typeButtonLabelEenzaamheid} onChange={set("typeButtonLabelEenzaamheid")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>😔 Eenzaamheid — CTA URL</label>
+                    <input type="url" placeholder="https://…" value={form.typeCtaUrlEenzaamheid} onChange={set("typeCtaUrlEenzaamheid")} className={inputClass} />
+                  </div>
+                  <div>
                     <label className={labelSmClass}>🌱 Kinderloos — knoptekst (standaard: Ongewenst kinderloos)</label>
                     <input type="text" placeholder="Ongewenst kinderloos" value={form.typeButtonLabelKinderloos} onChange={set("typeButtonLabelKinderloos")} className={inputClass} />
                   </div>
@@ -1616,9 +1656,10 @@ export default function AdminLandingspaginasPage() {
                   { key: "Persoon" as const, emoji: "💔", h2default: "Je mist iemand.|En niemand kan dat echt opvangen.", ctaDefault: "Start met Niet Alleen – Verlies Persoon (€37)" },
                   { key: "Huisdier" as const, emoji: "🐾", h2default: "Ze zeggen: “het was maar een dier.”|Maar voor jou was het zoveel meer.", ctaDefault: "Start met Niet Alleen – Verlies Huisdier (€37)" },
                   { key: "Relatie" as const, emoji: "💭", h2default: "Je relatie is voorbij.|Maar je hoofd is dat nog niet.", ctaDefault: "Start met Niet Alleen – Relatie (€37)" },
+                  { key: "Eenzaamheid" as const, emoji: "😔", h2default: "Je voelt je alleen.|Maar er is zoveel meer in jou.", ctaDefault: "Start met Niet Alleen – Eenzaamheid (€37)" },
                   { key: "Kinderloos" as const, emoji: "🌱", h2default: "Ongewenst kinderloos.|Iets wat mensen niet kunnen zien.", ctaDefault: "Start met Niet Alleen – Ongewenst kinderloos (€37)" },
                 ].map(({ key, emoji, h2default, ctaDefault }) => {
-                  const k = key.toLowerCase() as "persoon" | "huisdier" | "relatie" | "kinderloos";
+                  const k = key.toLowerCase() as "persoon" | "huisdier" | "relatie" | "eenzaamheid" | "kinderloos";
                   return (
                     <div key={key} className="border border-primary-100 rounded-xl p-4 space-y-3 bg-white">
                       <p className="text-xs font-semibold text-gray-500">{emoji} {key}</p>

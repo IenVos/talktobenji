@@ -194,6 +194,7 @@ const VERLIES_TYPES_TEST = [
   { key: "persoon", label: "Persoon" },
   { key: "huisdier", label: "Huisdier" },
   { key: "relatie", label: "Scheiding / relatie" },
+  { key: "eenzaamheid", label: "Eenzaamheid" },
   { key: "kinderloos", label: "Kinderloos" },
 ];
 
@@ -533,6 +534,8 @@ const NICHE_LABELS: Record<string, string> = {
   persoon: "Persoon",
   huisdier: "Huisdier",
   scheiding: "Scheiding / relatie",
+  eenzaamheid: "Eenzaamheid",
+  kinderloos: "Ongewenst kinderloos",
 };
 
 function DagRij({
@@ -903,6 +906,9 @@ export default function NietAlleenEmailsPage() {
 
   const basisTypesMissing = verliesTypen !== undefined &&
     !verliesTypen.some((t: { code: string }) => t.code === "persoon");
+  const eenzaamheidMissing = verliesTypen !== undefined &&
+    verliesTypen.some((t: { code: string }) => t.code === "persoon") &&
+    !verliesTypen.some((t: { code: string }) => t.code === "eenzaamheid");
 
   const getTemplate = (key: TemplateKey) => templates?.find((t: any) => t.key === key);
 
@@ -929,6 +935,17 @@ export default function NietAlleenEmailsPage() {
             className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 shrink-0"
           >
             Basistypes toevoegen
+          </button>
+        </div>
+      )}
+      {eenzaamheidMissing && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center justify-between gap-4">
+          <p className="text-sm text-blue-800">Het type &ldquo;Eenzaamheid&rdquo; ontbreekt nog in de database.</p>
+          <button
+            onClick={() => seedVerliesTypen({})}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-semibold hover:bg-blue-600 shrink-0"
+          >
+            Eenzaamheid toevoegen
           </button>
         </div>
       )}

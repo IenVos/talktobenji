@@ -12,15 +12,29 @@ const INGEBOUWDE_TYPEN = [
   { code: "persoon", naam: "Persoon — verlies van iemand" },
   { code: "huisdier", naam: "Huisdier — verlies van een dier" },
   { code: "scheiding", naam: "Scheiding — einde van een relatie" },
+  { code: "eenzaamheid", naam: "Eenzaamheid — je voelt je eenzaam" },
 ];
+
+const VOORKEURSVOLGORDE = ["persoon", "huisdier", "scheiding", "eenzaamheid", "kinderloos"];
+
+function sorteerTypen<T extends { code: string; createdAt?: number }>(typen: T[]): T[] {
+  return [...typen].sort((a, b) => {
+    const ai = VOORKEURSVOLGORDE.indexOf(a.code);
+    const bi = VOORKEURSVOLGORDE.indexOf(b.code);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
+    return (a.createdAt ?? 0) - (b.createdAt ?? 0);
+  });
+}
 
 /** Alle verliestypen ophalen (publiek — voor onboarding in de app) */
 export const listPublic = query({
   args: {},
   handler: async (ctx) => {
-    const opgeslagen = await ctx.db.query("verliesTypen").order("asc").collect();
+    const opgeslagen = await ctx.db.query("verliesTypen").collect();
     if (opgeslagen.length === 0) return INGEBOUWDE_TYPEN.map(t => ({ ...t, keuzePaginaLabel: undefined, keuzePaginaEmoji: undefined, keuzePaginaLpSlug: undefined }));
-    return opgeslagen.map(t => ({
+    return sorteerTypen(opgeslagen).map(t => ({
       code: t.code,
       naam: t.naam,
       keuzePaginaLabel: t.keuzePaginaLabel,
@@ -35,11 +49,11 @@ export const list = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const opgeslagen = await ctx.db.query("verliesTypen").order("asc").collect();
+    const opgeslagen = await ctx.db.query("verliesTypen").collect();
 
     // Als de tabel nog leeg is, geef ingebouwde typen terug als fallback
     if (opgeslagen.length === 0) return INGEBOUWDE_TYPEN.map(t => ({ ...t, _id: null, createdAt: 0 }));
-    return opgeslagen;
+    return sorteerTypen(opgeslagen);
   },
 });
 

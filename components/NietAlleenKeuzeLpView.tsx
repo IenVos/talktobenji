@@ -4,17 +4,19 @@ import { useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-type TypeKey = "persoon" | "huisdier" | "relatie" | "kinderloos";
+type TypeKey = "persoon" | "huisdier" | "relatie" | "eenzaamheid" | "kinderloos";
 
 interface Props {
   // Keuze-knoppen
   typeCtaUrlPersoon?: string;
   typeCtaUrlHuisdier?: string;
   typeCtaUrlRelatie?: string;
+  typeCtaUrlEenzaamheid?: string;
   typeCtaUrlKinderloos?: string;
   typeButtonLabelPersoon?: string;
   typeButtonLabelHuisdier?: string;
   typeButtonLabelRelatie?: string;
+  typeButtonLabelEenzaamheid?: string;
   typeButtonLabelKinderloos?: string;
   defaultCtaUrl?: string;
   // Hero
@@ -40,6 +42,11 @@ interface Props {
   kpCitaatRelatie?: string;
   kpVoordelenRelatie?: string;
   kpCtaTekstRelatie?: string;
+  kpH2Eenzaamheid?: string;
+  kpTekstEenzaamheid?: string;
+  kpCitaatEenzaamheid?: string;
+  kpVoordelenEenzaamheid?: string;
+  kpCtaTekstEenzaamheid?: string;
   kpH2Kinderloos?: string;
   kpTekstKinderloos?: string;
   kpCitaatKinderloos?: string;
@@ -58,36 +65,42 @@ const DEFAULTS = {
     persoon: "Ik mis iemand",
     huisdier: "Ik heb mijn dier verloren",
     relatie: "Relatie voorbij? Laat los en vind rust.",
+    eenzaamheid: "Ik voel me eenzaam",
     kinderloos: "Ongewenst kinderloos vind steun en ruimte",
   },
   h2: {
     persoon: "Je mist iemand.|En niemand kan dat echt opvangen.",
-    huisdier: "Ze zeggen: “het was maar een dier.”|Maar voor jou was het zoveel meer.",
+    huisdier: "Ze zeggen: \"het was maar een dier.\"|Maar voor jou was het zoveel meer.",
     relatie: "Je relatie is voorbij.|Maar je hoofd is dat nog niet.",
+    eenzaamheid: "Je voelt je alleen.|Maar er is zoveel meer in jou.",
     kinderloos: "Ongewenst kinderloos.|Iets wat mensen niet kunnen zien.",
   },
   tekst: {
     persoon: "Mensen vragen hoe het gaat.\nEn je zegt: \"gaat wel.\"\n\nMaar wat moet je anders zeggen?\nDat je soms nog steeds automatisch aan ze denkt?\nDat je midden op de dag ineens stilvalt?\nDat het 's nachts het hardst binnenkomt?\n\nJe wil het delen.\nMaar niet elke keer het hele verhaal vertellen.\nNiet weer die stilte aan de andere kant.\n\nDus je houdt het maar bij jezelf.",
     huisdier: "Een maatje.\nRoutine.\nStilte die nu anders voelt.\n\nJe mist de kleine dingen.\nDe vanzelfsprekendheid.\nDe aanwezigheid.\n\nEn misschien voelt het alsof je dit niet \"groot genoeg\" mag maken.\nDus je zegt er minder over.\nDan je eigenlijk zou willen.\n\nMaar jouw verdriet is echt.",
     relatie: "Je denkt terug.\nAnalyseert.\nTwijfelt.\n\nWas het de juiste keuze?\nHad je iets anders kunnen doen?\nWaarom voelt het nog zo aanwezig?\n\nOverdag red je je wel.\nMaar 's avonds… begint het weer.\n\nEn je wil er niet steeds over praten met anderen.",
+    eenzaamheid: "Je bent omringd door mensen.\nMaar niemand ziet echt wie je bent.\n\nJe lacht mee.\nJe doet mee.\nMaar van binnen is er iets wat niet gezien wordt.\n\nNiet omdat je het niet wil delen.\nMaar omdat je niet weet hoe.\nOf simpelweg niet weet bij wie.\n\nDus je draagt het stil.",
     kinderloos: "En waarvoor niemand de juiste woorden heeft.\n\nWant het is niet zichtbaar.\nNiet tastbaar.\nMaar het is er. Altijd.\n\nIn momenten.\nIn gesprekken.\nIn wat er niet is.\nEn misschien voel je je alleen in hoe groot het is.\n\nAlsof je het niet helemaal mag voelen.",
   },
   citaat: {
     persoon: "30 dagen lang ontvang je elke dag een e-mail.\nMet daarin een bericht van Benji.\n\nGeen oplossingen. Geen \"je moet gewoon…\"\n\nMaar woorden die begrijpen hoe het voelt.\nEn een plek waar jij even alles kwijt kunt.\n\nWanneer jij daar klaar voor bent.",
     huisdier: "Elke dag een moment voor jou.\nWaar je niets hoeft uit te leggen.\n\nWaar je vandaag meer mag zijn dan gisteren.",
     relatie: "Een plek waar je gedachten mogen bestaan.\nZonder dat iemand meteen een mening heeft.\n\nWaar je niet \"sterk\" hoeft te zijn.\nMaar gewoon even eerlijk.",
+    eenzaamheid: "30 dagen lang een dagelijks bericht van Benji.\n\nGeen adviezen. Geen \"ga toch eens naar buiten.\"\n\nMaar woorden die begrijpen hoe eenzaamheid voelt.\nEen plek waar jij gezien mag worden.\n\nDoor jezelf, te beginnen.",
     kinderloos: "Een plek waar je niets hoeft uit te leggen.\nWaar alles er mag zijn.\n\nOok de dingen die je normaal inslikt.",
   },
   voordelen: {
     persoon: "Iemand die elke dag even naast je zit\nRuimte om te voelen zonder oordeel\nJe gedachten ordenen zonder druk\nVan alles alleen dragen → naar even delen",
     huisdier: "Erkenning zonder dat je het hoeft te verdedigen\nDagelijks een moment van zachtheid\nRuimte voor herinneringen én gemis\nVan stil verdriet → naar gedeeld gevoel",
     relatie: "Rust in je hoofd\nRuimte om te verwerken in jouw tempo\nIemand die luistert zonder oordeel\nVan blijven malen → naar zacht loslaten",
+    eenzaamheid: "Dagelijkse erkenning van wat jij draagt\nRuimte voor eerlijkheid zonder oordeel\nJezelf leren kennen op een nieuwe manier\nVan onzichtbaar voelen → naar jezelf zien",
     kinderloos: "Erkenning zonder uitleg\nRuimte voor rauwe gedachten\nDagelijkse steun zonder druk\nVan alleen dragen → naar even samen",
   },
   ctaTekst: {
     persoon: "Start met Niet Alleen – Verlies Persoon (€37)",
     huisdier: "Start met Niet Alleen – Verlies Huisdier (€37)",
     relatie: "Start met Niet Alleen – Relatie (€37)",
+    eenzaamheid: "Start met Niet Alleen – Eenzaamheid (€37)",
     kinderloos: "Start met Niet Alleen – Ongewenst kinderloos (€37)",
   },
 };
@@ -165,39 +178,43 @@ function TypeSectie({
 }
 
 export function NietAlleenKeuzeLpView({
-  typeCtaUrlPersoon, typeCtaUrlHuisdier, typeCtaUrlRelatie, typeCtaUrlKinderloos,
-  typeButtonLabelPersoon, typeButtonLabelHuisdier, typeButtonLabelRelatie, typeButtonLabelKinderloos,
+  typeCtaUrlPersoon, typeCtaUrlHuisdier, typeCtaUrlRelatie, typeCtaUrlEenzaamheid, typeCtaUrlKinderloos,
+  typeButtonLabelPersoon, typeButtonLabelHuisdier, typeButtonLabelRelatie, typeButtonLabelEenzaamheid, typeButtonLabelKinderloos,
   defaultCtaUrl,
   kpHeroKop1, kpHeroKop2, kpHeroTekst, kpHeroSlotzin, kpKeuzeLabel1, kpKeuzeLabel2,
   kpH2Persoon, kpTekstPersoon, kpCitaatPersoon, kpVoordelenPersoon, kpCtaTekstPersoon,
   kpH2Huisdier, kpTekstHuisdier, kpCitaatHuisdier, kpVoordelenHuisdier, kpCtaTekstHuisdier,
   kpH2Relatie, kpTekstRelatie, kpCitaatRelatie, kpVoordelenRelatie, kpCtaTekstRelatie,
+  kpH2Eenzaamheid, kpTekstEenzaamheid, kpCitaatEenzaamheid, kpVoordelenEenzaamheid, kpCtaTekstEenzaamheid,
   kpH2Kinderloos, kpTekstKinderloos, kpCitaatKinderloos, kpVoordelenKinderloos, kpCtaTekstKinderloos,
 }: Props) {
   const [actief, setActief] = useState<TypeKey | null>(null);
-  const persoonRef    = useRef<HTMLDivElement>(null);
-  const huisdierRef   = useRef<HTMLDivElement>(null);
-  const relatieRef    = useRef<HTMLDivElement>(null);
-  const kinderloosRef = useRef<HTMLDivElement>(null);
+  const persoonRef      = useRef<HTMLDivElement>(null);
+  const huisdierRef     = useRef<HTMLDivElement>(null);
+  const relatieRef      = useRef<HTMLDivElement>(null);
+  const eenzaamheidRef  = useRef<HTMLDivElement>(null);
+  const kinderloosRef   = useRef<HTMLDivElement>(null);
 
   const refs: Record<TypeKey, React.RefObject<HTMLDivElement>> = {
-    persoon: persoonRef, huisdier: huisdierRef, relatie: relatieRef, kinderloos: kinderloosRef,
+    persoon: persoonRef, huisdier: huisdierRef, relatie: relatieRef, eenzaamheid: eenzaamheidRef, kinderloos: kinderloosRef,
   };
   const ctaUrls: Record<TypeKey, string | undefined> = {
-    persoon: typeCtaUrlPersoon, huisdier: typeCtaUrlHuisdier, relatie: typeCtaUrlRelatie, kinderloos: typeCtaUrlKinderloos,
+    persoon: typeCtaUrlPersoon, huisdier: typeCtaUrlHuisdier, relatie: typeCtaUrlRelatie, eenzaamheid: typeCtaUrlEenzaamheid, kinderloos: typeCtaUrlKinderloos,
   };
   const buttonLabels: Record<TypeKey, string> = {
-    persoon:    typeButtonLabelPersoon    || DEFAULTS.buttonLabels.persoon,
-    huisdier:   typeButtonLabelHuisdier   || DEFAULTS.buttonLabels.huisdier,
-    relatie:    typeButtonLabelRelatie    || DEFAULTS.buttonLabels.relatie,
-    kinderloos: typeButtonLabelKinderloos || DEFAULTS.buttonLabels.kinderloos,
+    persoon:      typeButtonLabelPersoon      || DEFAULTS.buttonLabels.persoon,
+    huisdier:     typeButtonLabelHuisdier     || DEFAULTS.buttonLabels.huisdier,
+    relatie:      typeButtonLabelRelatie      || DEFAULTS.buttonLabels.relatie,
+    eenzaamheid:  typeButtonLabelEenzaamheid  || DEFAULTS.buttonLabels.eenzaamheid,
+    kinderloos:   typeButtonLabelKinderloos   || DEFAULTS.buttonLabels.kinderloos,
   };
 
   const TYPES: { key: TypeKey; emoji: string }[] = [
-    { key: "persoon",    emoji: "💔" },
-    { key: "huisdier",  emoji: "🐾" },
-    { key: "relatie",   emoji: "💭" },
-    { key: "kinderloos",emoji: "🌱" },
+    { key: "persoon",     emoji: "💔" },
+    { key: "huisdier",   emoji: "🐾" },
+    { key: "relatie",    emoji: "💭" },
+    { key: "eenzaamheid",emoji: "😔" },
+    { key: "kinderloos", emoji: "🌱" },
   ];
 
   function kiesType(key: TypeKey) {
@@ -300,6 +317,19 @@ export function NietAlleenKeuzeLpView({
           voordelenRaw={kpVoordelenRelatie || DEFAULTS.voordelen.relatie}
           ctaTekst={kpCtaTekstRelatie || DEFAULTS.ctaTekst.relatie}
           ctaUrl={typeCtaUrlRelatie} defaultCtaUrl={defaultCtaUrl}
+        />
+
+        <div style={{ borderTop: "1px solid #e8e0d8" }} className="max-w-2xl mx-auto" />
+
+        <TypeSectie
+          id="eenzaamheid" sectionRef={eenzaamheidRef} emoji="😔 Ik voel me eenzaam"
+          label={buttonLabels.eenzaamheid}
+          h2Raw={kpH2Eenzaamheid || DEFAULTS.h2.eenzaamheid}
+          tekstRaw={kpTekstEenzaamheid || DEFAULTS.tekst.eenzaamheid}
+          citaatRaw={kpCitaatEenzaamheid || DEFAULTS.citaat.eenzaamheid}
+          voordelenRaw={kpVoordelenEenzaamheid || DEFAULTS.voordelen.eenzaamheid}
+          ctaTekst={kpCtaTekstEenzaamheid || DEFAULTS.ctaTekst.eenzaamheid}
+          ctaUrl={typeCtaUrlEenzaamheid} defaultCtaUrl={defaultCtaUrl}
         />
 
         <div style={{ borderTop: "1px solid #e8e0d8" }} className="max-w-2xl mx-auto" />

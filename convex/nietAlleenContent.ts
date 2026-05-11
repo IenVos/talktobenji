@@ -1,4 +1,5 @@
 import { KINDERLOOS_CONTENT } from "./nietAlleenKinderloosContent";
+import { EENZAAMHEID_CONTENT } from "./nietAlleenEenzaamheidContent";
 
 /**
  * Niet Alleen — volledige 30-dagen content
@@ -1162,7 +1163,6 @@ export function getDagInhoud(dag: number, verliesType: string): DagInhoud | null
   if (verliesType === "kinderloos") {
     const k = KINDERLOOS_CONTENT[dagIndex];
     if (!k) return null;
-    // Wrap kinderloos content in DagInhoud shape for compatibility
     return {
       dag: k.dag,
       thema: k.thema,
@@ -1173,6 +1173,19 @@ export function getDagInhoud(dag: number, verliesType: string): DagInhoud | null
       doedingetje: k.doedingetje,
     };
   }
+  if (verliesType === "eenzaamheid") {
+    const e = EENZAAMHEID_CONTENT[dagIndex];
+    if (!e) return null;
+    return {
+      dag: e.dag,
+      thema: e.thema,
+      subject: e.subject,
+      mail: { persoon: e.mail, huisdier: e.mail, scheiding: e.mail },
+      inHetAccount: e.inHetAccount,
+      alsjewilt: e.alsjewilt,
+      doedingetje: e.doedingetje,
+    };
+  }
   return NIET_ALLEEN_CONTENT[dagIndex] ?? null;
 }
 
@@ -1180,6 +1193,10 @@ export function getMailTekst(dag: number, verliesType: string): string {
   if (verliesType === "kinderloos") {
     const dagIndex = Math.min(Math.max(dag - 1, 0), 29);
     return KINDERLOOS_CONTENT[dagIndex]?.mail ?? "";
+  }
+  if (verliesType === "eenzaamheid") {
+    const dagIndex = Math.min(Math.max(dag - 1, 0), 29);
+    return EENZAAMHEID_CONTENT[dagIndex]?.mail ?? "";
   }
   const inhoud = getDagInhoud(dag, verliesType);
   if (!inhoud) return "";

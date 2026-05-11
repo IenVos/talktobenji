@@ -165,14 +165,15 @@ export default function NietAlleenWelkomPage() {
               <button
                 key={t.code}
                 onClick={() => setGeselecteerd(t.code)}
-                className="w-full px-4 py-3 rounded-xl text-sm font-medium text-left transition-all border"
+                className="w-full px-4 py-3 rounded-xl text-sm font-medium text-left transition-all border flex items-center gap-3"
                 style={{
                   background: huidigVerliesType === t.code ? "#6d84a8" : "white",
                   color: huidigVerliesType === t.code ? "white" : "#4a5568",
                   borderColor: huidigVerliesType === t.code ? "#6d84a8" : "#e2d9cf",
                 }}
               >
-                {t.naam.split(" — ")[0]}
+                {t.keuzePaginaEmoji && <span className="text-lg flex-shrink-0">{t.keuzePaginaEmoji}</span>}
+                <span>{t.keuzePaginaLabel || t.naam.split(" — ")[0]}</span>
               </button>
             ))}
           </div>

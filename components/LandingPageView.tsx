@@ -275,10 +275,12 @@ export function LandingPageView({ slug }: { slug: string }) {
         typeCtaUrlPersoon={(page as any).typeCtaUrlPersoon}
         typeCtaUrlHuisdier={(page as any).typeCtaUrlHuisdier}
         typeCtaUrlRelatie={(page as any).typeCtaUrlRelatie}
+        typeCtaUrlEenzaamheid={(page as any).typeCtaUrlEenzaamheid}
         typeCtaUrlKinderloos={(page as any).typeCtaUrlKinderloos}
         typeButtonLabelPersoon={(page as any).typeButtonLabelPersoon}
         typeButtonLabelHuisdier={(page as any).typeButtonLabelHuisdier}
         typeButtonLabelRelatie={(page as any).typeButtonLabelRelatie}
+        typeButtonLabelEenzaamheid={(page as any).typeButtonLabelEenzaamheid}
         typeButtonLabelKinderloos={(page as any).typeButtonLabelKinderloos}
         defaultCtaUrl={(page as any).ctaUrl}
         kpHeroKop1={(page as any).kpHeroKop1}
@@ -302,6 +304,11 @@ export function LandingPageView({ slug }: { slug: string }) {
         kpCitaatRelatie={(page as any).kpCitaatRelatie}
         kpVoordelenRelatie={(page as any).kpVoordelenRelatie}
         kpCtaTekstRelatie={(page as any).kpCtaTekstRelatie}
+        kpH2Eenzaamheid={(page as any).kpH2Eenzaamheid}
+        kpTekstEenzaamheid={(page as any).kpTekstEenzaamheid}
+        kpCitaatEenzaamheid={(page as any).kpCitaatEenzaamheid}
+        kpVoordelenEenzaamheid={(page as any).kpVoordelenEenzaamheid}
+        kpCtaTekstEenzaamheid={(page as any).kpCtaTekstEenzaamheid}
         kpH2Kinderloos={(page as any).kpH2Kinderloos}
         kpTekstKinderloos={(page as any).kpTekstKinderloos}
         kpCitaatKinderloos={(page as any).kpCitaatKinderloos}
