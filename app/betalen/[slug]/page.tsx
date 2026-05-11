@@ -59,6 +59,7 @@ function CheckoutForm({
   giftEnabled,
   giftVariants,
   onPriceChange,
+  addOnType,
 }: {
   slug: string;
   buttonText?: string;
@@ -68,6 +69,7 @@ function CheckoutForm({
   giftEnabled?: boolean;
   giftVariants?: GiftVariant[];
   onPriceChange?: (cents: number | null) => void;
+  addOnType?: string;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -144,7 +146,7 @@ function CheckoutForm({
     const { error: submitError } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/bedankt?item=${slug}${isGift ? "&cadeau=1" : ""}`,
+        return_url: `${window.location.origin}/bedankt?item=${slug}${isGift ? "&cadeau=1" : ""}${addOnType ? `&addon=${addOnType}` : ""}`,
         payment_method_data: {
           billing_details: { name: naam, email },
         },
@@ -729,6 +731,7 @@ export default function BetalenPage() {
                   giftEnabled={product.giftEnabled ?? false}
                   giftVariants={product.giftVariants ?? undefined}
                   onPriceChange={setOverridePriceInCents}
+                  addOnType={addOnSelected && product.addOnType ? product.addOnType : undefined}
                 />
               </Elements>
             )}

@@ -21,6 +21,8 @@ function BedanktContent() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const itemName = searchParams?.get("item") ?? null;
+  const addonParam = searchParams?.get("addon") ?? null;
+  const boughtBenjiAddon = addonParam === "benji_access";
 
   const subscription = useQuery(
     api.subscriptions.getUserSubscription,
@@ -132,17 +134,33 @@ function BedanktContent() {
 
         {/* Geen account — maak er een aan */}
         {!isLoading && !isLoggedIn && (
-          <div className="bg-white rounded-2xl border border-primary-100 shadow-sm p-6 space-y-4">
+          <div className={`bg-white rounded-2xl shadow-sm p-6 space-y-4 ${boughtBenjiAddon ? "border-2 border-primary-400" : "border border-primary-100"}`}>
             <div>
-              <p className="text-xs font-medium text-primary-500 uppercase tracking-wide mb-1">
-                Gratis account aanmaken
-              </p>
-              <h2 className="text-base font-semibold text-gray-900">
-                Haal meer uit Benji
-              </h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Met een account kun je gesprekken terugvinden, je voortgang bijhouden en Benji nog beter op jou laten aansluiten.
-              </p>
+              {boughtBenjiAddon ? (
+                <>
+                  <p className="text-xs font-medium text-primary-500 uppercase tracking-wide mb-1">
+                    Activeer je toegang
+                  </p>
+                  <h2 className="text-base font-semibold text-gray-900">
+                    Maak een account aan om Benji te ontgrendelen
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Je hebt 30 dagen toegang tot Benji betaald. Maak een gratis account aan met hetzelfde e-mailadres — je toegang wordt automatisch geactiveerd.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-xs font-medium text-primary-500 uppercase tracking-wide mb-1">
+                    Gratis account aanmaken
+                  </p>
+                  <h2 className="text-base font-semibold text-gray-900">
+                    Haal meer uit Benji
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Met een account kun je gesprekken terugvinden, je voortgang bijhouden en Benji nog beter op jou laten aansluiten.
+                  </p>
+                </>
+              )}
             </div>
             <Link
               href="/registreren"
@@ -153,8 +171,8 @@ function BedanktContent() {
                   <UserPlus size={18} className="text-primary-600" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-semibold text-gray-900">Gratis account</p>
-                  <p className="text-xs text-gray-600">Gesprekken · Voortgang · Persoonlijke ervaring</p>
+                  <p className="text-sm font-semibold text-gray-900">{boughtBenjiAddon ? "Account aanmaken & toegang activeren" : "Gratis account"}</p>
+                  <p className="text-xs text-gray-600">{boughtBenjiAddon ? "Gebruik hetzelfde e-mailadres als bij je bestelling" : "Gesprekken · Voortgang · Persoonlijke ervaring"}</p>
                 </div>
               </div>
               <ChevronRight size={16} className="text-primary-400 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
