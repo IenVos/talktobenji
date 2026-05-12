@@ -8,7 +8,7 @@ import { Menu, X } from "lucide-react";
 const LINKS = [
   { href: "/waarom-benji", label: "Over" },
   { href: "/blog", label: "Blog" },
-  { href: "/voor-jou", label: "Voor jou" },
+  { href: "https://www.talktobenji.com/lp/je-hoeft-het-niet-alleen-te-doen", label: "Voor jou" },
   { href: "/registreren", label: "Aanmelden" },
   { href: "/inloggen", label: "Inloggen" },
 ];
@@ -38,6 +38,7 @@ export function SiteHeaderConcept() {
               key={l.href}
               href={l.href}
               className="text-sm text-primary-300 hover:text-white transition-colors"
+              {...(l.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >
               {l.label}
             </Link>
@@ -71,6 +72,7 @@ export function SiteHeaderConcept() {
               href={l.href}
               onClick={() => setOpen(false)}
               className="block text-sm text-primary-300 hover:text-white py-2.5 transition-colors"
+              {...(l.href.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >
               {l.label}
             </Link>

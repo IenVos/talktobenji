@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { hexToLightTint, hexToDarker } from "@/lib/utils";
-import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, ChevronLeft, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle, ShoppingBag, User } from "lucide-react";
+import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, ChevronLeft, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle, User } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ScrollIndicator } from "@/components/ScrollIndicator";
 
@@ -232,18 +232,6 @@ export default function AccountLayout({
             Mijn plek
           </Link>
         </div>
-      </li>
-      <li>
-        <Link
-          href="/voor-jou"
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-            pathname === "/voor-jou" ? "text-primary-800" : "text-gray-700 hover:text-primary-700 nav-hover"
-          }`}
-          style={pathname === "/voor-jou" ? { backgroundColor: hexToLightTint(accent, 25) } : {}}
-        >
-          <ShoppingBag size={18} className="flex-shrink-0" />
-          Voor jou
-        </Link>
       </li>
       <li>
         <Link
