@@ -104,6 +104,12 @@ export default function NietAlleenWelkomPage() {
     );
   }
 
+  // Verliestype is al ingesteld — welkom-flow is eenmalig
+  if (profiel.verliesType) {
+    router.replace("/niet-alleen");
+    return <div style={{ minHeight: "100vh", background: "#fdf9f4" }} />;
+  }
+
   const voornaam = profiel.naam.split(" ")[0];
 
   return (
