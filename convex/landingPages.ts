@@ -711,3 +711,62 @@ export const seedVerliesPersoon = mutation({
     return { seeded: true, id };
   },
 });
+
+export const seedNietAlleenEenzaamheid = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "ik-voel-me-eenzaam";
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (existing) return { skipped: true, id: existing._id };
+    const now = Date.now();
+    const id = await ctx.db.insert("landingPages", {
+      slug,
+      pageTitle: "Niet Alleen — Eenzaamheid",
+      isLive: false,
+      heroLabel: "30 dagen | dagelijkse e-mails | reageren wanneer jij wilt",
+      heroTitle: "Je praat met mensen.\nMaar voelt je toch alleen.",
+      heroSubtitle: "Je doet mee. Je lacht mee.\n\nMaar er is iets wat niet gezien wordt.\n\nNiet omdat je het niet wil delen.\n\nMaar omdat je niet weet hoe.\nOf simpelweg niet weet bij wie.",
+      section1Title: "Wat je misschien herkent",
+      section1Text: "Dat je niemand echt wil lastigvallen.\nDat je veel binnenhoud.\nDat je je 'te veel' voelt — of juist onzichtbaar.\n\nDat je soms hoopt dat iemand vraagt hoe het écht gaat.\n\nNiet oppervlakkig. Maar echt.\n\nEnzo ga je door.\n\nAanwezig maar niet verbonden.\nBezig maar alleen.",
+      section2Title: "Wat je niet hardop zegt",
+      section2Text: "\"Ik wil wel praten, maar niet uitleggen.\"\n\"Ik ben moe van doen alsof het goed gaat.\"\n\"Ik verlang naar verbinding — zonder dat het iets hoeft te kosten.\"\n\nEn dan vraag je jezelf af:\n\nIs dit gewoon hoe het is?\nOf mag ik verwachten dat het ook anders kan voelen?",
+      voorWieTitle: "Dit is voor jou als...",
+      voorWieSubtitel: "Wat als je ergens terecht kunt zonder dat je het eerst moet uitleggen?",
+      voorWieBullets: "Je bent omringd door mensen maar voelt je toch alleen\nJe wil niemand lastigvallen met wat er in je omgaat\nJe houdt veel binnen omdat je niet weet bij wie je terecht kunt\nJe bent moe van doen alsof het goed gaat\nJe voelt je soms 'te veel' of juist onzichtbaar\nJe verlangt naar verbinding maar weet niet hoe je dat moet vragen",
+      contentBlocksJson: JSON.stringify([
+        {
+          titel: "Niet Alleen is geen coaching.",
+          tekst: "Geen stappenplan om 'socialer' te worden.\n\nHet is iets veel zachters.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nNiet iemand die je probeert te fixen.\nMaar iemand die even naast je zit.\n\nEen plek waar je kunt zeggen:\n\"Ik heb niemand om dit mee te delen.\"\n\"Ik weet niet waarom ik me zo leeg voel.\"\n\"Ik wil me niet meer zo alleen voelen hierin.\"\n\nZonder dat iemand zegt: ga dan meer naar buiten.",
+        },
+        {
+          titel: "Zie het als een moment per dag voor jezelf.",
+          tekst: "Niet om het op te lossen.\nMaar om het even niet alleen te dragen.\n\nOp jouw moment.\nIn jouw tempo.",
+        },
+        {
+          titel: "Wat je gaat merken:",
+          tekst: "Dat er elke dag een moment is waarop jij gezien mag worden\nDat je gedachten ergens naartoe mogen zonder dat je ze hoeft te verklaren\nDat het iets minder zwaar wordt om het bij jezelf te houden",
+        },
+      ]),
+      wieIsTitle: "Wie is Ien?",
+      wieIsText: "Ien is de oprichter van TalkToBenji, het platform waar \"Niet Alleen\" onderdeel van is. Ze weet hoe zwaar het is als verdriet geen plek krijgt. \"Niet Alleen\" is wat ze zelf had willen hebben.",
+      finalCtaTitle: "Je hoeft niet eerst interessanter of gezelliger te worden.",
+      finalCtaBody: "Je hoeft alleen niet alles meer alleen te dragen.\n\nGewoon ruimte om eerlijk te zijn over hoe het écht gaat.",
+      ctaText: "Ik wil me niet meer zo alleen voelen",
+      ctaUrl: "/betalen/niet-alleen-eenzaamheid",
+      vragenJson: JSON.stringify([
+        { vraag: "Moet ik elke dag reageren?", antwoord: "Nee. Je leest wanneer het goed voelt. Er is geen druk of verwachting." },
+        { vraag: "Is dit therapie?", antwoord: "Nee. Het zijn dagelijkse gesprekken die steun en herkenning geven — voor de momenten tussendoor." },
+        { vraag: "Wat als ik niet goed kan uitleggen wat ik voel?", antwoord: "Dat hoeft ook niet. Juist hier niet." },
+        { vraag: "Is dit voor mensen die echt heel eenzaam zijn?", antwoord: "Het is voor iedereen die zich niet volledig verbonden voelt, ook als er mensen om je heen zijn. Dat gevoel is genoeg reden." },
+      ]),
+      hideStickyBar: false,
+      hideHeader: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return { seeded: true, id };
+  },
+});
