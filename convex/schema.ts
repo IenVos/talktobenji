@@ -704,6 +704,8 @@ export default defineSchema({
     // Product image — upload (storageId) of public path
     productImageStorageId: v.optional(v.id("_storage")),
     productImagePath: v.optional(v.string()),
+    // Positie van productafbeelding: "after_hero" | "after_section1" | "after_section2" | "after_content" | "after_voor_wie" | "before_final_cta"
+    productImagePosition: v.optional(v.string()),
     // Achtergrondafbeelding — upload (storageId) of gebruik standaard achtergrond
     bgImageStorageId: v.optional(v.id("_storage")),
     // "Voor wie" bullets — one item per line

@@ -92,6 +92,7 @@ type FormState = {
   section2Text: string;
   productImageFile: File | null;
   productImagePath: string;
+  productImagePosition: string;
   bgImageFile: File | null;
   voorWieBullets: string;
   voorWieTitle: string;
@@ -188,6 +189,7 @@ const EMPTY_FORM: FormState = {
   section2Text: "",
   productImageFile: null,
   productImagePath: "",
+  productImagePosition: "after_content",
   bgImageFile: null,
   voorWieBullets: "",
   voorWieTitle: "",
@@ -290,6 +292,10 @@ export default function AdminLandingspaginasPage() {
   const [saving, setSaving] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState(false);
   const [seedStatus, setSeedStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set(["basis", "hero", "inhoud"]));
+  const toggleSection = (id: string) => setOpenSections(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  const [removeProductImage, setRemoveProductImage] = useState(false);
+  const [removeBgImage, setRemoveBgImage] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editingProductImageUrl, setEditingProductImageUrl] = useState<string | null>(null);
   const [editingBgImageUrl, setEditingBgImageUrl] = useState<string | null>(null);
@@ -324,7 +330,10 @@ export default function AdminLandingspaginasPage() {
     setEditingId(null);
     setEditingProductImageUrl(null);
     setEditingBgImageUrl(null);
+    setRemoveProductImage(false);
+    setRemoveBgImage(false);
     setShowForm(false);
+    setOpenSections(new Set(["basis", "hero", "inhoud"]));
     if (productImageRef.current) productImageRef.current.value = "";
     if (bgImageRef.current) bgImageRef.current.value = "";
   };
@@ -355,6 +364,7 @@ export default function AdminLandingspaginasPage() {
       section2Text: page.section2Text ?? "",
       productImageFile: null,
       productImagePath: page.productImagePath ?? "",
+      productImagePosition: (page as any).productImagePosition ?? "after_content",
       bgImageFile: null,
       voorWieBullets: page.voorWieBullets ?? "",
       voorWieTitle: page.voorWieTitle ?? "",
@@ -537,10 +547,12 @@ export default function AdminLandingspaginasPage() {
     if (!isKeuzepagina && !form.heroTitle.trim()) return;
     setSaving(true);
     try {
-      let productImageStorageId: Id<"_storage"> | undefined;
-      let bgImageStorageId: Id<"_storage"> | undefined;
+      let productImageStorageId: Id<"_storage"> | null | undefined;
+      let bgImageStorageId: Id<"_storage"> | null | undefined;
       if (form.productImageFile) productImageStorageId = await uploadFile(form.productImageFile);
+      else if (removeProductImage) productImageStorageId = null;
       if (form.bgImageFile) bgImageStorageId = await uploadFile(form.bgImageFile);
+      else if (removeBgImage) bgImageStorageId = null;
 
       if (editingId) {
         // Bij bewerken: stuur lege strings door zodat Convex velden kan wissen
@@ -568,9 +580,10 @@ export default function AdminLandingspaginasPage() {
           section1Text: form.section1Text.trim(),
           section2Title: form.section2Title.trim(),
           section2Text: form.section2Text.trim(),
-          productImageStorageId,
-          productImagePath: form.productImagePath.trim(),
-          bgImageStorageId,
+          productImageStorageId: productImageStorageId as any,
+          productImagePath: removeProductImage ? "" : form.productImagePath.trim(),
+          productImagePosition: form.productImagePosition,
+          bgImageStorageId: bgImageStorageId as any,
           voorWieBullets: form.voorWieBullets.trim(),
           voorWieTitle: form.voorWieTitle.trim(),
           ervaringenJson: form.ervaringenJson.trim(),
@@ -747,6 +760,26 @@ export default function AdminLandingspaginasPage() {
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
   const labelSmClass = "block text-xs text-gray-500 mb-1";
 
+  const Section = ({ id, title, children, badge }: { id: string; title: string; children: React.ReactNode; badge?: string }) => {
+    const open = openSections.has(id);
+    return (
+      <div className="border-t border-primary-100">
+        <button
+          type="button"
+          onClick={() => toggleSection(id)}
+          className="w-full flex items-center justify-between py-2.5 text-left"
+        >
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+            {title}
+            {badge && <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full normal-case tracking-normal">{badge}</span>}
+          </span>
+          <span className="text-gray-400 text-xs">{open ? "▲" : "▼"}</span>
+        </button>
+        {open && <div className="pb-4 space-y-3">{children}</div>}
+      </div>
+    );
+  };
+
   const editingPage = editingId ? pages?.find((p: LandingPage) => p._id === editingId) : null;
 
   return (
@@ -922,8 +955,7 @@ export default function AdminLandingspaginasPage() {
             </div>
 
             {/* Hero */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Hero</p>
+            <Section id="hero" title="Hero">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Kleine tekst boven de titel (heroLabel)</label>
@@ -1022,61 +1054,100 @@ export default function AdminLandingspaginasPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Afbeeldingen */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Afbeeldingen</p>
-              <div className="space-y-4">
+            <Section id="afbeeldingen" title="Afbeeldingen">
+              <div className="space-y-5">
                 {/* Productafbeelding */}
-                <div>
+                <div className="space-y-2">
                   <label className={labelClass}>Productafbeelding</label>
-                  <input
-                    ref={productImageRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setForm((f) => ({ ...f, productImageFile: e.target.files?.[0] ?? null }))}
-                    className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-800"
-                  />
-                  {(productPreviewUrl || form.productImagePath) && (
-                    <div className="mt-2 flex items-start gap-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={productPreviewUrl || form.productImagePath} alt="Preview" className="w-24 h-24 object-cover rounded-lg border border-primary-200" />
-                      <p className="text-xs text-gray-400 mt-1">{productPreviewUrl ? "Nieuwe upload" : "Huidig pad"}</p>
+                  {/* Huidige afbeelding tonen */}
+                  {!removeProductImage && (productPreviewUrl || editingBgImageUrl !== undefined && (editingBgImageUrl === null ? false : true) || form.productImagePath) && (
+                    <div className="flex items-start gap-3 mb-2">
+                      {(productPreviewUrl || form.productImagePath) && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={productPreviewUrl || form.productImagePath} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-primary-200" />
+                      )}
+                      {editingId && !form.productImageFile && !removeProductImage && (
+                        <button type="button" onClick={() => { setRemoveProductImage(true); setForm(f => ({ ...f, productImagePath: "", productImageFile: null })); if (productImageRef.current) productImageRef.current.value = ""; }}
+                          className="text-xs text-red-500 hover:text-red-700 border border-red-200 rounded-lg px-3 py-1.5 mt-1">
+                          Afbeelding verwijderen
+                        </button>
+                      )}
                     </div>
                   )}
-                  {!form.productImageFile && (
-                    <div className="mt-2">
-                      <label className="block text-xs text-gray-400 mb-1">Of gebruik een pad (bijv. /images/niet-alleen-product.png)</label>
-                      <input type="text" placeholder="/images/..." value={form.productImagePath} onChange={set("productImagePath")} className={inputClass} />
+                  {removeProductImage && (
+                    <div className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center justify-between">
+                      <span>Afbeelding wordt verwijderd bij opslaan</span>
+                      <button type="button" onClick={() => setRemoveProductImage(false)} className="underline ml-2">Ongedaan maken</button>
                     </div>
                   )}
-                  {editingId && !form.productImageFile && <p className="text-xs text-gray-400 mt-1">Laat leeg om bestaande afbeelding te behouden.</p>}
+                  {!removeProductImage && (
+                    <>
+                      <input
+                        ref={productImageRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setForm((f) => ({ ...f, productImageFile: e.target.files?.[0] ?? null }))}
+                        className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-800 file:text-xs"
+                      />
+                      {!form.productImageFile && (
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Of gebruik een pad</label>
+                          <input type="text" placeholder="/images/..." value={form.productImagePath} onChange={set("productImagePath")} className={inputClass} />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* Positie */}
+                  <div>
+                    <label className={labelSmClass}>Positie op de pagina</label>
+                    <select value={form.productImagePosition} onChange={(e) => setForm(f => ({ ...f, productImagePosition: e.target.value }))} className={inputClass}>
+                      <option value="after_hero">Na de hero (bovenaan)</option>
+                      <option value="after_content">Na inhoudblokken (standaard)</option>
+                      <option value="after_voor_wie">Na "Voor wie"</option>
+                      <option value="before_final_cta">Voor het slotblok</option>
+                    </select>
+                  </div>
                 </div>
+
                 {/* Achtergrondafbeelding */}
-                <div>
-                  <label className={labelClass}>Achtergrondafbeelding <span className="font-normal text-gray-400 text-xs">(optioneel — standaard: achtergrond.png)</span></label>
-                  <input
-                    ref={bgImageRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setForm((f) => ({ ...f, bgImageFile: e.target.files?.[0] ?? null }))}
-                    className="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-800"
-                  />
-                  {bgPreviewUrl && (
-                    <div className="mt-2">
+                <div className="space-y-2">
+                  <label className={labelClass}>Achtergrondafbeelding <span className="font-normal text-gray-400 text-xs">(standaard: achtergrond.png)</span></label>
+                  {!removeBgImage && (bgPreviewUrl || editingBgImageUrl) && (
+                    <div className="flex items-start gap-3 mb-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={bgPreviewUrl} alt="Achtergrond preview" className="w-full max-h-32 object-cover rounded-lg border border-primary-200" />
+                      {(bgPreviewUrl || editingBgImageUrl) && <img src={bgPreviewUrl || editingBgImageUrl!} alt="Achtergrond" className="w-full max-h-24 object-cover rounded-lg border border-primary-200" />}
                     </div>
                   )}
-                  {editingId && !form.bgImageFile && <p className="text-xs text-gray-400 mt-1">Laat leeg om bestaande achtergrond te behouden.</p>}
+                  {editingId && !form.bgImageFile && !removeBgImage && editingBgImageUrl && (
+                    <button type="button" onClick={() => { setRemoveBgImage(true); setForm(f => ({ ...f, bgImageFile: null })); if (bgImageRef.current) bgImageRef.current.value = ""; }}
+                      className="text-xs text-red-500 hover:text-red-700 border border-red-200 rounded-lg px-3 py-1.5">
+                      Achtergrond verwijderen (terug naar standaard)
+                    </button>
+                  )}
+                  {removeBgImage && (
+                    <div className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center justify-between">
+                      <span>Achtergrond wordt verwijderd bij opslaan</span>
+                      <button type="button" onClick={() => setRemoveBgImage(false)} className="underline ml-2">Ongedaan maken</button>
+                    </div>
+                  )}
+                  {!removeBgImage && (
+                    <input
+                      ref={bgImageRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setForm((f) => ({ ...f, bgImageFile: e.target.files?.[0] ?? null }))}
+                      className="block w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-primary-100 file:text-primary-800 file:text-xs"
+                    />
+                  )}
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Sectie 1 */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Sectie 1</p>
+            <Section id="sectie1" title="Sectie 1">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Titel sectie 1</label>
@@ -1107,11 +1178,10 @@ export default function AdminLandingspaginasPage() {
                   <textarea ref={section1TextRef} placeholder="Het hoeft geen overlijden te zijn…" value={form.section1Text} onChange={set("section1Text")} rows={6} className={inputClass} />
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Sectie 2 */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Sectie 2</p>
+            <Section id="sectie2" title="Sectie 2">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Titel sectie 2</label>
@@ -1142,11 +1212,10 @@ export default function AdminLandingspaginasPage() {
                   <textarea ref={section2TextRef} placeholder="Elke ochtend ontvang je een bericht…" value={form.section2Text} onChange={set("section2Text")} rows={6} className={inputClass} />
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Prijsblokken */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Prijsblokken</p>
+            <Section id="prijsblokken" title="Prijsblokken">
               <p className="text-xs text-gray-400 mb-3">Laat leeg om de sectie niet te tonen. Vul titel of prijs in om te activeren.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <div>
@@ -1253,11 +1322,10 @@ export default function AdminLandingspaginasPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </Section>
 
             {/* Feature slider */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Feature slider</p>
+            <Section id="featureslider" title="Feature slider">
               <p className="text-xs text-gray-400 mb-3">Afbeeldingen of video's met titels naast elkaar (slider op mobiel). Laat leeg om niet te tonen.</p>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1347,11 +1415,10 @@ export default function AdminLandingspaginasPage() {
                   ))}
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Voor wie */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Voor wie</p>
+            <Section id="voorwie" title="Voor wie">
               <div>
                 <label className={labelSmClass}>Voor wie — één bullet per regel</label>
                 <textarea
@@ -1384,11 +1451,10 @@ export default function AdminLandingspaginasPage() {
                   />
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Ervaringen */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Ervaringen</p>
+            <Section id="ervaringen" title="Ervaringen">
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -1414,11 +1480,10 @@ export default function AdminLandingspaginasPage() {
                   {form.ervaringenJson.trim() && (() => { try { JSON.parse(form.ervaringenJson); return null; } catch { return <p className="text-xs text-red-500 mt-1">Ongeldige JSON — controleer komma's en aanhalingstekens</p>; } })()}
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* FAQ */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">FAQ</p>
+            <Section id="faq" title="FAQ">
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -1475,11 +1540,10 @@ export default function AdminLandingspaginasPage() {
                   </button>
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Wie is Ien */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Wie is Ien</p>
+            <Section id="wieisien" title="Wie is Ien">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Titel "Wie is Ien"</label>
@@ -1490,11 +1554,10 @@ export default function AdminLandingspaginasPage() {
                   <textarea placeholder="Ien is de oprichter van TalkToBenji…" value={form.wieIsText} onChange={set("wieIsText")} rows={3} className={inputClass} />
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Finale CTA */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Finale CTA</p>
+            <Section id="finalecta" title="Finale CTA">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Titel finale CTA</label>
@@ -1505,11 +1568,10 @@ export default function AdminLandingspaginasPage() {
                   <textarea placeholder="30 dagen. Elke dag één kleine stap…" value={form.finalCtaBody} onChange={set("finalCtaBody")} rows={3} className={inputClass} />
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Footer */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Footer</p>
+            <Section id="footer" title="Footer">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Footertekst</label>
@@ -1520,11 +1582,10 @@ export default function AdminLandingspaginasPage() {
                   <input type="url" placeholder="https://www.talktobenji.com/lp/prijzen" value={form.footerCtaUrl} onChange={set("footerCtaUrl")} className={inputClass} />
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Inhoudsblokken */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Inhoudsblokken</p>
+            <Section id="inhoudsblokken" title="Inhoudsblokken">
               <p className="text-xs text-gray-400 mb-3">Witte kaarten die onder sectie 2 verschijnen. Voeg toe, verwijder of dupliceer blokken.</p>
               <div className="space-y-3">
                 {form.contentBlocks.map((block, i) => (
@@ -1561,11 +1622,10 @@ export default function AdminLandingspaginasPage() {
                   <Plus size={14} /> Blok toevoegen
                 </button>
               </div>
-            </div>
+            </Section>
 
             {/* Niet Alleen Keuze LP */}
-            <div className="pt-2 border-t border-primary-100">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Niet Alleen — Keuzepagina</p>
+            <Section id="keuzepagina" title="Niet Alleen — Keuzepagina">
               <p className="text-xs text-gray-400 mb-3">Stel <code>lpType</code> in op <code>niet_alleen_keuze</code> om de keuzepagina te renderen (in plaats van de standaard LP). Vul de CTA-URL's in per verliestype — laat leeg om de knop uit te grijzen.</p>
               <div className="space-y-3">
                 <div>
@@ -1615,7 +1675,7 @@ export default function AdminLandingspaginasPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </Section>
 
             {/* Keuzepagina inhoud */}
             {form.lpType === "niet_alleen_keuze" && (

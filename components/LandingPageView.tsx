@@ -339,6 +339,23 @@ export function LandingPageView({ slug }: { slug: string }) {
   const ctaUrl = page.ctaUrl || "#";
   const ctaText = page.ctaText || "Start mijn reis";
   const ctaColor = (page as any).ctaColor || "#6d84a8";
+  const productImagePosition = (page as any).productImagePosition || "after_content";
+
+  const ProductImage = () => {
+    const src = (page as any).productImageUrl || page.productImagePath;
+    if (!src) return null;
+    return (
+      <section className="px-5 pb-8">
+        <div className="max-w-lg mx-auto">
+          {(page as any).productImageUrl
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={src} alt="Productafbeelding" className="w-full rounded-2xl" />
+            : <Image src={src} alt="Productafbeelding" width={600} height={420} className="w-full rounded-2xl" />
+          }
+        </div>
+      </section>
+    );
+  };
   const hideErvaringen = (page as any).hideErvaringen ?? false;
   const hideVragen = (page as any).hideVragen ?? false;
   const hideWieIsIen = (page as any).hideWieIsIen ?? false;
@@ -487,6 +504,9 @@ export function LandingPageView({ slug }: { slug: string }) {
           </div>
         </section>
 
+        {/* PRODUCTAFBEELDING — positie: after_hero */}
+        {productImagePosition === "after_hero" && <ProductImage />}
+
         {/* PRIJSBLOKKEN BOVENAAN */}
         {hasPricing && (
           <section className="px-4 sm:px-6 pb-14">
@@ -560,7 +580,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* SECTIE 1 */}
         {(page.section1Title || page.section1Text) && (
-          <section className="px-5 pb-16">
+          <section className="px-5 pb-8">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 {page.section1Title && (
@@ -580,7 +600,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* SECTIE 2 */}
         {(page.section2Title || page.section2Text) && (
-          <section className="px-5 pb-16">
+          <section className="px-5 pb-8">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 {page.section2Title && (
@@ -604,7 +624,7 @@ export function LandingPageView({ slug }: { slug: string }) {
           try { if ((page as any).contentBlocksJson) blocks = JSON.parse((page as any).contentBlocksJson); } catch {}
           if (!blocks.length) return null;
           return (
-            <section className="px-5 pb-4">
+            <section className="px-5 pb-8">
               <div className="max-w-lg mx-auto space-y-4">
                 {blocks.map((block, i) => (
                   <div key={i} className="bg-white rounded-2xl p-6 shadow-sm space-y-3">
@@ -623,23 +643,15 @@ export function LandingPageView({ slug }: { slug: string }) {
           );
         })()}
 
-        {/* PRODUCTAFBEELDING */}
-        {((page as any).productImageUrl || page.productImagePath) && (
-          <section className="px-5 pb-12">
-            <div className="max-w-lg mx-auto">
-              {(page as any).productImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={(page as any).productImageUrl} alt="Productafbeelding" className="w-full rounded-2xl" />
-              ) : (
-                <Image src={page.productImagePath!} alt="Productafbeelding" width={600} height={420} className="w-full rounded-2xl" />
-              )}
-            </div>
-          </section>
-        )}
+        {/* PRODUCTAFBEELDING — positie: after_content (standaard) */}
+        {productImagePosition === "after_content" && <ProductImage />}
+
+        {/* PRODUCTAFBEELDING — positie: after_voor_wie */}
+        {productImagePosition === "after_voor_wie" && <ProductImage />}
 
         {/* VOOR WIE */}
         {voorWieBullets.length > 0 && (
-          <section className="py-14 px-5">
+          <section className="px-5 pb-8">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 <h2 className="text-lg font-semibold mb-1" style={{ color: "#3d3530" }}>
@@ -674,7 +686,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* MID-PAGE CTA */}
         {!hideMidCta && !hasPricing && (
-          <section className="px-5 pb-12">
+          <section className="px-5 pb-8">
             <div className="max-w-md mx-auto text-center">
               <KoopKnopLink
                 href={ctaUrl}
@@ -690,7 +702,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* ERVARINGEN */}
         {ervaringen.length > 0 && !hideErvaringen && (
-          <section className="py-14 px-5">
+          <section className="px-5 pb-8">
             <div className="max-w-lg mx-auto">
               {/* Titel — altijd zichtbaar, fallback als niets ingevuld */}
               <h2 className="text-xl font-semibold mb-1 text-center" style={{ color: "#3d3530" }}>
@@ -728,7 +740,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* WIE IS IEN */}
         {(page.wieIsTitle || page.wieIsText) && !hideWieIsIen && (
-          <section className="px-5 pb-12">
+          <section className="px-5 pb-8">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
                 <div className="flex items-center gap-4 mb-4">
@@ -765,7 +777,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* FAQ */}
         {vragen.length > 0 && !hideVragen && (
-          <section className="py-14 px-5">
+          <section className="px-5 pb-8">
             <div className="max-w-lg mx-auto">
               <div
                 className="rounded-2xl p-6 sm:p-7"
@@ -802,7 +814,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         )}
 
         {/* WAT JE KRIJGT — icon grid */}
-        {!hideWatJeKrijgt && <section className="px-4 sm:px-6 pb-14">
+        {!hideWatJeKrijgt && <section className="px-4 sm:px-6 pb-8">
           <div className="max-w-2xl mx-auto">
             <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
               <h2 className="text-base font-semibold mb-5" style={{ color: "#3d3530" }}>Wat je krijgt</h2>
@@ -825,7 +837,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* PRIJSBLOKKEN ONDERAAN — compacte versie */}
         {hasPricing && (
-          <section className="px-5 pb-12">
+          <section className="px-5 pb-8">
             <div className="max-w-2xl mx-auto">
               <div className={`grid gap-3 ${activePricingBlocks.length === 1 ? "grid-cols-1 max-w-xs mx-auto" : activePricingBlocks.length === 2 ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
                 {activePricingBlocks.map((block, i) => (
@@ -869,6 +881,9 @@ export function LandingPageView({ slug }: { slug: string }) {
             </div>
           </section>
         )}
+
+        {/* PRODUCTAFBEELDING — positie: before_final_cta */}
+        {productImagePosition === "before_final_cta" && <ProductImage />}
 
         {/* FINALE CTA */}
         {(page.finalCtaTitle || page.finalCtaBody) && (

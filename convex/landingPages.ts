@@ -184,6 +184,7 @@ export const update = mutation({
     section2Text: v.optional(v.string()),
     productImageStorageId: v.optional(v.union(v.id("_storage"), v.null())),
     productImagePath: v.optional(v.string()),
+    productImagePosition: v.optional(v.string()),
     bgImageStorageId: v.optional(v.union(v.id("_storage"), v.null())),
     voorWieBullets: v.optional(v.string()),
     voorWieTitle: v.optional(v.string()),
