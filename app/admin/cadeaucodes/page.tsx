@@ -249,11 +249,36 @@ const EMPTY_ACCESS: AccessForm = {
   recipientEmail: "",
 };
 
+function buildEmailTemplate(naam: string, code: string) {
+  return `Hoi ${naam},
+
+Ik dacht aan je en wilde je dit sturen.
+
+Ik werk met Talk To Benji — een plek waar je terecht kunt als je iemand mist, als de dagen zwaar zijn, of als je gewoon ergens mee zit maar niet weet bij wie je moet aankloppen. Benji is er dag en nacht. Zonder oordeel. Zonder dat je hoeft uit te leggen waarom je verdrietig bent.
+
+Ik geef je gratis toegang, omdat ik hoop dat het je iets brengt.
+
+Je toegangscode: ${code}
+
+Ga naar talktobenji.com/cadeau-inwisselen, vul de code in en maak een account aan. Het duurt twee minuten — daarna kun je er gewoon zijn.
+
+Je hoeft er niets mee te doen. Maar als er een moment is dat je het nodig hebt, is het er.
+
+Met veel zorg,
+Ien
+
+—
+Talk To Benji · talktobenji.com`;
+}
+
 function AccessCodeModal({ onClose, onCreate }: { onClose: () => void; onCreate: (f: AccessForm) => Promise<string> }) {
   const [form, setForm] = useState<AccessForm>(EMPTY_ACCESS);
   const [saving, setSaving] = useState(false);
   const [createdCode, setCreatedCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [naam, setNaam] = useState("");
+  const [emailText, setEmailText] = useState("");
+  const [emailCopied, setEmailCopied] = useState(false);
 
   const setField = (field: keyof AccessForm) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
@@ -264,9 +289,18 @@ function AccessCodeModal({ onClose, onCreate }: { onClose: () => void; onCreate:
     try {
       const code = await onCreate(form);
       setCreatedCode(code);
+      const defaultNaam = form.recipientEmail ? form.recipientEmail.split("@")[0] : "[naam]";
+      setNaam(defaultNaam);
+      setEmailText(buildEmailTemplate(defaultNaam, code));
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleNaamChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const n = e.target.value;
+    setNaam(n);
+    if (createdCode) setEmailText(buildEmailTemplate(n || "[naam]", createdCode));
   };
 
   const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
@@ -274,7 +308,7 @@ function AccessCodeModal({ onClose, onCreate }: { onClose: () => void; onCreate:
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+      <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
             <Key size={16} className="text-primary-500" />
@@ -285,32 +319,47 @@ function AccessCodeModal({ onClose, onCreate }: { onClose: () => void; onCreate:
 
         {createdCode ? (
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Code aangemaakt. Stuur hem door naar de ontvanger — hij werkt eenmalig.
-              {form.recipientEmail && (
-                <span className="block mt-1 text-primary-700 font-medium">Gekoppeld aan: {form.recipientEmail}</span>
-              )}
-            </p>
             <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 text-center">
               <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Toegangscode</p>
               <p className="font-mono font-bold text-2xl tracking-widest text-gray-900">{createdCode}</p>
+              {form.recipientEmail && (
+                <p className="text-xs text-primary-600 mt-1">Gekoppeld aan: {form.recipientEmail}</p>
+              )}
             </div>
-            <div className="flex gap-2">
+
+            <button
+              onClick={() => { navigator.clipboard.writeText(createdCode).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+              className="w-full py-2 border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50"
+            >
+              {copied ? "Code gekopieerd ✓" : "Kopieer alleen de code"}
+            </button>
+
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">E-mailsjabloon</p>
+              <div className="mb-3">
+                <label className="block text-xs text-gray-500 mb-1">Naam ontvanger</label>
+                <input
+                  type="text"
+                  value={naam}
+                  onChange={handleNaamChange}
+                  placeholder="Bijv. Mirjam"
+                  className={inputClass}
+                />
+              </div>
+              <textarea
+                value={emailText}
+                onChange={(e) => setEmailText(e.target.value)}
+                rows={14}
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary-400 resize-none font-[inherit]"
+              />
               <button
-                onClick={() => { navigator.clipboard.writeText(createdCode).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-                className="flex-1 py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700"
+                onClick={() => { navigator.clipboard.writeText(emailText).catch(() => {}); setEmailCopied(true); setTimeout(() => setEmailCopied(false), 2000); }}
+                className="mt-2 w-full py-2.5 bg-primary-600 text-white rounded-xl text-sm font-semibold hover:bg-primary-700"
               >
-                {copied ? "Gekopieerd ✓" : "Kopieer code"}
+                {emailCopied ? "Gekopieerd ✓" : "Kopieer volledige e-mail"}
               </button>
-              <a
-                href="/cadeau-inwisselen"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 text-center"
-              >
-                Inwisselpagina →
-              </a>
             </div>
+
             <button onClick={onClose} className="w-full text-sm text-gray-400 hover:text-gray-600 py-1">Sluiten</button>
           </div>
         ) : (
