@@ -406,10 +406,10 @@ export const cancelOwnSubscription = mutation({
     if (!subscription) throw new Error("Geen actief abonnement gevonden");
     if (subscription.status === "cancelled") throw new Error("Abonnement is al opgezegd");
 
-    // Voor jaar-toegang: toegang loopt door tot de originele expiresAt
-    // Voor maandelijks: bereken volgende vervaldag (legacy, niet meer actief verkocht)
+    // Als er een vaste expiresAt is (eenmalige toegang), gebruik die altijd.
+    // Legacy monthly zonder expiresAt: bereken volgende vervaldag.
     let expiresAt: number;
-    if (subscription.billingPeriod === "yearly" && subscription.expiresAt) {
+    if (subscription.expiresAt) {
       expiresAt = subscription.expiresAt;
     } else {
       const start = new Date(subscription.startedAt);

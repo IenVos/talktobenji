@@ -64,7 +64,7 @@ export function SubscriptionStatus({ userId, email }: SubscriptionStatusProps) {
   return (
     <div className="bg-white rounded-xl border border-primary-200 p-6">
       <h3 className="text-base font-semibold text-gray-900 mb-4">
-        Jouw abonnement
+        Jouw toegang
       </h3>
 
       <div className="flex items-center gap-3 mb-4">

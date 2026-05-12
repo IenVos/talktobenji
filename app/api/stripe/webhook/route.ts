@@ -333,14 +333,17 @@ export async function POST(req: NextRequest) {
 
       try {
         const subType: string = subscriptionType || "alles_in_1";
+        const accessDays = product?.accessDays ?? 365;
+        // billingPeriod op basis van looptijd, niet producttype — voorkomt verkeerde renewal-email timing
         const billingPeriod =
           subType === "maand_toegang" ? "monthly" :
           subType === "kwartaal_toegang" ? "quarterly" :
+          accessDays <= 35 ? "monthly" :
+          accessDays <= 100 ? "quarterly" :
           "yearly";
 
         // Activatie proberen (stille fout als nog geen account)
         try {
-          const accessDays = product?.accessDays ?? 365;
           await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
             webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
             email,
@@ -380,7 +383,7 @@ export async function POST(req: NextRequest) {
               webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
               email,
               subscriptionType: "alles_in_1",
-              billingPeriod: "yearly",
+              billingPeriod: addonAccessDays <= 35 ? "monthly" : addonAccessDays <= 100 ? "quarterly" : "yearly",
               accessDays: addonAccessDays,
               pricePaid: 0,
               paymentProvider: "stripe",

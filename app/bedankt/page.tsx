@@ -180,42 +180,36 @@ function BedanktContent() {
           </div>
         )}
 
-        {/* Ingelogd maar free/trial — upgrade */}
+        {/* Ingelogd maar free/trial — nudge naar Benji */}
         {!isLoading && isLoggedIn && !hasFullAccess && subscription && (
           <div className="bg-white rounded-2xl border border-primary-100 shadow-sm p-6 space-y-4">
             <div>
               <p className="text-xs font-medium text-primary-500 uppercase tracking-wide mb-1">
-                Ontdek meer van Benji
+                Jouw gratis account staat klaar
               </p>
               <h2 className="text-base font-semibold text-gray-900">
-                Een heel jaar lang Benji
+                Ga in gesprek met Benji
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                Praten met Benji, dagelijkse check-ins, reflecties, memories, handreikingen en meer — alles inbegrepen voor één prijs.
+                Je kunt nu gratis met Benji praten. Deel wat er speelt — Benji luistert.
               </p>
             </div>
 
             <Link
-              href="/lp/jaar-toegang"
+              href="/?welcome=1"
               className="flex items-center justify-between gap-3 p-4 rounded-xl border border-primary-200 bg-primary-50 hover:bg-primary-100 transition-colors group"
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
-                  <Star size={18} className="text-primary-600" fill="currentColor" />
+                  <MessageSquare size={18} className="text-primary-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">1 jaar toegang · Alles inbegrepen</p>
-                  <p className="text-xs text-gray-600">€&nbsp;97 eenmalig · Geen abonnement · Geen verplichtingen</p>
+                  <p className="text-sm font-semibold text-gray-900">Gesprek starten</p>
+                  <p className="text-xs text-gray-600">Benji staat voor je klaar</p>
                 </div>
               </div>
               <ChevronRight size={16} className="text-primary-400 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
             </Link>
-
-            <p className="text-xs text-center">
-              <Link href="/lp/jaar-toegang" className="text-primary-500 hover:underline">
-                Bekijk wat er allemaal in zit →
-              </Link>
-            </p>
           </div>
         )}
 

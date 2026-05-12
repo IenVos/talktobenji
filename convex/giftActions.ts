@@ -20,6 +20,13 @@ export const redeemGiftCode = mutation({
     if (!gift) throw new Error("Code niet gevonden");
     if (gift.status === "redeemed") throw new Error("Deze code is al gebruikt");
 
+    // Als de code gekoppeld is aan een specifiek e-mailadres, controleer dat
+    if (gift.recipientEmail) {
+      if (gift.recipientEmail.toLowerCase() !== args.recipientEmail.trim().toLowerCase()) {
+        throw new Error("Deze code is voor een ander e-mailadres bestemd.");
+      }
+    }
+
     await ctx.db.patch(gift._id, {
       status: "redeemed",
       redeemedByEmail: args.recipientEmail.trim().toLowerCase(),
@@ -35,40 +42,37 @@ export const redeemGiftCode = mutation({
 
     if (cred) {
       const now = Date.now();
-      const accessDays = gift.accessDays ?? 365;
-      const existing = await ctx.db
-        .query("userSubscriptions")
-        .withIndex("by_user", (q) => q.eq("userId", cred.userId.toString()))
-        .first();
+      const accessDays = gift.accessDays && gift.accessDays > 0 ? gift.accessDays : 30;
+      const needsBenji = gift.subscriptionType === "alles_in_1" || gift.subscriptionType === "niet_alleen_plus_benji";
+      const needsNietAlleen = gift.subscriptionType === "niet_alleen" || gift.subscriptionType === "niet_alleen_plus_benji";
 
-      if (existing) {
-        await ctx.db.patch(existing._id, {
-          subscriptionType: gift.subscriptionType,
-          billingPeriod: gift.billingPeriod,
-          status: "active",
-          startedAt: now,
-          expiresAt: now + accessDays * 24 * 60 * 60 * 1000,
-          pricePaid: 0,
-          paymentProvider: "gift",
-          updatedAt: now,
-        });
-      } else {
-        await ctx.db.insert("userSubscriptions", {
+      // Benji subscription activeren
+      if (needsBenji) {
+        const existing = await ctx.db
+          .query("userSubscriptions")
+          .withIndex("by_user", (q) => q.eq("userId", cred.userId.toString()))
+          .first();
+        const subData = {
           userId: cred.userId.toString(),
           email: emailLower,
-          subscriptionType: gift.subscriptionType,
+          subscriptionType: "alles_in_1",
           billingPeriod: gift.billingPeriod,
-          status: "active",
+          status: "active" as const,
           startedAt: now,
           expiresAt: now + accessDays * 24 * 60 * 60 * 1000,
           pricePaid: 0,
           paymentProvider: "gift",
           updatedAt: now,
-        });
+        };
+        if (existing) {
+          await ctx.db.patch(existing._id, subData);
+        } else {
+          await ctx.db.insert("userSubscriptions", subData);
+        }
       }
 
-      // Niet Alleen profiel aanmaken als het product dat vereist
-      if (gift.subscriptionType === "niet_alleen") {
+      // Niet Alleen profiel aanmaken
+      if (needsNietAlleen) {
         const user = await ctx.db.get(cred.userId);
         const bestaandProfiel = await ctx.db
           .query("nietAlleenProfiles")
@@ -79,11 +83,22 @@ export const redeemGiftCode = mutation({
             userId: emailLower,
             email: emailLower,
             naam: user?.name ?? emailLower.split("@")[0],
-            startDatum: Date.now(),
+            startDatum: now,
             dagPrompts: [],
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
+            createdAt: now,
+            updatedAt: now,
           });
+        }
+      }
+
+      // Legacy: niet_alleen had vroeger ook een eigen subscription record
+      if (gift.subscriptionType === "niet_alleen" && !needsBenji) {
+        const existing = await ctx.db
+          .query("userSubscriptions")
+          .withIndex("by_user", (q) => q.eq("userId", cred.userId.toString()))
+          .first();
+        if (existing && existing.subscriptionType !== "alles_in_1") {
+          // Niet overschrijven als ze al volledige toegang hebben
         }
       }
     }

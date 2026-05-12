@@ -141,7 +141,7 @@ export const createUserWithPassword = withSecretMutation({
         userId: userId.toString(),
         email: emailLower,
         subscriptionType: "alles_in_1",
-        billingPeriod: "yearly",
+        billingPeriod: pendingAddonDays <= 35 ? "monthly" : pendingAddonDays <= 100 ? "quarterly" : "yearly",
         status: "active",
         startedAt: now,
         expiresAt: now + pendingAddonDays * 24 * 60 * 60 * 1000,
@@ -158,19 +158,39 @@ export const createUserWithPassword = withSecretMutation({
         });
       }
     } else if (giftForEmail) {
-      const accessDays = giftForEmail.accessDays ?? 365;
+      const accessDays = giftForEmail.accessDays && giftForEmail.accessDays > 0 ? giftForEmail.accessDays : 30;
+      const needsBenji = giftForEmail.subscriptionType === "alles_in_1" || giftForEmail.subscriptionType === "niet_alleen_plus_benji";
+      const subType = needsBenji ? "alles_in_1" : giftForEmail.subscriptionType;
       await ctx.db.insert("userSubscriptions", {
         userId: userId.toString(),
         email: emailLower,
-        subscriptionType: giftForEmail.subscriptionType,
-        billingPeriod: giftForEmail.billingPeriod,
+        subscriptionType: subType,
+        billingPeriod: needsBenji ? giftForEmail.billingPeriod : undefined,
         status: "active",
         startedAt: now,
-        expiresAt: now + accessDays * 24 * 60 * 60 * 1000,
+        expiresAt: needsBenji ? now + accessDays * 24 * 60 * 60 * 1000 : undefined,
         pricePaid: 0,
         paymentProvider: "gift",
         updatedAt: now,
       });
+      // Niet Alleen email programma starten als de gift dat vereist
+      if (giftForEmail.subscriptionType === "niet_alleen" || giftForEmail.subscriptionType === "niet_alleen_plus_benji") {
+        const bestaandProfiel = await ctx.db
+          .query("nietAlleenProfiles")
+          .withIndex("by_email", (q) => q.eq("email", emailLower))
+          .first();
+        if (!bestaandProfiel) {
+          await ctx.db.insert("nietAlleenProfiles", {
+            userId: emailLower,
+            email: emailLower,
+            naam: name.trim() || emailLower.split("@")[0],
+            startDatum: now,
+            dagPrompts: [],
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      }
     } else {
       await ctx.db.insert("userSubscriptions", {
         userId: userId.toString(),
@@ -402,7 +422,35 @@ export const findOrCreateOAuthUser = mutation({
       )
       .first();
 
-    if (giftForOAuth) {
+    // Controleer of er een pending addon is (bijv. Benji chat-toegang gekocht zonder account)
+    const oauthProfiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", emailLower))
+      .first();
+    const oauthPendingAddon = oauthProfiel?.pendingAddonType;
+    const oauthPendingAddonDays = oauthProfiel?.pendingAddonAccessDays ?? 30;
+
+    if (oauthPendingAddon === "benji_access") {
+      await ctx.db.insert("userSubscriptions", {
+        userId: userId.toString(),
+        email: emailLower,
+        subscriptionType: "alles_in_1",
+        billingPeriod: oauthPendingAddonDays <= 35 ? "monthly" : oauthPendingAddonDays <= 100 ? "quarterly" : "yearly",
+        status: "active",
+        startedAt: now,
+        expiresAt: now + oauthPendingAddonDays * 24 * 60 * 60 * 1000,
+        pricePaid: 0,
+        paymentProvider: "stripe",
+        updatedAt: now,
+      });
+      if (oauthProfiel) {
+        await ctx.db.patch(oauthProfiel._id, {
+          pendingAddonType: undefined,
+          pendingAddonAccessDays: undefined,
+          updatedAt: now,
+        });
+      }
+    } else if (giftForOAuth) {
       const accessDays = giftForOAuth.accessDays ?? 365;
       await ctx.db.insert("userSubscriptions", {
         userId: userId.toString(),
@@ -416,6 +464,23 @@ export const findOrCreateOAuthUser = mutation({
         paymentProvider: "gift",
         updatedAt: now,
       });
+      if (giftForOAuth.subscriptionType === "niet_alleen" || giftForOAuth.subscriptionType === "niet_alleen_plus_benji") {
+        const bestaandProfiel = await ctx.db
+          .query("nietAlleenProfiles")
+          .withIndex("by_email", (q) => q.eq("email", emailLower))
+          .first();
+        if (!bestaandProfiel) {
+          await ctx.db.insert("nietAlleenProfiles", {
+            userId: emailLower,
+            email: emailLower,
+            naam: displayName,
+            startDatum: now,
+            dagPrompts: [],
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+      }
     } else {
       // 7-daagse trial aanmaken
       await ctx.db.insert("userSubscriptions", {

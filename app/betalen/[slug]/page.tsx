@@ -580,21 +580,13 @@ export default function BetalenPage() {
             <button
               type="button"
               onClick={() => setAddOnSelected((v) => !v)}
-              className="relative w-full text-left mt-5 rounded-xl p-4 transition-all border-2"
+              className="w-full text-left mt-5 rounded-xl p-4 transition-all border-2"
               style={{
                 borderColor: addOnSelected ? "#6d84a8" : "#e2d9cf",
                 background: addOnSelected ? "#f0f4f9" : "#fdf9f4",
               }}
             >
-              {/* Prijsbadge — absoluut rechtsboven zodat label volle breedte krijgt */}
-              <span
-                className="absolute top-4 right-4 text-xs font-bold whitespace-nowrap px-2 py-0.5 rounded-full"
-                style={{ color: "#6d84a8", background: addOnSelected ? "white" : "#e8f0f8" }}
-              >
-                +{new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(product.addOnPriceInCents / 100)}
-              </span>
-
-              <div className="flex items-start gap-3 pr-20">
+              <div className="flex items-start gap-3">
                 <div
                   className="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-all"
                   style={{
@@ -613,6 +605,14 @@ export default function BetalenPage() {
                   {product.addOnDescription && (
                     <p className="text-xs leading-relaxed mt-0.5" style={{ color: "#b0a8a0" }}>{product.addOnDescription}</p>
                   )}
+                  <div className="flex justify-end mt-2">
+                    <span
+                      className="text-xs font-bold whitespace-nowrap px-2 py-0.5 rounded-full"
+                      style={{ color: "#6d84a8", background: addOnSelected ? "white" : "#e8f0f8" }}
+                    >
+                      +{new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(product.addOnPriceInCents / 100)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </button>

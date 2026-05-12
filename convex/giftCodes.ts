@@ -53,6 +53,61 @@ export const createGiftCode = mutation({
   },
 });
 
+/**
+ * Admin: maak een echte toegangscode aan (gratis toegang geven zonder betaling).
+ * Ondersteunt: niet_alleen, alles_in_1 (benji), niet_alleen_plus_benji.
+ * Als recipientEmail is ingesteld, werkt de code alleen voor dat adres.
+ */
+export const adminCreateAccessCode = mutation({
+  args: {
+    adminToken: v.string(),
+    accessType: v.union(
+      v.literal("niet_alleen"),
+      v.literal("alles_in_1"),
+      v.literal("niet_alleen_plus_benji"),
+    ),
+    benjiDays: v.optional(v.number()),
+    note: v.optional(v.string()),
+    recipientEmail: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const codeRaw =
+      Math.random().toString(36).slice(2, 6).toUpperCase() +
+      Math.random().toString(36).slice(2, 6).toUpperCase();
+    const code = `TTB-${codeRaw.slice(0, 4)}-${codeRaw.slice(4, 8)}`;
+
+    const days = args.benjiDays ?? 30;
+    const billingPeriod = days <= 35 ? "monthly" : days <= 100 ? "quarterly" : "yearly";
+
+    const productNames: Record<string, string> = {
+      niet_alleen: "Niet Alleen programma",
+      alles_in_1: `${days} dagen Talk To Benji`,
+      niet_alleen_plus_benji: `Niet Alleen + ${days} dagen Talk To Benji`,
+    };
+
+    await ctx.db.insert("giftCodes", {
+      code,
+      slug: "admin",
+      productName: productNames[args.accessType],
+      subscriptionType: args.accessType,
+      billingPeriod: args.accessType === "niet_alleen" ? undefined : billingPeriod,
+      accessDays: args.accessType === "niet_alleen" ? 0 : days,
+      pricePaid: 0,
+      giverName: args.note ?? "Ien",
+      giverEmail: "contactmetien@talktobenji.com",
+      recipientEmail: args.recipientEmail?.toLowerCase().trim() || undefined,
+      deliveryMethod: "manual",
+      status: "pending",
+      paymentIntentId: `admin_${Date.now()}`,
+      createdAt: Date.now(),
+    });
+
+    return code;
+  },
+});
+
 /** Admin: maak een testcode aan zonder Stripe (voor testen) */
 export const adminCreateTestCode = mutation({
   args: {

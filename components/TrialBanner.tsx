@@ -61,11 +61,11 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
 
     const bannerText =
       daysLeft <= 0 ? (
-        <>Vandaag is de <strong>laatste dag</strong> om toegang te houden tot alles wat je graag gebruikt. Upgrade nu.</>
+        <>Vandaag is de <strong>laatste dag</strong> van je gratis periode. Daarna kun je nog steeds gratis met Benji praten.</>
       ) : daysLeft === 1 ? (
-        <>Benji is nog <strong>1 dag</strong> gratis beschikbaar. Upgrade daarna om toegang te blijven houden tot alles wat je graag gebruikt.</>
+        <>Benji is nog <strong>1 dag</strong> volledig beschikbaar. Daarna ga je automatisch naar het gratis account.</>
       ) : (
-        <>Benji is de komende <strong>{daysLeft} dagen</strong> gratis beschikbaar. Upgrade daarna om toegang te blijven houden tot alles wat je graag gebruikt.</>
+        <>Benji is de komende <strong>{daysLeft} dagen</strong> volledig beschikbaar. Daarna ga je automatisch naar het gratis account.</>
       );
 
     return (
@@ -74,12 +74,6 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
         <p className="flex-1 text-sm text-amber-800">
           {bannerText}
         </p>
-        <Link
-          href="/account/abonnement?upgrade=true"
-          className="flex-shrink-0 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 transition-colors"
-        >
-          Mijn abonnement
-        </Link>
       </div>
     );
   }
@@ -104,27 +98,19 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
           <div className="flex items-center gap-2 mb-3">
             <Star size={20} className="text-amber-500" />
             <h2 className="text-base font-bold text-gray-900">
-              Je proefperiode is afgelopen
+              Je gratis periode is voorbij
             </h2>
           </div>
           <p className="text-sm text-gray-600 leading-relaxed mb-6">
-            Je gesprekken, reflecties en doelen staan nog steeds voor je klaar.
-            Upgrade om er weer volop gebruik van te maken.
+            Je gesprekken, reflecties en doelen staan nog steeds voor je klaar. Je kunt nog steeds gratis met Benji praten.
           </p>
           <div className="flex flex-col gap-2">
-            <Link
-              href="/account/abonnement?upgrade=true"
-              onClick={dismissPopup}
-              className="w-full rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white text-center hover:bg-amber-600 transition-colors"
-            >
-              Mijn abonnement
-            </Link>
             <button
               type="button"
               onClick={dismissPopup}
-              className="w-full rounded-lg px-4 py-2.5 text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+              className="w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white text-center hover:bg-primary-700 transition-colors"
             >
-              Misschien later
+              Doorgaan met Benji
             </button>
           </div>
         </div>
