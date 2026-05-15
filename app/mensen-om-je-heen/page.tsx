@@ -60,9 +60,12 @@ const FILTER_META: { id: FilterId; icon: ReactNode; kleur: string }[] = [
   { id: "ander",  icon: <IconHeart />, kleur: "bg-primary-600" },
 ];
 
-function matchesFilter(catNaam: string, filterId: FilterId | null): boolean {
-  if (!filterId) return true;
-  const lc = catNaam.toLowerCase();
+function matchesFilter(cat: Categorie, filterId: FilterId | null): boolean {
+  if (!filterId || filterId === "ander") return false;
+  const tags = cat.filterTags ?? [];
+  if (tags.length > 0) return tags.includes(filterId);
+  // Fallback voor categorieën zonder tags: gebruik naamherkenning
+  const lc = cat.naam.toLowerCase();
   if (filterId === "lezen")  return lc.includes("overlijden") || lc.includes("werk");
   if (filterId === "praten") return lc.includes("overlijden");
   if (filterId === "groep")  return true;
@@ -77,6 +80,7 @@ type Categorie = {
   volgorde: number;
   zichtbaar: boolean;
   imageUrl?: string | null;
+  filterTags?: string[];
 };
 
 type Initiatief = {
@@ -181,8 +185,8 @@ export default function MensenOmJeHeenPage() {
     return zichtbareInits.filter((i) => i.categorie_id === catId).sort((a, b) => a.volgorde - b.volgorde);
   }
 
-  const gefilterdeCats = actieveFilter !== "ander"
-    ? zichtbareCats.filter((c) => matchesFilter(c.naam, actieveFilter))
+  const gefilterdeCats = actieveFilter && actieveFilter !== "ander"
+    ? zichtbareCats.filter((c) => matchesFilter(c, actieveFilter))
     : [];
 
   return (
@@ -237,9 +241,11 @@ export default function MensenOmJeHeenPage() {
       {actieveFilter === "ander" && (
         <section className="max-w-3xl mx-auto px-6 pb-10">
           <div className="rounded-2xl p-6 bg-primary-50 border border-primary-200">
-            <p className="text-sm font-semibold text-primary-900 mb-2">Er zijn voor iemand begint met luisteren.</p>
+            <p className="text-sm font-semibold text-primary-900 mb-2">
+              {(paginaTeksten as any)?.filter_ander_blok_titel ?? "Er zijn voor iemand begint met luisteren."}
+            </p>
             <p className="text-sm text-primary-700 leading-relaxed">
-              Niet met de juiste woorden. Je hoeft geen oplossing te hebben. Aanwezig zijn, vragen stellen zonder te dringen, gewoon er zijn — dat is al heel veel.
+              {(paginaTeksten as any)?.filter_ander_blok_tekst ?? "Niet met de juiste woorden. Je hoeft geen oplossing te hebben. Aanwezig zijn, vragen stellen zonder te dringen, gewoon er zijn — dat is al heel veel."}
             </p>
           </div>
         </section>

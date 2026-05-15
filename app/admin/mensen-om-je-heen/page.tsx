@@ -15,6 +15,7 @@ type Categorie = {
   zichtbaar: boolean;
   imageStorageId?: string;
   imageUrl?: string | null;
+  filterTags?: string[];
 };
 
 type Initiatief = {
@@ -217,6 +218,33 @@ function CategorieSectie({
       {/* Initiatieven */}
       {expanded && (
         <div className="p-4 space-y-3">
+          {/* Filter tags */}
+          <div className="flex items-center gap-2 flex-wrap pb-3 border-b border-gray-100">
+            <span className="text-xs font-medium text-gray-500">Toon bij filter:</span>
+            {(["lezen", "praten", "groep"] as const).map((tag) => {
+              const labels: Record<string, string> = { lezen: "Lezen", praten: "Praten", groep: "Groep" };
+              const actief = (cat.filterTags ?? []).includes(tag);
+              return (
+                <button
+                  key={tag}
+                  onClick={() => {
+                    const huidige = cat.filterTags ?? [];
+                    const nieuw = actief ? huidige.filter((t) => t !== tag) : [...huidige, tag];
+                    onUpdateCat(cat._id, { filterTags: nieuw });
+                  }}
+                  className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                    actief ? "bg-primary-100 border-primary-300 text-primary-700 font-medium" : "bg-white border-gray-200 text-gray-400 hover:border-primary-200 hover:text-primary-600"
+                  }`}
+                >
+                  {labels[tag]}
+                </button>
+              );
+            })}
+            <span className="text-xs text-gray-400 ml-1">
+              {(cat.filterTags ?? []).length === 0 ? "— geen filter geselecteerd, altijd zichtbaar" : ""}
+            </span>
+          </div>
+
           {initiatieven.map((init, idx) => (
             <InitiatiefRij key={init._id} init={init} isFirst={idx === 0} isLast={idx === initiatieven.length - 1}
               onSave={onSaveInitiatief} onDelete={onDeleteInitiatief} onToggleZichtbaar={onToggleInitZichtbaar}
@@ -262,6 +290,8 @@ export default function MensenOmJeHeenAdminPage() {
   const [filterPraten, setFilterPraten] = useState("");
   const [filterGroep, setFilterGroep] = useState("");
   const [filterAnder, setFilterAnder] = useState("");
+  const [filterAnderBlokTitel, setFilterAnderBlokTitel] = useState("");
+  const [filterAnderBlokTekst, setFilterAnderBlokTekst] = useState("");
   const [tekstenGeladen, setTekstenGeladen] = useState(false);
   const [tekstSaving, setTekstSaving] = useState(false);
   const [tekstSaved, setTekstSaved] = useState(false);
@@ -275,6 +305,8 @@ export default function MensenOmJeHeenAdminPage() {
     setFilterPraten(paginaTeksten.filter_praten ?? "");
     setFilterGroep(paginaTeksten.filter_groep ?? "");
     setFilterAnder(paginaTeksten.filter_ander ?? "");
+    setFilterAnderBlokTitel((paginaTeksten as any).filter_ander_blok_titel ?? "");
+    setFilterAnderBlokTekst((paginaTeksten as any).filter_ander_blok_tekst ?? "");
     setTekstenGeladen(true);
   }
 
@@ -288,6 +320,8 @@ export default function MensenOmJeHeenAdminPage() {
         filter_praten: filterPraten || undefined,
         filter_groep: filterGroep || undefined,
         filter_ander: filterAnder || undefined,
+        filter_ander_blok_titel: filterAnderBlokTitel || undefined,
+        filter_ander_blok_tekst: filterAnderBlokTekst || undefined,
       });
       setTekstSaved(true);
       setTimeout(() => setTekstSaved(false), 2000);
@@ -310,7 +344,12 @@ export default function MensenOmJeHeenAdminPage() {
       naam: data.naam ?? existing.naam,
       volgorde: data.volgorde ?? existing.volgorde,
       zichtbaar: data.zichtbaar ?? existing.zichtbaar,
-      ...(data.imageStorageId !== undefined && { imageStorageId: data.imageStorageId as Id<"_storage"> }),
+      filterTags: data.filterTags ?? existing.filterTags ?? [],
+      ...(data.imageStorageId !== undefined
+        ? { imageStorageId: data.imageStorageId as Id<"_storage"> }
+        : existing.imageStorageId
+          ? { imageStorageId: existing.imageStorageId as Id<"_storage"> }
+          : {}),
     });
   }
 
@@ -347,8 +386,8 @@ export default function MensenOmJeHeenAdminPage() {
     const idx = sorted.findIndex((c) => c._id === id);
     if (idx <= 0) return;
     const prev = sorted[idx - 1], cur = sorted[idx];
-    await upsertCategorie({ id: cur._id, naam: cur.naam, volgorde: prev.volgorde, zichtbaar: cur.zichtbaar });
-    await upsertCategorie({ id: prev._id, naam: prev.naam, volgorde: cur.volgorde, zichtbaar: prev.zichtbaar });
+    await upsertCategorie({ id: cur._id, naam: cur.naam, volgorde: prev.volgorde, zichtbaar: cur.zichtbaar, filterTags: cur.filterTags ?? [], ...(cur.imageStorageId ? { imageStorageId: cur.imageStorageId as Id<"_storage"> } : {}) });
+    await upsertCategorie({ id: prev._id, naam: prev.naam, volgorde: cur.volgorde, zichtbaar: prev.zichtbaar, filterTags: prev.filterTags ?? [], ...(prev.imageStorageId ? { imageStorageId: prev.imageStorageId as Id<"_storage"> } : {}) });
   }
 
   async function handleMoveDownCat(id: Id<"mensenopmjeheen_categorieen">) {
@@ -357,8 +396,8 @@ export default function MensenOmJeHeenAdminPage() {
     const idx = sorted.findIndex((c) => c._id === id);
     if (idx >= sorted.length - 1) return;
     const next = sorted[idx + 1], cur = sorted[idx];
-    await upsertCategorie({ id: cur._id, naam: cur.naam, volgorde: next.volgorde, zichtbaar: cur.zichtbaar });
-    await upsertCategorie({ id: next._id, naam: next.naam, volgorde: cur.volgorde, zichtbaar: next.zichtbaar });
+    await upsertCategorie({ id: cur._id, naam: cur.naam, volgorde: next.volgorde, zichtbaar: cur.zichtbaar, filterTags: cur.filterTags ?? [], ...(cur.imageStorageId ? { imageStorageId: cur.imageStorageId as Id<"_storage"> } : {}) });
+    await upsertCategorie({ id: next._id, naam: next.naam, volgorde: cur.volgorde, zichtbaar: next.zichtbaar, filterTags: next.filterTags ?? [], ...(next.imageStorageId ? { imageStorageId: next.imageStorageId as Id<"_storage"> } : {}) });
   }
 
   async function handleUploadInitiatiefImage(id: Id<"mensenopmjeheen_initiatieven">, file: File) {
@@ -461,15 +500,15 @@ export default function MensenOmJeHeenAdminPage() {
       {/* Filterteksten */}
       <section className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
         <div>
-          <h2 className="text-base font-semibold text-gray-900">Filterteksten</h2>
-          <p className="text-xs text-gray-500 mt-0.5">De vier keuzebuttons bovenaan de pagina. Laat leeg voor de standaardtekst.</p>
+          <h2 className="text-base font-semibold text-gray-900">Filterbuttons</h2>
+          <p className="text-xs text-gray-500 mt-0.5">De vier keuzebuttons bovenaan de pagina. Laat leeg voor de standaardtekst. Welke categorieën bij welk filter horen stel je per categorie in (zie hieronder).</p>
         </div>
         <div className="space-y-3">
           {[
             { label: "Lezen (boekicoon)", value: filterLezen, set: setFilterLezen, placeholder: FILTER_DEFAULTS.lezen },
             { label: "Praten (chaticoon)", value: filterPraten, set: setFilterPraten, placeholder: FILTER_DEFAULTS.praten },
             { label: "Groep (personicoon)", value: filterGroep, set: setFilterGroep, placeholder: FILTER_DEFAULTS.groep },
-            { label: "Ander (harticoon)", value: filterAnder, set: setFilterAnder, placeholder: FILTER_DEFAULTS.ander },
+            { label: "Ander (harticoon) — knoptekst", value: filterAnder, set: setFilterAnder, placeholder: FILTER_DEFAULTS.ander },
           ].map(({ label, value, set, placeholder }) => (
             <div key={label}>
               <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
@@ -477,6 +516,20 @@ export default function MensenOmJeHeenAdminPage() {
             </div>
           ))}
         </div>
+
+        {/* Ander-blok inhoud */}
+        <div className="pt-2 border-t border-gray-100 space-y-3">
+          <p className="text-xs font-medium text-gray-500">Inhoud van het blok dat verschijnt als iemand op "Ander" klikt:</p>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Titel</label>
+            <input value={filterAnderBlokTitel} onChange={(e) => setFilterAnderBlokTitel(e.target.value)} placeholder="Er zijn voor iemand begint met luisteren." className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Tekst</label>
+            <textarea value={filterAnderBlokTekst} onChange={(e) => setFilterAnderBlokTekst(e.target.value)} placeholder="Niet met de juiste woorden. Je hoeft geen oplossing te hebben…" rows={3} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300" />
+          </div>
+        </div>
+
         <button onClick={handleSaveTeksten} disabled={tekstSaving} className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 disabled:opacity-60">
           <Save size={15} />{tekstSaving ? "Bezig…" : tekstSaved ? "Opgeslagen!" : "Opslaan"}
         </button>

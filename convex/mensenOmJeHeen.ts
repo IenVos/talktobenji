@@ -24,6 +24,8 @@ export const upsertPaginaTeksten = mutation({
     filter_praten: v.optional(v.string()),
     filter_groep: v.optional(v.string()),
     filter_ander: v.optional(v.string()),
+    filter_ander_blok_titel: v.optional(v.string()),
+    filter_ander_blok_tekst: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -64,6 +66,7 @@ export const upsertCategorie = mutation({
     volgorde: v.number(),
     zichtbaar: v.boolean(),
     imageStorageId: v.optional(v.id("_storage")),
+    filterTags: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
