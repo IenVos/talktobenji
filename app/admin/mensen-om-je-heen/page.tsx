@@ -221,8 +221,8 @@ function CategorieSectie({
           {/* Filter tags */}
           <div className="flex items-center gap-2 flex-wrap pb-3 border-b border-gray-100">
             <span className="text-xs font-medium text-gray-500">Toon bij filter:</span>
-            {(["lezen", "praten", "groep"] as const).map((tag) => {
-              const labels: Record<string, string> = { lezen: "Lezen", praten: "Praten", groep: "Groep" };
+            {(["lezen", "praten", "groep", "ander"] as const).map((tag) => {
+              const labels: Record<string, string> = { lezen: "Lezen", praten: "Praten", groep: "Groep", ander: "Ik wil helpen" };
               const actief = (cat.filterTags ?? []).includes(tag);
               return (
                 <button

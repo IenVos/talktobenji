@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useRef, type ReactNode } from "react";
 import Image from "next/image";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -61,10 +61,11 @@ const FILTER_META: { id: FilterId; icon: ReactNode; kleur: string }[] = [
 ];
 
 function matchesFilter(cat: Categorie, filterId: FilterId | null): boolean {
-  if (!filterId || filterId === "ander") return false;
+  if (!filterId) return false;
   const tags = cat.filterTags ?? [];
   if (tags.length > 0) return tags.includes(filterId);
   // Fallback voor categorieën zonder tags: gebruik naamherkenning
+  if (filterId === "ander") return false;
   const lc = cat.naam.toLowerCase();
   if (filterId === "lezen")  return lc.includes("overlijden") || lc.includes("werk");
   if (filterId === "praten") return lc.includes("overlijden");
@@ -206,7 +207,7 @@ export default function MensenOmJeHeenPage() {
 
       {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
       {!actieveFilter && (
-        <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-12">
+        <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-4">
           <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
             Wat past het beste bij jou nu?
           </h2>
@@ -254,8 +255,17 @@ export default function MensenOmJeHeenPage() {
             </div>
 
             <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10 pb-16">
-              {/* Speciale inhoud voor "ander" */}
-              {actieveFilter === "ander" && (
+              {/* Matching categorieën */}
+              {gefilterdeCats.length > 0 && (
+                <div className="space-y-10">
+                  {gefilterdeCats.map((cat) => (
+                    <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} />
+                  ))}
+                </div>
+              )}
+
+              {/* Fallback "ander": tekst-blok als er nog geen categorieën gekoppeld zijn */}
+              {actieveFilter === "ander" && gefilterdeCats.length === 0 && (
                 <div className="rounded-2xl p-6 bg-primary-50 border border-primary-200">
                   <p className="text-sm font-semibold text-primary-900 mb-2">
                     {(paginaTeksten as any)?.filter_ander_blok_titel ?? "Er zijn voor iemand begint met luisteren."}
@@ -266,16 +276,7 @@ export default function MensenOmJeHeenPage() {
                 </div>
               )}
 
-              {/* Matching categorieën */}
-              {actieveFilter !== "ander" && gefilterdeCats.length > 0 && (
-                <div className="space-y-10">
-                  {gefilterdeCats.map((cat) => (
-                    <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} />
-                  ))}
-                </div>
-              )}
-
-              {/* Fallback: geen tags gekoppeld in admin → toon alles */}
+              {/* Fallback andere filters: geen tags gekoppeld in admin → toon alles */}
               {actieveFilter !== "ander" && gefilterdeCats.length === 0 && (
                 <div className="space-y-10">
                   {zichtbareCats.map((cat) => (
