@@ -206,7 +206,7 @@ export default function MensenOmJeHeenPage() {
 
       {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
       {!actieveFilter && (
-        <section className="max-w-3xl mx-auto px-6 py-10">
+        <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-12">
           <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
             Wat past het beste bij jou nu?
           </h2>
@@ -228,50 +228,65 @@ export default function MensenOmJeHeenPage() {
       )}
 
       {/* Resultaten — zichtbaar na een keuze */}
-      {actieveFilter && (
-        <section className="max-w-3xl mx-auto px-6 pb-16">
-          {/* Terugknop */}
-          <button
-            onClick={() => setActieveFilter(null)}
-            className="flex items-center gap-1.5 text-gray-400 hover:text-gray-600 transition-colors mt-8 mb-8 group"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="group-hover:-translate-x-0.5 transition-transform">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            <span className="text-sm">Terug</span>
-          </button>
-
-          {/* Speciale inhoud voor "ander" */}
-          {actieveFilter === "ander" && (
-            <div className="rounded-2xl p-6 bg-primary-50 border border-primary-200">
-              <p className="text-sm font-semibold text-primary-900 mb-2">
-                {(paginaTeksten as any)?.filter_ander_blok_titel ?? "Er zijn voor iemand begint met luisteren."}
-              </p>
-              <p className="text-sm text-primary-700 leading-relaxed">
-                {(paginaTeksten as any)?.filter_ander_blok_tekst ?? "Niet met de juiste woorden. Je hoeft geen oplossing te hebben. Aanwezig zijn, vragen stellen zonder te dringen, gewoon er zijn — dat is al heel veel."}
-              </p>
+      {actieveFilter && (() => {
+        const actieveOptie = filterOpties.find((o) => o.id === actieveFilter)!;
+        return (
+          <>
+            {/* Header met gekozen optie + terugknop */}
+            <div className="border-b border-gray-100 bg-white">
+              <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-5">
+                <button
+                  onClick={() => setActieveFilter(null)}
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-gray-600 transition-colors mb-5 group"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="group-hover:-translate-x-0.5 transition-transform">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                  <span className="text-sm">Terug</span>
+                </button>
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-xl ${actieveOptie.kleur} text-white flex items-center justify-center flex-shrink-0`}>
+                    {actieveOptie.icon}
+                  </div>
+                  <p className="text-base font-semibold text-primary-900 leading-snug">{actieveOptie.label}</p>
+                </div>
+              </div>
             </div>
-          )}
 
-          {/* Matching categorieën */}
-          {actieveFilter !== "ander" && gefilterdeCats.length > 0 && (
-            <div className="space-y-10">
-              {gefilterdeCats.map((cat) => (
-                <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} />
-              ))}
-            </div>
-          )}
+            <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10 pb-16">
+              {/* Speciale inhoud voor "ander" */}
+              {actieveFilter === "ander" && (
+                <div className="rounded-2xl p-6 bg-primary-50 border border-primary-200">
+                  <p className="text-sm font-semibold text-primary-900 mb-2">
+                    {(paginaTeksten as any)?.filter_ander_blok_titel ?? "Er zijn voor iemand begint met luisteren."}
+                  </p>
+                  <p className="text-sm text-primary-700 leading-relaxed">
+                    {(paginaTeksten as any)?.filter_ander_blok_tekst ?? "Niet met de juiste woorden. Je hoeft geen oplossing te hebben. Aanwezig zijn, vragen stellen zonder te dringen, gewoon er zijn — dat is al heel veel."}
+                  </p>
+                </div>
+              )}
 
-          {/* Fallback: geen tags gekoppeld in admin → toon alles */}
-          {actieveFilter !== "ander" && gefilterdeCats.length === 0 && (
-            <div className="space-y-10">
-              {zichtbareCats.map((cat) => (
-                <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
+              {/* Matching categorieën */}
+              {actieveFilter !== "ander" && gefilterdeCats.length > 0 && (
+                <div className="space-y-10">
+                  {gefilterdeCats.map((cat) => (
+                    <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} />
+                  ))}
+                </div>
+              )}
+
+              {/* Fallback: geen tags gekoppeld in admin → toon alles */}
+              {actieveFilter !== "ander" && gefilterdeCats.length === 0 && (
+                <div className="space-y-10">
+                  {zichtbareCats.map((cat) => (
+                    <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        );
+      })()}
 
       {/* Niet Alleen promo */}
       <section className="bg-primary-50 border-t border-primary-100">
