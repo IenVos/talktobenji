@@ -64,7 +64,6 @@ function matchesFilter(cat: Categorie, filterId: FilterId | null): boolean {
   if (!filterId) return false;
   const tags = cat.filterTags ?? [];
   if (tags.length > 0) return tags.includes(filterId);
-  // Fallback voor categorieën zonder tags: gebruik naamherkenning
   if (filterId === "ander") return false;
   const lc = cat.naam.toLowerCase();
   if (filterId === "lezen")  return lc.includes("overlijden") || lc.includes("werk");
@@ -145,11 +144,7 @@ function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: I
     <div>
       <div className="flex items-center gap-3 mb-4">
         {cat.imageUrl && (
-          <img
-            src={cat.imageUrl}
-            alt=""
-            className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100"
-          />
+          <img src={cat.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
         )}
         <h3 className="text-base font-bold text-primary-900">{cat.naam}</h3>
       </div>
@@ -166,6 +161,7 @@ function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: I
 
 export default function MensenOmJeHeenPage() {
   const [actieveFilter, setActieveFilter] = useState<FilterId | null>(null);
+  const ankerRef = useRef<HTMLDivElement>(null);
 
   const paginaTeksten = useQuery(api.mensenOmJeHeen.getPaginaTeksten, {});
   const categorieen = useQuery(api.mensenOmJeHeen.listCategorieen, {}) as Categorie[] | undefined;
@@ -186,12 +182,19 @@ export default function MensenOmJeHeenPage() {
     return zichtbareInits.filter((i) => i.categorie_id === catId).sort((a, b) => a.volgorde - b.volgorde);
   }
 
-  const gefilterdeCats = actieveFilter && actieveFilter !== "ander"
+  const gefilterdeCats = actieveFilter
     ? zichtbareCats.filter((c) => matchesFilter(c, actieveFilter))
     : [];
 
+  function kiesFilter(id: FilterId | null) {
+    setActieveFilter(id);
+    setTimeout(() => {
+      ankerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }
+
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="bg-primary-900">
       <SiteHeaderConcept />
 
       {/* Hero */}
@@ -205,25 +208,30 @@ export default function MensenOmJeHeenPage() {
         </div>
       </section>
 
+      {/* Ankerpunt — scroll hiernaartoe bij elke filterkeuze zodat het beeld niet verspringt */}
+      <div ref={ankerRef} className="scroll-mt-20" />
+
       {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
       {!actieveFilter && (
-        <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-4">
-          <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
-            Wat past het beste bij jou nu?
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {filterOpties.map((optie) => (
-              <button
-                key={optie.id}
-                onClick={() => setActieveFilter(optie.id)}
-                className="flex items-center gap-3 text-left px-4 py-4 rounded-xl border border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm transition-all"
-              >
-                <div className={`w-10 h-10 rounded-xl ${optie.kleur} text-white flex items-center justify-center flex-shrink-0`}>
-                  {optie.icon}
-                </div>
-                <span className="text-sm text-primary-900 leading-snug font-medium">{optie.label}</span>
-              </button>
-            ))}
+        <section className="w-full bg-white">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-14">
+            <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
+              Wat past het beste bij jou nu?
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {filterOpties.map((optie) => (
+                <button
+                  key={optie.id}
+                  onClick={() => kiesFilter(optie.id)}
+                  className="flex items-center gap-3 text-left px-4 py-4 rounded-xl border border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm transition-all"
+                >
+                  <div className={`w-10 h-10 rounded-xl ${optie.kleur} text-white flex items-center justify-center flex-shrink-0`}>
+                    {optie.icon}
+                  </div>
+                  <span className="text-sm text-primary-900 leading-snug font-medium">{optie.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -232,12 +240,12 @@ export default function MensenOmJeHeenPage() {
       {actieveFilter && (() => {
         const actieveOptie = filterOpties.find((o) => o.id === actieveFilter)!;
         return (
-          <>
+          <div className="w-full bg-white">
             {/* Header met gekozen optie + terugknop */}
-            <div className="border-b border-gray-100 bg-white">
+            <div className="border-b border-gray-100">
               <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-5">
                 <button
-                  onClick={() => setActieveFilter(null)}
+                  onClick={() => kiesFilter(null)}
                   className="flex items-center gap-1.5 text-gray-400 hover:text-gray-600 transition-colors mb-5 group"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="group-hover:-translate-x-0.5 transition-transform">
@@ -254,7 +262,8 @@ export default function MensenOmJeHeenPage() {
               </div>
             </div>
 
-            <section className="max-w-3xl mx-auto px-4 sm:px-6 py-10 pb-16">
+            {/* Inhoud */}
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 pb-16">
               {/* Matching categorieën */}
               {gefilterdeCats.length > 0 && (
                 <div className="space-y-10">
@@ -284,13 +293,13 @@ export default function MensenOmJeHeenPage() {
                   ))}
                 </div>
               )}
-            </section>
-          </>
+            </div>
+          </div>
         );
       })()}
 
       {/* Niet Alleen promo */}
-      <section className="bg-primary-50 border-t border-primary-100 flex-1">
+      <section className="bg-primary-50 border-t border-primary-100">
         <div className="max-w-2xl mx-auto px-6 py-14 text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-3">30 dagen begeleiding</p>
           <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-4 text-balance">
