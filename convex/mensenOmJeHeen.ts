@@ -7,7 +7,6 @@ import { checkAdmin } from "./adminAuth";
 
 // ─── Paginateksten (singleton) ───────────────────────────────────────────────
 
-/** Haal de paginateksten op (publiek). */
 export const getPaginaTeksten = query({
   args: { adminToken: v.optional(v.string()) },
   handler: async (ctx) => {
@@ -16,20 +15,22 @@ export const getPaginaTeksten = query({
   },
 });
 
-/** Sla paginateksten op — insert als nog niet bestaat, vervang als al bestaat. */
 export const upsertPaginaTeksten = mutation({
   args: {
     adminToken: v.string(),
     hero_titel: v.string(),
     hero_subtitel: v.string(),
-    slot_tekst: v.string(),
+    filter_lezen: v.optional(v.string()),
+    filter_praten: v.optional(v.string()),
+    filter_groep: v.optional(v.string()),
+    filter_ander: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
     const { adminToken, ...data } = args;
     const docs = await ctx.db.query("mensenopmjeheen_pagina").collect();
     if (docs.length > 0) {
-      await ctx.db.replace(docs[0]._id, data);
+      await ctx.db.patch(docs[0]._id, data);
     } else {
       await ctx.db.insert("mensenopmjeheen_pagina", data);
     }
@@ -38,16 +39,23 @@ export const upsertPaginaTeksten = mutation({
 
 // ─── Categorieën ─────────────────────────────────────────────────────────────
 
-/** Haal alle categorieën op, gesorteerd op volgorde (publiek). */
 export const listCategorieen = query({
   args: { adminToken: v.optional(v.string()) },
   handler: async (ctx) => {
     const items = await ctx.db.query("mensenopmjeheen_categorieen").collect();
-    return items.sort((a, b) => a.volgorde - b.volgorde);
+    const sorted = items.sort((a, b) => a.volgorde - b.volgorde);
+    const withUrls = await Promise.all(
+      sorted.map(async (item) => ({
+        ...item,
+        imageUrl: item.imageStorageId
+          ? await ctx.storage.getUrl(item.imageStorageId)
+          : null,
+      }))
+    );
+    return withUrls;
   },
 });
 
-/** Maak een categorie aan of pas een bestaande aan. */
 export const upsertCategorie = mutation({
   args: {
     adminToken: v.string(),
@@ -55,6 +63,7 @@ export const upsertCategorie = mutation({
     naam: v.string(),
     volgorde: v.number(),
     zichtbaar: v.boolean(),
+    imageStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -68,7 +77,6 @@ export const upsertCategorie = mutation({
   },
 });
 
-/** Verwijder een categorie én alle bijbehorende initiatieven. */
 export const deleteCategorie = mutation({
   args: {
     adminToken: v.string(),
@@ -86,9 +94,18 @@ export const deleteCategorie = mutation({
   },
 });
 
+// ─── Upload URL ───────────────────────────────────────────────────────────────
+
+export const generateUploadUrl = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
 // ─── Initiatieven ─────────────────────────────────────────────────────────────
 
-/** Haal alle initiatieven op, optioneel gefilterd op categorie_id (publiek). */
 export const listInitiatieven = query({
   args: {
     adminToken: v.optional(v.string()),
@@ -103,7 +120,6 @@ export const listInitiatieven = query({
   },
 });
 
-/** Maak een initiatief aan of pas een bestaand aan. */
 export const upsertInitiatief = mutation({
   args: {
     adminToken: v.string(),
@@ -127,7 +143,6 @@ export const upsertInitiatief = mutation({
   },
 });
 
-/** Verwijder één initiatief. */
 export const deleteInitiatief = mutation({
   args: {
     adminToken: v.string(),
@@ -141,7 +156,6 @@ export const deleteInitiatief = mutation({
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
 
-/** Voeg begindata in — alleen als er nog geen categorieën zijn. */
 export const seedData = mutation({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
@@ -149,115 +163,25 @@ export const seedData = mutation({
     const bestaand = await ctx.db.query("mensenopmjeheen_categorieen").collect();
     if (bestaand.length > 0) return { skipped: true };
 
-    const cat1 = await ctx.db.insert("mensenopmjeheen_categorieen", {
-      naam: "Na het overlijden van iemand",
-      volgorde: 1,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat1,
-      naam: "Rouwcafé",
-      beschrijving: "Laagdrempelige bijeenkomsten door heel Nederland en België, zonder aanmelding of intake",
-      url: "https://rouwcafe.nl",
-      volgorde: 1,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat1,
-      naam: "SteunPunt Rouw",
-      beschrijving: "Voor wie professionele begeleiding zoekt maar niet weet waar te beginnen",
-      url: "https://steunpuntrouw.nl",
-      volgorde: 2,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat1,
-      naam: "In de Wolken",
-      beschrijving: "Online community voor nabestaanden, ook voor wie moeite heeft de deur uit te gaan",
-      url: "https://indewolken.nl",
-      volgorde: 3,
-      zichtbaar: true,
-    });
+    const cat1 = await ctx.db.insert("mensenopmjeheen_categorieen", { naam: "Na het overlijden van iemand", volgorde: 1, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat1, naam: "Rouwcafé", beschrijving: "Laagdrempelige bijeenkomsten door heel Nederland en België, zonder aanmelding of intake", url: "https://rouwcafe.nl", volgorde: 1, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat1, naam: "SteunPunt Rouw", beschrijving: "Voor wie professionele begeleiding zoekt maar niet weet waar te beginnen", url: "https://steunpuntrouw.nl", volgorde: 2, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat1, naam: "In de Wolken", beschrijving: "Online community voor nabestaanden, ook voor wie moeite heeft de deur uit te gaan", url: "https://indewolken.nl", volgorde: 3, zichtbaar: true });
 
-    const cat2 = await ctx.db.insert("mensenopmjeheen_categorieen", {
-      naam: "Na het verlies van een dier",
-      volgorde: 2,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat2,
-      naam: "Petloss Nederland",
-      beschrijving: "Forum en steungroep specifiek voor mensen die een dier verloren",
-      url: "https://petloss.nl",
-      volgorde: 1,
-      zichtbaar: true,
-    });
+    const cat2 = await ctx.db.insert("mensenopmjeheen_categorieen", { naam: "Na het verlies van een dier", volgorde: 2, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat2, naam: "Petloss Nederland", beschrijving: "Forum en steungroep specifiek voor mensen die een dier verloren", url: "https://petloss.nl", volgorde: 1, zichtbaar: true });
 
-    const cat3 = await ctx.db.insert("mensenopmjeheen_categorieen", {
-      naam: "Na zwangerschapsverlies of ongewenste kinderloosheid",
-      volgorde: 3,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat3,
-      naam: "Freya",
-      beschrijving: "Vereniging voor mensen met vruchtbaarheidsproblemen en ongewenste kinderloosheid",
-      url: "https://freya.nl",
-      volgorde: 1,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat3,
-      naam: "FIOM",
-      beschrijving: "Begeleiding en lotgenotencontact rond zwangerschapsverlies en adoptie",
-      url: "https://fiom.nl",
-      volgorde: 2,
-      zichtbaar: true,
-    });
+    const cat3 = await ctx.db.insert("mensenopmjeheen_categorieen", { naam: "Na zwangerschapsverlies of ongewenste kinderloosheid", volgorde: 3, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat3, naam: "Freya", beschrijving: "Vereniging voor mensen met vruchtbaarheidsproblemen en ongewenste kinderloosheid", url: "https://freya.nl", volgorde: 1, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat3, naam: "FIOM", beschrijving: "Begeleiding en lotgenotencontact rond zwangerschapsverlies en adoptie", url: "https://fiom.nl", volgorde: 2, zichtbaar: true });
 
-    const cat4 = await ctx.db.insert("mensenopmjeheen_categorieen", {
-      naam: "Na een scheiding of relatiebreuk",
-      volgorde: 4,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat4,
-      naam: "Steun & Vooruit",
-      beschrijving: "Voor jongvolwassenen na verlies, inclusief relatieverlies",
-      url: "https://steunvooruit.nl",
-      volgorde: 1,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat4,
-      naam: "Villa Pinedo",
-      beschrijving: "Voor kinderen en jongeren van gescheiden ouders",
-      url: "https://villapinedo.nl",
-      volgorde: 2,
-      zichtbaar: true,
-    });
+    const cat4 = await ctx.db.insert("mensenopmjeheen_categorieen", { naam: "Na een scheiding of relatiebreuk", volgorde: 4, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat4, naam: "Steun & Vooruit", beschrijving: "Voor jongvolwassenen na verlies, inclusief relatieverlies", url: "https://steunvooruit.nl", volgorde: 1, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat4, naam: "Villa Pinedo", beschrijving: "Voor kinderen en jongeren van gescheiden ouders", url: "https://villapinedo.nl", volgorde: 2, zichtbaar: true });
 
-    const cat5 = await ctx.db.insert("mensenopmjeheen_categorieen", {
-      naam: "Na verlies van werk, gezondheid of identiteit",
-      volgorde: 5,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat5,
-      naam: "Kanker.nl community",
-      beschrijving: "Voor wie met ziekte te maken heeft",
-      url: "https://kanker.nl",
-      volgorde: 1,
-      zichtbaar: true,
-    });
-    await ctx.db.insert("mensenopmjeheen_initiatieven", {
-      categorie_id: cat5,
-      naam: "Mind Korrelatie",
-      beschrijving: "Laagdrempelige online hulp bij levensvragen en identiteitsverlies",
-      url: "https://mindkorrelatie.nl",
-      volgorde: 2,
-      zichtbaar: true,
-    });
+    const cat5 = await ctx.db.insert("mensenopmjeheen_categorieen", { naam: "Na verlies van werk, gezondheid of identiteit", volgorde: 5, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat5, naam: "Kanker.nl community", beschrijving: "Voor wie met ziekte te maken heeft", url: "https://kanker.nl", volgorde: 1, zichtbaar: true });
+    await ctx.db.insert("mensenopmjeheen_initiatieven", { categorie_id: cat5, naam: "Mind Korrelatie", beschrijving: "Laagdrempelige online hulp bij levensvragen en identiteitsverlies", url: "https://mindkorrelatie.nl", volgorde: 2, zichtbaar: true });
 
     return { skipped: false };
   },

@@ -947,7 +947,11 @@ export default defineSchema({
   mensenopmjeheen_pagina: defineTable({
     hero_titel: v.string(),
     hero_subtitel: v.string(),
-    slot_tekst: v.string(),
+    slot_tekst: v.optional(v.string()),
+    filter_lezen: v.optional(v.string()),
+    filter_praten: v.optional(v.string()),
+    filter_groep: v.optional(v.string()),
+    filter_ander: v.optional(v.string()),
   }),
 
   // Mensen om je heen — categorieën
@@ -955,6 +959,7 @@ export default defineSchema({
     naam: v.string(),
     volgorde: v.number(),
     zichtbaar: v.boolean(),
+    imageStorageId: v.optional(v.id("_storage")),
   }),
 
   // Mensen om je heen — initiatieven
