@@ -251,11 +251,20 @@ export default function MensenOmJeHeenPage() {
         </section>
       )}
 
-      {/* Gefilterde categorieën — alleen tonen als filter actief is */}
+      {/* Filter actief: toon alleen matching categorieën */}
       {actieveFilter && actieveFilter !== "ander" && gefilterdeCats.length > 0 && (
         <section className="max-w-3xl mx-auto px-6 pb-16 space-y-10">
           {gefilterdeCats.map((cat) => (
             <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} />
+          ))}
+        </section>
+      )}
+
+      {/* Filter actief maar nog geen categorieën gekoppeld in de admin */}
+      {actieveFilter && actieveFilter !== "ander" && gefilterdeCats.length === 0 && zichtbareCats.length > 0 && (
+        <section className="max-w-3xl mx-auto px-6 pb-16 space-y-10">
+          {zichtbareCats.map((cat) => (
+            <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
           ))}
         </section>
       )}
