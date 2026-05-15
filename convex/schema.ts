@@ -942,4 +942,28 @@ export default defineSchema({
     content: v.string(),   // JSON string met bewerkbare velden
     updatedAt: v.number(),
   }).index("by_pageKey", ["pageKey"]),
+
+  // Mensen om je heen — paginateksten (singleton)
+  mensenopmjeheen_pagina: defineTable({
+    hero_titel: v.string(),
+    hero_subtitel: v.string(),
+    slot_tekst: v.string(),
+  }),
+
+  // Mensen om je heen — categorieën
+  mensenopmjeheen_categorieen: defineTable({
+    naam: v.string(),
+    volgorde: v.number(),
+    zichtbaar: v.boolean(),
+  }),
+
+  // Mensen om je heen — initiatieven
+  mensenopmjeheen_initiatieven: defineTable({
+    categorie_id: v.id("mensenopmjeheen_categorieen"),
+    naam: v.string(),
+    beschrijving: v.string(),
+    url: v.string(),
+    volgorde: v.number(),
+    zichtbaar: v.boolean(),
+  }),
 });

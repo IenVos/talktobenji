@@ -45,6 +45,7 @@ import type * as klantbeheer from "../klantbeheer.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
 import type * as landingPages from "../landingPages.js";
 import type * as memories from "../memories.js";
+import type * as mensenOmJeHeen from "../mensenOmJeHeen.js";
 import type * as nietAlleen from "../nietAlleen.js";
 import type * as nietAlleenAnkerContent from "../nietAlleenAnkerContent.js";
 import type * as nietAlleenContent from "../nietAlleenContent.js";
@@ -115,6 +116,7 @@ declare const fullApi: ApiFromModules<{
   knowledgeBase: typeof knowledgeBase;
   landingPages: typeof landingPages;
   memories: typeof memories;
+  mensenOmJeHeen: typeof mensenOmJeHeen;
   nietAlleen: typeof nietAlleen;
   nietAlleenAnkerContent: typeof nietAlleenAnkerContent;
   nietAlleenContent: typeof nietAlleenContent;
