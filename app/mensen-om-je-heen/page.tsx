@@ -191,7 +191,7 @@ export default function MensenOmJeHeenPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       <SiteHeaderConcept />
 
       {/* Hero */}
@@ -290,7 +290,7 @@ export default function MensenOmJeHeenPage() {
       })()}
 
       {/* Niet Alleen promo */}
-      <section className="bg-primary-50 border-t border-primary-100">
+      <section className="bg-primary-50 border-t border-primary-100 flex-1">
         <div className="max-w-2xl mx-auto px-6 py-14 text-center">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-3">30 dagen begeleiding</p>
           <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-4 text-balance">

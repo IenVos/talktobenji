@@ -97,6 +97,22 @@ export const deleteCategorie = mutation({
   },
 });
 
+export const removeCategoriAfbeelding = mutation({
+  args: { adminToken: v.string(), id: v.id("mensenopmjeheen_categorieen") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    await ctx.db.patch(args.id, { imageStorageId: undefined });
+  },
+});
+
+export const removeInitiatiefAfbeelding = mutation({
+  args: { adminToken: v.string(), id: v.id("mensenopmjeheen_initiatieven") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    await ctx.db.patch(args.id, { imageStorageId: undefined });
+  },
+});
+
 // ─── Upload URL ───────────────────────────────────────────────────────────────
 
 export const generateUploadUrl = mutation({
