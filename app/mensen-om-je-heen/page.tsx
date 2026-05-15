@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -8,7 +8,7 @@ import { SiteHeaderConcept } from "@/app/home-concept/SiteHeaderConcept";
 import { SiteFooter } from "@/components/SiteFooter";
 import Link from "next/link";
 
-// ─── SVG iconen (zelfde stijl als homepage) ───────────────────────────────────
+// ─── SVG iconen ───────────────────────────────────────────────────────────────
 
 function IconBlog() {
   return (
@@ -46,28 +46,27 @@ function IconHeart() {
 
 type FilterId = "lezen" | "praten" | "groep" | "ander";
 
-type FilterOptie = {
-  id: FilterId;
-  label: string;
-  icon: React.ReactNode;
-  kleur: string;
+const FILTER_DEFAULTS: Record<FilterId, string> = {
+  lezen:  "Ik wil anoniem lezen wat anderen meemaken",
+  praten: "Ik wil met iemand praten maar weet niet hoe ik moet beginnen",
+  groep:  "Ik zoek een groep bij mij in de buurt",
+  ander:  "Ik wil weten wat ik kan doen voor iemand anders",
 };
 
-const FILTER_OPTIES: FilterOptie[] = [
-  { id: "lezen",  label: "Ik wil anoniem lezen wat anderen meemaken",                   icon: <IconBlog />,  kleur: "bg-primary-700" },
-  { id: "praten", label: "Ik wil met iemand praten maar weet niet hoe ik moet beginnen", icon: <IconChat />,  kleur: "bg-primary-600" },
-  { id: "groep",  label: "Ik zoek een groep bij mij in de buurt",                        icon: <IconUsers />, kleur: "bg-primary-800" },
-  { id: "ander",  label: "Ik wil weten wat ik kan doen voor iemand anders",              icon: <IconHeart />, kleur: "bg-primary-600" },
+const FILTER_META: { id: FilterId; icon: ReactNode; kleur: string }[] = [
+  { id: "lezen",  icon: <IconBlog />,  kleur: "bg-primary-700" },
+  { id: "praten", icon: <IconChat />,  kleur: "bg-primary-600" },
+  { id: "groep",  icon: <IconUsers />, kleur: "bg-primary-800" },
+  { id: "ander",  icon: <IconHeart />, kleur: "bg-primary-600" },
 ];
 
-// Categorienamen die uitgelicht of gefilterd worden per filter
 function matchesFilter(catNaam: string, filterId: FilterId | null): boolean {
   if (!filterId) return true;
   const lc = catNaam.toLowerCase();
   if (filterId === "lezen")  return lc.includes("overlijden") || lc.includes("werk");
   if (filterId === "praten") return lc.includes("overlijden");
   if (filterId === "groep")  return true;
-  return false; // "ander" toont geen categorieën
+  return false;
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -77,6 +76,7 @@ type Categorie = {
   naam: string;
   volgorde: number;
   zichtbaar: boolean;
+  imageUrl?: string | null;
 };
 
 type Initiatief = {
@@ -98,9 +98,7 @@ function InitiatiefKaart({ init, uitgelicht }: { init: Initiatief; uitgelicht?: 
       target="_blank"
       rel="noopener noreferrer"
       className={`block rounded-xl p-4 border transition-all hover:shadow-sm no-underline ${
-        uitgelicht
-          ? "border-primary-300 bg-primary-50"
-          : "border-gray-200 bg-white hover:border-primary-300"
+        uitgelicht ? "border-primary-300 bg-primary-50" : "border-gray-200 bg-white hover:border-primary-300"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -123,37 +121,10 @@ function InitiatiefKaart({ init, uitgelicht }: { init: Initiatief; uitgelicht?: 
   );
 }
 
-// ─── Hoofdpagina ─────────────────────────────────────────────────────────────
+// ─── Categorieblok ────────────────────────────────────────────────────────────
 
-export default function MensenOmJeHeenPage() {
-  const [actieveFilter, setActieveFilter] = useState<FilterId | null>(null);
-
-  const paginaTeksten = useQuery(api.mensenOmJeHeen.getPaginaTeksten);
-  const categorieen = useQuery(api.mensenOmJeHeen.listCategorieen) as Categorie[] | undefined;
-  const alleInitiatieven = useQuery(api.mensenOmJeHeen.listInitiatieven, {}) as Initiatief[] | undefined;
-
-  const heroTitel =
-    paginaTeksten?.hero_titel ?? "Er zijn mensen die begrijpen wat jij doormaakt.";
-  const heroSubtitel =
-    paginaTeksten?.hero_subtitel ??
-    "Hier vind je initiatieven, groepen en mensen die er voor je zijn — voor elk soort verlies.";
-  const slotTekst =
-    paginaTeksten?.slot_tekst ??
-    "Wil je ook even met Benji praten? Dat kan anoniem, zonder account, ook 's nachts.";
-
-  const zichtbareCats = (categorieen ?? []).filter((c) => c.zichtbaar);
-  const zichtbareInits = (alleInitiatieven ?? []).filter((i) => i.zichtbaar);
-
-  const toonCategorieen =
-    actieveFilter !== "ander"
-      ? zichtbareCats.filter((c) => matchesFilter(c.naam, actieveFilter))
-      : [];
-
-  function initiatieven(catId: string): Initiatief[] {
-    return zichtbareInits
-      .filter((i) => i.categorie_id === catId)
-      .sort((a, b) => a.volgorde - b.volgorde);
-  }
+function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: Initiatief[]; actieveFilter: FilterId | null }) {
+  if (inits.length === 0) return null;
 
   function isUitgelicht(init: Initiatief): boolean {
     if (actieveFilter === "praten" && init.naam === "SteunPunt Rouw") return true;
@@ -162,27 +133,66 @@ export default function MensenOmJeHeenPage() {
   }
 
   return (
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        {cat.imageUrl && (
+          <img
+            src={cat.imageUrl}
+            alt=""
+            className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100"
+          />
+        )}
+        <h3 className="text-base font-bold text-primary-900">{cat.naam}</h3>
+      </div>
+      <div className="space-y-3">
+        {inits.map((init) => (
+          <InitiatiefKaart key={init._id} init={init} uitgelicht={isUitgelicht(init)} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Hoofdpagina ─────────────────────────────────────────────────────────────
+
+export default function MensenOmJeHeenPage() {
+  const [actieveFilter, setActieveFilter] = useState<FilterId | null>(null);
+
+  const paginaTeksten = useQuery(api.mensenOmJeHeen.getPaginaTeksten, {});
+  const categorieen = useQuery(api.mensenOmJeHeen.listCategorieen, {}) as Categorie[] | undefined;
+  const alleInitiatieven = useQuery(api.mensenOmJeHeen.listInitiatieven, {}) as Initiatief[] | undefined;
+
+  const heroTitel = paginaTeksten?.hero_titel ?? "Er zijn mensen die begrijpen wat jij doormaakt.";
+  const heroSubtitel = paginaTeksten?.hero_subtitel ?? "Hier vind je initiatieven, groepen en mensen die er voor je zijn — voor elk soort verlies.";
+
+  const filterOpties = FILTER_META.map((m) => ({
+    ...m,
+    label: (paginaTeksten as any)?.[`filter_${m.id}`] ?? FILTER_DEFAULTS[m.id],
+  }));
+
+  const zichtbareCats = (categorieen ?? []).filter((c) => c.zichtbaar);
+  const zichtbareInits = (alleInitiatieven ?? []).filter((i) => i.zichtbaar);
+
+  function initiatieven(catId: string): Initiatief[] {
+    return zichtbareInits.filter((i) => i.categorie_id === catId).sort((a, b) => a.volgorde - b.volgorde);
+  }
+
+  const gefilterdeCats = actieveFilter !== "ander"
+    ? zichtbareCats.filter((c) => matchesFilter(c.naam, actieveFilter))
+    : [];
+
+  return (
     <div className="min-h-screen bg-white">
       <SiteHeaderConcept />
 
-      {/* Hero — zelfde opzet als homepage */}
+      {/* Hero */}
       <section className="relative bg-primary-900 text-white overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <Image
-            src="/images/achtergrond.png"
-            alt=""
-            fill
-            className="object-cover object-center"
-            priority
-          />
+          <Image src="/images/achtergrond.png" alt="" fill className="object-cover object-center" priority />
         </div>
         <div className="relative max-w-3xl mx-auto px-6 py-16 sm:py-20 text-center">
-          <h1 className="text-2xl sm:text-4xl font-bold leading-tight text-balance mb-4">
-            {heroTitel}
-          </h1>
-          <p className="text-base sm:text-lg text-primary-200 leading-relaxed text-balance max-w-xl mx-auto">
-            {heroSubtitel}
-          </p>
+          <h1 className="text-2xl sm:text-4xl font-bold leading-tight text-balance mb-4">{heroTitel}</h1>
+          <p className="text-base sm:text-lg text-primary-200 leading-relaxed text-balance max-w-xl mx-auto">{heroSubtitel}</p>
         </div>
       </section>
 
@@ -191,18 +201,15 @@ export default function MensenOmJeHeenPage() {
         <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
           Wat past het beste bij jou nu?
         </h2>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {FILTER_OPTIES.map((optie) => {
+          {filterOpties.map((optie) => {
             const isActief = actieveFilter === optie.id;
             return (
               <button
                 key={optie.id}
                 onClick={() => setActieveFilter(isActief ? null : optie.id)}
                 className={`flex items-center gap-3 text-left px-4 py-4 rounded-xl border transition-all ${
-                  isActief
-                    ? "border-primary-300 bg-primary-50"
-                    : "border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm"
+                  isActief ? "border-primary-300 bg-primary-50" : "border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm"
                 }`}
               >
                 <div className={`w-10 h-10 rounded-xl ${optie.kleur} text-white flex items-center justify-center flex-shrink-0`}>
@@ -213,89 +220,60 @@ export default function MensenOmJeHeenPage() {
             );
           })}
         </div>
-
         {actieveFilter && (
           <div className="text-center mt-4">
-            <button
-              onClick={() => setActieveFilter(null)}
-              className="text-xs text-primary-500 hover:text-primary-700 hover:underline transition-colors"
-            >
+            <button onClick={() => setActieveFilter(null)} className="text-xs text-primary-500 hover:text-primary-700 hover:underline">
               Toon alles
             </button>
           </div>
         )}
       </section>
 
-      {/* Speciale inhoud voor "Ik wil weten wat ik kan doen voor iemand anders" */}
+      {/* Speciale inhoud voor "ander" */}
       {actieveFilter === "ander" && (
         <section className="max-w-3xl mx-auto px-6 pb-10">
           <div className="rounded-2xl p-6 bg-primary-50 border border-primary-200">
-            <p className="text-sm font-semibold text-primary-900 mb-2">
-              Er zijn voor iemand begint met luisteren.
-            </p>
+            <p className="text-sm font-semibold text-primary-900 mb-2">Er zijn voor iemand begint met luisteren.</p>
             <p className="text-sm text-primary-700 leading-relaxed">
-              Niet met de juiste woorden. Je hoeft geen oplossing te hebben. Aanwezig zijn,
-              vragen stellen zonder te dringen, gewoon er zijn — dat is al heel veel.
+              Niet met de juiste woorden. Je hoeft geen oplossing te hebben. Aanwezig zijn, vragen stellen zonder te dringen, gewoon er zijn — dat is al heel veel.
             </p>
           </div>
         </section>
       )}
 
-      {/* Initiatieven per categorie */}
-      {toonCategorieen.length > 0 && (
+      {/* Gefilterde categorieën — alleen tonen als filter actief is */}
+      {actieveFilter && actieveFilter !== "ander" && gefilterdeCats.length > 0 && (
         <section className="max-w-3xl mx-auto px-6 pb-16 space-y-10">
-          {toonCategorieen.map((cat) => {
-            const inits = initiatieven(cat._id);
-            if (inits.length === 0) return null;
-            return (
-              <div key={cat._id}>
-                <h3 className="text-base font-bold text-primary-900 mb-4">{cat.naam}</h3>
-                <div className="space-y-3">
-                  {inits.map((init) => (
-                    <InitiatiefKaart
-                      key={init._id}
-                      init={init}
-                      uitgelicht={isUitgelicht(init)}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          {gefilterdeCats.map((cat) => (
+            <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} />
+          ))}
         </section>
       )}
 
-      {/* Geen filter actief: toon alles */}
+      {/* Geen filter: toon alle categorieën */}
       {!actieveFilter && zichtbareCats.length > 0 && (
         <section className="max-w-3xl mx-auto px-6 pb-16 space-y-10">
-          {zichtbareCats.map((cat) => {
-            const inits = initiatieven(cat._id);
-            if (inits.length === 0) return null;
-            return (
-              <div key={cat._id}>
-                <h3 className="text-base font-bold text-primary-900 mb-4">{cat.naam}</h3>
-                <div className="space-y-3">
-                  {inits.map((init) => (
-                    <InitiatiefKaart key={init._id} init={init} />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          {zichtbareCats.map((cat) => (
+            <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
+          ))}
         </section>
       )}
 
-      {/* Slot blok */}
-      <section className="bg-primary-900">
+      {/* Niet Alleen promo */}
+      <section className="bg-primary-50 border-t border-primary-100">
         <div className="max-w-2xl mx-auto px-6 py-14 text-center">
-          <p className="text-base sm:text-lg text-primary-200 leading-relaxed mb-6 text-balance">
-            {slotTekst}
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-3">30 dagen begeleiding</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-4 text-balance">
+            Niet Alleen
+          </h2>
+          <p className="text-sm text-primary-600 leading-relaxed mb-6 max-w-lg mx-auto text-balance">
+            Een 30-daagse begeleiding via dagelijkse berichten. Een kleine stap per dag, om niet meer alleen te staan in je verlies.
           </p>
           <Link
-            href="/benji"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white text-primary-900 text-sm font-semibold rounded-xl hover:bg-primary-50 transition-colors"
+            href="/niet-alleen-nl"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-800 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
           >
-            Praat met Benji
+            Lees meer over Niet Alleen
           </Link>
         </div>
       </section>
