@@ -87,6 +87,7 @@ type Initiatief = {
   url: string;
   volgorde: number;
   zichtbaar: boolean;
+  imageUrl?: string | null;
 };
 
 // ─── Hulpcomponent: initiatief kaart ─────────────────────────────────────────
@@ -102,6 +103,9 @@ function InitiatiefKaart({ init, uitgelicht }: { init: Initiatief; uitgelicht?: 
       }`}
     >
       <div className="flex items-start justify-between gap-3">
+        {init.imageUrl && (
+          <img src={init.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
+        )}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-primary-900 mb-1">{init.naam}</p>
           <p className="text-xs text-primary-600 leading-relaxed">{init.beschrijving}</p>
@@ -190,7 +194,7 @@ export default function MensenOmJeHeenPage() {
         <div className="absolute inset-0 opacity-20">
           <Image src="/images/achtergrond.png" alt="" fill className="object-cover object-center" priority />
         </div>
-        <div className="relative max-w-3xl mx-auto px-6 py-16 sm:py-20 text-center">
+        <div className="relative max-w-3xl mx-auto px-6 py-20 sm:py-28 text-center">
           <h1 className="text-2xl sm:text-4xl font-bold leading-tight text-balance mb-4">{heroTitel}</h1>
           <p className="text-base sm:text-lg text-primary-200 leading-relaxed text-balance max-w-xl mx-auto">{heroSubtitel}</p>
         </div>
@@ -270,7 +274,7 @@ export default function MensenOmJeHeenPage() {
             Een 30-daagse begeleiding via dagelijkse berichten. Een kleine stap per dag, om niet meer alleen te staan in je verlies.
           </p>
           <Link
-            href="/niet-alleen-nl"
+            href="/lp/je-hoeft-het-niet-alleen-te-doen"
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary-800 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
           >
             Lees meer over Niet Alleen

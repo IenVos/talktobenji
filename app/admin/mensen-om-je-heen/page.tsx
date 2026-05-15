@@ -25,6 +25,8 @@ type Initiatief = {
   url: string;
   volgorde: number;
   zichtbaar: boolean;
+  imageStorageId?: string;
+  imageUrl?: string | null;
 };
 
 // ─── Hulpcomponent: initiatief rij ───────────────────────────────────────────
@@ -32,6 +34,7 @@ type Initiatief = {
 function InitiatiefRij({
   init, isFirst, isLast,
   onSave, onDelete, onToggleZichtbaar, onMoveUp, onMoveDown,
+  onUploadImage, onRemoveImage,
 }: {
   init: Initiatief;
   isFirst: boolean;
@@ -41,15 +44,31 @@ function InitiatiefRij({
   onToggleZichtbaar: (id: Id<"mensenopmjeheen_initiatieven">, zichtbaar: boolean) => void;
   onMoveUp: (id: Id<"mensenopmjeheen_initiatieven">) => void;
   onMoveDown: (id: Id<"mensenopmjeheen_initiatieven">) => void;
+  onUploadImage: (id: Id<"mensenopmjeheen_initiatieven">, file: File) => void;
+  onRemoveImage: (id: Id<"mensenopmjeheen_initiatieven">) => void;
 }) {
   const [naam, setNaam] = useState(init.naam);
   const [beschrijving, setBeschrijving] = useState(init.beschrijving);
   const [url, setUrl] = useState(init.url);
   const [dirty, setDirty] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   function handleSave() {
     onSave(init._id, { naam, beschrijving, url });
     setDirty(false);
+  }
+
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      await onUploadImage(init._id, file);
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   }
 
   return (
@@ -64,6 +83,20 @@ function InitiatiefRij({
           <input value={url} onChange={(e) => { setUrl(e.target.value); setDirty(true); }} placeholder="URL (https://...)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-300" />
         </div>
         <div className="flex items-center gap-1">
+          {/* Afbeelding upload */}
+          <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+          {init.imageUrl ? (
+            <div className="flex items-center gap-1">
+              <img src={init.imageUrl} alt="" className="w-7 h-7 rounded object-cover border border-gray-200" />
+              <button onClick={() => onRemoveImage(init._id)} className="p-1 text-gray-400 hover:text-red-500" title="Afbeelding verwijderen">
+                <X size={13} />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => fileRef.current?.click()} disabled={uploading} className="p-1.5 rounded-lg text-gray-400 hover:text-primary-600 disabled:opacity-40" title="Icoon/afbeelding uploaden">
+              <ImagePlus size={16} />
+            </button>
+          )}
           <button onClick={() => onToggleZichtbaar(init._id, !init.zichtbaar)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700" title={init.zichtbaar ? "Verberg" : "Zichtbaar maken"}>
             {init.zichtbaar ? <Eye size={16} /> : <EyeOff size={16} />}
           </button>
@@ -72,10 +105,7 @@ function InitiatiefRij({
           </button>
         </div>
       </div>
-      <div className="space-y-1">
-        <textarea value={beschrijving} onChange={(e) => { setBeschrijving(e.target.value); setDirty(true); }} placeholder="Beschrijving" maxLength={150} rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300" />
-        <p className={`text-xs text-right ${beschrijving.length > 140 ? "text-orange-500" : "text-gray-400"}`}>{beschrijving.length}/150</p>
-      </div>
+      <textarea value={beschrijving} onChange={(e) => { setBeschrijving(e.target.value); setDirty(true); }} placeholder="Beschrijving" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300" />
       {dirty && (
         <button onClick={handleSave} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700">
           <Save size={13} />Opslaan
@@ -92,6 +122,7 @@ function CategorieSectie({
   onUpdateCat, onDeleteCat, onMoveUpCat, onMoveDownCat,
   onUploadImage, onRemoveImage,
   onAddInitiatief, onSaveInitiatief, onDeleteInitiatief, onToggleInitZichtbaar, onMoveUpInit, onMoveDownInit,
+  onUploadInitImage, onRemoveInitImage,
 }: {
   cat: Categorie;
   initiatieven: Initiatief[];
@@ -109,6 +140,8 @@ function CategorieSectie({
   onToggleInitZichtbaar: (id: Id<"mensenopmjeheen_initiatieven">, zichtbaar: boolean) => void;
   onMoveUpInit: (id: Id<"mensenopmjeheen_initiatieven">) => void;
   onMoveDownInit: (id: Id<"mensenopmjeheen_initiatieven">) => void;
+  onUploadInitImage: (id: Id<"mensenopmjeheen_initiatieven">, file: File) => void;
+  onRemoveInitImage: (id: Id<"mensenopmjeheen_initiatieven">) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [editNaam, setEditNaam] = useState(cat.naam);
@@ -188,6 +221,7 @@ function CategorieSectie({
             <InitiatiefRij key={init._id} init={init} isFirst={idx === 0} isLast={idx === initiatieven.length - 1}
               onSave={onSaveInitiatief} onDelete={onDeleteInitiatief} onToggleZichtbaar={onToggleInitZichtbaar}
               onMoveUp={onMoveUpInit} onMoveDown={onMoveDownInit}
+              onUploadImage={onUploadInitImage} onRemoveImage={onRemoveInitImage}
             />
           ))}
           <button onClick={() => onAddInitiatief(cat._id)} className="flex items-center gap-1.5 px-3 py-2 text-sm text-primary-600 hover:text-primary-800 border border-dashed border-primary-300 rounded-xl w-full justify-center hover:bg-primary-50">
@@ -327,6 +361,23 @@ export default function MensenOmJeHeenAdminPage() {
     await upsertCategorie({ id: next._id, naam: next.naam, volgorde: cur.volgorde, zichtbaar: next.zichtbaar });
   }
 
+  async function handleUploadInitiatiefImage(id: Id<"mensenopmjeheen_initiatieven">, file: File) {
+    const uploadUrl = await generateUploadUrl({}) as string;
+    const result = await fetch(uploadUrl, {
+      method: "POST",
+      headers: { "Content-Type": file.type },
+      body: file,
+    });
+    const { storageId } = await result.json();
+    const existing = alleInitiatieven?.find((i) => i._id === id);
+    if (!existing) return;
+    await upsertInitiatief({ id, categorie_id: existing.categorie_id, naam: existing.naam, beschrijving: existing.beschrijving, url: existing.url, volgorde: existing.volgorde, zichtbaar: existing.zichtbaar, imageStorageId: storageId });
+  }
+
+  async function handleRemoveInitiatiefImage(id: Id<"mensenopmjeheen_initiatieven">) {
+    alert("Afbeelding verwijderen kan via de Convex console. Veld 'imageStorageId' wissen bij het initiatief.");
+  }
+
   async function handleAddInitiatief(categorie_id: Id<"mensenopmjeheen_categorieen">) {
     const bestaand = alleInitiatieven?.filter((i) => i.categorie_id === categorie_id) ?? [];
     await upsertInitiatief({ categorie_id, naam: "Nieuw initiatief", beschrijving: "", url: "https://", volgorde: bestaand.length + 1, zichtbaar: true });
@@ -335,7 +386,15 @@ export default function MensenOmJeHeenAdminPage() {
   async function handleSaveInitiatief(id: Id<"mensenopmjeheen_initiatieven">, data: Partial<Omit<Initiatief, "_id" | "categorie_id">>) {
     const existing = alleInitiatieven?.find((i) => i._id === id);
     if (!existing) return;
-    await upsertInitiatief({ id, categorie_id: existing.categorie_id, naam: data.naam ?? existing.naam, beschrijving: data.beschrijving ?? existing.beschrijving, url: data.url ?? existing.url, volgorde: data.volgorde ?? existing.volgorde, zichtbaar: data.zichtbaar ?? existing.zichtbaar });
+    await upsertInitiatief({
+      id, categorie_id: existing.categorie_id,
+      naam: data.naam ?? existing.naam,
+      beschrijving: data.beschrijving ?? existing.beschrijving,
+      url: data.url ?? existing.url,
+      volgorde: data.volgorde ?? existing.volgorde,
+      zichtbaar: data.zichtbaar ?? existing.zichtbaar,
+      ...(existing.imageStorageId && { imageStorageId: existing.imageStorageId as Id<"_storage"> }),
+    });
   }
 
   async function handleDeleteInitiatief(id: Id<"mensenopmjeheen_initiatieven">) { await deleteInitiatief({ id }); }
@@ -349,8 +408,8 @@ export default function MensenOmJeHeenAdminPage() {
     const idx = groep.findIndex((i) => i._id === id);
     if (idx <= 0) return;
     const prev = groep[idx - 1], cur = groep[idx];
-    await upsertInitiatief({ id: cur._id, categorie_id: cur.categorie_id, naam: cur.naam, beschrijving: cur.beschrijving, url: cur.url, volgorde: prev.volgorde, zichtbaar: cur.zichtbaar });
-    await upsertInitiatief({ id: prev._id, categorie_id: prev.categorie_id, naam: prev.naam, beschrijving: prev.beschrijving, url: prev.url, volgorde: cur.volgorde, zichtbaar: prev.zichtbaar });
+    await upsertInitiatief({ id: cur._id, categorie_id: cur.categorie_id, naam: cur.naam, beschrijving: cur.beschrijving, url: cur.url, volgorde: prev.volgorde, zichtbaar: cur.zichtbaar, ...(cur.imageStorageId && { imageStorageId: cur.imageStorageId as Id<"_storage"> }) });
+    await upsertInitiatief({ id: prev._id, categorie_id: prev.categorie_id, naam: prev.naam, beschrijving: prev.beschrijving, url: prev.url, volgorde: cur.volgorde, zichtbaar: prev.zichtbaar, ...(prev.imageStorageId && { imageStorageId: prev.imageStorageId as Id<"_storage"> }) });
   }
 
   async function handleMoveDownInit(id: Id<"mensenopmjeheen_initiatieven">) {
@@ -361,8 +420,8 @@ export default function MensenOmJeHeenAdminPage() {
     const idx = groep.findIndex((i) => i._id === id);
     if (idx >= groep.length - 1) return;
     const next = groep[idx + 1], cur = groep[idx];
-    await upsertInitiatief({ id: cur._id, categorie_id: cur.categorie_id, naam: cur.naam, beschrijving: cur.beschrijving, url: cur.url, volgorde: next.volgorde, zichtbaar: cur.zichtbaar });
-    await upsertInitiatief({ id: next._id, categorie_id: next.categorie_id, naam: next.naam, beschrijving: next.beschrijving, url: next.url, volgorde: cur.volgorde, zichtbaar: next.zichtbaar });
+    await upsertInitiatief({ id: cur._id, categorie_id: cur.categorie_id, naam: cur.naam, beschrijving: cur.beschrijving, url: cur.url, volgorde: next.volgorde, zichtbaar: cur.zichtbaar, ...(cur.imageStorageId && { imageStorageId: cur.imageStorageId as Id<"_storage"> }) });
+    await upsertInitiatief({ id: next._id, categorie_id: next.categorie_id, naam: next.naam, beschrijving: next.beschrijving, url: next.url, volgorde: cur.volgorde, zichtbaar: next.zichtbaar, ...(next.imageStorageId && { imageStorageId: next.imageStorageId as Id<"_storage"> }) });
   }
 
   const sortedCats = [...(categorieen ?? [])].sort((a, b) => a.volgorde - b.volgorde);
@@ -436,6 +495,7 @@ export default function MensenOmJeHeenAdminPage() {
             onAddInitiatief={handleAddInitiatief} onSaveInitiatief={handleSaveInitiatief}
             onDeleteInitiatief={handleDeleteInitiatief} onToggleInitZichtbaar={handleToggleInitZichtbaar}
             onMoveUpInit={handleMoveUpInit} onMoveDownInit={handleMoveDownInit}
+            onUploadInitImage={handleUploadInitiatiefImage} onRemoveInitImage={handleRemoveInitiatiefImage}
           />
         ))}
 

@@ -518,7 +518,7 @@ export default function HomeConceptPage() {
       <div className="max-w-2xl mx-auto px-6 pb-10 pt-6 text-center">
         <p className="text-sm text-primary-500 text-balance">
           Wil je meer dan één gesprek?{" "}
-          <Link href="/niet-alleen-nl" className="text-primary-700 font-medium hover:underline">
+          <Link href="/lp/je-hoeft-het-niet-alleen-te-doen" className="text-primary-700 font-medium hover:underline">
             Niet Alleen
           </Link>{" "}
           is een 30-dagen begeleiding via dagelijkse berichten, een kleine stap elke dag.

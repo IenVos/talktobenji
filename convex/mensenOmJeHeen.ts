@@ -116,7 +116,15 @@ export const listInitiatieven = query({
     const filtered = args.categorie_id
       ? items.filter((i) => i.categorie_id === args.categorie_id)
       : items;
-    return filtered.sort((a, b) => a.volgorde - b.volgorde);
+    const sorted = filtered.sort((a, b) => a.volgorde - b.volgorde);
+    return await Promise.all(
+      sorted.map(async (item) => ({
+        ...item,
+        imageUrl: item.imageStorageId
+          ? await ctx.storage.getUrl(item.imageStorageId)
+          : null,
+      }))
+    );
   },
 });
 
@@ -130,6 +138,7 @@ export const upsertInitiatief = mutation({
     url: v.string(),
     volgorde: v.number(),
     zichtbaar: v.boolean(),
+    imageStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

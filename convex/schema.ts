@@ -970,5 +970,6 @@ export default defineSchema({
     url: v.string(),
     volgorde: v.number(),
     zichtbaar: v.boolean(),
+    imageStorageId: v.optional(v.id("_storage")),
   }),
 });
