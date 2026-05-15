@@ -9,7 +9,7 @@ import { checkAdmin } from "./adminAuth";
 
 /** Haal de paginateksten op (publiek). */
 export const getPaginaTeksten = query({
-  args: {},
+  args: { adminToken: v.optional(v.string()) },
   handler: async (ctx) => {
     const docs = await ctx.db.query("mensenopmjeheen_pagina").collect();
     return docs[0] ?? null;
@@ -40,7 +40,7 @@ export const upsertPaginaTeksten = mutation({
 
 /** Haal alle categorieën op, gesorteerd op volgorde (publiek). */
 export const listCategorieen = query({
-  args: {},
+  args: { adminToken: v.optional(v.string()) },
   handler: async (ctx) => {
     const items = await ctx.db.query("mensenopmjeheen_categorieen").collect();
     return items.sort((a, b) => a.volgorde - b.volgorde);
@@ -91,6 +91,7 @@ export const deleteCategorie = mutation({
 /** Haal alle initiatieven op, optioneel gefilterd op categorie_id (publiek). */
 export const listInitiatieven = query({
   args: {
+    adminToken: v.optional(v.string()),
     categorie_id: v.optional(v.id("mensenopmjeheen_categorieen")),
   },
   handler: async (ctx, args) => {
