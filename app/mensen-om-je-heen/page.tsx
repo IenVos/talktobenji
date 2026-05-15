@@ -204,77 +204,72 @@ export default function MensenOmJeHeenPage() {
         </div>
       </section>
 
-      {/* Filter sectie */}
-      <section className="max-w-3xl mx-auto px-6 py-10">
-        <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
-          Wat past het beste bij jou nu?
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {filterOpties.map((optie) => {
-            const isActief = actieveFilter === optie.id;
-            return (
+      {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
+      {!actieveFilter && (
+        <section className="max-w-3xl mx-auto px-6 py-10">
+          <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
+            Wat past het beste bij jou nu?
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {filterOpties.map((optie) => (
               <button
                 key={optie.id}
-                onClick={() => setActieveFilter(isActief ? null : optie.id)}
-                className={`flex items-center gap-3 text-left px-4 py-4 rounded-xl border transition-all ${
-                  isActief ? "border-primary-300 bg-primary-50" : "border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm"
-                }`}
+                onClick={() => setActieveFilter(optie.id)}
+                className="flex items-center gap-3 text-left px-4 py-4 rounded-xl border border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm transition-all"
               >
                 <div className={`w-10 h-10 rounded-xl ${optie.kleur} text-white flex items-center justify-center flex-shrink-0`}>
                   {optie.icon}
                 </div>
                 <span className="text-sm text-primary-900 leading-snug font-medium">{optie.label}</span>
               </button>
-            );
-          })}
-        </div>
-        {actieveFilter && (
-          <div className="text-center mt-4">
-            <button onClick={() => setActieveFilter(null)} className="text-xs text-primary-500 hover:text-primary-700 hover:underline">
-              Toon alles
-            </button>
-          </div>
-        )}
-      </section>
-
-      {/* Speciale inhoud voor "ander" */}
-      {actieveFilter === "ander" && (
-        <section className="max-w-3xl mx-auto px-6 pb-10">
-          <div className="rounded-2xl p-6 bg-primary-50 border border-primary-200">
-            <p className="text-sm font-semibold text-primary-900 mb-2">
-              {(paginaTeksten as any)?.filter_ander_blok_titel ?? "Er zijn voor iemand begint met luisteren."}
-            </p>
-            <p className="text-sm text-primary-700 leading-relaxed">
-              {(paginaTeksten as any)?.filter_ander_blok_tekst ?? "Niet met de juiste woorden. Je hoeft geen oplossing te hebben. Aanwezig zijn, vragen stellen zonder te dringen, gewoon er zijn — dat is al heel veel."}
-            </p>
+            ))}
           </div>
         </section>
       )}
 
-      {/* Filter actief: toon alleen matching categorieën */}
-      {actieveFilter && actieveFilter !== "ander" && gefilterdeCats.length > 0 && (
-        <section className="max-w-3xl mx-auto px-6 pb-16 space-y-10">
-          {gefilterdeCats.map((cat) => (
-            <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} />
-          ))}
-        </section>
-      )}
+      {/* Resultaten — zichtbaar na een keuze */}
+      {actieveFilter && (
+        <section className="max-w-3xl mx-auto px-6 pb-16">
+          {/* Terugknop */}
+          <button
+            onClick={() => setActieveFilter(null)}
+            className="flex items-center gap-1.5 text-gray-400 hover:text-gray-600 transition-colors mt-8 mb-8 group"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="group-hover:-translate-x-0.5 transition-transform">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            <span className="text-sm">Terug</span>
+          </button>
 
-      {/* Filter actief maar nog geen categorieën gekoppeld in de admin */}
-      {actieveFilter && actieveFilter !== "ander" && gefilterdeCats.length === 0 && zichtbareCats.length > 0 && (
-        <section className="max-w-3xl mx-auto px-6 pb-16 space-y-10">
-          {zichtbareCats.map((cat) => (
-            <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
-          ))}
-        </section>
-      )}
+          {/* Speciale inhoud voor "ander" */}
+          {actieveFilter === "ander" && (
+            <div className="rounded-2xl p-6 bg-primary-50 border border-primary-200">
+              <p className="text-sm font-semibold text-primary-900 mb-2">
+                {(paginaTeksten as any)?.filter_ander_blok_titel ?? "Er zijn voor iemand begint met luisteren."}
+              </p>
+              <p className="text-sm text-primary-700 leading-relaxed">
+                {(paginaTeksten as any)?.filter_ander_blok_tekst ?? "Niet met de juiste woorden. Je hoeft geen oplossing te hebben. Aanwezig zijn, vragen stellen zonder te dringen, gewoon er zijn — dat is al heel veel."}
+              </p>
+            </div>
+          )}
 
-      {/* Geen filter: toon alle categorieën */}
-      {!actieveFilter && zichtbareCats.length > 0 && (
-        <section className="max-w-3xl mx-auto px-6 pb-16 space-y-10">
-          {zichtbareCats.map((cat) => (
-            <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
-          ))}
+          {/* Matching categorieën */}
+          {actieveFilter !== "ander" && gefilterdeCats.length > 0 && (
+            <div className="space-y-10">
+              {gefilterdeCats.map((cat) => (
+                <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} />
+              ))}
+            </div>
+          )}
+
+          {/* Fallback: geen tags gekoppeld in admin → toon alles */}
+          {actieveFilter !== "ander" && gefilterdeCats.length === 0 && (
+            <div className="space-y-10">
+              {zichtbareCats.map((cat) => (
+                <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
+              ))}
+            </div>
+          )}
         </section>
       )}
 
