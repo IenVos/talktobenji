@@ -300,6 +300,25 @@ export default function AdminBlogPage() {
       : sorted.filter((p: any) => (filterPillar === "" ? !p.pillarSlug : p.pillarSlug === filterPillar));
   }, [posts, filterPillar]);
 
+  // Actieve auto-links VANUIT het huidige artikel: ankerzinnen van andere artikelen die in de huidige tekst voorkomen
+  const activeAnchorsFromHere = useMemo(() => {
+    if (!posts || !form.content || !editingId) return [] as { targetId: string; targetSlug: string; targetTitle: string; phrase: string }[];
+    const contentLower = form.content.toLowerCase();
+    const result: { targetId: string; targetSlug: string; targetTitle: string; phrase: string }[] = [];
+    for (const p of (posts as any[])) {
+      if (p._id === editingId) continue;
+      if (form.pillarSlug && p.pillarSlug !== form.pillarSlug) continue;
+      // geen pillarSlug = cross-pillar artikel, linkt naar/van alles
+      for (const phrase of (p.anchorPhrases ?? [])) {
+        if (phrase.trim().length > 2 && contentLower.includes(phrase.toLowerCase())) {
+          result.push({ targetId: p._id, targetSlug: p.slug, targetTitle: p.title, phrase });
+          break;
+        }
+      }
+    }
+    return result;
+  }, [posts, editingId, form.content, form.pillarSlug]);
+
   const totalPages = Math.ceil(sortedPosts.length / LIST_PAGE_SIZE);
   const pagedPosts = sortedPosts.slice(listPage * LIST_PAGE_SIZE, (listPage + 1) * LIST_PAGE_SIZE);
 
@@ -1085,8 +1104,29 @@ export default function AdminBlogPage() {
                   {form.title && (
                     <p className="text-xs text-gray-500 truncate font-medium" title={form.title}>📄 {form.title}</p>
                   )}
+                  {/* Actieve links — altijd zichtbaar zodra het artikel voldoende tekst heeft */}
+                  <div className="space-y-1.5">
+                    <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Actieve auto-links vanuit dit artikel</p>
+                    {activeAnchorsFromHere.length === 0 ? (
+                      <p className="text-[10px] text-gray-400 italic">Nog geen ankerzinnen van andere artikelen gevonden in deze tekst.</p>
+                    ) : (
+                      activeAnchorsFromHere.map(({ targetId, targetTitle, phrase }) => (
+                        <div key={targetId} className="flex items-center gap-2 bg-white border border-green-200 rounded px-2 py-1.5">
+                          <CheckCircle size={10} className="text-green-600 flex-shrink-0" />
+                          <span className="text-xs text-gray-700 font-medium flex-1 min-w-0 truncate">{targetTitle}</span>
+                          <span className="text-[10px] text-green-700 bg-green-50 border border-green-200 rounded px-1.5 py-0.5 italic truncate max-w-[180px]">&ldquo;{phrase}&rdquo;</span>
+                          <button
+                            type="button"
+                            onClick={async () => { await removeAnchorPhrase({ targetId: targetId as Id<"blogPosts">, phrase }); }}
+                            className="text-red-400 hover:text-red-600 leading-none flex-shrink-0"
+                          >×</button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-primary-800">Zinnen in dit artikel die linken naar andere artikelen</p>
+                    <p className="text-xs font-medium text-primary-800">Suggesties voor nieuwe links</p>
                     <button
                       type="button"
                       disabled={scanLoading}
@@ -1126,13 +1166,14 @@ export default function AdminBlogPage() {
                       <p className="text-xs text-gray-500 italic">Geen relevante zinnen gevonden in je tekst.</p>
                     ) : (
                       <div className="space-y-3">
-                        <p className="text-xs text-gray-500">{scanSentences.length} artikel{scanSentences.length !== 1 ? "en" : ""} gevonden — selecteer met de muis een stuk tekst om als ankerzin op te slaan:</p>
+                        <p className="text-xs text-gray-500">{scanSentences.length} artikel{scanSentences.length !== 1 ? "en" : ""} gevonden — de zinnen hieronder komen uit <em>dit</em> artikel. Paars = voorgestelde ankerzin, groen = al actief.</p>
                         {(() => {
                           const noLinks = scanSentences.filter((r: any) => r.incomingLinkCount === 0);
                           const fewLinks = scanSentences.filter((r: any) => r.incomingLinkCount === 1);
                           const moreLinks = scanSentences.filter((r: any) => r.incomingLinkCount >= 2);
 
                           const renderCard = (r: any) => {
+                            const isFull = r.existingAnchors.length >= 4;
                             const badgeColor = r.incomingLinkCount === 0 ? "bg-red-100 text-red-600" : r.incomingLinkCount === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
                             const phrase = selectedPhrases[r.targetSlug] ?? "";
                             const saved = savedSlugs.has(r.targetSlug);
@@ -1167,12 +1208,15 @@ export default function AdminBlogPage() {
                             };
 
                             return (
-                              <div key={r.targetSlug} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                              <div key={r.targetSlug} className={`border rounded-lg p-3 space-y-2 ${isFull ? "border-gray-100 bg-gray-50 opacity-60" : "border-gray-200"}`}>
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className="text-sm font-semibold text-gray-800 leading-snug">{r.targetTitle}</span>
                                     {r.isConceptTarget && (
                                       <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept</span>
+                                    )}
+                                    {isFull && (
+                                      <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 rounded px-1 py-0.5">vol (4/4)</span>
                                     )}
                                   </div>
                                   <span className={`text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
@@ -1224,7 +1268,7 @@ export default function AdminBlogPage() {
                                   </div>
                                 ))}
 
-                                {phrase && !saved && (
+                                {phrase && !saved && !isFull && (
                                   <div className="flex items-center gap-2 bg-violet-50 border border-violet-200 rounded px-2 py-1.5">
                                     <span className="text-xs text-violet-700 flex-1 min-w-0 italic truncate">&ldquo;{phrase}&rdquo;</span>
                                     <button
@@ -1232,6 +1276,12 @@ export default function AdminBlogPage() {
                                       onClick={async () => {
                                         await applyLinks({ suggestions: [{ targetId: r.targetId as Id<"blogPosts">, phrase }] });
                                         setSavedSlugs(prev => new Set([...prev, r.targetSlug]));
+                                        // Voeg de nieuwe ankerzin toe aan de kaart zodat de groene chip meteen verschijnt
+                                        setScanSentences(prev => prev ? prev.map((x: any) =>
+                                          x.targetSlug === r.targetSlug
+                                            ? { ...x, existingAnchors: x.existingAnchors.includes(phrase) ? x.existingAnchors : [...x.existingAnchors, phrase] }
+                                            : x
+                                        ) : null);
                                       }}
                                       className="text-[10px] bg-green-600 text-white rounded px-2 py-0.5 hover:bg-green-700 flex-shrink-0 transition-colors"
                                     >

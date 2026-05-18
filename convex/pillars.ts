@@ -208,6 +208,17 @@ export const update = mutation({
   },
 });
 
+/** Admin: alle ankerzinnen van alle pillar-pagina's verwijderen */
+export const clearAllAnchorPhrases = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const pillars = await ctx.db.query("pillars").collect();
+    await Promise.all(pillars.map((p) => ctx.db.patch(p._id, { anchorPhrases: undefined })));
+    return pillars.length;
+  },
+});
+
 /** Admin: pillar verwijderen */
 export const remove = mutation({
   args: { adminToken: v.string(), id: v.id("pillars") },

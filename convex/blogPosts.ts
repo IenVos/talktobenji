@@ -542,9 +542,10 @@ export const scanSentencesForLinks = query({
 
     const sentences = args.content
       .split(/\n/)
+      .filter((line) => !/^\s*#{1,6}\s/.test(line)) // koppen nooit als ankerzin
       .flatMap((line) => line.split(/(?<=[.!?])\s+/))
       .map((s) => s.trim().replace(/^[>#*_-]+\s*/, ""))
-      .filter((s) => s.length > 40 && !s.startsWith("[") && !s.startsWith("#") && !s.startsWith(">") && !s.startsWith("http"));
+      .filter((s) => s.length > 40 && !s.startsWith("[") && !s.startsWith(">") && !s.startsWith("http"));
 
     // Verzamel alle bestaande ankerzinnen van alle kandidaten voor conflict-detectie
     // Elke ankerzin is "eigendom" van één doelartikel — dezelfde zin mag niet naar twee artikelen linken
@@ -711,6 +712,7 @@ export const applyLinkSuggestions = mutation({
       const post = await ctx.db.get(targetId);
       if (!post) continue;
       const existing = post.anchorPhrases ?? [];
+      if (existing.length >= 4) continue; // maximaal 4 ankerzinnen per artikel
       if (!existing.includes(phrase)) {
         await ctx.db.patch(targetId, {
           anchorPhrases: [...existing, phrase],

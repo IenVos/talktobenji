@@ -14,6 +14,7 @@ export default function LinkStructuurPage() {
   const pillars = useAdminQuery(api.pillars.list, {});
   const updatePost = useAdminMutation(api.blogPosts.update);
   const clearAllAnchors = useAdminMutation(api.blogPosts.clearAllAnchorPhrases);
+  const clearPillarAnchors = useAdminMutation(api.pillars.clearAllAnchorPhrases);
   const bulkGenerate = useAdminMutation(api.blogPosts.bulkGenerateAnchorPhrases);
   const bulkRegenerateWeak = useAdminMutation(api.blogPosts.bulkRegenerateWeakAnchorPhrases);
 
@@ -25,6 +26,7 @@ export default function LinkStructuurPage() {
   const [editPhrases, setEditPhrases] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [clearingPillars, setClearingPillars] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
 
@@ -143,7 +145,21 @@ export default function LinkStructuurPage() {
             className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
           >
             <Trash2 size={14} />
-            {clearing ? "Bezig..." : "Alle ankerzinnen wissen"}
+            {clearing ? "Bezig..." : "Alle ankerzinnen wissen (blogs)"}
+          </button>
+          <button
+            onClick={async () => {
+              if (!confirm("Alle ankerzinnen van alle pillar-pagina's verwijderen? Dit is onomkeerbaar.")) return;
+              setClearingPillars(true);
+              const count = await clearPillarAnchors({});
+              setClearingPillars(false);
+              alert(`Ankerzinnen verwijderd van ${count} pillar-pagina's.`);
+            }}
+            disabled={clearingPillars}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+          >
+            <Trash2 size={14} />
+            {clearingPillars ? "Bezig..." : "Alle ankerzinnen wissen (pillars)"}
           </button>
         </div>
       </div>
