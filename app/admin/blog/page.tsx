@@ -1212,6 +1212,11 @@ export default function AdminBlogPage() {
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="flex items-center gap-1.5 flex-wrap">
                                     <span className="text-sm font-semibold text-gray-800 leading-snug">{r.targetTitle}</span>
+                                    {r.viewCount >= 50 && (
+                                      <span className="text-[10px] text-rose-600 bg-rose-50 border border-rose-200 rounded px-1 py-0.5">
+                                        🔥 {r.viewCount} views
+                                      </span>
+                                    )}
                                     {r.isConceptTarget && (
                                       <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept</span>
                                     )}

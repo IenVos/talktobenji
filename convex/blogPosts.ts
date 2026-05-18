@@ -525,7 +525,20 @@ export const scanSentencesForLinks = query({
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const allPosts = await ctx.db.query("blogPosts").collect();
+    const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
+    const [allPosts, rawViews, excludedIps] = await Promise.all([
+      ctx.db.query("blogPosts").collect(),
+      ctx.db.query("pageViews").withIndex("by_timestamp", (q) => q.gte("timestamp", ninetyDaysAgo)).collect(),
+      ctx.db.query("analyticsExcludedIps").collect(),
+    ]);
+    const excludedSet = new Set(excludedIps.map((e) => e.ip));
+    const viewCounts = new Map<string, number>();
+    for (const v of rawViews) {
+      if (v.ip && excludedSet.has(v.ip)) continue;
+      if (!v.path.startsWith("/blog/")) continue;
+      const slug = v.path.slice(6); // strip "/blog/"
+      viewCounts.set(slug, (viewCounts.get(slug) ?? 0) + 1);
+    }
 
     const incomingCount = new Map<string, number>();
     for (const post of allPosts) {
@@ -564,6 +577,7 @@ export const scanSentencesForLinks = query({
       existingAnchors: string[];
       incomingLinkCount: number;
       isConceptTarget: boolean;
+      viewCount: number;
     }> = [];
 
     for (const post of candidates) {
@@ -626,19 +640,21 @@ export const scanSentencesForLinks = query({
         existingAnchors: post.anchorPhrases ?? [],
         incomingLinkCount: incomingCount.get(post.slug) ?? 0,
         isConceptTarget: !post.isLive,
+        viewCount: viewCounts.get(post.slug) ?? 0,
       });
     }
 
-    // Prioritering: 0 inkomende links eerst, dan 1, dan 2+ (max 4 uit die groep)
-    // Binnen elke groep gesorteerd op relevantiescore. Totaal max 10 resultaten.
-    const byScore = (a: typeof results[0], b: typeof results[0]) => {
+    // Prioritering: 0 inkomende links eerst, dan 1, dan 2+
+    // Binnen elke groep: meeste verkeer (90 dagen) eerst, dan relevantiescore als tiebreaker
+    const byTraffic = (a: typeof results[0], b: typeof results[0]) => {
+      if (b.viewCount !== a.viewCount) return b.viewCount - a.viewCount;
       const sA = a.sentences.reduce((s, x) => s + x.score, 0);
       const sB = b.sentences.reduce((s, x) => s + x.score, 0);
       return sB - sA;
     };
-    const noLinks = results.filter((r) => r.incomingLinkCount === 0).sort(byScore);
-    const fewLinks = results.filter((r) => r.incomingLinkCount === 1).sort(byScore);
-    const moreLinks = results.filter((r) => r.incomingLinkCount >= 2).sort(byScore).slice(0, 4);
+    const noLinks = results.filter((r) => r.incomingLinkCount === 0).sort(byTraffic);
+    const fewLinks = results.filter((r) => r.incomingLinkCount === 1).sort(byTraffic);
+    const moreLinks = results.filter((r) => r.incomingLinkCount >= 2).sort(byTraffic).slice(0, 4);
 
     return [...noLinks, ...fewLinks, ...moreLinks].slice(0, 10);
   },
