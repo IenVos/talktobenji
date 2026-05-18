@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { AuthorCard } from "@/components/blog/AuthorCard";
-import { CtaBlockB } from "@/components/blog/CtaBlock";
+import { CtaBlockA, CtaBlockB } from "@/components/blog/CtaBlock";
 import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering, BenjiTeaserEmotie, BenjiTeaserCheckin, BenjiTeaserMemories, BenjiTeaserCustom } from "@/components/blog/BenjiTeaser";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -203,7 +203,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     if (ctaMatch) {
       const key = ctaMatch[1];
       const data = key ? (ctaMap?.get(key) ?? ctaData) : ctaData;
-      return renderInlineCta(data, i);
+      return <CtaBlockA key={i} data={data} />;
     }
     // Video: [video:URL] of [video:URL:center]
     const videoMatch = block.trim().match(/^\[video:(.+)\]$/);
@@ -497,6 +497,8 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
             </div>
           )}
 
+          <CtaBlockA data={ctaData} />
+
           {/* Bronnen */}
           {post.sources && (
             <div className="mt-10 p-5 bg-stone-50 rounded-2xl border border-stone-200">
@@ -565,16 +567,14 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
                 )}
                 {hasPillar && (
                   <Link href={`/thema/${pillar.slug}`}
-                    className="flex items-center gap-2 text-sm text-primary-700 hover:text-primary-900 transition-colors">
-                    <span className="text-base">📖</span>
-                    <span>Meer over dit thema: <span className="font-semibold">{pillar.title}</span> →</span>
+                    className="text-sm text-primary-700 hover:text-primary-900 transition-colors">
+                    Meer over dit thema: <span className="font-semibold">{pillar.title}</span> →
                   </Link>
                 )}
               </div>
             );
           })()}
 
-          <CtaBlockB data={ctaData} />
         </article>
       </div>
 

@@ -116,7 +116,7 @@ function CtaBlockInner({ data }: { data: CtaData }) {
           <img
             src={data.imageUrl || "/images/app-screenshot.png"}
             alt="Talk To Benji"
-            className="w-full rounded-xl border border-stone-200 shadow-sm"
+            className="w-full rounded-xl border border-stone-200 shadow-sm max-h-52 object-cover object-top"
           />
         </div>
       )}

@@ -171,7 +171,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     if (ctaMatch) {
       const key = ctaMatch[1];
       const data = key ? (ctaMap?.get(key) ?? ctaData) : ctaData;
-      return renderInlineCta(data, i);
+      return <CtaBlockA key={i} data={data} />;
     }
     // Video: [video:URL] of [video:URL:center]
     const videoMatch = block.trim().match(/^\[video:(.+)\]$/);
