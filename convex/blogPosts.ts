@@ -303,17 +303,21 @@ export const scanForLinks = query({
     // Woorden die NERGENS in een span mogen voorkomen (breekpunten)
     const HARD_STOP = new Set([
       "is","zijn","was","waren","wordt","werden","ben","bent","heeft","hebben","had","hadden",
-      "een","de","het","geen","en","of","maar","want","dus","toch","ook","nog","al","al",
+      "een","de","het","geen","en","of","maar","want","dus","toch","ook","nog","al",
       "naar","van","aan","op","in","bij","uit","door","over","voor","met","om","tot","als",
       "dat","die","dit","deze","zo","dan","er","zich",
+      // Verbindingswoorden die een zin niet mogen beginnen of eindigen
+      "terwijl","omdat","zodat","tenzij","hoewel","alhoewel","wanneer","waarna","waarbij",
+      "nadat","voordat","sindsdien","sindsdien","indien","mits","toch","immers","namelijk",
+      "waardoor","waarmee","waarvoor","daarna","daarin","daarmee","daarvoor","daardoor",
     ]);
 
-    // Splits brontekst in zinnen
+    // Splits brontekst in zinnen — sla markdown-blokken over
     const sentences = args.content
       .replace(/\n+/g, " ")
       .split(/(?<=[.!?])\s+/)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 20 && !s.startsWith("[") && !s.startsWith("#"));
+      .map((s) => s.trim().replace(/^[>#*_-]+\s*/, ""))
+      .filter((s) => s.length > 20 && !s.startsWith("[") && !s.startsWith("#") && !s.startsWith(">"));
 
     const usedTargets = new Set<string>();
     const usedPhrases = new Set<string>();
@@ -418,29 +422,28 @@ export const scanForLinks = query({
             .filter(w => w.length > 3 && !GENERIC.has(w) && !HARD_STOP.has(w))
         );
         outer2: for (const sentence of sentences) {
-          const sentWords = sentence.split(/\s+/);
+          const sentWords = sentence.split(/\s+/).map(w => w.replace(/^[>#*_"'„«»""]+/, "").replace(/[.,;:!?"'„«»""]+$/, "")).filter(Boolean);
           for (let i = 0; i < sentWords.length; i++) {
             const wLower = sentWords[i].toLowerCase().replace(/[^a-z]/g, "");
             if (!keywords.has(wLower)) continue;
-            // Probeer steeds langere vensters (4→6 woorden) rondom het trefwoord
-            for (const [before, after] of [[1,3],[2,3],[1,4],[2,4],[2,5]] as const) {
-              const start = Math.max(0, i - before);
-              const end = Math.min(sentWords.length, i + after);
-              if (end - start < 3) continue;
-              const candidate = sentWords.slice(start, end)
-                .map(w => w.replace(/[.,;:!?"'„«»""]/g, "").trim())
-                .filter(Boolean)
-                .join(" ");
-              const cWords = candidate.toLowerCase().replace(/[^a-z\s]/g, "").split(/\s+/);
-              if (
-                cWords.length >= 3 &&
-                !GENERIC.has(cWords[0]) && !HARD_STOP.has(cWords[0]) &&
-                !GENERIC.has(cWords[cWords.length - 1]) && !HARD_STOP.has(cWords[cWords.length - 1]) &&
-                contentLower.includes(candidate.toLowerCase())
-              ) {
-                finalPhrase = findOriginal(candidate) ?? candidate;
-                break outer2;
-              }
+            // Bouw kandidaat: trim woorden voor/na het trefwoord die een stopwoord zijn
+            // Zoek linkse grens: ga terug totdat we een niet-stopwoord vinden
+            let lStart = Math.max(0, i - 3);
+            while (lStart < i && (HARD_STOP.has(sentWords[lStart].toLowerCase().replace(/[^a-z]/g, "")) || GENERIC.has(sentWords[lStart].toLowerCase().replace(/[^a-z]/g, "")))) lStart++;
+            // Zoek rechtse grens: ga vooruit totdat we een stopwoord tegenkomen als eindwoord
+            let rEnd = Math.min(sentWords.length, i + 4);
+            while (rEnd > i + 1 && (HARD_STOP.has(sentWords[rEnd - 1].toLowerCase().replace(/[^a-z]/g, "")) || GENERIC.has(sentWords[rEnd - 1].toLowerCase().replace(/[^a-z]/g, "")))) rEnd--;
+            if (rEnd - lStart < 3) continue;
+            const candidate = sentWords.slice(lStart, rEnd).join(" ");
+            const cWords = candidate.toLowerCase().replace(/[^a-z\s]/g, "").split(/\s+/);
+            // Kandidaat moet het trefwoord bevatten en letterlijk in de tekst staan
+            if (
+              cWords.length >= 3 &&
+              cWords.some(w => keywords.has(w)) &&
+              contentLower.includes(candidate.toLowerCase())
+            ) {
+              finalPhrase = findOriginal(candidate) ?? candidate;
+              break outer2;
             }
           }
         }
