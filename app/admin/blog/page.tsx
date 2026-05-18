@@ -1120,87 +1120,133 @@ export default function AdminBlogPage() {
                     ) : (
                       <div className="space-y-3">
                         <p className="text-xs text-gray-500">{scanSentences.length} artikel{scanSentences.length !== 1 ? "en" : ""} gevonden — selecteer met de muis een stuk tekst om als ankerzin op te slaan:</p>
-                        {scanSentences.map((r: any) => {
-                          const badgeColor = r.incomingLinkCount === 0 ? "bg-red-100 text-red-600" : r.incomingLinkCount === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
-                          const phrase = selectedPhrases[r.targetSlug] ?? "";
-                          const saved = savedSlugs.has(r.targetSlug);
-                          return (
-                            <div key={r.targetSlug} className="border border-gray-200 rounded-lg p-3 space-y-2">
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="text-sm font-semibold text-gray-800 leading-snug">{r.targetTitle}</span>
-                                  {r.isConceptTarget && (
-                                    <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept</span>
-                                  )}
+                        {(() => {
+                          const noLinks = scanSentences.filter((r: any) => r.incomingLinkCount === 0);
+                          const fewLinks = scanSentences.filter((r: any) => r.incomingLinkCount === 1);
+                          const moreLinks = scanSentences.filter((r: any) => r.incomingLinkCount >= 2);
+
+                          const renderCard = (r: any) => {
+                            const badgeColor = r.incomingLinkCount === 0 ? "bg-red-100 text-red-600" : r.incomingLinkCount === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
+                            const phrase = selectedPhrases[r.targetSlug] ?? "";
+                            const saved = savedSlugs.has(r.targetSlug);
+
+                            const highlightAnchor = (text: string, anchors: string[]) => {
+                              for (const anchor of anchors) {
+                                const idx = text.toLowerCase().indexOf(anchor.toLowerCase());
+                                if (idx !== -1) {
+                                  return (
+                                    <>
+                                      {text.slice(0, idx)}
+                                      <mark className="bg-green-100 text-green-800 rounded-sm px-0.5 not-italic font-medium">{text.slice(idx, idx + anchor.length)}</mark>
+                                      {text.slice(idx + anchor.length)}
+                                    </>
+                                  );
+                                }
+                              }
+                              return text;
+                            };
+
+                            return (
+                              <div key={r.targetSlug} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="text-sm font-semibold text-gray-800 leading-snug">{r.targetTitle}</span>
+                                    {r.isConceptTarget && (
+                                      <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept</span>
+                                    )}
+                                  </div>
+                                  <span className={`text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
                                 </div>
-                                <span className={`text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
-                              </div>
 
-                              {r.existingAnchors.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
-                                  {r.existingAnchors.map((anchor: string) => (
-                                    <span key={anchor} className="inline-flex items-center gap-1 text-[10px] text-green-700 bg-green-50 border border-green-200 rounded px-1.5 py-0.5 max-w-full">
-                                      <CheckCircle size={9} className="flex-shrink-0" />
-                                      <span className="truncate max-w-[200px]">&ldquo;{anchor}&rdquo;</span>
-                                      <button
-                                        type="button"
-                                        onClick={async () => {
-                                          await removeAnchorPhrase({ targetId: r.targetId as Id<"blogPosts">, phrase: anchor });
-                                          setScanSentences(prev => prev ? prev.map(x =>
-                                            x.targetSlug === r.targetSlug
-                                              ? { ...x, existingAnchors: x.existingAnchors.filter((a: string) => a !== anchor) }
-                                              : x
-                                          ) : null);
-                                        }}
-                                        className="text-red-400 hover:text-red-600 leading-none flex-shrink-0"
-                                      >×</button>
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
+                                {r.existingAnchors.length > 0 && (
+                                  <div className="flex flex-wrap gap-1">
+                                    {r.existingAnchors.map((anchor: string) => (
+                                      <span key={anchor} className="inline-flex items-center gap-1 text-[10px] text-green-700 bg-green-50 border border-green-200 rounded px-1.5 py-0.5 max-w-full">
+                                        <CheckCircle size={9} className="flex-shrink-0" />
+                                        <span className="truncate max-w-[200px]">&ldquo;{anchor}&rdquo;</span>
+                                        <button
+                                          type="button"
+                                          onClick={async () => {
+                                            await removeAnchorPhrase({ targetId: r.targetId as Id<"blogPosts">, phrase: anchor });
+                                            setScanSentences(prev => prev ? prev.map(x =>
+                                              x.targetSlug === r.targetSlug
+                                                ? { ...x, existingAnchors: x.existingAnchors.filter((a: string) => a !== anchor) }
+                                                : x
+                                            ) : null);
+                                          }}
+                                          className="text-red-400 hover:text-red-600 leading-none flex-shrink-0"
+                                        >×</button>
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
 
-                              <p className="text-[10px] text-gray-400 italic">Selecteer met de muis een stuk tekst hieronder:</p>
+                                <p className="text-[10px] text-gray-400 italic">Selecteer met de muis een stuk tekst hieronder:{r.existingAnchors.length > 0 ? " groen = al actief als anker" : ""}</p>
 
-                              {r.sentences.map((s: any, i: number) => (
-                                <p
-                                  key={i}
-                                  onMouseUp={() => {
-                                    const sel = window.getSelection()?.toString().trim();
-                                    if (sel && sel.length >= 4) {
-                                      setSelectedPhrases(prev => ({ ...prev, [r.targetSlug]: sel }));
-                                      setSavedSlugs(prev => { const next = new Set(prev); next.delete(r.targetSlug); return next; });
-                                    }
-                                  }}
-                                  className="text-xs text-gray-700 leading-relaxed bg-gray-50 rounded px-2 py-1.5 cursor-text select-text border border-transparent hover:border-gray-200 transition-colors"
-                                >
-                                  {s.text}
-                                </p>
-                              ))}
-
-                              {phrase && !saved && (
-                                <div className="flex items-center gap-2 bg-violet-50 border border-violet-200 rounded px-2 py-1.5">
-                                  <span className="text-xs text-violet-700 flex-1 min-w-0 italic truncate">&ldquo;{phrase}&rdquo;</span>
-                                  <button
-                                    type="button"
-                                    onClick={async () => {
-                                      await applyLinks({ suggestions: [{ targetId: r.targetId as Id<"blogPosts">, phrase }] });
-                                      setSavedSlugs(prev => new Set([...prev, r.targetSlug]));
+                                {r.sentences.map((s: any, i: number) => (
+                                  <p
+                                    key={i}
+                                    onMouseUp={() => {
+                                      const sel = window.getSelection()?.toString().trim();
+                                      if (sel && sel.length >= 4) {
+                                        setSelectedPhrases(prev => ({ ...prev, [r.targetSlug]: sel }));
+                                        setSavedSlugs(prev => { const next = new Set(prev); next.delete(r.targetSlug); return next; });
+                                      }
                                     }}
-                                    className="text-[10px] bg-green-600 text-white rounded px-2 py-0.5 hover:bg-green-700 flex-shrink-0 transition-colors"
+                                    className="text-xs text-gray-700 leading-relaxed bg-gray-50 rounded px-2 py-1.5 cursor-text select-text border border-transparent hover:border-gray-200 transition-colors"
                                   >
-                                    Opslaan als anker
-                                  </button>
+                                    {highlightAnchor(s.text, r.existingAnchors)}
+                                  </p>
+                                ))}
+
+                                {phrase && !saved && (
+                                  <div className="flex items-center gap-2 bg-violet-50 border border-violet-200 rounded px-2 py-1.5">
+                                    <span className="text-xs text-violet-700 flex-1 min-w-0 italic truncate">&ldquo;{phrase}&rdquo;</span>
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        await applyLinks({ suggestions: [{ targetId: r.targetId as Id<"blogPosts">, phrase }] });
+                                        setSavedSlugs(prev => new Set([...prev, r.targetSlug]));
+                                      }}
+                                      className="text-[10px] bg-green-600 text-white rounded px-2 py-0.5 hover:bg-green-700 flex-shrink-0 transition-colors"
+                                    >
+                                      Opslaan als anker
+                                    </button>
+                                  </div>
+                                )}
+
+                                {saved && (
+                                  <p className="text-[10px] text-green-600 flex items-center gap-1">
+                                    <CheckCircle size={10} /> Ankerzin opgeslagen
+                                  </p>
+                                )}
+                              </div>
+                            );
+                          };
+
+                          return (
+                            <>
+                              {noLinks.length > 0 && (
+                                <div className="space-y-2">
+                                  <p className="text-[10px] font-semibold text-red-600 uppercase tracking-wide">Nog geen links naar — prioriteit</p>
+                                  {noLinks.map(renderCard)}
                                 </div>
                               )}
-
-                              {saved && (
-                                <p className="text-[10px] text-green-600 flex items-center gap-1">
-                                  <CheckCircle size={10} /> Ankerzin opgeslagen
-                                </p>
+                              {fewLinks.length > 0 && (
+                                <div className="space-y-2">
+                                  <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-wide">1 link — kan meer</p>
+                                  {fewLinks.map(renderCard)}
+                                </div>
                               )}
-                            </div>
+                              {moreLinks.length > 0 && (
+                                <div className="space-y-2">
+                                  <p className="text-[10px] font-semibold text-green-600 uppercase tracking-wide">Goed bereikt — extra authority</p>
+                                  {moreLinks.map(renderCard)}
+                                </div>
+                              )}
+                            </>
                           );
-                        })}
+                        })()}
                       </div>
                     )
                   )}

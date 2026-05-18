@@ -587,11 +587,18 @@ export const scanSentencesForLinks = query({
       });
     }
 
-    return results.sort((a, b) => {
+    // Prioritering: 0 inkomende links eerst, dan 1, dan 2+ (max 4 uit die groep)
+    // Binnen elke groep gesorteerd op relevantiescore. Totaal max 10 resultaten.
+    const byScore = (a: typeof results[0], b: typeof results[0]) => {
       const sA = a.sentences.reduce((s, x) => s + x.score, 0);
       const sB = b.sentences.reduce((s, x) => s + x.score, 0);
       return sB - sA;
-    });
+    };
+    const noLinks = results.filter((r) => r.incomingLinkCount === 0).sort(byScore);
+    const fewLinks = results.filter((r) => r.incomingLinkCount === 1).sort(byScore);
+    const moreLinks = results.filter((r) => r.incomingLinkCount >= 2).sort(byScore).slice(0, 4);
+
+    return [...noLinks, ...fewLinks, ...moreLinks].slice(0, 10);
   },
 });
 
