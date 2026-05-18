@@ -409,17 +409,43 @@ export const scanForLinks = query({
         }
       }
 
-      // Stap 2: aaneengesloten reeks van 2-4 woorden uit de titel in source-tekst (langste eerst)
+      // Stap 2: pak een echte zinsnede uit de brontekst rondom een trefwoord van het doelartikel
       if (!finalPhrase) {
-        for (const candidate of ngramCandidates(post.title, 2, 4)) {
-          if (contentLower.includes(candidate)) {
-            finalPhrase = findOriginal(candidate) ?? candidate;
-            break;
+        const keywords = new Set(
+          [post.title, post.focusKeyword ?? ""].join(" ")
+            .toLowerCase().replace(/[–—&]/g, " ").replace(/[^a-z0-9\s]/g, "")
+            .split(/\s+/)
+            .filter(w => w.length > 3 && !GENERIC.has(w) && !HARD_STOP.has(w))
+        );
+        outer2: for (const sentence of sentences) {
+          const sentWords = sentence.split(/\s+/);
+          for (let i = 0; i < sentWords.length; i++) {
+            const wLower = sentWords[i].toLowerCase().replace(/[^a-z]/g, "");
+            if (!keywords.has(wLower)) continue;
+            // Probeer steeds langere vensters (4→6 woorden) rondom het trefwoord
+            for (const [before, after] of [[1,3],[2,3],[1,4],[2,4],[2,5]] as const) {
+              const start = Math.max(0, i - before);
+              const end = Math.min(sentWords.length, i + after);
+              if (end - start < 3) continue;
+              const candidate = sentWords.slice(start, end)
+                .map(w => w.replace(/[.,;:!?"'„«»""]/g, "").trim())
+                .filter(Boolean)
+                .join(" ");
+              const cWords = candidate.toLowerCase().replace(/[^a-z\s]/g, "").split(/\s+/);
+              if (
+                cWords.length >= 3 &&
+                !GENERIC.has(cWords[0]) && !HARD_STOP.has(cWords[0]) &&
+                !GENERIC.has(cWords[cWords.length - 1]) && !HARD_STOP.has(cWords[cWords.length - 1]) &&
+                contentLower.includes(candidate.toLowerCase())
+              ) {
+                finalPhrase = findOriginal(candidate) ?? candidate;
+                break outer2;
+              }
+            }
           }
         }
       }
 
-      // Geen fallback-stappen meer — alleen stap 0/1/2 zijn betrouwbaar
       if (!finalPhrase) continue;
 
       // Zin moet letterlijk in de brontekst staan
