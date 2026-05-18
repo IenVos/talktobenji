@@ -1296,10 +1296,15 @@ export default function AdminBlogPage() {
                 <input type="date" value={form.publishedAt} onChange={set("publishedAt")} className={inputClass} />
                 <p className="text-xs text-gray-400 mt-0.5">Toekomstige datum = ingepland, nog niet zichtbaar</p>
               </div>
-              <label className="flex items-center gap-2 cursor-pointer pb-2">
+              <label className={`flex items-center gap-3 cursor-pointer px-3 py-2.5 rounded-lg border transition-colors ${form.isLive ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-300"}`}>
                 <input type="checkbox" checked={form.isLive} onChange={(e) => setForm((f) => ({ ...f, isLive: e.target.checked }))}
-                  className="rounded border-primary-300 text-primary-600" />
-                <span className="text-sm text-gray-700">Live (publiek zichtbaar)</span>
+                  className="rounded border-primary-300 text-primary-600 w-4 h-4" />
+                <div>
+                  <span className={`text-sm font-semibold ${form.isLive ? "text-green-800" : "text-amber-800"}`}>
+                    {form.isLive ? "✓ Live — publiek zichtbaar" : "⚠ Concept — nog niet publiek"}
+                  </span>
+                  {!form.isLive && <p className="text-xs text-amber-700 mt-0.5">Vink aan om het artikel te publiceren.</p>}
+                </div>
               </label>
             </div>
 

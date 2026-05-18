@@ -532,6 +532,9 @@ export const scanForLinks = query({
         }
       }
 
+      // Alleen exacte matches tonen — approximate matches (zin staat niet letterlijk in tekst) overslaan
+      if (isApproximate) continue;
+
       // Verifieer relevantie voor nieuwe (nog niet geactiveerde) zinnen:
       // minstens één woord moet in de titel of het focuszoekwoord van het doelartikel staan.
       // Zo voorkomen we zinloze matches zoals "nieuwe nemen" voor "Wanneer is het tijd voor een nieuwe hond".
