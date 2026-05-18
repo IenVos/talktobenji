@@ -153,7 +153,10 @@ function renderInlineCta(data: any, key: number) {
 function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>, anchorData?: AnchorEntry[], currentSlug?: string, currentPillar?: string | null) {
   const used = new Set<string>();
   const ri = (text: string) => renderInlineAll(text, anchorData, currentSlug, currentPillar, used);
-  const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
+  const blocks = content
+    .replace(/\n{3,}/g, "\n\n__SPACER__\n\n")
+    .replace(/([^\n])\n(#{1,6}\s)/g, "$1\n\n$2")
+    .split(/\n\n+/);
   return blocks.map((block, i) => {
     // Extra witregel
     if (block.trim() === "__SPACER__") {

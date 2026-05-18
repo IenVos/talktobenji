@@ -37,7 +37,10 @@ function headingId(text: string) {
 }
 
 function extractTOC(content: string) {
-  return content.replace(/\n{3,}/g, "\n\n").split(/\n\n+/)
+  return content
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/([^\n])\n(#{1,6}\s)/g, "$1\n\n$2")
+    .split(/\n\n+/)
     .filter(b => b.startsWith("## "))
     .map(b => ({ text: b.slice(3), id: headingId(b.slice(3)) }));
 }
@@ -143,7 +146,10 @@ function renderInlineAll(
 function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>, anchorData?: AnchorEntry[], currentSlug?: string, currentPillar?: string | null): React.ReactNode[] {
   const used = new Set<string>();
   const ri = (text: string) => renderInlineAll(text, anchorData, currentSlug, currentPillar, used);
-  const blocks = content.replace(/\n{3,}/g, "\n\n__SPACER__\n\n").split(/\n\n+/);
+  const blocks = content
+    .replace(/\n{3,}/g, "\n\n__SPACER__\n\n")
+    .replace(/([^\n])\n(#{1,6}\s)/g, "$1\n\n$2")
+    .split(/\n\n+/);
   return blocks.map((block, i) => {
     // Extra witregel
     if (block.trim() === "__SPACER__") {
