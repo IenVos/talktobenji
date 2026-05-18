@@ -524,10 +524,11 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
                 {hasLinks && (
                   <div className={`grid grid-cols-1 gap-4 mb-4 ${articleLinks.length === 1 ? "" : articleLinks.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
                     {articleLinks.map((link: any, i: number) => {
-                      const cover = coverMap.get(link.slug);
-                      const isConcept = !coverMap.has(link.slug);
+                      const slugKey = link.slug.replace(/^\/?(?:blog\/)?/, "");
+                      const cover = coverMap.get(slugKey);
+                      const isConcept = !coverMap.has(slugKey);
                       return (
-                        <Link key={i} href={`/blog/${link.slug}`}
+                        <Link key={i} href={`/blog/${slugKey}`}
                           className="group bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow">
                           {cover
                             ? <img src={cover} alt={link.label} className="w-full h-36 object-cover" />
