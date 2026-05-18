@@ -872,6 +872,7 @@ export default defineSchema({
     sources: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),    // Primair zoekwoord
     ctaKey: v.optional(v.string()),          // Welke CTA te tonen, bijv. "blog_default"
+    excerptCtaKey: v.optional(v.string()),   // CTA direct onder "In het kort" blok
     anchorPhrases: v.optional(v.array(v.string())), // Zinnen die in andere artikelen automatisch naar deze pillar linken
     featuredSlugs: v.optional(v.array(v.string())), // Geselecteerde artikelen onderaan de pillar pagina (max 5)
     createdAt: v.number(),
@@ -902,6 +903,7 @@ export default defineSchema({
     sources: v.optional(v.string()),         // Bronnen (één per regel)
     focusKeyword: v.optional(v.string()),    // Primair zoekwoord
     ctaKey: v.optional(v.string()),          // Welke CTA te tonen, bijv. "blog_default"
+    excerptCtaKey: v.optional(v.string()),   // CTA direct onder "In het kort" blok
     tags: v.optional(v.array(v.string())),   // Inhoudelijke labels, bijv. ["kinderloosheid", "zwangerschap"]
     anchorPhrases: v.optional(v.array(v.string())), // Zinnen die in andere artikelen automatisch naar dit artikel linken
     createdAt: v.number(),

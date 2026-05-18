@@ -20,6 +20,7 @@ type FormState = {
   sources: string;
   focusKeyword: string;
   ctaKey: string;
+  excerptCtaKey: string;
   isLive: boolean;
   faqItems: FaqItem[];
   internalLinks: InternalLink[];
@@ -39,6 +40,7 @@ const EMPTY: FormState = {
   sources: "",
   focusKeyword: "",
   ctaKey: "",
+  excerptCtaKey: "",
   isLive: false,
   faqItems: [{ question: "", answer: "" }],
   internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
@@ -132,6 +134,7 @@ export default function AdminPillarsPage() {
       sources: p.sources ?? "",
       focusKeyword: p.focusKeyword ?? "",
       ctaKey: p.ctaKey ?? "",
+      excerptCtaKey: (p as any).excerptCtaKey ?? "",
       isLive: p.isLive,
       faqItems: p.faqItems?.length ? p.faqItems : [{ question: "", answer: "" }],
       internalLinks: [
@@ -193,6 +196,7 @@ export default function AdminPillarsPage() {
       isLive: form.isLive,
       focusKeyword: form.focusKeyword.trim() || undefined,
       ctaKey: form.ctaKey.trim() || undefined,
+      excerptCtaKey: form.excerptCtaKey.trim() || undefined,
       sources: form.sources.trim(),
       anchorPhrases: form.anchorPhrases.trim()
         ? form.anchorPhrases.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 5)
@@ -463,13 +467,26 @@ export default function AdminPillarsPage() {
                 })()}
               </div>
               <div>
-                <label className={labelSmClass}>CTA blok</label>
+                <label className={labelSmClass}>CTA blok (onderaan)</label>
                 <select
                   value={form.ctaKey}
                   onChange={(e) => setForm((f) => ({ ...f, ctaKey: e.target.value }))}
                   className={inputClass}
                 >
                   <option value="">— Standaard —</option>
+                  {(ctaBlocks ?? []).map((c: any) => (
+                    <option key={c._id} value={c.key}>{c.label || c.key}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelSmClass}>CTA na "In het kort"</label>
+                <select
+                  value={form.excerptCtaKey}
+                  onChange={(e) => setForm((f) => ({ ...f, excerptCtaKey: e.target.value }))}
+                  className={inputClass}
+                >
+                  <option value="">— Geen —</option>
                   {(ctaBlocks ?? []).map((c: any) => (
                     <option key={c._id} value={c.key}>{c.label || c.key}</option>
                   ))}

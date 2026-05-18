@@ -437,6 +437,11 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
             </div>
           )}
 
+          {(post as any).excerptCtaKey && (() => {
+            const d = ctaMap.get((post as any).excerptCtaKey);
+            return d ? renderInlineCta(d, -1) : null;
+          })()}
+
           {post.coverImageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img

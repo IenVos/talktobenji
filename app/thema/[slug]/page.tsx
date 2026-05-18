@@ -343,6 +343,11 @@ export default async function PillarPage({ params }: Props) {
             </div>
           )}
 
+          {(pillar as any).excerptCtaKey && (() => {
+            const d = ctaMap.get((pillar as any).excerptCtaKey);
+            return d ? renderInlineCta(d, -1) : null;
+          })()}
+
           {(pillar as any).coverImageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img

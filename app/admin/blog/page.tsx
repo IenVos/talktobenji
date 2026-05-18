@@ -23,6 +23,7 @@ type FormState = {
   metaDescription: string;
   pillarSlug: string;
   ctaKey: string;
+  excerptCtaKey: string;
   sources: string;
   focusKeyword: string;
   publishedAt: string; // "YYYY-MM-DD"
@@ -44,6 +45,7 @@ const EMPTY_FORM: FormState = {
   metaDescription: "",
   pillarSlug: "",
   ctaKey: "",
+  excerptCtaKey: "",
   sources: "",
   focusKeyword: "",
   publishedAt: new Date().toISOString().slice(0, 10),
@@ -346,6 +348,7 @@ export default function AdminBlogPage() {
       coverImageFile: null,
       pillarSlug: post.pillarSlug ?? "",
       ctaKey: post.ctaKey ?? "",
+      excerptCtaKey: (post as any).excerptCtaKey ?? "",
       tags: post.tags ?? [],
       anchorPhrases: (post as any).anchorPhrases?.join("\n") ?? "",
     });
@@ -446,6 +449,7 @@ export default function AdminBlogPage() {
       internalLinks: internalLinks.length ? internalLinks : [],
       pillarSlug: form.pillarSlug.trim(),
       ctaKey: form.ctaKey.trim() || undefined,
+      excerptCtaKey: form.excerptCtaKey.trim() || undefined,
       tags: form.tags.length ? form.tags : undefined,
       sources: form.sources.trim(),
       focusKeyword: form.focusKeyword.trim() || undefined,
@@ -812,13 +816,26 @@ export default function AdminBlogPage() {
                 </select>
               </div>
               <div>
-                <label className={labelSmClass}>CTA blok</label>
+                <label className={labelSmClass}>CTA blok (onderaan)</label>
                 <select
                   value={form.ctaKey}
                   onChange={(e) => setForm((f) => ({ ...f, ctaKey: e.target.value }))}
                   className={inputClass}
                 >
                   <option value="">— Standaard —</option>
+                  {(ctaBlocks ?? []).map((c: any) => (
+                    <option key={c._id} value={c.key}>{c.label || c.key}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelSmClass}>CTA na "In het kort"</label>
+                <select
+                  value={form.excerptCtaKey}
+                  onChange={(e) => setForm((f) => ({ ...f, excerptCtaKey: e.target.value }))}
+                  className={inputClass}
+                >
+                  <option value="">— Geen —</option>
                   {(ctaBlocks ?? []).map((c: any) => (
                     <option key={c._id} value={c.key}>{c.label || c.key}</option>
                   ))}
