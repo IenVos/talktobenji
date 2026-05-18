@@ -306,10 +306,25 @@ export const scanForLinks = query({
       "een","de","het","geen","en","of","maar","want","dus","toch","ook","nog","al",
       "naar","van","aan","op","in","bij","uit","door","over","voor","met","om","tot","als",
       "dat","die","dit","deze","zo","dan","er","zich",
+      // Voorzetsels die een zin niet mogen eindigen
+      "vanuit","zonder","rond","langs","naast","tegenover","ondanks","mede","namens","ten",
+      "via","per","plus","minus","versus","contra","betreffende","aangaande","jegens",
       // Verbindingswoorden die een zin niet mogen beginnen of eindigen
       "terwijl","omdat","zodat","tenzij","hoewel","alhoewel","wanneer","waarna","waarbij",
-      "nadat","voordat","sindsdien","sindsdien","indien","mits","toch","immers","namelijk",
+      "nadat","voordat","sindsdien","indien","mits","immers","namelijk","tenzij",
       "waardoor","waarmee","waarvoor","daarna","daarin","daarmee","daarvoor","daardoor",
+      // Bijwoorden die geen ankerzin mogen starten of eindigen
+      "bijna","ongeveer","pas","net","echt","heel","erg","zeer","best","zeker","eigenlijk",
+      "gewoon","juist","zelfs","misschien","wellicht","waarschijnlijk","mogelijk","blijkbaar",
+    ]);
+
+    // Vervoegde werkwoorden die een ankerzin niet mogen starten
+    const VERB_START = new Set([
+      "neemt","heeft","wordt","gaat","komt","ziet","doet","weet","staat","vindt","voelt",
+      "denkt","maakt","geeft","laat","noemt","lijkt","houdt","brengt","zorgt","helpt",
+      "vraagt","vertelt","begint","eindigt","blijft","loopt","werkt","leeft","sterft",
+      "kiest","probeert","probeert","vergeet","herinnert","verwacht","hoopt","vreest",
+      "nam","had","deed","zei","ging","stond","lag","zat","vond","wist","kon","mocht",
     ]);
 
     // Splits brontekst in zinnen — sla markdown-blokken over
@@ -397,16 +412,17 @@ export const scanForLinks = query({
       let finalPhrase: string | null = null;
       let isNewAnchor = true;
 
-      // Stap 0: bestaande ankerzin staat al letterlijk in de source-tekst
+      // Stap 0: bestaande ankerzin staat al letterlijk in de source-tekst (min. 4 woorden)
       for (const anchor of existingAnchors) {
-        if (anchor.includes(" ") && contentLower.includes(anchor.toLowerCase())) {
+        const anchorWords = anchor.trim().split(/\s+/);
+        if (anchorWords.length >= 4 && contentLower.includes(anchor.toLowerCase())) {
           const orig = findOriginal(anchor);
           if (orig) { finalPhrase = orig; isNewAnchor = false; break; }
         }
       }
 
-      // Stap 1: focusKeyword (2+ woorden) letterlijk in de source-tekst
-      if (!finalPhrase && post.focusKeyword && post.focusKeyword.trim().includes(" ")) {
+      // Stap 1: focusKeyword (min. 4 woorden) letterlijk in de source-tekst
+      if (!finalPhrase && post.focusKeyword && post.focusKeyword.trim().split(/\s+/).length >= 4) {
         const kw = post.focusKeyword.trim();
         if (contentLower.includes(kw.toLowerCase())) {
           finalPhrase = findOriginal(kw) ?? kw;
@@ -438,7 +454,8 @@ export const scanForLinks = query({
             const cWords = candidate.toLowerCase().replace(/[^a-z\s]/g, "").split(/\s+/);
             // Kandidaat moet het trefwoord bevatten en letterlijk in de tekst staan
             if (
-              cWords.length >= 3 &&
+              cWords.length >= 4 &&
+              !VERB_START.has(cWords[0]) &&
               cWords.some(w => keywords.has(w)) &&
               contentLower.includes(candidate.toLowerCase())
             ) {
