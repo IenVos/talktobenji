@@ -877,7 +877,7 @@ export const listWithLinkStats = query({
       let count = 0;
       for (const source of posts) {
         if (source._id === target._id) continue;
-        const contentLower = source.content.toLowerCase();
+        const contentLower = (source.content ?? "").toLowerCase();
         for (const phrase of target.anchorPhrases) {
           if (phrase.trim().length > 2 && contentLower.includes(phrase.toLowerCase())) {
             count++;
@@ -893,7 +893,7 @@ export const listWithLinkStats = query({
     // (1 pillar = max 1 link, net als de auto-linker)
     const pillarAnchorIncoming = new Map<string, number>();
     for (const post of posts) {
-      const contentLower = post.content.toLowerCase();
+      const contentLower = (post.content ?? "").toLowerCase();
       let count = 0;
       for (const pillar of pillars) {
         if (!pillar.anchorPhrases?.length) continue;
