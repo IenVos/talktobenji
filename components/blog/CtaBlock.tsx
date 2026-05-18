@@ -93,7 +93,7 @@ function CtaBlockInner({ data }: { data: CtaData }) {
 
   return (
     <div
-      className="mt-10 rounded-2xl overflow-hidden"
+      className="mt-10 rounded-2xl overflow-hidden max-w-sm mx-auto"
       style={{ background: bg, ...borderStyle }}
     >
       <div className="px-6 pt-6 pb-3 text-center">
