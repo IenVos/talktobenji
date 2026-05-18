@@ -1173,7 +1173,8 @@ export default function AdminBlogPage() {
                           const moreLinks = scanSentences.filter((r: any) => r.incomingLinkCount >= 2);
 
                           const renderCard = (r: any) => {
-                            const isFull = r.existingAnchors.length >= 4;
+                            const isAnchorFull = r.existingAnchors.length >= 4;
+                            const isFull = isAnchorFull && r.incomingLinkCount >= 2;
                             const badgeColor = r.incomingLinkCount === 0 ? "bg-red-100 text-red-600" : r.incomingLinkCount === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
                             const phrase = selectedPhrases[r.targetSlug] ?? "";
                             const saved = savedSlugs.has(r.targetSlug);
@@ -1220,7 +1221,7 @@ export default function AdminBlogPage() {
                                     {r.isConceptTarget && (
                                       <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept</span>
                                     )}
-                                    {isFull && (
+                                    {isAnchorFull && (
                                       <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 rounded px-1 py-0.5">vol (4/4)</span>
                                     )}
                                   </div>
@@ -1273,7 +1274,7 @@ export default function AdminBlogPage() {
                                   </div>
                                 ))}
 
-                                {phrase && !saved && !isFull && (
+                                {phrase && !saved && !isAnchorFull && (
                                   <div className="flex items-center gap-2 bg-violet-50 border border-violet-200 rounded px-2 py-1.5">
                                     <span className="text-xs text-violet-700 flex-1 min-w-0 italic truncate">&ldquo;{phrase}&rdquo;</span>
                                     <button

@@ -540,13 +540,40 @@ export const scanSentencesForLinks = query({
       viewCounts.set(slug, (viewCounts.get(slug) ?? 0) + 1);
     }
 
-    const incomingCount = new Map<string, number>();
+    // Handmatige inkomende links
+    const manualIncoming = new Map<string, number>();
     for (const post of allPosts) {
       for (const link of (post.internalLinks ?? [])) {
         if (link.slug && !link.slug.startsWith("thema/")) {
-          incomingCount.set(link.slug, (incomingCount.get(link.slug) ?? 0) + 1);
+          manualIncoming.set(link.slug, (manualIncoming.get(link.slug) ?? 0) + 1);
         }
       }
+    }
+
+    // Ankerzin-auto-links: hoeveel andere artikelen bevatten een ankerzin van dit artikel?
+    const anchorAutoIncoming = new Map<string, number>();
+    for (const target of allPosts) {
+      if (!target.anchorPhrases?.length) continue;
+      let count = 0;
+      for (const source of allPosts) {
+        if (source._id === target._id) continue;
+        const src = (source.content ?? "").toLowerCase();
+        for (const phrase of target.anchorPhrases) {
+          if (phrase.trim().split(/\s+/).length >= 3 && src.includes(phrase.toLowerCase())) {
+            count++;
+            break;
+          }
+        }
+      }
+      if (count > 0) anchorAutoIncoming.set(target.slug, count);
+    }
+
+    const incomingCount = new Map<string, number>();
+    for (const [slug, manual] of manualIncoming) {
+      incomingCount.set(slug, (incomingCount.get(slug) ?? 0) + manual);
+    }
+    for (const [slug, anchor] of anchorAutoIncoming) {
+      incomingCount.set(slug, (incomingCount.get(slug) ?? 0) + anchor);
     }
 
     const candidates = allPosts.filter(
