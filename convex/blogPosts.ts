@@ -546,11 +546,20 @@ export const scanSentencesForLinks = query({
       .map((s) => s.trim().replace(/^[>#*_-]+\s*/, ""))
       .filter((s) => s.length > 40 && !s.startsWith("[") && !s.startsWith("#") && !s.startsWith(">") && !s.startsWith("http"));
 
+    // Verzamel alle bestaande ankerzinnen van alle kandidaten voor conflict-detectie
+    // Elke ankerzin is "eigendom" van één doelartikel — dezelfde zin mag niet naar twee artikelen linken
+    const anchorOwner = new Map<string, string>(); // anchorPhrase.toLowerCase() → targetTitle
+    for (const post of candidates) {
+      for (const phrase of (post.anchorPhrases ?? [])) {
+        anchorOwner.set(phrase.toLowerCase(), post.title);
+      }
+    }
+
     const results: Array<{
       targetSlug: string;
       targetTitle: string;
       targetId: string;
-      sentences: Array<{ text: string; score: number }>;
+      sentences: Array<{ text: string; score: number; claimedBy: string | null }>;
       existingAnchors: string[];
       incomingLinkCount: number;
       isConceptTarget: boolean;
@@ -567,11 +576,27 @@ export const scanSentencesForLinks = query({
       );
       if (keywords.size === 0) continue;
 
-      const scored: { text: string; score: number }[] = [];
+      // Eigen ankerzinnen van dit artikel (niet als "geclaimd door ander" markeren)
+      const ownAnchors = new Set((post.anchorPhrases ?? []).map((p) => p.toLowerCase()));
+
+      const scored: { text: string; score: number; claimedBy: string | null }[] = [];
       for (const sentence of sentences) {
         const words = sentence.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/);
         const score = words.filter((w) => keywords.has(w)).length;
-        if (score > 0) scored.push({ text: sentence, score });
+        if (score === 0) continue;
+
+        // Controleer of een bestaande ankerzin van een ANDER artikel in deze zin voorkomt
+        let claimedBy: string | null = null;
+        const sentLower = sentence.toLowerCase();
+        for (const [phrase, owner] of anchorOwner) {
+          if (ownAnchors.has(phrase)) continue; // eigen ankerzin, geen conflict
+          if (sentLower.includes(phrase)) {
+            claimedBy = owner;
+            break;
+          }
+        }
+
+        scored.push({ text: sentence, score, claimedBy });
       }
       if (scored.length === 0) continue;
 

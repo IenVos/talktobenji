@@ -1184,19 +1184,24 @@ export default function AdminBlogPage() {
                                 <p className="text-[10px] text-gray-400 italic">Selecteer met de muis een stuk tekst hieronder:{r.existingAnchors.length > 0 ? " groen = al actief als anker" : ""}</p>
 
                                 {r.sentences.map((s: any, i: number) => (
-                                  <p
-                                    key={i}
-                                    onMouseUp={() => {
-                                      const sel = window.getSelection()?.toString().trim();
-                                      if (sel && sel.length >= 4) {
-                                        setSelectedPhrases(prev => ({ ...prev, [r.targetSlug]: sel }));
-                                        setSavedSlugs(prev => { const next = new Set(prev); next.delete(r.targetSlug); return next; });
-                                      }
-                                    }}
-                                    className="text-xs text-gray-700 leading-relaxed bg-gray-50 rounded px-2 py-1.5 cursor-text select-text border border-transparent hover:border-gray-200 transition-colors"
-                                  >
-                                    {highlightAnchor(s.text, r.existingAnchors)}
-                                  </p>
+                                  <div key={i}>
+                                    <p
+                                      onMouseUp={() => {
+                                        if (s.claimedBy) return;
+                                        const sel = window.getSelection()?.toString().trim();
+                                        if (sel && sel.length >= 4) {
+                                          setSelectedPhrases(prev => ({ ...prev, [r.targetSlug]: sel }));
+                                          setSavedSlugs(prev => { const next = new Set(prev); next.delete(r.targetSlug); return next; });
+                                        }
+                                      }}
+                                      className={`text-xs leading-relaxed rounded px-2 py-1.5 border transition-colors ${s.claimedBy ? "text-gray-400 bg-gray-50 border-gray-100 cursor-not-allowed select-none" : "text-gray-700 bg-gray-50 cursor-text select-text border-transparent hover:border-gray-200"}`}
+                                    >
+                                      {highlightAnchor(s.text, r.existingAnchors)}
+                                    </p>
+                                    {s.claimedBy && (
+                                      <p className="text-[10px] text-gray-400 pl-2 mt-0.5">⚠ al in gebruik voor &ldquo;{s.claimedBy}&rdquo;</p>
+                                    )}
+                                  </div>
                                 ))}
 
                                 {phrase && !saved && (
