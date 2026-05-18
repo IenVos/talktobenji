@@ -19,7 +19,8 @@
       "Bash(find:*)",
       "Bash(python3:*)",
       "Read(//tmp/**)",
-      "Bash(stripe --version)"
+      "Bash(stripe --version)",
+      "WebFetch(domain:www.talktobenji.com)"
     ]
   }
 }
