@@ -514,6 +514,87 @@ export const scanForLinks = query({
   },
 });
 
+/** Admin: geef per doelartikel de top-4 meest relevante zinnen uit de brontekst terug.
+ *  De gebruiker selecteert zelf met de muis welk stuk tekst als ankerzin moet dienen. */
+export const scanSentencesForLinks = query({
+  args: {
+    adminToken: v.string(),
+    content: v.string(),
+    pillarSlug: v.optional(v.string()),
+    excludeSlug: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const allPosts = await ctx.db.query("blogPosts").collect();
+
+    const incomingCount = new Map<string, number>();
+    for (const post of allPosts) {
+      for (const link of (post.internalLinks ?? [])) {
+        if (link.slug && !link.slug.startsWith("thema/")) {
+          incomingCount.set(link.slug, (incomingCount.get(link.slug) ?? 0) + 1);
+        }
+      }
+    }
+
+    const candidates = allPosts.filter(
+      (p) => p.slug !== args.excludeSlug && (!args.pillarSlug || p.pillarSlug === args.pillarSlug)
+    );
+
+    const sentences = args.content
+      .split(/\n/)
+      .flatMap((line) => line.split(/(?<=[.!?])\s+/))
+      .map((s) => s.trim().replace(/^[>#*_-]+\s*/, ""))
+      .filter((s) => s.length > 40 && !s.startsWith("[") && !s.startsWith("#") && !s.startsWith(">") && !s.startsWith("http"));
+
+    const results: Array<{
+      targetSlug: string;
+      targetTitle: string;
+      targetId: string;
+      sentences: Array<{ text: string; score: number }>;
+      existingAnchors: string[];
+      incomingLinkCount: number;
+      isConceptTarget: boolean;
+    }> = [];
+
+    for (const post of candidates) {
+      const keywords = new Set(
+        [post.title, post.focusKeyword ?? ""].join(" ")
+          .toLowerCase()
+          .replace(/[–—&]/g, " ")
+          .replace(/[^a-z0-9\s]/g, "")
+          .split(/\s+/)
+          .filter((w) => w.length > 3 && !STOP_NL.has(w))
+      );
+      if (keywords.size === 0) continue;
+
+      const scored: { text: string; score: number }[] = [];
+      for (const sentence of sentences) {
+        const words = sentence.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/);
+        const score = words.filter((w) => keywords.has(w)).length;
+        if (score > 0) scored.push({ text: sentence, score });
+      }
+      if (scored.length === 0) continue;
+
+      scored.sort((a, b) => b.score - a.score);
+      results.push({
+        targetSlug: post.slug,
+        targetTitle: post.title,
+        targetId: post._id,
+        sentences: scored.slice(0, 4),
+        existingAnchors: post.anchorPhrases ?? [],
+        incomingLinkCount: incomingCount.get(post.slug) ?? 0,
+        isConceptTarget: !post.isLive,
+      });
+    }
+
+    return results.sort((a, b) => {
+      const sA = a.sentences.reduce((s, x) => s + x.score, 0);
+      const sB = b.sentences.reduce((s, x) => s + x.score, 0);
+      return sB - sA;
+    });
+  },
+});
+
 /** Admin: welke live artikelen bevatten al de ankerzinnen van dit (concept)artikel?
  *  Geeft een vooruitblik: dit zijn de artikelen die straks automatisch linken naar jou. */
 export const previewIncomingLinks = query({

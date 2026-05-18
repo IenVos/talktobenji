@@ -131,9 +131,9 @@ export default function AdminBlogPage() {
   const [syncingForm, setSyncingForm] = useState(false);
   const [syncFormDone, setSyncFormDone] = useState(false);
   const [scanLoading, setScanLoading] = useState(false);
-  const [scanResults, setScanResults] = useState<any[] | null>(null);
-  const [scanAccepted, setScanAccepted] = useState<Set<string>>(new Set());
-  const [scanApplied, setScanApplied] = useState(0);
+  const [scanSentences, setScanSentences] = useState<any[] | null>(null);
+  const [selectedPhrases, setSelectedPhrases] = useState<Record<string, string>>({});
+  const [savedSlugs, setSavedSlugs] = useState<Set<string>>(new Set());
   const [incomingCheck, setIncomingCheck] = useState<{ slug: string; title: string; phrase: string }[] | null>(null);
   const [incomingLoading, setIncomingLoading] = useState(false);
   const [syncing, setSyncing] = useState<Id<"blogPosts"> | null>(null);
@@ -280,9 +280,9 @@ export default function AdminBlogPage() {
     setCoverPreview(null);
     setShowForm(false);
     setIncomingCheck(null);
-    setScanResults(null);
-    setScanAccepted(new Set());
-    setScanApplied(0);
+    setScanSentences(null);
+    setSelectedPhrases({});
+    setSavedSlugs(new Set());
   };
 
   // Gesorteerd + gefilterd + gepagineerd voor de artikellijst
@@ -1092,19 +1092,17 @@ export default function AdminBlogPage() {
                       disabled={scanLoading}
                       onClick={async () => {
                         setScanLoading(true);
-                        setScanResults(null);
-                        setScanAccepted(new Set());
-                        setScanApplied(0);
+                        setScanSentences(null);
+                        setSelectedPhrases({});
+                        setSavedSlugs(new Set());
                         try {
-                          const results = await convex.query(api.blogPosts.scanForLinks, {
+                          const results = await convex.query(api.blogPosts.scanSentencesForLinks, {
                             adminToken: adminToken ?? "",
                             content: form.content,
                             pillarSlug: form.pillarSlug || undefined,
                             excludeSlug: form.slug,
                           });
-                          setScanResults(results as any[]);
-                          // Start leeg — gebruiker vinkt zelf aan wat toegepast moet worden
-                          setScanAccepted(new Set());
+                          setScanSentences(results as any[]);
                         } finally {
                           setScanLoading(false);
                         }
@@ -1116,101 +1114,93 @@ export default function AdminBlogPage() {
                     </button>
                   </div>
 
-                  {scanResults !== null && (
-                    scanResults.length === 0 ? (
-                      <p className="text-xs text-gray-500 italic">Geen matches gevonden in je tekst.</p>
+                  {scanSentences !== null && (
+                    scanSentences.length === 0 ? (
+                      <p className="text-xs text-gray-500 italic">Geen relevante zinnen gevonden in je tekst.</p>
                     ) : (
-                      <div className="space-y-2">
-                        {scanApplied > 0 && (
-                          <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
-                            <CheckCircle size={12} className="flex-shrink-0" />
-                            {scanApplied} link{scanApplied !== 1 ? "s" : ""} geactiveerd — ankerzin opgeslagen. Volgende scan toont ze als ✓ actief.
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-500">{scanResults.length} zin{scanResults.length !== 1 ? "nen" : ""} gevonden in dit artikel die kunnen linken naar:</p>
-                        {scanResults.map((r: any) => {
-                          const checked = scanAccepted.has(r.targetSlug);
+                      <div className="space-y-3">
+                        <p className="text-xs text-gray-500">{scanSentences.length} artikel{scanSentences.length !== 1 ? "en" : ""} gevonden — selecteer met de muis een stuk tekst om als ankerzin op te slaan:</p>
+                        {scanSentences.map((r: any) => {
                           const badgeColor = r.incomingLinkCount === 0 ? "bg-red-100 text-red-600" : r.incomingLinkCount === 1 ? "bg-amber-100 text-amber-600" : "bg-green-100 text-green-600";
+                          const phrase = selectedPhrases[r.targetSlug] ?? "";
+                          const saved = savedSlugs.has(r.targetSlug);
                           return (
-                            <div key={r.targetSlug} className={`flex items-start gap-2 ${r.isNewAnchor ? "" : "opacity-60"}`}>
-                              <input
-                                type="checkbox"
-                                checked={!r.isNewAnchor || checked}
-                                disabled={!r.isNewAnchor}
-                                onChange={() => {
-                                  if (!r.isNewAnchor) return;
-                                  setScanAccepted(prev => {
-                                    const next = new Set(prev);
-                                    checked ? next.delete(r.targetSlug) : next.add(r.targetSlug);
-                                    return next;
-                                  });
-                                }}
-                                className="mt-0.5 rounded border-primary-300 text-primary-600 disabled:opacity-50 cursor-pointer"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex flex-col gap-1">
+                            <div key={r.targetSlug} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="text-sm font-semibold text-gray-800 leading-snug">{r.targetTitle}</span>
-                                  {r.sectionHeading && (
-                                    <span className="text-[10px] text-gray-400 leading-none">onder: {r.sectionHeading}</span>
+                                  {r.isConceptTarget && (
+                                    <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept</span>
                                   )}
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className={`text-xs font-medium rounded px-1.5 py-0.5 ${r.isApproximate ? "text-gray-500 bg-gray-50 border border-gray-200" : "text-violet-700 bg-violet-50 border border-violet-200"}`}>
-                                      &ldquo;{r.matchedPhrase}&rdquo;
-                                    </span>
-                                    <span className={`text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
-                                    {r.isApproximate
-                                      ? <span className="text-[10px] text-gray-500 bg-gray-100 border border-gray-200 rounded px-1 py-0.5">dichtst bij</span>
-                                      : r.isNewAnchor
-                                        ? <span className="text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">nieuw</span>
-                                        : <span className="text-[10px] text-green-600 bg-green-50 border border-green-200 rounded px-1 py-0.5">✓ actief</span>
-                                    }
-                                    {r.isConceptTarget && (
-                                      <span className="text-[10px] text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0.5">concept — link actief zodra live</span>
-                                    )}
-                                    {!r.isNewAnchor && (
+                                </div>
+                                <span className={`text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0 ${badgeColor}`}>{r.incomingLinkCount}</span>
+                              </div>
+
+                              {r.existingAnchors.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {r.existingAnchors.map((anchor: string) => (
+                                    <span key={anchor} className="inline-flex items-center gap-1 text-[10px] text-green-700 bg-green-50 border border-green-200 rounded px-1.5 py-0.5 max-w-full">
+                                      <CheckCircle size={9} className="flex-shrink-0" />
+                                      <span className="truncate max-w-[200px]">&ldquo;{anchor}&rdquo;</span>
                                       <button
                                         type="button"
-                                        title="Ankerzin verwijderen"
                                         onClick={async () => {
-                                          await removeAnchorPhrase({ targetId: r.targetId as Id<"blogPosts">, phrase: r.matchedPhrase });
-                                          setScanResults(prev => prev ? prev.filter(x => x.targetSlug !== r.targetSlug) : null);
+                                          await removeAnchorPhrase({ targetId: r.targetId as Id<"blogPosts">, phrase: anchor });
+                                          setScanSentences(prev => prev ? prev.map(x =>
+                                            x.targetSlug === r.targetSlug
+                                              ? { ...x, existingAnchors: x.existingAnchors.filter((a: string) => a !== anchor) }
+                                              : x
+                                          ) : null);
                                         }}
-                                        className="text-[10px] text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded px-1 py-0.5 transition-colors leading-none"
-                                      >
-                                        × verwijder
-                                      </button>
-                                    )}
-                                  </div>
+                                        className="text-red-400 hover:text-red-600 leading-none flex-shrink-0"
+                                      >×</button>
+                                    </span>
+                                  ))}
                                 </div>
-                              </div>
+                              )}
+
+                              <p className="text-[10px] text-gray-400 italic">Selecteer met de muis een stuk tekst hieronder:</p>
+
+                              {r.sentences.map((s: any, i: number) => (
+                                <p
+                                  key={i}
+                                  onMouseUp={() => {
+                                    const sel = window.getSelection()?.toString().trim();
+                                    if (sel && sel.length >= 4) {
+                                      setSelectedPhrases(prev => ({ ...prev, [r.targetSlug]: sel }));
+                                      setSavedSlugs(prev => { const next = new Set(prev); next.delete(r.targetSlug); return next; });
+                                    }
+                                  }}
+                                  className="text-xs text-gray-700 leading-relaxed bg-gray-50 rounded px-2 py-1.5 cursor-text select-text border border-transparent hover:border-gray-200 transition-colors"
+                                >
+                                  {s.text}
+                                </p>
+                              ))}
+
+                              {phrase && !saved && (
+                                <div className="flex items-center gap-2 bg-violet-50 border border-violet-200 rounded px-2 py-1.5">
+                                  <span className="text-xs text-violet-700 flex-1 min-w-0 italic truncate">&ldquo;{phrase}&rdquo;</span>
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      await applyLinks({ suggestions: [{ targetId: r.targetId as Id<"blogPosts">, phrase }] });
+                                      setSavedSlugs(prev => new Set([...prev, r.targetSlug]));
+                                    }}
+                                    className="text-[10px] bg-green-600 text-white rounded px-2 py-0.5 hover:bg-green-700 flex-shrink-0 transition-colors"
+                                  >
+                                    Opslaan als anker
+                                  </button>
+                                </div>
+                              )}
+
+                              {saved && (
+                                <p className="text-[10px] text-green-600 flex items-center gap-1">
+                                  <CheckCircle size={10} /> Ankerzin opgeslagen
+                                </p>
+                              )}
                             </div>
                           );
                         })}
-                        {(() => {
-                          const newToApply = (scanResults ?? []).filter((r: any) => scanAccepted.has(r.targetSlug) && r.isNewAnchor);
-                          if (!newToApply.length) return null;
-                          return (
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                const toApply = newToApply.map((r: any) => ({ targetId: r.targetId as Id<"blogPosts">, phrase: r.matchedPhrase }));
-                                await applyLinks({ suggestions: toApply });
-                                setScanApplied(newToApply.length);
-                                setScanAccepted(new Set());
-                                // Resultaten bijwerken: geactiveerde links als "actief" markeren
-                                setScanResults(prev => prev ? prev.map(r =>
-                                  newToApply.some((n: any) => n.targetId === r.targetId)
-                                    ? { ...r, isNewAnchor: false }
-                                    : r
-                                ) : null);
-                              }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                            >
-                              <CheckCircle size={12} />
-                              {newToApply.length} nieuwe link{newToApply.length !== 1 ? "s" : ""} activeren
-                            </button>
-                          );
-                        })()}
                       </div>
                     )
                   )}
