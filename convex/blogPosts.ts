@@ -857,8 +857,9 @@ export const listWithLinkStats = query({
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
     const posts = await ctx.db.query("blogPosts").collect();
+    const pillars = await ctx.db.query("pillars").collect();
 
-    // Handmatige inkomende links (internalLinks veld)
+    // Handmatige inkomende links (internalLinks veld van blogposts)
     const manualIncoming = new Map<string, number>();
     for (const post of posts) {
       for (const link of (post.internalLinks ?? [])) {
@@ -868,7 +869,7 @@ export const listWithLinkStats = query({
       }
     }
 
-    // Ankerzin-gebaseerde inkomende auto-links:
+    // Ankerzin-auto-links: blog → blog
     // Per doelartikel: hoeveel andere artikelen bevatten een ankerzin van dit artikel?
     const anchorIncoming = new Map<string, number>();
     for (const target of posts) {
@@ -880,11 +881,30 @@ export const listWithLinkStats = query({
         for (const phrase of target.anchorPhrases) {
           if (phrase.trim().length > 2 && contentLower.includes(phrase.toLowerCase())) {
             count++;
-            break; // max 1 auto-link per bronartikel (net als de auto-linker)
+            break;
           }
         }
       }
       if (count > 0) anchorIncoming.set(target.slug, count);
+    }
+
+    // Pillar-ankerzin-auto-links: pillar → blog
+    // Per blogartikel: hoeveel pillar-ankerzinnen matchen in de tekst van dit artikel?
+    // (1 pillar = max 1 link, net als de auto-linker)
+    const pillarAnchorIncoming = new Map<string, number>();
+    for (const post of posts) {
+      const contentLower = post.content.toLowerCase();
+      let count = 0;
+      for (const pillar of pillars) {
+        if (!pillar.anchorPhrases?.length) continue;
+        for (const phrase of pillar.anchorPhrases) {
+          if (phrase.trim().length > 2 && contentLower.includes(phrase.toLowerCase())) {
+            count++;
+            break; // max 1 link per pillar in dit artikel
+          }
+        }
+      }
+      if (count > 0) pillarAnchorIncoming.set(post.slug, count);
     }
 
     return posts.map((p) => ({
@@ -895,9 +915,12 @@ export const listWithLinkStats = query({
       isLive: p.isLive,
       anchorPhrases: p.anchorPhrases ?? [],
       outgoingLinks: (p.internalLinks ?? []).filter((l) => l.slug && !l.slug.startsWith("thema/")),
-      incomingLinkCount: (manualIncoming.get(p.slug) ?? 0) + (anchorIncoming.get(p.slug) ?? 0),
+      incomingLinkCount:
+        (manualIncoming.get(p.slug) ?? 0) +
+        (anchorIncoming.get(p.slug) ?? 0) +
+        (pillarAnchorIncoming.get(p.slug) ?? 0),
       incomingManual: manualIncoming.get(p.slug) ?? 0,
-      incomingAnchor: anchorIncoming.get(p.slug) ?? 0,
+      incomingAnchor: (anchorIncoming.get(p.slug) ?? 0) + (pillarAnchorIncoming.get(p.slug) ?? 0),
       publishedAt: p.publishedAt ?? null,
       createdAt: p.createdAt,
     }));
