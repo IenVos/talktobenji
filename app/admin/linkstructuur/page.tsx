@@ -170,7 +170,7 @@ export default function LinkStructuurPage() {
           onClick={() => { setFilterStatus("live"); setSortField("incoming"); setSortDir("asc"); }}>
           <p className="text-3xl font-bold text-red-600">{noLinks}</p>
           <p className="text-sm text-red-700 font-medium">Geen inkomende links</p>
-          <p className="text-xs text-red-500 mt-0.5">Prioriteit: voeg links toe vanuit andere artikelen</p>
+          <p className="text-xs text-red-500 mt-0.5">Handmatig + ankerzin-auto-links samen</p>
         </div>
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 cursor-pointer hover:bg-amber-100 transition-colors"
           onClick={() => { setFilterStatus("live"); setSortField("incoming"); setSortDir("asc"); }}>
@@ -228,7 +228,7 @@ export default function LinkStructuurPage() {
                 </button>
               </th>
               <th className="text-center px-4 py-3 font-medium text-gray-600">
-                <button onClick={() => toggleSort("incoming")} className="flex items-center gap-1 hover:text-primary-600 mx-auto">
+                <button onClick={() => toggleSort("incoming")} className="flex items-center gap-1 hover:text-primary-600 mx-auto" title="Totaal inkomende links: h = handmatig, a = ankerzin">
                   ↓ Inkomend <SortIcon field="incoming" />
                 </button>
               </th>
@@ -317,7 +317,16 @@ export default function LinkStructuurPage() {
 
                 {/* Inkomende links */}
                 <td className="px-4 py-3 text-center">
-                  {healthBadge(post.incomingLinkCount)}
+                  <div className="flex flex-col items-center gap-0.5">
+                    {healthBadge(post.incomingLinkCount)}
+                    {(post.incomingManual > 0 || post.incomingAnchor > 0) && (
+                      <span className="text-[9px] text-gray-400 leading-tight">
+                        {post.incomingManual > 0 && `${post.incomingManual}h`}
+                        {post.incomingManual > 0 && post.incomingAnchor > 0 && " + "}
+                        {post.incomingAnchor > 0 && `${post.incomingAnchor}a`}
+                      </span>
+                    )}
+                  </div>
                 </td>
 
                 {/* Uitgaande links */}

@@ -858,14 +858,33 @@ export const listWithLinkStats = query({
     await checkAdmin(ctx, args.adminToken);
     const posts = await ctx.db.query("blogPosts").collect();
 
-    // Bereken inkomende links per slug
-    const incomingCount = new Map<string, number>();
+    // Handmatige inkomende links (internalLinks veld)
+    const manualIncoming = new Map<string, number>();
     for (const post of posts) {
       for (const link of (post.internalLinks ?? [])) {
         if (link.slug && !link.slug.startsWith("thema/")) {
-          incomingCount.set(link.slug, (incomingCount.get(link.slug) ?? 0) + 1);
+          manualIncoming.set(link.slug, (manualIncoming.get(link.slug) ?? 0) + 1);
         }
       }
+    }
+
+    // Ankerzin-gebaseerde inkomende auto-links:
+    // Per doelartikel: hoeveel andere artikelen bevatten een ankerzin van dit artikel?
+    const anchorIncoming = new Map<string, number>();
+    for (const target of posts) {
+      if (!target.anchorPhrases?.length) continue;
+      let count = 0;
+      for (const source of posts) {
+        if (source._id === target._id) continue;
+        const contentLower = source.content.toLowerCase();
+        for (const phrase of target.anchorPhrases) {
+          if (phrase.trim().length > 2 && contentLower.includes(phrase.toLowerCase())) {
+            count++;
+            break; // max 1 auto-link per bronartikel (net als de auto-linker)
+          }
+        }
+      }
+      if (count > 0) anchorIncoming.set(target.slug, count);
     }
 
     return posts.map((p) => ({
@@ -876,7 +895,9 @@ export const listWithLinkStats = query({
       isLive: p.isLive,
       anchorPhrases: p.anchorPhrases ?? [],
       outgoingLinks: (p.internalLinks ?? []).filter((l) => l.slug && !l.slug.startsWith("thema/")),
-      incomingLinkCount: incomingCount.get(p.slug) ?? 0,
+      incomingLinkCount: (manualIncoming.get(p.slug) ?? 0) + (anchorIncoming.get(p.slug) ?? 0),
+      incomingManual: manualIncoming.get(p.slug) ?? 0,
+      incomingAnchor: anchorIncoming.get(p.slug) ?? 0,
       publishedAt: p.publishedAt ?? null,
       createdAt: p.createdAt,
     }));
