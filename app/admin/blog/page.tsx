@@ -1080,7 +1080,7 @@ export default function AdminBlogPage() {
                 );
               })()}
               {/* Scan op links */}
-              {form.pillarSlug && form.content.trim().length > 100 && (
+              {form.content.trim().length > 100 && (
                 <div className="border border-primary-200 rounded-lg bg-primary-50 p-3 space-y-3">
                   {form.title && (
                     <p className="text-xs text-gray-500 truncate font-medium" title={form.title}>📄 {form.title}</p>
@@ -1103,6 +1103,13 @@ export default function AdminBlogPage() {
                             excludeSlug: form.slug,
                           });
                           setScanSentences(results as any[]);
+                          // Auto-selecteer de beste suggestie per artikel zodat je meteen kunt opslaan
+                          const autoSelected: Record<string, string> = {};
+                          for (const r of results as any[]) {
+                            const best = r.sentences.find((s: any) => s.suggestedAnchor && !s.claimedBy);
+                            if (best?.suggestedAnchor) autoSelected[r.targetSlug] = best.suggestedAnchor;
+                          }
+                          setSelectedPhrases(autoSelected);
                         } finally {
                           setScanLoading(false);
                         }
@@ -1130,20 +1137,33 @@ export default function AdminBlogPage() {
                             const phrase = selectedPhrases[r.targetSlug] ?? "";
                             const saved = savedSlugs.has(r.targetSlug);
 
-                            const highlightAnchor = (text: string, anchors: string[]) => {
+                            const highlightInSentence = (text: string, anchors: string[], selected: string) => {
+                              type Sp = { start: number; end: number; kind: "anchor" | "selected" };
+                              const spans: Sp[] = [];
                               for (const anchor of anchors) {
                                 const idx = text.toLowerCase().indexOf(anchor.toLowerCase());
-                                if (idx !== -1) {
-                                  return (
-                                    <>
-                                      {text.slice(0, idx)}
-                                      <mark className="bg-green-100 text-green-800 rounded-sm px-0.5 not-italic font-medium">{text.slice(idx, idx + anchor.length)}</mark>
-                                      {text.slice(idx + anchor.length)}
-                                    </>
-                                  );
-                                }
+                                if (idx !== -1) spans.push({ start: idx, end: idx + anchor.length, kind: "anchor" });
                               }
-                              return text;
+                              if (selected) {
+                                const idx = text.toLowerCase().indexOf(selected.toLowerCase());
+                                if (idx !== -1) spans.push({ start: idx, end: idx + selected.length, kind: "selected" });
+                              }
+                              if (!spans.length) return text;
+                              spans.sort((a, b) => a.start - b.start);
+                              const parts: React.ReactNode[] = [];
+                              let pos = 0;
+                              for (const sp of spans) {
+                                if (sp.start < pos) continue;
+                                if (sp.start > pos) parts.push(text.slice(pos, sp.start));
+                                const content = text.slice(sp.start, sp.end);
+                                parts.push(sp.kind === "anchor"
+                                  ? <mark key={sp.start} className="bg-green-100 text-green-800 rounded-sm px-0.5 not-italic font-medium">{content}</mark>
+                                  : <mark key={sp.start} className="bg-violet-100 text-violet-800 rounded-sm px-0.5 not-italic font-medium">{content}</mark>
+                                );
+                                pos = sp.end;
+                              }
+                              if (pos < text.length) parts.push(text.slice(pos));
+                              return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
                             };
 
                             return (
@@ -1181,7 +1201,7 @@ export default function AdminBlogPage() {
                                   </div>
                                 )}
 
-                                <p className="text-[10px] text-gray-400 italic">Selecteer met de muis een stuk tekst hieronder:{r.existingAnchors.length > 0 ? " groen = al actief als anker" : ""}</p>
+                                <p className="text-[10px] text-gray-400 italic">Paars = voorgestelde ankerzin — bevestig of selecteer zelf iets anders{r.existingAnchors.length > 0 ? " · groen = al actief" : ""}</p>
 
                                 {r.sentences.map((s: any, i: number) => (
                                   <div key={i}>
@@ -1196,7 +1216,7 @@ export default function AdminBlogPage() {
                                       }}
                                       className={`text-xs leading-relaxed rounded px-2 py-1.5 border transition-colors ${s.claimedBy ? "text-gray-400 bg-gray-50 border-gray-100 cursor-not-allowed select-none" : "text-gray-700 bg-gray-50 cursor-text select-text border-transparent hover:border-gray-200"}`}
                                     >
-                                      {highlightAnchor(s.text, r.existingAnchors)}
+                                      {highlightInSentence(s.text, r.existingAnchors, phrase)}
                                     </p>
                                     {s.claimedBy && (
                                       <p className="text-[10px] text-gray-400 pl-2 mt-0.5">⚠ al in gebruik voor &ldquo;{s.claimedBy}&rdquo;</p>

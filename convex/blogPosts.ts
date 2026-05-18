@@ -559,7 +559,7 @@ export const scanSentencesForLinks = query({
       targetSlug: string;
       targetTitle: string;
       targetId: string;
-      sentences: Array<{ text: string; score: number; claimedBy: string | null }>;
+      sentences: Array<{ text: string; score: number; claimedBy: string | null; suggestedAnchor: string | null }>;
       existingAnchors: string[];
       incomingLinkCount: number;
       isConceptTarget: boolean;
@@ -579,24 +579,40 @@ export const scanSentencesForLinks = query({
       // Eigen ankerzinnen van dit artikel (niet als "geclaimd door ander" markeren)
       const ownAnchors = new Set((post.anchorPhrases ?? []).map((p) => p.toLowerCase()));
 
-      const scored: { text: string; score: number; claimedBy: string | null }[] = [];
+      const scored: { text: string; score: number; claimedBy: string | null; suggestedAnchor: string | null }[] = [];
       for (const sentence of sentences) {
-        const words = sentence.toLowerCase().replace(/[^a-z0-9\s]/g, "").split(/\s+/);
-        const score = words.filter((w) => keywords.has(w)).length;
+        const wordsArr = sentence.split(/\s+/);
+        const wordsClean = wordsArr.map((w) => w.toLowerCase().replace(/[^a-z0-9]/g, ""));
+        const matchIdxs = wordsClean.reduce<number[]>((acc, w, i) => { if (keywords.has(w)) acc.push(i); return acc; }, []);
+        const score = matchIdxs.length;
         if (score === 0) continue;
 
-        // Controleer of een bestaande ankerzin van een ANDER artikel in deze zin voorkomt
+        // Conflict-detectie: alleen ankerzinnen van ≥ 4 woorden tellen mee
+        // Korte zinsdelen (1-3 woorden) van het oude algoritme zouden anders bijna elke zin blokkeren
         let claimedBy: string | null = null;
         const sentLower = sentence.toLowerCase();
         for (const [phrase, owner] of anchorOwner) {
-          if (ownAnchors.has(phrase)) continue; // eigen ankerzin, geen conflict
+          if (phrase.trim().split(/\s+/).length < 4) continue;
+          if (ownAnchors.has(phrase)) continue;
           if (sentLower.includes(phrase)) {
             claimedBy = owner;
             break;
           }
         }
 
-        scored.push({ text: sentence, score, claimedBy });
+        // Beste suggestie: span rondom de gematchte keywords (max 7 woorden)
+        let suggestedAnchor: string | null = null;
+        if (!claimedBy) {
+          const start = Math.max(0, matchIdxs[0] - 2);
+          const end = Math.min(wordsArr.length, matchIdxs[matchIdxs.length - 1] + 3);
+          const span = wordsArr.slice(start, end).join(" ")
+            .replace(/^[^a-zA-ZÀ-ÿ"'«]+/, "")
+            .replace(/[^a-zA-ZÀ-ÿ"'»?!.]+$/, "")
+            .trim();
+          if (span.split(/\s+/).length >= 4) suggestedAnchor = span;
+        }
+
+        scored.push({ text: sentence, score, claimedBy, suggestedAnchor });
       }
       if (scored.length === 0) continue;
 
@@ -691,6 +707,7 @@ export const applyLinkSuggestions = mutation({
     await checkAdmin(ctx, args.adminToken);
     const now = Date.now();
     for (const { targetId, phrase } of args.suggestions) {
+      if (phrase.trim().split(/\s+/).length < 3) continue; // minimaal 3 woorden
       const post = await ctx.db.get(targetId);
       if (!post) continue;
       const existing = post.anchorPhrases ?? [];

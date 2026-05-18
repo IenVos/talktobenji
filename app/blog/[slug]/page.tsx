@@ -64,8 +64,10 @@ function renderInlineAll(
     ? anchorData
         .filter(a => {
           if (a.slug === currentSlug) return false;
+          // Artikel zonder pillar = cross-pillar (bijv. algemene tips): linkt naar/van alle pillars
+          if (!currentPillar) return true;
           if (a.isPillar) return currentPillar === a.slug;
-          return a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar);
+          return a.pillarSlug === currentPillar;
         })
         .flatMap(a => a.anchorPhrases.map(p => ({ phrase: p, slug: a.slug, isPillar: a.isPillar ?? false })))
         .sort((a, b) => b.phrase.length - a.phrase.length)
