@@ -92,48 +92,43 @@ function CtaBlockInner({ data }: { data: CtaData }) {
     : {};
 
   return (
-    <div className="mt-10 max-w-xs mx-auto">
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{ background: bg, ...borderStyle }}
-      >
-        <div className="px-5 pt-6 pb-3 text-center">
-          {data.eyebrow && (
-            <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: "color-mix(in srgb, #000 40%, " + bg + ")" }}>
-              {data.eyebrow}
-            </p>
-          )}
-          <p className="text-base font-semibold leading-snug mb-2" style={{ color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>
-            {data.title}
+    <div
+      className="mt-10 rounded-2xl overflow-hidden"
+      style={{ background: bg, ...borderStyle }}
+    >
+      <div className="px-6 pt-6 pb-3 text-center">
+        {data.eyebrow && (
+          <p className="text-[10px] uppercase tracking-widest mb-2" style={{ color: "color-mix(in srgb, #000 40%, " + bg + ")" }}>
+            {data.eyebrow}
           </p>
-          <p className="text-[13px] leading-relaxed mb-0" style={{ color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>
-            {data.body}
-          </p>
-        </div>
-
-        {(data.imageUrl || data.showImage) && (
-          <div className="px-4 pb-2 pt-1">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={data.imageUrl || "/images/app-screenshot.png"}
-              alt="Talk To Benji"
-              className="w-full rounded-lg shadow-sm max-h-40 object-cover object-top"
-            />
-          </div>
         )}
+        <p className="text-base font-semibold leading-snug mb-2" style={{ color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>
+          {data.title}
+        </p>
+        <p className="text-[13px] leading-relaxed mb-0" style={{ color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>
+          {data.body}
+        </p>
+      </div>
 
-        <div className="px-5 pb-5 pt-3 text-center">
-          <Link
-            href={data.buttonUrl?.trim() || "/"}
-            className="inline-block text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-opacity hover:opacity-90"
-            style={{ background: btnColor }}
-          >
-            {data.buttonText}
-          </Link>
-          <div className="mt-3">
-            <DisclaimerIcons bg={bg} />
-          </div>
+      {(data.imageUrl || data.showImage) && (
+        <div className="pt-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={data.imageUrl || "/images/app-screenshot.png"}
+            alt="Talk To Benji"
+            className="w-full max-h-48 object-cover object-top"
+          />
         </div>
+      )}
+
+      <div className="px-6 pb-6 pt-4 text-center">
+        <Link
+          href={data.buttonUrl?.trim() || "/"}
+          className="inline-block text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-opacity hover:opacity-90"
+          style={{ background: btnColor }}
+        >
+          {data.buttonText}
+        </Link>
       </div>
     </div>
   );
