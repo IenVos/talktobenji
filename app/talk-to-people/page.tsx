@@ -81,6 +81,7 @@ type Categorie = {
   zichtbaar: boolean;
   imageUrl?: string | null;
   filterTags?: string[];
+  emoji?: string;
 };
 
 type Initiatief = {
@@ -132,6 +133,8 @@ function InitiatiefKaart({ init, uitgelicht }: { init: Initiatief; uitgelicht?: 
 // ─── Categorieblok ────────────────────────────────────────────────────────────
 
 function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: Initiatief[]; actieveFilter: FilterId | null }) {
+  if (inits.length === 0) return null;
+
   function isUitgelicht(init: Initiatief): boolean {
     if (actieveFilter === "praten" && init.naam === "SteunPunt Rouw") return true;
     if (actieveFilter === "groep" && init.naam === "Rouwcafé") return true;
@@ -141,20 +144,22 @@ function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: I
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        {cat.imageUrl && (
-          <img src={cat.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
+        {(cat.emoji || cat.imageUrl) && (
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-100 border border-primary-200">
+            {cat.emoji ? (
+              <span className="text-xl leading-none">{cat.emoji}</span>
+            ) : (
+              <img src={cat.imageUrl!} alt="" className="w-full h-full rounded-xl object-cover" />
+            )}
+          </div>
         )}
         <h3 className="text-base font-bold text-primary-900">{cat.naam}</h3>
       </div>
-      {inits.length > 0 ? (
-        <div className="space-y-3">
-          {inits.map((init) => (
-            <InitiatiefKaart key={init._id} init={init} uitgelicht={isUitgelicht(init)} />
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-primary-400 italic">Binnenkort beschikbaar</p>
-      )}
+      <div className="space-y-3">
+        {inits.map((init) => (
+          <InitiatiefKaart key={init._id} init={init} uitgelicht={isUitgelicht(init)} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -216,7 +221,7 @@ export default function MensenOmJeHeenPage() {
       {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
       {!actieveFilter && (
         <section className="w-full bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-10">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-14">
             <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
               Wat past het beste bij jou nu?
             </h2>
@@ -235,16 +240,6 @@ export default function MensenOmJeHeenPage() {
               ))}
             </div>
           </div>
-
-          {zichtbareCats.length > 0 && (
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-14 border-t border-gray-100 pt-10">
-              <div className="space-y-10">
-                {zichtbareCats.map((cat) => (
-                  <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
-                ))}
-              </div>
-            </div>
-          )}
         </section>
       )}
 

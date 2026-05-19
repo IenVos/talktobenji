@@ -965,6 +965,7 @@ export default defineSchema({
     zichtbaar: v.boolean(),
     imageStorageId: v.optional(v.id("_storage")),
     filterTags: v.optional(v.array(v.string())),
+    emoji: v.optional(v.string()),
   }),
 
   // Mensen om je heen — initiatieven

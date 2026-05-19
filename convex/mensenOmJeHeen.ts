@@ -67,6 +67,7 @@ export const upsertCategorie = mutation({
     zichtbaar: v.boolean(),
     imageStorageId: v.optional(v.id("_storage")),
     filterTags: v.optional(v.array(v.string())),
+    emoji: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

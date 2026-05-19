@@ -16,6 +16,7 @@ type Categorie = {
   imageStorageId?: string;
   imageUrl?: string | null;
   filterTags?: string[];
+  emoji?: string;
 };
 
 type Initiatief = {
@@ -147,6 +148,7 @@ function CategorieSectie({
   const [expanded, setExpanded] = useState(false);
   const [editNaam, setEditNaam] = useState(cat.naam);
   const [editMode, setEditMode] = useState(false);
+  const [editEmoji, setEditEmoji] = useState(cat.emoji ?? "");
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -176,6 +178,7 @@ function CategorieSectie({
         ) : (
           <button onClick={() => setExpanded((v) => !v)} className="flex-1 flex items-center gap-2 text-left text-sm font-semibold text-gray-900">
             <ChevronRight size={15} className={`transition-transform flex-shrink-0 ${expanded ? "rotate-90" : ""}`} />
+            {cat.emoji && <span className="text-base leading-none">{cat.emoji}</span>}
             {cat.naam}
             <span className="text-xs text-gray-400 font-normal">({initiatieven.length})</span>
           </button>
@@ -243,6 +246,20 @@ function CategorieSectie({
             <span className="text-xs text-gray-400 ml-1">
               {(cat.filterTags ?? []).length === 0 ? "— geen filter geselecteerd, altijd zichtbaar" : ""}
             </span>
+          </div>
+
+          {/* Emoji icoon */}
+          <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
+            <span className="text-xs font-medium text-gray-500">Emoji icoon:</span>
+            <input
+              type="text"
+              value={editEmoji}
+              onChange={(e) => setEditEmoji(e.target.value)}
+              onBlur={() => { if (editEmoji !== (cat.emoji ?? "")) onUpdateCat(cat._id, { emoji: editEmoji || undefined }); }}
+              placeholder="bijv. 🌿"
+              className="w-14 border border-gray-200 rounded-lg px-2 py-1 text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary-300"
+            />
+            <span className="text-xs text-gray-400">Verschijnt als icoon bij de categorie op de pagina</span>
           </div>
 
           {initiatieven.map((init, idx) => (
@@ -345,6 +362,7 @@ export default function MensenOmJeHeenAdminPage() {
       volgorde: data.volgorde ?? existing.volgorde,
       zichtbaar: data.zichtbaar ?? existing.zichtbaar,
       filterTags: data.filterTags ?? existing.filterTags ?? [],
+      emoji: data.emoji !== undefined ? (data.emoji || undefined) : existing.emoji,
       ...(data.imageStorageId !== undefined
         ? { imageStorageId: data.imageStorageId as Id<"_storage"> }
         : existing.imageStorageId
