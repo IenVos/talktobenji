@@ -469,7 +469,7 @@ export default function MensenOmJeHeenAdminPage() {
     <div className="max-w-3xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mensen om je heen</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Talk To People</h1>
           <p className="text-sm text-gray-500 mt-1">Beheer paginateksten, filterteksten, categorieën en initiatieven.</p>
         </div>
         {categorieen !== undefined && categorieen.length === 0 && (

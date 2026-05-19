@@ -30,7 +30,7 @@ const OVER_ITEMS = [
 
 const NAV_LINKS = [
   { href: "https://www.talktobenji.com/lp/je-hoeft-het-niet-alleen-te-doen", label: "Voor jou", external: true },
-  { href: "/mensen-om-je-heen", label: "Mensen om je heen", external: false },
+  { href: "/talk-to-people", label: "T2P", title: "Talk To People", external: false },
   { href: "/inloggen", label: "Inloggen", external: false },
 ];
 
@@ -102,6 +102,7 @@ export function SiteHeaderConcept() {
             <Link
               key={l.href}
               href={l.href}
+              title={"title" in l ? l.title : undefined}
               className="text-sm text-primary-300 hover:text-white transition-colors"
               {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >
@@ -165,6 +166,7 @@ export function SiteHeaderConcept() {
               key={l.href}
               href={l.href}
               onClick={() => setOpen(false)}
+              title={"title" in l ? l.title : undefined}
               className="block text-sm text-primary-300 hover:text-white py-2.5 transition-colors"
               {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >

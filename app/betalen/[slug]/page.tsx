@@ -56,9 +56,13 @@ function CheckoutForm({
   clientSecret,
   naam,
   email,
-  giftEnabled,
-  giftVariants,
-  onPriceChange,
+  isGift,
+  recipientEmail,
+  recipientName,
+  personalMessage,
+  deliveryMethod,
+  scheduledDate,
+  selectedVariant,
   addOnType,
 }: {
   slug: string;
@@ -66,9 +70,13 @@ function CheckoutForm({
   clientSecret: string;
   naam: string;
   email: string;
-  giftEnabled?: boolean;
-  giftVariants?: GiftVariant[];
-  onPriceChange?: (cents: number | null) => void;
+  isGift: boolean;
+  recipientEmail: string;
+  recipientName: string;
+  personalMessage: string;
+  deliveryMethod: "direct" | "manual";
+  scheduledDate: string;
+  selectedVariant: GiftVariant | null;
   addOnType?: string;
 }) {
   const stripe = useStripe();
@@ -77,35 +85,6 @@ function CheckoutForm({
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const [isGift, setIsGift] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState<GiftVariant | null>(
-    giftVariants && giftVariants.length > 0 ? giftVariants[0] : null
-  );
-  const [recipientEmail, setRecipientEmail] = useState("");
-  const [recipientName, setRecipientName] = useState("");
-  const [personalMessage, setPersonalMessage] = useState("");
-  const [deliveryMethod, setDeliveryMethod] = useState<"direct" | "manual">("manual");
-  const [scheduledDate, setScheduledDate] = useState("");
-
-  const hasVariants = giftEnabled && giftVariants && giftVariants.length > 0;
-
-  const handleVariantSelect = (variant: GiftVariant) => {
-    setSelectedVariant(variant);
-    onPriceChange?.(variant.priceInCents);
-  };
-  const handleGiftToggle = (val: boolean) => {
-    setIsGift(val);
-    if (!val) {
-      onPriceChange?.(null);
-    } else if (hasVariants && selectedVariant) {
-      onPriceChange?.(selectedVariant.priceInCents);
-    }
-  };
-
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const minDate = tomorrow.toISOString().split("T")[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,7 +109,7 @@ function CheckoutForm({
             scheduledSendDate: (deliveryMethod === "direct" && scheduledDate)
               ? new Date(scheduledDate).getTime()
               : undefined,
-            ...(hasVariants && selectedVariant && {
+            ...(selectedVariant && {
               giftVariantPriceInCents: selectedVariant.priceInCents,
               giftVariantBillingPeriod: selectedVariant.billingPeriod,
               giftVariantAccessDays: selectedVariant.accessDays,
@@ -165,160 +144,6 @@ function CheckoutForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {giftEnabled && <div className="border border-stone-200 rounded-xl overflow-hidden">
-        <label className="flex items-center gap-3 px-4 py-3.5 cursor-pointer bg-white hover:bg-stone-50 transition-colors">
-          <Checkbox checked={isGift} onChange={handleGiftToggle} />
-          <div>
-            <p className="text-sm font-medium text-stone-700">Dit is een cadeau 🎁</p>
-            <p className="text-xs text-stone-400">Je ontvangt een unieke cadeaucode na betaling</p>
-          </div>
-        </label>
-
-        {isGift && (
-          <div className="border-t border-stone-100 bg-stone-50 px-4 py-4 space-y-4">
-            <div>
-              <label className={labelClass}>Naam van de ontvanger <span className="font-normal text-stone-400">(optioneel)</span></label>
-              <input
-                type="text"
-                placeholder="Voornaam"
-                value={recipientName}
-                onChange={(e) => setRecipientName(e.target.value)}
-                className={inputClass}
-              />
-            </div>
-
-            {hasVariants && (
-              <div>
-                <p className={labelClass}>Kies een looptijd</p>
-                <div className="space-y-2">
-                  {giftVariants!.map((variant, vi) => {
-                    const isSelected = selectedVariant === variant ||
-                      (selectedVariant?.billingPeriod === variant.billingPeriod && selectedVariant?.priceInCents === variant.priceInCents);
-                    const priceFormatted = new Intl.NumberFormat("nl-NL", {
-                      style: "currency", currency: "EUR",
-                    }).format(variant.priceInCents / 100);
-                    return (
-                      <div
-                        key={vi}
-                        onClick={() => handleVariantSelect(variant)}
-                        className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors select-none ${
-                          isSelected
-                            ? "border-primary-400 bg-primary-50"
-                            : "border-stone-200 bg-white hover:border-primary-300"
-                        }`}
-                      >
-                        <span className="flex items-center gap-3">
-                          <div
-                            className={`rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                              isSelected ? "border-primary-600 bg-primary-600" : "border-stone-300"
-                            }`}
-                            style={{ width: 18, height: 18 }}
-                          >
-                            {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
-                          </div>
-                          <span className="text-sm font-medium text-stone-700">{variant.label}</span>
-                        </span>
-                        <span className="text-sm text-stone-400">{priceFormatted}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <p className={labelClass}>Hoe wil je de code bezorgen?</p>
-              <div className="space-y-2">
-                {(["direct", "manual"] as const).map((method) => (
-                  <label key={method} className="flex items-start gap-3 cursor-pointer group">
-                    <div
-                      onClick={() => setDeliveryMethod(method)}
-                      className={`mt-0.5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                        deliveryMethod === method
-                          ? "border-primary-600 bg-primary-600"
-                          : "border-stone-300 group-hover:border-primary-400"
-                      }`}
-                      style={{ width: 18, height: 18 }}
-                    >
-                      {deliveryMethod === method && (
-                        <div className="w-2 h-2 rounded-full bg-white" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm text-stone-700">
-                        {method === "direct"
-                          ? "Wij sturen de cadeaucode naar de ontvanger"
-                          : "Ik geef de code zelf (ik krijg de code per mail)"}
-                      </p>
-                      <p className="text-xs text-stone-400 mt-0.5">
-                        {method === "direct"
-                          ? "Vul het e-mailadres in — wij verzenden de code"
-                          : "Jij bepaalt wanneer je de code deelt"}
-                      </p>
-                    </div>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {deliveryMethod === "direct" && (
-              <>
-                <div>
-                  <label className={labelClass}>E-mailadres van de ontvanger</label>
-                  <input
-                    type="email"
-                    placeholder="ontvanger@email.nl"
-                    value={recipientEmail}
-                    onChange={(e) => setRecipientEmail(e.target.value)}
-                    className={inputClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Persoonlijk bericht <span className="font-normal text-stone-400">(optioneel)</span></label>
-                  <textarea
-                    placeholder="Bijv. 'Ik denk aan je. ❤️'"
-                    value={personalMessage}
-                    onChange={(e) => setPersonalMessage(e.target.value)}
-                    rows={3}
-                    className={`${inputClass} resize-none`}
-                  />
-                </div>
-                <div className="pt-1 border-t border-stone-200">
-                  <label className={labelClass}>
-                    Versturen op <span className="font-normal text-stone-400">(optioneel — leeg = direct na betaling)</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={scheduledDate}
-                    onChange={(e) => setScheduledDate(e.target.value)}
-                    min={minDate}
-                    className={`${inputClass} cursor-pointer`}
-                  />
-                  {scheduledDate && (
-                    <p className="text-xs text-stone-400 mt-1.5">
-                      De ontvanger krijgt de mail op {new Date(scheduledDate).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}. Jij krijgt dan ook een bevestiging.
-                    </p>
-                  )}
-                </div>
-              </>
-            )}
-
-            {deliveryMethod === "manual" && (
-              <div>
-                <label className={labelClass}>Persoonlijk bericht <span className="font-normal text-stone-400">(optioneel — voor jouw eigen gebruik)</span></label>
-                <textarea
-                  placeholder="Bijv. 'Ik denk aan je. ❤️'"
-                  value={personalMessage}
-                  onChange={(e) => setPersonalMessage(e.target.value)}
-                  rows={3}
-                  className={`${inputClass} resize-none`}
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </div>}
-
       <div className="pt-1">
         <label className={`${labelClass} mb-2`}>Betaalgegevens</label>
         <div className="border border-stone-200 rounded-xl p-4 bg-white">
@@ -397,6 +222,14 @@ export default function BetalenPage() {
   const [vatNumber, setVatNumber] = useState("");
   const [vatNumberCommitted, setVatNumberCommitted] = useState("");
   const [b2bOpen, setB2bOpen] = useState(false);
+  const [giftOpen, setGiftOpen] = useState(false);
+  const [isGift, setIsGift] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<GiftVariant | null>(null);
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [personalMessage, setPersonalMessage] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<"direct" | "manual">("manual");
+  const [scheduledDate, setScheduledDate] = useState("");
 
   const liveIsBusiness = vatNumber.trim().length >= 4;
   const liveEffectiveCountry = liveIsBusiness ? "OTHER" : countryCode;
@@ -437,6 +270,28 @@ export default function BetalenPage() {
       .finally(() => setLoadingSecret(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product, slug, countryCode, vatNumberCommitted, addOnSelected]);
+
+  const handleGiftOpen = (open: boolean) => {
+    setGiftOpen(open);
+    if (!open) {
+      setIsGift(false);
+      setOverridePriceInCents(null);
+    }
+  };
+
+  const handleGiftCheckboxToggle = (val: boolean) => {
+    setIsGift(val);
+    if (!val) {
+      setOverridePriceInCents(null);
+    } else if (selectedVariant) {
+      setOverridePriceInCents(selectedVariant.priceInCents);
+    }
+  };
+
+  const handleVariantSelect = (variant: GiftVariant) => {
+    setSelectedVariant(variant);
+    if (isGift) setOverridePriceInCents(variant.priceInCents);
+  };
 
   const handleVatNumberBlur = () => {
     const committed = vatNumber.trim().length >= 4 ? vatNumber.trim() : "";
@@ -487,6 +342,11 @@ export default function BetalenPage() {
       </div>
     );
   }
+
+  const hasVariants = !!(product.giftEnabled && product.giftVariants && product.giftVariants.length > 0);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = tomorrow.toISOString().split("T")[0];
 
   const addonPrice = addOnSelected && product.addOnPriceInCents ? product.addOnPriceInCents : 0;
   const displayPrice = (overridePriceInCents ?? product.priceInCents) + addonPrice;
@@ -669,22 +529,197 @@ export default function BetalenPage() {
               )}
             </div>
 
-            {/* B2B toggle */}
+            {/* Cadeau + B2B toggles */}
             <div>
-              <button
-                type="button"
-                onClick={() => setB2bOpen(v => !v)}
-                className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors"
-              >
-                <svg
-                  className={`w-3.5 h-3.5 transition-transform ${b2bOpen ? "rotate-90" : ""}`}
-                  fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+              <div className="flex items-center justify-between">
+                {product.giftEnabled && (
+                  <button
+                    type="button"
+                    onClick={() => handleGiftOpen(!giftOpen)}
+                    className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors"
+                  >
+                    <svg
+                      className={`w-3.5 h-3.5 transition-transform ${giftOpen ? "rotate-90" : ""}`}
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                    Cadeau geven?
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setB2bOpen(v => !v)}
+                  className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors ml-auto"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-                Zakelijke aankoop?
-              </button>
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform ${b2bOpen ? "rotate-90" : ""}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                  Zakelijke aankoop?
+                </button>
+              </div>
 
+              {/* Cadeau geven panel */}
+              {giftOpen && (
+                <div className="mt-3 border border-stone-200 rounded-xl overflow-hidden">
+                  <label className="flex items-center gap-3 px-4 py-3.5 cursor-pointer bg-white hover:bg-stone-50 transition-colors">
+                    <Checkbox checked={isGift} onChange={handleGiftCheckboxToggle} />
+                    <div>
+                      <p className="text-sm font-medium text-stone-700">Dit is een cadeau 🎁</p>
+                      <p className="text-xs text-stone-400">Je ontvangt een unieke cadeaucode na betaling</p>
+                    </div>
+                  </label>
+
+                  {isGift && (
+                    <div className="border-t border-stone-100 bg-stone-50 px-4 py-4 space-y-4">
+                      <div>
+                        <label className={labelClass}>Naam van de ontvanger <span className="font-normal text-stone-400">(optioneel)</span></label>
+                        <input
+                          type="text"
+                          placeholder="Voornaam"
+                          value={recipientName}
+                          onChange={(e) => setRecipientName(e.target.value)}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      {hasVariants && (
+                        <div>
+                          <p className={labelClass}>Kies een looptijd</p>
+                          <div className="space-y-2">
+                            {product.giftVariants!.map((variant, vi) => {
+                              const isSelected = selectedVariant === variant ||
+                                (selectedVariant?.billingPeriod === variant.billingPeriod && selectedVariant?.priceInCents === variant.priceInCents);
+                              const priceFormatted = new Intl.NumberFormat("nl-NL", {
+                                style: "currency", currency: "EUR",
+                              }).format(variant.priceInCents / 100);
+                              return (
+                                <div
+                                  key={vi}
+                                  onClick={() => handleVariantSelect(variant)}
+                                  className={`flex items-center justify-between gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors select-none ${
+                                    isSelected
+                                      ? "border-primary-400 bg-primary-50"
+                                      : "border-stone-200 bg-white hover:border-primary-300"
+                                  }`}
+                                >
+                                  <span className="flex items-center gap-3">
+                                    <div
+                                      className={`rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                        isSelected ? "border-primary-600 bg-primary-600" : "border-stone-300"
+                                      }`}
+                                      style={{ width: 18, height: 18 }}
+                                    >
+                                      {isSelected && <div className="w-2 h-2 rounded-full bg-white" />}
+                                    </div>
+                                    <span className="text-sm font-medium text-stone-700">{variant.label}</span>
+                                  </span>
+                                  <span className="text-sm text-stone-400">{priceFormatted}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      <div>
+                        <p className={labelClass}>Hoe wil je de code bezorgen?</p>
+                        <div className="space-y-2">
+                          {(["direct", "manual"] as const).map((method) => (
+                            <label key={method} className="flex items-start gap-3 cursor-pointer group">
+                              <div
+                                onClick={() => setDeliveryMethod(method)}
+                                className={`mt-0.5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                  deliveryMethod === method
+                                    ? "border-primary-600 bg-primary-600"
+                                    : "border-stone-300 group-hover:border-primary-400"
+                                }`}
+                                style={{ width: 18, height: 18 }}
+                              >
+                                {deliveryMethod === method && (
+                                  <div className="w-2 h-2 rounded-full bg-white" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm text-stone-700">
+                                  {method === "direct"
+                                    ? "Wij sturen de cadeaucode naar de ontvanger"
+                                    : "Ik geef de code zelf (ik krijg de code per mail)"}
+                                </p>
+                                <p className="text-xs text-stone-400 mt-0.5">
+                                  {method === "direct"
+                                    ? "Vul het e-mailadres in — wij verzenden de code"
+                                    : "Jij bepaalt wanneer je de code deelt"}
+                                </p>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      {deliveryMethod === "direct" && (
+                        <>
+                          <div>
+                            <label className={labelClass}>E-mailadres van de ontvanger</label>
+                            <input
+                              type="email"
+                              placeholder="ontvanger@email.nl"
+                              value={recipientEmail}
+                              onChange={(e) => setRecipientEmail(e.target.value)}
+                              className={inputClass}
+                            />
+                          </div>
+                          <div>
+                            <label className={labelClass}>Persoonlijk bericht <span className="font-normal text-stone-400">(optioneel)</span></label>
+                            <textarea
+                              placeholder="Bijv. 'Ik denk aan je. ❤️'"
+                              value={personalMessage}
+                              onChange={(e) => setPersonalMessage(e.target.value)}
+                              rows={3}
+                              className={`${inputClass} resize-none`}
+                            />
+                          </div>
+                          <div className="pt-1 border-t border-stone-200">
+                            <label className={labelClass}>
+                              Versturen op <span className="font-normal text-stone-400">(optioneel — leeg = direct na betaling)</span>
+                            </label>
+                            <input
+                              type="date"
+                              value={scheduledDate}
+                              onChange={(e) => setScheduledDate(e.target.value)}
+                              min={minDate}
+                              className={`${inputClass} cursor-pointer`}
+                            />
+                            {scheduledDate && (
+                              <p className="text-xs text-stone-400 mt-1.5">
+                                De ontvanger krijgt de mail op {new Date(scheduledDate).toLocaleDateString("nl-NL", { weekday: "long", day: "numeric", month: "long" })}. Jij krijgt dan ook een bevestiging.
+                              </p>
+                            )}
+                          </div>
+                        </>
+                      )}
+
+                      {deliveryMethod === "manual" && (
+                        <div>
+                          <label className={labelClass}>Persoonlijk bericht <span className="font-normal text-stone-400">(optioneel — voor jouw eigen gebruik)</span></label>
+                          <textarea
+                            placeholder="Bijv. 'Ik denk aan je. ❤️'"
+                            value={personalMessage}
+                            onChange={(e) => setPersonalMessage(e.target.value)}
+                            rows={3}
+                            className={`${inputClass} resize-none`}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* B2B panel */}
               {b2bOpen && (
                 <div className="mt-3 space-y-2">
                   <div>
@@ -728,9 +763,13 @@ export default function BetalenPage() {
                   clientSecret={clientSecret}
                   naam={naam}
                   email={email}
-                  giftEnabled={product.giftEnabled ?? false}
-                  giftVariants={product.giftVariants ?? undefined}
-                  onPriceChange={setOverridePriceInCents}
+                  isGift={isGift}
+                  recipientEmail={recipientEmail}
+                  recipientName={recipientName}
+                  personalMessage={personalMessage}
+                  deliveryMethod={deliveryMethod}
+                  scheduledDate={scheduledDate}
+                  selectedVariant={selectedVariant}
                   addOnType={addOnSelected && product.addOnType ? product.addOnType : undefined}
                 />
               </Elements>

@@ -132,8 +132,6 @@ function InitiatiefKaart({ init, uitgelicht }: { init: Initiatief; uitgelicht?: 
 // ─── Categorieblok ────────────────────────────────────────────────────────────
 
 function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: Initiatief[]; actieveFilter: FilterId | null }) {
-  if (inits.length === 0) return null;
-
   function isUitgelicht(init: Initiatief): boolean {
     if (actieveFilter === "praten" && init.naam === "SteunPunt Rouw") return true;
     if (actieveFilter === "groep" && init.naam === "Rouwcafé") return true;
@@ -148,11 +146,15 @@ function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: I
         )}
         <h3 className="text-base font-bold text-primary-900">{cat.naam}</h3>
       </div>
-      <div className="space-y-3">
-        {inits.map((init) => (
-          <InitiatiefKaart key={init._id} init={init} uitgelicht={isUitgelicht(init)} />
-        ))}
-      </div>
+      {inits.length > 0 ? (
+        <div className="space-y-3">
+          {inits.map((init) => (
+            <InitiatiefKaart key={init._id} init={init} uitgelicht={isUitgelicht(init)} />
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-primary-400 italic">Binnenkort beschikbaar</p>
+      )}
     </div>
   );
 }
@@ -214,7 +216,7 @@ export default function MensenOmJeHeenPage() {
       {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
       {!actieveFilter && (
         <section className="w-full bg-white">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-14">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-10">
             <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
               Wat past het beste bij jou nu?
             </h2>
@@ -233,6 +235,16 @@ export default function MensenOmJeHeenPage() {
               ))}
             </div>
           </div>
+
+          {zichtbareCats.length > 0 && (
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-14 border-t border-gray-100 pt-10">
+              <div className="space-y-10">
+                {zichtbareCats.map((cat) => (
+                  <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
+                ))}
+              </div>
+            </div>
+          )}
         </section>
       )}
 

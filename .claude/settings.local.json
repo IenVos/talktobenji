@@ -20,7 +20,9 @@
       "Bash(python3:*)",
       "Read(//tmp/**)",
       "Bash(stripe --version)",
-      "WebFetch(domain:www.talktobenji.com)"
+      "WebFetch(domain:www.talktobenji.com)",
+      "Bash(mv /Users/inekev./Documents/talktobenji/app/mensen-om-je-heen /Users/inekev./Documents/talktobenji/app/talk-to-people)",
+      "Bash(mv /Users/inekev./Documents/talktobenji/app/admin/mensen-om-je-heen /Users/inekev./Documents/talktobenji/app/admin/talk-to-people)"
     ]
   }
 }
