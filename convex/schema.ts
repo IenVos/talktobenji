@@ -958,6 +958,15 @@ export default defineSchema({
     filter_ander_blok_tekst: v.optional(v.string()),
   }),
 
+  // Talk To People — filterbuttons
+  t2p_filterbuttons: defineTable({
+    tagId: v.string(),      // "lezen" | "praten" | "groep" | "ander" | custom
+    tekst: v.string(),
+    iconNaam: v.string(),   // "heart" | "chat" | "users" | "blog" | "paw" | "leaf"
+    volgorde: v.number(),
+    zichtbaar: v.boolean(),
+  }),
+
   // Mensen om je heen — categorieën
   mensenopmjeheen_categorieen: defineTable({
     naam: v.string(),

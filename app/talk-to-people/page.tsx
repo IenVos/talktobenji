@@ -44,20 +44,33 @@ function IconHeart() {
 
 // ─── Filter opties ────────────────────────────────────────────────────────────
 
-type FilterId = "lezen" | "praten" | "groep" | "ander";
+type FilterId = string;
 
-const FILTER_DEFAULTS: Record<FilterId, string> = {
-  lezen:  "Ik wil anoniem lezen wat anderen meemaken",
-  praten: "Ik wil met iemand praten maar weet niet hoe ik moet beginnen",
-  groep:  "Ik zoek een groep bij mij in de buurt",
-  ander:  "Ik wil weten wat ik kan doen voor iemand anders",
+const ICON_MAP: Record<string, ReactNode> = {
+  heart: <IconHeart />,
+  chat:  <IconChat />,
+  users: <IconUsers />,
+  blog:  <IconBlog />,
+  paw: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM16 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM5.5 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM18.5 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c-2.8 0-5 2-5 4.5 0 2 1.2 3 2.8 3.3.7.1 1.4.2 2.2.2s1.5-.1 2.2-.2C15.8 18.5 17 17.5 17 15.5c0-2.5-2.2-4.5-5-4.5z" />
+    </svg>
+  ),
+  leaf: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 22V12" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 12C12 7 8 3 3 3c0 5 3 9 9 9z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 12c0-5 4-9 9-9-1 5-4 9-9 9z" />
+    </svg>
+  ),
 };
 
-const FILTER_META: { id: FilterId; icon: ReactNode; kleur: string }[] = [
-  { id: "lezen",  icon: <IconBlog />,  kleur: "bg-primary-700" },
-  { id: "praten", icon: <IconChat />,  kleur: "bg-primary-600" },
-  { id: "groep",  icon: <IconUsers />, kleur: "bg-primary-800" },
-  { id: "ander",  icon: <IconHeart />, kleur: "bg-primary-600" },
+const FILTER_HARDCODED = [
+  { id: "lezen",  tekst: "Ik wil anoniem lezen wat anderen meemaken",              iconNaam: "blog"  },
+  { id: "praten", tekst: "Ik wil met iemand praten maar weet niet hoe ik moet beginnen", iconNaam: "chat"  },
+  { id: "groep",  tekst: "Ik ben op zoek naar iets om te doen waarmee ik weer contact kan maken met anderen.", iconNaam: "users" },
+  { id: "ander",  tekst: "Ik wil graag weten hoe ik iemand anders kan helpen.",    iconNaam: "heart" },
 ];
 
 function matchesFilter(cat: Categorie, filterId: FilterId | null): boolean {
@@ -173,14 +186,16 @@ export default function MensenOmJeHeenPage() {
   const paginaTeksten = useQuery(api.mensenOmJeHeen.getPaginaTeksten, {});
   const categorieen = useQuery(api.mensenOmJeHeen.listCategorieen, {}) as Categorie[] | undefined;
   const alleInitiatieven = useQuery(api.mensenOmJeHeen.listInitiatieven, {}) as Initiatief[] | undefined;
+  const rawFilterButtons = useQuery(api.mensenOmJeHeen.listFilterButtons, {}) as { _id: string; tagId: string; tekst: string; iconNaam: string; volgorde: number; zichtbaar: boolean }[] | undefined;
 
   const heroTitel = paginaTeksten?.hero_titel ?? "Er zijn mensen die begrijpen wat jij doormaakt.";
   const heroSubtitel = paginaTeksten?.hero_subtitel ?? "Hier vind je initiatieven, groepen en mensen die er voor je zijn — voor elk soort verlies.";
 
-  const filterOpties = FILTER_META.map((m) => ({
-    ...m,
-    label: (paginaTeksten as any)?.[`filter_${m.id}`] ?? FILTER_DEFAULTS[m.id],
-  }));
+  const filterOpties = (
+    rawFilterButtons && rawFilterButtons.length > 0
+      ? [...rawFilterButtons].filter((f) => f.zichtbaar).sort((a, b) => a.volgorde - b.volgorde)
+      : FILTER_HARDCODED
+  ).map((f) => ({ id: "tagId" in f ? f.tagId : (f as any).id, label: f.tekst, icon: ICON_MAP[f.iconNaam] ?? <IconHeart /> }));
 
   const zichtbareCats = (categorieen ?? []).filter((c) => c.zichtbaar);
   const zichtbareInits = (alleInitiatieven ?? []).filter((i) => i.zichtbaar);
@@ -232,7 +247,7 @@ export default function MensenOmJeHeenPage() {
                   onClick={() => kiesFilter(optie.id)}
                   className="flex items-center gap-3 text-left px-4 py-4 rounded-xl border border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm transition-all"
                 >
-                  <div className={`w-10 h-10 rounded-xl ${optie.kleur} text-white flex items-center justify-center flex-shrink-0`}>
+                  <div className="w-10 h-10 rounded-xl text-white flex items-center justify-center flex-shrink-0" style={{ background: "#7ec8e3" }}>
                     {optie.icon}
                   </div>
                   <span className="text-sm text-primary-900 leading-snug font-medium">{optie.label}</span>
@@ -261,7 +276,7 @@ export default function MensenOmJeHeenPage() {
                   <span className="text-sm">Terug</span>
                 </button>
                 <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-xl ${actieveOptie.kleur} text-white flex items-center justify-center flex-shrink-0`}>
+                  <div className="w-11 h-11 rounded-xl text-white flex items-center justify-center flex-shrink-0" style={{ background: "#7ec8e3" }}>
                     {actieveOptie.icon}
                   </div>
                   <p className="text-base font-semibold text-primary-900 leading-snug">{actieveOptie.label}</p>

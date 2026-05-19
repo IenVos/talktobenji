@@ -5,6 +5,60 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
+// ─── T2P Filterbuttons ────────────────────────────────────────────────────────
+
+export const listFilterButtons = query({
+  args: {},
+  handler: async (ctx) => {
+    return ctx.db.query("t2p_filterbuttons").collect();
+  },
+});
+
+export const upsertFilterButton = mutation({
+  args: {
+    adminToken: v.string(),
+    id: v.optional(v.id("t2p_filterbuttons")),
+    tagId: v.string(),
+    tekst: v.string(),
+    iconNaam: v.string(),
+    volgorde: v.number(),
+    zichtbaar: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const { adminToken, id, ...data } = args;
+    if (id) {
+      await ctx.db.patch(id, data);
+      return id;
+    }
+    return ctx.db.insert("t2p_filterbuttons", data);
+  },
+});
+
+export const deleteFilterButton = mutation({
+  args: { adminToken: v.string(), id: v.id("t2p_filterbuttons") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    await ctx.db.delete(args.id);
+  },
+});
+
+export const seedFilterButtons = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const bestaand = await ctx.db.query("t2p_filterbuttons").collect();
+    if (bestaand.length > 0) return;
+    const defaults = [
+      { tagId: "lezen",  tekst: "Ik wil anoniem lezen wat anderen meemaken", iconNaam: "blog",  volgorde: 1, zichtbaar: true },
+      { tagId: "praten", tekst: "Ik wil met iemand praten maar weet niet hoe ik moet beginnen", iconNaam: "chat",  volgorde: 2, zichtbaar: true },
+      { tagId: "groep",  tekst: "Ik ben op zoek naar iets om te doen waarmee ik weer contact kan maken met anderen.", iconNaam: "users", volgorde: 3, zichtbaar: true },
+      { tagId: "ander",  tekst: "Ik wil graag weten hoe ik iemand anders kan helpen.", iconNaam: "heart", volgorde: 4, zichtbaar: true },
+    ];
+    for (const d of defaults) await ctx.db.insert("t2p_filterbuttons", d);
+  },
+});
+
 // ─── Paginateksten (singleton) ───────────────────────────────────────────────
 
 export const getPaginaTeksten = query({

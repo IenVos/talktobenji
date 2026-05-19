@@ -8,6 +8,43 @@ import { Plus, Trash2, Save, ChevronUp, ChevronDown, Eye, EyeOff, ChevronRight, 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type FilterButton = {
+  _id: Id<"t2p_filterbuttons">;
+  tagId: string;
+  tekst: string;
+  iconNaam: string;
+  volgorde: number;
+  zichtbaar: boolean;
+};
+
+const ICON_OPTIES = ["heart", "chat", "users", "blog", "paw", "leaf"] as const;
+
+function AdminIcoon({ naam }: { naam: string }) {
+  const cls = "w-4 h-4";
+  if (naam === "heart") return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={cls}><path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" /></svg>;
+  if (naam === "chat") return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={cls}><path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>;
+  if (naam === "users") return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={cls}><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+  if (naam === "blog") return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={cls}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>;
+  if (naam === "paw") return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={cls}><path strokeLinecap="round" strokeLinejoin="round" d="M8 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM16 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM5.5 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM18.5 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 11c-2.8 0-5 2-5 4.5 0 2 1.2 3 2.8 3.3.7.1 1.4.2 2.2.2s1.5-.1 2.2-.2C15.8 18.5 17 17.5 17 15.5c0-2.5-2.2-4.5-5-4.5z" /></svg>;
+  if (naam === "leaf") return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={cls}><path strokeLinecap="round" strokeLinejoin="round" d="M12 22V12" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 12C12 7 8 3 3 3c0 5 3 9 9 9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 12c0-5 4-9 9-9-1 5-4 9-9 9z" /></svg>;
+  return null;
+}
+
+function IcoonKiezer({ waarde, onChange }: { waarde: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex gap-1.5 flex-wrap">
+      {ICON_OPTIES.map((naam) => (
+        <button key={naam} type="button" onClick={() => onChange(naam)}
+          className={`w-9 h-9 rounded-xl flex items-center justify-center text-white transition-all ${waarde === naam ? "ring-2 ring-offset-1 ring-primary-500 opacity-100" : "opacity-50 hover:opacity-80"}`}
+          style={{ background: "#7ec8e3" }} title={naam}
+        >
+          <AdminIcoon naam={naam} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 type Categorie = {
   _id: Id<"mensenopmjeheen_categorieen">;
   naam: string;
@@ -30,6 +67,46 @@ type Initiatief = {
   imageStorageId?: string;
   imageUrl?: string | null;
 };
+
+// ─── Hulpcomponent: filterbutton rij ─────────────────────────────────────────
+
+function FilterButtonRij({ fb, isFirst, isLast, onSave, onDelete, onToggle, onMoveUp, onMoveDown }: {
+  fb: FilterButton;
+  isFirst: boolean; isLast: boolean;
+  onSave: (id: Id<"t2p_filterbuttons">, data: Partial<FilterButton>) => void;
+  onDelete: (id: Id<"t2p_filterbuttons">) => void;
+  onToggle: (id: Id<"t2p_filterbuttons">, zichtbaar: boolean) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}) {
+  const [tekst, setTekst] = useState(fb.tekst);
+  const [iconNaam, setIconNaam] = useState(fb.iconNaam);
+  const [dirty, setDirty] = useState(false);
+
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-0.5">
+          <button onClick={onMoveUp} disabled={isFirst} className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-30"><ChevronUp size={14} /></button>
+          <button onClick={onMoveDown} disabled={isLast} className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-30"><ChevronDown size={14} /></button>
+        </div>
+        <input value={tekst} onChange={(e) => { setTekst(e.target.value); setDirty(true); }} placeholder="Knoptekst" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-300" />
+        <div className="flex items-center gap-1">
+          <button onClick={() => onToggle(fb._id, !fb.zichtbaar)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700" title={fb.zichtbaar ? "Verberg" : "Zichtbaar"}>
+            {fb.zichtbaar ? <Eye size={16} /> : <EyeOff size={16} />}
+          </button>
+          <button onClick={() => onDelete(fb._id)} className="p-1.5 rounded-lg text-red-400 hover:text-red-600"><Trash2 size={16} /></button>
+        </div>
+      </div>
+      <IcoonKiezer waarde={iconNaam} onChange={(v) => { setIconNaam(v); setDirty(true); }} />
+      {dirty && (
+        <button onClick={() => { onSave(fb._id, { tekst, iconNaam }); setDirty(false); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700">
+          <Save size={13} />Opslaan
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ─── Hulpcomponent: initiatief rij ───────────────────────────────────────────
 
@@ -120,7 +197,7 @@ function InitiatiefRij({
 // ─── Hulpcomponent: categorie sectie ─────────────────────────────────────────
 
 function CategorieSectie({
-  cat, initiatieven, isFirst, isLast,
+  cat, initiatieven, isFirst, isLast, filterButtons,
   onUpdateCat, onDeleteCat, onMoveUpCat, onMoveDownCat,
   onUploadImage, onRemoveImage,
   onAddInitiatief, onSaveInitiatief, onDeleteInitiatief, onToggleInitZichtbaar, onMoveUpInit, onMoveDownInit,
@@ -130,6 +207,7 @@ function CategorieSectie({
   initiatieven: Initiatief[];
   isFirst: boolean;
   isLast: boolean;
+  filterButtons: FilterButton[];
   onUpdateCat: (id: Id<"mensenopmjeheen_categorieen">, data: Partial<Omit<Categorie, "_id">>) => void;
   onDeleteCat: (id: Id<"mensenopmjeheen_categorieen">) => void;
   onMoveUpCat: (id: Id<"mensenopmjeheen_categorieen">) => void;
@@ -224,28 +302,26 @@ function CategorieSectie({
           {/* Filter tags */}
           <div className="flex items-center gap-2 flex-wrap pb-3 border-b border-gray-100">
             <span className="text-xs font-medium text-gray-500">Toon bij filter:</span>
-            {(["lezen", "praten", "groep", "ander"] as const).map((tag) => {
-              const labels: Record<string, string> = { lezen: "Lezen", praten: "Praten", groep: "Groep", ander: "Ik wil helpen" };
-              const actief = (cat.filterTags ?? []).includes(tag);
+            {filterButtons.filter((fb) => fb.zichtbaar).sort((a, b) => a.volgorde - b.volgorde).map((fb) => {
+              const actief = (cat.filterTags ?? []).includes(fb.tagId);
               return (
-                <button
-                  key={tag}
+                <button key={fb._id}
                   onClick={() => {
                     const huidige = cat.filterTags ?? [];
-                    const nieuw = actief ? huidige.filter((t) => t !== tag) : [...huidige, tag];
+                    const nieuw = actief ? huidige.filter((t) => t !== fb.tagId) : [...huidige, fb.tagId];
                     onUpdateCat(cat._id, { filterTags: nieuw });
                   }}
-                  className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full border transition-colors ${
                     actief ? "bg-primary-100 border-primary-300 text-primary-700 font-medium" : "bg-white border-gray-200 text-gray-400 hover:border-primary-200 hover:text-primary-600"
                   }`}
                 >
-                  {labels[tag]}
+                  <AdminIcoon naam={fb.iconNaam} />
+                  {fb.tekst.split(" ").slice(0, 3).join(" ")}…
                 </button>
               );
             })}
-            <span className="text-xs text-gray-400 ml-1">
-              {(cat.filterTags ?? []).length === 0 ? "— geen filter geselecteerd, altijd zichtbaar" : ""}
-            </span>
+            {filterButtons.length === 0 && <span className="text-xs text-gray-400">Maak eerst filterbuttons aan (sectie hierboven)</span>}
+            {filterButtons.length > 0 && (cat.filterTags ?? []).length === 0 && <span className="text-xs text-gray-400 ml-1">— geen filter, altijd zichtbaar</span>}
           </div>
 
           {/* Emoji icoon */}
@@ -292,6 +368,11 @@ export default function MensenOmJeHeenAdminPage() {
   const categorieen = useAdminQuery(api.mensenOmJeHeen.listCategorieen, {}) as Categorie[] | undefined;
   const alleInitiatieven = useAdminQuery(api.mensenOmJeHeen.listInitiatieven, {}) as Initiatief[] | undefined;
 
+  const filterButtons = useAdminQuery(api.mensenOmJeHeen.listFilterButtons, {}) as FilterButton[] | undefined;
+  const upsertFilterButton = useAdminMutation(api.mensenOmJeHeen.upsertFilterButton);
+  const deleteFilterButton = useAdminMutation(api.mensenOmJeHeen.deleteFilterButton);
+  const seedFilterButtons = useAdminMutation(api.mensenOmJeHeen.seedFilterButtons);
+
   const upsertPaginaTeksten = useAdminMutation(api.mensenOmJeHeen.upsertPaginaTeksten);
   const upsertCategorie = useAdminMutation(api.mensenOmJeHeen.upsertCategorie);
   const deleteCategorie = useAdminMutation(api.mensenOmJeHeen.deleteCategorie);
@@ -299,6 +380,11 @@ export default function MensenOmJeHeenAdminPage() {
   const deleteInitiatief = useAdminMutation(api.mensenOmJeHeen.deleteInitiatief);
   const seedData = useAdminMutation(api.mensenOmJeHeen.seedData);
   const generateUploadUrl = useAdminMutation(api.mensenOmJeHeen.generateUploadUrl);
+
+  // Filterbutton state
+  const [nieuweFbTekst, setNieuweFbTekst] = useState("");
+  const [nieuweFbIcon, setNieuweFbIcon] = useState("heart");
+  const [nieuweFbTagId, setNieuweFbTagId] = useState("");
 
   // Paginateksten
   const [heroTitel, setHeroTitel] = useState("");
@@ -515,42 +601,63 @@ export default function MensenOmJeHeenAdminPage() {
         </button>
       </section>
 
-      {/* Filterteksten */}
+      {/* Filterbuttons */}
       <section className="bg-white border border-gray-200 rounded-2xl p-6 space-y-4">
-        <div>
-          <h2 className="text-base font-semibold text-gray-900">Filterbuttons</h2>
-          <p className="text-xs text-gray-500 mt-0.5">De vier keuzebuttons bovenaan de pagina. Laat leeg voor de standaardtekst. Welke categorieën bij welk filter horen stel je per categorie in (zie hieronder).</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">Filterbuttons</h2>
+            <p className="text-xs text-gray-500 mt-0.5">De keuzebuttons bovenaan de pagina. Kies een icoon en typ de knoptekst.</p>
+          </div>
+          {filterButtons !== undefined && filterButtons.length === 0 && (
+            <button onClick={() => seedFilterButtons({})} className="px-3 py-1.5 text-xs bg-primary-50 text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-100">
+              Standaard laden
+            </button>
+          )}
         </div>
+
         <div className="space-y-3">
-          {[
-            { label: "Lezen (boekicoon)", value: filterLezen, set: setFilterLezen, placeholder: FILTER_DEFAULTS.lezen },
-            { label: "Praten (chaticoon)", value: filterPraten, set: setFilterPraten, placeholder: FILTER_DEFAULTS.praten },
-            { label: "Groep (personicoon)", value: filterGroep, set: setFilterGroep, placeholder: FILTER_DEFAULTS.groep },
-            { label: "Ander (harticoon) — knoptekst", value: filterAnder, set: setFilterAnder, placeholder: FILTER_DEFAULTS.ander },
-          ].map(({ label, value, set, placeholder }) => (
-            <div key={label}>
-              <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
-              <input value={value} onChange={(e) => set(e.target.value)} placeholder={placeholder} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-300" />
-            </div>
+          {[...(filterButtons ?? [])].sort((a, b) => a.volgorde - b.volgorde).map((fb, idx, arr) => (
+            <FilterButtonRij key={fb._id} fb={fb}
+              isFirst={idx === 0} isLast={idx === arr.length - 1}
+              onSave={(id, data) => upsertFilterButton({ id, tagId: data.tagId ?? fb.tagId, tekst: data.tekst ?? fb.tekst, iconNaam: data.iconNaam ?? fb.iconNaam, volgorde: data.volgorde ?? fb.volgorde, zichtbaar: data.zichtbaar ?? fb.zichtbaar })}
+              onDelete={(id) => { if (confirm("Filterbutton verwijderen?")) deleteFilterButton({ id }); }}
+              onToggle={(id, z) => upsertFilterButton({ id, tagId: fb.tagId, tekst: fb.tekst, iconNaam: fb.iconNaam, volgorde: fb.volgorde, zichtbaar: z })}
+              onMoveUp={async () => {
+                const prev = arr[idx - 1];
+                if (!prev) return;
+                await upsertFilterButton({ id: fb._id, tagId: fb.tagId, tekst: fb.tekst, iconNaam: fb.iconNaam, volgorde: prev.volgorde, zichtbaar: fb.zichtbaar });
+                await upsertFilterButton({ id: prev._id, tagId: prev.tagId, tekst: prev.tekst, iconNaam: prev.iconNaam, volgorde: fb.volgorde, zichtbaar: prev.zichtbaar });
+              }}
+              onMoveDown={async () => {
+                const next = arr[idx + 1];
+                if (!next) return;
+                await upsertFilterButton({ id: fb._id, tagId: fb.tagId, tekst: fb.tekst, iconNaam: fb.iconNaam, volgorde: next.volgorde, zichtbaar: fb.zichtbaar });
+                await upsertFilterButton({ id: next._id, tagId: next.tagId, tekst: next.tekst, iconNaam: next.iconNaam, volgorde: fb.volgorde, zichtbaar: next.zichtbaar });
+              }}
+            />
           ))}
         </div>
 
-        {/* Ander-blok inhoud */}
-        <div className="pt-2 border-t border-gray-100 space-y-3">
-          <p className="text-xs font-medium text-gray-500">Inhoud van het blok dat verschijnt als iemand op "Ander" klikt:</p>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Titel</label>
-            <input value={filterAnderBlokTitel} onChange={(e) => setFilterAnderBlokTitel(e.target.value)} placeholder="Er zijn voor iemand begint met luisteren." className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-300" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Tekst</label>
-            <textarea value={filterAnderBlokTekst} onChange={(e) => setFilterAnderBlokTekst(e.target.value)} placeholder="Niet met de juiste woorden. Je hoeft geen oplossing te hebben…" rows={3} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300" />
+        {/* Nieuwe filterbutton toevoegen */}
+        <div className="pt-3 border-t border-gray-100 space-y-3">
+          <p className="text-xs font-medium text-gray-500">Nieuwe filterbutton toevoegen</p>
+          <IcoonKiezer waarde={nieuweFbIcon} onChange={setNieuweFbIcon} />
+          <div className="flex gap-2">
+            <input value={nieuweFbTekst} onChange={(e) => setNieuweFbTekst(e.target.value)} placeholder="Knoptekst…" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
+            <input value={nieuweFbTagId} onChange={(e) => setNieuweFbTagId(e.target.value)} placeholder="tagId (bijv. mijn-filter)" className="w-36 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
+            <button
+              onClick={async () => {
+                if (!nieuweFbTekst.trim() || !nieuweFbTagId.trim()) return;
+                await upsertFilterButton({ tagId: nieuweFbTagId.trim(), tekst: nieuweFbTekst.trim(), iconNaam: nieuweFbIcon, volgorde: (filterButtons?.length ?? 0) + 1, zichtbaar: true });
+                setNieuweFbTekst(""); setNieuweFbTagId(""); setNieuweFbIcon("heart");
+              }}
+              disabled={!nieuweFbTekst.trim() || !nieuweFbTagId.trim()}
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 disabled:opacity-40"
+            >
+              <Plus size={15} />Toevoegen
+            </button>
           </div>
         </div>
-
-        <button onClick={handleSaveTeksten} disabled={tekstSaving} className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 disabled:opacity-60">
-          <Save size={15} />{tekstSaving ? "Bezig…" : tekstSaved ? "Opgeslagen!" : "Opslaan"}
-        </button>
       </section>
 
       {/* Categorieën */}
@@ -560,6 +667,7 @@ export default function MensenOmJeHeenAdminPage() {
           <CategorieSectie key={cat._id} cat={cat}
             initiatieven={(alleInitiatieven ?? []).filter((i) => i.categorie_id === cat._id).sort((a, b) => a.volgorde - b.volgorde)}
             isFirst={idx === 0} isLast={idx === sortedCats.length - 1}
+            filterButtons={filterButtons ?? []}
             onUpdateCat={handleUpdateCat} onDeleteCat={handleDeleteCat}
             onMoveUpCat={handleMoveUpCat} onMoveDownCat={handleMoveDownCat}
             onUploadImage={handleUploadImage} onRemoveImage={handleRemoveImage}

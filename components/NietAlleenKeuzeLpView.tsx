@@ -253,11 +253,11 @@ export function NietAlleenKeuzeLpView({
   };
 
   const TYPES: { key: TypeKey; icon: ReactNode; kleur: string }[] = [
-    { key: "persoon",     icon: <IconHeart />, kleur: "#6d84a8" },
-    { key: "huisdier",   icon: <IconPaw />,   kleur: "#8a9cb8" },
-    { key: "relatie",    icon: <IconUsers />, kleur: "#5a7090" },
-    { key: "eenzaamheid",icon: <IconChat />,  kleur: "#6d84a8" },
-    { key: "kinderloos", icon: <IconLeaf />,  kleur: "#7a9080" },
+    { key: "persoon",     icon: <IconHeart />, kleur: "#7ec8e3" },
+    { key: "huisdier",   icon: <IconPaw />,   kleur: "#7ec8e3" },
+    { key: "relatie",    icon: <IconUsers />, kleur: "#7ec8e3" },
+    { key: "eenzaamheid",icon: <IconChat />,  kleur: "#7ec8e3" },
+    { key: "kinderloos", icon: <IconLeaf />,  kleur: "#7ec8e3" },
   ];
 
   function kiesType(key: TypeKey) {
