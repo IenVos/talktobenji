@@ -8,7 +8,7 @@ import { checkAdmin } from "./adminAuth";
 // ─── T2P Filterbuttons ────────────────────────────────────────────────────────
 
 export const listFilterButtons = query({
-  args: {},
+  args: { adminToken: v.optional(v.string()) },
   handler: async (ctx) => {
     return ctx.db.query("t2p_filterbuttons").collect();
   },
