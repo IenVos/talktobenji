@@ -1,8 +1,51 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+
+function IconHeart() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
+    </svg>
+  );
+}
+
+function IconChat() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+    </svg>
+  );
+}
+
+function IconUsers() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  );
+}
+
+function IconPaw() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM16 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM5.5 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM18.5 9a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c-2.8 0-5 2-5 4.5 0 2 1.2 3 2.8 3.3.7.1 1.4.2 2.2.2s1.5-.1 2.2-.2C15.8 18.5 17 17.5 17 15.5c0-2.5-2.2-4.5-5-4.5z" />
+    </svg>
+  );
+}
+
+function IconLeaf() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 22V12" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 12C12 7 8 3 3 3c0 5 3 9 9 9z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 12c0-5 4-9 9-9-1 5-4 9-9 9z" />
+    </svg>
+  );
+}
 
 type TypeKey = "persoon" | "huisdier" | "relatie" | "eenzaamheid" | "kinderloos";
 
@@ -209,12 +252,12 @@ export function NietAlleenKeuzeLpView({
     kinderloos:   typeButtonLabelKinderloos   || DEFAULTS.buttonLabels.kinderloos,
   };
 
-  const TYPES: { key: TypeKey; emoji: string }[] = [
-    { key: "persoon",     emoji: "💔" },
-    { key: "huisdier",   emoji: "🐾" },
-    { key: "relatie",    emoji: "💭" },
-    { key: "eenzaamheid",emoji: "😔" },
-    { key: "kinderloos", emoji: "🌱" },
+  const TYPES: { key: TypeKey; icon: ReactNode; kleur: string }[] = [
+    { key: "persoon",     icon: <IconHeart />, kleur: "#6d84a8" },
+    { key: "huisdier",   icon: <IconPaw />,   kleur: "#8a9cb8" },
+    { key: "relatie",    icon: <IconUsers />, kleur: "#5a7090" },
+    { key: "eenzaamheid",icon: <IconChat />,  kleur: "#6d84a8" },
+    { key: "kinderloos", icon: <IconLeaf />,  kleur: "#7a9080" },
   ];
 
   function kiesType(key: TypeKey) {
@@ -226,12 +269,17 @@ export function NietAlleenKeuzeLpView({
 
   const TypeKnoppen = ({ klein }: { klein?: boolean }) => (
     <div className="space-y-3">
-      {TYPES.map(({ key, emoji }) => (
+      {TYPES.map(({ key, icon, kleur }) => (
         <button key={key} onClick={() => kiesType(key)}
           className={`w-full flex items-center gap-${klein ? "3" : "4"} px-5 py-${klein ? "3.5" : "4"} rounded-2xl border${klein ? "" : "-2"} text-left transition-all`}
           style={{ borderColor: actief === key ? "#6d84a8" : "#e8e0d8", background: actief === key ? "#eef1f6" : "white", color: "#3d3530" }}
         >
-          <span className={`text-${klein ? "xl" : "2xl"} flex-shrink-0`}>{emoji}</span>
+          <div
+            className={`${klein ? "w-9 h-9" : "w-10 h-10"} rounded-xl flex items-center justify-center flex-shrink-0 text-white`}
+            style={{ background: kleur }}
+          >
+            {icon}
+          </div>
           <span className="text-sm font-medium">{buttonLabels[key]}</span>
           {!klein && actief === key && <span className="ml-auto text-xs font-semibold flex-shrink-0" style={{ color: "#6d84a8" }}>↓</span>}
         </button>
