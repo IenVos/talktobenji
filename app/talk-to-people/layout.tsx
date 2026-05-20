@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Talk To People | Talk To Benji",
+  title: "Talk To People",
   description:
     "Benji is er voor de momenten dat er niemand is. Hier vind je initiatieven, groepen en mensen die begrijpen wat jij doormaakt.",
 };

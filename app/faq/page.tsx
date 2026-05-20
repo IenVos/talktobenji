@@ -8,7 +8,7 @@ import { FounderLink } from "@/components/chat/FounderLink";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Veelgestelde vragen · Talk To Benji",
+  title: "Veelgestelde vragen",
   description: "Antwoorden op veelgestelde vragen over Talk To Benji, Benji de AI-chatbot bij verlies en verdriet",
 };
 

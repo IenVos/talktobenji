@@ -260,6 +260,8 @@ export const update = mutation({
     kpCitaatKinderloos: v.optional(v.string()),
     kpVoordelenKinderloos: v.optional(v.string()),
     kpCtaTekstKinderloos: v.optional(v.string()),
+    noindex: v.optional(v.boolean()),
+    metaDescription: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

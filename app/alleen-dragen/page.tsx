@@ -9,7 +9,7 @@ import { VerhaalTrigger } from "@/components/VerhaalPopup";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Als je het niet kwijt kunt · Talk To Benji",
+  title: "Als je het niet kwijt kunt",
   description: "Er zijn mensen om je heen, en toch zwijg je. Benji is er voor de dingen die je niet hardop durft te zeggen.",
 };
 

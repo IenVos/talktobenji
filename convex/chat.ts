@@ -8,7 +8,7 @@
  */
 
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
@@ -70,7 +70,13 @@ const TOPIC_ID_TO_OPENER_KEY: Record<
 export const getSession = query({
   args: { sessionId: v.id("chatSessions") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.sessionId);
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) return null;
+    if (session.userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== session.userId) return null;
+    }
+    return session;
   },
 });
 
@@ -83,18 +89,24 @@ export const getMessages = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) return [];
+    if (session.userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== session.userId) return [];
+    }
+
+    let q = ctx.db
       .query("chatMessages")
       .withIndex("by_session", (q) =>
         q.eq("sessionId", args.sessionId)
       )
-      .order("asc"); // Oudste eerst (chronologische volgorde)
+      .order("asc");
 
-    const messages = await query.collect();
+    const messages = await q.collect();
 
-    // Limiteer als opgegeven
     if (args.limit) {
-      return messages.slice(-args.limit); // Laatste N berichten
+      return messages.slice(-args.limit);
     }
 
     return messages;
@@ -111,16 +123,18 @@ export const getUserSessions = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    // Gebruik index zodat alleen de sessies van de opgegeven gebruiker worden opgehaald
-    // en niet alle sessies van alle gebruikers
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    if (args.userId && identity.subject !== args.userId) return [];
+
+    const effectiveUserId = args.userId ?? identity.subject;
     let sessions;
-    if (args.userId) {
+    if (effectiveUserId) {
       sessions = await ctx.db
         .query("chatSessions")
-        .withIndex("by_user", (q) => q.eq("userId", args.userId!))
+        .withIndex("by_user", (q) => q.eq("userId", effectiveUserId))
         .collect();
     } else {
-      // Geen userId opgegeven: lege lijst teruggeven (geen volledige dump)
       return [];
     }
 
@@ -142,7 +156,7 @@ export const getUserSessions = query({
  * Haal recente actieve sessies op
  * Handig voor admin dashboard
  */
-export const getActiveSessions = query({
+export const getActiveSessions = internalQuery({
   args: {
     limit: v.optional(v.number()),
   },
@@ -163,7 +177,7 @@ export const getActiveSessions = query({
 /**
  * Tel aantal berichten in een sessie
  */
-export const getMessageCount = query({
+export const getMessageCount = internalQuery({
   args: { sessionId: v.id("chatSessions") },
   handler: async (ctx, args) => {
     const messages = await ctx.db
@@ -335,6 +349,12 @@ export const addPersonalizedOpenerToSession = mutation({
     userName: v.string(),
   },
   handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (session?.userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== session.userId) throw new Error("Niet geautoriseerd");
+    }
+
     const firstName = args.userName.trim().split(/\s+/)[0] || args.userName;
     const template = PERSONALIZED_OPENERS[Math.floor(Math.random() * PERSONALIZED_OPENERS.length)];
     const openerText = template.replace("{naam}", firstName);
@@ -367,6 +387,12 @@ export const addOpenerToSession = mutation({
     topicId: v.string(),
   },
   handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (session?.userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== session.userId) throw new Error("Niet geautoriseerd");
+    }
+
     const key = TOPIC_ID_TO_OPENER_KEY[args.topicId];
     const variants = key && OPENERS[key] ? OPENERS[key] : OPENERS.verdriet;
     const variant = (Math.floor(Math.random() * variants.length) + 1) as 1 | 2 | 3;
@@ -408,15 +434,15 @@ export const sendUserMessage = mutation({
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    // Validatie
     if (args.content.trim().length === 0) {
       throw new Error("Bericht mag niet leeg zijn");
     }
 
-    // Check of sessie bestaat en actief is
     const session = await ctx.db.get(args.sessionId);
-    if (!session) {
-      throw new Error("Sessie niet gevonden");
+    if (!session) throw new Error("Sessie niet gevonden");
+    if (session.userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== session.userId) throw new Error("Niet geautoriseerd");
     }
     if (session.status !== "active") {
       throw new Error("Deze sessie is niet meer actief");
@@ -456,7 +482,7 @@ export const sendUserMessage = mutation({
 /**
  * Voeg een bot antwoord toe aan de sessie
  */
-export const sendBotMessage = mutation({
+export const sendBotMessage = internalMutation({
   args: {
     sessionId: v.id("chatSessions"),
     content: v.string(),
@@ -533,11 +559,13 @@ export const deleteUserSession = mutation({
     userId: v.string(),
   },
   handler: async (ctx, args) => {
-    const session = await ctx.db.get(args.sessionId);
-    if (!session) {
-      throw new Error("Gesprek niet gevonden");
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) {
+      throw new Error("Niet geautoriseerd");
     }
-    if (session.userId !== args.userId) {
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) throw new Error("Gesprek niet gevonden");
+    if (session.userId !== identity.subject) {
       throw new Error("Je kunt alleen je eigen gesprekken verwijderen");
     }
 
@@ -570,6 +598,11 @@ export const updateSessionStatus = mutation({
     wasResolved: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (session?.userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== session.userId) throw new Error("Niet geautoriseerd");
+    }
     const updates: any = {
       status: args.status,
       lastActivityAt: Date.now(),
@@ -609,10 +642,11 @@ export const endSession = mutation({
   handler: async (ctx, args) => {
     const now = Date.now();
 
-    // Bereken sessieduur en genereer samenvatting
     const session = await ctx.db.get(args.sessionId);
-    if (!session) {
-      throw new Error("Sessie niet gevonden");
+    if (!session) throw new Error("Sessie niet gevonden");
+    if (session.userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== session.userId) throw new Error("Niet geautoriseerd");
     }
 
     // Haal alle berichten op voor samenvatting
@@ -651,7 +685,7 @@ export const endSession = mutation({
  * Markeer een sessie als abandoned (verlaten)
  * Wordt automatisch aangeroepen voor sessies die >30 min inactief zijn
  */
-export const markSessionsAsAbandoned = mutation({
+export const markSessionsAsAbandoned = internalMutation({
   args: {
     inactiveThresholdMinutes: v.optional(v.number()),
   },
@@ -732,7 +766,7 @@ export const submitGeneralFeedback = mutation({
 /**
  * Sla een AI-gegenereerde samenvatting op bij een sessie
  */
-export const setSessionSummary = mutation({
+export const setSessionSummary = internalMutation({
   args: { sessionId: v.id("chatSessions"), summary: v.string() },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.sessionId, {
@@ -742,7 +776,7 @@ export const setSessionSummary = mutation({
   },
 });
 
-export const setAdminRapport = mutation({
+export const setAdminRapport = internalMutation({
   args: { sessionId: v.id("chatSessions"), rapport: v.string(), suggestie: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.sessionId, {
@@ -756,7 +790,7 @@ export const setAdminRapport = mutation({
 /**
  * Haal sessies op die nog geen AI-samenvatting hebben (voor achtergrondverwerking)
  */
-export const getSessionsToSummarize = query({
+export const getSessionsToSummarize = internalQuery({
   args: {
     userId: v.optional(v.string()),
     anonymousId: v.optional(v.string()),
@@ -779,7 +813,7 @@ export const getSessionsToSummarize = query({
 /**
  * Haal recente AI-samenvattingen op van eerdere sessies
  */
-export const getRecentSummaries = query({
+export const getRecentSummaries = internalQuery({
   args: {
     userId: v.optional(v.string()),
     anonymousId: v.optional(v.string()),
@@ -811,10 +845,11 @@ export const exportChatHistory = query({
     sessionId: v.id("chatSessions"),
   },
   handler: async (ctx, args) => {
-    // Haal sessie op
     const session = await ctx.db.get(args.sessionId);
-    if (!session) {
-      throw new Error("Sessie niet gevonden");
+    if (!session) throw new Error("Sessie niet gevonden");
+    if (session.userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity || identity.subject !== session.userId) throw new Error("Niet geautoriseerd");
     }
 
     // Haal alle berichten op

@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const pillar = await fetchQuery(api.pillars.getBySlug, { slug: params.slug }).catch(() => null);
   if (!pillar || !pillar.isLive) return { title: "Pagina niet gevonden" };
   return {
-    title: pillar.seoTitle ? `${pillar.seoTitle} — Talk To Benji` : `${pillar.title} — Talk To Benji`,
+    title: pillar.seoTitle || pillar.title,
     description: pillar.metaDescription || undefined,
     alternates: {
       canonical: `https://www.talktobenji.com/thema/${pillar.slug}`,

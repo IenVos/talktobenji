@@ -798,6 +798,8 @@ export default defineSchema({
     kpCitaatKinderloos: v.optional(v.string()),
     kpVoordelenKinderloos: v.optional(v.string()),
     kpCtaTekstKinderloos: v.optional(v.string()),
+    noindex: v.optional(v.boolean()),
+    metaDescription: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),
@@ -906,6 +908,7 @@ export default defineSchema({
     excerptCtaKey: v.optional(v.string()),   // CTA direct onder "In het kort" blok
     tags: v.optional(v.array(v.string())),   // Inhoudelijke labels, bijv. ["kinderloosheid", "zwangerschap"]
     anchorPhrases: v.optional(v.array(v.string())), // Zinnen die in andere artikelen automatisch naar dit artikel linken
+    noindex: v.optional(v.boolean()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]).index("by_pillar", ["pillarSlug"]),

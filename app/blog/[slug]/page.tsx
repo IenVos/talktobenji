@@ -15,10 +15,11 @@ type Props = { params: { slug: string }; searchParams: { preview?: string } };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
-  if (!post) return { title: "Artikel niet gevonden" };
+  if (!post) return { title: "Artikel niet gevonden", robots: { index: false, follow: false } };
   return {
-    title: post.seoTitle ? `${post.seoTitle} — Talk To Benji` : `${post.title} — Talk To Benji`,
+    title: post.seoTitle || post.title,
     description: post.metaDescription || post.excerpt || undefined,
+    robots: { index: !(post as any).noindex, follow: true },
     alternates: {
       canonical: `https://www.talktobenji.com/blog/${post.slug}`,
     },

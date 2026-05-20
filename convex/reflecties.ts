@@ -12,6 +12,9 @@ function todayStr() {
 export const listNotes = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return [];
+
     return await ctx.db
       .query("notes")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -24,6 +27,9 @@ export const listNotes = query({
 export const listNotesWithEmotions = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return [];
+
     const notes = await ctx.db
       .query("notes")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -44,6 +50,9 @@ export const listNotesWithEmotions = query({
 export const createNote = mutation({
   args: { userId: v.string(), title: v.optional(v.string()), content: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const now = Date.now();
     return await ctx.db.insert("notes", {
       userId: args.userId,
@@ -63,8 +72,10 @@ export const updateNote = mutation({
     content: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
     const note = await ctx.db.get(args.noteId);
-    if (!note || note.userId !== args.userId) throw new Error("Notitie niet gevonden");
+    if (!note || note.userId !== identity.subject) throw new Error("Notitie niet gevonden");
     const now = Date.now();
     const updates: Record<string, unknown> = { updatedAt: now };
     if (args.title !== undefined) updates.title = args.title;
@@ -77,8 +88,10 @@ export const updateNote = mutation({
 export const deleteNote = mutation({
   args: { noteId: v.id("notes"), userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
     const note = await ctx.db.get(args.noteId);
-    if (!note || note.userId !== args.userId) throw new Error("Notitie niet gevonden");
+    if (!note || note.userId !== identity.subject) throw new Error("Notitie niet gevonden");
     await ctx.db.delete(args.noteId);
     return args.noteId;
   },
@@ -88,6 +101,9 @@ export const deleteNote = mutation({
 export const getEmotionForDate = query({
   args: { userId: v.string(), date: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return null;
+
     return await ctx.db
       .query("emotionEntries")
       .withIndex("by_user_date", (q) =>
@@ -101,6 +117,9 @@ export const getEmotionForDate = query({
 export const listEmotionHistory = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return [];
+
     const all = await ctx.db
       .query("emotionEntries")
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
@@ -123,6 +142,9 @@ export const setEmotion = mutation({
     note: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const now = Date.now();
     const existing = await ctx.db
       .query("emotionEntries")
@@ -151,6 +173,9 @@ export const setEmotion = mutation({
 export const listGoals = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return [];
+
     return await ctx.db
       .query("goals")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -162,6 +187,9 @@ export const listGoals = query({
 export const createGoal = mutation({
   args: { userId: v.string(), content: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const now = Date.now();
     return await ctx.db.insert("goals", {
       userId: args.userId,
@@ -176,8 +204,10 @@ export const createGoal = mutation({
 export const toggleGoal = mutation({
   args: { goalId: v.id("goals"), userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
     const goal = await ctx.db.get(args.goalId);
-    if (!goal || goal.userId !== args.userId) throw new Error("Doel niet gevonden");
+    if (!goal || goal.userId !== identity.subject) throw new Error("Doel niet gevonden");
     await ctx.db.patch(args.goalId, {
       completed: !goal.completed,
       updatedAt: Date.now(),
@@ -189,8 +219,10 @@ export const toggleGoal = mutation({
 export const deleteGoal = mutation({
   args: { goalId: v.id("goals"), userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
     const goal = await ctx.db.get(args.goalId);
-    if (!goal || goal.userId !== args.userId) throw new Error("Doel niet gevonden");
+    if (!goal || goal.userId !== identity.subject) throw new Error("Doel niet gevonden");
     await ctx.db.delete(args.goalId);
     return args.goalId;
   },
@@ -206,6 +238,9 @@ const CHECK_IN_QUESTIONS = [
 export const getCheckInForDate = query({
   args: { userId: v.string(), date: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return { answers: {}, questions: CHECK_IN_QUESTIONS };
+
     const answers = await ctx.db
       .query("checkInAnswers")
       .withIndex("by_user_date", (q) =>
@@ -222,6 +257,9 @@ export const getCheckInForDate = query({
 export const listCheckInHistory = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return [];
+
     const all = await ctx.db
       .query("checkInAnswers")
       .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
@@ -252,6 +290,9 @@ export const setCheckInAnswer = mutation({
     answer: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const now = Date.now();
     const all = await ctx.db
       .query("checkInAnswers")
@@ -283,6 +324,9 @@ export const createCheckInEntry = mutation({
     waar_dankbaar: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const now = Date.now();
     return await ctx.db.insert("checkInEntries", {
       userId: args.userId,
@@ -298,6 +342,9 @@ export const createCheckInEntry = mutation({
 export const listCheckInEntries = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return [];
+
     try {
       const entries = await ctx.db
         .query("checkInEntries")
@@ -317,8 +364,10 @@ export const listCheckInEntries = query({
 export const deleteCheckInEntry = mutation({
   args: { id: v.id("checkInEntries"), userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
     const entry = await ctx.db.get(args.id);
-    if (!entry || entry.userId !== args.userId) throw new Error("Check-in niet gevonden");
+    if (!entry || entry.userId !== identity.subject) throw new Error("Check-in niet gevonden");
     await ctx.db.delete(args.id);
     return args.id;
   },

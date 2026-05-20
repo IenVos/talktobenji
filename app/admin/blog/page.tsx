@@ -28,6 +28,7 @@ type FormState = {
   focusKeyword: string;
   publishedAt: string; // "YYYY-MM-DD"
   isLive: boolean;
+  noindex: boolean;
   faqItems: FaqItem[];
   internalLinks: InternalLink[];
   coverImageStorageId?: Id<"_storage">;
@@ -50,6 +51,7 @@ const EMPTY_FORM: FormState = {
   focusKeyword: "",
   publishedAt: new Date().toISOString().slice(0, 10),
   isLive: false,
+  noindex: false,
   faqItems: [{ question: "", answer: "" }],
   internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
   coverImageStorageId: undefined,
@@ -351,6 +353,7 @@ export default function AdminBlogPage() {
       excerptCtaKey: (post as any).excerptCtaKey ?? "",
       tags: post.tags ?? [],
       anchorPhrases: (post as any).anchorPhrases?.join("\n") ?? "",
+      noindex: (post as any).noindex ?? false,
     });
     setCoverPreview(post.coverImageUrl ?? null);
     setEditingId(post._id);
@@ -445,6 +448,7 @@ export default function AdminBlogPage() {
       coverImageStorageId,
       publishedAt,
       isLive: form.isLive,
+      noindex: form.noindex || undefined,
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : [],
       pillarSlug: form.pillarSlug.trim(),
@@ -1438,6 +1442,16 @@ export default function AdminBlogPage() {
                     {form.isLive ? "✓ Live — publiek zichtbaar" : "⚠ Concept — nog niet publiek"}
                   </span>
                   {!form.isLive && <p className="text-xs text-amber-700 mt-0.5">Vink aan om het artikel te publiceren.</p>}
+                </div>
+              </label>
+              <label className={`flex items-center gap-3 cursor-pointer px-3 py-2.5 rounded-lg border transition-colors ${form.noindex ? "bg-red-50 border-red-200" : "bg-stone-50 border-stone-200"}`}>
+                <input type="checkbox" checked={form.noindex} onChange={(e) => setForm((f) => ({ ...f, noindex: e.target.checked }))}
+                  className="rounded border-primary-300 text-primary-600 w-4 h-4" />
+                <div>
+                  <span className={`text-sm font-semibold ${form.noindex ? "text-red-800" : "text-stone-600"}`}>
+                    {form.noindex ? "Verborgen voor Google (noindex)" : "Indexeerbaar door Google"}
+                  </span>
+                  <p className="text-xs text-stone-500 mt-0.5">Vink aan om dit artikel uit Google te houden.</p>
                 </div>
               </label>
             </div>

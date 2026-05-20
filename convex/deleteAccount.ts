@@ -10,6 +10,9 @@ export const deleteAccount = mutation({
     email: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const userId = args.userId;
     const email = args.email.toLowerCase().trim();
 

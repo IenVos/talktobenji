@@ -8,11 +8,13 @@ import { mutation, query } from "./_generated/server";
 export const getPreferences = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
-    const prefs = await ctx.db
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return null;
+
+    return await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .unique();
-    return prefs;
   },
 });
 
@@ -20,6 +22,9 @@ export const getPreferences = query({
 export const getPreferencesWithUrl = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return null;
+
     const prefs = await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -54,6 +59,9 @@ export const setPreferences = mutation({
     profileImageStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const now = Date.now();
     const existing = await ctx.db
       .query("userPreferences")
@@ -89,6 +97,9 @@ export const setPreferences = mutation({
 export const removeProfileImage = mutation({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const existing = await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -103,6 +114,9 @@ export const removeProfileImage = mutation({
 export const removeBackgroundImage = mutation({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const existing = await ctx.db
       .query("userPreferences")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))

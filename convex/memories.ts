@@ -7,6 +7,9 @@ import { mutation, query } from "./_generated/server";
 export const getMemories = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return [];
+
     const memories = await ctx.db
       .query("memories")
       .withIndex("by_user_created", (q) => q.eq("userId", args.userId))
@@ -30,6 +33,9 @@ export const getMemories = query({
 export const getRandomMemory = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return null;
+
     const memories = await ctx.db
       .query("memories")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -61,6 +67,9 @@ export const addMemory = mutation({
     title: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     return await ctx.db.insert("memories", {
       userId: args.userId,
       text: args.text,
@@ -94,8 +103,10 @@ export const updateMemory = mutation({
     removeImage: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return;
     const memory = await ctx.db.get(args.memoryId);
-    if (!memory || memory.userId !== args.userId) return;
+    if (!memory || memory.userId !== identity.subject) return;
 
     const updates: Record<string, any> = {};
     if (args.text !== undefined) updates.text = args.text;
@@ -122,8 +133,10 @@ export const updateMemory = mutation({
 export const deleteMemory = mutation({
   args: { memoryId: v.id("memories"), userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return;
     const memory = await ctx.db.get(args.memoryId);
-    if (!memory || memory.userId !== args.userId) return;
+    if (!memory || memory.userId !== identity.subject) return;
     if (memory.imageStorageId) {
       try {
         await ctx.storage.delete(memory.imageStorageId);

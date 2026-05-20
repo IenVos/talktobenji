@@ -226,7 +226,7 @@ export const handleUserMessage = action({
             excludeSessionId: args.sessionId,
             limit: 3,
           }).catch(() =>
-            ctx.runQuery(api.chat.getRecentSummaries, {
+            ctx.runQuery(internal.chat.getRecentSummaries, {
               userId: uid,
               excludeSessionId: args.sessionId,
               limit: 3,
@@ -290,7 +290,7 @@ export const handleUserMessage = action({
           excludeSessionId: args.sessionId,
           limit: 3,
         }).catch(() =>
-          ctx.runQuery(api.chat.getRecentSummaries, {
+          ctx.runQuery(internal.chat.getRecentSummaries, {
             anonymousId: anonId,
             excludeSessionId: args.sessionId,
             limit: 3,
@@ -324,7 +324,7 @@ export const handleUserMessage = action({
 
       // Geen kennis: geen Admin Knowledge, geen Q&As, geen bronnen → duidelijke melding
       if (!hasKnowledge && !hasKbItems && !hasSources) {
-        const botMessageIdEmpty = await ctx.runMutation(api.chat.sendBotMessage, {
+        const botMessageIdEmpty = await ctx.runMutation(internal.chat.sendBotMessage, {
           sessionId: args.sessionId,
           content: emptyKbMessage,
           isAiGenerated: false,
@@ -991,7 +991,7 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
       const responseTime = Date.now() - startTime;
 
       // STAP 6: Sla bot antwoord op
-      const botMessageId = await ctx.runMutation(api.chat.sendBotMessage, {
+      const botMessageId = await ctx.runMutation(internal.chat.sendBotMessage, {
         sessionId: args.sessionId,
         content: aiResponse,
         isAiGenerated: true,
@@ -1018,7 +1018,7 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
       const errorMessage = "Het spijt me, er is iets misgegaan. Probeer het opnieuw of neem contact op met support.";
 
       // Sla error antwoord op (bewaar echte fout in metadata voor debugging)
-      await ctx.runMutation(api.chat.sendBotMessage, {
+      await ctx.runMutation(internal.chat.sendBotMessage, {
         sessionId: args.sessionId,
         content: errorMessage,
         isAiGenerated: false,
@@ -1057,7 +1057,7 @@ export const summarizeSession = action({
     if (!args.userId && !args.anonymousId) return;
 
     // Zoek sessies die nog geen AI-samenvatting hebben
-    const toSummarize = await ctx.runQuery(api.chat.getSessionsToSummarize, {
+    const toSummarize = await ctx.runQuery(internal.chat.getSessionsToSummarize, {
       userId: args.userId,
       anonymousId: args.anonymousId,
       excludeSessionId: args.excludeSessionId,
@@ -1075,7 +1075,7 @@ export const summarizeSession = action({
         const userMessages = (messages || []).filter((m: any) => m.role === "user");
         if (userMessages.length < 2) {
           // Markeer als "gesummariseerd" zodat we het niet opnieuw proberen
-          await ctx.runMutation(api.chat.setSessionSummary, {
+          await ctx.runMutation(internal.chat.setSessionSummary, {
             sessionId,
             summary: "",
           });
@@ -1127,7 +1127,7 @@ Schrijf beknopt en feitelijk. Geen inleiding of afsluiting.`,
         const summary = data.content?.[0]?.text?.trim() ?? "";
 
         if (summary) {
-          await ctx.runMutation(api.chat.setSessionSummary, { sessionId, summary });
+          await ctx.runMutation(internal.chat.setSessionSummary, { sessionId, summary });
           // Bereken embedding voor semantisch geheugen
           await ctx.runAction(api.embeddings.embedSessionSummary, { sessionId, summary });
         }
@@ -1210,7 +1210,7 @@ Schrijf strak en zakelijk. Max 100 woorden totaal.`,
     const rapport = data.content?.[0]?.text?.trim() ?? "";
 
     if (rapport) {
-      await ctx.runMutation(api.chat.setAdminRapport, {
+      await ctx.runMutation(internal.chat.setAdminRapport, {
         sessionId: args.sessionId,
         rapport,
       });
@@ -1237,7 +1237,7 @@ Antwoord ALLEEN in dit JSON formaat:
           const suggestText = suggestData.content?.[0]?.text?.trim() ?? "";
           const match = suggestText.match(/\{[\s\S]*\}/);
           if (match) {
-            await ctx.runMutation(api.chat.setAdminRapport, {
+            await ctx.runMutation(internal.chat.setAdminRapport, {
               sessionId: args.sessionId,
               rapport,
               suggestie: match[0],

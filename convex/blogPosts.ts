@@ -245,6 +245,7 @@ export const update = mutation({
     tags: v.optional(v.array(v.string())),
     kbSynced: v.optional(v.boolean()),
     anchorPhrases: v.optional(v.array(v.string())),
+    noindex: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

@@ -9,7 +9,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Waarom ik Benji begon · Talk To Benji",
+  title: "Waarom ik Benji begon",
   description: "Het verhaal achter Talk To Benji - waarom Ien deze plek creëerde voor mensen die met verlies en verdriet omgaan",
 };
 

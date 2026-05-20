@@ -78,7 +78,7 @@ crons.daily(
 crons.interval(
   "mark abandoned sessions",
   { minutes: 30 },
-  api.chat.markSessionsAsAbandoned,
+  internal.chat.markSessionsAsAbandoned,
   {}
 );
 

@@ -396,6 +396,9 @@ export const cancelOwnSubscription = mutation({
     wouldRecommend: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const now = Date.now();
 
     const subscription = await ctx.db

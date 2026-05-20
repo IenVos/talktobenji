@@ -8,7 +8,7 @@ import { HeaderBar } from "@/components/chat/HeaderBar";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: "Privacy - Talk To Benji",
+  title: "Privacy",
   description: "Privacybeleid van Talk To Benji | hoe we met je gegevens omgaan",
 };
 

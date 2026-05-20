@@ -71,6 +71,8 @@ type FormState = {
   slug: string;
   pageTitle: string;
   isLive: boolean;
+  noindex: boolean;
+  metaDescription: string;
   heroLabel: string;
   heroTitle: string;
   heroSubtitle: string;
@@ -168,6 +170,8 @@ const EMPTY_FORM: FormState = {
   slug: "",
   pageTitle: "",
   isLive: false,
+  noindex: false,
+  metaDescription: "",
   heroLabel: "",
   heroTitle: "",
   heroSubtitle: "",
@@ -343,6 +347,8 @@ export default function AdminLandingspaginasPage() {
       slug: page.slug,
       pageTitle: page.pageTitle,
       isLive: page.isLive,
+      noindex: (page as any).noindex ?? false,
+      metaDescription: (page as any).metaDescription ?? "",
       heroLabel: page.heroLabel ?? "",
       heroTitle: page.heroTitle,
       heroSubtitle: page.heroSubtitle ?? "",
@@ -561,6 +567,8 @@ export default function AdminLandingspaginasPage() {
           slug: form.slug.trim(),
           pageTitle: form.pageTitle.trim(),
           isLive: form.isLive,
+          noindex: form.noindex || undefined,
+          metaDescription: form.metaDescription.trim(),
           heroTitle: form.heroTitle.trim(),
           heroLabel: form.heroLabel.trim(),
           heroSubtitle: form.heroSubtitle.trim(),
@@ -919,6 +927,10 @@ export default function AdminLandingspaginasPage() {
                 <label className={labelClass}>Paginatitel (browsertabblad)</label>
                 <input type="text" placeholder="Niet Alleen — 30 dagen begeleiding" value={form.pageTitle} onChange={set("pageTitle")} className={inputClass} />
               </div>
+              <div>
+                <label className={labelClass}>Meta description (Google — max 155 tekens)</label>
+                <textarea placeholder="Wat zie je in Google onder de paginatitel..." value={form.metaDescription} onChange={set("metaDescription")} rows={2} maxLength={155} className={inputClass} />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -942,6 +954,10 @@ export default function AdminLandingspaginasPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.isLive} onChange={setCheck("isLive")} className="rounded border-primary-300 text-primary-600" />
                 <span className="text-sm text-gray-700">Pagina is live (publiek zichtbaar)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.noindex} onChange={(e) => setForm((f) => ({ ...f, noindex: e.target.checked }))} className="rounded border-red-300 text-red-600" />
+                <span className="text-sm text-gray-700">Verborgen voor Google (noindex)</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input

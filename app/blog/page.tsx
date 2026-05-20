@@ -6,7 +6,7 @@ import { HeaderBar } from "@/components/chat/HeaderBar";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const metadata: Metadata = {
-  title: "Samen Omgaan met Verdriet en Pijn — Talk To Benji",
+  title: "Samen Omgaan met Verdriet en Pijn",
   description: "Een plek waar je steun, begrip en praktische tips vindt om sterker door moeilijke tijden te komen.",
 };
 
