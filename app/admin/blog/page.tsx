@@ -159,10 +159,13 @@ export default function AdminBlogPage() {
       .trimEnd();
     const lines = raw.split("\n");
 
-    // 1. Titel, SEO-titel en meta description uit de header
+    // 1. Titel + alle header-labels direct onder de # titel
     let title = "";
+    let slug = "";
     let seoTitle = "";
     let metaDescription = "";
+    let anchorPhrases = "";
+    let parsedLinks: InternalLink[] = [];
     let bodyStart = 0;
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -172,20 +175,55 @@ export default function AdminBlogPage() {
         continue;
       }
       if (bodyStart > 0) {
+        const slugMatch = line.match(/^Slug:\s*(.+)/i);
         const seoMatch = line.match(/^SEO-titel:\s*(.+)/i);
         const metaMatch = line.match(/^Meta\s*description:\s*(.+)/i);
+        const anchorMatch = line.match(/^Ankerzinnen:\s*(.+)/i);
+        const linksMatch = line.match(/^Interne\s*links:\s*(.+)/i);
+        if (slugMatch) { slug = slugMatch[1].trim(); continue; }
         if (seoMatch) { seoTitle = seoMatch[1].trim(); continue; }
         if (metaMatch) { metaDescription = metaMatch[1].trim(); continue; }
+        if (anchorMatch) {
+          anchorPhrases = anchorMatch[1].split("|")
+            .map(s => s.trim().replace(/^["„'']|["'']\s*$/g, "").trim())
+            .filter(Boolean).join("\n");
+          continue;
+        }
+        if (linksMatch) {
+          parsedLinks = linksMatch[1].split("|").map(s => {
+            const m = s.match(/"([^"]+)"\s*(?:→|->)\s*\/(?:blog\/)?([^\s|]+)/);
+            return m ? { label: m[1].trim(), slug: m[2].trim() } : null;
+          }).filter(Boolean) as InternalLink[];
+          continue;
+        }
         // Stop zodra we een niet-label, niet-lege regel tegenkomen
-        if (line.trim() && !seoMatch && !metaMatch) { bodyStart = i; break; }
+        if (line.trim()) { bodyStart = i; break; }
       }
     }
 
-    // 2. Splits body in secties op ## koppen
+    // 2. Losse velden (CAPS labels) eruit filteren — kunnen overal in de body zitten
+    const CAPS_LABEL = /^(TITEL|SLUG|SAMENVATTING|SEO[-\s]?TITEL|META\s*DESCRIPTION|FOCUSZOEKWOORD|BRONNEN):\s*(.*)/i;
+    let focusKeyword = "";
+    let excerptFromVelden = "";
+    const capsIndices = new Set<number>();
+    for (let i = bodyStart; i < lines.length; i++) {
+      const m = lines[i].match(CAPS_LABEL);
+      if (!m) continue;
+      capsIndices.add(i);
+      const key = m[1].toUpperCase().replace(/[-\s]/g, "");
+      const val = m[2].trim();
+      if (key === "FOCUSZOEKWOORD") focusKeyword = val;
+      if (key === "SAMENVATTING" && !excerptFromVelden) excerptFromVelden = val;
+      if (key === "SLUG" && !slug) slug = val;
+      if (key === "SEOTITEL" && !seoTitle) seoTitle = val;
+      if (key === "METADESCRIPTION" && !metaDescription) metaDescription = val;
+    }
+
+    // 3. Splits body in secties op ## koppen (CAPS-label regels worden geskipt)
     const FAQ_HEADERS = /^##\s+(veelgestelde vragen|faq|vragen)/i;
     const SOURCES_HEADERS = /^##\s+(bronnen|bronvermelding|referenties|literatuur)/i;
 
-    const body = lines.slice(bodyStart);
+    const body = lines.slice(bodyStart).filter((_, relIdx) => !capsIndices.has(relIdx + bodyStart));
     const contentLines: string[] = [];
     const faqLines: string[] = [];
     const sourcesLines: string[] = [];
@@ -201,7 +239,7 @@ export default function AdminBlogPage() {
       else contentLines.push(line);
     }
 
-    // 3. Auto-quote: losse regels tussen aanhalingstekens → blockquote
+    // 4. Auto-quote: losse regels tussen aanhalingstekens → blockquote
     const processedContentLines = contentLines.map((line) => {
       if (line.startsWith("> ")) return line; // al een blockquote
       const q = line.trim();
@@ -212,7 +250,7 @@ export default function AdminBlogPage() {
       return line;
     });
 
-    // 4. FAQ parsen: **Vraag?** of ### Vraag? gevolgd door antwoord
+    // 5. FAQ parsen: **Vraag?** of ### Vraag? gevolgd door antwoord
     const faqItems: FaqItem[] = [];
     let currentQ = "";
     let currentA: string[] = [];
@@ -233,7 +271,7 @@ export default function AdminBlogPage() {
       faqItems.push({ question: currentQ, answer: currentA.join("\n").trim() });
     }
 
-    // 5. Samenvatting: zoek "In het kort:" alinea in content
+    // 6. Samenvatting: zoek "In het kort:" alinea in content, anders SAMENVATTING uit losse velden
     let excerpt = "";
     const filteredContentLines: string[] = [];
     const contentBlocks = processedContentLines.join("\n").split(/\n\n+/);
@@ -245,8 +283,9 @@ export default function AdminBlogPage() {
         filteredContentLines.push(trimmed);
       }
     }
+    if (!excerpt && excerptFromVelden) excerpt = excerptFromVelden;
 
-    // 5. Bronnen: strip - prefix
+    // 7. Bronnen: strip - prefix
     const sources = sourcesLines
       .map((l) => l.replace(/^[-*]\s+/, "").trim())
       .filter(Boolean)
@@ -255,13 +294,16 @@ export default function AdminBlogPage() {
     setForm((f) => ({
       ...f,
       title: title && !f.title ? title : f.title,
-      slug: title && !f.slug ? slugify(title) : f.slug,
+      slug: (slug || (title ? slugify(title) : "")) && !f.slug ? (slug || slugify(title)) : f.slug,
       seoTitle: seoTitle || f.seoTitle,
       metaDescription: metaDescription || f.metaDescription,
       content: filteredContentLines.join("\n\n").replace(/^\n+/, "").trimEnd(),
       excerpt: excerpt || f.excerpt,
       faqItems: faqItems.length ? faqItems : f.faqItems,
       sources: sources || f.sources,
+      focusKeyword: focusKeyword || f.focusKeyword,
+      anchorPhrases: anchorPhrases || f.anchorPhrases,
+      internalLinks: parsedLinks.length ? parsedLinks : f.internalLinks,
     }));
     setImportText("");
     setShowImport(false);
