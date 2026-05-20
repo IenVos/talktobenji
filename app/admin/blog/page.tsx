@@ -616,13 +616,13 @@ export default function AdminBlogPage() {
               </button>
               {editingId && (
                 <a
-                  href={`/blog/${form.slug}`}
+                  href={`/blog/${form.slug}${!form.isLive ? `?preview=${process.env.NEXT_PUBLIC_PREVIEW_SECRET}` : ""}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-sm text-primary-600 hover:underline"
                 >
                   <ExternalLink size={15} />
-                  Bekijk artikel
+                  {form.isLive ? "Bekijk artikel" : "Preview concept"}
                 </a>
               )}
             </div>
