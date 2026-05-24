@@ -1073,8 +1073,8 @@ export const summarizeSession = action({
 
     for (const { sessionId } of toSummarize) {
       try {
-        // Haal berichten op
-        const messages = await ctx.runQuery(api.chat.getMessages, {
+        // Haal berichten op (intern — geen auth-check nodig in scheduled job)
+        const messages = await ctx.runQuery(internal.chat.getMessagesRaw, {
           sessionId,
           limit: 40,
         });
@@ -1157,12 +1157,12 @@ export const analyzeSessionAdmin = action({
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey || apiKey === "your-api-key-here") return;
 
-    const messages = await ctx.runQuery(api.chat.getMessages, {
+    const messages = await ctx.runQuery(internal.chat.getMessagesRaw, {
       sessionId: args.sessionId,
       limit: 60,
     });
 
-    const session = await ctx.runQuery(api.chat.getSession, {
+    const session = await ctx.runQuery(internal.chat.getSessionRaw, {
       sessionId: args.sessionId,
     });
 

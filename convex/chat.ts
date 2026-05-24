@@ -88,6 +88,23 @@ export const getSessionRaw = internalQuery({
   },
 });
 
+// Intern: berichten ophalen zonder auth-check (voor scheduled jobs)
+export const getMessagesRaw = internalQuery({
+  args: {
+    sessionId: v.id("chatSessions"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const messages = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .order("asc")
+      .collect();
+    if (args.limit) return messages.slice(-args.limit);
+    return messages;
+  },
+});
+
 /**
  * Haal alle berichten van een sessie op
  */
