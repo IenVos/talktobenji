@@ -112,6 +112,44 @@ export const authOptions: AuthOptions = {
         }
       }
 
+      // Genereer convexToken in de JWT callback en cache het — alleen vernieuwen als het
+      // ontbreekt of binnen 5 minuten verloopt. Zo verandert de tokenstring niet bij
+      // elke sessie-fetch, wat Convex-herauth loops en UI-flikkering voorkomt.
+      const userId = token.userId as string | undefined;
+      const rawKey = process.env.CONVEX_AUTH_PRIVATE_KEY;
+      const convexTokenExpiry = token.convexTokenExpiry as number | undefined;
+      const needsNewToken =
+        userId &&
+        rawKey &&
+        (!token.convexToken || !convexTokenExpiry || Date.now() > convexTokenExpiry - 5 * 60 * 1000);
+
+      if (needsNewToken) {
+        try {
+          const normalized = rawKey!
+            .replace(/\\n/g, "\n")
+            .replace(/\r\n/g, "\n")
+            .trim();
+          const pemHeader = "-----BEGIN PRIVATE KEY-----";
+          const pemFooter = "-----END PRIVATE KEY-----";
+          const base64Body = normalized
+            .replace(/-----BEGIN [A-Z ]+-----/g, "")
+            .replace(/-----END [A-Z ]+-----/g, "")
+            .replace(/\s+/g, "");
+          const wrappedBody = base64Body.match(/.{1,64}/g)?.join("\n") ?? base64Body;
+          const privateKey = await importPKCS8(`${pemHeader}\n${wrappedBody}\n${pemFooter}`, "RS256");
+          token.convexToken = await new SignJWT({ sub: userId })
+            .setProtectedHeader({ alg: "RS256" })
+            .setIssuedAt()
+            .setIssuer(CONVEX_SITE_URL)
+            .setAudience("convex")
+            .setExpirationTime("1h")
+            .sign(privateKey);
+          token.convexTokenExpiry = Date.now() + 55 * 60 * 1000;
+        } catch (e) {
+          console.error("Convex token signing failed:", e);
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -121,7 +159,7 @@ export const authOptions: AuthOptions = {
       }
 
       const userId = token.userId as string | undefined;
-      
+
       if (userId) {
         session.userId = userId;
         session.user = session.user || {};
@@ -129,43 +167,9 @@ export const authOptions: AuthOptions = {
         if (token.name) session.user.name = token.name as string;
       }
 
-      const rawKey = process.env.CONVEX_AUTH_PRIVATE_KEY;
-      if (!rawKey || !userId) {
-        session.convexToken = null;
-        return session;
-      }
+      // Gebruik de gecachede token uit de JWT — stabiel, geen nieuwe generatie per request
+      session.convexToken = (token.convexToken as string) || null;
 
-      try {
-        // Normaliseer PEM: herstel correcte PKCS8 structuur ongeacht hoe Vercel de key opslaat
-        const normalized = rawKey
-          .replace(/\\n/g, "\n")
-          .replace(/\r\n/g, "\n")
-          .trim();
-
-        // Extraheer base64 body en bouw PEM opnieuw op met correcte regelafbrekingen
-        const pemHeader = "-----BEGIN PRIVATE KEY-----";
-        const pemFooter = "-----END PRIVATE KEY-----";
-        const base64Body = normalized
-          .replace(/-----BEGIN [A-Z ]+-----/g, "")
-          .replace(/-----END [A-Z ]+-----/g, "")
-          .replace(/\s+/g, "");
-        const wrappedBody = base64Body.match(/.{1,64}/g)?.join("\n") ?? base64Body;
-        const privateKeyPem = `${pemHeader}\n${wrappedBody}\n${pemFooter}`;
-
-        const privateKey = await importPKCS8(privateKeyPem, "RS256");
-        const convexToken = await new SignJWT({ sub: userId })
-          .setProtectedHeader({ alg: "RS256" })
-          .setIssuedAt()
-          .setIssuer(CONVEX_SITE_URL)
-          .setAudience("convex")
-          .setExpirationTime("1h")
-          .sign(privateKey);
-
-        session.convexToken = convexToken;
-      } catch (e) {
-        console.error("Convex token signing failed:", e);
-        session.convexToken = null;
-      }
       return session;
     },
     async redirect({ url, baseUrl }) {
@@ -206,6 +210,8 @@ declare module "next-auth/jwt" {
     issuedAt?: number;
     lastChecked?: number;
     forceLogout?: boolean;
+    convexToken?: string;
+    convexTokenExpiry?: number;
   }
 }
 
