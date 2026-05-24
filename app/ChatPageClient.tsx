@@ -183,7 +183,7 @@ export default function ChatPageClient({
 
   const messages = useQuery(
     api.chat.getMessages,
-    sessionId ? { sessionId } : "skip"
+    sessionId && !convexAuthLoading ? { sessionId } : "skip"
   );
 
   // Anonieme sessie-teller (alleen voor niet-ingelogde gebruikers)
@@ -225,7 +225,7 @@ export default function ChatPageClient({
   }, [preferencesData?.accentColor]);
   const storedSession = useQuery(
     api.chat.getSession,
-    sessionIdState ? { sessionId: sessionIdState } : "skip"
+    sessionIdState && !convexAuthLoading ? { sessionId: sessionIdState } : "skip"
   );
 
   useEffect(() => {
@@ -642,6 +642,12 @@ export default function ChatPageClient({
         anonymousCount={!session?.userId ? anonymousCount : undefined}
       >
         <main ref={mainRef} className="flex-1 overflow-y-auto relative min-h-0">
+        {/* Laden terwijl Convex auth initialiseert — voorkomt leeg scherm */}
+        {convexAuthLoading && sessionId && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="w-6 h-6 rounded-full border-2 border-primary-400 border-t-transparent animate-spin" />
+          </div>
+        )}
         {/* Chat-inhoud */}
         <div className="relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation">
           {!sessionId && !isAddingOpener && (
