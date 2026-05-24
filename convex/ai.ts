@@ -151,8 +151,16 @@ export const handleUserMessage = action({
       // Detecteer of dit het eerste gebruikersbericht in deze sessie is
       const isFirstMessageInSession = !(recentMessages || []).some((m: any) => m.role === "user");
 
-      // Haal sessie op voor subscription check (vóór opslaan bericht)
-      const chatSession = await ctx.runQuery(api.chat.getSession, { sessionId: args.sessionId });
+      // Haal sessie op (raw = zonder auth-filter) voor ownership-check en subscription
+      const chatSession = await ctx.runQuery(internal.chat.getSessionRaw, { sessionId: args.sessionId });
+
+      // Als sessie bij een gebruiker hoort, verifieer dat de aanroeper dezelfde gebruiker is
+      if (chatSession?.userId) {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity || identity.subject !== chatSession.userId) {
+          return { success: false, error: "SESSION_AUTH_REQUIRED" };
+        }
+      }
 
       // BACKEND GESPREKSLIMIET CHECK + bepaal account type
       let isPaid = false;
@@ -196,7 +204,7 @@ export const handleUserMessage = action({
       }
 
       // STAP 1: Sla gebruikersbericht op
-      const userMessageId = await ctx.runMutation(api.chat.sendUserMessage, {
+      const userMessageId = await ctx.runMutation(internal.chat.sendUserMessage, {
         sessionId: args.sessionId,
         content: args.userMessage,
       });

@@ -477,6 +477,13 @@ export default function ChatPageClient({
     const startTime = Date.now();
     try {
       let activeSessionId = sessionId;
+
+      // Als opgeslagen sessie niet (meer) toegankelijk is, wis deze en start een nieuwe
+      if (activeSessionId && storedSession === null) {
+        activeSessionId = null;
+        setSessionId(null);
+      }
+
       if (!activeSessionId) {
         const startArgs = session?.userId
           ? { userId: session.userId, userEmail: session.user?.email ?? undefined, userName: session.user?.name ?? undefined }
@@ -520,6 +527,12 @@ export default function ChatPageClient({
     } catch (e: any) {
       if (e?.message?.includes("GUEST_LIMIT_REACHED")) {
         // Gate toont automatisch via anonymousCount — geen foutmelding nodig
+        return;
+      }
+      // Sessie behoort toe aan een andere gebruiker — wis en toon herstelmelding
+      if (e?.message?.includes("Niet geautoriseerd")) {
+        setSessionId(null);
+        setChatError("Je sessie is verlopen. Vernieuw de pagina om opnieuw te beginnen.");
         return;
       }
       console.error(e);

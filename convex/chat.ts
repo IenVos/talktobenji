@@ -80,6 +80,14 @@ export const getSession = query({
   },
 });
 
+// Intern: haalt sessie op zonder auth-check (alleen voor server-side gebruik)
+export const getSessionRaw = internalQuery({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.sessionId);
+  },
+});
+
 /**
  * Haal alle berichten van een sessie op
  */
@@ -428,7 +436,7 @@ export const addOpenerToSession = mutation({
 /**
  * Voeg een gebruikersbericht toe aan de sessie
  */
-export const sendUserMessage = mutation({
+export const sendUserMessage = internalMutation({
   args: {
     sessionId: v.id("chatSessions"),
     content: v.string(),
@@ -440,10 +448,6 @@ export const sendUserMessage = mutation({
 
     const session = await ctx.db.get(args.sessionId);
     if (!session) throw new Error("Sessie niet gevonden");
-    if (session.userId) {
-      const identity = await ctx.auth.getUserIdentity();
-      if (!identity || identity.subject !== session.userId) throw new Error("Niet geautoriseerd");
-    }
     if (session.status !== "active") {
       throw new Error("Deze sessie is niet meer actief");
     }

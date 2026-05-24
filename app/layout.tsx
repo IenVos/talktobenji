@@ -148,8 +148,8 @@ s.parentNode.insertBefore(t,s)}(window,document,'script',
 fbq('init','2054062258501361');fbq('track','PageView');`}
         </Script>
         <ErrorBoundary>
-          <ConvexClientProvider>
-            <SessionProvider>
+          <SessionProvider>
+            <ConvexClientProvider>
               <Suspense fallback={<div className="min-h-screen" aria-hidden="true" />}>
                 <AboutModalProvider>
                   <ProfessionalHelpProvider>
@@ -161,8 +161,8 @@ fbq('init','2054062258501361');fbq('track','PageView');`}
                   </ProfessionalHelpProvider>
                 </AboutModalProvider>
               </Suspense>
-            </SessionProvider>
-          </ConvexClientProvider>
+            </ConvexClientProvider>
+          </SessionProvider>
         </ErrorBoundary>
       </body>
     </html>
