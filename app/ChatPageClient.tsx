@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useQuery, useMutation, useAction } from "convex/react";
+import { useQuery, useMutation, useAction, useConvexAuth } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { Send, Mic, Square, Gem, ThumbsDown, ThumbsUp, Check } from "lucide-react";
@@ -141,6 +141,7 @@ export default function ChatPageClient({
   searchParams?: SearchParamsProp;
 }) {
   const router = useRouter();
+  const { isLoading: convexAuthLoading } = useConvexAuth();
   const { data: session, status } = useSession();
   const topicParam = Array.isArray(searchParams?.topic) ? searchParams.topic[0] : searchParams?.topic;
   const welcomeParam = Array.isArray(searchParams?.welcome) ? searchParams.welcome[0] : searchParams?.welcome;
@@ -228,11 +229,13 @@ export default function ChatPageClient({
   );
 
   useEffect(() => {
+    // Niet wissen terwijl Convex-auth nog laadt — dan lijkt een geldige sessie tijdelijk onbereikbaar
+    if (convexAuthLoading) return;
     if (sessionIdState && storedSession === null) {
       setSessionIdState(null);
       if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
     }
-  }, [sessionIdState, storedSession]);
+  }, [sessionIdState, storedSession, convexAuthLoading]);
 
   // Toon mic-hint bij het starten van een nieuw gesprek (eenmalig per sessie)
   useEffect(() => {
