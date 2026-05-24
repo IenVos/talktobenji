@@ -862,8 +862,8 @@ export const syncToKnowledgeBase = mutation({
       const key = question.trim().toLowerCase();
       const found = existingMap.get(key);
       if (found) {
-        // Update categorie en antwoord als die gewijzigd zijn
-        await ctx.db.patch(found._id, { category, answer, tags, updatedAt: now });
+        // Reset embedding zodat die opnieuw wordt berekend na antwoord-wijziging
+        await ctx.db.patch(found._id, { category, answer, tags, embedding: undefined, updatedAt: now });
       } else {
         await ctx.db.insert("knowledgeBase", {
           question,
