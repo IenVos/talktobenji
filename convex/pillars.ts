@@ -168,6 +168,7 @@ export const create = mutation({
       sources: args.sources,
       focusKeyword: args.focusKeyword,
       ctaKey: args.ctaKey,
+      excerptCtaKey: args.excerptCtaKey,
       anchorPhrases: args.anchorPhrases,
       featuredSlugs: args.featuredSlugs,
       createdAt: now,
