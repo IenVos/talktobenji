@@ -460,7 +460,9 @@ export default function AdminCheckoutPage() {
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0] ?? null;
-                  setForm((f) => ({ ...f, imageFile: file }));
+                  if (file) setForm((f) => ({ ...f, imageFile: file }));
+                  // Reset zodat dezelfde afbeelding opnieuw kiezen ook werkt
+                  e.target.value = "";
                 }}
               />
               <button
@@ -845,9 +847,12 @@ export default function AdminCheckoutPage() {
                             id={`block-img-${i}`}
                             onChange={(e) => {
                               const file = e.target.files?.[0] ?? null;
-                              if (!file) return;
-                              const previewUrl = URL.createObjectURL(file);
-                              setExtraTextBlocks((prev) => prev.map((x, j) => j === i ? { ...x, imageFile: file, imagePreviewUrl: previewUrl, imageStorageId: undefined } : x));
+                              if (file) {
+                                const previewUrl = URL.createObjectURL(file);
+                                setExtraTextBlocks((prev) => prev.map((x, j) => j === i ? { ...x, imageFile: file, imagePreviewUrl: previewUrl, imageStorageId: undefined } : x));
+                              }
+                              // Reset zodat dezelfde afbeelding opnieuw kiezen ook werkt
+                              e.target.value = "";
                             }}
                           />
                           <label
