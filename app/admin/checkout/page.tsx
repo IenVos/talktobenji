@@ -16,7 +16,7 @@ type GiftVariantForm = {
 };
 
 type ReviewForm = { author: string; role: string; text: string };
-type ExtraTextBlockForm = { title: string; content: string };
+type ExtraTextBlockForm = { title: string; content: string; imageStorageId?: string; imagePreviewUrl?: string; imageFile?: File | null };
 
 type CheckoutProduct = {
   _id: Id<"checkoutProducts">;

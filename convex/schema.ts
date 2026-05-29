@@ -850,10 +850,11 @@ export default defineSchema({
       role: v.optional(v.string()),
       text: v.string(),
     }))),
-    // Extra tekstblokken: vrije blokken met optionele titel + inhoud
+    // Extra tekstblokken: vrije blokken met optionele titel + inhoud + afbeelding
     extraTextBlocks: v.optional(v.array(v.object({
       title: v.optional(v.string()),
       content: v.string(),
+      imageStorageId: v.optional(v.id("_storage")),
     }))),
     createdAt: v.number(),
     updatedAt: v.number(),

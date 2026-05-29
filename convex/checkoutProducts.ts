@@ -17,7 +17,16 @@ export const list = query({
         try {
           if (product.imageStorageId) imageUrl = await ctx.storage.getUrl(product.imageStorageId);
         } catch { /* negeer */ }
-        return { ...product, imageUrl };
+        const extraTextBlocks = product.extraTextBlocks
+          ? await Promise.all(product.extraTextBlocks.map(async (block) => {
+              let blockImageUrl: string | null = null;
+              try {
+                if (block.imageStorageId) blockImageUrl = await ctx.storage.getUrl(block.imageStorageId);
+              } catch { /* negeer */ }
+              return { ...block, imageUrl: blockImageUrl };
+            }))
+          : undefined;
+        return { ...product, imageUrl, extraTextBlocks };
       })
     );
   },
@@ -36,7 +45,16 @@ export const getBySlug = query({
     try {
       if (product.imageStorageId) imageUrl = await ctx.storage.getUrl(product.imageStorageId);
     } catch { /* negeer */ }
-    return { ...product, imageUrl };
+    const extraTextBlocks = product.extraTextBlocks
+      ? await Promise.all(product.extraTextBlocks.map(async (block) => {
+          let blockImageUrl: string | null = null;
+          try {
+            if (block.imageStorageId) blockImageUrl = await ctx.storage.getUrl(block.imageStorageId);
+          } catch { /* negeer */ }
+          return { ...block, imageUrl: blockImageUrl };
+        }))
+      : undefined;
+    return { ...product, imageUrl, extraTextBlocks };
   },
 });
 
@@ -87,6 +105,7 @@ export const create = mutation({
     extraTextBlocks: v.optional(v.array(v.object({
       title: v.optional(v.string()),
       content: v.string(),
+      imageStorageId: v.optional(v.id("_storage")),
     }))),
   },
   handler: async (ctx, args) => {
@@ -161,6 +180,7 @@ export const update = mutation({
     extraTextBlocks: v.optional(v.array(v.object({
       title: v.optional(v.string()),
       content: v.string(),
+      imageStorageId: v.optional(v.id("_storage")),
     }))),
   },
   handler: async (ctx, args) => {
