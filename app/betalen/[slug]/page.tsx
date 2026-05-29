@@ -555,6 +555,7 @@ export default function BetalenPage() {
         {/* Reviews / testimonials (indien ingesteld via admin) */}
         {product.reviews && product.reviews.length > 0 && (
           <div className="mb-6">
+            <h2 className="text-base font-semibold text-stone-800 mb-3">Hoe anderen dit hebben ervaren</h2>
             <div className="space-y-3">
               {product.reviews.map((review, i) => (
                 <div key={i} className="bg-white rounded-2xl border-2 border-primary-200 p-5">
