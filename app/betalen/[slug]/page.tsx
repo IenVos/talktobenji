@@ -442,7 +442,7 @@ export default function BetalenPage() {
         <div className="bg-white rounded-2xl border border-stone-200 p-6 mb-6 shadow-sm">
           <h1 className="text-xl font-bold text-stone-800 mb-1">{product.name}</h1>
           {product.description && (
-            <div className="text-sm text-stone-500 mb-4 leading-relaxed space-y-3">
+            <div className="text-sm text-primary-600 mb-4 leading-relaxed space-y-4">
               {product.description.split("\n\n").map((para, i) => (
                 <p key={i}>
                   {para.split("\n").map((line, j) =>
@@ -513,11 +513,17 @@ export default function BetalenPage() {
         {product.extraTextBlocks && product.extraTextBlocks.length > 0 && (
           <div className="space-y-4 mb-6">
             {product.extraTextBlocks.map((block, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+              <div key={i} className="bg-primary-50 rounded-2xl border-2 border-primary-600 p-6">
                 {block.title && (
-                  <h2 className="text-base font-semibold text-stone-800 mb-3">{block.title}</h2>
+                  <h2 className="text-base font-semibold text-primary-800 mb-3">{block.title}</h2>
                 )}
-                <div className="text-sm text-stone-600 leading-relaxed space-y-3">
+                {(block as any).imageUrl && (
+                  <div className="mb-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={(block as any).imageUrl} alt={block.title ?? ""} className="w-full rounded-xl" />
+                  </div>
+                )}
+                <div className="text-sm text-primary-700 leading-relaxed space-y-4">
                   {block.content.split("\n\n").map((para, j) => (
                     <p key={j}>
                       {para.split("\n").map((line, k) =>
@@ -536,12 +542,12 @@ export default function BetalenPage() {
           <div className="mb-6">
             <div className="space-y-3">
               {product.reviews.map((review, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-stone-200 p-5 shadow-sm">
+                <div key={i} className="bg-white rounded-2xl border-2 border-primary-200 p-5">
                   <p className="text-sm text-stone-600 leading-relaxed italic mb-3">
                     &ldquo;{review.text}&rdquo;
                   </p>
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold text-xs flex-shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center font-semibold text-xs flex-shrink-0 text-primary-600">
                       {review.author.charAt(0).toUpperCase()}
                     </div>
                     <div>
@@ -597,7 +603,7 @@ export default function BetalenPage() {
                 onChange={(e) => setCountryCode(e.target.value)}
                 className={`${inputClass} cursor-pointer`}
               >
-                <option value="">Nederland (standaard)</option>
+                <option value="">Nederland</option>
                 <option value="NL">Nederland</option>
                 <option value="BE">België</option>
                 <option value="OTHER">Buiten de EU / overig</option>

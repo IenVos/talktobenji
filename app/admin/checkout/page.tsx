@@ -43,7 +43,7 @@ type CheckoutProduct = {
   addOnType?: string;
   addOnAccessDays?: number;
   reviews?: { author: string; role?: string; text: string }[];
-  extraTextBlocks?: { title?: string; content: string }[];
+  extraTextBlocks?: { title?: string; content: string; imageStorageId?: string; imageUrl?: string | null }[];
   createdAt: number;
   updatedAt: number;
 };
@@ -187,7 +187,7 @@ export default function AdminCheckoutPage() {
     });
     setGiftVariants(variantsToForm(product.giftVariants));
     setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text })));
-    setExtraTextBlocks((product.extraTextBlocks ?? []).map((b) => ({ title: b.title ?? "", content: b.content })));
+    setExtraTextBlocks((product.extraTextBlocks ?? []).map((b) => ({ title: b.title ?? "", content: b.content, imageStorageId: b.imageStorageId, imagePreviewUrl: b.imageUrl ?? undefined, imageFile: null })));
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(null);
     setShowForm(true);
@@ -220,7 +220,7 @@ export default function AdminCheckoutPage() {
     });
     setGiftVariants(variantsToForm(product.giftVariants));
     setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text })));
-    setExtraTextBlocks((product.extraTextBlocks ?? []).map((b) => ({ title: b.title ?? "", content: b.content })));
+    setExtraTextBlocks((product.extraTextBlocks ?? []).map((b) => ({ title: b.title ?? "", content: b.content, imageStorageId: b.imageStorageId, imagePreviewUrl: b.imageUrl ?? undefined, imageFile: null })));
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(product._id);
     setShowForm(true);
@@ -282,10 +282,17 @@ export default function AdminCheckoutPage() {
           role: r.role.trim() || undefined,
           text: r.text.trim(),
         })),
-        extraTextBlocks: extraTextBlocks.filter((b) => b.content.trim()).map((b) => ({
-          title: b.title.trim() || undefined,
-          content: b.content.trim(),
-        })),
+        extraTextBlocks: await Promise.all(
+          extraTextBlocks.filter((b) => b.content.trim()).map(async (b) => {
+            let imgId: Id<"_storage"> | undefined = b.imageStorageId as Id<"_storage"> | undefined;
+            if (b.imageFile) imgId = await uploadFile(b.imageFile);
+            return {
+              title: b.title.trim() || undefined,
+              content: b.content.trim(),
+              imageStorageId: imgId,
+            };
+          })
+        ),
       };
       if (editingId) {
         await updateProduct({ id: editingId, ...payload });
@@ -807,14 +814,48 @@ export default function AdminCheckoutPage() {
                           />
                         </div>
                         <div>
-                          <label className={labelSmClass}>Tekst</label>
+                          <label className={labelSmClass}>Tekst <span className="text-gray-400">(lege regel = nieuwe alinea)</span></label>
                           <textarea
                             className={`${inputClass} resize-none`}
                             value={b.content}
                             onChange={(e) => setExtraTextBlocks((prev) => prev.map((x, j) => j === i ? { ...x, content: e.target.value } : x))}
-                            rows={3}
-                            placeholder="Lege regel = nieuwe alinea"
+                            rows={4}
+                            placeholder="Eerste alinea&#10;&#10;Tweede alinea"
                           />
+                        </div>
+                        <div>
+                          <label className={labelSmClass}>Afbeelding <span className="text-gray-400">(optioneel)</span></label>
+                          {b.imagePreviewUrl && (
+                            <div className="mb-1.5 relative">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={b.imagePreviewUrl} alt="" className="rounded-lg max-h-32 w-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={() => setExtraTextBlocks((prev) => prev.map((x, j) => j === i ? { ...x, imageFile: null, imageStorageId: undefined, imagePreviewUrl: undefined } : x))}
+                                className="absolute top-1 right-1 p-1 bg-white/90 rounded-full text-red-500 hover:text-red-700 shadow"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            id={`block-img-${i}`}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0] ?? null;
+                              if (!file) return;
+                              const previewUrl = URL.createObjectURL(file);
+                              setExtraTextBlocks((prev) => prev.map((x, j) => j === i ? { ...x, imageFile: file, imagePreviewUrl: previewUrl, imageStorageId: undefined } : x));
+                            }}
+                          />
+                          <label
+                            htmlFor={`block-img-${i}`}
+                            className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 border border-primary-200 rounded-lg text-xs text-primary-700 hover:bg-primary-50 transition-colors"
+                          >
+                            {b.imagePreviewUrl ? "Andere afbeelding" : "Afbeelding uploaden"}
+                          </label>
                         </div>
                       </div>
                       <button
