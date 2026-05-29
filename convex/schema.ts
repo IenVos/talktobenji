@@ -844,6 +844,17 @@ export default defineSchema({
     addOnPriceInCents: v.optional(v.number()),    // bijv. 1000 (€10)
     addOnType: v.optional(v.string()),            // "benji_access" | "" (leeg = geen speciale actie)
     addOnAccessDays: v.optional(v.number()),      // dagen toegang bij benji_access
+    // Reviews: optionele recensies/testimonials tonen op checkout
+    reviews: v.optional(v.array(v.object({
+      author: v.string(),
+      role: v.optional(v.string()),
+      text: v.string(),
+    }))),
+    // Extra tekstblokken: vrije blokken met optionele titel + inhoud
+    extraTextBlocks: v.optional(v.array(v.object({
+      title: v.optional(v.string()),
+      content: v.string(),
+    }))),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

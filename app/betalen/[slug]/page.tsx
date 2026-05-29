@@ -232,13 +232,17 @@ export default function BetalenPage() {
   const [scheduledDate, setScheduledDate] = useState("");
 
   const liveIsBusiness = vatNumber.trim().length >= 4;
-  const liveEffectiveCountry = liveIsBusiness ? "OTHER" : countryCode;
-  const liveVatInfo = countryCode && product
+  const liveEffectiveCountry = liveIsBusiness ? "OTHER" : (countryCode || "NL");
+  const liveVatInfo = product
     ? calculateVat(overridePriceInCents ?? product.priceInCents, liveEffectiveCountry)
     : null;
 
+  // Gebruik "NL" als provisorisch land zodat de Stripe embed direct zichtbaar is.
+  // Bij een echte landkeuze wordt het payment intent herrekend met het juiste btw-tarief.
+  const effectiveCountry = countryCode || "NL";
+
   useEffect(() => {
-    if (!product || !countryCode) return;
+    if (!product) return;
 
     setLoadingSecret(true);
     setSecretError(null);
@@ -249,7 +253,7 @@ export default function BetalenPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         slug,
-        countryCode,
+        countryCode: effectiveCountry,
         ...(vatNumberCommitted && { vatNumber: vatNumberCommitted }),
         ...(addOnSelected && product?.addOnPriceInCents && {
           addOnPriceInCents: product.addOnPriceInCents,
@@ -269,7 +273,7 @@ export default function BetalenPage() {
       .catch(() => setSecretError("Verbindingsfout. Probeer het opnieuw."))
       .finally(() => setLoadingSecret(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product, slug, countryCode, vatNumberCommitted, addOnSelected]);
+  }, [product, slug, effectiveCountry, vatNumberCommitted, addOnSelected]);
 
   const handleGiftOpen = (open: boolean) => {
     setGiftOpen(open);
@@ -379,13 +383,14 @@ export default function BetalenPage() {
   const labelClass = "block text-sm font-medium text-stone-700 mb-1.5";
 
   let vatLine: string | null = null;
-  if (countryCode && liveVatInfo) {
+  if (liveVatInfo) {
+    const displayCountry = countryCode || "NL";
     if (liveIsBusiness) {
       vatLine = "Geen btw — zakelijke aankoop (reverse charge)";
-    } else if (countryCode === "OTHER" || liveVatInfo.vatRate === 0) {
+    } else if (displayCountry === "OTHER" || liveVatInfo.vatRate === 0) {
       vatLine = "Geen btw (buiten EU)";
     } else {
-      const countryName = EU_COUNTRY_NAMES_NL[countryCode] ?? countryCode;
+      const countryName = EU_COUNTRY_NAMES_NL[displayCountry] ?? displayCountry;
       vatLine = `Inclusief ${Math.round(liveVatInfo.vatRate * 100)}% btw (${countryName})`;
     }
   }
@@ -479,6 +484,54 @@ export default function BetalenPage() {
           )}
         </div>
 
+        {/* Extra tekstblokken (indien ingesteld via admin) */}
+        {product.extraTextBlocks && product.extraTextBlocks.length > 0 && (
+          <div className="space-y-4 mb-6">
+            {product.extraTextBlocks.map((block, i) => (
+              <div key={i} className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
+                {block.title && (
+                  <h2 className="text-base font-semibold text-stone-800 mb-3">{block.title}</h2>
+                )}
+                <div className="text-sm text-stone-600 leading-relaxed space-y-3">
+                  {block.content.split("\n\n").map((para, j) => (
+                    <p key={j}>
+                      {para.split("\n").map((line, k) =>
+                        k === 0 ? line : <>{"\n"}<br />{line}</>
+                      )}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Reviews / testimonials (indien ingesteld via admin) */}
+        {product.reviews && product.reviews.length > 0 && (
+          <div className="mb-6">
+            <div className="space-y-3">
+              {product.reviews.map((review, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-stone-200 p-5 shadow-sm">
+                  <p className="text-sm text-stone-600 leading-relaxed italic mb-3">
+                    &ldquo;{review.text}&rdquo;
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-semibold text-xs flex-shrink-0">
+                      {review.author.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-stone-700">{review.author}</p>
+                      {review.role && (
+                        <p className="text-xs text-stone-400">{review.role}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Checkout kaart — naam, email, land, betaalgegevens */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
           <h2 className="text-base font-semibold text-stone-800 mb-5">Jouw gegevens &amp; betaling</h2>
@@ -510,13 +563,16 @@ export default function BetalenPage() {
 
             {/* Land */}
             <div>
-              <label className={labelClass}>Jouw land</label>
+              <label className={labelClass}>
+                Jouw land{" "}
+                <span className="font-normal text-stone-400 text-xs">(voor btw-berekening)</span>
+              </label>
               <select
                 value={countryCode}
                 onChange={(e) => setCountryCode(e.target.value)}
                 className={`${inputClass} cursor-pointer`}
               >
-                <option value="">Kies je land</option>
+                <option value="">Nederland (standaard)</option>
                 <option value="NL">Nederland</option>
                 <option value="BE">België</option>
                 <option value="OTHER">Buiten de EU / overig</option>
@@ -524,8 +580,12 @@ export default function BetalenPage() {
                   <option key={code} value={code}>{name}</option>
                 ))}
               </select>
-              {vatLine && (
+              {vatLine ? (
                 <p className="text-xs text-stone-500 mt-2">{vatLine}</p>
+              ) : (
+                <p className="text-xs text-stone-400 mt-2">
+                  Woon je buiten Nederland? Kies je land — het btw-bedrag past zich automatisch aan.
+                </p>
               )}
             </div>
 
@@ -741,8 +801,8 @@ export default function BetalenPage() {
             </div>
           </div>
 
-          {/* Scheidslijn voor betaalgegevens */}
-          {countryCode && <div className="mt-6 pt-6 border-t border-stone-100">
+          {/* Betaalgegevens — altijd zichtbaar, laadt direct met NL als provisorisch land */}
+          <div className="mt-6 pt-6 border-t border-stone-100">
             {secretError && (
               <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
                 {secretError}
@@ -756,7 +816,7 @@ export default function BetalenPage() {
             )}
 
             {clientSecret && (
-              <Elements stripe={stripePromise} options={elementsOptions}>
+              <Elements key={clientSecret} stripe={stripePromise} options={elementsOptions}>
                 <CheckoutForm
                   slug={slug}
                   buttonText={product.buttonText}
@@ -774,13 +834,7 @@ export default function BetalenPage() {
                 />
               </Elements>
             )}
-          </div>}
-
-          {!countryCode && (
-            <p className="text-sm text-stone-400 text-center mt-6 pt-6 border-t border-stone-100">
-              Kies je land om door te gaan met betalen.
-            </p>
-          )}
+          </div>
         </div>
 
         <p className="text-center text-xs text-stone-400 mt-6">

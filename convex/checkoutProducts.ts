@@ -79,6 +79,15 @@ export const create = mutation({
     addOnPriceInCents: v.optional(v.number()),
     addOnType: v.optional(v.string()),
     addOnAccessDays: v.optional(v.number()),
+    reviews: v.optional(v.array(v.object({
+      author: v.string(),
+      role: v.optional(v.string()),
+      text: v.string(),
+    }))),
+    extraTextBlocks: v.optional(v.array(v.object({
+      title: v.optional(v.string()),
+      content: v.string(),
+    }))),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -105,6 +114,8 @@ export const create = mutation({
       addOnPriceInCents: args.addOnPriceInCents,
       addOnType: args.addOnType,
       addOnAccessDays: args.addOnAccessDays,
+      reviews: args.reviews,
+      extraTextBlocks: args.extraTextBlocks,
       createdAt: now,
       updatedAt: now,
     });
@@ -142,6 +153,15 @@ export const update = mutation({
     addOnPriceInCents: v.optional(v.number()),
     addOnType: v.optional(v.string()),
     addOnAccessDays: v.optional(v.number()),
+    reviews: v.optional(v.array(v.object({
+      author: v.string(),
+      role: v.optional(v.string()),
+      text: v.string(),
+    }))),
+    extraTextBlocks: v.optional(v.array(v.object({
+      title: v.optional(v.string()),
+      content: v.string(),
+    }))),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

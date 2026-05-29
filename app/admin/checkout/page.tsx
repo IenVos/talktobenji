@@ -15,6 +15,9 @@ type GiftVariantForm = {
   accessDays: string;
 };
 
+type ReviewForm = { author: string; role: string; text: string };
+type ExtraTextBlockForm = { title: string; content: string };
+
 type CheckoutProduct = {
   _id: Id<"checkoutProducts">;
   slug: string;
@@ -39,6 +42,8 @@ type CheckoutProduct = {
   addOnPriceInCents?: number;
   addOnType?: string;
   addOnAccessDays?: number;
+  reviews?: { author: string; role?: string; text: string }[];
+  extraTextBlocks?: { title?: string; content: string }[];
   createdAt: number;
   updatedAt: number;
 };
@@ -122,6 +127,8 @@ export default function AdminCheckoutPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [giftVariants, setGiftVariants] = useState<GiftVariantForm[]>([]);
+  const [reviews, setReviews] = useState<ReviewForm[]>([]);
+  const [extraTextBlocks, setExtraTextBlocks] = useState<ExtraTextBlockForm[]>([]);
   const [testEmail, setTestEmail] = useState("");
   const [sendingTest, setSendingTest] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "sent" | "error">("idle");
@@ -138,6 +145,8 @@ export default function AdminCheckoutPage() {
   const resetForm = () => {
     setForm(EMPTY_FORM);
     setGiftVariants([]);
+    setReviews([]);
+    setExtraTextBlocks([]);
     setEditingId(null);
     setEditingImageUrl(null);
     setShowForm(false);
@@ -176,6 +185,8 @@ export default function AdminCheckoutPage() {
       addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
     });
     setGiftVariants(variantsToForm(product.giftVariants));
+    setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text })));
+    setExtraTextBlocks((product.extraTextBlocks ?? []).map((b) => ({ title: b.title ?? "", content: b.content })));
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(null);
     setShowForm(true);
@@ -207,6 +218,8 @@ export default function AdminCheckoutPage() {
       addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
     });
     setGiftVariants(variantsToForm(product.giftVariants));
+    setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text })));
+    setExtraTextBlocks((product.extraTextBlocks ?? []).map((b) => ({ title: b.title ?? "", content: b.content })));
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(product._id);
     setShowForm(true);
@@ -263,6 +276,15 @@ export default function AdminCheckoutPage() {
         addOnPriceInCents: form.addOnPriceInCents.trim() ? parseInt(form.addOnPriceInCents, 10) : undefined,
         addOnType: opt(form.addOnType),
         addOnAccessDays: form.addOnAccessDays.trim() ? parseInt(form.addOnAccessDays, 10) : undefined,
+        reviews: reviews.filter((r) => r.author.trim() && r.text.trim()).map((r) => ({
+          author: r.author.trim(),
+          role: r.role.trim() || undefined,
+          text: r.text.trim(),
+        })),
+        extraTextBlocks: extraTextBlocks.filter((b) => b.content.trim()).map((b) => ({
+          title: b.title.trim() || undefined,
+          content: b.content.trim(),
+        })),
       };
       if (editingId) {
         await updateProduct({ id: editingId, ...payload });
@@ -707,6 +729,109 @@ export default function AdminCheckoutPage() {
                     <input className={inputClass} type="number" value={form.addOnAccessDays} onChange={set("addOnAccessDays")} placeholder="30" />
                   </div>
                 )}
+              </div>
+
+              {/* Reviews / testimonials */}
+              <div className="border border-primary-100 rounded-lg p-4 space-y-3 bg-primary-50">
+                <p className="text-sm font-semibold text-primary-800">Reviews / testimonials (optioneel)</p>
+                <p className="text-xs text-primary-600">Worden getoond op de checkout pagina onder het productblok.</p>
+                {reviews.map((r, i) => (
+                  <div key={i} className="bg-white border border-primary-100 rounded-lg p-3 space-y-2">
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className={labelSmClass}>Naam</label>
+                        <input
+                          className={inputClass}
+                          value={r.author}
+                          onChange={(e) => setReviews((prev) => prev.map((x, j) => j === i ? { ...x, author: e.target.value } : x))}
+                          placeholder="Anna"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className={labelSmClass}>Omschrijving <span className="text-gray-400">(optioneel)</span></label>
+                        <input
+                          className={inputClass}
+                          value={r.role}
+                          onChange={(e) => setReviews((prev) => prev.map((x, j) => j === i ? { ...x, role: e.target.value } : x))}
+                          placeholder="Moeder van drie"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setReviews((prev) => prev.filter((_, j) => j !== i))}
+                        className="self-end p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <div>
+                      <label className={labelSmClass}>Tekst</label>
+                      <textarea
+                        className={`${inputClass} resize-none`}
+                        value={r.text}
+                        onChange={(e) => setReviews((prev) => prev.map((x, j) => j === i ? { ...x, text: e.target.value } : x))}
+                        rows={2}
+                        placeholder="&quot;Dit heeft me echt geholpen in een moeilijke periode.&quot;"
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setReviews((prev) => [...prev, { author: "", role: "", text: "" }])}
+                  className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 px-2 py-1.5 border border-dashed border-primary-300 rounded-lg hover:bg-primary-50 transition-colors"
+                >
+                  <Plus size={13} />
+                  Review toevoegen
+                </button>
+              </div>
+
+              {/* Extra tekstblokken */}
+              <div className="border border-primary-100 rounded-lg p-4 space-y-3 bg-primary-50">
+                <p className="text-sm font-semibold text-primary-800">Extra tekstblokken (optioneel)</p>
+                <p className="text-xs text-primary-600">Vrije blokken met optionele titel + tekst, getoond op de checkout pagina.</p>
+                {extraTextBlocks.map((b, i) => (
+                  <div key={i} className="bg-white border border-primary-100 rounded-lg p-3 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1 space-y-2">
+                        <div>
+                          <label className={labelSmClass}>Titel <span className="text-gray-400">(optioneel)</span></label>
+                          <input
+                            className={inputClass}
+                            value={b.title}
+                            onChange={(e) => setExtraTextBlocks((prev) => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))}
+                            placeholder="Wat je krijgt"
+                          />
+                        </div>
+                        <div>
+                          <label className={labelSmClass}>Tekst</label>
+                          <textarea
+                            className={`${inputClass} resize-none`}
+                            value={b.content}
+                            onChange={(e) => setExtraTextBlocks((prev) => prev.map((x, j) => j === i ? { ...x, content: e.target.value } : x))}
+                            rows={3}
+                            placeholder="Lege regel = nieuwe alinea"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setExtraTextBlocks((prev) => prev.filter((_, j) => j !== i))}
+                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-5"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setExtraTextBlocks((prev) => [...prev, { title: "", content: "" }])}
+                  className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 px-2 py-1.5 border border-dashed border-primary-300 rounded-lg hover:bg-primary-50 transition-colors"
+                >
+                  <Plus size={13} />
+                  Tekstblok toevoegen
+                </button>
               </div>
 
               <label className="flex items-center gap-2 cursor-pointer">
