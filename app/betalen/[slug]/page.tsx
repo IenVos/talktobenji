@@ -67,6 +67,9 @@ function CheckoutForm({
   productName,
   totalInCents,
   vatLine,
+  addOnLabel,
+  addOnPriceInCents,
+  addOnSelected,
 }: {
   slug: string;
   buttonText?: string;
@@ -84,6 +87,9 @@ function CheckoutForm({
   productName: string;
   totalInCents: number;
   vatLine: string | null;
+  addOnLabel?: string;
+  addOnPriceInCents?: number;
+  addOnSelected?: boolean;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -169,12 +175,26 @@ function CheckoutForm({
 
       {/* Prijssamenvatting */}
       <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 space-y-1.5 text-sm">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-stone-600 truncate">{productName}</span>
-          <span className="font-semibold text-stone-800 flex-shrink-0">
-            {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totalInCents / 100)}
-          </span>
-        </div>
+        {(() => {
+          const hasAddOn = !!(addOnSelected && addOnLabel && addOnPriceInCents);
+          const basePrice = hasAddOn ? totalInCents - addOnPriceInCents! : totalInCents;
+          const fmt = (cents: number) =>
+            new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
+          return (
+            <>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-stone-600 truncate">{productName}</span>
+                <span className="font-semibold text-stone-800 flex-shrink-0">{fmt(basePrice)}</span>
+              </div>
+              {hasAddOn && (
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-stone-600 truncate">{addOnLabel}</span>
+                  <span className="font-semibold text-stone-800 flex-shrink-0">{fmt(addOnPriceInCents!)}</span>
+                </div>
+              )}
+            </>
+          );
+        })()}
         {vatLine && (
           <p className="text-xs text-stone-400">{vatLine}</p>
         )}
@@ -865,6 +885,9 @@ export default function BetalenPage() {
                   productName={product.name}
                   totalInCents={displayPrice}
                   vatLine={vatLine}
+                  addOnLabel={product.addOnLabel}
+                  addOnPriceInCents={product.addOnPriceInCents}
+                  addOnSelected={addOnSelected}
                 />
               </Elements>
             )}
