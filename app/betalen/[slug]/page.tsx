@@ -64,6 +64,9 @@ function CheckoutForm({
   scheduledDate,
   selectedVariant,
   addOnType,
+  productName,
+  totalInCents,
+  vatLine,
 }: {
   slug: string;
   buttonText?: string;
@@ -78,6 +81,9 @@ function CheckoutForm({
   scheduledDate: string;
   selectedVariant: GiftVariant | null;
   addOnType?: string;
+  productName: string;
+  totalInCents: number;
+  vatLine: string | null;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -160,6 +166,25 @@ function CheckoutForm({
           <p className="text-xs text-stone-400 mt-0.5">Geen spam, uitschrijven kan altijd.</p>
         </div>
       </label>
+
+      {/* Prijssamenvatting */}
+      <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 space-y-1.5 text-sm">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-stone-600 truncate">{productName}</span>
+          <span className="font-semibold text-stone-800 flex-shrink-0">
+            {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totalInCents / 100)}
+          </span>
+        </div>
+        {vatLine && (
+          <p className="text-xs text-stone-400">{vatLine}</p>
+        )}
+        <div className="flex items-center justify-between gap-2 border-t border-stone-200 pt-1.5 mt-1.5">
+          <span className="font-semibold text-stone-800">Totaal</span>
+          <span className="font-bold text-primary-700 text-base">
+            {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(totalInCents / 100)}
+          </span>
+        </div>
+      </div>
 
       {error && (
         <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
@@ -397,15 +422,15 @@ export default function BetalenPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <header className="bg-white border-b border-stone-100 py-4 px-4">
+      <header className="bg-white border-b border-stone-100 py-3 px-4">
         <div className="max-w-md mx-auto flex items-center justify-center">
-          <Link href="/">
+          <Link href="/" className="opacity-60 hover:opacity-100 transition-opacity">
             <Image
               src="/images/benji-logo-2.png"
               alt="Talk To Benji"
-              width={120}
-              height={40}
-              className="h-9 w-auto object-contain"
+              width={28}
+              height={28}
+              className="h-7 w-auto object-contain"
               style={{ width: "auto" }}
             />
           </Link>
@@ -831,6 +856,9 @@ export default function BetalenPage() {
                   scheduledDate={scheduledDate}
                   selectedVariant={selectedVariant}
                   addOnType={addOnSelected && product.addOnType ? product.addOnType : undefined}
+                  productName={product.name}
+                  totalInCents={displayPrice}
+                  vatLine={vatLine}
                 />
               </Elements>
             )}

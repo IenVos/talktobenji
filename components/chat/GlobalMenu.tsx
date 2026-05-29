@@ -89,7 +89,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       onBeforeNavigate: () => setOpen(false),
     },
     {
-      label: "Talk To People",
+      label: "T2P",
       icon: Users,
       href: "/talk-to-people",
       onBeforeNavigate: () => setOpen(false),
