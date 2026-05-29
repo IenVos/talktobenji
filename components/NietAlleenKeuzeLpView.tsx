@@ -297,13 +297,6 @@ export function NietAlleenKeuzeLpView({
       </div>
 
       <div style={{ position: "relative", zIndex: 1 }}>
-        <header className="flex justify-center pt-8 pb-2 px-5">
-          <Link href="/">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/niet-alleen-logo.png" alt="Niet Alleen" width={88} height={88} />
-          </Link>
-        </header>
-
         {/* HERO */}
         <section className="max-w-lg mx-auto px-6 pt-10 pb-12 text-center space-y-4">
           <h1 className="text-3xl sm:text-4xl font-semibold leading-snug" style={{ color: "#3d3530" }}>

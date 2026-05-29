@@ -442,25 +442,20 @@ export default function BetalenPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <header className="bg-white border-b border-stone-100 py-3 px-4">
-        <div className="max-w-md mx-auto flex items-center justify-center">
-          <Link href="/" className="opacity-60 hover:opacity-100 transition-opacity">
-            <Image
-              src="/images/benji-logo-2.png"
-              alt="Talk To Benji"
-              width={28}
-              height={28}
-              className="h-7 w-auto object-contain"
-              style={{ width: "auto" }}
-            />
-          </Link>
-        </div>
-      </header>
-
       <main className="max-w-md mx-auto px-4 py-8">
         {/* Product info */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 mb-6 shadow-sm">
-          <h1 className="text-xl font-bold text-stone-800 mb-1">{product.name}</h1>
+          <div className="flex items-center gap-2.5 mb-1">
+            <Image
+              src="/images/benji-logo-2.png"
+              alt=""
+              width={32}
+              height={32}
+              className="h-8 w-auto object-contain flex-shrink-0"
+              style={{ width: "auto" }}
+            />
+            <h1 className="text-xl font-bold text-stone-800">{product.name}</h1>
+          </div>
           {product.description && (
             <div className="text-sm text-primary-600 mb-4 leading-relaxed space-y-4">
               {product.description.split("\n\n").map((para, i) => (
