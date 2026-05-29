@@ -129,6 +129,7 @@ export default function AdminCheckoutPage() {
   const [giftVariants, setGiftVariants] = useState<GiftVariantForm[]>([]);
   const [reviews, setReviews] = useState<ReviewForm[]>([]);
   const [extraTextBlocks, setExtraTextBlocks] = useState<ExtraTextBlockForm[]>([]);
+  const [savedOk, setSavedOk] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [sendingTest, setSendingTest] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "sent" | "error">("idle");
@@ -289,9 +290,11 @@ export default function AdminCheckoutPage() {
       if (editingId) {
         await updateProduct({ id: editingId, ...payload });
       } else {
-        await createProduct(payload);
+        const newId = await createProduct(payload);
+        setEditingId(newId);
       }
-      resetForm();
+      setSavedOk(true);
+      setTimeout(() => setSavedOk(false), 2500);
     } finally {
       setSaving(false);
     }
@@ -853,7 +856,7 @@ export default function AdminCheckoutPage() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50"
               >
                 <Save size={18} />
-                {saving ? "Bezig…" : "Opslaan"}
+                {saving ? "Bezig…" : savedOk ? "Opgeslagen ✓" : "Opslaan"}
               </button>
               <button
                 type="button"

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck, House, Gem, Sparkles, Wallet } from "lucide-react";
+import { MoreVertical, Info, HelpCircle, MessageSquare, MessagesSquare, UserPlus, LogIn, PencilLine, CalendarCheck, Target, ClipboardCheck, House, Gem, Sparkles, Wallet, Users } from "lucide-react";
 import { useAboutModal } from "@/lib/AboutModalContext";
 import { hexToDarker } from "@/lib/utils";
 
@@ -86,6 +86,12 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
       label: "Kies wat bij je past",
       icon: Wallet,
       href: "/lp/prijzen",
+      onBeforeNavigate: () => setOpen(false),
+    },
+    {
+      label: "Talk To People",
+      icon: Users,
+      href: "/talk-to-people",
       onBeforeNavigate: () => setOpen(false),
     },
     {
@@ -222,7 +228,7 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
           )}
           {menuItems.map((item, index) => {
             const Icon = item.icon;
-            const showDividerBefore = index === 4 || index === 6;
+            const showDividerBefore = index === 5 || index === 7;
             const locked = "requiresAuth" in item && item.requiresAuth && !isLoggedIn;
             const isHighlight = "highlight" in item && item.highlight;
             const itemClass = `w-full flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-all duration-200 ${

@@ -13,25 +13,19 @@ export function SiteFooter({ variant, compact }: { variant?: "light" | "dark"; c
       <div className="flex items-center justify-center gap-4 flex-wrap">
         {!compact && (
           <>
-            <Link href="/faq" className="text-xs text-white/50 hover:text-white/80 transition-colors">
-              Veelgestelde vragen
+            <Link href="/talk-to-people" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+              Talk To People
             </Link>
-            <Link href="/privacy" className="text-xs text-white/50 hover:text-white/80 transition-colors">
-              Privacy
+            <Link href="/blog" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+              Blog
             </Link>
-            <Link href="/algemene-voorwaarden" className="text-xs text-white/50 hover:text-white/80 transition-colors">
-              Algemene voorwaarden
-            </Link>
+            <ErvaringenTrigger className="text-xs text-white/50 hover:text-white/80 transition-colors cursor-pointer">
+              Ervaringen
+            </ErvaringenTrigger>
           </>
         )}
         <Link href="/contact" className="text-xs text-white/50 hover:text-white/80 transition-colors">
           Contact
-        </Link>
-        <ErvaringenTrigger className="hidden sm:inline text-xs text-white/50 hover:text-white/80 transition-colors cursor-pointer">
-          Ervaringen
-        </ErvaringenTrigger>
-        <Link href="/blog" className="hidden sm:inline text-xs text-white/50 hover:text-white/80 transition-colors">
-          Blog
         </Link>
 
         {/* Slot-icoontje */}

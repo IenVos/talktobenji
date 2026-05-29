@@ -201,7 +201,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/trial-emails", label: "E-mails", icon: Mail },
           { href: "/admin/niet-alleen-emails", label: "Niet Alleen emails", icon: Mail },
           { href: "/admin/cadeaucodes", label: "Cadeaucodes", icon: GiftCodeIcon },
-          { href: "/admin/onderweg", label: "Shop", icon: ShoppingBag },
+          { href: "/admin/onderweg", label: "Voor Jou (Onderweg)", icon: ShoppingBag },
         ],
       },
     },
