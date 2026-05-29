@@ -445,7 +445,7 @@ export default function BetalenPage() {
       <main className="max-w-md mx-auto px-4 py-8">
         {/* Product info */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 mb-6 shadow-sm">
-          <div className="flex items-center gap-2.5 mb-1">
+          <div className="flex items-center gap-2.5 mb-3">
             <Image
               src="/images/benji-logo-2.png"
               alt=""
@@ -466,6 +466,9 @@ export default function BetalenPage() {
                 </p>
               ))}
             </div>
+          )}
+          {product.description && (
+            <div className="border-t border-stone-200 mb-4" />
           )}
           {product.imageUrl && (
             <div className="mb-4">
