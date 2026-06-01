@@ -300,6 +300,7 @@ export default function BetalenPage() {
   const [vatNumberCommitted, setVatNumberCommitted] = useState("");
   const [b2bOpen, setB2bOpen] = useState(false);
   const [giftOpen, setGiftOpen] = useState(false);
+  const [landOpen, setLandOpen] = useState(false);
   const [isGift, setIsGift] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<GiftVariant | null>(null);
   const [recipientEmail, setRecipientEmail] = useState("");
@@ -547,31 +548,39 @@ export default function BetalenPage() {
               />
             </div>
 
-            {/* Land */}
+            {/* Land — ingeklapt; btw-regel altijd zichtbaar, dropdown alleen indien nodig */}
             <div>
-              <label className={labelClass}>
-                Jouw land{" "}
-                <span className="font-normal text-stone-400 text-xs">(voor btw-berekening)</span>
-              </label>
-              <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className={`${inputClass} cursor-pointer`}
-              >
-                <option value="">Nederland</option>
-                <option value="NL">Nederland</option>
-                <option value="BE">België</option>
-                <option value="OTHER">Buiten de EU / overig</option>
-                {EU_REST.map(([code, name]) => (
-                  <option key={code} value={code}>{name}</option>
-                ))}
-              </select>
-              {vatLine ? (
-                <p className="text-xs text-stone-500 mt-2">{vatLine}</p>
+              {vatLine && (
+                <p className="text-xs text-stone-500">{vatLine}</p>
+              )}
+              {!landOpen ? (
+                <button
+                  type="button"
+                  onClick={() => setLandOpen(true)}
+                  className="mt-1 text-xs text-stone-400 hover:text-stone-600 underline transition-colors"
+                >
+                  Woon je buiten Nederland?
+                </button>
               ) : (
-                <p className="text-xs text-stone-400 mt-2">
-                  Woon je buiten Nederland? Kies je land — het btw-bedrag past zich automatisch aan.
-                </p>
+                <div className="mt-2">
+                  <label className={labelClass}>
+                    Jouw land{" "}
+                    <span className="font-normal text-stone-400 text-xs">(voor btw-berekening)</span>
+                  </label>
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className={`${inputClass} cursor-pointer`}
+                  >
+                    <option value="">Nederland</option>
+                    <option value="NL">Nederland</option>
+                    <option value="BE">België</option>
+                    <option value="OTHER">Buiten de EU / overig</option>
+                    {EU_REST.map(([code, name]) => (
+                      <option key={code} value={code}>{name}</option>
+                    ))}
+                  </select>
+                </div>
               )}
             </div>
 
