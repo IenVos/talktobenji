@@ -4,6 +4,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { Resend } from "resend";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { addToMailerLite } from "@/lib/mailerlite";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -440,21 +441,14 @@ export async function POST(req: NextRequest) {
       }
 
       // MailerLite — alleen toevoegen als koper opt-in heeft gegeven
-      const mailerLiteKey = process.env.MAILERLITE_API_KEY;
       const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
-      if (mailerLiteKey && mailerLiteGroep && optIn === "true") {
-        await fetch("https://connect.mailerlite.com/api/subscribers", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${mailerLiteKey}`,
-          },
-          body: JSON.stringify({
-            email,
-            fields: { name: name ?? "" },
-            groups: [mailerLiteGroep],
-          }),
-        }).catch((err) => console.error("[MailerLite] Stripe webhook fout:", err));
+      if (mailerLiteGroep && optIn === "true") {
+        await addToMailerLite({
+          email,
+          name: name ?? "",
+          groups: [mailerLiteGroep],
+          context: "stripe-webhook",
+        });
       }
 
       // Bevestigingsmail + factuur

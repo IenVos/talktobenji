@@ -3,6 +3,7 @@ import { hash } from "bcryptjs";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
+import { addToMailerLite } from "@/lib/mailerlite";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -71,22 +72,15 @@ export async function POST(request: NextRequest) {
       { url: convexUrl }
     );
 
-    // MailerLite — voeg toe aan groep Gratis-gebruikers
-    const mailerLiteKey = process.env.MAILERLITE_API_KEY;
+    // MailerLite — voeg toe aan groep Gratis-gebruikers (triggert MailerLite-automation)
     const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
-    if (mailerLiteKey && mailerLiteGroep) {
-      await fetch("https://connect.mailerlite.com/api/subscribers", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${mailerLiteKey}`,
-        },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          fields: { name: (name || "").trim() || email.trim().split("@")[0] },
-          groups: [mailerLiteGroep],
-        }),
-      }).catch((err) => console.error("[MailerLite] Fout bij registratie:", err));
+    if (mailerLiteGroep) {
+      await addToMailerLite({
+        email: email.trim().toLowerCase(),
+        name: (name || "").trim() || email.trim().split("@")[0],
+        groups: [mailerLiteGroep],
+        context: "registratie",
+      });
     }
 
     return NextResponse.json({
