@@ -110,6 +110,12 @@ function CheckoutForm({
       return;
     }
 
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Vul een geldig e-mailadres in om door te gaan.");
+      document.getElementById("jouw-gegevens")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
     if (!termsAccepted) {
       setTermsError(true);
       termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -633,6 +639,7 @@ export default function BetalenPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={inputClass}
+                required
               />
             </div>
 

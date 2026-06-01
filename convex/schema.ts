@@ -827,6 +827,7 @@ export default defineSchema({
     stripePriceId: v.optional(v.string()),
     subscriptionType: v.string(), // "alles_in_1" | "niet_alleen" | etc.
     buttonText: v.optional(v.string()),
+    trustText: v.optional(v.string()), // geruststelling onder de betaalknop (bijv. "Veilig betalen · geen abonnement")
     imageStorageId: v.optional(v.id("_storage")),
     isLive: v.boolean(),
     accessDays: v.optional(v.number()), // Aantal dagen toegang na aankoop (bijv. 30, 90, 365)
