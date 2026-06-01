@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -301,7 +301,7 @@ export default function AdminLandingspaginasPage() {
   const [savedFeedback, setSavedFeedback] = useState(false);
   const [seedStatus, setSeedStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(["basis", "hero", "inhoud"]));
-  const toggleSection = (id: string) => setOpenSections(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
+  const toggleSection = useCallback((id: string) => setOpenSections(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; }), []);
   const [removeProductImage, setRemoveProductImage] = useState(false);
   const [removeBgImage, setRemoveBgImage] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -778,7 +778,7 @@ export default function AdminLandingspaginasPage() {
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
   const labelSmClass = "block text-xs text-gray-500 mb-1";
 
-  const Section = ({ id, title, children, badge }: { id: string; title: string; children: React.ReactNode; badge?: string }) => {
+  const Section = useCallback(({ id, title, children, badge }: { id: string; title: string; children: React.ReactNode; badge?: string }) => {
     const open = openSections.has(id);
     return (
       <div className="border-t border-primary-100">
@@ -796,7 +796,7 @@ export default function AdminLandingspaginasPage() {
         {open && <div className="pb-4 space-y-3">{children}</div>}
       </div>
     );
-  };
+  }, [openSections, toggleSection]);
 
   const editingPage = editingId ? pages?.find((p: LandingPage) => p._id === editingId) : null;
 
