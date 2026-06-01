@@ -931,6 +931,14 @@ export default function BetalenPage() {
                 </div>
               </div>
             )}
+
+            <button
+              type="button"
+              onClick={() => document.getElementById("jouw-gegevens")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className="w-full py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors text-base"
+            >
+              {product.buttonText || "Betalen"}
+            </button>
           </div>
         )}
 
