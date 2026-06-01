@@ -154,6 +154,14 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
+    // Slug moet uniek zijn — voorkomt dubbele pagina's met hetzelfde adres.
+    const bestaat = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (bestaat) {
+      throw new Error(`Er bestaat al een pagina met slug "${args.slug}". Kies een andere slug.`);
+    }
     const now = Date.now();
     const { adminToken: _token, ...fields } = args;
     return await ctx.db.insert("landingPages", {
@@ -272,6 +280,16 @@ export const update = mutation({
     const { id, adminToken: _token, ...updates } = args;
     const existing = await ctx.db.get(id);
     if (!existing) throw new Error("Pagina niet gevonden");
+    // Slug-uniciteit: bij wijzigen mag de nieuwe slug niet al bij een ándere pagina horen.
+    if (updates.slug && updates.slug !== existing.slug) {
+      const dup = await ctx.db
+        .query("landingPages")
+        .withIndex("by_slug", (q) => q.eq("slug", updates.slug as string))
+        .first();
+      if (dup && dup._id !== id) {
+        throw new Error(`Er bestaat al een pagina met slug "${updates.slug}". Kies een andere slug.`);
+      }
+    }
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     for (const [key, val] of Object.entries(updates)) {
       if (val !== undefined) patch[key] = val === "" ? undefined : val;
@@ -293,9 +311,21 @@ export const duplicate = mutation({
     if (!original) throw new Error("Pagina niet gevonden");
     const now = Date.now();
     const { _id, _creationTime, ...rest } = original;
+    // Genereer een unieke slug zodat dupliceren nooit twee pagina's met dezelfde slug oplevert.
+    let nieuweSlug = original.slug + "-kopie";
+    let n = 2;
+    while (
+      await ctx.db
+        .query("landingPages")
+        .withIndex("by_slug", (q) => q.eq("slug", nieuweSlug))
+        .first()
+    ) {
+      nieuweSlug = `${original.slug}-kopie-${n}`;
+      n++;
+    }
     return await ctx.db.insert("landingPages", {
       ...rest,
-      slug: original.slug + "-kopie",
+      slug: nieuweSlug,
       isLive: false,
       createdAt: now,
       updatedAt: now,
