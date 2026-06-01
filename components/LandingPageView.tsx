@@ -341,7 +341,22 @@ export function LandingPageView({ slug }: { slug: string }) {
   const ctaUrl = page.ctaUrl || "#";
   const ctaText = page.ctaText || "Start mijn reis";
   const ctaColor = (page as any).ctaColor || "#6d84a8";
+  const ctaPrijsTekst = ((page as any).ctaPrijsTekst as string | undefined)?.trim();
+  const ctaMicroCopy = ((page as any).ctaMicroCopy as string | undefined)?.trim();
   const productImagePosition = (page as any).productImagePosition || "after_content";
+
+  // Klein prijs-tekstje (in knopkleur) + micro-copy onder een CTA-knop.
+  const CtaSubtext = () =>
+    ctaPrijsTekst || ctaMicroCopy ? (
+      <div className="mt-3 space-y-0.5">
+        {ctaPrijsTekst && (
+          <p className="text-xs font-semibold" style={{ color: ctaColor }}>{ctaPrijsTekst}</p>
+        )}
+        {ctaMicroCopy && (
+          <p className="text-xs leading-snug" style={{ color: "#a09488" }}>{ctaMicroCopy}</p>
+        )}
+      </div>
+    ) : null;
 
   const ProductImage = () => {
     const src = (page as any).productImageUrl || page.productImagePath;
@@ -494,14 +509,17 @@ export function LandingPageView({ slug }: { slug: string }) {
               </div>
             )}
             {!hasPricing && (
-              <KoopKnopLink
-                href={ctaUrl}
-                buttonLabel={ctaText}
-                className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
-                style={{ background: ctaColor }}
-              >
-                {ctaText}
-              </KoopKnopLink>
+              <>
+                <KoopKnopLink
+                  href={ctaUrl}
+                  buttonLabel={ctaText}
+                  className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
+                  style={{ background: ctaColor }}
+                >
+                  {ctaText}
+                </KoopKnopLink>
+                <CtaSubtext />
+              </>
             )}
           </div>
         </section>
@@ -906,6 +924,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                   </div>
                 )}
                 {!hasPricing && (
+                  <>
                   <KoopKnopLink
                     href={ctaUrl}
                     buttonLabel={ctaText}
@@ -914,6 +933,8 @@ export function LandingPageView({ slug }: { slug: string }) {
                   >
                     {ctaText}
                   </KoopKnopLink>
+                  <CtaSubtext />
+                  </>
                 )}
               </div>
             </div>

@@ -696,6 +696,8 @@ export default defineSchema({
     ctaText: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),
     ctaColor: v.optional(v.string()),
+    ctaPrijsTekst: v.optional(v.string()),   // klein prijs-tekstje onder de knop, in knopkleur
+    ctaMicroCopy: v.optional(v.string()),    // micro-copy regel onder het prijs-tekstje
     // Body sections (up to 2 text sections)
     section1Title: v.optional(v.string()),
     section1Text: v.optional(v.string()),

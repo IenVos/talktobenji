@@ -81,6 +81,8 @@ type FormState = {
   ctaText: string;
   ctaUrl: string;
   ctaColor: string;
+  ctaPrijsTekst: string;
+  ctaMicroCopy: string;
   hideErvaringen: boolean;
   hideVragen: boolean;
   hideWieIsIen: boolean;
@@ -180,6 +182,8 @@ const EMPTY_FORM: FormState = {
   ctaText: "",
   ctaUrl: "",
   ctaColor: "#6d84a8",
+  ctaPrijsTekst: "",
+  ctaMicroCopy: "",
   hideErvaringen: false,
   hideVragen: false,
   hideWieIsIen: false,
@@ -357,6 +361,8 @@ export default function AdminLandingspaginasPage() {
       ctaText: page.ctaText ?? "",
       ctaUrl: page.ctaUrl ?? "",
       ctaColor: (page as any).ctaColor ?? "#6d84a8",
+      ctaPrijsTekst: (page as any).ctaPrijsTekst ?? "",
+      ctaMicroCopy: (page as any).ctaMicroCopy ?? "",
       hideErvaringen: (page as any).hideErvaringen ?? false,
       hideVragen: (page as any).hideVragen ?? false,
       hideWieIsIen: (page as any).hideWieIsIen ?? false,
@@ -577,6 +583,8 @@ export default function AdminLandingspaginasPage() {
           ctaText: form.ctaText.trim(),
           ctaUrl: form.ctaUrl.trim(),
           ctaColor: form.ctaColor.trim(),
+          ctaPrijsTekst: form.ctaPrijsTekst.trim(),
+          ctaMicroCopy: form.ctaMicroCopy.trim(),
           hideErvaringen: form.hideErvaringen,
           hideVragen: form.hideVragen,
           hideWieIsIen: form.hideWieIsIen,
@@ -677,6 +685,8 @@ export default function AdminLandingspaginasPage() {
           ctaText: opt(form.ctaText),
           ctaUrl: opt(form.ctaUrl),
           ctaColor: opt(form.ctaColor),
+          ctaPrijsTekst: opt(form.ctaPrijsTekst),
+          ctaMicroCopy: opt(form.ctaMicroCopy),
           hideErvaringen: form.hideErvaringen,
           hideVragen: form.hideVragen,
           hideWieIsIen: form.hideWieIsIen,
@@ -1043,6 +1053,16 @@ export default function AdminLandingspaginasPage() {
                       ))}
                     </div>
                     <span className="text-xs text-gray-400">{form.ctaColor}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelSmClass}>Prijs onder knop <span className="font-normal text-gray-400">(klein, in knopkleur)</span></label>
+                    <input type="text" placeholder="€ 37 — eenmalig" value={form.ctaPrijsTekst} onChange={set("ctaPrijsTekst")} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Micro-copy onder knop <span className="font-normal text-gray-400">(optioneel)</span></label>
+                    <input type="text" placeholder="Geen abonnement · direct toegang" value={form.ctaMicroCopy} onChange={set("ctaMicroCopy")} className={inputClass} />
                   </div>
                 </div>
                 <div>
