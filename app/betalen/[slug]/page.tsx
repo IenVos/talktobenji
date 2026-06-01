@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -95,12 +95,26 @@ function CheckoutForm({
   const elements = useElements();
   const [optIn, setOptIn] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsError, setTermsError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const termsRef = useRef<HTMLLabelElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
+
+    if (!naam.trim()) {
+      setError("Vul je naam in om door te gaan.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    if (!termsAccepted) {
+      setTermsError(true);
+      termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -159,7 +173,7 @@ function CheckoutForm({
       <div className="pt-1">
         <label className={`${labelClass} mb-2`}>Betaalgegevens</label>
         <div className="border border-stone-200 rounded-xl p-4 bg-white">
-          <PaymentElement />
+          <PaymentElement options={{ fields: { billingDetails: { name: "never" } } }} />
         </div>
       </div>
 
@@ -212,8 +226,12 @@ function CheckoutForm({
         </p>
       )}
 
-      <label className="flex items-start gap-3 cursor-pointer" onClick={() => setTermsAccepted(v => !v)}>
-        <Checkbox checked={termsAccepted} onChange={setTermsAccepted} />
+      <label
+        ref={termsRef}
+        className={`flex items-start gap-3 cursor-pointer rounded-lg ${termsError ? "ring-2 ring-red-400 bg-red-50 -m-2 p-2" : ""}`}
+        onClick={() => { setTermsAccepted(v => !v); setTermsError(false); }}
+      >
+        <Checkbox checked={termsAccepted} onChange={(v) => { setTermsAccepted(v); setTermsError(false); }} />
         <span className="text-xs text-stone-600 leading-snug pt-0.5">
           Ik ga akkoord met de{" "}
           <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">algemene voorwaarden</a>
@@ -222,9 +240,15 @@ function CheckoutForm({
         </span>
       </label>
 
+      {termsError && (
+        <p className="text-sm text-red-600 font-medium">
+          Je moet akkoord gaan met de voorwaarden om door te gaan.
+        </p>
+      )}
+
       <button
         type="submit"
-        disabled={submitting || !stripe || !elements || !termsAccepted}
+        disabled={submitting || !stripe || !elements}
         className="w-full py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-base"
       >
         {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
@@ -592,10 +616,11 @@ export default function BetalenPage() {
               <label className={labelClass}>Jouw naam</label>
               <input
                 type="text"
-                placeholder="Voornaam"
+                placeholder="Voor- en achternaam"
                 value={naam}
                 onChange={(e) => setNaam(e.target.value)}
                 className={inputClass}
+                required
               />
             </div>
 
