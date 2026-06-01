@@ -206,7 +206,7 @@ export async function POST(req: NextRequest) {
           : productName || product?.name || slug || "Talk To Benji";
 
         await convex.mutation(api.giftCodes.createGiftCode, {
-          webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
+          webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
           code,
           slug: slug || "",
           productName: displayProductName,
@@ -346,7 +346,7 @@ export async function POST(req: NextRequest) {
         // Activatie proberen (stille fout als nog geen account)
         try {
           await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
-            webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
+            webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
             email,
             subscriptionType: subType,
             billingPeriod,
@@ -381,7 +381,7 @@ export async function POST(req: NextRequest) {
           let addonActivated = false;
           try {
             await convex.mutation(api.subscriptions.activateSubscriptionByEmail, {
-              webhookSecret: process.env.KENNISSHOP_WEBHOOK_SECRET!,
+              webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
               email,
               subscriptionType: "alles_in_1",
               billingPeriod: addonAccessDays <= 35 ? "monthly" : addonAccessDays <= 100 ? "quarterly" : "yearly",

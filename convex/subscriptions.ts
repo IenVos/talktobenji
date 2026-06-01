@@ -285,7 +285,7 @@ export const activateSubscriptionByEmail = mutation({
   },
   handler: async (ctx, args) => {
     // Controleer webhook secret
-    if (args.webhookSecret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
+    if (args.webhookSecret !== (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)) {
       throw new Error("Ongeldig webhook secret");
     }
 
@@ -356,7 +356,7 @@ export const cancelSubscriptionByEmail = mutation({
   },
   handler: async (ctx, args) => {
     // Controleer webhook secret
-    if (args.webhookSecret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
+    if (args.webhookSecret !== (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)) {
       throw new Error("Ongeldig webhook secret");
     }
 

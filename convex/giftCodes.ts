@@ -22,7 +22,7 @@ export const createGiftCode = mutation({
     paymentIntentId: v.string(),
   },
   handler: async (ctx, args) => {
-    if (args.webhookSecret !== process.env.KENNISSHOP_WEBHOOK_SECRET) {
+    if (args.webhookSecret !== (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)) {
       throw new Error("Unauthorized");
     }
     const existing = await ctx.db
