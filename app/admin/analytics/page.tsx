@@ -501,11 +501,12 @@ export default function AdminAnalytics() {
   const [paidActive, setPaidActive] = useState(true);
   const [naActive, setNaActive] = useState(true);
 
-  // Bereken totale conversies
+  // Bereken totale conversies — alleen echte aankopen (betaald + Niet Alleen).
+  // Gratis accounts zijn aanmeldingen/leads, geen conversie, en tellen hier niet mee.
   const totalConversions = useMemo(() => {
     if (!stats) return 0;
     return stats.dailyConversions.reduce(
-      (sum: number, d: DailyConversion) => sum + d.freeAccounts + d.paid + d.nietAlleen,
+      (sum: number, d: DailyConversion) => sum + d.paid + d.nietAlleen,
       0
     );
   }, [stats]);

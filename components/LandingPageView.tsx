@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { NietAlleenKeuzeLpView } from "@/components/NietAlleenKeuzeLpView";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
+import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
 import { ChevronLeft, ChevronRight, MessageSquare, PencilLine, CalendarCheck, Gem, Sparkles, HandHelping } from "lucide-react";
 
@@ -254,6 +255,7 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
 export function LandingPageView({ slug }: { slug: string }) {
   const [showIen, setShowIen] = useState(false);
   const [stickyBarDismissed, setStickyBarDismissed] = useState(false);
+  const trackCtaClick = useTrackCtaClick();
   const page = useQuery(api.landingPages.getBySlug, { slug });
 
   if (page === undefined) {
@@ -930,7 +932,11 @@ export function LandingPageView({ slug }: { slug: string }) {
             {page.footerText && (
               <p className="text-xs leading-relaxed" style={{ color: "#8a8078" }}>
                 {(page as any).footerCtaUrl ? (
-                  <a href={(page as any).footerCtaUrl} style={{ color: "#6d84a8", textDecoration: "underline" }}>
+                  <a
+                    href={(page as any).footerCtaUrl}
+                    onClick={() => trackCtaClick(page.footerText ? `Footer: ${page.footerText}` : "Footer-CTA")}
+                    style={{ color: "#6d84a8", textDecoration: "underline" }}
+                  >
                     {page.footerText}
                   </a>
                 ) : page.footerText}
@@ -965,6 +971,7 @@ export function LandingPageView({ slug }: { slug: string }) {
           <div className="flex items-center gap-2 flex-shrink-0">
             <a
               href="/registreren"
+              onClick={() => trackCtaClick("Gratis proberen (sticky)")}
               className="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-white whitespace-nowrap"
               style={{ background: "#4a7c59" }}
             >

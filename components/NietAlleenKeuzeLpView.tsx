@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
+import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -165,10 +166,11 @@ function renderTekst(raw: string) {
 }
 
 function CtaButton({ url, fallback, label }: { url?: string; fallback?: string; label: string }) {
+  const trackCtaClick = useTrackCtaClick();
   const href = url || fallback;
   const base = "inline-block w-full sm:w-auto px-7 py-3.5 rounded-xl font-semibold text-sm text-white text-center transition-opacity";
   if (!href) return <span className={`${base} opacity-40 cursor-default`} style={{ background: "#6d84a8" }}>{label}</span>;
-  return <Link href={href} className={`${base} hover:opacity-90`} style={{ background: "#6d84a8" }}>{label}</Link>;
+  return <Link href={href} onClick={() => trackCtaClick(label)} className={`${base} hover:opacity-90`} style={{ background: "#6d84a8" }}>{label}</Link>;
 }
 
 function Voordelen({ raw }: { raw: string }) {
@@ -232,6 +234,7 @@ export function NietAlleenKeuzeLpView({
   kpH2Kinderloos, kpTekstKinderloos, kpCitaatKinderloos, kpVoordelenKinderloos, kpCtaTekstKinderloos,
 }: Props) {
   const [actief, setActief] = useState<TypeKey | null>(null);
+  const trackCtaClick = useTrackCtaClick();
   const persoonRef      = useRef<HTMLDivElement>(null);
   const huisdierRef     = useRef<HTMLDivElement>(null);
   const relatieRef      = useRef<HTMLDivElement>(null);
@@ -262,7 +265,11 @@ export function NietAlleenKeuzeLpView({
 
   function kiesType(key: TypeKey) {
     const url = ctaUrls[key];
-    if (url) { window.location.href = url; return; }
+    if (url) {
+      trackCtaClick(`Keuze-LP: ${buttonLabels[key]}`);
+      window.location.href = url;
+      return;
+    }
     setActief(key);
     refs[key].current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }

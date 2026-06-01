@@ -364,11 +364,11 @@ export const getStats = query({
       .sort(([, a], [, b]) => b - a)
       .map(([source, count]) => ({ source, count, pct: Math.round((count / totalViewsForSource) * 100) }));
 
-    // -- Conversie ratio: subs (free/paid) + Niet Alleen profiles --
+    // -- Conversie ratio: alleen echte aankopen (betaald) + Niet Alleen profiles.
+    // Gratis accounts tellen NIET als conversie (dat zijn aanmeldingen/leads). --
     const geteldConversies =
       subsInRange.filter((s) =>
-        (s.subscriptionType === "free" ||
-          s.subscriptionType === "uitgebreid" ||
+        (s.subscriptionType === "uitgebreid" ||
           s.subscriptionType === "alles_in_1") &&
         (!s.email || !naEmails.has(s.email.toLowerCase()))
       ).length + naInRange.length;

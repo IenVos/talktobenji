@@ -4,11 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
 
 interface Ervaring { tekst: string; naam: string; context?: string; }
 interface Vraag { vraag: string; antwoord: string; }
 
 export function NietAlleenView({ slug }: { slug: string }) {
+  const trackCtaClick = useTrackCtaClick();
   const page = useQuery(api.landingPages.getBySlug, { slug });
 
   if (page === undefined) {
@@ -155,6 +157,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
                     {block.ctaTekst && block.ctaUrl && (
                       <a
                         href={block.ctaUrl}
+                        onClick={() => trackCtaClick(block.ctaTekst ?? "CTA")}
                         className="mt-auto block w-full text-center py-2.5 rounded-xl text-xs font-medium text-white"
                         style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
                       >
@@ -167,6 +170,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
             ) : (
               <a
                 href={ctaUrl}
+                onClick={() => trackCtaClick(ctaText)}
                 className="inline-block w-full sm:w-auto sm:px-10 py-3.5 rounded-2xl font-medium text-white text-sm"
                 style={{ background: (page as any).ctaColor || "#6d84a8" }}
               >
@@ -328,6 +332,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
                     {block.ctaTekst && block.ctaUrl && (
                       <a
                         href={block.ctaUrl}
+                        onClick={() => trackCtaClick(block.ctaTekst ?? "CTA")}
                         className="mt-auto block w-full text-center py-2 rounded-xl text-xs font-medium text-white"
                         style={{ background: block.aanbevolen ? "#6d84a8" : "#a09088" }}
                       >
@@ -359,6 +364,7 @@ export function NietAlleenView({ slug }: { slug: string }) {
                 {!hasPricing && (
                   <a
                     href={ctaUrl}
+                    onClick={() => trackCtaClick(ctaText)}
                     className="inline-block w-full py-3.5 rounded-2xl font-medium text-white text-sm"
                     style={{ background: (page as any).ctaColor || "#6d84a8" }}
                   >

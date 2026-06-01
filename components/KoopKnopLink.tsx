@@ -1,7 +1,6 @@
 "use client";
 
-import { useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
 
 interface Props {
   href: string;
@@ -12,28 +11,10 @@ interface Props {
 }
 
 export function KoopKnopLink({ href, buttonLabel, className, style, children }: Props) {
-  const trackButtonClick = useMutation(api.siteAnalytics.trackButtonClick);
-
-  const handleClick = () => {
-    const sessionId = localStorage.getItem("ttb_sid") ?? "";
-    const path = window.location.pathname;
-    fetch("/api/my-ip")
-      .then((r) => r.json())
-      .then((d) => {
-        trackButtonClick({
-          path,
-          buttonLabel,
-          sessionId,
-          ip: d.ip && d.ip !== "unknown" ? d.ip : undefined,
-        }).catch(() => {});
-      })
-      .catch(() => {
-        trackButtonClick({ path, buttonLabel, sessionId }).catch(() => {});
-      });
-  };
+  const trackCtaClick = useTrackCtaClick();
 
   return (
-    <a href={href} onClick={handleClick} className={className} style={style}>
+    <a href={href} onClick={() => trackCtaClick(buttonLabel)} className={className} style={style}>
       {children}
     </a>
   );
