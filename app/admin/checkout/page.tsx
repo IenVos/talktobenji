@@ -29,6 +29,7 @@ type CheckoutProduct = {
   stripePriceId?: string;
   subscriptionType: string;
   buttonText?: string;
+  trustText?: string;
   imageStorageId?: Id<"_storage">;
   imageUrl?: string | null;
   accessDays?: number;
@@ -58,6 +59,7 @@ type FormState = {
   stripePriceId: string;
   subscriptionType: string;
   buttonText: string;
+  trustText: string;
   accessDays: string;
   imageStorageId?: Id<"_storage">;
   imageFile: File | null;
@@ -82,6 +84,7 @@ const EMPTY_FORM: FormState = {
   stripePriceId: "",
   subscriptionType: "alles_in_1",
   buttonText: "",
+  trustText: "",
   accessDays: "",
   imageStorageId: undefined,
   imageFile: null,
@@ -172,6 +175,7 @@ export default function AdminCheckoutPage() {
       stripePriceId: "",
       subscriptionType: product.subscriptionType,
       buttonText: product.buttonText ?? "",
+      trustText: product.trustText ?? "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -205,6 +209,7 @@ export default function AdminCheckoutPage() {
       stripePriceId: product.stripePriceId ?? "",
       subscriptionType: product.subscriptionType,
       buttonText: product.buttonText ?? "",
+      trustText: product.trustText ?? "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -265,6 +270,7 @@ export default function AdminCheckoutPage() {
         stripePriceId: opt(form.stripePriceId),
         subscriptionType: form.subscriptionType,
         buttonText: opt(form.buttonText),
+        trustText: opt(form.trustText),
         accessDays: accessDaysVal,
         imageStorageId,
         isLive: form.isLive,
@@ -550,6 +556,16 @@ export default function AdminCheckoutPage() {
                   placeholder="Start mijn reis"
                   value={form.buttonText}
                   onChange={set("buttonText")}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelSmClass}>Geruststelling onder knop <span className="font-normal text-gray-400">(standaard: "Veilig betalen via Stripe…")</span></label>
+                <input
+                  type="text"
+                  placeholder="🔒 Veilig betalen via Stripe · geen abonnement · direct toegang"
+                  value={form.trustText}
+                  onChange={set("trustText")}
                   className={inputClass}
                 />
               </div>

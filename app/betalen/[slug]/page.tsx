@@ -53,6 +53,7 @@ type GiftVariant = {
 function CheckoutForm({
   slug,
   buttonText,
+  trustText,
   clientSecret,
   naam,
   email,
@@ -73,6 +74,7 @@ function CheckoutForm({
 }: {
   slug: string;
   buttonText?: string;
+  trustText?: string;
   clientSecret: string;
   naam: string;
   email: string;
@@ -260,6 +262,10 @@ function CheckoutForm({
         {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
       </button>
 
+      <p className="text-center text-xs text-stone-500 font-medium">
+        {trustText?.trim() || "🔒 Veilig betalen via Stripe · geen abonnement · direct toegang"}
+      </p>
+
       <div className="rounded-xl bg-stone-50 border border-stone-200 px-4 py-3 space-y-1 text-center">
         <p className="text-xs font-medium text-stone-500">Herroepingsrecht</p>
         <p className="text-xs text-stone-400 leading-relaxed">
@@ -269,10 +275,6 @@ function CheckoutForm({
           <a href="mailto:contactmetien@talktobenji.com" className="underline hover:text-stone-600">Neem contact op</a> binnen 14 dagen.
         </p>
       </div>
-
-      <p className="text-center text-xs text-stone-400">
-        🔒 Veilig betaald via Stripe
-      </p>
     </form>
   );
 }
@@ -512,105 +514,7 @@ export default function BetalenPage() {
               <p className="text-xs text-stone-400 mt-1">{vatLine}</p>
             )}
           </div>
-
-          {/* Kassakoopje — in hetzelfde blok, onder de prijs */}
-          {product.addOnLabel && product.addOnPriceInCents && (
-            <button
-              type="button"
-              onClick={() => setAddOnSelected((v) => !v)}
-              className="w-full text-left mt-5 rounded-xl p-4 transition-all border-2"
-              style={{
-                borderColor: addOnSelected ? "#6d84a8" : "#e2d9cf",
-                background: addOnSelected ? "#f0f4f9" : "#fdf9f4",
-              }}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-all"
-                  style={{
-                    borderColor: addOnSelected ? "#6d84a8" : "#b0a8a0",
-                    background: addOnSelected ? "#6d84a8" : "white",
-                  }}
-                >
-                  {addOnSelected && (
-                    <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                      <path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold leading-snug" style={{ color: "#3d3530" }}>{product.addOnLabel}</p>
-                  {product.addOnDescription && (
-                    <p className="text-xs leading-relaxed mt-0.5" style={{ color: "#b0a8a0" }}>{product.addOnDescription}</p>
-                  )}
-                  <div className="flex justify-end mt-2">
-                    <span
-                      className="text-xs font-bold whitespace-nowrap px-2 py-0.5 rounded-full"
-                      style={{ color: "#6d84a8", background: addOnSelected ? "white" : "#e8f0f8" }}
-                    >
-                      +{new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(product.addOnPriceInCents / 100)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </button>
-          )}
         </div>
-
-        {/* Extra tekstblokken (indien ingesteld via admin) */}
-        {product.extraTextBlocks && product.extraTextBlocks.length > 0 && (
-          <div className="space-y-4 mb-6">
-            {product.extraTextBlocks.map((block, i) => (
-              <div key={i} className="bg-primary-50 rounded-2xl border-2 border-primary-600 p-6">
-                {block.title && (
-                  <h2 className="text-base font-semibold text-primary-800 mb-3">{block.title}</h2>
-                )}
-                {(block as any).imageUrl && (
-                  <div className="mb-4">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={(block as any).imageUrl} alt={block.title ?? ""} className="w-full rounded-xl" />
-                  </div>
-                )}
-                <div className="text-sm text-primary-700 leading-relaxed space-y-4">
-                  {block.content.split("\n\n").map((para, j) => (
-                    <p key={j}>
-                      {para.split("\n").map((line, k) =>
-                        k === 0 ? line : <>{"\n"}<br />{line}</>
-                      )}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Reviews / testimonials (indien ingesteld via admin) */}
-        {product.reviews && product.reviews.length > 0 && (
-          <div className="mb-6">
-            <h2 className="text-base font-semibold text-stone-800 mb-3">Hoe anderen dit hebben ervaren</h2>
-            <div className="space-y-3">
-              {product.reviews.map((review, i) => (
-                <div key={i} className="bg-white rounded-2xl border-2 border-primary-200 p-5">
-                  <p className="text-sm text-stone-600 leading-relaxed italic mb-3">
-                    &ldquo;{review.text}&rdquo;
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center font-semibold text-xs flex-shrink-0 text-primary-600">
-                      {review.author.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-stone-700">{review.author}</p>
-                      {review.role && (
-                        <p className="text-xs text-stone-400">{review.role}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Checkout kaart — naam, email, land, betaalgegevens */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
@@ -883,6 +787,51 @@ export default function BetalenPage() {
             </div>
           </div>
 
+          {/* Kassakoopje — extra product, vlak bij de betaalknop */}
+          {product.addOnLabel && product.addOnPriceInCents && (
+            <div className="mt-6 pt-6 border-t border-stone-100">
+              <button
+                type="button"
+                onClick={() => setAddOnSelected((v) => !v)}
+                className="w-full text-left rounded-xl p-4 transition-all border-2"
+                style={{
+                  borderColor: addOnSelected ? "#6d84a8" : "#e2d9cf",
+                  background: addOnSelected ? "#f0f4f9" : "#fdf9f4",
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className="flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center mt-0.5 transition-all"
+                    style={{
+                      borderColor: addOnSelected ? "#6d84a8" : "#b0a8a0",
+                      background: addOnSelected ? "#6d84a8" : "white",
+                    }}
+                  >
+                    {addOnSelected && (
+                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                        <path d="M1 4l2.5 2.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold leading-snug" style={{ color: "#3d3530" }}>{product.addOnLabel}</p>
+                    {product.addOnDescription && (
+                      <p className="text-xs leading-relaxed mt-0.5" style={{ color: "#b0a8a0" }}>{product.addOnDescription}</p>
+                    )}
+                    <div className="flex justify-end mt-2">
+                      <span
+                        className="text-xs font-bold whitespace-nowrap px-2 py-0.5 rounded-full"
+                        style={{ color: "#6d84a8", background: addOnSelected ? "white" : "#e8f0f8" }}
+                      >
+                        +{new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(product.addOnPriceInCents / 100)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          )}
+
           {/* Betaalgegevens — altijd zichtbaar, laadt direct met NL als provisorisch land */}
           <div className="mt-6 pt-6 border-t border-stone-100">
             {secretError && (
@@ -902,6 +851,7 @@ export default function BetalenPage() {
                 <CheckoutForm
                   slug={slug}
                   buttonText={product.buttonText}
+                  trustText={(product as any).trustText}
                   clientSecret={clientSecret}
                   naam={naam}
                   email={email}
@@ -924,6 +874,65 @@ export default function BetalenPage() {
             )}
           </div>
         </div>
+
+        {(!!product.extraTextBlocks?.length || !!product.reviews?.length) && (
+          <div className="mt-6 space-y-6">
+            {/* Extra tekstblokken (indien ingesteld via admin) */}
+            {product.extraTextBlocks && product.extraTextBlocks.length > 0 && (
+              <div className="space-y-4">
+                {product.extraTextBlocks.map((block, i) => (
+                  <div key={i} className="bg-primary-50 rounded-2xl border-2 border-primary-600 p-6">
+                    {block.title && (
+                      <h2 className="text-base font-semibold text-primary-800 mb-3">{block.title}</h2>
+                    )}
+                    {(block as any).imageUrl && (
+                      <div className="mb-4">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={(block as any).imageUrl} alt={block.title ?? ""} className="w-full rounded-xl" />
+                      </div>
+                    )}
+                    <div className="text-sm text-primary-700 leading-relaxed space-y-4">
+                      {block.content.split("\n\n").map((para, j) => (
+                        <p key={j}>
+                          {para.split("\n").map((line, k) =>
+                            k === 0 ? line : <>{"\n"}<br />{line}</>
+                          )}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Reviews / testimonials (indien ingesteld via admin) */}
+            {product.reviews && product.reviews.length > 0 && (
+              <div>
+                <h2 className="text-base font-semibold text-stone-800 mb-3">Hoe anderen dit hebben ervaren</h2>
+                <div className="space-y-3">
+                  {product.reviews.map((review, i) => (
+                    <div key={i} className="bg-white rounded-2xl border-2 border-primary-200 p-5">
+                      <p className="text-sm text-stone-600 leading-relaxed italic mb-3">
+                        &ldquo;{review.text}&rdquo;
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center font-semibold text-xs flex-shrink-0 text-primary-600">
+                          {review.author.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-stone-700">{review.author}</p>
+                          {review.role && (
+                            <p className="text-xs text-stone-400">{review.role}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <p className="text-center text-xs text-stone-400 mt-6">
           <Link href="/privacy" className="hover:underline">Privacy</Link>
