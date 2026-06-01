@@ -488,7 +488,13 @@ export const getAdLpStats = query({
       })),
     ];
 
-    return trackedPages.map(({ slug, path, title }) => {
+    // Ontdubbel op pad: duplicaat-records met dezelfde slug zouden anders
+    // meerdere identieke rijen geven (zelfde pad = zelfde aantallen).
+    const uniquePages = trackedPages.filter(
+      (p, i, arr) => arr.findIndex((x) => x.path === p.path) === i
+    );
+
+    return uniquePages.map(({ slug, path, title }) => {
       const pageViews = views.filter((v) => v.path === path);
       const pageClicks = clicks.filter((c) => c.path === path);
 
