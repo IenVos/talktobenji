@@ -199,7 +199,7 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
                   {slide.video ? (
                     <video
                       src={slide.video}
-                      autoPlay muted loop playsInline
+                      autoPlay muted loop playsInline controls
                       className="w-full rounded-2xl"
                       style={{ maxHeight: 380 }}
                     />
@@ -441,13 +441,13 @@ export function LandingPageView({ slug }: { slug: string }) {
         const src = isCenter ? inner.slice(0, -7) : inner;
         return isCenter ? (
           <div key={i} className="my-4 flex justify-center">
-            <video src={src} autoPlay muted loop playsInline
+            <video src={src} autoPlay muted loop playsInline controls
               className="rounded-xl max-h-[360px] w-auto max-w-full"
               style={{ maxWidth: "60%" }}
             />
           </div>
         ) : (
-          <video key={i} src={src} autoPlay muted loop playsInline
+          <video key={i} src={src} autoPlay muted loop playsInline controls
             className="w-auto max-w-full rounded-xl my-4 max-h-[360px] mx-auto block"
           />
         );
@@ -502,7 +502,7 @@ export function LandingPageView({ slug }: { slug: string }) {
             )}
             {(page as any).heroVideoUrl && (
               <div className="mb-6">
-                <video src={(page as any).heroVideoUrl} autoPlay muted loop playsInline
+                <video src={(page as any).heroVideoUrl} autoPlay muted loop playsInline controls
                   className="w-auto max-w-full mx-auto block rounded-2xl"
                   style={{ maxHeight: "420px" }}
                 />
