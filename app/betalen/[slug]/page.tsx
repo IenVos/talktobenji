@@ -106,7 +106,7 @@ function CheckoutForm({
 
     if (!naam.trim()) {
       setError("Vul je naam in om door te gaan.");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.getElementById("jouw-gegevens")?.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
 
@@ -608,7 +608,7 @@ export default function BetalenPage() {
 
         {/* Checkout kaart — naam, email, land, betaalgegevens */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
-          <h2 className="text-base font-semibold text-stone-800 mb-5">Jouw gegevens &amp; betaling</h2>
+          <h2 id="jouw-gegevens" className="text-base font-semibold text-stone-800 mb-5 scroll-mt-6">Jouw gegevens &amp; betaling</h2>
 
           <div className="space-y-4">
             {/* Naam */}
