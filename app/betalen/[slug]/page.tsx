@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -320,39 +320,53 @@ export default function BetalenPage() {
   // Bij een echte landkeuze wordt het payment intent herrekend met het juiste btw-tarief.
   const effectiveCountry = countryCode || "NL";
 
-  useEffect(() => {
+  // Haal de betaalsessie (clientSecret) op. Probeer automatisch opnieuw bij een
+  // mislukte/koude eerste poging, zodat de checkout altijd verschijnt zonder refresh.
+  const createPaymentIntent = useCallback(async () => {
     if (!product) return;
 
     setLoadingSecret(true);
     setSecretError(null);
     setClientSecret(null);
 
-    fetch("/api/stripe/create-payment-intent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        slug,
-        countryCode: effectiveCountry,
-        ...(vatNumberCommitted && { vatNumber: vatNumberCommitted }),
-        ...(addOnSelected && product?.addOnPriceInCents && {
-          addOnPriceInCents: product.addOnPriceInCents,
-          addOnType: product.addOnType ?? "",
-          addOnAccessDays: product.addOnAccessDays ?? 30,
-        }),
+    const body = JSON.stringify({
+      slug,
+      countryCode: effectiveCountry,
+      ...(vatNumberCommitted && { vatNumber: vatNumberCommitted }),
+      ...(addOnSelected && product?.addOnPriceInCents && {
+        addOnPriceInCents: product.addOnPriceInCents,
+        addOnType: product.addOnType ?? "",
+        addOnAccessDays: product.addOnAccessDays ?? 30,
       }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    });
+
+    let lastError = "Kon betaalsessie niet starten.";
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await fetch("/api/stripe/create-payment-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+        const data = await res.json();
         if (data.clientSecret) {
           setClientSecret(data.clientSecret);
-        } else {
-          setSecretError(data.error || "Kon betaalsessie niet starten.");
+          setLoadingSecret(false);
+          return;
         }
-      })
-      .catch(() => setSecretError("Verbindingsfout. Probeer het opnieuw."))
-      .finally(() => setLoadingSecret(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+        lastError = data.error || lastError;
+      } catch {
+        lastError = "Verbindingsfout. Probeer het opnieuw.";
+      }
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 700 * attempt));
+    }
+    setSecretError(lastError);
+    setLoadingSecret(false);
   }, [product, slug, effectiveCountry, vatNumberCommitted, addOnSelected]);
+
+  useEffect(() => {
+    createPaymentIntent();
+  }, [createPaymentIntent]);
 
   const handleGiftOpen = (open: boolean) => {
     setGiftOpen(open);
@@ -845,19 +859,24 @@ export default function BetalenPage() {
 
           {/* Betaalgegevens — altijd zichtbaar, laadt direct met NL als provisorisch land */}
           <div className="mt-6 pt-6 border-t border-stone-100">
-            {secretError && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-                {secretError}
+            {secretError ? (
+              <div className="space-y-3">
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                  {secretError}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => createPaymentIntent()}
+                  className="w-full py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors text-sm"
+                >
+                  Opnieuw proberen
+                </button>
               </div>
-            )}
-
-            {loadingSecret && (
+            ) : (loadingSecret || !clientSecret) ? (
               <div className="py-8 flex justify-center">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
               </div>
-            )}
-
-            {clientSecret && (
+            ) : (
               <Elements key={clientSecret} stripe={stripePromise} options={elementsOptions}>
                 <CheckoutForm
                   slug={slug}
