@@ -116,6 +116,8 @@ function SliderLightbox({ slides, startIndex, onClose }: { slides: FeatureSlide[
             <img
               src={slide.afbeelding}
               alt={slide.titel}
+              loading="lazy"
+              decoding="async"
               className="rounded-2xl max-h-[70vh] w-auto max-w-full object-contain"
             />
           ) : null}
@@ -208,6 +210,8 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
                     <img
                       src={slide.afbeelding}
                       alt={slide.titel}
+                      loading="lazy"
+                      decoding="async"
                       onClick={() => setLightboxIndex(i)}
                       className="w-full rounded-2xl cursor-zoom-in"
                       style={{ maxHeight: 380, objectFit: "contain" }}

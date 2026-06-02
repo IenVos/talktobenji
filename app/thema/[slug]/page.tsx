@@ -442,6 +442,8 @@ export default async function PillarPage({ params }: Props) {
                     <img
                       src={post.coverImageUrl}
                       alt={post.title}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-40 object-cover"
                     />
                   )}

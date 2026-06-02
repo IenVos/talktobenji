@@ -230,7 +230,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     if (imgMatch) {
       return (
         // eslint-disable-next-line @next/next/no-img-element
-        <img key={i} src={imgMatch[2]} alt={imgMatch[1]} className="w-full rounded-xl my-6" />
+        <img key={i} src={imgMatch[2]} alt={imgMatch[1]} loading="lazy" decoding="async" className="w-full rounded-xl my-6" />
       );
     }
     // Kop

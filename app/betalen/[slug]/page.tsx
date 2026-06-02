@@ -918,7 +918,7 @@ export default function BetalenPage() {
                     {(block as any).imageUrl && (
                       <div className="mb-4">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={(block as any).imageUrl} alt={block.title ?? ""} className="w-full rounded-xl" />
+                        <img src={(block as any).imageUrl} alt={block.title ?? ""} loading="lazy" decoding="async" className="w-full rounded-xl" />
                       </div>
                     )}
                     <div className="text-sm text-primary-700 leading-relaxed space-y-4">
