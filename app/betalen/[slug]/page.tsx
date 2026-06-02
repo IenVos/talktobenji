@@ -239,12 +239,13 @@ function CheckoutForm({
         className={`flex items-start gap-3 cursor-pointer rounded-lg ${termsError ? "ring-2 ring-red-400 bg-red-50 -m-2 p-2" : ""}`}
         onClick={() => { setTermsAccepted(v => !v); setTermsError(false); }}
       >
-        <Checkbox checked={termsAccepted} onChange={(v) => { setTermsAccepted(v); setTermsError(false); }} />
+        {/* Checkbox is puur visueel: het label hierboven handelt de klik af (geen dubbele toggle). */}
+        <Checkbox checked={termsAccepted} onChange={() => {}} />
         <span className="text-xs text-stone-600 leading-snug pt-0.5">
           Ik ga akkoord met de{" "}
-          <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">algemene voorwaarden</a>
+          <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-primary-600 underline">algemene voorwaarden</a>
           {" "}en het{" "}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary-600 underline">privacybeleid</a>.
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-primary-600 underline">privacybeleid</a>.
         </span>
       </label>
 
@@ -526,6 +527,7 @@ export default function BetalenPage() {
             <div>
               <label className={labelClass}>Jouw naam</label>
               <input
+                id="checkout-naam"
                 type="text"
                 placeholder="Voor- en achternaam"
                 value={naam}
@@ -943,7 +945,10 @@ export default function BetalenPage() {
 
             <button
               type="button"
-              onClick={() => document.getElementById("jouw-gegevens")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              onClick={() => {
+                document.getElementById("jouw-gegevens")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                setTimeout(() => document.getElementById("checkout-naam")?.focus({ preventScroll: true }), 450);
+              }}
               className="w-full py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors text-base"
             >
               {product.buttonText || "Betalen"}
