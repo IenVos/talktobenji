@@ -457,6 +457,7 @@ export default function AdminAnalytics() {
 
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
   const adLpStats = useAdminQuery(api.siteAnalytics.getAdLpStats, { from, to });
+  const verliesTypeStats = useAdminQuery(api.siteAnalytics.getVerliesTypeStats, { from, to });
   const featureStats = useAdminQuery(api.siteAnalytics.getFeatureStats, { from, to });
   const allGoals = useAdminQuery(api.siteAnalytics.listGoalsWithOwner, {});
   const liveVisitors = useAdminQuery(api.siteAnalytics.getLiveVisitors, {});
@@ -480,6 +481,7 @@ export default function AdminAnalytics() {
   const [openConversies, setOpenConversies] = useState(true);
   const [openApparaten, setOpenApparaten] = useState(true);
   const [openAdLp, setOpenAdLp] = useState(true);
+  const [openVerliesType, setOpenVerliesType] = useState(true);
   const [openFeatureGebruik, setOpenFeatureGebruik] = useState(true);
   const [openDoelen, setOpenDoelen] = useState(false);
   const [openBeheer, setOpenBeheer] = useState(true);
@@ -1227,6 +1229,49 @@ export default function AdminAnalytics() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Verliestype — meest gekozen (op basis van Niet Alleen-aankopen) */}
+      {verliesTypeStats && (
+        <div className="bg-white rounded-xl border border-primary-200">
+          <button onClick={() => setOpenVerliesType((v) => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+            <div className="flex items-center gap-2">
+              <Heart size={16} className="text-primary-500" />
+              <span className="text-base font-semibold text-primary-900">Verliestype — meest gekozen</span>
+              <span className="text-xs text-primary-400 font-normal">{verliesTypeStats.total} aankopen · geselecteerde periode</span>
+            </div>
+            <ChevronDown size={16} className={`text-primary-400 transition-transform ${openVerliesType ? "rotate-180" : ""}`} />
+          </button>
+          {openVerliesType && (
+            <div className="px-6 pb-6">
+              {verliesTypeStats.rows.length === 0 ? (
+                <p className="text-sm text-primary-400 py-4">Nog geen Niet Alleen-aankopen in deze periode.</p>
+              ) : (
+                (() => {
+                  const maxCount = Math.max(...verliesTypeStats.rows.map((x: { count: number }) => x.count), 1);
+                  return (
+                    <div className="space-y-2.5">
+                      {verliesTypeStats.rows.map((r: { code: string; label: string; emoji: string; count: number; pct: number }) => (
+                        <div key={r.code} className="flex items-center gap-3">
+                          <div className="w-44 flex-shrink-0 text-sm text-primary-800 truncate">
+                            {r.emoji && <span className="mr-1">{r.emoji}</span>}{r.label}
+                          </div>
+                          <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
+                            <div className="h-full rounded-full bg-primary-500 transition-all" style={{ width: `${(r.count / maxCount) * 100}%` }} />
+                          </div>
+                          <div className="w-20 flex-shrink-0 text-right text-sm">
+                            <span className="font-semibold text-primary-900">{r.count}</span>
+                            <span className="text-primary-400 text-xs"> · {r.pct}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()
+              )}
             </div>
           )}
         </div>

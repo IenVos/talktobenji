@@ -520,6 +520,58 @@ export const getAdLpStats = query({
   },
 });
 
+/**
+ * Verliestype-verdeling (admin only): welk type verlies wordt het meest gekozen,
+ * op basis van Niet Alleen-aankopen (nietAlleenProfiles) in de gekozen periode.
+ */
+export const getVerliesTypeStats = query({
+  args: { adminToken: v.string(), from: v.number(), to: v.number() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const [allNAProfiles, excludedEmails, verliesTypen] = await Promise.all([
+      ctx.db.query("nietAlleenProfiles").collect(),
+      ctx.db.query("analyticsExcludedEmails").collect(),
+      ctx.db.query("verliesTypen").collect(),
+    ]);
+    const excludedEmailSet = new Set(excludedEmails.map((e) => e.email.toLowerCase()));
+
+    // Zelfde filter als de conversie-telling: profielen in periode, test-emails uitgesloten.
+    const naInRange = allNAProfiles.filter(
+      (p) =>
+        p.createdAt >= args.from &&
+        p.createdAt <= args.to &&
+        !excludedEmailSet.has(p.email.toLowerCase())
+    );
+
+    const infoByCode = new Map(
+      verliesTypen.map((t) => [t.code, { naam: t.naam, emoji: (t as any).keuzePaginaEmoji as string | undefined }])
+    );
+
+    const counts: Record<string, number> = {};
+    for (const p of naInRange) {
+      const code = p.verliesType && p.verliesType.trim() ? p.verliesType.trim() : "onbekend";
+      counts[code] = (counts[code] ?? 0) + 1;
+    }
+
+    const total = naInRange.length;
+    const rows = Object.entries(counts)
+      .map(([code, count]) => {
+        const info = infoByCode.get(code);
+        return {
+          code,
+          label: info?.naam ?? (code === "onbekend" ? "Type nog niet gekozen" : code),
+          emoji: info?.emoji ?? "",
+          count,
+          pct: total > 0 ? Math.round((count / total) * 1000) / 10 : 0,
+        };
+      })
+      .sort((a, b) => b.count - a.count);
+
+    return { total, rows };
+  },
+});
+
 /** Feature-gebruik statistieken (admin only). */
 export const getFeatureStats = query({
   args: { adminToken: v.string(), from: v.number(), to: v.number() },
