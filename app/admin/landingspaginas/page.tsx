@@ -55,6 +55,7 @@ type LandingPage = {
   heroSubtitle?: string;
   heroBody?: string;
   heroVideoUrl?: string;
+  heroImageUrl?: string;
   ctaText?: string;
   ctaUrl?: string;
   section1Title?: string;
@@ -101,6 +102,7 @@ type FormState = {
   heroSubtitle: string;
   heroBody: string;
   heroVideoUrl: string;
+  heroImageUrl: string;
   ctaText: string;
   ctaUrl: string;
   ctaColor: string;
@@ -204,6 +206,7 @@ const EMPTY_FORM: FormState = {
   heroSubtitle: "",
   heroBody: "",
   heroVideoUrl: "",
+  heroImageUrl: "",
   ctaText: "",
   ctaUrl: "",
   ctaColor: "#6d84a8",
@@ -412,9 +415,11 @@ export default function AdminLandingspaginasPage() {
   const videoRef1 = useRef<HTMLInputElement>(null);
   const videoRef2 = useRef<HTMLInputElement>(null);
   const heroVideoRef = useRef<HTMLInputElement>(null);
+  const heroImageRef = useRef<HTMLInputElement>(null);
   const [insertingVideo1, setInsertingVideo1] = useState(false);
   const [insertingVideo2, setInsertingVideo2] = useState(false);
   const [insertingHeroVideo, setInsertingHeroVideo] = useState(false);
+  const [insertingHeroImage, setInsertingHeroImage] = useState(false);
   const [video1Centered, setVideo1Centered] = useState(false);
   const [video2Centered, setVideo2Centered] = useState(false);
 
@@ -456,6 +461,7 @@ export default function AdminLandingspaginasPage() {
       heroSubtitle: page.heroSubtitle ?? "",
       heroBody: page.heroBody ?? "",
       heroVideoUrl: (page as any).heroVideoUrl ?? "",
+      heroImageUrl: (page as any).heroImageUrl ?? "",
       ctaText: page.ctaText ?? "",
       ctaUrl: page.ctaUrl ?? "",
       ctaColor: (page as any).ctaColor ?? "#6d84a8",
@@ -608,6 +614,17 @@ export default function AdminLandingspaginasPage() {
     }
   };
 
+  const uploadHeroImage = async (file: File) => {
+    setInsertingHeroImage(true);
+    try {
+      const storageId = await uploadFile(file);
+      const imageUrl = await getImageUrl({ storageId });
+      if (imageUrl) setForm((f) => ({ ...f, heroImageUrl: imageUrl }));
+    } finally {
+      setInsertingHeroImage(false);
+    }
+  };
+
   const insertVideoInSection = async (
     sectionRef: React.RefObject<HTMLTextAreaElement>,
     field: "section1Text" | "section2Text",
@@ -713,6 +730,7 @@ export default function AdminLandingspaginasPage() {
           heroSubtitle: form.heroSubtitle.trim(),
           heroBody: form.heroBody.trim(),
           heroVideoUrl: form.heroVideoUrl.trim(),
+          heroImageUrl: form.heroImageUrl.trim(),
           ctaText: form.ctaText.trim(),
           ctaUrl: form.ctaUrl.trim(),
           ctaColor: form.ctaColor.trim(),
@@ -815,6 +833,7 @@ export default function AdminLandingspaginasPage() {
           heroSubtitle: opt(form.heroSubtitle),
           heroBody: opt(form.heroBody),
           heroVideoUrl: opt(form.heroVideoUrl),
+          heroImageUrl: opt(form.heroImageUrl),
           ctaText: opt(form.ctaText),
           ctaUrl: opt(form.ctaUrl),
           ctaColor: opt(form.ctaColor),
@@ -1156,6 +1175,29 @@ export default function AdminLandingspaginasPage() {
                       <>
                         <span className="text-xs text-green-600">✓ Video geladen</span>
                         <button type="button" onClick={() => setForm((f) => ({ ...f, heroVideoUrl: "" }))}
+                          className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className={labelSmClass}>Hero afbeelding (optioneel — getoond onder bodytekst, boven de knop)</label>
+                  <input ref={heroImageRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadHeroImage(file);
+                      if (heroImageRef.current) heroImageRef.current.value = "";
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => heroImageRef.current?.click()} disabled={insertingHeroImage}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 border border-purple-200 rounded text-xs text-purple-700 hover:bg-purple-50 disabled:opacity-50">
+                      🖼️ {insertingHeroImage ? "Uploaden…" : "Afbeelding uploaden"}
+                    </button>
+                    {form.heroImageUrl && (
+                      <>
+                        <img src={form.heroImageUrl} alt="" className="h-10 rounded object-cover border border-primary-100" />
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, heroImageUrl: "" }))}
                           className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
                       </>
                     )}

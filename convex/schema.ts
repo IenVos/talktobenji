@@ -693,6 +693,7 @@ export default defineSchema({
     heroSubtitle: v.optional(v.string()),
     heroBody: v.optional(v.string()),
     heroVideoUrl: v.optional(v.string()),
+    heroImageUrl: v.optional(v.string()),
     ctaText: v.optional(v.string()),
     ctaUrl: v.optional(v.string()),
     ctaColor: v.optional(v.string()),

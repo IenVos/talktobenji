@@ -576,6 +576,14 @@ export function LandingPageView({ slug }: { slug: string }) {
                 />
               </div>
             )}
+            {(page as any).heroImageUrl && (
+              <div className="mb-6">
+                <img src={(page as any).heroImageUrl} alt=""
+                  className="w-auto max-w-full mx-auto block rounded-2xl"
+                  style={{ maxHeight: "420px" }}
+                />
+              </div>
+            )}
             {!hasPricing && (
               <>
                 <KoopKnopLink
