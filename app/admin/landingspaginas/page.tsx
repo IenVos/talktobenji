@@ -280,6 +280,70 @@ function opt(val: string): string | undefined {
   return val.trim() || undefined;
 }
 
+/**
+ * Opmaakknoppen boven een tekstveld: vet/schuin/onderstreept (inline markdown)
+ * en links/midden (uitlijn-tag aan het begin van de alinea waar de cursor staat).
+ */
+function FormatToolbar({
+  getEl,
+  onValueChange,
+  showAlign = true,
+}: {
+  getEl: () => HTMLTextAreaElement | null;
+  onValueChange: (v: string) => void;
+  showAlign?: boolean;
+}) {
+  const wrap = (marker: string) => {
+    const ta = getEl();
+    if (!ta) return;
+    const start = ta.selectionStart ?? 0;
+    const end = ta.selectionEnd ?? 0;
+    const val = ta.value;
+    const sel = val.slice(start, end) || "tekst";
+    const newVal = val.slice(0, start) + marker + sel + marker + val.slice(end);
+    onValueChange(newVal);
+    requestAnimationFrame(() => {
+      ta.focus();
+      ta.setSelectionRange(start + marker.length, start + marker.length + sel.length);
+    });
+  };
+
+  const toggleAlign = (tag: "[midden]" | "[links]") => {
+    const ta = getEl();
+    if (!ta) return;
+    const val = ta.value;
+    const pos = ta.selectionStart ?? 0;
+    const before = val.lastIndexOf("\n\n", Math.max(0, pos - 1));
+    const paraStart = before === -1 ? 0 : before + 2;
+    const afterIdx = val.indexOf("\n\n", pos);
+    const paraEnd = afterIdx === -1 ? val.length : afterIdx;
+    const para = val.slice(paraStart, paraEnd);
+    const existing = para.match(/^\s*\[(midden|links)\]\s*/i);
+    const stripped = existing ? para.slice(existing[0].length) : para;
+    const had = existing ? (`[${existing[1].toLowerCase()}]` as "[midden]" | "[links]") : null;
+    const newPara = had === tag ? stripped : tag + stripped;
+    const newVal = val.slice(0, paraStart) + newPara + val.slice(paraEnd);
+    onValueChange(newVal);
+    requestAnimationFrame(() => ta.focus());
+  };
+
+  const btn = "px-2 py-0.5 text-xs rounded border border-primary-200 text-primary-700 hover:bg-primary-50 transition-colors";
+  return (
+    <div className="flex items-center gap-1 mb-1">
+      <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => wrap("**")} className={`${btn} font-bold`} title="Vet (selecteer tekst)">B</button>
+      <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => wrap("*")} className={`${btn} italic`} title="Schuin (selecteer tekst)">I</button>
+      <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => wrap("_")} className={`${btn} underline`} title="Onderstreept (selecteer tekst)">U</button>
+      {showAlign && (
+        <>
+          <span className="mx-1 inline-block w-px h-4 bg-primary-200" />
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => toggleAlign("[links]")} className={btn} title="Deze alinea links uitlijnen">Links</button>
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => toggleAlign("[midden]")} className={btn} title="Deze alinea centreren">Midden</button>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function AdminLandingspaginasPage() {
   const pages = useAdminQuery(api.landingPages.list, {});
   const createPage = useAdminMutation(api.landingPages.create);
@@ -311,6 +375,12 @@ export default function AdminLandingspaginasPage() {
   const bgImageRef = useRef<HTMLInputElement>(null);
   const section1TextRef = useRef<HTMLTextAreaElement>(null);
   const section2TextRef = useRef<HTMLTextAreaElement>(null);
+  const heroLabelRef = useRef<HTMLTextAreaElement>(null);
+  const heroTitleRef = useRef<HTMLTextAreaElement>(null);
+  const heroSubtitleRef = useRef<HTMLTextAreaElement>(null);
+  const heroBodyRef = useRef<HTMLTextAreaElement>(null);
+  const finalCtaBodyRef = useRef<HTMLTextAreaElement>(null);
+  const contentBlockRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
   const videoRef1 = useRef<HTMLInputElement>(null);
   const videoRef2 = useRef<HTMLInputElement>(null);
   const heroVideoRef = useRef<HTMLInputElement>(null);
@@ -985,19 +1055,23 @@ export default function AdminLandingspaginasPage() {
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Kleine tekst boven de titel (heroLabel)</label>
-                  <textarea placeholder="30 dagen begeleiding bij verlies en gemis" value={form.heroLabel} onChange={set("heroLabel")} rows={2} className={inputClass} />
+                  <FormatToolbar getEl={() => heroLabelRef.current} onValueChange={(v) => setForm((f) => ({ ...f, heroLabel: v }))} />
+                  <textarea ref={heroLabelRef} placeholder="30 dagen begeleiding bij verlies en gemis" value={form.heroLabel} onChange={set("heroLabel")} rows={2} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Hoofdtitel (heroTitle) *</label>
-                  <textarea placeholder="Je hoeft dit niet alleen te dragen." value={form.heroTitle} onChange={set("heroTitle")} rows={3} className={inputClass} />
+                  <FormatToolbar getEl={() => heroTitleRef.current} onValueChange={(v) => setForm((f) => ({ ...f, heroTitle: v }))} />
+                  <textarea ref={heroTitleRef} placeholder="Je hoeft dit niet alleen te dragen." value={form.heroTitle} onChange={set("heroTitle")} rows={3} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelSmClass}>Subtitel (heroSubtitle)</label>
-                  <textarea placeholder="Elke dag een kleine vraag…" value={form.heroSubtitle} onChange={set("heroSubtitle")} rows={2} className={inputClass} />
+                  <FormatToolbar getEl={() => heroSubtitleRef.current} onValueChange={(v) => setForm((f) => ({ ...f, heroSubtitle: v }))} />
+                  <textarea ref={heroSubtitleRef} placeholder="Elke dag een kleine vraag…" value={form.heroSubtitle} onChange={set("heroSubtitle")} rows={2} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelSmClass}>Bodytekst hero (heroBody)</label>
-                  <textarea placeholder="Voor €37 ontvang je…" value={form.heroBody} onChange={set("heroBody")} rows={3} className={inputClass} />
+                  <FormatToolbar getEl={() => heroBodyRef.current} onValueChange={(v) => setForm((f) => ({ ...f, heroBody: v }))} />
+                  <textarea ref={heroBodyRef} placeholder="Voor €37 ontvang je…" value={form.heroBody} onChange={set("heroBody")} rows={3} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelSmClass}>Hero video (optioneel — getoond onder bodytekst, boven de knop)</label>
@@ -1211,6 +1285,7 @@ export default function AdminLandingspaginasPage() {
                       </button>
                     </div>
                   </div>
+                  <FormatToolbar getEl={() => section1TextRef.current} onValueChange={(v) => setForm((f) => ({ ...f, section1Text: v }))} />
                   <textarea ref={section1TextRef} placeholder="Het hoeft geen overlijden te zijn…" value={form.section1Text} onChange={set("section1Text")} rows={6} className={inputClass} />
                 </div>
               </div>
