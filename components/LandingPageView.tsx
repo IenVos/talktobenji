@@ -21,6 +21,13 @@ const ACCOUNT_FEATURES = [
   { icon: HandHelping,   kleur: "text-rose-500 bg-rose-50",        naam: "Handreikingen",        omschrijving: "Concrete oefeningen voor zware momenten" },
 ];
 
+/** Leidende uitlijn-tag van een alinea afsplitsen: [midden] = gecentreerd, [links] = links. */
+function stripAlign(text: string): { align?: "center" | "left"; text: string } {
+  const m = text.match(/^\s*\[(midden|links)\]\s*/i);
+  if (!m) return { text };
+  return { align: m[1].toLowerCase() === "midden" ? "center" : "left", text: text.slice(m[0].length) };
+}
+
 interface Ervaring {
   tekst: string;
   naam: string;
@@ -436,6 +443,16 @@ export function LandingPageView({ slug }: { slug: string }) {
     });
   };
 
+  // Hero-veld: uitlijn-tag afsplitsen en regels met inline-opmaak (vet/schuin) renderen.
+  const renderHeroField = (text: string): { align?: "center" | "left"; nodes: React.ReactNode[] } => {
+    const { align, text: clean } = stripAlign(text);
+    const lines = clean.split("\n");
+    return {
+      align,
+      nodes: lines.map((line, i, arr) => <span key={i}>{renderInline(line)}{i < arr.length - 1 && <br />}</span>),
+    };
+  };
+
   const renderTextWithParagraphs = (text: string) =>
     text.split("\n\n").map((para, i) => {
       const videoMatch = para.trim().match(/^\[video:(.+)\]$/);
@@ -456,9 +473,10 @@ export function LandingPageView({ slug }: { slug: string }) {
           />
         );
       }
-      const lines = para.split("\n");
+      const { align, text: paraText } = stripAlign(para);
+      const lines = paraText.split("\n");
       return (
-        <p key={i}>
+        <p key={i} style={align ? { textAlign: align } : undefined}>
           {lines.map((line, j) => (
             <span key={j}>{renderInline(line)}{j < lines.length - 1 && <br />}</span>
           ))}
@@ -486,24 +504,38 @@ export function LandingPageView({ slug }: { slug: string }) {
         {/* HERO — tekst gecentreerd, pricing blokken in eigen brede sectie */}
         <section className="px-5 pt-12 pb-8 text-center">
           <div className="w-full max-w-md mx-auto">
-            {page.heroLabel && (
-              <p className="text-xs uppercase tracking-widest mb-5 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>
-                {page.heroLabel.split("\n").map((line, i, arr) => <span key={i}>{line}{i < arr.length - 1 && <br />}</span>)}
-              </p>
-            )}
-            <h1 className="text-3xl sm:text-4xl font-semibold mb-4 leading-snug" style={{ color: "#3d3530", textWrap: "balance" } as React.CSSProperties}>
-              {page.heroTitle.split("\n").map((line, i, arr) => <span key={i}>{line}{i < arr.length - 1 && <br />}</span>)}
-            </h1>
-            {page.heroSubtitle && (
-              <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460", textWrap: "pretty" } as React.CSSProperties}>
-                {page.heroSubtitle.split("\n").map((line, i, arr) => <span key={i}>{line}{i < arr.length - 1 && <br />}</span>)}
-              </p>
-            )}
-            {page.heroBody && (
-              <p className="text-sm leading-relaxed mb-6" style={{ color: "#8a8078", textWrap: "pretty" } as React.CSSProperties}>
-                {page.heroBody.split("\n").map((line, i, arr) => <span key={i}>{line}{i < arr.length - 1 && <br />}</span>)}
-              </p>
-            )}
+            {page.heroLabel && (() => {
+              const { align, nodes } = renderHeroField(page.heroLabel);
+              return (
+                <p className="text-xs uppercase tracking-widest mb-5 font-medium" style={{ color: "#8a8078", letterSpacing: "0.14em", textAlign: align }}>
+                  {nodes}
+                </p>
+              );
+            })()}
+            {(() => {
+              const { align, nodes } = renderHeroField(page.heroTitle);
+              return (
+                <h1 className="text-3xl sm:text-4xl font-semibold mb-4 leading-snug" style={{ color: "#3d3530", textWrap: "balance", textAlign: align } as React.CSSProperties}>
+                  {nodes}
+                </h1>
+              );
+            })()}
+            {page.heroSubtitle && (() => {
+              const { align, nodes } = renderHeroField(page.heroSubtitle);
+              return (
+                <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460", textWrap: "pretty", textAlign: align } as React.CSSProperties}>
+                  {nodes}
+                </p>
+              );
+            })()}
+            {page.heroBody && (() => {
+              const { align, nodes } = renderHeroField(page.heroBody);
+              return (
+                <p className="text-sm leading-relaxed mb-6" style={{ color: "#8a8078", textWrap: "pretty", textAlign: align } as React.CSSProperties}>
+                  {nodes}
+                </p>
+              );
+            })()}
             {(page as any).heroVideoUrl && (
               <div className="mb-6">
                 <video src={(page as any).heroVideoUrl} autoPlay muted loop playsInline controls
@@ -655,9 +687,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                     {block.titel && <h3 className="text-base font-semibold" style={{ color: "#3d3530" }}>{block.titel}</h3>}
                     {block.tekst && (
                       <div className="text-sm leading-relaxed space-y-2" style={{ color: "#6b6460" }}>
-                        {block.tekst.split("\n\n").map((p, j) => (
-                          <p key={j}>{p.split("\n").map((line, k, arr) => <span key={k}>{line}{k < arr.length - 1 && <br />}</span>)}</p>
-                        ))}
+                        {renderTextWithParagraphs(block.tekst)}
                       </div>
                     )}
                   </div>
