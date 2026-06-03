@@ -293,6 +293,9 @@ export default function BetalenPage() {
   const [b2bOpen, setB2bOpen] = useState(false);
   const [giftOpen, setGiftOpen] = useState(false);
   const [landOpen, setLandOpen] = useState(false);
+  // Land/btw-keuze blijft volledig werken, maar is tijdelijk verborgen op de checkout.
+  // Zet op true om het blok ("Inclusief … btw" + "Woon je buiten Nederland?") weer te tonen.
+  const toonLandKeuze = false;
   const [isGift, setIsGift] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<GiftVariant | null>(null);
   const [recipientEmail, setRecipientEmail] = useState("");
@@ -580,7 +583,9 @@ export default function BetalenPage() {
               />
             </div>
 
-            {/* Land — ingeklapt; btw-regel altijd zichtbaar, dropdown alleen indien nodig */}
+            {/* Land — ingeklapt; btw-regel altijd zichtbaar, dropdown alleen indien nodig.
+                Tijdelijk verborgen via toonLandKeuze (logica blijft intact). */}
+            {toonLandKeuze && (
             <div>
               {vatLine && (
                 <p className="text-xs text-stone-500">{vatLine}</p>
@@ -615,6 +620,7 @@ export default function BetalenPage() {
                 </div>
               )}
             </div>
+            )}
 
             {/* Cadeau + B2B toggles */}
             <div>
