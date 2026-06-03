@@ -1320,6 +1320,7 @@ export default function AdminLandingspaginasPage() {
                       </button>
                     </div>
                   </div>
+                  <FormatToolbar getEl={() => section2TextRef.current} onValueChange={(v) => setForm((f) => ({ ...f, section2Text: v }))} />
                   <textarea ref={section2TextRef} placeholder="Elke ochtend ontvang je een bericht…" value={form.section2Text} onChange={set("section2Text")} rows={6} className={inputClass} />
                 </div>
               </div>
@@ -1676,7 +1677,8 @@ export default function AdminLandingspaginasPage() {
                 </div>
                 <div>
                   <label className={labelSmClass}>Bodytekst finale CTA</label>
-                  <textarea placeholder="30 dagen. Elke dag één kleine stap…" value={form.finalCtaBody} onChange={set("finalCtaBody")} rows={3} className={inputClass} />
+                  <FormatToolbar getEl={() => finalCtaBodyRef.current} onValueChange={(v) => setForm((f) => ({ ...f, finalCtaBody: v }))} />
+                  <textarea ref={finalCtaBodyRef} placeholder="30 dagen. Elke dag één kleine stap…" value={form.finalCtaBody} onChange={set("finalCtaBody")} rows={3} className={inputClass} />
                 </div>
               </div>
             </Section>
@@ -1720,7 +1722,12 @@ export default function AdminLandingspaginasPage() {
                       onChange={e => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], titel: e.target.value }; return { ...f, contentBlocks: b }; })}
                       className={inputClass}
                     />
+                    <FormatToolbar
+                      getEl={() => contentBlockRefs.current[i] ?? null}
+                      onValueChange={(v) => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], tekst: v }; return { ...f, contentBlocks: b }; })}
+                    />
                     <textarea placeholder="Tekst (dubbele enter = nieuwe alinea)"
+                      ref={(el) => { contentBlockRefs.current[i] = el; }}
                       value={block.tekst} rows={4}
                       onChange={e => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], tekst: e.target.value }; return { ...f, contentBlocks: b }; })}
                       className={inputClass}
