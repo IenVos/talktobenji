@@ -167,6 +167,49 @@ export const stuurTestEmails = action({
   },
 });
 
+/** Stuur één losse test-mail naar je eigen inbox (admin testpaneel). */
+export const stuurTestEmailEnkel = action({
+  args: {
+    email: v.string(),
+    naam: v.string(),
+    verliesType: v.optional(v.string()),
+    mail: v.union(
+      v.literal("welkom"),
+      v.literal("dag"),
+      v.literal("dag15"),
+      v.literal("dag28"),
+      v.literal("dag30"),
+    ),
+    dagNummer: v.optional(v.number()), // alleen bij mail === "dag"
+  },
+  handler: async (ctx, args) => {
+    const email = args.email;
+    const naam = args.naam;
+    switch (args.mail) {
+      case "welkom":
+        await ctx.runAction(internal.nietAlleenEmails.sendWelkomstMail, { email, naam });
+        break;
+      case "dag15":
+        await ctx.runAction(internal.nietAlleenEmails.sendHalverwegeMail, { email, naam });
+        break;
+      case "dag28":
+        await ctx.runAction(internal.nietAlleenEmails.sendVoorbereidingsMail, { email, naam });
+        break;
+      case "dag30":
+        await ctx.runAction(internal.nietAlleenEmails.sendAfsluitMail, { email, naam, aantalDagenIngevuld: 25 });
+        break;
+      case "dag":
+        await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
+          email,
+          naam,
+          dagNummer: args.dagNummer ?? 1,
+          verliesType: args.verliesType ?? "persoon",
+        });
+        break;
+    }
+  },
+});
+
 /** Activeer Niet Alleen account + stuur welkomstmail. Wordt aangeroepen vanuit /api/niet-alleen/activate. */
 export const activeerEnStuurWelkom = action({
   args: { userId: v.string(), email: v.string(), naam: v.string() },

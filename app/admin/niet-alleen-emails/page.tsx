@@ -426,6 +426,7 @@ function TestProfielBlok() {
 
 function TestEmailBlok() {
   const stuurTestEmails = useAction(api.nietAlleen.stuurTestEmails);
+  const stuurTestEmailEnkel = useAction(api.nietAlleen.stuurTestEmailEnkel);
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [naam, setNaam] = useState("");
@@ -433,6 +434,12 @@ function TestEmailBlok() {
   const [bezig, setBezig] = useState(false);
   const [klaar, setKlaar] = useState(false);
   const [fout, setFout] = useState("");
+
+  // Eén losse mail versturen
+  const [enkel, setEnkel] = useState("dag:1");
+  const [bezigEnkel, setBezigEnkel] = useState(false);
+  const [klaarEnkel, setKlaarEnkel] = useState(false);
+  const [foutEnkel, setFoutEnkel] = useState("");
 
   const handleTest = async () => {
     if (!email || !naam || bezig) return;
@@ -447,6 +454,25 @@ function TestEmailBlok() {
       setFout(e?.message ?? "Onbekende fout");
     } finally {
       setBezig(false);
+    }
+  };
+
+  const handleEnkel = async () => {
+    if (!email || !naam || bezigEnkel) return;
+    setBezigEnkel(true);
+    setKlaarEnkel(false);
+    setFoutEnkel("");
+    try {
+      const payload = enkel.startsWith("dag:")
+        ? { mail: "dag" as const, dagNummer: Number(enkel.slice(4)) }
+        : { mail: enkel as "welkom" | "dag15" | "dag28" | "dag30" };
+      await stuurTestEmailEnkel({ email, naam, verliesType, ...payload });
+      setKlaarEnkel(true);
+      setTimeout(() => setKlaarEnkel(false), 5000);
+    } catch (e: any) {
+      setFoutEnkel(e?.message ?? "Onbekende fout");
+    } finally {
+      setBezigEnkel(false);
     }
   };
 
@@ -523,6 +549,45 @@ function TestEmailBlok() {
               </span>
             )}
             {fout && <span className="text-sm text-red-600">{fout}</span>}
+          </div>
+
+          {/* Of: stuur één losse mail */}
+          <div className="border-t border-amber-200 pt-4">
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Of stuur één losse mail</label>
+            <p className="text-xs text-amber-700 mb-2">Gebruikt hetzelfde e-mailadres, naam en verliestype hierboven.</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <select
+                value={enkel}
+                onChange={(e) => setEnkel(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+              >
+                <option value="welkom">Welkomstmail</option>
+                <optgroup label="Dagelijkse mail (dag 1–30)">
+                  {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
+                    <option key={d} value={`dag:${d}`}>Dag {d}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Speciale mails">
+                  <option value="dag15">Dag 15 — halverwege check-in</option>
+                  <option value="dag28">Dag 28 — voorbereiding</option>
+                  <option value="dag30">Dag 30 — afsluiting</option>
+                </optgroup>
+              </select>
+              <button
+                onClick={handleEnkel}
+                disabled={!email || !naam || bezigEnkel}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border border-amber-400 text-amber-700 hover:bg-amber-100 transition-colors disabled:opacity-50"
+              >
+                <Send size={14} />
+                {bezigEnkel ? "Versturen…" : "Stuur deze mail"}
+              </button>
+              {klaarEnkel && (
+                <span className="flex items-center gap-1 text-sm text-green-600 font-medium">
+                  <CheckCircle size={15} /> Verstuurd!
+                </span>
+              )}
+              {foutEnkel && <span className="text-sm text-red-600">{foutEnkel}</span>}
+            </div>
           </div>
         </div>
       )}
