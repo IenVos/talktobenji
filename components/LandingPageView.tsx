@@ -737,14 +737,14 @@ export function LandingPageView({ slug }: { slug: string }) {
                 {blocks.map((block, i) => (
                   <div key={i} className="bg-white rounded-2xl p-6 shadow-sm space-y-3">
                     {block.titel && <h3 className="text-base font-semibold" style={{ color: "#3d3530" }}>{block.titel}</h3>}
-                    {block.afbeelding && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={block.afbeelding} alt={block.titel || ""} className="w-full rounded-xl object-cover" />
-                    )}
                     {block.tekst && (
                       <div className="text-sm leading-relaxed space-y-2" style={{ color: "#6b6460" }}>
                         {renderTextWithParagraphs(block.tekst)}
                       </div>
+                    )}
+                    {block.afbeelding && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={block.afbeelding} alt={block.titel || ""} className="w-full rounded-xl border border-gray-100 shadow-sm" />
                     )}
                   </div>
                 ))}
