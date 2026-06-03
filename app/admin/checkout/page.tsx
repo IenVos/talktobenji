@@ -30,6 +30,8 @@ type CheckoutProduct = {
   subscriptionType: string;
   buttonText?: string;
   trustText?: string;
+  herroepingTitle?: string;
+  herroepingText?: string;
   imageStorageId?: Id<"_storage">;
   imageUrl?: string | null;
   accessDays?: number;
@@ -62,6 +64,8 @@ type FormState = {
   subscriptionType: string;
   buttonText: string;
   trustText: string;
+  herroepingTitle: string;
+  herroepingText: string;
   accessDays: string;
   imageStorageId?: Id<"_storage">;
   imageFile: File | null;
@@ -89,6 +93,8 @@ const EMPTY_FORM: FormState = {
   subscriptionType: "alles_in_1",
   buttonText: "",
   trustText: "",
+  herroepingTitle: "",
+  herroepingText: "",
   accessDays: "",
   imageStorageId: undefined,
   imageFile: null,
@@ -182,6 +188,8 @@ export default function AdminCheckoutPage() {
       subscriptionType: product.subscriptionType,
       buttonText: product.buttonText ?? "",
       trustText: product.trustText ?? "",
+      herroepingTitle: product.herroepingTitle ?? "",
+      herroepingText: product.herroepingText ?? "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -218,6 +226,8 @@ export default function AdminCheckoutPage() {
       subscriptionType: product.subscriptionType,
       buttonText: product.buttonText ?? "",
       trustText: product.trustText ?? "",
+      herroepingTitle: product.herroepingTitle ?? "",
+      herroepingText: product.herroepingText ?? "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -281,6 +291,8 @@ export default function AdminCheckoutPage() {
         subscriptionType: form.subscriptionType,
         buttonText: opt(form.buttonText),
         trustText: opt(form.trustText),
+        herroepingTitle: opt(form.herroepingTitle),
+        herroepingText: opt(form.herroepingText),
         accessDays: accessDaysVal,
         imageStorageId,
         isLive: form.isLive,
@@ -578,6 +590,26 @@ export default function AdminCheckoutPage() {
                   placeholder="🔒 Veilig betalen via Stripe · geen abonnement · direct toegang"
                   value={form.trustText}
                   onChange={set("trustText")}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelSmClass}>Herroepingsrecht — kopje <span className="font-normal text-gray-400">(standaard: "Niet helemaal zeker?")</span></label>
+                <input
+                  type="text"
+                  placeholder="Niet helemaal zeker?"
+                  value={form.herroepingTitle}
+                  onChange={set("herroepingTitle")}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelSmClass}>Herroepingsrecht — tekst <span className="font-normal text-gray-400">(een e-mailadres wordt automatisch klikbaar)</span></label>
+                <textarea
+                  rows={4}
+                  placeholder={"Geen zorgen. Je koopt iets dat meteen voor je klaarstaat, dus het wettelijke herroepingsrecht vervalt zodra je begint. Nog niet begonnen en toch annuleren? Mail gerust naar contactmetien@talktobenji.com binnen 14 dagen — we lossen het samen op."}
+                  value={form.herroepingText}
+                  onChange={set("herroepingText")}
                   className={inputClass}
                 />
               </div>

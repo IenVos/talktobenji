@@ -50,10 +50,24 @@ type GiftVariant = {
   accessDays: number;
 };
 
+/** Maakt e-mailadressen in een tekst automatisch klikbaar (mailto-link). */
+function linkifyEmails(text: string) {
+  const parts = text.split(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g);
+  return parts.map((part, i) =>
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(part) ? (
+      <a key={i} href={`mailto:${part}`} className="underline hover:text-stone-600">{part}</a>
+    ) : (
+      part
+    )
+  );
+}
+
 function CheckoutForm({
   slug,
   buttonText,
   trustText,
+  herroepingTitle,
+  herroepingText,
   clientSecret,
   naam,
   email,
@@ -75,6 +89,8 @@ function CheckoutForm({
   slug: string;
   buttonText?: string;
   trustText?: string;
+  herroepingTitle?: string;
+  herroepingText?: string;
   clientSecret: string;
   naam: string;
   email: string;
@@ -268,12 +284,12 @@ function CheckoutForm({
       </p>
 
       <div className="rounded-xl bg-stone-50 border border-stone-200 px-4 py-3 space-y-1 text-center">
-        <p className="text-xs font-medium text-stone-500">Herroepingsrecht</p>
-        <p className="text-xs text-stone-400 leading-relaxed">
-          Het herroepingsrecht vervalt zodra de dienst na betaling start. Nog niet gebruikt en toch annuleren?
-        </p>
-        <p className="text-xs text-stone-400">
-          <a href="mailto:contactmetien@talktobenji.com" className="underline hover:text-stone-600">Neem contact op</a> binnen 14 dagen.
+        <p className="text-xs font-medium text-stone-500">{herroepingTitle?.trim() || "Niet helemaal zeker?"}</p>
+        <p className="text-xs text-stone-400 leading-relaxed whitespace-pre-line">
+          {linkifyEmails(
+            herroepingText?.trim() ||
+              "Geen zorgen. Je koopt iets dat meteen voor je klaarstaat, dus het wettelijke herroepingsrecht vervalt zodra je begint. Nog niet begonnen en toch annuleren? Mail gerust naar contactmetien@talktobenji.com binnen 14 dagen — we lossen het samen op."
+          )}
         </p>
       </div>
     </form>
@@ -909,6 +925,8 @@ export default function BetalenPage() {
                   slug={slug}
                   buttonText={product.buttonText}
                   trustText={(product as any).trustText}
+                  herroepingTitle={(product as any).herroepingTitle}
+                  herroepingText={(product as any).herroepingText}
                   clientSecret={clientSecret}
                   naam={naam}
                   email={email}
