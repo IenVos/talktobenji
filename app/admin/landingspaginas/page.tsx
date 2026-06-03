@@ -16,11 +16,34 @@ type PricingBlockForm = {
   aanbevolen: boolean;
   ctaTekst: string;
   ctaUrl: string;
+  tekstUitlijning: "links" | "midden";
+  afbeelding: string;
+  file: File | null;
 };
 
 const EMPTY_PRICING_BLOCK: PricingBlockForm = {
-  titel: "", subtitel: "", prijs: "", tekst: "", aanbevolen: false, ctaTekst: "", ctaUrl: "",
+  titel: "", subtitel: "", prijs: "", tekst: "", aanbevolen: false, ctaTekst: "", ctaUrl: "", tekstUitlijning: "links", afbeelding: "", file: null,
 };
+
+// Iconen voor de "Wat je krijgt"-rij — sleutels komen overeen met WAT_ICONS in LandingPageView.
+const WAT_ICON_KEYS: { key: string; label: string }[] = [
+  { key: "gesprekken", label: "💬 Gesprekken" },
+  { key: "reflecties", label: "✏️ Reflecties" },
+  { key: "checkins", label: "📅 Check-ins" },
+  { key: "memories", label: "💎 Memories" },
+  { key: "inspiratie", label: "✨ Inspiratie" },
+  { key: "handreiking", label: "🤲 Handreiking" },
+  { key: "hart", label: "❤️ Hart" },
+  { key: "schild", label: "🛡️ Schild" },
+  { key: "klok", label: "⏰ Klok" },
+  { key: "boek", label: "📖 Boek" },
+  { key: "ster", label: "⭐ Ster" },
+  { key: "mail", label: "✉️ Mail" },
+  { key: "blad", label: "🌿 Blad" },
+  { key: "mensen", label: "👥 Mensen" },
+];
+
+type WatItemForm = { icon: string; naam: string; omschrijving: string };
 
 type LandingPage = {
   _id: Id<"landingPages">;
@@ -132,7 +155,9 @@ type FormState = {
   typeButtonLabelRelatie: string;
   typeButtonLabelEenzaamheid: string;
   typeButtonLabelKinderloos: string;
-  contentBlocks: { titel: string; tekst: string }[];
+  contentBlocks: { titel: string; tekst: string; afbeelding: string; file: File | null }[];
+  watJeKrijgt: WatItemForm[];
+  watJeKrijgtTitel: string;
   kpHeroKop1: string;
   kpHeroKop2: string;
   kpHeroTekst: string;
@@ -233,6 +258,8 @@ const EMPTY_FORM: FormState = {
   typeButtonLabelEenzaamheid: "",
   typeButtonLabelKinderloos: "",
   contentBlocks: [],
+  watJeKrijgt: [],
+  watJeKrijgtTitel: "",
   kpHeroKop1: "",
   kpHeroKop2: "",
   kpHeroTekst: "",
@@ -381,6 +408,7 @@ export default function AdminLandingspaginasPage() {
   const heroBodyRef = useRef<HTMLTextAreaElement>(null);
   const finalCtaBodyRef = useRef<HTMLTextAreaElement>(null);
   const contentBlockRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+  const pricingBlockRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
   const videoRef1 = useRef<HTMLInputElement>(null);
   const videoRef2 = useRef<HTMLInputElement>(null);
   const heroVideoRef = useRef<HTMLInputElement>(null);
@@ -480,7 +508,9 @@ export default function AdminLandingspaginasPage() {
       typeButtonLabelRelatie: (page as any).typeButtonLabelRelatie ?? "",
       typeButtonLabelEenzaamheid: (page as any).typeButtonLabelEenzaamheid ?? "",
       typeButtonLabelKinderloos: (page as any).typeButtonLabelKinderloos ?? "",
-      contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p : []; } catch { return []; } })(),
+      contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p.map((b: any) => ({ titel: b.titel ?? "", tekst: b.tekst ?? "", afbeelding: b.afbeelding ?? "", file: null })) : []; } catch { return []; } })(),
+      watJeKrijgt: (() => { try { const p = JSON.parse((page as any).watJeKrijgtJson || "[]"); return Array.isArray(p) ? p : []; } catch { return []; } })(),
+      watJeKrijgtTitel: (page as any).watJeKrijgtTitel ?? "",
       kpHeroKop1: (page as any).kpHeroKop1 ?? "",
       kpHeroKop2: (page as any).kpHeroKop2 ?? "",
       kpHeroTekst: (page as any).kpHeroTekst ?? "",
@@ -539,10 +569,12 @@ export default function AdminLandingspaginasPage() {
         try {
           const parsed = JSON.parse((page as any).pricingBlocksJson || "[]");
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const blocks = parsed.map((b: Partial<PricingBlockForm>) => ({
+            const blocks = parsed.map((b: Partial<PricingBlockForm>): PricingBlockForm => ({
               titel: b.titel ?? "", subtitel: b.subtitel ?? "", prijs: b.prijs ?? "",
               tekst: b.tekst ?? "", aanbevolen: b.aanbevolen ?? false,
               ctaTekst: b.ctaTekst ?? "", ctaUrl: b.ctaUrl ?? "",
+              tekstUitlijning: b.tekstUitlijning === "midden" ? "midden" : "links",
+              afbeelding: b.afbeelding ?? "", file: null,
             }));
             while (blocks.length < 3) blocks.push({ ...EMPTY_PRICING_BLOCK });
             return blocks.slice(0, 3);
@@ -623,6 +655,37 @@ export default function AdminLandingspaginasPage() {
     return result.length ? JSON.stringify(result) : "";
   };
 
+  const buildContentBlocksJson = async (blocks: FormState["contentBlocks"]) => {
+    const result: { titel: string; tekst: string; afbeelding?: string }[] = [];
+    for (const b of blocks) {
+      if (!b.titel && !b.tekst && !b.afbeelding && !b.file) continue;
+      let afbeelding = b.afbeelding;
+      if (b.file) {
+        const storageId = await uploadFile(b.file);
+        const url = await getImageUrl({ storageId });
+        if (url) afbeelding = url;
+      }
+      result.push({ titel: b.titel, tekst: b.tekst, afbeelding: afbeelding || undefined });
+    }
+    return result.length ? JSON.stringify(result) : "";
+  };
+
+  const buildPricingBlocksJson = async (blocks: FormState["pricingBlocks"]) => {
+    if (!blocks.some(b => b.titel || b.prijs)) return "";
+    const result = [];
+    for (const b of blocks) {
+      let afbeelding = b.afbeelding;
+      if (b.file) {
+        const storageId = await uploadFile(b.file);
+        const url = await getImageUrl({ storageId });
+        if (url) afbeelding = url;
+      }
+      const { file: _file, ...rest } = b;
+      result.push({ ...rest, afbeelding: afbeelding || undefined });
+    }
+    return JSON.stringify(result);
+  };
+
   const handleSave = async () => {
     const isKeuzepagina = form.lpType === "niet_alleen_keuze";
     if (!form.slug.trim() || !form.pageTitle.trim()) return;
@@ -681,9 +744,7 @@ export default function AdminLandingspaginasPage() {
           footerText: form.footerText.trim(),
           footerCtaUrl: form.footerCtaUrl.trim(),
           trackAds: form.trackAds,
-          pricingBlocksJson: form.pricingBlocks.some(b => b.titel || b.prijs)
-            ? JSON.stringify(form.pricingBlocks)
-            : "",
+          pricingBlocksJson: await buildPricingBlocksJson(form.pricingBlocks),
           featureSliderLabel: form.featureSliderLabel.trim(),
           featureSliderTitel: form.featureSliderTitel.trim(),
           featureSlidesJson: await buildFeatureSlidesJson(form.featureSlides),
@@ -705,7 +766,9 @@ export default function AdminLandingspaginasPage() {
           typeButtonLabelRelatie: form.typeButtonLabelRelatie.trim(),
           typeButtonLabelEenzaamheid: form.typeButtonLabelEenzaamheid.trim(),
           typeButtonLabelKinderloos: form.typeButtonLabelKinderloos.trim(),
-          contentBlocksJson: form.contentBlocks.filter(b => b.titel || b.tekst).length > 0 ? JSON.stringify(form.contentBlocks.filter(b => b.titel || b.tekst)) : "",
+          contentBlocksJson: await buildContentBlocksJson(form.contentBlocks),
+          watJeKrijgtJson: form.watJeKrijgt.filter(w => w.naam.trim()).length > 0 ? JSON.stringify(form.watJeKrijgt.filter(w => w.naam.trim())) : "",
+          watJeKrijgtTitel: form.watJeKrijgtTitel.trim(),
           kpHeroKop1: form.kpHeroKop1.trim(),
           kpHeroKop2: form.kpHeroKop2.trim(),
           kpHeroTekst: form.kpHeroTekst.trim(),
@@ -806,7 +869,9 @@ export default function AdminLandingspaginasPage() {
           typeButtonLabelRelatie: opt(form.typeButtonLabelRelatie),
           typeButtonLabelEenzaamheid: opt(form.typeButtonLabelEenzaamheid),
           typeButtonLabelKinderloos: opt(form.typeButtonLabelKinderloos),
-          contentBlocksJson: form.contentBlocks.filter(b => b.titel || b.tekst).length > 0 ? JSON.stringify(form.contentBlocks.filter(b => b.titel || b.tekst)) : undefined,
+          contentBlocksJson: opt(await buildContentBlocksJson(form.contentBlocks)),
+          watJeKrijgtJson: form.watJeKrijgt.filter(w => w.naam.trim()).length > 0 ? JSON.stringify(form.watJeKrijgt.filter(w => w.naam.trim())) : "",
+          watJeKrijgtTitel: opt(form.watJeKrijgtTitel),
           categorie: opt(form.categorie),
           volgorde: form.volgorde.trim() ? parseInt(form.volgorde.trim(), 10) : undefined,
         });
@@ -1398,7 +1463,28 @@ export default function AdminLandingspaginasPage() {
                       })}
                       className={inputClass}
                     />
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <FormatToolbar
+                        getEl={() => pricingBlockRefs.current[i] ?? null}
+                        showAlign={false}
+                        onValueChange={(v) => setForm((f) => { const blocks = [...f.pricingBlocks]; blocks[i] = { ...blocks[i], tekst: v }; return { ...f, pricingBlocks: blocks }; })}
+                      />
+                      <div className="inline-flex rounded border border-primary-200 overflow-hidden text-xs">
+                        {(["links", "midden"] as const).map((al) => (
+                          <button
+                            key={al}
+                            type="button"
+                            onClick={() => setForm((f) => { const blocks = [...f.pricingBlocks]; blocks[i] = { ...blocks[i], tekstUitlijning: al }; return { ...f, pricingBlocks: blocks }; })}
+                            className={`px-2 py-0.5 transition-colors ${block.tekstUitlijning === al ? "bg-primary-600 text-white" : "text-primary-700 hover:bg-primary-50"}`}
+                            title={al === "links" ? "Lijst met vinkjes, links" : "Gecentreerde regels (zonder vinkje)"}
+                          >
+                            {al === "links" ? "✓ Links" : "Midden"}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <textarea
+                      ref={(el) => { pricingBlockRefs.current[i] = el; }}
                       placeholder={"Wat je krijgt (één punt per regel):\nOnbeperkt gesprekken\nCheck-ins & doelen\nHerinneringen bewaren"}
                       value={block.tekst}
                       onChange={(e) => setForm((f) => {
@@ -1431,6 +1517,25 @@ export default function AdminLandingspaginasPage() {
                       })}
                       className={inputClass}
                     />
+                    <div>
+                      <label className={labelSmClass}>Afbeelding bovenin <span className="text-gray-400">(optioneel)</span></label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null;
+                          setForm((f) => { const blocks = [...f.pricingBlocks]; blocks[i] = { ...blocks[i], file, afbeelding: file ? "" : blocks[i].afbeelding }; return { ...f, pricingBlocks: blocks }; });
+                        }}
+                        className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary-100 file:text-primary-800"
+                      />
+                      {(block.file || block.afbeelding) && (
+                        <div className="mt-1 flex items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={block.file ? URL.createObjectURL(block.file) : block.afbeelding} alt="" className="h-16 rounded object-cover border border-primary-100" />
+                          <button type="button" onClick={() => setForm((f) => { const blocks = [...f.pricingBlocks]; blocks[i] = { ...blocks[i], file: null, afbeelding: "" }; return { ...f, pricingBlocks: blocks }; })} className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1732,13 +1837,96 @@ export default function AdminLandingspaginasPage() {
                       onChange={e => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], tekst: e.target.value }; return { ...f, contentBlocks: b }; })}
                       className={inputClass}
                     />
+                    <div>
+                      <label className={labelSmClass}>Afbeelding <span className="text-gray-400">(optioneel)</span></label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] ?? null;
+                          setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], file, afbeelding: file ? "" : b[i].afbeelding }; return { ...f, contentBlocks: b }; });
+                        }}
+                        className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary-100 file:text-primary-800"
+                      />
+                      {(block.file || block.afbeelding) && (
+                        <div className="mt-1 flex items-center gap-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={block.file ? URL.createObjectURL(block.file) : block.afbeelding} alt="" className="h-16 rounded object-cover border border-primary-100" />
+                          <button type="button" onClick={() => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], file: null, afbeelding: "" }; return { ...f, contentBlocks: b }; })} className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
                 <button type="button"
-                  onClick={() => setForm(f => ({ ...f, contentBlocks: [...f.contentBlocks, { titel: "", tekst: "" }] }))}
+                  onClick={() => setForm(f => ({ ...f, contentBlocks: [...f.contentBlocks, { titel: "", tekst: "", afbeelding: "", file: null }] }))}
                   className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 font-medium">
                   <Plus size={14} /> Blok toevoegen
                 </button>
+              </div>
+            </Section>
+
+            {/* Wat je krijgt — iconenrij */}
+            <Section id="watjekrijgt" title="Wat je krijgt (iconenrij)">
+              <p className="text-xs text-gray-400 mb-3">De rij met icoontjes. Laat de lijst leeg om de <strong>standaardrij</strong> te tonen. Voeg items toe om die te vervangen. (Verbergen kan met de schakelaar bij Hero → Secties zichtbaar.)</p>
+              <div className="mb-3">
+                <label className={labelSmClass}>Titel boven de rij</label>
+                <input type="text" placeholder="Wat je krijgt" value={form.watJeKrijgtTitel} onChange={set("watJeKrijgtTitel")} className={inputClass} />
+              </div>
+              <div className="space-y-3">
+                {form.watJeKrijgt.map((item, i) => (
+                  <div key={i} className="border border-primary-100 rounded-xl p-3 bg-white space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-500">Item {i + 1}</span>
+                      <div className="flex gap-1">
+                        <button type="button" title="Dupliceer"
+                          onClick={() => setForm(f => ({ ...f, watJeKrijgt: [...f.watJeKrijgt.slice(0, i + 1), { ...f.watJeKrijgt[i] }, ...f.watJeKrijgt.slice(i + 1)] }))}
+                          className="text-xs px-2 py-1 border border-primary-200 rounded hover:bg-primary-50 text-primary-600">Dupliceer</button>
+                        <button type="button"
+                          onClick={() => setForm(f => ({ ...f, watJeKrijgt: f.watJeKrijgt.filter((_, j) => j !== i) }))}
+                          className="text-xs px-2 py-1 border border-red-200 rounded hover:bg-red-50 text-red-500">Verwijder</button>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <select
+                        value={item.icon}
+                        onChange={e => setForm(f => { const w = [...f.watJeKrijgt]; w[i] = { ...w[i], icon: e.target.value }; return { ...f, watJeKrijgt: w }; })}
+                        className={`${inputClass} w-36 shrink-0`}
+                      >
+                        {WAT_ICON_KEYS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+                      </select>
+                      <input type="text" placeholder="Naam (bijv. Gesprekken)"
+                        value={item.naam}
+                        onChange={e => setForm(f => { const w = [...f.watJeKrijgt]; w[i] = { ...w[i], naam: e.target.value }; return { ...f, watJeKrijgt: w }; })}
+                        className={inputClass}
+                      />
+                    </div>
+                    <input type="text" placeholder="Omschrijving (optioneel)"
+                      value={item.omschrijving}
+                      onChange={e => setForm(f => { const w = [...f.watJeKrijgt]; w[i] = { ...w[i], omschrijving: e.target.value }; return { ...f, watJeKrijgt: w }; })}
+                      className={inputClass}
+                    />
+                  </div>
+                ))}
+                <button type="button"
+                  onClick={() => setForm(f => ({ ...f, watJeKrijgt: [...f.watJeKrijgt, { icon: "gesprekken", naam: "", omschrijving: "" }] }))}
+                  className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 font-medium">
+                  <Plus size={14} /> Item toevoegen
+                </button>
+                {form.watJeKrijgt.length === 0 && (
+                  <button type="button"
+                    onClick={() => setForm(f => ({ ...f, watJeKrijgt: [
+                      { icon: "gesprekken", naam: "Gesprekken", omschrijving: "Altijd iemand die luistert, dag en nacht" },
+                      { icon: "reflecties", naam: "Reflecties", omschrijving: "Schrijven of inspreken, wanneer jij wil" },
+                      { icon: "checkins", naam: "Dagelijkse check-ins", omschrijving: "Korte vragen om je gedachten te ordenen" },
+                      { icon: "memories", naam: "Memories", omschrijving: "Herinneringen bewaren die je niet wil vergeten" },
+                      { icon: "inspiratie", naam: "Inspiratie & troost", omschrijving: "Gedichten, citaten en teksten die steunen" },
+                      { icon: "handreiking", naam: "Handreikingen", omschrijving: "Concrete oefeningen voor zware momenten" },
+                    ] }))}
+                    className="ml-3 text-xs text-gray-400 hover:text-primary-600 underline">
+                    Begin met de standaardrij
+                  </button>
+                )}
               </div>
             </Section>
 

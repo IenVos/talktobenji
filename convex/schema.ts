@@ -767,6 +767,9 @@ export default defineSchema({
     voorWieSubtitel: v.optional(v.string()),
     // Vrije inhoudsblokken (JSON: [{titel, tekst}])
     contentBlocksJson: v.optional(v.string()),
+    // "Wat je krijgt" iconenrij (JSON: [{icon, naam, omschrijving}]) — leeg = standaardrij
+    watJeKrijgtJson: v.optional(v.string()),
+    watJeKrijgtTitel: v.optional(v.string()),
     // Keuzepagina hero + keuzemoment
     kpHeroKop1: v.optional(v.string()),       // "Overdag hou je het vol."
     kpHeroKop2: v.optional(v.string()),       // "Maar 's nachts… voelt het zwaarder."

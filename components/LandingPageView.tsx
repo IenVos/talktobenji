@@ -10,15 +10,36 @@ import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
-import { ChevronLeft, ChevronRight, MessageSquare, PencilLine, CalendarCheck, Gem, Sparkles, HandHelping } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageSquare, PencilLine, CalendarCheck, Gem, Sparkles, HandHelping, Heart, Shield, Clock, BookOpen, Star, Mail, Leaf, Users } from "lucide-react";
 
-const ACCOUNT_FEATURES = [
-  { icon: MessageSquare, kleur: "text-primary-600 bg-primary-50",  naam: "Gesprekken",          omschrijving: "Altijd iemand die luistert, dag en nacht" },
-  { icon: PencilLine,    kleur: "text-teal-600 bg-teal-50",        naam: "Reflecties",           omschrijving: "Schrijven of inspreken, wanneer jij wil" },
-  { icon: CalendarCheck, kleur: "text-primary-500 bg-primary-50",  naam: "Dagelijkse check-ins", omschrijving: "Korte vragen om je gedachten te ordenen" },
-  { icon: Gem,           kleur: "text-amber-500 bg-amber-50",      naam: "Memories",             omschrijving: "Herinneringen bewaren die je niet wil vergeten" },
-  { icon: Sparkles,      kleur: "text-violet-500 bg-violet-50",    naam: "Inspiratie & troost",  omschrijving: "Gedichten, citaten en teksten die steunen" },
-  { icon: HandHelping,   kleur: "text-rose-500 bg-rose-50",        naam: "Handreikingen",        omschrijving: "Concrete oefeningen voor zware momenten" },
+// Beschikbare iconen voor de "Wat je krijgt"-rij (sleutel → component + kleur).
+// De sleutels komen overeen met de dropdown in de admin (WAT_ICON_KEYS daar).
+const WAT_ICONS: Record<string, { icon: React.ElementType; kleur: string }> = {
+  gesprekken:  { icon: MessageSquare, kleur: "text-primary-600 bg-primary-50" },
+  reflecties:  { icon: PencilLine,    kleur: "text-teal-600 bg-teal-50" },
+  checkins:    { icon: CalendarCheck, kleur: "text-primary-500 bg-primary-50" },
+  memories:    { icon: Gem,           kleur: "text-amber-500 bg-amber-50" },
+  inspiratie:  { icon: Sparkles,      kleur: "text-violet-500 bg-violet-50" },
+  handreiking: { icon: HandHelping,   kleur: "text-rose-500 bg-rose-50" },
+  hart:        { icon: Heart,         kleur: "text-rose-500 bg-rose-50" },
+  schild:      { icon: Shield,        kleur: "text-primary-600 bg-primary-50" },
+  klok:        { icon: Clock,         kleur: "text-amber-500 bg-amber-50" },
+  boek:        { icon: BookOpen,      kleur: "text-teal-600 bg-teal-50" },
+  ster:        { icon: Star,          kleur: "text-amber-500 bg-amber-50" },
+  mail:        { icon: Mail,          kleur: "text-primary-600 bg-primary-50" },
+  blad:        { icon: Leaf,          kleur: "text-green-600 bg-green-50" },
+  mensen:      { icon: Users,         kleur: "text-violet-500 bg-violet-50" },
+};
+
+type WatItem = { icon: string; naam: string; omschrijving: string };
+
+const ACCOUNT_FEATURES: WatItem[] = [
+  { icon: "gesprekken",  naam: "Gesprekken",          omschrijving: "Altijd iemand die luistert, dag en nacht" },
+  { icon: "reflecties",  naam: "Reflecties",           omschrijving: "Schrijven of inspreken, wanneer jij wil" },
+  { icon: "checkins",    naam: "Dagelijkse check-ins", omschrijving: "Korte vragen om je gedachten te ordenen" },
+  { icon: "memories",    naam: "Memories",             omschrijving: "Herinneringen bewaren die je niet wil vergeten" },
+  { icon: "inspiratie",  naam: "Inspiratie & troost",  omschrijving: "Gedichten, citaten en teksten die steunen" },
+  { icon: "handreiking", naam: "Handreikingen",        omschrijving: "Concrete oefeningen voor zware momenten" },
 ];
 
 /** Leidende uitlijn-tag van een alinea afsplitsen: [midden] = gecentreerd, [links] = links. */
@@ -47,6 +68,8 @@ interface PricingBlock {
   aanbevolen?: boolean;
   ctaTekst?: string;
   ctaUrl?: string;
+  tekstUitlijning?: "links" | "midden";
+  afbeelding?: string;
 }
 
 interface FeatureSlide {
@@ -409,6 +432,15 @@ export function LandingPageView({ slug }: { slug: string }) {
   const faqSubtitel = (page as any).faqSubtitel as string | undefined;
   const voorWieSubtitel = (page as any).voorWieSubtitel as string | undefined;
 
+  // "Wat je krijgt"-rij: eigen items uit de admin, anders de standaardrij.
+  let watItems: WatItem[] = ACCOUNT_FEATURES;
+  try {
+    const parsed = (page as any).watJeKrijgtJson ? JSON.parse((page as any).watJeKrijgtJson) : null;
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      watItems = parsed.filter((x: WatItem) => x && x.naam);
+    }
+  } catch { /* val terug op standaard */ }
+
   const FEATURE_ICON_MAP: Record<string, { icon: React.ElementType; kleur: string }> = {
     "Gesprekken":          { icon: MessageSquare, kleur: "#6d84a8" },
     "Reflecties":          { icon: PencilLine,    kleur: "#2d8a7a" },
@@ -595,6 +627,10 @@ export function LandingPageView({ slug }: { slug: string }) {
                         Meest gekozen
                       </span>
                     )}
+                    {block.afbeelding && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={block.afbeelding} alt={block.titel || ""} className="w-full rounded-xl object-cover mb-4" />
+                    )}
                     {block.titel && (
                       <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#a09088" }}>{block.titel}</p>
                     )}
@@ -606,16 +642,24 @@ export function LandingPageView({ slug }: { slug: string }) {
                     )}
                     {!block.subtitel && <div className="mb-4" />}
                     {block.tekst && (
-                      <div className="flex justify-center mb-5 flex-1">
-                        <ul className="space-y-2 text-left">
+                      block.tekstUitlijning === "midden" ? (
+                        <div className="mb-5 flex-1 space-y-2">
                           {block.tekst.split("\n").filter(Boolean).map((line, j) => (
-                            <li key={j} className="flex items-start gap-2 text-sm" style={{ color: "#6b6460" }}>
-                              <span className="mt-0.5 flex-shrink-0" style={{ color: "#6d84a8" }}>✓</span>
-                              <span>{line}</span>
-                            </li>
+                            <p key={j} className="text-sm" style={{ color: "#6b6460" }}>{renderInline(line)}</p>
                           ))}
-                        </ul>
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="flex justify-center mb-5 flex-1">
+                          <ul className="space-y-2 text-left">
+                            {block.tekst.split("\n").filter(Boolean).map((line, j) => (
+                              <li key={j} className="flex items-start gap-2 text-sm" style={{ color: "#6b6460" }}>
+                                <span className="mt-0.5 flex-shrink-0" style={{ color: "#6d84a8" }}>✓</span>
+                                <span>{renderInline(line)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )
                     )}
                     {block.ctaTekst && block.ctaUrl && (
                       <KoopKnopLink
@@ -676,7 +720,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* INHOUDSBLOKKEN */}
         {(() => {
-          let blocks: { titel: string; tekst: string }[] = [];
+          let blocks: { titel: string; tekst: string; afbeelding?: string }[] = [];
           try { if ((page as any).contentBlocksJson) blocks = JSON.parse((page as any).contentBlocksJson); } catch {}
           if (!blocks.length) return null;
           return (
@@ -685,6 +729,10 @@ export function LandingPageView({ slug }: { slug: string }) {
                 {blocks.map((block, i) => (
                   <div key={i} className="bg-white rounded-2xl p-6 shadow-sm space-y-3">
                     {block.titel && <h3 className="text-base font-semibold" style={{ color: "#3d3530" }}>{block.titel}</h3>}
+                    {block.afbeelding && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={block.afbeelding} alt={block.titel || ""} className="w-full rounded-xl object-cover" />
+                    )}
                     {block.tekst && (
                       <div className="text-sm leading-relaxed space-y-2" style={{ color: "#6b6460" }}>
                         {renderTextWithParagraphs(block.tekst)}
@@ -871,19 +919,27 @@ export function LandingPageView({ slug }: { slug: string }) {
         {!hideWatJeKrijgt && <section className="px-4 sm:px-6 pb-8">
           <div className="max-w-2xl mx-auto">
             <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
-              <h2 className="text-base font-semibold mb-5" style={{ color: "#3d3530" }}>Wat je krijgt</h2>
+              <h2 className="text-base font-semibold mb-5" style={{ color: "#3d3530" }}>
+                {(page as any).watJeKrijgtTitel || "Wat je krijgt"}
+              </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {ACCOUNT_FEATURES.map((f) => (
-                  <div key={f.naam} className="flex items-start gap-3">
-                    <div className={`p-2 rounded-xl flex-shrink-0 ${f.kleur}`}>
-                      <f.icon size={16} />
+                {watItems.map((f, i) => {
+                  const ico = WAT_ICONS[f.icon] ?? WAT_ICONS.gesprekken;
+                  const Icon = ico.icon;
+                  return (
+                    <div key={i} className="flex items-start gap-3">
+                      <div className={`p-2 rounded-xl flex-shrink-0 ${ico.kleur}`}>
+                        <Icon size={16} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold" style={{ color: "#3d3530" }}>{f.naam}</p>
+                        {f.omschrijving && (
+                          <p className="text-xs leading-snug mt-0.5" style={{ color: "#8a8078" }}>{f.omschrijving}</p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold" style={{ color: "#3d3530" }}>{f.naam}</p>
-                      <p className="text-xs leading-snug mt-0.5" style={{ color: "#8a8078" }}>{f.omschrijving}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
