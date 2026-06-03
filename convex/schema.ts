@@ -835,6 +835,7 @@ export default defineSchema({
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),
     giftEnabled: v.optional(v.boolean()), // Cadeau-optie tonen op checkout
+    b2bEnabled: v.optional(v.boolean()), // "Zakelijke aankoop?" tonen op checkout (undefined = aan voor bestaande producten)
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),       // "Maand", "Kwartaal", "Jaar"
       priceInCents: v.number(),
@@ -842,6 +843,7 @@ export default defineSchema({
       accessDays: v.number(),
     }))),
     // Kassakoopje: optioneel extra product dat de koper kan aanvinken
+    addOnEnabled: v.optional(v.boolean()),        // Kassakoopje tonen op checkout
     addOnLabel: v.optional(v.string()),           // bijv. "30 dagen Benji"
     addOnDescription: v.optional(v.string()),     // bijv. "Praat 30 dagen met Benji"
     addOnPriceInCents: v.optional(v.number()),    // bijv. 1000 (€10)

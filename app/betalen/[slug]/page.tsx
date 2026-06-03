@@ -526,11 +526,36 @@ export default function BetalenPage() {
           )}
           <div className="flex flex-col items-center">
             <span className="text-3xl font-bold text-primary-700">{priceFormatted}</span>
-            {vatLine && (
-              <p className="text-xs text-stone-400 mt-1">{vatLine}</p>
-            )}
           </div>
         </div>
+
+        {/* Extra tekstblokken — direct onder de prijs (bijv. "wat het programma inhoudt") */}
+        {product.extraTextBlocks && product.extraTextBlocks.length > 0 && (
+          <div className="space-y-4 mb-6">
+            {product.extraTextBlocks.map((block, i) => (
+              <div key={i} className="bg-primary-50 rounded-2xl border-2 border-primary-600 p-6">
+                {block.title && (
+                  <h2 className="text-base font-semibold text-primary-800 mb-3">{block.title}</h2>
+                )}
+                {(block as any).imageUrl && (
+                  <div className="mb-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={(block as any).imageUrl} alt={block.title ?? ""} loading="lazy" decoding="async" className="w-full rounded-xl" />
+                  </div>
+                )}
+                <div className="text-sm text-primary-700 leading-relaxed space-y-4">
+                  {block.content.split("\n\n").map((para, j) => (
+                    <p key={j}>
+                      {para.split("\n").map((line, k) =>
+                        k === 0 ? line : <>{"\n"}<br />{line}</>
+                      )}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Checkout kaart — naam, email, land, betaalgegevens */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
@@ -618,19 +643,21 @@ export default function BetalenPage() {
                     Cadeau geven?
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setB2bOpen(v => !v)}
-                  className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors ml-auto"
-                >
-                  <svg
-                    className={`w-3.5 h-3.5 transition-transform ${b2bOpen ? "rotate-90" : ""}`}
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                {product.b2bEnabled !== false && (
+                  <button
+                    type="button"
+                    onClick={() => setB2bOpen(v => !v)}
+                    className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors ml-auto"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                  Zakelijke aankoop?
-                </button>
+                    <svg
+                      className={`w-3.5 h-3.5 transition-transform ${b2bOpen ? "rotate-90" : ""}`}
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                    Zakelijke aankoop?
+                  </button>
+                )}
               </div>
 
               {/* Cadeau geven panel */}
@@ -905,36 +932,8 @@ export default function BetalenPage() {
           </div>
         </div>
 
-        {(!!product.extraTextBlocks?.length || !!product.reviews?.length) && (
+        {!!product.reviews?.length && (
           <div className="mt-6 space-y-6">
-            {/* Extra tekstblokken (indien ingesteld via admin) */}
-            {product.extraTextBlocks && product.extraTextBlocks.length > 0 && (
-              <div className="space-y-4">
-                {product.extraTextBlocks.map((block, i) => (
-                  <div key={i} className="bg-primary-50 rounded-2xl border-2 border-primary-600 p-6">
-                    {block.title && (
-                      <h2 className="text-base font-semibold text-primary-800 mb-3">{block.title}</h2>
-                    )}
-                    {(block as any).imageUrl && (
-                      <div className="mb-4">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={(block as any).imageUrl} alt={block.title ?? ""} loading="lazy" decoding="async" className="w-full rounded-xl" />
-                      </div>
-                    )}
-                    <div className="text-sm text-primary-700 leading-relaxed space-y-4">
-                      {block.content.split("\n\n").map((para, j) => (
-                        <p key={j}>
-                          {para.split("\n").map((line, k) =>
-                            k === 0 ? line : <>{"\n"}<br />{line}</>
-                          )}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* Reviews / testimonials (indien ingesteld via admin) */}
             {product.reviews && product.reviews.length > 0 && (
               <div>

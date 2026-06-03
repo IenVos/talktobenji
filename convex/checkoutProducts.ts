@@ -87,12 +87,14 @@ export const create = mutation({
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),
     giftEnabled: v.optional(v.boolean()),
+    b2bEnabled: v.optional(v.boolean()),
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),
       priceInCents: v.number(),
       billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly")),
       accessDays: v.number(),
     }))),
+    addOnEnabled: v.optional(v.boolean()),
     addOnLabel: v.optional(v.string()),
     addOnDescription: v.optional(v.string()),
     addOnPriceInCents: v.optional(v.number()),
@@ -129,7 +131,9 @@ export const create = mutation({
       followUpEmailSubject: args.followUpEmailSubject,
       followUpEmailBody: args.followUpEmailBody,
       giftEnabled: args.giftEnabled,
+      b2bEnabled: args.b2bEnabled,
       giftVariants: args.giftVariants,
+      addOnEnabled: args.addOnEnabled,
       addOnLabel: args.addOnLabel,
       addOnDescription: args.addOnDescription,
       addOnPriceInCents: args.addOnPriceInCents,
@@ -164,12 +168,14 @@ export const update = mutation({
     followUpEmailSubject: v.optional(v.string()),
     followUpEmailBody: v.optional(v.string()),
     giftEnabled: v.optional(v.boolean()),
+    b2bEnabled: v.optional(v.boolean()),
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),
       priceInCents: v.number(),
       billingPeriod: v.union(v.literal("monthly"), v.literal("quarterly"), v.literal("half_yearly"), v.literal("yearly")),
       accessDays: v.number(),
     }))),
+    addOnEnabled: v.optional(v.boolean()),
     addOnLabel: v.optional(v.string()),
     addOnDescription: v.optional(v.string()),
     addOnPriceInCents: v.optional(v.number()),
@@ -192,6 +198,14 @@ export const update = mutation({
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     for (const [key, val] of Object.entries(fields)) {
       if (val !== undefined) patch[key] = val;
+    }
+    // Kassakoopje uitgezet → velden expliciet wissen (undefined verwijdert het veld in Convex)
+    if (args.addOnEnabled === false) {
+      patch.addOnLabel = undefined;
+      patch.addOnDescription = undefined;
+      patch.addOnPriceInCents = undefined;
+      patch.addOnType = undefined;
+      patch.addOnAccessDays = undefined;
     }
     await ctx.db.patch(id, patch);
   },
