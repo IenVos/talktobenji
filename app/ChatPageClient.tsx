@@ -662,7 +662,7 @@ export default function ChatPageClient({
         <div
           className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `linear-gradient(rgba(10,15,35,0.45), rgba(10,15,35,0.6)), url(${nachtConfig?.backgroundImageUrl || "/images/achtergrond.png"})`,
+            backgroundImage: `url(${nachtConfig?.backgroundImageUrl || "/images/achtergrond.png"})`,
           }}
         />
       )}
