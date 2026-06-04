@@ -681,7 +681,7 @@ export default function ChatPageClient({
           </div>
         )}
         {/* Chat-inhoud */}
-        <div className="relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation">
+        <div className={`relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation ${isNacht && !sessionId ? "sm:flex sm:flex-col sm:justify-center" : ""}`}>
           {!sessionId && !isAddingOpener && (
             <>
               <WelcomeScreen
@@ -729,15 +729,17 @@ export default function ChatPageClient({
                   {isRecording && <p className="text-xs text-red-300 mt-1.5 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
                 </form>
               </div>
-              <div className="flex justify-center mt-3">
-                <button
-                  type="button"
-                  onClick={() => setHouvasteOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-500 hover:text-gray-700 hover:bg-white/60 transition-colors"
-                >
-                  👋 Even Houvast
-                </button>
-              </div>
+              {!isNacht && (
+                <div className="flex justify-center mt-3">
+                  <button
+                    type="button"
+                    onClick={() => setHouvasteOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-500 hover:text-gray-700 hover:bg-white/60 transition-colors"
+                  >
+                    👋 Even Houvast
+                  </button>
+                </div>
+              )}
             </>
           )}
 

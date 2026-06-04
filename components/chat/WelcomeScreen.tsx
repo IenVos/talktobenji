@@ -53,13 +53,13 @@ export function WelcomeScreen({
   const isDark = theme === "dark";
   const introClass = isDark ? "text-white/85" : "text-gray-600";
   const questionClass = isDark ? "text-white/90" : "text-gray-600";
-  const subTextClass = isDark ? "text-white/70" : "text-gray-500";
+  const subTextClass = isDark ? "text-gray-300/80" : "text-gray-500";
 
   return (
     <div className="w-full flex flex-col items-center justify-center text-center pt-2 sm:pt-4 pb-4 sm:pb-8 px-4 sm:px-6">
-      {/* Introtekst – max 2 regels */}
+      {/* Introtekst – dag: max 2 regels; nacht: eigen regelafbrekingen behouden */}
       <div className="w-full max-w-sm mx-auto mb-4 flex justify-center">
-        <p className={`text-xs sm:text-sm break-words leading-relaxed text-center text-pretty line-clamp-2 max-w-xs sm:max-w-sm ${introClass}`}>
+        <p className={`text-xs sm:text-sm break-words leading-relaxed text-center text-pretty max-w-xs sm:max-w-sm ${isDark ? "whitespace-pre-line" : "line-clamp-2"} ${introClass}`}>
           {introText?.trim() ||
             "Een warme, betrouwbare plek waar je je verhaal kwijt kunt, 24/7 aandacht en steun, zonder oordeel."}
         </p>
@@ -91,7 +91,7 @@ export function WelcomeScreen({
           <div className="flex flex-col items-center">
             <TopicButtons onSelect={onTopicSelect} topics={buttons} theme={theme} />
             {subText?.trim() && (
-              <p className={`mt-4 text-xs sm:text-sm leading-relaxed text-center text-pretty ${subTextClass}`}>
+              <p className={`mt-3 text-[11px] sm:text-xs leading-relaxed text-center text-pretty ${subTextClass}`}>
                 {subText.trim()}
               </p>
             )}
