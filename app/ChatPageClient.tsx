@@ -651,7 +651,7 @@ export default function ChatPageClient({
 
   return (
     <div
-      className="flex flex-col chat-theme bg-cover bg-center bg-no-repeat"
+      className="relative flex flex-col chat-theme bg-cover bg-center bg-no-repeat"
       style={
         {
           height: "var(--vvh, 100dvh)",
@@ -669,7 +669,7 @@ export default function ChatPageClient({
     >
       {isNacht && (
         <div
-          className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${nachtConfig?.backgroundImageUrl || "/images/achtergrond.png"})`,
           }}
