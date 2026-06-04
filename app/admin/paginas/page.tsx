@@ -619,6 +619,7 @@ const NACHT_DEFAULTS: Record<string, string> = {
   introText: "Wakker en alleen met je gedachten? Benji luistert — juist nu, midden in de nacht.",
   question: "Waar wil je over praten?",
   subText: "Anoniem · zonder oordeel · altijd beschikbaar",
+  inputPlaceholder: "Wat houdt je wakker?",
   showWaaromButton: "false",
   backgroundImageUrl: "",
 };
@@ -672,6 +673,7 @@ function BenjiNachtTab() {
           <Field label="Introtekst (bovenaan)" value={values.introText ?? ""} onChange={v => set("introText", v)} multiline />
           <Field label="Vraag boven de knoppen" value={values.question ?? ""} onChange={v => set("question", v)} />
           <Field label="Tekst onder de knoppen" value={values.subText ?? ""} onChange={v => set("subText", v)} multiline rows={2} />
+          <Field label="Tekst in het invoerveld" value={values.inputPlaceholder ?? ""} onChange={v => set("inputPlaceholder", v)} />
         </div>
       </div>
 

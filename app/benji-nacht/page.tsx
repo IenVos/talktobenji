@@ -9,6 +9,7 @@ const DEFAULT_NACHT: NachtConfig = {
   introText: "Wakker en alleen met je gedachten? Benji luistert — juist nu, midden in de nacht.",
   question: "Waar wil je over praten?",
   subText: "Anoniem · zonder oordeel · altijd beschikbaar",
+  inputPlaceholder: "Wat houdt je wakker?",
   showWaaromButton: false,
   buttons: [
     { id: "voel-me-alleen", label: "Ik kan niet slapen" },
@@ -33,6 +34,7 @@ export default async function Page({ searchParams }: PageProps) {
     if (saved.introText) config.introText = saved.introText;
     if (saved.question) config.question = saved.question;
     if (saved.subText !== undefined) config.subText = saved.subText;
+    if (saved.inputPlaceholder) config.inputPlaceholder = saved.inputPlaceholder;
     if (saved.showWaaromButton !== undefined) config.showWaaromButton = saved.showWaaromButton === "true";
     if (saved.buttons) {
       try {
