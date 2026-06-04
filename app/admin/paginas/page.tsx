@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { Save, LayoutTemplate, ExternalLink, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "homepage" | "waarom-benji" | "voor-jou" | "privacy" | "av" | "faq";
+type Tab = "homepage" | "waarom-benji" | "voor-jou" | "privacy" | "av" | "faq" | "benji-nacht";
 type Section = { title: string; body: string };
 type FaqItem = { q: string; a: string };
 type FaqSection = { title: string; items: FaqItem[] };
@@ -606,6 +606,117 @@ function VoorJouTab() {
   );
 }
 
+// ─── Tab: Benji Nacht ─────────────────────────────────────────────────────────
+const NACHT_TOPIC_OPTIONS: { id: string; label: string }[] = [
+  { id: "voel-me-alleen", label: "Ik voel me alleen" },
+  { id: "omgaan-verdriet", label: "Ik zit met verdriet" },
+  { id: "verlies-dierbare", label: "Ik heb iemand verloren" },
+  { id: "afscheid-huisdier", label: "Ik mis mijn huisdier" },
+  { id: "gewoon-praten", label: "Gewoon praten" },
+];
+
+const NACHT_DEFAULTS: Record<string, string> = {
+  introText: "Wakker en alleen met je gedachten? Benji luistert — juist nu, midden in de nacht.",
+  question: "Waar wil je over praten?",
+  subText: "Anoniem · zonder oordeel · altijd beschikbaar",
+  showWaaromButton: "false",
+  backgroundImageUrl: "",
+};
+
+const NACHT_DEFAULT_BUTTONS: { id: string; label: string }[] = [
+  { id: "voel-me-alleen", label: "Ik kan niet slapen" },
+  { id: "omgaan-verdriet", label: "Ik zit met verdriet" },
+  { id: "verlies-dierbare", label: "Ik mis iemand" },
+  { id: "gewoon-praten", label: "Ik wil gewoon praten" },
+];
+
+function BenjiNachtTab() {
+  const saved = useAdminQuery(api.pageContent.getPageContent, { pageKey: "benji-nacht" });
+  const setContent = useAdminMutation(api.pageContent.setPageContent);
+  const [values, setValues] = useState<Record<string, string>>(NACHT_DEFAULTS);
+  const [buttons, setButtons] = useState<{ id: string; label: string }[]>(NACHT_DEFAULT_BUTTONS);
+  const [saving, setSaving] = useState(false);
+  const [saved2, setSaved2] = useState(false);
+
+  useEffect(() => {
+    if (saved) {
+      setValues({ ...NACHT_DEFAULTS, ...saved });
+      if (saved.buttons) {
+        try { const p = JSON.parse(saved.buttons); if (Array.isArray(p) && p.length) setButtons(p); } catch {}
+      }
+    }
+  }, [saved]);
+
+  const set = (key: string, val: string) => setValues(p => ({ ...p, [key]: val }));
+  const setBtn = (i: number, patch: Partial<{ id: string; label: string }>) =>
+    setButtons(p => p.map((b, j) => (j === i ? { ...b, ...patch } : b)));
+  const addBtn = () => setButtons(p => [...p, { id: "gewoon-praten", label: "" }]);
+  const removeBtn = (i: number) => setButtons(p => p.filter((_, j) => j !== i));
+
+  const handleSave = async () => {
+    setSaving(true); setSaved2(false);
+    try {
+      await setContent({
+        pageKey: "benji-nacht",
+        content: JSON.stringify({ ...values, buttons: JSON.stringify(buttons.filter(b => b.label.trim())) }),
+      });
+      setSaved2(true); setTimeout(() => setSaved2(false), 2000);
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 className="text-sm font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-100">Teksten</h3>
+        <div className="space-y-4">
+          <Field label="Introtekst (bovenaan)" value={values.introText ?? ""} onChange={v => set("introText", v)} multiline />
+          <Field label="Vraag boven de knoppen" value={values.question ?? ""} onChange={v => set("question", v)} />
+          <Field label="Tekst onder de knoppen" value={values.subText ?? ""} onChange={v => set("subText", v)} multiline rows={2} />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1 pb-3 border-b border-gray-100">Nacht-achtergrond</h3>
+        <p className="text-xs text-gray-400 mb-4">Upload de sterrenhemel/achtergrond voor deze pagina.</p>
+        <ImageUploadButton label="Achtergrondafbeelding" currentUrl={values.backgroundImageUrl || undefined} onUploaded={url => set("backgroundImageUrl", url)} />
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <h3 className="text-sm font-semibold text-gray-900 mb-1 pb-3 border-b border-gray-100">Knoppen</h3>
+        <p className="text-xs text-gray-400 mb-4">Tekst = wat de bezoeker ziet. Onderwerp = waarmee het gesprek met Benji start.</p>
+        <div className="space-y-3">
+          {buttons.map((b, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                type="text" value={b.label} placeholder="Knoptekst, bv. Ik kan niet slapen"
+                onChange={e => setBtn(i, { label: e.target.value })}
+                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400"
+              />
+              <select
+                value={b.id} onChange={e => setBtn(i, { id: e.target.value })}
+                className="px-2 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
+              >
+                {NACHT_TOPIC_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+              </select>
+              <button onClick={() => removeBtn(i)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={15} /></button>
+            </div>
+          ))}
+        </div>
+        <button onClick={addBtn} className="mt-3 flex items-center gap-2 px-4 py-2 text-sm text-primary-600 hover:bg-primary-50 rounded-lg transition-colors border border-dashed border-primary-200">+ Knop toevoegen</button>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" checked={values.showWaaromButton === "true"} onChange={e => set("showWaaromButton", e.target.checked ? "true" : "false")} className="w-4 h-4" />
+          <span className="text-sm text-gray-700">Toon de &quot;Waarom TalkToBenji&quot;-knop op deze pagina</span>
+        </label>
+      </div>
+
+      <SaveBar onSave={handleSave} saving={saving} saved={saved2} />
+    </div>
+  );
+}
+
 // ─── Hoofdpagina ──────────────────────────────────────────────────────────────
 const TABS: { key: Tab; label: string; href: string }[] = [
   { key: "homepage",     label: "Homepage",            href: "/" },
@@ -614,6 +725,7 @@ const TABS: { key: Tab; label: string; href: string }[] = [
   { key: "privacy",      label: "Privacy",              href: "/privacy" },
   { key: "av",           label: "Alg. voorwaarden",    href: "/algemene-voorwaarden" },
   { key: "faq",          label: "FAQ",                  href: "/faq" },
+  { key: "benji-nacht",  label: "Benji Nacht",         href: "/benji-nacht" },
 ];
 
 export default function PaginasAdminPage() {
@@ -654,6 +766,7 @@ export default function PaginasAdminPage() {
       {tab === "privacy"      && <SectionsTab pageKey="privacy" defaults={PRIVACY_DEFAULTS} href="/privacy" />}
       {tab === "av"           && <SectionsTab pageKey="av" defaults={AV_DEFAULTS} href="/algemene-voorwaarden" />}
       {tab === "faq"          && <FaqTab />}
+      {tab === "benji-nacht"  && <BenjiNachtTab />}
     </div>
   );
 }

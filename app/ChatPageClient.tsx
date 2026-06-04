@@ -135,11 +135,23 @@ function getOrCreateAnonymousId(): string {
   }
 }
 
+export type NachtConfig = {
+  backgroundImageUrl?: string;
+  introText?: string;
+  question?: string;
+  subText?: string;
+  showWaaromButton?: boolean;
+  buttons?: { id: string; label: string }[];
+};
+
 export default function ChatPageClient({
   searchParams = {},
+  nachtConfig,
 }: {
   searchParams?: SearchParamsProp;
+  nachtConfig?: NachtConfig;
 }) {
+  const isNacht = !!nachtConfig;
   const router = useRouter();
   const { isLoading: convexAuthLoading } = useConvexAuth();
   const { data: session, status } = useSession();
@@ -630,7 +642,9 @@ export default function ChatPageClient({
           "--chat-accent": accent,
           "--chat-accent-hover": accentHover,
           "--chat-accent-dark": accentDark,
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${preferencesData?.backgroundImageUrl || "/images/achtergrond.png"})`,
+          backgroundImage: isNacht
+            ? `linear-gradient(rgba(10,15,35,0.45), rgba(10,15,35,0.6)), url(${nachtConfig?.backgroundImageUrl || "/images/achtergrond.png"})`
+            : `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${preferencesData?.backgroundImageUrl || "/images/achtergrond.png"})`,
         } as React.CSSProperties
       }
     >
@@ -655,6 +669,12 @@ export default function ChatPageClient({
               <WelcomeScreen
                 showTopicButtons={showTopicButtons}
                 onTopicSelect={handleTopicSelect}
+                theme={isNacht ? "dark" : "light"}
+                introText={nachtConfig?.introText}
+                question={nachtConfig?.question}
+                subText={nachtConfig?.subText}
+                buttons={nachtConfig?.buttons}
+                showWaaromButton={nachtConfig?.showWaaromButton ?? !isNacht}
               />
               <div className="w-full max-w-sm mx-auto mt-4">
                 <form onSubmit={handleSubmit} className="w-full rounded-xl bg-primary-900 px-3 py-2.5 sm:py-3">
