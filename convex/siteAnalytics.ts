@@ -115,6 +115,23 @@ export const deleteOldViews = mutation({
   },
 });
 
+/** Verwijder koopknop-kliks van vóór een bepaald tijdstip (admin only).
+ *  Gebruikt om onbetrouwbare oude klikdata op te schonen na de sendBeacon-fix. */
+export const deleteButtonClicksBefore = mutation({
+  args: { adminToken: v.string(), before: v.number() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const old = await ctx.db
+      .query("buttonClicks")
+      .withIndex("by_timestamp", (q) => q.lt("timestamp", args.before))
+      .collect();
+    for (const click of old) {
+      await ctx.db.delete(click._id);
+    }
+    return old.length;
+  },
+});
+
 /** Sla een koopknop-klik op (publiek, geen auth vereist). */
 export const trackButtonClick = mutation({
   args: {
