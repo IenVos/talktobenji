@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { GlobalMenu } from "./GlobalMenu";
 
 const HEADER_LOGO = "/images/benji-logo-2.png";
@@ -48,9 +49,11 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
           <button
             type="button"
             onClick={onLogoClick}
-            className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none bg-transparent border-0 p-0 text-left"
-            aria-label="Naar Talk To Benji"
+            className="flex items-center gap-2 min-w-0 group cursor-pointer no-underline outline-none bg-transparent border-0 p-0 text-left"
+            aria-label="Terug naar startscherm"
+            title="Terug naar startscherm"
           >
+            <ArrowLeft size={18} className="text-primary-400 group-hover:text-primary-300 flex-shrink-0" />
             {logoContent}
           </button>
         ) : (
