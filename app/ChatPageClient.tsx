@@ -682,7 +682,7 @@ export default function ChatPageClient({
           </div>
         )}
         {/* Chat-inhoud */}
-        <div className={`relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation ${isNacht && !sessionId ? "sm:flex sm:flex-col sm:justify-center" : ""}`}>
+        <div className="relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation">
           {!sessionId && !isAddingOpener && (
             <>
               <WelcomeScreen
