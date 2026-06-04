@@ -1208,10 +1208,11 @@ export default function AdminAnalytics() {
                     <th className="py-2 text-right text-xs font-medium text-primary-500">Uniek</th>
                     <th className="py-2 text-right text-xs font-medium text-primary-500">Gem. tijd</th>
                     <th className="py-2 text-right text-xs font-medium text-primary-500">CTA klikken</th>
+                    <th className="py-2 text-right text-xs font-medium text-primary-500">Checkout bereikt</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-primary-50">
-                  {adLpStats.map((lp: { slug: string; path: string; title: string; visits: number; unique: number; avgDuration: number; clicks: number }) => (
+                  {adLpStats.map((lp: { slug: string; path: string; title: string; visits: number; unique: number; avgDuration: number; clicks: number; checkoutReaches: number }) => (
                     <tr key={lp.slug}>
                       <td className="py-2.5">
                         <span className="font-medium text-primary-800">{lp.title}</span>
@@ -1223,6 +1224,11 @@ export default function AdminAnalytics() {
                       <td className="py-2.5 text-right">
                         <span className={`font-semibold ${lp.clicks > 0 ? "text-green-700" : "text-primary-400"}`}>
                           {lp.clicks > 0 ? `${lp.clicks}×` : "–"}
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-right">
+                        <span className={`font-semibold ${lp.checkoutReaches > 0 ? "text-green-700" : "text-primary-400"}`}>
+                          {lp.checkoutReaches > 0 ? `${lp.checkoutReaches}×` : "–"}
                         </span>
                       </td>
                     </tr>

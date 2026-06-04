@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
     giftVariantPriceInCents, giftVariantBillingPeriod, giftVariantAccessDays, giftVariantLabel,
     countryCode, vatNumber, benjiAddon,
     addOnPriceInCents, addOnType, addOnAccessDays,
+    source, sessionId,
   } = await req.json();
 
   if (!slug) {
@@ -128,6 +129,18 @@ export async function POST(req: NextRequest) {
       }),
     },
   });
+
+  // "Checkout bereikt" loggen (server-side = niet door de browser te blokkeren).
+  // Fire-and-forget: mag de betaalflow nooit ophouden of laten falen.
+  if (typeof source === "string" && source) {
+    convex
+      .mutation(api.siteAnalytics.trackCheckoutReach, {
+        source,
+        slug,
+        sessionId: typeof sessionId === "string" ? sessionId : "",
+      })
+      .catch(() => {});
+  }
 
   return NextResponse.json({ clientSecret: paymentIntent.client_secret, invoiceNumber });
 }

@@ -323,9 +323,19 @@ export default function BetalenPage() {
     setSecretError(null);
     setClientSecret(null);
 
+    // Bron-LP (uit ?from= in de URL, anders de verwijzende pagina) + sessie meesturen,
+    // zodat de server "checkout bereikt" betrouwbaar per LP kan loggen.
+    const fromParam = new URLSearchParams(window.location.search).get("from");
+    let referrerPath = "";
+    try { if (document.referrer) referrerPath = new URL(document.referrer).pathname; } catch {}
+    const source = fromParam || referrerPath || "";
+    const sessionId = localStorage.getItem("ttb_sid") ?? "";
+
     const body = JSON.stringify({
       slug,
       countryCode: effectiveCountry,
+      source,
+      sessionId,
       ...(vatNumberCommitted && { vatNumber: vatNumberCommitted }),
       ...(addOnSelected && product?.addOnPriceInCents && {
         addOnPriceInCents: product.addOnPriceInCents,

@@ -579,6 +579,17 @@ export default defineSchema({
     ip: v.optional(v.string()),
   }).index("by_timestamp", ["timestamp"]),
 
+  // Server-side geregistreerd "checkout bereikt"-event (betrouwbaar, niet blokkeerbaar
+  // door de browser). Geen IP — alleen vanaf welke LP (source) + sessie voor ontdubbeling.
+  checkoutReaches: defineTable({
+    source: v.string(),      // pad van de LP waar de bezoeker vandaan kwam, bv. "/lp/je-mist-iemand"
+    slug: v.string(),        // checkout-product slug
+    sessionId: v.string(),
+    timestamp: v.number(),
+  })
+    .index("by_timestamp", ["timestamp"])
+    .index("by_session", ["sessionId"]),
+
   // Aankomende functies (beheerbaar via admin)
   comingSoonFeatures: defineTable({
     featureId: v.string(),   // slug voor vote-tracking

@@ -155,6 +155,36 @@ export const trackButtonClick = mutation({
   },
 });
 
+/**
+ * Registreer "checkout bereikt" — server-side aangeroepen vanuit de payment-intent route,
+ * zodat dit niet door een (mobiele) browser geblokkeerd kan worden. Geen IP.
+ * Ontdubbelt per sessie + bron + product, zodat herladen/meerdere betaalsessies niet dubbel tellen.
+ */
+export const trackCheckoutReach = mutation({
+  args: {
+    source: v.string(),
+    slug: v.string(),
+    sessionId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    if (args.sessionId) {
+      const existing = await ctx.db
+        .query("checkoutReaches")
+        .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+        .collect();
+      if (existing.some((e) => e.source === args.source && e.slug === args.slug)) {
+        return null;
+      }
+    }
+    return await ctx.db.insert("checkoutReaches", {
+      source: args.source,
+      slug: args.slug,
+      sessionId: args.sessionId,
+      timestamp: Date.now(),
+    });
+  },
+});
+
 /** Werk de verblijfsduur bij voor het meest recente bezoek van deze sessie+pad. */
 export const updateDuration = mutation({
   args: {
@@ -479,7 +509,7 @@ export const getAdLpStats = query({
     const allPages = await ctx.db.query("landingPages").collect();
     const adPages = allPages.filter((p) => (p as any).trackAds === true);
 
-    const [excludedIps, rawViews, rawClicks] = await Promise.all([
+    const [excludedIps, rawViews, rawClicks, reaches] = await Promise.all([
       ctx.db.query("analyticsExcludedIps").collect(),
       ctx.db
         .query("pageViews")
@@ -487,6 +517,10 @@ export const getAdLpStats = query({
         .collect(),
       ctx.db
         .query("buttonClicks")
+        .withIndex("by_timestamp", (q) => q.gte("timestamp", args.from).lte("timestamp", args.to))
+        .collect(),
+      ctx.db
+        .query("checkoutReaches")
         .withIndex("by_timestamp", (q) => q.gte("timestamp", args.from).lte("timestamp", args.to))
         .collect(),
     ]);
@@ -514,6 +548,7 @@ export const getAdLpStats = query({
     return uniquePages.map(({ slug, path, title }) => {
       const pageViews = views.filter((v) => v.path === path);
       const pageClicks = clicks.filter((c) => c.path === path);
+      const pageReaches = reaches.filter((r) => r.source === path);
 
       const sessions = new Set(pageViews.map((v) => v.sessionId));
       const durations = pageViews
@@ -532,6 +567,7 @@ export const getAdLpStats = query({
         unique: sessions.size,
         avgDuration,
         clicks: pageClicks.length,
+        checkoutReaches: pageReaches.length,
       };
     });
   },
