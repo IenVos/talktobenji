@@ -743,7 +743,7 @@ export default function ChatPageClient({
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1 max-w-sm">
-                      <div className="px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm">
+                      <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl text-gray-800 rounded-bl-md shadow-sm ${isNacht ? "bg-white/80 border border-white/30 backdrop-blur-sm" : "bg-white border border-gray-200"}`}>
                         <MessageContent content={displayContent} isUser={false} />
                         {parsed?.memoryText && session?.userId && (
                           <MemorySaveButton
@@ -852,7 +852,7 @@ export default function ChatPageClient({
             )}
             {(isLoading || isAddingOpener) && (
               <div className="flex justify-start">
-                <div className="max-w-sm bg-white border border-gray-200 rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
+                <div className={`max-w-sm rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm ${isNacht ? "bg-white/80 border border-white/30 backdrop-blur-sm" : "bg-white border border-gray-200"}`}>
                   <div className="flex gap-1 items-center">
                     <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '2s' }}></div>
                     <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0.3s', animationDuration: '2s' }}></div>
