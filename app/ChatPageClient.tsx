@@ -633,6 +633,13 @@ export default function ChatPageClient({
     await sendMessage(input.trim());
   };
 
+  // Nacht-pagina: terug naar het welkomstscherm (knoppen) i.p.v. wegnavigeren.
+  const handleBackToWelcome = () => {
+    setSessionId(null);
+    setShowTopicButtons(true);
+    setChatError(null);
+  };
+
   return (
     <div
       className="flex flex-col chat-theme bg-cover bg-center bg-no-repeat"
@@ -642,13 +649,24 @@ export default function ChatPageClient({
           "--chat-accent": accent,
           "--chat-accent-hover": accentHover,
           "--chat-accent-dark": accentDark,
-          backgroundImage: isNacht
-            ? `linear-gradient(rgba(10,15,35,0.45), rgba(10,15,35,0.6)), url(${nachtConfig?.backgroundImageUrl || "/images/achtergrond.png"})`
-            : `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${preferencesData?.backgroundImageUrl || "/images/achtergrond.png"})`,
+          // Nacht: achtergrond op een vaste laag (zie hieronder), dus hier geen image.
+          ...(isNacht
+            ? {}
+            : {
+                backgroundImage: `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${preferencesData?.backgroundImageUrl || "/images/achtergrond.png"})`,
+              }),
         } as React.CSSProperties
       }
     >
-      <HeaderBar />
+      {isNacht && (
+        <div
+          className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `linear-gradient(rgba(10,15,35,0.45), rgba(10,15,35,0.6)), url(${nachtConfig?.backgroundImageUrl || "/images/achtergrond.png"})`,
+          }}
+        />
+      )}
+      <HeaderBar onLogoClick={isNacht ? handleBackToWelcome : undefined} />
 
       <ConversationLimitGate
         userId={session?.userId as string | undefined}
