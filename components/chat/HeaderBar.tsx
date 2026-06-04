@@ -53,7 +53,7 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
             aria-label="Terug naar startscherm"
             title="Terug naar startscherm"
           >
-            <ArrowLeft size={18} className="text-primary-400 group-hover:text-primary-300 flex-shrink-0" />
+            <ArrowLeft size={16} className="text-white/40 group-hover:text-white/70 transition-colors flex-shrink-0" />
             {logoContent}
           </button>
         ) : (

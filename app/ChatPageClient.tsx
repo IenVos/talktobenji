@@ -675,7 +675,7 @@ export default function ChatPageClient({
           }}
         />
       )}
-      <HeaderBar onLogoClick={handleBackToWelcome} />
+      <HeaderBar onLogoClick={isNacht && sessionId ? handleBackToWelcome : undefined} />
 
       <ConversationLimitGate
         userId={session?.userId as string | undefined}
