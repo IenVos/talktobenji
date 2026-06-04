@@ -406,6 +406,13 @@ export default function ChatPageClient({
       return;
     }
 
+    // Start van een nieuw gesprek: begin bovenaan i.p.v. midden in beeld
+    // (voorkomt dat het eerste chatwolkje vanuit het midden omhoog "schiet").
+    if (isAddingOpener && (messages?.length ?? 0) === 0) {
+      mainRef.current.scrollTo({ top: 0, behavior: "auto" });
+      return;
+    }
+
     const currentCount = messages?.length ?? 0;
     const newMessageArrived = currentCount > prevMessageCountRef.current;
     prevMessageCountRef.current = currentCount;
@@ -634,7 +641,8 @@ export default function ChatPageClient({
     await sendMessage(input.trim());
   };
 
-  // Nacht-pagina: terug naar het welkomstscherm (knoppen) i.p.v. wegnavigeren.
+  // Klik op het logo: terug naar het welkomstscherm (knoppen) i.p.v. wegnavigeren,
+  // zonder het oude gesprek opnieuw te openen.
   const handleBackToWelcome = () => {
     setSessionId(null);
     setShowTopicButtons(true);
@@ -667,7 +675,7 @@ export default function ChatPageClient({
           }}
         />
       )}
-      <HeaderBar onLogoClick={isNacht ? handleBackToWelcome : undefined} />
+      <HeaderBar onLogoClick={handleBackToWelcome} />
 
       <ConversationLimitGate
         userId={session?.userId as string | undefined}
