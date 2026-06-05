@@ -142,9 +142,9 @@ export const DEFAULT_HOUVAST: HouvastContent = {
   ],
   slotTitel: "En nu?",
   slotTekst: [
-    "'Even Houvast' is er voor dit moment. Voor de dagen erna is er Niet Alleen: een programma dat je dertig dagen lang meeneemt, in jouw eigen tempo.",
-    "Elke dag een klein, persoonlijk bericht met een vraag of iets om bij stil te staan. Ruimte om te schrijven, in te spreken of een foto te bewaren die je raakt. En aan het eind een blijvend document dat helemaal van jou is.",
-    "Geen grote stappen, geen verplichtingen. Gewoon iets om op terug te vallen, zodat je het niet alleen hoeft te dragen.",
+    "'Even Houvast' is er voor dit moment. Maar verdriet stopt niet na een paar dagen, en ook daarna hoef je het niet alleen te dragen.",
+    "Niet Alleen loopt dertig dagen met je mee. Elke dag een klein, persoonlijk bericht dat past bij jouw verlies: iets om bij stil te staan, ruimte om te schrijven of in te spreken, en een plek voor de herinneringen die je wil bewaren.",
+    "Geen grote stappen, geen druk, alles in jouw eigen tempo. Gewoon iemand die naast je staat, dag voor dag, zodat de zwaarste momenten net iets lichter worden. En aan het eind houd je een blijvend document over dat helemaal van jou is.",
   ].join("\n\n"),
   briefInstructie: HOUVAST_BRIEF_INSTRUCTIE_DEFAULT,
   nietAlleenLinks: {
