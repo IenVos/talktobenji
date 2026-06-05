@@ -135,6 +135,8 @@ type FormState = {
   footerText: string;
   footerCtaUrl: string;
   trackAds: boolean;
+  houvastKnop: boolean;
+  houvastType: string;
   pricingBlocks: PricingBlockForm[];
   featureSliderLabel: string;
   featureSliderTitel: string;
@@ -239,6 +241,8 @@ const EMPTY_FORM: FormState = {
   footerText: "",
   footerCtaUrl: "",
   trackAds: false,
+  houvastKnop: false,
+  houvastType: "",
   pricingBlocks: [{ ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }],
   featureSliderLabel: "",
   featureSliderTitel: "",
@@ -494,6 +498,8 @@ export default function AdminLandingspaginasPage() {
       footerText: page.footerText ?? "",
       footerCtaUrl: (page as any).footerCtaUrl ?? "",
       trackAds: (page as any).trackAds ?? false,
+      houvastKnop: (page as any).houvastKnop ?? false,
+      houvastType: (page as any).houvastType ?? "",
       featureSliderLabel: (page as any).featureSliderLabel ?? "",
       featureSliderTitel: (page as any).featureSliderTitel ?? "",
       pricingTitel: (page as any).pricingTitel ?? "",
@@ -762,6 +768,8 @@ export default function AdminLandingspaginasPage() {
           footerText: form.footerText.trim(),
           footerCtaUrl: form.footerCtaUrl.trim(),
           trackAds: form.trackAds,
+          houvastKnop: form.houvastKnop,
+          houvastType: form.houvastType.trim() || undefined,
           pricingBlocksJson: await buildPricingBlocksJson(form.pricingBlocks),
           featureSliderLabel: form.featureSliderLabel.trim(),
           featureSliderTitel: form.featureSliderTitel.trim(),
@@ -864,6 +872,8 @@ export default function AdminLandingspaginasPage() {
           footerText: opt(form.footerText),
           footerCtaUrl: opt(form.footerCtaUrl),
           trackAds: form.trackAds,
+          houvastKnop: form.houvastKnop,
+          houvastType: form.houvastType.trim() || undefined,
           pricingBlocksJson: form.pricingBlocks.some(b => b.titel || b.prijs)
             ? JSON.stringify(form.pricingBlocks)
             : undefined,
@@ -1132,6 +1142,31 @@ export default function AdminLandingspaginasPage() {
                 />
                 <span className="text-sm text-gray-700">Ad LP — zichtbaar in analytics</span>
               </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.houvastKnop}
+                  onChange={(e) => setForm((f) => ({ ...f, houvastKnop: e.target.checked }))}
+                  className="rounded border-primary-300 text-primary-600"
+                />
+                <span className="text-sm text-gray-700">Even Houvast-knop tonen (zwevend, rechtsonder)</span>
+              </label>
+              {form.houvastKnop && (
+                <div className="ml-6">
+                  <label className={labelSmClass}>Verliestype voor de Houvast-link (bepaalt de Niet Alleen-knop in de gids)</label>
+                  <select
+                    value={form.houvastType}
+                    onChange={(e) => setForm((f) => ({ ...f, houvastType: e.target.value }))}
+                    className={inputClass}
+                  >
+                    <option value="">— standaard (persoon) —</option>
+                    <option value="persoon">Persoon</option>
+                    <option value="huisdier">Huisdier</option>
+                    <option value="scheiding">Scheiding</option>
+                    <option value="eenzaamheid">Eenzaamheid</option>
+                  </select>
+                </div>
+              )}
             </div>
 
             {/* Hero */}

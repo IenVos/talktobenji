@@ -815,6 +815,9 @@ export default defineSchema({
     kpCitaatKinderloos: v.optional(v.string()),
     kpVoordelenKinderloos: v.optional(v.string()),
     kpCtaTekstKinderloos: v.optional(v.string()),
+    // Even Houvast — zwevende knop op deze LP (tussenstap voor wie nog niet koopt)
+    houvastKnop: v.optional(v.boolean()),
+    houvastType: v.optional(v.string()), // verliestype-code voor ?type= in de houvast-link
     noindex: v.optional(v.boolean()),
     metaDescription: v.optional(v.string()),
     createdAt: v.number(),

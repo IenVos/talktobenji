@@ -154,6 +154,8 @@ export const create = mutation({
     kpCitaatKinderloos: v.optional(v.string()),
     kpVoordelenKinderloos: v.optional(v.string()),
     kpCtaTekstKinderloos: v.optional(v.string()),
+    houvastKnop: v.optional(v.boolean()),
+    houvastType: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -278,6 +280,8 @@ export const update = mutation({
     kpCitaatKinderloos: v.optional(v.string()),
     kpVoordelenKinderloos: v.optional(v.string()),
     kpCtaTekstKinderloos: v.optional(v.string()),
+    houvastKnop: v.optional(v.boolean()),
+    houvastType: v.optional(v.string()),
     noindex: v.optional(v.boolean()),
     metaDescription: v.optional(v.string()),
   },

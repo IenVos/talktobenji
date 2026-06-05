@@ -3,15 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 
-export function HouvasteKnop() {
+export function HouvasteKnop({ type }: { type?: string }) {
   const [zichtbaar, setZichtbaar] = useState(true);
 
   if (!zichtbaar) return null;
 
+  const href = type ? `/houvast/gids?type=${encodeURIComponent(type)}` : "/houvast/gids";
+
   return (
     <div className="fixed bottom-20 right-4 z-40 flex items-center">
       <Link
-        href="/houvast/gids"
+        href={href}
         className="flex items-center gap-2 text-white text-sm font-medium px-4 py-2.5 rounded-full shadow-lg transition-colors"
         style={{ backgroundColor: "#7ec8e3" }}
         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#5bb8d4")}

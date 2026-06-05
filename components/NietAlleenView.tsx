@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
+import { HouvasteKnop } from "@/app/home-concept/HouvasteKnop";
 
 interface Ervaring { tekst: string; naam: string; context?: string; }
 interface Vraag { vraag: string; antwoord: string; }
@@ -68,6 +69,9 @@ export function NietAlleenView({ slug }: { slug: string }) {
 
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>
+
+      {/* Even Houvast — zwevende knop (aan/uit per LP via admin) */}
+      {(page as any).houvastKnop && <HouvasteKnop type={(page as any).houvastType || undefined} />}
 
       {/* Achtergrond */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0 }}>

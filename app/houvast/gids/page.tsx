@@ -30,10 +30,9 @@ export default function HouvasteGidsPage() {
 
   const [stap, setStap] = useState(0);
   const [antwoorden, setAntwoorden] = useState<Record<string, string>>({});
-  const [foto, setFoto] = useState<string | null>(null);
+  const [fotos, setFotos] = useState<Record<string, string>>({});
   const [luistert, setLuistert] = useState<string | null>(null);
   const herkenningRef = useRef<any>(null);
-  const fotoInputRef = useRef<HTMLInputElement>(null);
   const [heeftSpeechSupport, setHeeftSpeechSupport] = useState(false);
 
   // Brief per mail
@@ -53,14 +52,16 @@ export default function HouvasteGidsPage() {
     if (profiel?.email) setEmail(profiel.email);
   }, [profiel?.email]);
 
-  // Laad opgeslagen antwoorden uit localStorage.
+  // Laad opgeslagen antwoorden + foto's uit localStorage.
   useEffect(() => {
     const opgeslagenAntwoorden = localStorage.getItem(`houvast-${storageKey}-antwoorden`);
-    const opgeslagenFoto = localStorage.getItem(`houvast-${storageKey}-foto`);
+    const opgeslagenFotos = localStorage.getItem(`houvast-${storageKey}-fotos`);
     if (opgeslagenAntwoorden) {
       try { setAntwoorden(JSON.parse(opgeslagenAntwoorden)); } catch {}
     }
-    if (opgeslagenFoto) setFoto(opgeslagenFoto);
+    if (opgeslagenFotos) {
+      try { setFotos(JSON.parse(opgeslagenFotos)); } catch {}
+    }
   }, [storageKey]);
 
   // Sla automatisch op bij elke wijziging.
@@ -69,9 +70,8 @@ export default function HouvasteGidsPage() {
   }, [antwoorden, storageKey]);
 
   useEffect(() => {
-    if (!foto) return;
-    localStorage.setItem(`houvast-${storageKey}-foto`, foto);
-  }, [foto, storageKey]);
+    localStorage.setItem(`houvast-${storageKey}-fotos`, JSON.stringify(fotos));
+  }, [fotos, storageKey]);
 
   const setAntwoord = (id: string, waarde: string) => {
     setAntwoorden((prev) => ({ ...prev, [id]: waarde }));
@@ -121,13 +121,19 @@ export default function HouvasteGidsPage() {
     }
   };
 
-  const verwerkFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const verwerkFoto = (momentId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const bestand = e.target.files?.[0];
     if (!bestand) return;
     const lezer = new FileReader();
-    lezer.onload = (ev) => setFoto(ev.target?.result as string);
+    lezer.onload = (ev) => setFotos((prev) => ({ ...prev, [momentId]: ev.target?.result as string }));
     lezer.readAsDataURL(bestand);
   };
+  const verwijderFoto = (momentId: string) =>
+    setFotos((prev) => {
+      const next = { ...prev };
+      delete next[momentId];
+      return next;
+    });
 
   const stuurBrief = async () => {
     if (!email.trim() || !email.includes("@")) return;
@@ -369,18 +375,18 @@ export default function HouvasteGidsPage() {
                   )}
                 </div>
 
-                {/* Foto upload */}
+                {/* Foto upload — per moment */}
                 {huidigMoment.metFoto && (
                   <div className="space-y-2">
                     <p className="text-xs" style={{ color: "#8a8078" }}>
                       Voeg een foto toe als je wil — iets wat bij dit moment past.
                     </p>
-                    {foto ? (
+                    {fotos[huidigMoment.id] ? (
                       <div className="relative">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={foto} alt="" className="w-full rounded-xl" />
+                        <img src={fotos[huidigMoment.id]} alt="" className="w-full rounded-xl" />
                         <button
-                          onClick={() => setFoto(null)}
+                          onClick={() => verwijderFoto(huidigMoment.id)}
                           className="absolute top-2 right-2 text-xs px-2 py-1 rounded-lg"
                           style={{ background: "rgba(0,0,0,0.45)", color: "#fff" }}
                         >
@@ -389,14 +395,21 @@ export default function HouvasteGidsPage() {
                       </div>
                     ) : (
                       <>
-                        <input ref={fotoInputRef} type="file" accept="image/*" className="hidden" onChange={verwerkFoto} />
-                        <button
-                          onClick={() => fotoInputRef.current?.click()}
-                          className="text-xs font-medium px-3 py-2 rounded-xl"
+                        <input
+                          key={huidigMoment.id}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          id={`foto-${huidigMoment.id}`}
+                          onChange={(e) => verwerkFoto(huidigMoment.id, e)}
+                        />
+                        <label
+                          htmlFor={`foto-${huidigMoment.id}`}
+                          className="inline-block cursor-pointer text-xs font-medium px-3 py-2 rounded-xl"
                           style={{ background: "rgba(109,132,168,0.10)", color: "#6d84a8" }}
                         >
                           + Foto toevoegen
-                        </button>
+                        </label>
                       </>
                     )}
                   </div>
