@@ -380,6 +380,7 @@ function FormatToolbar({
 
 export default function AdminLandingspaginasPage() {
   const pages = useAdminQuery(api.landingPages.list, {});
+  const verliestypen = useAdminQuery(api.verliesTypen.list, {}) as { code: string; naam: string }[] | undefined;
   const createPage = useAdminMutation(api.landingPages.create);
   const updatePage = useAdminMutation(api.landingPages.update);
   const removePage = useAdminMutation(api.landingPages.remove);
@@ -1160,10 +1161,9 @@ export default function AdminLandingspaginasPage() {
                     className={inputClass}
                   >
                     <option value="">— standaard (persoon) —</option>
-                    <option value="persoon">Persoon</option>
-                    <option value="huisdier">Huisdier</option>
-                    <option value="scheiding">Scheiding</option>
-                    <option value="eenzaamheid">Eenzaamheid</option>
+                    {(verliestypen ?? []).map((t) => (
+                      <option key={t.code} value={t.code}>{t.naam}</option>
+                    ))}
                   </select>
                 </div>
               )}

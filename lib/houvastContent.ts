@@ -152,6 +152,7 @@ export const DEFAULT_HOUVAST: HouvastContent = {
     huisdier: "/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
     scheiding: "/lp/mijn-relatie-is-voorbij",
     eenzaamheid: "/lp/ik-voel-me-eenzaam",
+    kinderloos: "/lp/ongewenst-kinderloos-die-pijn-gaat-nooit-weg",
   },
 };
 

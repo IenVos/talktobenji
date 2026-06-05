@@ -214,6 +214,7 @@ export const genereerEnVerstuurBrief = action({
       huisdier: "/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
       scheiding: "/lp/mijn-relatie-is-voorbij",
       eenzaamheid: "/lp/ik-voel-me-eenzaam",
+      kinderloos: "/lp/ongewenst-kinderloos-die-pijn-gaat-nooit-weg",
     };
     const links: Record<string, string> = saved?.nietAlleenLinks ?? {};
     const type = args.verliesType || "persoon";

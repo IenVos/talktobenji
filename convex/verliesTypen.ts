@@ -13,6 +13,7 @@ const INGEBOUWDE_TYPEN = [
   { code: "huisdier", naam: "Huisdier — verlies van een dier" },
   { code: "scheiding", naam: "Scheiding — einde van een relatie" },
   { code: "eenzaamheid", naam: "Eenzaamheid — je voelt je eenzaam" },
+  { code: "kinderloos", naam: "Kinderloos — ongewenste kinderloosheid" },
 ];
 
 const VOORKEURSVOLGORDE = ["persoon", "huisdier", "scheiding", "eenzaamheid", "kinderloos"];

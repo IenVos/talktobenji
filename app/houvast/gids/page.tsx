@@ -9,13 +9,14 @@ import Image from "next/image";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { mergeHouvast, alineas, type HouvastContent } from "@/lib/houvastContent";
 
-// Zachte type-keuze op het welkomstscherm (alleen getoond als er geen ?type= in de URL zit).
-const TYPE_KEUZES: { code: string; label: string }[] = [
-  { code: "persoon", label: "Ik mis iemand" },
-  { code: "huisdier", label: "Ik mis mijn huisdier" },
-  { code: "scheiding", label: "Mijn relatie is voorbij" },
-  { code: "eenzaamheid", label: "Ik voel me eenzaam" },
-];
+// Warme labels voor de type-keuze; valt terug op de naam uit de verliestypen-tabel.
+const WARME_LABELS: Record<string, string> = {
+  persoon: "Ik mis iemand",
+  huisdier: "Ik mis mijn huisdier",
+  scheiding: "Mijn relatie is voorbij",
+  eenzaamheid: "Ik voel me eenzaam",
+  kinderloos: "Mijn kinderwens kwam niet uit",
+};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,15 @@ export default function HouvasteGidsPage() {
   const savedContent = useQuery(api.pageContent.getPublicPageContent, { pageKey: "houvast" });
   const content: HouvastContent = mergeHouvast(savedContent as Partial<HouvastContent> | null | undefined);
   const MOMENTEN = content.momenten;
+
+  // Verliestypen (dynamisch) voor de zachte keuze op het welkomstscherm.
+  const verliestypen = useQuery(api.verliesTypen.listPublic, {}) as
+    | { code: string; naam: string; keuzePaginaLabel?: string }[]
+    | undefined;
+  const typeKeuzes = (verliestypen ?? []).map((t) => ({
+    code: t.code,
+    label: t.keuzePaginaLabel || WARME_LABELS[t.code] || t.naam,
+  }));
 
   const storageKey = token || "houvast-open";
 
@@ -321,7 +331,7 @@ export default function HouvasteGidsPage() {
                       Zo kunnen we het straks beter op jou afstemmen. Je hoeft niet te kiezen als je dat niet wil.
                     </p>
                     <div className="flex flex-wrap gap-2 pt-1">
-                      {TYPE_KEUZES.map((t) => (
+                      {typeKeuzes.map((t) => (
                         <button
                           key={t.code}
                           type="button"

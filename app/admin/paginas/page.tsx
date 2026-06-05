@@ -721,15 +721,12 @@ function BenjiNachtTab() {
 }
 
 // ─── Tab: Even Houvast ────────────────────────────────────────────────────────
-const HOUVAST_VERLIESTYPEN: { code: string; label: string }[] = [
-  { code: "persoon", label: "Persoon — verlies van iemand" },
-  { code: "huisdier", label: "Huisdier — verlies van een dier" },
-  { code: "scheiding", label: "Scheiding — einde van een relatie" },
-  { code: "eenzaamheid", label: "Eenzaamheid" },
-];
-
 function EvenHouvastTab() {
   const saved = useAdminQuery(api.pageContent.getPageContent, { pageKey: "houvast" });
+  // Verliestypen dynamisch — nieuwe types verschijnen automatisch in de doorstroom-lijst.
+  const verliestypen = useAdminQuery(api.verliesTypen.list, {}) as
+    | { code: string; naam: string }[]
+    | undefined;
   const setContent = useAdminMutation(api.pageContent.setPageContent);
   const [content, setContent2] = useState<HouvastContent>(DEFAULT_HOUVAST);
   const [saving, setSaving] = useState(false);
@@ -794,9 +791,10 @@ function EvenHouvastTab() {
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
         <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">Doorstroom naar Niet Alleen (per verliestype)</h3>
         <p className="text-xs text-gray-400 mb-2">De knop onderaan wijst naar de juiste pagina op basis van <strong>?type=</strong> in de URL.</p>
-        {HOUVAST_VERLIESTYPEN.map((t) => (
-          <Field key={t.code} label={t.label} value={content.nietAlleenLinks[t.code] ?? ""} onChange={(v) => setLink(t.code, v)} />
+        {(verliestypen ?? []).map((t) => (
+          <Field key={t.code} label={t.naam} value={content.nietAlleenLinks[t.code] ?? ""} onChange={(v) => setLink(t.code, v)} />
         ))}
+        <p className="text-xs text-gray-400">Voeg nieuwe verliestypen toe bij <strong>Niet Alleen → Verliestypen</strong>; ze verschijnen dan automatisch hier.</p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
