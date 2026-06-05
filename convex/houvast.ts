@@ -15,7 +15,8 @@ Toon en stijl:
 - Nederlands, warm, zacht, dichtbij. Geen therapeuten-taal, geen clichés, geen oplossingen of advies.
 - Begin niet met hun woorden letterlijk te herhalen. Weef hun antwoorden tot één geheel.
 - Een korte opening, hun woorden verweven in een lopende tekst, en een slotzin die dit moment afsluit.
-- Kort: 150–220 woorden. Geen kopjes, geen opsommingen, geen aanhef als "Beste". Schrijf in de tweede persoon ("je").
+- Kort: 150 tot 220 woorden. Geen kopjes, geen opsommingen, geen aanhef als "Beste". Schrijf in de tweede persoon ("je").
+- Gebruik GEEN streepjes of gedachtestreepjes (— of –) in de tekst. Schrijf gewone zinnen met komma's en punten.
 - Verzin geen feiten, namen of relaties die ze niet zelf hebben benoemd.
 - Eindig met iets wat rust en nabijheid geeft, zonder te beloven dat het overgaat.
 
@@ -159,16 +160,23 @@ export const registreer = action({
   },
 });
 
-// Brief-mail: zachte wrapper zonder founder-handtekening (de brief komt van Benji).
+// Brief-mail: zelfde sans-serif look als de overige mails, ondertekend door Benji.
+const BRIEF_FONT = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
 function wrapperBrief(inhoud: string): string {
   return `
-    <div style="font-family: Georgia, 'Times New Roman', serif; max-width: 560px; margin: 0 auto;
-                color: #3d3530; background: #fdf9f4; padding: 36px 28px;">
-      <p style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#8a8078;margin:0 0 20px 0;">Even Houvast</p>
+    <div style="font-family: ${BRIEF_FONT}; max-width: 560px; margin: 0 auto;
+                color: #2d3748; background: #fdf9f4; padding: 36px 28px;">
+      <p style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#9a9088;margin:0 0 20px 0;">Even Houvast</p>
       ${inhoud}
-      <p style="font-size:13px;color:#a09890;margin-top:36px;border-top:1px solid #e8e0d8;padding-top:18px;">
-        Met warmte, Benji · Talk To Benji
-      </p>
+      <p style="font-size:15px;margin-top:28px;color:#4a5568;">Met warme groet,<br>Benji van</p>
+      <div style="text-align:center;margin-top:30px;">
+        <a href="https://www.talktobenji.com" style="font-size:16px;font-weight:600;color:#6d84a8;text-decoration:none;">talktobenji</a>
+        <p style="font-size:13px;color:#718096;margin:10px 0 0 0;">contact</p>
+        <p style="font-size:13px;margin:2px 0 0 0;">
+          <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;text-decoration:none;">contactmetien@talktobenji.com</a>
+        </p>
+      </div>
     </div>`;
 }
 
@@ -203,7 +211,9 @@ export const genereerEnVerstuurBrief = action({
     // Doel-URL voor de Niet Alleen-knop in de mail (per verliestype, absoluut maken).
     const links: Record<string, string> = saved?.nietAlleenLinks ?? {};
     const rawUrl =
-      (args.verliesType && links[args.verliesType]) || links.persoon || "/niet-alleen";
+      (args.verliesType && links[args.verliesType]) ||
+      links.persoon ||
+      "/lp/je-hoeft-het-niet-alleen-te-doen";
     const nietAlleenUrl = rawUrl.startsWith("http")
       ? rawUrl
       : `https://talktobenji.com${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`;
@@ -232,8 +242,10 @@ export const genereerEnVerstuurBrief = action({
     });
     if (!response.ok) throw new Error(`AI-fout: ${await response.text()}`);
     const data = (await response.json()) as { content?: Array<{ text?: string }> };
-    const brief: string = (data.content?.[0]?.text ?? "").trim();
-    if (!brief) throw new Error("Lege brief gegenereerd.");
+    const briefRaw: string = (data.content?.[0]?.text ?? "").trim();
+    if (!briefRaw) throw new Error("Lege brief gegenereerd.");
+    // Geen gedachtestreepjes in de tekst (— of –) → vervang door een komma.
+    const brief = briefRaw.replace(/\s*[—–]\s*/g, ", ").replace(/, ,/g, ",");
 
     const aanhef = args.naam ? `Lieve ${args.naam},` : "Voor jou,";
     const briefHtml = brief

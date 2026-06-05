@@ -40,7 +40,8 @@ Toon en stijl:
 - Nederlands, warm, zacht, dichtbij. Geen therapeuten-taal, geen clichés, geen oplossingen of advies.
 - Begin niet met hun woorden letterlijk te herhalen. Weef hun antwoorden tot één geheel.
 - Een korte opening, hun woorden verweven in een lopende tekst, en een slotzin die dit moment afsluit.
-- Kort: 150–220 woorden. Geen kopjes, geen opsommingen, geen aanhef als "Beste". Schrijf in de tweede persoon ("je").
+- Kort: 150 tot 220 woorden. Geen kopjes, geen opsommingen, geen aanhef als "Beste". Schrijf in de tweede persoon ("je").
+- Gebruik GEEN streepjes of gedachtestreepjes (— of –) in de tekst. Schrijf gewone zinnen met komma's en punten.
 - Verzin geen feiten, namen of relaties die ze niet zelf hebben benoemd.
 - Eindig met iets wat rust en nabijheid geeft, zonder te beloven dat het overgaat.
 
@@ -145,10 +146,10 @@ export const DEFAULT_HOUVAST: HouvastContent = {
   ].join("\n\n"),
   briefInstructie: HOUVAST_BRIEF_INSTRUCTIE_DEFAULT,
   nietAlleenLinks: {
-    persoon: "/niet-alleen",
-    huisdier: "/niet-alleen",
-    scheiding: "/niet-alleen",
-    eenzaamheid: "/niet-alleen",
+    persoon: "/lp/je-hoeft-het-niet-alleen-te-doen",
+    huisdier: "/lp/je-hoeft-het-niet-alleen-te-doen",
+    scheiding: "/lp/je-hoeft-het-niet-alleen-te-doen",
+    eenzaamheid: "/lp/je-hoeft-het-niet-alleen-te-doen",
   },
 };
 
