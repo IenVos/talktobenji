@@ -194,7 +194,7 @@ export default function HouvasteGidsPage() {
   const nietAlleenUrl =
     (verliesType && content.nietAlleenLinks[verliesType]) ||
     content.nietAlleenLinks.persoon ||
-    "/niet-alleen";
+    "/lp/je-hoeft-het-niet-alleen-te-doen";
 
   // ─── Token aanwezig maar nog aan het laden ───────────────────────────────────
   if (heeftToken && profiel === undefined) {
