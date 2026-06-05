@@ -192,10 +192,21 @@ export const genereerEnVerstuurBrief = action({
     const ingevuld = args.antwoorden.filter((a) => a.antwoord && a.antwoord.trim());
     if (ingevuld.length === 0) throw new Error("Geen antwoorden om een brief van te maken.");
 
-    // Brief-instructie uit de admin (fallback op default).
-    const saved = await ctx.runQuery(api.pageContent.getPublicPageContent, { pageKey: "houvast" });
+    // Content uit de admin (brief-toon + Niet Alleen-links per verliestype).
+    const saved = (await ctx.runQuery(api.pageContent.getPublicPageContent, {
+      pageKey: "houvast",
+    })) as Record<string, any> | null;
     const briefInstructie =
-      (saved?.briefInstructie as string | undefined)?.trim() || BRIEF_INSTRUCTIE_DEFAULT;
+      (typeof saved?.briefInstructie === "string" ? saved.briefInstructie.trim() : "") ||
+      BRIEF_INSTRUCTIE_DEFAULT;
+
+    // Doel-URL voor de Niet Alleen-knop in de mail (per verliestype, absoluut maken).
+    const links: Record<string, string> = saved?.nietAlleenLinks ?? {};
+    const rawUrl =
+      (args.verliesType && links[args.verliesType]) || links.persoon || "/niet-alleen";
+    const nietAlleenUrl = rawUrl.startsWith("http")
+      ? rawUrl
+      : `https://talktobenji.com${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`;
 
     const userContent = [
       args.naam ? `Naam: ${args.naam}` : null,
@@ -233,9 +244,19 @@ export const genereerEnVerstuurBrief = action({
       )
       .join("");
 
+    const ctaHtml = `
+      <div style="margin:30px 0 4px 0;text-align:center;border-top:1px solid #e8e0d8;padding-top:26px;">
+        <p style="font-size:14px;color:#6b6460;margin:0 0 16px 0;">Voor de langere weg is er Niet Alleen — dag voor dag, samen.</p>
+        <a href="${nietAlleenUrl}" style="background-color:#6d84a8;color:#ffffff;padding:13px 26px;border-radius:10px;
+           text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">
+          Ontdek Niet Alleen
+        </a>
+      </div>`;
+
     const html = wrapperBrief(`
       <p style="font-size:16px;margin:0 0 18px 0;color:#3d3530;">${aanhef}</p>
       ${briefHtml}
+      ${ctaHtml}
     `);
 
     await verstuurEmail({
