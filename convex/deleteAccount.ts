@@ -75,6 +75,26 @@ export const deleteAccount = mutation({
     ]);
     for (const r of [...subs, ...usage, ...pushSubs]) await ctx.db.delete(r._id);
 
+    // 5b. Niet Alleen-profiel(en): stopt de dagelijkse Niet Alleen-mails (drip-cron
+    //     leest deze tabel) én wist opgeslagen profiel-/dagfoto's. Match op userId
+    //     én email, want een profiel kan aan beide gekoppeld zijn.
+    const naProfiles = [
+      ...(await ctx.db.query("nietAlleenProfiles").withIndex("by_user", (q) => q.eq("userId", userId)).collect()),
+      ...(await ctx.db.query("nietAlleenProfiles").withIndex("by_email", (q) => q.eq("email", email)).collect()),
+    ];
+    const seenNaProfiles = new Set<string>();
+    for (const profiel of naProfiles) {
+      if (seenNaProfiles.has(profiel._id)) continue;
+      seenNaProfiles.add(profiel._id);
+      if (profiel.profielFoto) {
+        try { await ctx.storage.delete(profiel.profielFoto); } catch {}
+      }
+      for (const foto of profiel.dagFotos ?? []) {
+        try { await ctx.storage.delete(foto.storageId); } catch {}
+      }
+      await ctx.db.delete(profiel._id);
+    }
+
     // 6. Wachtwoord reset tokens + credentials
     const userRecord = await ctx.db
       .query("users")
