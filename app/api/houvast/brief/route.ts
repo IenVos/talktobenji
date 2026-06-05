@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { email, name, verliesType, antwoorden } = body ?? {};
+  const { email, name, verliesType, antwoorden, fotos } = body ?? {};
 
   if (!email || typeof email !== "string" || !email.includes("@")) {
     return NextResponse.json({ error: "Ongeldig e-mailadres" }, { status: 400 });
@@ -31,12 +31,20 @@ export async function POST(req: NextRequest) {
     .filter((a: any) => a && typeof a.vraag === "string" && typeof a.antwoord === "string")
     .map((a: any) => ({ vraag: a.vraag.slice(0, 500), antwoord: a.antwoord.slice(0, 4000) }));
 
+  // Foto's: alleen base64 data-URL's, max 5, elk tot ~3MB (om de request behapbaar te houden).
+  const schoneFotos: string[] = Array.isArray(fotos)
+    ? fotos
+        .filter((f: any) => typeof f === "string" && f.startsWith("data:image/") && f.length < 4_000_000)
+        .slice(0, 5)
+    : [];
+
   try {
     await convex.action(api.houvast.genereerEnVerstuurBrief, {
       email,
       naam: name && typeof name === "string" ? name.trim() : undefined,
       verliesType: verliesType && typeof verliesType === "string" ? verliesType : undefined,
       antwoorden: schoon,
+      fotos: schoneFotos.length > 0 ? schoneFotos : undefined,
     });
 
     // MailerLite — voeg toe aan groep Gratis-gebruikers (zoals de registreer-flow).

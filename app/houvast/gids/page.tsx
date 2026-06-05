@@ -169,6 +169,7 @@ export default function HouvasteGidsPage() {
           name: profiel?.name ?? undefined,
           verliesType: actiefType || undefined,
           antwoorden: MOMENTEN.map((m) => ({ vraag: m.vraag, antwoord: antwoorden[m.id] || "" })),
+          fotos: Object.values(fotos).filter(Boolean),
         }),
       });
       if (!res.ok) throw new Error("Fout");

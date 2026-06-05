@@ -160,6 +160,20 @@ export const registreer = action({
   },
 });
 
+// Zet een base64 data-URL om naar een Blob (voor opslag in Convex storage).
+function dataUrlToBlob(dataUrl: string): Blob | null {
+  const m = dataUrl.match(/^data:(.+?);base64,(.*)$/);
+  if (!m) return null;
+  try {
+    const binary = atob(m[2]);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: m[1] });
+  } catch {
+    return null;
+  }
+}
+
 // Brief-mail: zelfde sans-serif look als de overige mails, ondertekend door Benji.
 const BRIEF_FONT = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
@@ -190,6 +204,7 @@ export const genereerEnVerstuurBrief = action({
     naam: v.optional(v.string()),
     verliesType: v.optional(v.string()),
     antwoorden: v.array(v.object({ vraag: v.string(), antwoord: v.string() })),
+    fotos: v.optional(v.array(v.string())), // base64 data-URL's
   },
   handler: async (ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -264,6 +279,33 @@ export const genereerEnVerstuurBrief = action({
       )
       .join("");
 
+    // Foto's: opslaan in Convex storage en als echte URL in de mail tonen.
+    let fotoHtml = "";
+    const fotoUrls: string[] = [];
+    for (const dataUrl of args.fotos ?? []) {
+      const blob = dataUrlToBlob(dataUrl);
+      if (!blob) continue;
+      try {
+        const storageId = await ctx.storage.store(blob);
+        const url = await ctx.storage.getUrl(storageId);
+        if (url) fotoUrls.push(url);
+      } catch {
+        /* sla deze foto over */
+      }
+    }
+    if (fotoUrls.length > 0) {
+      fotoHtml = `
+        <div style="margin:26px 0 4px 0;">
+          <p style="font-size:13px;color:#8a8078;margin:0 0 12px 0;">De foto's die je bewaarde:</p>
+          ${fotoUrls
+            .map(
+              (u) =>
+                `<img src="${u}" alt="" style="max-width:100%;border-radius:10px;margin:0 0 12px 0;display:block;" />`
+            )
+            .join("")}
+        </div>`;
+    }
+
     const ctaHtml = `
       <div style="margin:30px 0 4px 0;text-align:center;border-top:1px solid #e8e0d8;padding-top:26px;">
         <p style="font-size:14px;color:#6b6460;margin:0 0 16px 0;">Voor de langere weg is er Niet Alleen — dag voor dag, samen.</p>
@@ -276,6 +318,7 @@ export const genereerEnVerstuurBrief = action({
     const html = wrapperBrief(`
       <p style="font-size:16px;margin:0 0 18px 0;color:#3d3530;">${aanhef}</p>
       ${briefHtml}
+      ${fotoHtml}
       ${ctaHtml}
     `);
 
