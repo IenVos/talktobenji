@@ -633,13 +633,14 @@ export const getFeatureStats = query({
 
     const inRange = (ts: number) => ts >= args.from && ts <= args.to;
 
-    const [notes, emotions, checkIns, goals, memories, houvasteProfielen, users, preferences, excludedEmailRecords] = await Promise.all([
+    const [notes, emotions, checkIns, goals, memories, houvasteProfielen, houvastBrieven, users, preferences, excludedEmailRecords] = await Promise.all([
       ctx.db.query("notes").collect(),
       ctx.db.query("emotionEntries").collect(),
       ctx.db.query("checkInEntries").collect(),
       ctx.db.query("goals").collect(),
       ctx.db.query("memories").collect(),
       ctx.db.query("houvasteProfielen").collect(),
+      ctx.db.query("houvastBrieven").collect(),
       ctx.db.query("users").collect(),
       ctx.db.query("userPreferences").collect(),
       ctx.db.query("analyticsExcludedEmails").collect(),
@@ -652,14 +653,27 @@ export const getFeatureStats = query({
       users.filter((u: any) => u.email && excludedEmailSet.has(u.email.toLowerCase())).map((u: any) => u._id)
     );
 
-    const userEmails = new Set(users.map((u: any) => u.email));
+    const userEmailsLc = new Set(users.map((u: any) => (u.email ?? "").toLowerCase()));
 
-    // Houvast funnel — uitgesloten emails eruit filteren
-    const houvasteNietUitgesloten = houvasteProfielen.filter(
-      (h: any) => !excludedEmailSet.has(h.email.toLowerCase())
-    );
+    // Houvast funnel — combineert de oude aanmeldflow (houvasteProfielen) en de
+    // nieuwe Even Houvast-flow (houvastBrieven: e-mail aan het eind). Uniek per e-mail.
+    const houvastAanvraagMap = new Map<string, { email: string; name: string | null; createdAt: number }>();
+    for (const h of houvasteProfielen) {
+      const lc = (h.email ?? "").toLowerCase();
+      if (!lc || excludedEmailSet.has(lc)) continue;
+      const prev = houvastAanvraagMap.get(lc);
+      if (!prev || h.createdAt < prev.createdAt) houvastAanvraagMap.set(lc, { email: h.email, name: h.name ?? null, createdAt: h.createdAt });
+    }
+    for (const b of houvastBrieven) {
+      const lc = (b.email ?? "").toLowerCase();
+      if (!lc || excludedEmailSet.has(lc)) continue;
+      const prev = houvastAanvraagMap.get(lc);
+      if (!prev) houvastAanvraagMap.set(lc, { email: b.email, name: null, createdAt: b.sentAt });
+      else if (b.sentAt < prev.createdAt) prev.createdAt = b.sentAt;
+    }
+    const houvasteNietUitgesloten = Array.from(houvastAanvraagMap.values());
     const houvasteInPeriod = houvasteNietUitgesloten.filter((h: any) => inRange(h.createdAt));
-    const houvasteConverted = houvasteInPeriod.filter((h: any) => userEmails.has(h.email));
+    const houvasteConverted = houvasteInPeriod.filter((h: any) => userEmailsLc.has(h.email.toLowerCase()));
 
     // Feature gebruik in periode — gebruik _creationTime als fallback als createdAt ontbreekt
     const ts = (item: any) => item.createdAt ?? item._creationTime ?? 0;
@@ -744,13 +758,32 @@ export const getRecentHouvasteSignups = query({
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const profielen = await ctx.db.query("houvasteProfielen").order("desc").collect();
-    const recent = profielen.filter((p: any) => p.createdAt >= since);
+    const [profielen, brieven] = await Promise.all([
+      ctx.db.query("houvasteProfielen").collect(),
+      ctx.db.query("houvastBrieven").collect(),
+    ]);
+    // Combineer oude aanmeldflow + nieuwe Even Houvast-flow, uniek per e-mail.
+    const map = new Map<string, { name: string | null; email: string; createdAt: number }>();
+    for (const p of profielen) {
+      const lc = (p.email ?? "").toLowerCase();
+      if (!lc) continue;
+      const prev = map.get(lc);
+      if (!prev || p.createdAt > prev.createdAt) map.set(lc, { name: p.name ?? null, email: p.email, createdAt: p.createdAt });
+    }
+    for (const b of brieven) {
+      const lc = (b.email ?? "").toLowerCase();
+      if (!lc) continue;
+      const prev = map.get(lc);
+      if (!prev || b.sentAt > prev.createdAt) map.set(lc, { name: prev?.name ?? null, email: b.email, createdAt: b.sentAt });
+    }
+    const recent = Array.from(map.values())
+      .filter((p) => p.createdAt >= since)
+      .sort((a, b) => b.createdAt - a.createdAt);
 
     return {
       total: recent.length,
-      today: recent.filter((p: any) => p.createdAt >= todayStart.getTime()).length,
-      profielen: recent.slice(0, 20).map((p: any) => ({
+      today: recent.filter((p) => p.createdAt >= todayStart.getTime()).length,
+      profielen: recent.slice(0, 20).map((p) => ({
         name: p.name ?? null,
         email: p.email,
         createdAt: p.createdAt,
