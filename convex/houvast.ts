@@ -220,8 +220,8 @@ export const genereerEnVerstuurBrief = action({
       }),
     });
     if (!response.ok) throw new Error(`AI-fout: ${await response.text()}`);
-    const data = await response.json();
-    const brief: string = (data?.content?.[0]?.text ?? "").trim();
+    const data = (await response.json()) as { content?: Array<{ text?: string }> };
+    const brief: string = (data.content?.[0]?.text ?? "").trim();
     if (!brief) throw new Error("Lege brief gegenereerd.");
 
     const aanhef = args.naam ? `Lieve ${args.naam},` : "Voor jou,";
