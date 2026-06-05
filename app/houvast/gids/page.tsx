@@ -311,10 +311,6 @@ export default function HouvasteGidsPage() {
                     {alinea}
                   </p>
                 ))}
-                <p className="text-xs pt-1" style={{ color: "#8a8078" }}>
-                  Je kunt zoveel of zo weinig invullen als je wil. Aan het eind kun je je woorden als persoonlijke brief naar jezelf laten sturen.
-                </p>
-
                 {/* Zachte type-keuze — alleen als de bezoeker zonder ?type= binnenkomt */}
                 {!verliesType && (
                   <div className="pt-3 space-y-2 border-t" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
