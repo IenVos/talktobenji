@@ -137,7 +137,6 @@ function getOrCreateAnonymousId(): string {
 
 export type NachtConfig = {
   backgroundImageUrl?: string;
-  backgroundPosition?: string;
   introText?: string;
   question?: string;
   subText?: string;
@@ -670,10 +669,9 @@ export default function ChatPageClient({
     >
       {isNacht && (
         <div
-          className="absolute inset-0 -z-10 bg-cover bg-no-repeat"
+          className="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat"
           style={{
             backgroundImage: `url(${nachtConfig?.backgroundImageUrl || "/images/achtergrond.png"})`,
-            backgroundPosition: nachtConfig?.backgroundPosition || "center top",
           }}
         />
       )}

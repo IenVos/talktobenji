@@ -31,7 +31,6 @@ export default async function Page({ searchParams }: PageProps) {
   const config: NachtConfig = { ...DEFAULT_NACHT };
   if (saved) {
     if (saved.backgroundImageUrl) config.backgroundImageUrl = saved.backgroundImageUrl;
-    if (saved.backgroundPosition) config.backgroundPosition = saved.backgroundPosition;
     if (saved.introText) config.introText = saved.introText;
     if (saved.question) config.question = saved.question;
     if (saved.subText !== undefined) config.subText = saved.subText;

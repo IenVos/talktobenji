@@ -622,14 +622,7 @@ const NACHT_DEFAULTS: Record<string, string> = {
   inputPlaceholder: "Wat houdt je wakker?",
   showWaaromButton: "false",
   backgroundImageUrl: "",
-  backgroundPosition: "center top",
 };
-
-const NACHT_POSITION_OPTIONS: { value: string; label: string }[] = [
-  { value: "center top", label: "Bovenkant" },
-  { value: "center center", label: "Midden" },
-  { value: "center bottom", label: "Onderkant" },
-];
 
 const NACHT_DEFAULT_BUTTONS: { id: string; label: string }[] = [
   { id: "voel-me-alleen", label: "Ik kan niet slapen" },
@@ -688,16 +681,6 @@ function BenjiNachtTab() {
         <h3 className="text-sm font-semibold text-gray-900 mb-1 pb-3 border-b border-gray-100">Nacht-achtergrond</h3>
         <p className="text-xs text-gray-400 mb-4">Upload de sterrenhemel/achtergrond voor deze pagina.</p>
         <ImageUploadButton label="Achtergrondafbeelding" currentUrl={values.backgroundImageUrl || undefined} onUploaded={url => set("backgroundImageUrl", url)} />
-        <div className="mt-4">
-          <label className="block text-sm text-gray-700 mb-1">Uitsnede (welk deel van de afbeelding zichtbaar is)</label>
-          <select
-            value={values.backgroundPosition || "center top"}
-            onChange={e => set("backgroundPosition", e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white"
-          >
-            {NACHT_POSITION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-        </div>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-5">
