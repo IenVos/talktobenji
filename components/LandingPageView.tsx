@@ -308,6 +308,8 @@ export function LandingPageView({ slug }: { slug: string }) {
 
   if ((page as any).lpType === "niet_alleen_keuze") {
     return (
+      <>
+        {(page as any).houvastKnop && <HouvasteKnop type={(page as any).houvastType || undefined} />}
       <NietAlleenKeuzeLpView
         typeCtaUrlPersoon={(page as any).typeCtaUrlPersoon}
         typeCtaUrlHuisdier={(page as any).typeCtaUrlHuisdier}
@@ -352,6 +354,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         kpVoordelenKinderloos={(page as any).kpVoordelenKinderloos}
         kpCtaTekstKinderloos={(page as any).kpCtaTekstKinderloos}
       />
+      </>
     );
   }
 

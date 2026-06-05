@@ -146,16 +146,22 @@ export const DEFAULT_HOUVAST: HouvastContent = {
   ].join("\n\n"),
   briefInstructie: HOUVAST_BRIEF_INSTRUCTIE_DEFAULT,
   nietAlleenLinks: {
-    persoon: "/lp/je-hoeft-het-niet-alleen-te-doen",
-    huisdier: "/lp/je-hoeft-het-niet-alleen-te-doen",
-    scheiding: "/lp/je-hoeft-het-niet-alleen-te-doen",
-    eenzaamheid: "/lp/je-hoeft-het-niet-alleen-te-doen",
+    persoon: "/lp/je-mist-iemand",
+    huisdier: "/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
+    scheiding: "/lp/mijn-relatie-is-voorbij",
+    eenzaamheid: "/lp/ik-voel-me-eenzaam",
   },
 };
 
-/** Voegt opgeslagen (admin) content samen met de defaults. */
+/** Voegt opgeslagen (admin) content samen met de defaults.
+ *  Lege link-velden vallen terug op de default-LP van dat verliestype. */
 export function mergeHouvast(saved: Partial<HouvastContent> | null | undefined): HouvastContent {
   if (!saved) return DEFAULT_HOUVAST;
+  const savedLinks = saved.nietAlleenLinks || {};
+  const nietAlleenLinks: Record<string, string> = { ...DEFAULT_HOUVAST.nietAlleenLinks };
+  for (const [code, url] of Object.entries(savedLinks)) {
+    if (url && url.trim()) nietAlleenLinks[code] = url; // lege waarde = default behouden
+  }
   return {
     welkomTitel: saved.welkomTitel || DEFAULT_HOUVAST.welkomTitel,
     welkomTekst: saved.welkomTekst || DEFAULT_HOUVAST.welkomTekst,
@@ -166,6 +172,6 @@ export function mergeHouvast(saved: Partial<HouvastContent> | null | undefined):
     slotTitel: saved.slotTitel || DEFAULT_HOUVAST.slotTitel,
     slotTekst: saved.slotTekst || DEFAULT_HOUVAST.slotTekst,
     briefInstructie: saved.briefInstructie || DEFAULT_HOUVAST.briefInstructie,
-    nietAlleenLinks: { ...DEFAULT_HOUVAST.nietAlleenLinks, ...(saved.nietAlleenLinks || {}) },
+    nietAlleenLinks,
   };
 }

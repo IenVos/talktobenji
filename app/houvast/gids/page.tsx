@@ -9,6 +9,14 @@ import Image from "next/image";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { mergeHouvast, alineas, type HouvastContent } from "@/lib/houvastContent";
 
+// Zachte type-keuze op het welkomstscherm (alleen getoond als er geen ?type= in de URL zit).
+const TYPE_KEUZES: { code: string; label: string }[] = [
+  { code: "persoon", label: "Ik mis iemand" },
+  { code: "huisdier", label: "Ik mis mijn huisdier" },
+  { code: "scheiding", label: "Mijn relatie is voorbij" },
+  { code: "eenzaamheid", label: "Ik voel me eenzaam" },
+];
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function HouvasteGidsPage() {
@@ -34,6 +42,10 @@ export default function HouvasteGidsPage() {
   const [luistert, setLuistert] = useState<string | null>(null);
   const herkenningRef = useRef<any>(null);
   const [heeftSpeechSupport, setHeeftSpeechSupport] = useState(false);
+
+  // Verliestype: uit de URL (?type=) of door de bezoeker zelf gekozen op het welkomstscherm.
+  const [gekozenType, setGekozenType] = useState("");
+  const actiefType = verliesType || gekozenType;
 
   // Brief per mail
   const [email, setEmail] = useState("");
@@ -145,7 +157,7 @@ export default function HouvasteGidsPage() {
         body: JSON.stringify({
           email: email.trim(),
           name: profiel?.name ?? undefined,
-          verliesType: verliesType || undefined,
+          verliesType: actiefType || undefined,
           antwoorden: MOMENTEN.map((m) => ({ vraag: m.vraag, antwoord: antwoorden[m.id] || "" })),
         }),
       });
@@ -192,7 +204,7 @@ export default function HouvasteGidsPage() {
   const huidigMoment = MOMENTEN.find((m) => m.id === huidigStap);
 
   const nietAlleenUrl =
-    (verliesType && content.nietAlleenLinks[verliesType]) ||
+    (actiefType && content.nietAlleenLinks[actiefType]) ||
     content.nietAlleenLinks.persoon ||
     "/lp/je-hoeft-het-niet-alleen-te-doen";
 
@@ -302,6 +314,35 @@ export default function HouvasteGidsPage() {
                 <p className="text-xs pt-1" style={{ color: "#8a8078" }}>
                   Je kunt zoveel of zo weinig invullen als je wil. Aan het eind kun je je woorden als persoonlijke brief naar jezelf laten sturen.
                 </p>
+
+                {/* Zachte type-keuze — alleen als de bezoeker zonder ?type= binnenkomt */}
+                {!verliesType && (
+                  <div className="pt-3 space-y-2 border-t" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+                    <p className="text-sm font-medium pt-1" style={{ color: "#3d3530" }}>
+                      Waar gaat jouw verdriet over?
+                    </p>
+                    <p className="text-xs" style={{ color: "#8a8078" }}>
+                      Zo kunnen we het straks beter op jou afstemmen. Je hoeft niet te kiezen als je dat niet wil.
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {TYPE_KEUZES.map((t) => (
+                        <button
+                          key={t.code}
+                          type="button"
+                          onClick={() => setGekozenType((prev) => (prev === t.code ? "" : t.code))}
+                          className="text-sm px-3.5 py-2 rounded-full transition-colors"
+                          style={
+                            gekozenType === t.code
+                              ? { background: "#6d84a8", color: "#fff" }
+                              : { background: "rgba(109,132,168,0.10)", color: "#6d84a8" }
+                          }
+                        >
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

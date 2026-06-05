@@ -209,10 +209,17 @@ export const genereerEnVerstuurBrief = action({
       BRIEF_INSTRUCTIE_DEFAULT;
 
     // Doel-URL voor de Niet Alleen-knop in de mail (per verliestype, absoluut maken).
+    const DEFAULT_LINKS: Record<string, string> = {
+      persoon: "/lp/je-mist-iemand",
+      huisdier: "/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
+      scheiding: "/lp/mijn-relatie-is-voorbij",
+      eenzaamheid: "/lp/ik-voel-me-eenzaam",
+    };
     const links: Record<string, string> = saved?.nietAlleenLinks ?? {};
+    const type = args.verliesType || "persoon";
     const rawUrl =
-      (args.verliesType && links[args.verliesType]) ||
-      links.persoon ||
+      (links[type] && links[type].trim()) ||
+      DEFAULT_LINKS[type] ||
       "/lp/je-hoeft-het-niet-alleen-te-doen";
     const nietAlleenUrl = rawUrl.startsWith("http")
       ? rawUrl
