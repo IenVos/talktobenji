@@ -214,6 +214,11 @@ export default function HouvasteGidsPage() {
   const isLaatste = stap === ALLE_STAPPEN.length - 1;
   const huidigMoment = MOMENTEN.find((m) => m.id === huidigStap);
 
+  // Op slot: je kunt pas verder als elk moment tot nu toe is ingevuld.
+  const eersteOnbeantwoord = MOMENTEN.findIndex((m) => !(antwoorden[m.id] && antwoorden[m.id].trim()));
+  const maxStap = eersteOnbeantwoord === -1 ? ALLE_STAPPEN.length - 1 : eersteOnbeantwoord + 1;
+  const kanVerder = stap < maxStap;
+
   const nietAlleenUrl =
     (actiefType && content.nietAlleenLinks[actiefType]) ||
     content.nietAlleenLinks.persoon ||
@@ -283,20 +288,26 @@ export default function HouvasteGidsPage() {
               ...MOMENTEN.map((m) => ({ id: m.id, label: m.nav })),
               { id: "bewaar", label: "Bewaar" },
               { id: "enu", label: "En nu?" },
-            ].map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => setStap(i)}
-                className="text-xs font-medium px-3 py-1.5 rounded-full transition-all"
-                style={{
-                  background: s.id === huidigStap ? "#6d84a8" : "rgba(255,255,255,0.70)",
-                  color: s.id === huidigStap ? "#fff" : "#8a8078",
-                  boxShadow: s.id === huidigStap ? "0 2px 8px rgba(109,132,168,0.25)" : "none",
-                }}
-              >
-                {s.label}
-              </button>
-            ))}
+            ].map((s, i) => {
+              const vergrendeld = i > maxStap;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => !vergrendeld && setStap(i)}
+                  disabled={vergrendeld}
+                  className="text-xs font-medium px-3 py-1.5 rounded-full transition-all"
+                  style={{
+                    background: s.id === huidigStap ? "#6d84a8" : "rgba(255,255,255,0.70)",
+                    color: s.id === huidigStap ? "#fff" : "#8a8078",
+                    boxShadow: s.id === huidigStap ? "0 2px 8px rgba(109,132,168,0.25)" : "none",
+                    opacity: vergrendeld ? 0.4 : 1,
+                    cursor: vergrendeld ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
           </div>
         </nav>
 
@@ -485,7 +496,7 @@ export default function HouvasteGidsPage() {
                   <>
                     <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>Je woorden, terug naar jou</h2>
                     <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-                      Laat je e-mailadres achter, dan maken we van wat je hebt opgeschreven een persoonlijke brief — een brief aan jezelf — en sturen we die naar je toe.
+                      Laat je e-mailadres achter, dan maken we van wat je hebt opgeschreven een persoonlijke brief, een brief aan jezelf, en sturen we die naar je toe.
                     </p>
 
                     {/* Overzicht ingevulde antwoorden */}
@@ -627,14 +638,25 @@ export default function HouvasteGidsPage() {
               </p>
 
               <button
-                onClick={() => setStap((s) => s + 1)}
-                disabled={isLaatste}
-                className="text-sm font-medium px-4 py-2 rounded-xl transition-colors disabled:opacity-0"
-                style={{ color: "#6d84a8", background: "rgba(255,255,255,0.70)" }}
+                onClick={() => kanVerder && setStap((s) => s + 1)}
+                disabled={!kanVerder}
+                className="text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+                style={{
+                  color: "#6d84a8",
+                  background: "rgba(255,255,255,0.70)",
+                  opacity: isLaatste ? 0 : kanVerder ? 1 : 0.4,
+                  cursor: !kanVerder ? "not-allowed" : "pointer",
+                  pointerEvents: isLaatste ? "none" : "auto",
+                }}
               >
                 Volgende →
               </button>
             </div>
+            {!kanVerder && !isLaatste && huidigMoment && (
+              <p className="text-center text-xs mt-2" style={{ color: "#a09890" }}>
+                Vul dit moment in om verder te gaan.
+              </p>
+            )}
 
           </div>
         </main>
