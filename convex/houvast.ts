@@ -324,15 +324,30 @@ export const genereerEnVerstuurBrief = action({
       }
     }
     if (fotoUrls.length > 0) {
+      // Kleine thumbnails, max 3 naast elkaar (via tabel — betrouwbaar in mailclients).
+      const rijen: string[][] = [];
+      for (let i = 0; i < fotoUrls.length; i += 3) rijen.push(fotoUrls.slice(i, i + 3));
+      const rijenHtml = rijen
+        .map((rij) => {
+          const cellen = rij
+            .map(
+              (u) =>
+                `<td width="33%" style="padding:0 4px 8px 0;vertical-align:top;">
+                  <img src="${u}" alt="" width="100%" style="width:100%;height:84px;object-fit:cover;border-radius:8px;display:block;" />
+                </td>`
+            )
+            .join("");
+          const opvulling =
+            rij.length < 3 ? Array(3 - rij.length).fill('<td width="33%"></td>').join("") : "";
+          return `<tr>${cellen}${opvulling}</tr>`;
+        })
+        .join("");
       fotoHtml = `
         <div style="margin:26px 0 4px 0;">
           <p style="font-size:13px;color:#8a8078;margin:0 0 12px 0;">De foto's die je bewaarde:</p>
-          ${fotoUrls
-            .map(
-              (u) =>
-                `<img src="${u}" alt="" style="max-width:100%;border-radius:10px;margin:0 0 12px 0;display:block;" />`
-            )
-            .join("")}
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            ${rijenHtml}
+          </table>
         </div>`;
     }
 
