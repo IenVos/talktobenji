@@ -3,9 +3,23 @@
  */
 import { v } from "convex/values";
 import { action, internalAction, internalMutation, internalQuery, query } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
+
+// Fallback-instructie voor de persoonlijke brief (Benji-toon). Beheerbaar via
+// admin → Pagina's → Even Houvast (veld "Brief-instructie").
+const BRIEF_INSTRUCTIE_DEFAULT = `Je bent Benji — een warme, rustige metgezel bij verdriet en verlies. Iemand heeft net de gratis mini-gids "Even Houvast" doorlopen en bij een paar momenten iets opgeschreven. Schrijf op basis van hun antwoorden een korte, persoonlijke brief terug — een "brief aan zichzelf", alsof er iemand echt geluisterd heeft.
+
+Toon en stijl:
+- Nederlands, warm, zacht, dichtbij. Geen therapeuten-taal, geen clichés, geen oplossingen of advies.
+- Begin niet met hun woorden letterlijk te herhalen. Weef hun antwoorden tot één geheel.
+- Een korte opening, hun woorden verweven in een lopende tekst, en een slotzin die dit moment afsluit.
+- Kort: 150–220 woorden. Geen kopjes, geen opsommingen, geen aanhef als "Beste". Schrijf in de tweede persoon ("je").
+- Verzin geen feiten, namen of relaties die ze niet zelf hebben benoemd.
+- Eindig met iets wat rust en nabijheid geeft, zonder te beloven dat het overgaat.
+
+Geef alleen de brieftekst terug, niets anders.`;
 
 async function verstuurEmail(args: { to: string; subject: string; html: string; apiKey: string }) {
   const response = await fetch("https://api.resend.com/emails", {
@@ -141,6 +155,95 @@ export const registreer = action({
       await ctx.runMutation(internal.houvast.createProfiel, { email, token, name });
     }
     await ctx.runAction(internal.houvast.sendWelkomstMailInternal, { email, token, name: name ?? existing?.name });
+    return { success: true };
+  },
+});
+
+// Brief-mail: zachte wrapper zonder founder-handtekening (de brief komt van Benji).
+function wrapperBrief(inhoud: string): string {
+  return `
+    <div style="font-family: Georgia, 'Times New Roman', serif; max-width: 560px; margin: 0 auto;
+                color: #3d3530; background: #fdf9f4; padding: 36px 28px;">
+      <p style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#8a8078;margin:0 0 20px 0;">Even Houvast</p>
+      ${inhoud}
+      <p style="font-size:13px;color:#a09890;margin-top:36px;border-top:1px solid #e8e0d8;padding-top:18px;">
+        Met warmte, Benji · Talk To Benji
+      </p>
+    </div>`;
+}
+
+/**
+ * Genereert op basis van de ingevulde antwoorden een persoonlijke "brief aan
+ * zichzelf" (Benji-toon, via Claude) en stuurt die naar het opgegeven e-mailadres.
+ */
+export const genereerEnVerstuurBrief = action({
+  args: {
+    email: v.string(),
+    naam: v.optional(v.string()),
+    verliesType: v.optional(v.string()),
+    antwoorden: v.array(v.object({ vraag: v.string(), antwoord: v.string() })),
+  },
+  handler: async (ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    if (!RESEND_API_KEY) throw new Error("E-mail niet geconfigureerd (RESEND_API_KEY).");
+    if (!ANTHROPIC_API_KEY) throw new Error("AI niet geconfigureerd (ANTHROPIC_API_KEY).");
+
+    const ingevuld = args.antwoorden.filter((a) => a.antwoord && a.antwoord.trim());
+    if (ingevuld.length === 0) throw new Error("Geen antwoorden om een brief van te maken.");
+
+    // Brief-instructie uit de admin (fallback op default).
+    const saved = await ctx.runQuery(api.pageContent.getPublicPageContent, { pageKey: "houvast" });
+    const briefInstructie =
+      (saved?.briefInstructie as string | undefined)?.trim() || BRIEF_INSTRUCTIE_DEFAULT;
+
+    const userContent = [
+      args.naam ? `Naam: ${args.naam}` : null,
+      "De persoon heeft bij Even Houvast het volgende opgeschreven:",
+      ...ingevuld.map((a, i) => `${i + 1}. Vraag: ${a.vraag}\n   Antwoord: ${a.antwoord.trim()}`),
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 800,
+        system: briefInstructie,
+        messages: [{ role: "user", content: userContent }],
+      }),
+    });
+    if (!response.ok) throw new Error(`AI-fout: ${await response.text()}`);
+    const data = await response.json();
+    const brief: string = (data?.content?.[0]?.text ?? "").trim();
+    if (!brief) throw new Error("Lege brief gegenereerd.");
+
+    const aanhef = args.naam ? `Lieve ${args.naam},` : "Voor jou,";
+    const briefHtml = brief
+      .split(/\n\s*\n/)
+      .map(
+        (p) =>
+          `<p style="font-size:15px;line-height:1.9;color:#3d3530;margin:0 0 16px 0;">${p.replace(/\n/g, "<br>")}</p>`
+      )
+      .join("");
+
+    const html = wrapperBrief(`
+      <p style="font-size:16px;margin:0 0 18px 0;color:#3d3530;">${aanhef}</p>
+      ${briefHtml}
+    `);
+
+    await verstuurEmail({
+      to: args.email.trim().toLowerCase(),
+      subject: "Jouw woorden — Even Houvast",
+      html,
+      apiKey: RESEND_API_KEY,
+    });
     return { success: true };
   },
 });

@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import { Save, LayoutTemplate, ExternalLink, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { DEFAULT_HOUVAST, mergeHouvast, type HouvastContent } from "@/lib/houvastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "homepage" | "waarom-benji" | "voor-jou" | "privacy" | "av" | "faq" | "benji-nacht";
+type Tab = "homepage" | "waarom-benji" | "voor-jou" | "privacy" | "av" | "faq" | "benji-nacht" | "houvast";
 type Section = { title: string; body: string };
 type FaqItem = { q: string; a: string };
 type FaqSection = { title: string; items: FaqItem[] };
@@ -719,6 +720,96 @@ function BenjiNachtTab() {
   );
 }
 
+// ─── Tab: Even Houvast ────────────────────────────────────────────────────────
+const HOUVAST_VERLIESTYPEN: { code: string; label: string }[] = [
+  { code: "persoon", label: "Persoon — verlies van iemand" },
+  { code: "huisdier", label: "Huisdier — verlies van een dier" },
+  { code: "scheiding", label: "Scheiding — einde van een relatie" },
+  { code: "eenzaamheid", label: "Eenzaamheid" },
+];
+
+function EvenHouvastTab() {
+  const saved = useAdminQuery(api.pageContent.getPageContent, { pageKey: "houvast" });
+  const setContent = useAdminMutation(api.pageContent.setPageContent);
+  const [content, setContent2] = useState<HouvastContent>(DEFAULT_HOUVAST);
+  const [saving, setSaving] = useState(false);
+  const [saved2, setSaved2] = useState(false);
+
+  useEffect(() => {
+    if (saved) setContent2(mergeHouvast(saved as unknown as Partial<HouvastContent>));
+  }, [saved]);
+
+  const set = <K extends keyof HouvastContent>(key: K, val: HouvastContent[K]) =>
+    setContent2((p) => ({ ...p, [key]: val }));
+  const setMoment = (i: number, patch: Partial<HouvastContent["momenten"][number]>) =>
+    setContent2((p) => ({ ...p, momenten: p.momenten.map((m, j) => (j === i ? { ...m, ...patch } : m)) }));
+  const setLink = (code: string, url: string) =>
+    setContent2((p) => ({ ...p, nietAlleenLinks: { ...p.nietAlleenLinks, [code]: url } }));
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved2(false);
+    try {
+      await setContent({ pageKey: "houvast", content: JSON.stringify(content) });
+      setSaved2(true);
+      setTimeout(() => setSaved2(false), 2000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800">
+        Lege regel = nieuwe alinea. Bezoekers komen binnen via <strong>/houvast/gids?type=persoon</strong> (verliestype bepaalt de Niet Alleen-knop onderaan).
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Welkomstscherm</h3>
+        <Field label="Titel" value={content.welkomTitel} onChange={(v) => set("welkomTitel", v)} />
+        <Field label="Tekst (alinea's)" value={content.welkomTekst} onChange={(v) => set("welkomTekst", v)} multiline rows={6} />
+      </div>
+
+      {content.momenten.map((m, i) => (
+        <div key={m.id} className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Moment {m.nav}</h3>
+          <Field label="Titel" value={m.titel} onChange={(v) => setMoment(i, { titel: v })} />
+          <Field label="Intro (alinea's)" value={m.intro} onChange={(v) => setMoment(i, { intro: v })} multiline rows={4} />
+          <Field label="Oefening — kopje" value={m.oefeningTitel} onChange={(v) => setMoment(i, { oefeningTitel: v })} />
+          <Field label="Oefening — tekst (alinea's)" value={m.oefeningTekst} onChange={(v) => setMoment(i, { oefeningTekst: v })} multiline rows={3} />
+          <Field label="Vraag (schrijfvak)" value={m.vraag} onChange={(v) => setMoment(i, { vraag: v })} />
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" checked={m.metFoto} onChange={(e) => setMoment(i, { metFoto: e.target.checked })} className="w-4 h-4" />
+            <span className="text-sm text-gray-700">Bezoeker mag bij dit moment een foto toevoegen</span>
+          </label>
+        </div>
+      ))}
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Afsluiting (&ldquo;En nu?&rdquo;)</h3>
+        <Field label="Titel" value={content.slotTitel} onChange={(v) => set("slotTitel", v)} />
+        <Field label="Tekst (alinea's)" value={content.slotTekst} onChange={(v) => set("slotTekst", v)} multiline rows={3} />
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">Doorstroom naar Niet Alleen (per verliestype)</h3>
+        <p className="text-xs text-gray-400 mb-2">De knop onderaan wijst naar de juiste pagina op basis van <strong>?type=</strong> in de URL.</p>
+        {HOUVAST_VERLIESTYPEN.map((t) => (
+          <Field key={t.code} label={t.label} value={content.nietAlleenLinks[t.code] ?? ""} onChange={(v) => setLink(t.code, v)} />
+        ))}
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">Brief-instructie (toon van de persoonlijke brief)</h3>
+        <p className="text-xs text-gray-400 mb-2">Dit is de opdracht aan Benji (Claude) voor de brief die de bezoeker per mail krijgt. Schrijf in welke toon en stijl je wil.</p>
+        <Field label="" value={content.briefInstructie} onChange={(v) => set("briefInstructie", v)} multiline rows={10} />
+      </div>
+
+      <SaveBar onSave={handleSave} saving={saving} saved={saved2} />
+    </div>
+  );
+}
+
 // ─── Hoofdpagina ──────────────────────────────────────────────────────────────
 const TABS: { key: Tab; label: string; href: string }[] = [
   { key: "homepage",     label: "Homepage",            href: "/" },
@@ -728,6 +819,7 @@ const TABS: { key: Tab; label: string; href: string }[] = [
   { key: "av",           label: "Alg. voorwaarden",    href: "/algemene-voorwaarden" },
   { key: "faq",          label: "FAQ",                  href: "/faq" },
   { key: "benji-nacht",  label: "Benji Nacht",         href: "/benji-nacht" },
+  { key: "houvast",      label: "Even Houvast",        href: "/houvast/gids" },
 ];
 
 export default function PaginasAdminPage() {
@@ -769,6 +861,7 @@ export default function PaginasAdminPage() {
       {tab === "av"           && <SectionsTab pageKey="av" defaults={AV_DEFAULTS} href="/algemene-voorwaarden" />}
       {tab === "faq"          && <FaqTab />}
       {tab === "benji-nacht"  && <BenjiNachtTab />}
+      {tab === "houvast"      && <EvenHouvastTab />}
     </div>
   );
 }
