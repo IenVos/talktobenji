@@ -142,7 +142,9 @@ export const DEFAULT_HOUVAST: HouvastContent = {
   ],
   slotTitel: "En nu?",
   slotTekst: [
-    "'Houvast' is er voor de eerste stap. Voor de langere weg is er Niet Alleen — een programma dat je dag voor dag begeleidt.",
+    "'Even Houvast' is er voor dit moment. Voor de dagen erna is er Niet Alleen: een programma dat je dertig dagen lang meeneemt, in jouw eigen tempo.",
+    "Elke dag een klein, persoonlijk bericht met een vraag of iets om bij stil te staan. Ruimte om te schrijven, in te spreken of een foto te bewaren die je raakt. En aan het eind een blijvend document dat helemaal van jou is.",
+    "Geen grote stappen, geen verplichtingen. Gewoon iets om op terug te vallen, zodat je het niet alleen hoeft te dragen.",
   ].join("\n\n"),
   briefInstructie: HOUVAST_BRIEF_INSTRUCTIE_DEFAULT,
   nietAlleenLinks: {
