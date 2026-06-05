@@ -6,7 +6,7 @@ import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import {
   Search, Users, CreditCard, KeyRound, MessageSquare,
   Palette, BookHeart, CheckCircle, AlertCircle, ChevronDown, AtSign, HelpCircle, ArrowRight,
-  Mail, RotateCcw, Send, Package,
+  Mail, RotateCcw, Send, Package, BellOff, BellRing,
 } from "lucide-react";
 import { useAction } from "convex/react";
 import Link from "next/link";
@@ -118,6 +118,7 @@ export default function KlantbeheerPage() {
   const clearContext = useAdminMutation(api.klantbeheer.clearCustomerContext);
   const resetNietAlleenDag = useAdminMutation(api.klantbeheer.resetNietAlleenDag);
   const stuurDagNu = useAction(api.klantbeheer.stuurDagNuAdmin);
+  const setMailsGestopt = useAdminMutation(api.klantbeheer.setNietAlleenMailsGestopt);
 
   const [hervatDag, setHervatDag] = useState(1);
   const [stuurDag, setStuurDag] = useState(1);
@@ -417,6 +418,36 @@ export default function KlantbeheerPage() {
                     }}
                   />
                 </div>
+
+                {/* Mails stopzetten / hervatten (bijv. bij refund) */}
+                {customer.nietAlleen.actief ? (
+                  <ActionRow
+                    label="E-mails stopzetten"
+                    description="Stopt de dagelijkse Niet Alleen-mails voor deze klant (bijv. na een refund)."
+                    icon={BellOff}
+                    buttonLabel="Stopzetten"
+                    danger
+                    confirmText={`De Niet Alleen-mails voor ${activeEmail} stopzetten? De klant krijgt geen dagelijkse mails meer.`}
+                    onAction={async () => {
+                      await setMailsGestopt({ email: activeEmail, gestopt: true });
+                      setNaActie(`E-mails gestopt voor ${activeEmail}.`);
+                      setTimeout(() => setNaActie(null), 5000);
+                    }}
+                  />
+                ) : (
+                  <ActionRow
+                    label="E-mails hervatten"
+                    description="Zet de dagelijkse Niet Alleen-mails weer aan voor deze klant."
+                    icon={BellRing}
+                    buttonLabel="Hervatten"
+                    confirmText={`De Niet Alleen-mails voor ${activeEmail} weer hervatten?`}
+                    onAction={async () => {
+                      await setMailsGestopt({ email: activeEmail, gestopt: false });
+                      setNaActie(`E-mails hervat voor ${activeEmail}.`);
+                      setTimeout(() => setNaActie(null), 5000);
+                    }}
+                  />
+                )}
 
                 {naActie && (
                   <p className="flex items-center gap-1 text-xs text-green-600 font-medium">

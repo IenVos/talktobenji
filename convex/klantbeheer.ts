@@ -387,6 +387,26 @@ export const resetNietAlleenDag = mutation({
   },
 });
 
+/** Zet de Niet Alleen-mails voor deze klant stop (bijv. bij refund) of hervat ze.
+ *  De drip-cron slaat profielen met accountGesloten=true over. */
+export const setNietAlleenMailsGestopt = mutation({
+  args: {
+    adminToken: v.optional(v.string()),
+    email: v.string(),
+    gestopt: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (!profiel) throw new Error("Geen Niet Alleen profiel gevonden voor dit e-mailadres");
+    await ctx.db.patch(profiel._id, { accountGesloten: args.gestopt, updatedAt: Date.now() });
+    return { gestopt: args.gestopt };
+  },
+});
+
 /** Stuur een specifieke dagmail nu naar de klant */
 export const stuurDagNuAdmin = action({
   args: {
