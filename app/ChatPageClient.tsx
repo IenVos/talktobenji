@@ -15,7 +15,6 @@ import type { TopicId } from "@/components/chat/TopicButtons";
 import { hexToDarker } from "@/lib/utils";
 import { ConversationLimitGate } from "@/components/ConversationLimitGate";
 import { SiteFooter } from "@/components/SiteFooter";
-import { HouvastePopup } from "@/components/HouvastePopup";
 
 export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[] };
 
@@ -177,7 +176,6 @@ export default function ChatPageClient({
   };
   const [showTopicButtons, setShowTopicButtons] = useState(true);
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
-  const [houvasteOpen, setHouvasteOpen] = useState(false);
   const [input, setInput] = useState("");
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [chatError, setChatError] = useState<string | null>(null);
@@ -749,13 +747,12 @@ export default function ChatPageClient({
               </div>
               {!isNacht && (
                 <div className="flex justify-center mt-3">
-                  <button
-                    type="button"
-                    onClick={() => setHouvasteOpen(true)}
+                  <Link
+                    href="/houvast/gids"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-500 hover:text-gray-700 hover:bg-white/60 transition-colors"
                   >
                     👋 Even Houvast
-                  </button>
+                  </Link>
                 </div>
               )}
             </>
@@ -1056,7 +1053,6 @@ export default function ChatPageClient({
         userId={session?.userId ?? undefined}
         userEmail={session?.user?.email ?? undefined}
       />
-      {houvasteOpen && <HouvastePopup onClose={() => setHouvasteOpen(false)} />}
     </div>
   );
 }
