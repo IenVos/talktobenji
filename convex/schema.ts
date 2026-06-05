@@ -834,6 +834,12 @@ export default defineSchema({
     .index("by_email", ["email"])
     .index("by_token", ["token"]),
 
+  // Even Houvast — bijhouden welke e-mailadressen al een brief kregen (max 1 per adres).
+  houvastBrieven: defineTable({
+    email: v.string(),
+    sentAt: v.number(),
+  }).index("by_email", ["email"]),
+
   // Checkout producten (beheerbaar via admin, publiek via /betalen/[slug])
   checkoutProducts: defineTable({
     slug: v.string(),

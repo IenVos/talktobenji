@@ -17,7 +17,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { email, name, verliesType, antwoorden, fotos } = body ?? {};
+  const { email, name, verliesType, antwoorden, fotos, honeypot } = body ?? {};
+
+  // Honeypot: alleen bots vullen dit verborgen veld in → doe alsof het lukte.
+  if (typeof honeypot === "string" && honeypot.trim() !== "") {
+    return NextResponse.json({ success: true });
+  }
 
   if (!email || typeof email !== "string" || !email.includes("@")) {
     return NextResponse.json({ error: "Ongeldig e-mailadres" }, { status: 400 });
@@ -61,6 +66,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("[houvast/brief] Fout:", err?.message);
+    // Al een brief verstuurd naar dit adres → vriendelijke melding (geen 500).
+    if (typeof err?.message === "string" && err.message.includes("al een brief")) {
+      return NextResponse.json({ error: "Je hebt op dit e-mailadres al een brief ontvangen.", code: "al_verzonden" }, { status: 409 });
+    }
     return NextResponse.json({ error: "Er ging iets mis. Probeer het opnieuw." }, { status: 500 });
   }
 }

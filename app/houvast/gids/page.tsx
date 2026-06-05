@@ -59,7 +59,9 @@ export default function HouvasteGidsPage() {
 
   // Brief per mail
   const [email, setEmail] = useState("");
+  const [honeypot, setHoneypot] = useState(""); // onzichtbaar veld tegen bots
   const [briefStatus, setBriefStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [briefFout, setBriefFout] = useState("Er ging iets mis. Probeer het opnieuw.");
 
   // Account aanmaken (alleen relevant met token / bekend e-mailadres)
   const [wachtwoord, setWachtwoord] = useState("");
@@ -170,11 +172,18 @@ export default function HouvasteGidsPage() {
           verliesType: actiefType || undefined,
           antwoorden: MOMENTEN.map((m) => ({ vraag: m.vraag, antwoord: antwoorden[m.id] || "" })),
           fotos: Object.values(fotos).filter(Boolean),
+          honeypot,
         }),
       });
+      if (res.status === 409) {
+        setBriefFout("Je hebt op dit e-mailadres al een brief ontvangen.");
+        setBriefStatus("error");
+        return;
+      }
       if (!res.ok) throw new Error("Fout");
       setBriefStatus("done");
     } catch {
+      setBriefFout("Er ging iets mis. Probeer het opnieuw.");
       setBriefStatus("error");
     }
   };
@@ -514,6 +523,16 @@ export default function HouvasteGidsPage() {
                     </div>
 
                     <div className="space-y-2 pt-1">
+                      {/* Honeypot: onzichtbaar voor mensen, bots vullen 'm wel in */}
+                      <input
+                        type="text"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={honeypot}
+                        onChange={(e) => setHoneypot(e.target.value)}
+                        aria-hidden="true"
+                        style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+                      />
                       <input
                         type="email"
                         placeholder="jouw@email.nl"
@@ -523,7 +542,7 @@ export default function HouvasteGidsPage() {
                         style={{ background: "rgba(255,255,255,0.90)", border: "1px solid rgba(0,0,0,0.09)", color: "#3d3530" }}
                       />
                       {briefStatus === "error" && (
-                        <p className="text-xs" style={{ color: "#c0392b" }}>Er ging iets mis. Probeer het opnieuw.</p>
+                        <p className="text-xs" style={{ color: "#c0392b" }}>{briefFout}</p>
                       )}
                       <button
                         onClick={stuurBrief}

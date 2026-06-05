@@ -83,6 +83,28 @@ export const createProfiel = internalMutation({
   },
 });
 
+export const briefAlVerzonden = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const bestaand = await ctx.db
+      .query("houvastBrieven")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+    return !!bestaand;
+  },
+});
+
+export const markBriefVerzonden = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const bestaand = await ctx.db
+      .query("houvastBrieven")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+    if (!bestaand) await ctx.db.insert("houvastBrieven", { email: args.email, sentAt: Date.now() });
+  },
+});
+
 export const updateNaamInternal = internalMutation({
   args: { email: v.string(), name: v.string() },
   handler: async (ctx, args) => {
@@ -215,6 +237,11 @@ export const genereerEnVerstuurBrief = action({
     const ingevuld = args.antwoorden.filter((a) => a.antwoord && a.antwoord.trim());
     if (ingevuld.length === 0) throw new Error("Geen antwoorden om een brief van te maken.");
 
+    // Max één brief per e-mailadres.
+    const emailLc = args.email.trim().toLowerCase();
+    const alVerzonden = await ctx.runQuery(internal.houvast.briefAlVerzonden, { email: emailLc });
+    if (alVerzonden) throw new Error("Je hebt op dit e-mailadres al een brief ontvangen.");
+
     // Content uit de admin (brief-toon + Niet Alleen-links per verliestype).
     const saved = (await ctx.runQuery(api.pageContent.getPublicPageContent, {
       pageKey: "houvast",
@@ -323,11 +350,12 @@ export const genereerEnVerstuurBrief = action({
     `);
 
     await verstuurEmail({
-      to: args.email.trim().toLowerCase(),
+      to: emailLc,
       subject: "Jouw woorden — Even Houvast",
       html,
       apiKey: RESEND_API_KEY,
     });
+    await ctx.runMutation(internal.houvast.markBriefVerzonden, { email: emailLc });
     return { success: true };
   },
 });
