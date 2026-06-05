@@ -111,6 +111,11 @@ export default function KlantbeheerPage() {
     activeEmail ? { email: activeEmail } : "skip"
   );
 
+  // E-mailadressen uit het bestand voor autocomplete-suggesties bij het zoeken.
+  const emailSuggesties = useAdminQuery(api.klantbeheer.listCustomerEmails, {}) as
+    | { email: string; naam: string }[]
+    | undefined;
+
   const changeEmail = useAdminMutation(api.klantbeheer.changeCustomerEmail);
   const setSubscription = useAdminMutation(api.klantbeheer.setCustomerSubscription);
   const resetUsage = useAdminMutation(api.klantbeheer.resetConversationUsage);
@@ -215,11 +220,19 @@ export default function KlantbeheerPage() {
       <form onSubmit={handleSearch} className="flex gap-2">
         <input
           type="email"
+          list="klant-emails"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder="klant@email.com"
           className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
+        <datalist id="klant-emails">
+          {emailSuggesties?.map((s) => (
+            <option key={s.email} value={s.email}>
+              {s.naam ? `${s.naam}` : undefined}
+            </option>
+          ))}
+        </datalist>
         <button
           type="submit"
           className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-semibold transition-colors"

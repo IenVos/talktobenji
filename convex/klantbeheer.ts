@@ -6,6 +6,31 @@ import { v } from "convex/values";
 import { action, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 
+/** Lijst van alle klant-e-mailadressen in het bestand (voor autocomplete bij zoeken).
+ *  Combineert TTB-accounts (credentials) en Niet Alleen-klanten (nietAlleenProfiles). */
+export const listCustomerEmails = query({
+  args: { adminToken: v.optional(v.string()) },
+  handler: async (ctx) => {
+    const [creds, profielen] = await Promise.all([
+      ctx.db.query("credentials").collect(),
+      ctx.db.query("nietAlleenProfiles").collect(),
+    ]);
+    const byEmail = new Map<string, string>(); // email -> naam (leeg indien onbekend)
+    for (const c of creds) {
+      const email = c.email.toLowerCase().trim();
+      if (email && !byEmail.has(email)) byEmail.set(email, "");
+    }
+    for (const p of profielen) {
+      const email = p.email.toLowerCase().trim();
+      if (!email) continue;
+      // Naam uit het Niet Alleen-profiel vult een eventueel leeg label aan.
+      if (!byEmail.get(email)) byEmail.set(email, p.naam ?? "");
+    }
+    return Array.from(byEmail, ([email, naam]) => ({ email, naam }))
+      .sort((a, b) => a.email.localeCompare(b.email));
+  },
+});
+
 /** Zoek klantinfo op basis van e-mailadres */
 export const getCustomerByEmail = query({
   args: {
