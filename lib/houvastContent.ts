@@ -25,6 +25,19 @@ export type HouvastContent = {
   nietAlleenLinks: Record<string, string>; // verliestype-code → doel-URL
 };
 
+/**
+ * Normaliseert een Niet Alleen-doellink naar een geldige LP-URL.
+ * Accepteert een volledige URL, "/lp/slug", "/slug" of "slug" → altijd "/lp/slug".
+ */
+export function naarLpUrl(raw: string | undefined): string {
+  const v = (raw || "").trim();
+  if (!v) return "/lp/je-hoeft-het-niet-alleen-te-doen";
+  if (v.startsWith("http")) return v;
+  if (v.startsWith("/lp/")) return v;
+  const slug = v.replace(/^\/+/, "").replace(/^lp\//, "");
+  return `/lp/${slug}`;
+}
+
 /** Splitst een tekstveld in alinea's (lege regel = nieuwe alinea). */
 export function alineas(tekst: string | undefined): string[] {
   if (!tekst) return [];

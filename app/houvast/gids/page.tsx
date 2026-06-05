@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import Image from "next/image";
 import { HeaderBar } from "@/components/chat/HeaderBar";
-import { mergeHouvast, alineas, type HouvastContent } from "@/lib/houvastContent";
+import { mergeHouvast, alineas, naarLpUrl, type HouvastContent } from "@/lib/houvastContent";
 
 // Warme labels voor de type-keuze; valt terug op de naam uit de verliestypen-tabel.
 const WARME_LABELS: Record<string, string> = {
@@ -228,10 +228,11 @@ export default function HouvasteGidsPage() {
   const maxStap = eersteOnbeantwoord === -1 ? ALLE_STAPPEN.length - 1 : eersteOnbeantwoord + 1;
   const kanVerder = stap < maxStap;
 
-  const nietAlleenUrl =
+  const nietAlleenUrl = naarLpUrl(
     (actiefType && content.nietAlleenLinks[actiefType]) ||
-    content.nietAlleenLinks.persoon ||
-    "/lp/je-hoeft-het-niet-alleen-te-doen";
+      content.nietAlleenLinks.persoon ||
+      "/lp/je-hoeft-het-niet-alleen-te-doen"
+  );
 
   // ─── Token aanwezig maar nog aan het laden ───────────────────────────────────
   if (heeftToken && profiel === undefined) {

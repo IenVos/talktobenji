@@ -264,9 +264,12 @@ export const genereerEnVerstuurBrief = action({
       (links[type] && links[type].trim()) ||
       DEFAULT_LINKS[type] ||
       "/lp/je-hoeft-het-niet-alleen-te-doen";
-    const nietAlleenUrl = rawUrl.startsWith("http")
-      ? rawUrl
-      : `https://talktobenji.com${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`;
+    // Normaliseer een slug (met/zonder /lp/) naar een geldige LP-URL, dan absoluut maken.
+    let pad = rawUrl.trim();
+    if (!pad.startsWith("http")) {
+      if (!pad.startsWith("/lp/")) pad = `/lp/${pad.replace(/^\/+/, "").replace(/^lp\//, "")}`;
+    }
+    const nietAlleenUrl = pad.startsWith("http") ? pad : `https://www.talktobenji.com${pad}`;
 
     const userContent = [
       args.naam ? `Naam: ${args.naam}` : null,
