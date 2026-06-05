@@ -192,6 +192,8 @@ export default function ChatPageClient({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  // Spiegelt sessionId zodat effecten met lege deps de actuele waarde kennen.
+  const hasConversationRef = useRef(false);
   const topicFromUrlHandled = useRef<string | null>(null);
 
   const messages = useQuery(
@@ -338,7 +340,9 @@ export default function ChatPageClient({
     if (!vv) return;
     const update = () => {
       document.documentElement.style.setProperty("--vvh", `${Math.round(vv.height)}px`);
-      // Scroll naar beneden na layout-aanpassing (toetsenbord open/dicht)
+      // Alleen tijdens een actief gesprek naar beneden scrollen (toetsenbord open/dicht).
+      // Op het welkomstscherm blijft de inhoud bovenaan staan.
+      if (!hasConversationRef.current) return;
       requestAnimationFrame(() => {
         if (mainRef.current) {
           const { scrollHeight, scrollTop, clientHeight } = mainRef.current;
@@ -394,6 +398,11 @@ export default function ChatPageClient({
       recognitionRef.current._setLatestText = (v: string) => { latestText = v; };
     }
   }, []);
+
+  // Houd de ref gelijk aan sessionId voor effecten met lege deps (zie visualViewport).
+  useEffect(() => {
+    hasConversationRef.current = !!sessionId;
+  }, [sessionId]);
 
   // Auto-scroll: altijd naar beneden bij nieuw bericht, anders alleen als al onderaan
   const prevMessageCountRef = useRef<number>(0);
