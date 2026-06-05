@@ -427,7 +427,10 @@ export default function HouvasteGidsPage() {
                   <>
                     <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>Je brief is onderweg</h2>
                     <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-                      We sturen je woorden als persoonlijke brief naar <strong>{email}</strong>. Hij kan zo in je inbox staan — kijk anders ook even bij ongewenste mail.
+                      We sturen je woorden als persoonlijke brief naar <strong>{email}</strong>.
+                    </p>
+                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+                      Hij kan zo in je inbox staan. Zie je hem niet? Kijk dan ook even bij je ongewenste mail.
                     </p>
                   </>
                 ) : (
