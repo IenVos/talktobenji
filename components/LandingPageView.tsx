@@ -426,6 +426,8 @@ export function LandingPageView({ slug }: { slug: string }) {
   const hideWatJeKrijgt = (page as any).hideWatJeKrijgt ?? false;
   const hideStickyBar = (page as any).hideStickyBar ?? false;
   const stickyCtaEnabled = (page as any).stickyCtaEnabled ?? false;
+  const stickyCtaText = ((page as any).stickyCtaText as string | undefined)?.trim() || ctaText;
+  const stickyCtaColor = ((page as any).stickyCtaColor as string | undefined)?.trim() || ctaColor;
   const hideHeader = (page as any).hideHeader ?? false;
 
   let pricingBlocks: PricingBlock[] = [];
@@ -1096,28 +1098,14 @@ export function LandingPageView({ slug }: { slug: string }) {
           className={`fixed left-0 right-0 z-[9991] px-4 transition-all duration-300 ${showStickyCta ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"}`}
           style={{ bottom: (!hideStickyBar && !stickyBarDismissed) ? 64 : 16 }}
         >
-          <div
-            className="mx-auto max-w-md flex items-center gap-3 rounded-2xl px-4 py-3 shadow-lg"
-            style={{
-              background: "rgba(255,252,249,0.98)",
-              border: "1px solid rgba(160,148,136,0.22)",
-              backdropFilter: "blur(8px)",
-            }}
+          <a
+            href={ctaUrl}
+            onClick={() => trackCtaClick(`${stickyCtaText} (zwevend)`)}
+            className="mx-auto block max-w-md text-center px-4 py-3.5 rounded-2xl text-sm font-semibold text-white shadow-lg"
+            style={{ background: stickyCtaColor }}
           >
-            {ctaPrijsTekst && (
-              <span className="text-xs font-semibold whitespace-nowrap" style={{ color: ctaColor }}>
-                {ctaPrijsTekst}
-              </span>
-            )}
-            <a
-              href={ctaUrl}
-              onClick={() => trackCtaClick(`${ctaText} (zwevend)`)}
-              className="flex-1 text-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white whitespace-nowrap"
-              style={{ background: ctaColor }}
-            >
-              {ctaText}
-            </a>
-          </div>
+            {stickyCtaText}
+          </a>
         </div>
       )}
 

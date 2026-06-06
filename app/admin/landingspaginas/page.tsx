@@ -115,6 +115,8 @@ type FormState = {
   hideWatJeKrijgt: boolean;
   hideStickyBar: boolean;
   stickyCtaEnabled: boolean;
+  stickyCtaText: string;
+  stickyCtaColor: string;
   hideHeader: boolean;
   section1Title: string;
   section1Text: string;
@@ -222,6 +224,8 @@ const EMPTY_FORM: FormState = {
   hideWatJeKrijgt: false,
   hideStickyBar: false,
   stickyCtaEnabled: false,
+  stickyCtaText: "",
+  stickyCtaColor: "",
   hideHeader: false,
   section1Title: "",
   section1Text: "",
@@ -481,6 +485,8 @@ export default function AdminLandingspaginasPage() {
       hideWatJeKrijgt: (page as any).hideWatJeKrijgt ?? false,
       hideStickyBar: (page as any).hideStickyBar ?? false,
       stickyCtaEnabled: (page as any).stickyCtaEnabled ?? false,
+      stickyCtaText: (page as any).stickyCtaText ?? "",
+      stickyCtaColor: (page as any).stickyCtaColor ?? "",
       hideHeader: (page as any).hideHeader ?? false,
       section1Title: page.section1Title ?? "",
       section1Text: page.section1Text ?? "",
@@ -753,6 +759,8 @@ export default function AdminLandingspaginasPage() {
           hideWatJeKrijgt: form.hideWatJeKrijgt,
           hideStickyBar: form.hideStickyBar,
           stickyCtaEnabled: form.stickyCtaEnabled,
+          stickyCtaText: form.stickyCtaText.trim() || undefined,
+          stickyCtaColor: form.stickyCtaColor.trim() || undefined,
           hideHeader: form.hideHeader,
           section1Title: form.section1Title.trim(),
           section1Text: form.section1Text.trim(),
@@ -859,6 +867,8 @@ export default function AdminLandingspaginasPage() {
           hideWatJeKrijgt: form.hideWatJeKrijgt,
           hideStickyBar: form.hideStickyBar,
           stickyCtaEnabled: form.stickyCtaEnabled,
+          stickyCtaText: form.stickyCtaText.trim() || undefined,
+          stickyCtaColor: form.stickyCtaColor.trim() || undefined,
           hideHeader: form.hideHeader,
           section1Title: opt(form.section1Title),
           section1Text: opt(form.section1Text),
@@ -1321,7 +1331,52 @@ export default function AdminLandingspaginasPage() {
                     />
                     <span className="text-sm text-primary-700">Toon een zwevende CTA-knop onderaan (verschijnt na scrollen)</span>
                   </label>
-                  <p className="text-xs text-gray-400 mt-1">Gebruikt de hoofd-CTA van de pagina ({"“"}{form.ctaText || "Start mijn reis"}{"”"} → {form.ctaUrl || "ingestelde link"}). Zo hoeven bezoekers niet terug te scrollen om te bestellen.</p>
+                  <p className="text-xs text-gray-400 mt-1">Verschijnt na het scrollen, zodat bezoekers niet terug hoeven naar de knop. Link = de hoofd-CTA ({form.ctaUrl || "ingestelde link"}).</p>
+                  {form.stickyCtaEnabled && (
+                    <div className="mt-3 space-y-3 border-l-2 border-primary-100 pl-3">
+                      <div>
+                        <label className={labelSmClass}>Tekst zwevende knop <span className="font-normal text-gray-400">(leeg = "{form.ctaText || "Start mijn reis"}")</span></label>
+                        <input
+                          type="text"
+                          placeholder={form.ctaText || "Bijv. Ja, ik begin vandaag"}
+                          value={form.stickyCtaText}
+                          onChange={(e) => setForm((f) => ({ ...f, stickyCtaText: e.target.value }))}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className={labelSmClass}>Kleur zwevende knop <span className="font-normal text-gray-400">(leeg = hoofdknop-kleur)</span></label>
+                        <div className="flex items-center gap-3 mt-1">
+                          <input
+                            type="color"
+                            value={form.stickyCtaColor || form.ctaColor || "#6d84a8"}
+                            onChange={(e) => setForm((f) => ({ ...f, stickyCtaColor: e.target.value }))}
+                            className="h-9 w-14 rounded border border-primary-200 cursor-pointer p-0.5"
+                          />
+                          <div className="flex gap-2">
+                            {["#6d84a8","#4a7c59","#c07a5a","#7c6d9e","#374151","#be185d"].map((c) => (
+                              <button
+                                key={c}
+                                type="button"
+                                onClick={() => setForm((f) => ({ ...f, stickyCtaColor: c }))}
+                                className="w-7 h-7 rounded-full border-2 transition-all"
+                                style={{ background: c, borderColor: form.stickyCtaColor === c ? "#1e293b" : "transparent" }}
+                              />
+                            ))}
+                          </div>
+                          {form.stickyCtaColor && (
+                            <button
+                              type="button"
+                              onClick={() => setForm((f) => ({ ...f, stickyCtaColor: "" }))}
+                              className="text-xs text-gray-400 underline hover:text-gray-600"
+                            >
+                              zelfde als hoofdknop
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </Section>
