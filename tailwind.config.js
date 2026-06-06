@@ -40,6 +40,7 @@ module.exports = {
     function ({ addUtilities }) {
       addUtilities({
         ".text-pretty": { "text-wrap": "pretty" },
+        ".text-balance": { "text-wrap": "balance" },
       });
     },
   ],

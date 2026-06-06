@@ -852,6 +852,7 @@ export default defineSchema({
     subscriptionType: v.string(), // "alles_in_1" | "niet_alleen" | etc.
     buttonText: v.optional(v.string()),
     trustText: v.optional(v.string()), // geruststelling onder de betaalknop (bijv. "Veilig betalen · geen abonnement")
+    quoteText: v.optional(v.string()), // geruststellende quote bóven de betaalknop (aanpasbaar per product)
     herroepingTitle: v.optional(v.string()), // kopje van het herroepingsrecht-vakje
     herroepingText: v.optional(v.string()), // vriendelijke uitleg over herroepingsrecht (mailadres wordt automatisch klikbaar)
     imageStorageId: v.optional(v.id("_storage")),

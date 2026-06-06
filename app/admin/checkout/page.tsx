@@ -30,6 +30,7 @@ type CheckoutProduct = {
   subscriptionType: string;
   buttonText?: string;
   trustText?: string;
+  quoteText?: string;
   imageStorageId?: Id<"_storage">;
   imageUrl?: string | null;
   accessDays?: number;
@@ -63,6 +64,7 @@ type FormState = {
   subscriptionType: string;
   buttonText: string;
   trustText: string;
+  quoteText: string;
   accessDays: string;
   imageStorageId?: Id<"_storage">;
   imageFile: File | null;
@@ -90,6 +92,7 @@ const EMPTY_FORM: FormState = {
   subscriptionType: "alles_in_1",
   buttonText: "",
   trustText: "",
+  quoteText: "",
   accessDays: "",
   imageStorageId: undefined,
   imageFile: null,
@@ -185,6 +188,7 @@ export default function AdminCheckoutPage() {
       subscriptionType: product.subscriptionType,
       buttonText: product.buttonText ?? "",
       trustText: product.trustText ?? "",
+      quoteText: product.quoteText ?? "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -222,6 +226,7 @@ export default function AdminCheckoutPage() {
       subscriptionType: product.subscriptionType,
       buttonText: product.buttonText ?? "",
       trustText: product.trustText ?? "",
+      quoteText: product.quoteText ?? "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -286,6 +291,7 @@ export default function AdminCheckoutPage() {
         subscriptionType: form.subscriptionType,
         buttonText: opt(form.buttonText),
         trustText: opt(form.trustText),
+        quoteText: opt(form.quoteText),
         accessDays: accessDaysVal,
         imageStorageId,
         isLive: form.isLive,
@@ -598,6 +604,17 @@ export default function AdminCheckoutPage() {
                   onChange={set("trustText")}
                   className={inputClass}
                 />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelSmClass}>Quote boven knop <span className="font-normal text-gray-400">(geruststellende zin; standaard: "Dit is geen grote beslissing…")</span></label>
+                <textarea
+                  rows={2}
+                  placeholder="Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf."
+                  value={form.quoteText}
+                  onChange={set("quoteText")}
+                  className={`${inputClass} resize-none`}
+                />
+                <p className="text-xs text-gray-400 mt-1">Aanhalingstekens worden automatisch toegevoegd. Leeg = standaardzin.</p>
               </div>
             </div>
 

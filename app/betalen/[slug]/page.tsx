@@ -54,6 +54,7 @@ function CheckoutForm({
   slug,
   buttonText,
   trustText,
+  quoteText,
   clientSecret,
   naam,
   email,
@@ -76,6 +77,7 @@ function CheckoutForm({
   slug: string;
   buttonText?: string;
   trustText?: string;
+  quoteText?: string;
   clientSecret: string;
   naam: string;
   email: string;
@@ -256,8 +258,8 @@ function CheckoutForm({
 
       {/* Quote + betaalknop samen in één dun kader zodat ze bij elkaar horen */}
       <div className="rounded-2xl border border-stone-200 p-4 space-y-4">
-        <p className="text-center text-base font-semibold italic text-primary-700 leading-snug px-2">
-          &ldquo;Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf.&rdquo;
+        <p className="text-balance text-center text-base font-semibold italic text-primary-700 leading-snug px-2">
+          &ldquo;{quoteText?.trim() || "Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf."}&rdquo;
         </p>
 
         <button
@@ -918,6 +920,7 @@ export default function BetalenPage() {
                   slug={slug}
                   buttonText={product.buttonText}
                   trustText={(product as any).trustText}
+                  quoteText={(product as any).quoteText}
                   clientSecret={clientSecret}
                   naam={naam}
                   email={email}
