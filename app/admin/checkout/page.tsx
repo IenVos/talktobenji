@@ -328,7 +328,9 @@ export default function AdminCheckoutPage() {
         ),
       };
       if (editingId) {
-        await updateProduct({ id: editingId, ...payload });
+        // Geen afbeelding meer? Stuur clearImage mee zodat de mutatie het veld echt wist
+        // (een undefined imageStorageId wordt anders overgeslagen en blijft de oude staan).
+        await updateProduct({ id: editingId, ...payload, clearImage: !imageStorageId });
       } else {
         const newId = await createProduct(payload);
         setEditingId(newId);

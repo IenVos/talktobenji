@@ -177,6 +177,7 @@ export const update = mutation({
   args: {
     adminToken: v.string(),
     id: v.id("checkoutProducts"),
+    clearImage: v.optional(v.boolean()), // true = product-afbeelding expliciet wissen
     slug: v.optional(v.string()),
     name: v.optional(v.string()),
     kortNaam: v.optional(v.string()),
@@ -223,11 +224,13 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const { adminToken, id, ...fields } = args;
+    const { adminToken, id, clearImage, ...fields } = args;
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     for (const [key, val] of Object.entries(fields)) {
       if (val !== undefined) patch[key] = val;
     }
+    // Afbeelding expliciet verwijderd in de admin → veld wissen (undefined verwijdert het in Convex)
+    if (clearImage) patch.imageStorageId = undefined;
     // Kassakoopje uitgezet → velden expliciet wissen (undefined verwijdert het veld in Convex)
     if (args.addOnEnabled === false) {
       patch.addOnLabel = undefined;
