@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
@@ -15,6 +15,7 @@ import {
   MessageSquare,
   UserPlus,
   LogIn,
+  Mail,
 } from "lucide-react";
 
 function BedanktContent() {
@@ -23,6 +24,25 @@ function BedanktContent() {
   const itemName = searchParams?.get("item") ?? null;
   const addonParam = searchParams?.get("addon") ?? null;
   const boughtBenjiAddon = addonParam === "benji_access";
+  const paymentIntentId = searchParams?.get("payment_intent") ?? null;
+
+  // Nieuwsbrief-opt-in: bewust pas hier (na de aankoop) i.p.v. in de checkout,
+  // zodat er rond de betaalknop geen extra drempel staat.
+  const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const subscribeNewsletter = async () => {
+    if (!paymentIntentId) return;
+    setNewsletterStatus("loading");
+    try {
+      const res = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentIntentId }),
+      });
+      setNewsletterStatus(res.ok ? "done" : "error");
+    } catch {
+      setNewsletterStatus("error");
+    }
+  };
 
   const subscription = useQuery(
     api.subscriptions.getUserSubscription,
@@ -131,6 +151,41 @@ function BedanktContent() {
             </div>
           )}
         </div>
+
+        {/* Nieuwsbrief-opt-in — pas ná de aankoop, belast de checkout niet */}
+        {paymentIntentId && newsletterStatus !== "done" && (
+          <div className="bg-white rounded-2xl border border-primary-100 shadow-sm p-6 space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <Mail size={18} className="text-primary-600" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-gray-900">Af en toe iets van ons horen?</h2>
+                <p className="text-sm text-gray-600 mt-0.5">
+                  Zo nu en dan een rustig bericht — verhalen, troost en kleine handvatten. Geen spam, uitschrijven kan altijd.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={subscribeNewsletter}
+              disabled={newsletterStatus === "loading"}
+              className="w-full py-2.5 rounded-lg bg-primary-600 text-white text-sm font-medium hover:bg-primary-700 transition-colors disabled:opacity-60"
+            >
+              {newsletterStatus === "loading" ? "Bezig…" : "Ja, houd me op de hoogte"}
+            </button>
+            {newsletterStatus === "error" && (
+              <p className="text-xs text-red-600 text-center">Aanmelden lukte even niet. Probeer het zo nog eens.</p>
+            )}
+          </div>
+        )}
+
+        {paymentIntentId && newsletterStatus === "done" && (
+          <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-5 flex items-center gap-3">
+            <CheckCircle size={20} className="text-green-500 flex-shrink-0" />
+            <p className="text-sm text-gray-700">Gelukt — je staat op de lijst. Fijn dat je erbij bent.</p>
+          </div>
+        )}
 
         {/* Geen account — maak er een aan */}
         {!isLoading && !isLoggedIn && (

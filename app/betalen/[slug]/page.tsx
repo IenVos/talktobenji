@@ -97,7 +97,6 @@ function CheckoutForm({
 }) {
   const stripe = useStripe();
   const elements = useElements();
-  const [optIn, setOptIn] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsError, setTermsError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -135,7 +134,7 @@ function CheckoutForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slug, email, name: naam, paymentIntentId, optIn,
+          slug, email, name: naam, paymentIntentId,
           ...(isGift && {
             isGift: true,
             recipientEmail: recipientEmail || undefined,
@@ -254,16 +253,6 @@ function CheckoutForm({
           Je moet akkoord gaan met de voorwaarden om door te gaan.
         </p>
       )}
-
-      <label className="flex items-start gap-3 cursor-pointer group">
-        <div className="mt-0.5">
-          <Checkbox checked={optIn} onChange={setOptIn} />
-        </div>
-        <div>
-          <p className="text-sm text-stone-700 leading-snug">Ja, houd me op de hoogte</p>
-          <p className="text-xs text-stone-400 mt-0.5">Geen spam, uitschrijven kan altijd.</p>
-        </div>
-      </label>
 
       {/* Quote + betaalknop samen in één dun kader zodat ze bij elkaar horen */}
       <div className="rounded-2xl border border-stone-200 p-4 space-y-4">
