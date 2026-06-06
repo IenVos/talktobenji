@@ -316,7 +316,8 @@ export default function AdminCheckoutPage() {
           })
         ),
         extraTextBlocks: await Promise.all(
-          extraTextBlocks.filter((b) => b.content.trim()).map(async (b) => {
+          // Behoud blokken met tekst óf een afbeelding (een foto-only blok mag niet wegvallen)
+          extraTextBlocks.filter((b) => b.content.trim() || b.imageFile || b.imageStorageId).map(async (b) => {
             let imgId: Id<"_storage"> | undefined = b.imageStorageId as Id<"_storage"> | undefined;
             if (b.imageFile) imgId = await uploadFile(b.imageFile);
             return {

@@ -265,17 +265,20 @@ function CheckoutForm({
         </div>
       </label>
 
-      <p className="text-center text-base font-semibold italic text-primary-700 leading-snug px-2">
-        &ldquo;Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf.&rdquo;
-      </p>
+      {/* Quote + betaalknop samen in één dun kader zodat ze bij elkaar horen */}
+      <div className="rounded-2xl border border-stone-200 p-4 space-y-4">
+        <p className="text-center text-base font-semibold italic text-primary-700 leading-snug px-2">
+          &ldquo;Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf.&rdquo;
+        </p>
 
-      <button
-        type="submit"
-        disabled={submitting || !stripe || !elements}
-        className="w-full py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-base"
-      >
-        {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
-      </button>
+        <button
+          type="submit"
+          disabled={submitting || !stripe || !elements}
+          className="w-full py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-base"
+        >
+          {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
+        </button>
+      </div>
 
       <p className="text-center text-xs text-stone-500 font-medium">
         {trustText?.trim() || "🔒 Veilig betalen via Stripe · digitaal product · direct toegang"}
@@ -961,20 +964,22 @@ export default function BetalenPage() {
                       <h2 className="text-base font-semibold text-primary-800 mb-3">{block.title}</h2>
                     )}
                     {(block as any).imageUrl && (
-                      <div className="mb-4">
+                      <div className={block.content.trim() ? "mb-4" : ""}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={(block as any).imageUrl} alt={block.title ?? ""} loading="lazy" decoding="async" className="w-full rounded-xl border border-stone-200" />
                       </div>
                     )}
-                    <div className="text-sm text-primary-700 leading-relaxed space-y-4">
-                      {block.content.split("\n\n").map((para, j) => (
-                        <p key={j}>
-                          {para.split("\n").map((line, k) =>
-                            k === 0 ? line : <>{"\n"}<br />{line}</>
-                          )}
-                        </p>
-                      ))}
-                    </div>
+                    {block.content.trim() && (
+                      <div className="text-sm text-primary-700 leading-relaxed space-y-4">
+                        {block.content.split("\n\n").map((para, j) => (
+                          <p key={j}>
+                            {para.split("\n").map((line, k) =>
+                              k === 0 ? line : <>{"\n"}<br />{line}</>
+                            )}
+                          </p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
