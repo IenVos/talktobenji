@@ -1335,10 +1335,10 @@ export default function AdminLandingspaginasPage() {
                   {form.stickyCtaEnabled && (
                     <div className="mt-3 space-y-3 border-l-2 border-primary-100 pl-3">
                       <div>
-                        <label className={labelSmClass}>Tekst zwevende knop <span className="font-normal text-gray-400">(leeg = "{form.ctaText || "Start mijn reis"}")</span></label>
+                        <label className={labelSmClass}>Tekst zwevende knop <span className="font-normal text-gray-400">(leeg = "Ja, ik begin")</span></label>
                         <input
                           type="text"
-                          placeholder={form.ctaText || "Bijv. Ja, ik begin vandaag"}
+                          placeholder="Ja, ik begin"
                           value={form.stickyCtaText}
                           onChange={(e) => setForm((f) => ({ ...f, stickyCtaText: e.target.value }))}
                           className={inputClass}

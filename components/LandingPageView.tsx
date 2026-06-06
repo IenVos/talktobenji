@@ -443,7 +443,7 @@ export function LandingPageView({ slug }: { slug: string }) {
   const hideWatJeKrijgt = (page as any).hideWatJeKrijgt ?? false;
   const hideStickyBar = (page as any).hideStickyBar ?? false;
   const stickyCtaEnabled = (page as any).stickyCtaEnabled ?? false;
-  const stickyCtaText = ((page as any).stickyCtaText as string | undefined)?.trim() || ctaText;
+  const stickyCtaText = ((page as any).stickyCtaText as string | undefined)?.trim() || "Ja, ik begin";
   const stickyCtaColor = ((page as any).stickyCtaColor as string | undefined)?.trim() || ctaColor;
   const hideHeader = (page as any).hideHeader ?? false;
 
