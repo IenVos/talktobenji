@@ -68,6 +68,7 @@ function CheckoutForm({
   productName,
   totalInCents,
   vatLine,
+  vatAmountInCents,
   addOnLabel,
   addOnPriceInCents,
   addOnSelected,
@@ -89,6 +90,7 @@ function CheckoutForm({
   productName: string;
   totalInCents: number;
   vatLine: string | null;
+  vatAmountInCents?: number | null;
   addOnLabel?: string;
   addOnPriceInCents?: number;
   addOnSelected?: boolean;
@@ -208,7 +210,14 @@ function CheckoutForm({
           );
         })()}
         {vatLine && (
-          <p className="text-xs text-stone-400">{vatLine}</p>
+          <div className="flex items-center justify-between gap-2 text-xs text-stone-400">
+            <span>{vatLine}</span>
+            {vatAmountInCents != null && (
+              <span className="flex-shrink-0">
+                {new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(vatAmountInCents / 100)}
+              </span>
+            )}
+          </div>
         )}
         <div className="flex items-center justify-between gap-2 border-t border-stone-200 pt-1.5 mt-1.5">
           <span className="font-semibold text-stone-800">Totaal</span>
@@ -484,6 +493,7 @@ export default function BetalenPage() {
   const labelClass = "block text-sm font-medium text-stone-700 mb-1.5";
 
   let vatLine: string | null = null;
+  let vatAmountInCents: number | null = null;
   if (liveVatInfo) {
     const displayCountry = countryCode || "NL";
     if (liveIsBusiness) {
@@ -493,6 +503,8 @@ export default function BetalenPage() {
     } else {
       const countryName = EU_COUNTRY_NAMES_NL[displayCountry] ?? displayCountry;
       vatLine = `Inclusief ${Math.round(liveVatInfo.vatRate * 100)}% btw (${countryName})`;
+      // Btw-bedrag op het volledige totaal (incl. eventueel kassakoopje)
+      vatAmountInCents = calculateVat(displayPrice, liveEffectiveCountry).vatAmount;
     }
   }
 
@@ -928,6 +940,7 @@ export default function BetalenPage() {
                   productName={product.name}
                   totalInCents={displayPrice}
                   vatLine={vatLine}
+                  vatAmountInCents={vatAmountInCents}
                   addOnLabel={product.addOnLabel}
                   addOnPriceInCents={product.addOnPriceInCents}
                   addOnSelected={addOnSelected}
