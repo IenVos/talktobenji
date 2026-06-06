@@ -114,6 +114,7 @@ type FormState = {
   hideMidCta: boolean;
   hideWatJeKrijgt: boolean;
   hideStickyBar: boolean;
+  stickyCtaEnabled: boolean;
   hideHeader: boolean;
   section1Title: string;
   section1Text: string;
@@ -220,6 +221,7 @@ const EMPTY_FORM: FormState = {
   hideMidCta: false,
   hideWatJeKrijgt: false,
   hideStickyBar: false,
+  stickyCtaEnabled: false,
   hideHeader: false,
   section1Title: "",
   section1Text: "",
@@ -478,6 +480,7 @@ export default function AdminLandingspaginasPage() {
       hideMidCta: (page as any).hideMidCta ?? false,
       hideWatJeKrijgt: (page as any).hideWatJeKrijgt ?? false,
       hideStickyBar: (page as any).hideStickyBar ?? false,
+      stickyCtaEnabled: (page as any).stickyCtaEnabled ?? false,
       hideHeader: (page as any).hideHeader ?? false,
       section1Title: page.section1Title ?? "",
       section1Text: page.section1Text ?? "",
@@ -749,6 +752,7 @@ export default function AdminLandingspaginasPage() {
           hideMidCta: form.hideMidCta,
           hideWatJeKrijgt: form.hideWatJeKrijgt,
           hideStickyBar: form.hideStickyBar,
+          stickyCtaEnabled: form.stickyCtaEnabled,
           hideHeader: form.hideHeader,
           section1Title: form.section1Title.trim(),
           section1Text: form.section1Text.trim(),
@@ -854,6 +858,7 @@ export default function AdminLandingspaginasPage() {
           hideMidCta: form.hideMidCta,
           hideWatJeKrijgt: form.hideWatJeKrijgt,
           hideStickyBar: form.hideStickyBar,
+          stickyCtaEnabled: form.stickyCtaEnabled,
           hideHeader: form.hideHeader,
           section1Title: opt(form.section1Title),
           section1Text: opt(form.section1Text),
@@ -1304,6 +1309,19 @@ export default function AdminLandingspaginasPage() {
                       </label>
                     ))}
                   </div>
+                </div>
+                <div>
+                  <label className={labelSmClass}>Zwevende bestelknop</label>
+                  <label className="flex items-center gap-2 cursor-pointer mt-2">
+                    <input
+                      type="checkbox"
+                      checked={form.stickyCtaEnabled}
+                      onChange={(e) => setForm((f) => ({ ...f, stickyCtaEnabled: e.target.checked }))}
+                      className="rounded"
+                    />
+                    <span className="text-sm text-primary-700">Toon een zwevende CTA-knop onderaan (verschijnt na scrollen)</span>
+                  </label>
+                  <p className="text-xs text-gray-400 mt-1">Gebruikt de hoofd-CTA van de pagina ({"“"}{form.ctaText || "Start mijn reis"}{"”"} → {form.ctaUrl || "ingestelde link"}). Zo hoeven bezoekers niet terug te scrollen om te bestellen.</p>
                 </div>
               </div>
             </Section>

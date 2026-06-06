@@ -290,6 +290,14 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
 export function LandingPageView({ slug }: { slug: string }) {
   const [showIen, setShowIen] = useState(false);
   const [stickyBarDismissed, setStickyBarDismissed] = useState(false);
+  // Zwevende bestel-CTA: pas tonen nadat de bezoeker een eind heeft gescrold.
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setShowStickyCta(window.scrollY > 600);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const trackCtaClick = useTrackCtaClick();
   const page = useQuery(api.landingPages.getBySlug, { slug });
 
@@ -417,6 +425,7 @@ export function LandingPageView({ slug }: { slug: string }) {
   const hideMidCta = (page as any).hideMidCta ?? false;
   const hideWatJeKrijgt = (page as any).hideWatJeKrijgt ?? false;
   const hideStickyBar = (page as any).hideStickyBar ?? false;
+  const stickyCtaEnabled = (page as any).stickyCtaEnabled ?? false;
   const hideHeader = (page as any).hideHeader ?? false;
 
   let pricingBlocks: PricingBlock[] = [];
@@ -1080,6 +1089,37 @@ export function LandingPageView({ slug }: { slug: string }) {
       </div>
 
       {showIen && <VerhaalPopup onClose={() => setShowIen(false)} />}
+
+      {/* ZWEVENDE BESTEL-CTA — per pagina aan te zetten; verschijnt na scrollen */}
+      {stickyCtaEnabled && (
+        <div
+          className={`fixed left-0 right-0 z-[9991] px-4 transition-all duration-300 ${showStickyCta ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"}`}
+          style={{ bottom: (!hideStickyBar && !stickyBarDismissed) ? 64 : 16 }}
+        >
+          <div
+            className="mx-auto max-w-md flex items-center gap-3 rounded-2xl px-4 py-3 shadow-lg"
+            style={{
+              background: "rgba(255,252,249,0.98)",
+              border: "1px solid rgba(160,148,136,0.22)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            {ctaPrijsTekst && (
+              <span className="text-xs font-semibold whitespace-nowrap" style={{ color: ctaColor }}>
+                {ctaPrijsTekst}
+              </span>
+            )}
+            <a
+              href={ctaUrl}
+              onClick={() => trackCtaClick(`${ctaText} (zwevend)`)}
+              className="flex-1 text-center px-4 py-2.5 rounded-xl text-sm font-semibold text-white whitespace-nowrap"
+              style={{ background: ctaColor }}
+            >
+              {ctaText}
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* STICKY TRIAL BAR */}
       {!hideStickyBar && !stickyBarDismissed && (

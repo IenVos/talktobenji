@@ -742,6 +742,7 @@ export default defineSchema({
     hideMidCta: v.optional(v.boolean()),
     hideWatJeKrijgt: v.optional(v.boolean()),
     hideStickyBar: v.optional(v.boolean()),
+    stickyCtaEnabled: v.optional(v.boolean()), // aparte zwevende bestel-CTA-knop (verschijnt na scrollen)
     hideHeader: v.optional(v.boolean()),
     // Categorie en volgorde voor admin-overzicht
     categorie: v.optional(v.string()),
