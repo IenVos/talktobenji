@@ -15,7 +15,7 @@ type GiftVariantForm = {
   accessDays: string;
 };
 
-type ReviewForm = { author: string; role: string; text: string };
+type ReviewForm = { author: string; role: string; text: string; imageStorageId?: string; imagePreviewUrl?: string; imageFile?: File | null };
 type ExtraTextBlockForm = { title: string; content: string; imageStorageId?: string; imagePreviewUrl?: string; imageFile?: File | null };
 
 type CheckoutProduct = {
@@ -45,7 +45,8 @@ type CheckoutProduct = {
   addOnPriceInCents?: number;
   addOnType?: string;
   addOnAccessDays?: number;
-  reviews?: { author: string; role?: string; text: string }[];
+  benefits?: string[];
+  reviews?: { author: string; role?: string; text: string; imageStorageId?: string; imageUrl?: string | null }[];
   extraTextBlocks?: { title?: string; content: string; imageStorageId?: string; imageUrl?: string | null }[];
   createdAt: number;
   updatedAt: number;
@@ -136,6 +137,7 @@ export default function AdminCheckoutPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [giftVariants, setGiftVariants] = useState<GiftVariantForm[]>([]);
+  const [benefits, setBenefits] = useState<string[]>([]);
   const [reviews, setReviews] = useState<ReviewForm[]>([]);
   const [extraTextBlocks, setExtraTextBlocks] = useState<ExtraTextBlockForm[]>([]);
   const [savedOk, setSavedOk] = useState(false);
@@ -155,6 +157,7 @@ export default function AdminCheckoutPage() {
   const resetForm = () => {
     setForm(EMPTY_FORM);
     setGiftVariants([]);
+    setBenefits([]);
     setReviews([]);
     setExtraTextBlocks([]);
     setEditingId(null);
@@ -198,7 +201,8 @@ export default function AdminCheckoutPage() {
       addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
     });
     setGiftVariants(variantsToForm(product.giftVariants));
-    setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text })));
+    setBenefits(product.benefits ?? []);
+    setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text, imageStorageId: r.imageStorageId, imagePreviewUrl: r.imageUrl ?? undefined, imageFile: null })));
     setExtraTextBlocks((product.extraTextBlocks ?? []).map((b) => ({ title: b.title ?? "", content: b.content, imageStorageId: b.imageStorageId, imagePreviewUrl: b.imageUrl ?? undefined, imageFile: null })));
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(null);
@@ -234,7 +238,8 @@ export default function AdminCheckoutPage() {
       addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
     });
     setGiftVariants(variantsToForm(product.giftVariants));
-    setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text })));
+    setBenefits(product.benefits ?? []);
+    setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text, imageStorageId: r.imageStorageId, imagePreviewUrl: r.imageUrl ?? undefined, imageFile: null })));
     setExtraTextBlocks((product.extraTextBlocks ?? []).map((b) => ({ title: b.title ?? "", content: b.content, imageStorageId: b.imageStorageId, imagePreviewUrl: b.imageUrl ?? undefined, imageFile: null })));
     setEditingImageUrl(product.imageUrl ?? null);
     setEditingId(product._id);
@@ -295,11 +300,21 @@ export default function AdminCheckoutPage() {
         addOnPriceInCents: form.addOnEnabled && form.addOnPriceInCents.trim() ? parseInt(form.addOnPriceInCents, 10) : undefined,
         addOnType: form.addOnEnabled ? opt(form.addOnType) : undefined,
         addOnAccessDays: form.addOnEnabled && form.addOnAccessDays.trim() ? parseInt(form.addOnAccessDays, 10) : undefined,
-        reviews: reviews.filter((r) => r.author.trim() && r.text.trim()).map((r) => ({
-          author: r.author.trim(),
-          role: r.role.trim() || undefined,
-          text: r.text.trim(),
-        })),
+        benefits: benefits.map((b) => b.trim()).filter(Boolean).length > 0
+          ? benefits.map((b) => b.trim()).filter(Boolean)
+          : undefined,
+        reviews: await Promise.all(
+          reviews.filter((r) => r.author.trim() && r.text.trim()).map(async (r) => {
+            let imgId: Id<"_storage"> | undefined = r.imageStorageId as Id<"_storage"> | undefined;
+            if (r.imageFile) imgId = await uploadFile(r.imageFile);
+            return {
+              author: r.author.trim(),
+              role: r.role.trim() || undefined,
+              text: r.text.trim(),
+              imageStorageId: imgId,
+            };
+          })
+        ),
         extraTextBlocks: await Promise.all(
           extraTextBlocks.filter((b) => b.content.trim()).map(async (b) => {
             let imgId: Id<"_storage"> | undefined = b.imageStorageId as Id<"_storage"> | undefined;
@@ -575,7 +590,7 @@ export default function AdminCheckoutPage() {
                 <label className={labelSmClass}>Geruststelling onder knop <span className="font-normal text-gray-400">(standaard: "Veilig betalen via Stripe…")</span></label>
                 <input
                   type="text"
-                  placeholder="🔒 Veilig betalen via Stripe · geen abonnement · direct toegang"
+                  placeholder="🔒 Veilig betalen via Stripe · digitaal product · direct toegang"
                   value={form.trustText}
                   onChange={set("trustText")}
                   className={inputClass}
@@ -801,10 +816,42 @@ export default function AdminCheckoutPage() {
                 )}
               </div>
 
+              {/* Voordelen (vinkjes) */}
+              <div className="border border-primary-100 rounded-lg p-4 space-y-3 bg-primary-50">
+                <p className="text-sm font-semibold text-primary-800">Voordelen / vinkjes (optioneel)</p>
+                <p className="text-xs text-primary-600">Korte voordeel-regels met een vinkje, bovenaan de checkout (bijv. &quot;30 dagen elke ochtend een bericht&quot;). Houd ze kort en concreet.</p>
+                {benefits.map((b, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <span className="text-primary-500 flex-shrink-0">✓</span>
+                    <input
+                      className={inputClass}
+                      value={b}
+                      onChange={(e) => setBenefits((prev) => prev.map((x, j) => j === i ? e.target.value : x))}
+                      placeholder="Elke ochtend een persoonlijk bericht in je inbox"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setBenefits((prev) => prev.filter((_, j) => j !== i))}
+                      className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setBenefits((prev) => [...prev, ""])}
+                  className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 px-2 py-1.5 border border-dashed border-primary-300 rounded-lg hover:bg-primary-50 transition-colors"
+                >
+                  <Plus size={13} />
+                  Vinkje toevoegen
+                </button>
+              </div>
+
               {/* Reviews / testimonials */}
               <div className="border border-primary-100 rounded-lg p-4 space-y-3 bg-primary-50">
                 <p className="text-sm font-semibold text-primary-800">Reviews / testimonials (optioneel)</p>
-                <p className="text-xs text-primary-600">Worden getoond op de checkout pagina onder het productblok.</p>
+                <p className="text-xs text-primary-600">Worden getoond op de checkout pagina onder de betaling. Een foto wekt meer vertrouwen dan een initiaal.</p>
                 {reviews.map((r, i) => (
                   <div key={i} className="bg-white border border-primary-100 rounded-lg p-3 space-y-2">
                     <div className="flex gap-2">
@@ -843,6 +890,44 @@ export default function AdminCheckoutPage() {
                         rows={2}
                         placeholder="&quot;Dit heeft me echt geholpen in een moeilijke periode.&quot;"
                       />
+                    </div>
+                    <div>
+                      <label className={labelSmClass}>Foto <span className="text-gray-400">(optioneel — anders een initiaal)</span></label>
+                      <div className="flex items-center gap-3">
+                        {r.imagePreviewUrl && (
+                          <div className="relative flex-shrink-0">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={r.imagePreviewUrl} alt="" className="w-12 h-12 rounded-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => setReviews((prev) => prev.map((x, j) => j === i ? { ...x, imageFile: null, imageStorageId: undefined, imagePreviewUrl: undefined } : x))}
+                              className="absolute -top-1 -right-1 p-0.5 bg-white rounded-full text-red-500 hover:text-red-700 shadow"
+                            >
+                              <X size={11} />
+                            </button>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          id={`review-img-${i}`}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0] ?? null;
+                            if (file) {
+                              const previewUrl = URL.createObjectURL(file);
+                              setReviews((prev) => prev.map((x, j) => j === i ? { ...x, imageFile: file, imagePreviewUrl: previewUrl, imageStorageId: undefined } : x));
+                            }
+                            e.target.value = "";
+                          }}
+                        />
+                        <label
+                          htmlFor={`review-img-${i}`}
+                          className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 border border-primary-200 rounded-lg text-xs text-primary-700 hover:bg-primary-50 transition-colors"
+                        >
+                          {r.imagePreviewUrl ? "Andere foto" : "Foto uploaden"}
+                        </label>
+                      </div>
                     </div>
                   </div>
                 ))}

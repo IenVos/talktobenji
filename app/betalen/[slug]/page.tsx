@@ -185,16 +185,6 @@ function CheckoutForm({
         </div>
       </div>
 
-      <label className="flex items-start gap-3 cursor-pointer group">
-        <div className="mt-0.5">
-          <Checkbox checked={optIn} onChange={setOptIn} />
-        </div>
-        <div>
-          <p className="text-sm text-stone-700 leading-snug">Ja, houd me op de hoogte</p>
-          <p className="text-xs text-stone-400 mt-0.5">Geen spam, uitschrijven kan altijd.</p>
-        </div>
-      </label>
-
       {/* Prijssamenvatting */}
       <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 space-y-1.5 text-sm">
         {(() => {
@@ -244,9 +234,9 @@ function CheckoutForm({
         <span className="text-xs text-stone-600 leading-snug pt-0.5">
           Ik ga akkoord met de{" "}
           <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-primary-600 underline">algemene voorwaarden</a>
-          {", het "}
+          {" en het "}
           <a href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-primary-600 underline">privacybeleid</a>
-          {" en ik begrijp dat mijn herroepingsrecht vervalt bij directe levering van de digitale inhoud."}
+          {"."}
         </span>
       </label>
 
@@ -255,6 +245,20 @@ function CheckoutForm({
           Je moet akkoord gaan met de voorwaarden om door te gaan.
         </p>
       )}
+
+      <label className="flex items-start gap-3 cursor-pointer group">
+        <div className="mt-0.5">
+          <Checkbox checked={optIn} onChange={setOptIn} />
+        </div>
+        <div>
+          <p className="text-sm text-stone-700 leading-snug">Ja, houd me op de hoogte</p>
+          <p className="text-xs text-stone-400 mt-0.5">Geen spam, uitschrijven kan altijd.</p>
+        </div>
+      </label>
+
+      <p className="text-center text-sm text-stone-500 leading-snug px-2">
+        Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf.
+      </p>
 
       <button
         type="submit"
@@ -265,7 +269,7 @@ function CheckoutForm({
       </button>
 
       <p className="text-center text-xs text-stone-500 font-medium">
-        {trustText?.trim() || "🔒 Veilig betalen via Stripe · geen abonnement · direct toegang"}
+        {trustText?.trim() || "🔒 Veilig betalen via Stripe · digitaal product · direct toegang"}
       </p>
     </form>
   );
@@ -495,71 +499,65 @@ export default function BetalenPage() {
   return (
     <div className="min-h-screen bg-stone-50">
       <main className="max-w-md mx-auto px-4 py-8">
-        {/* Product info */}
+        {/* Product samenvatting — Calm-stijl: naam · vinkjes · prijs */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 mb-6 shadow-sm">
-          <div className="flex items-center gap-2.5 mb-3">
+          <div className="flex items-center justify-center gap-2.5 mb-1">
             <Image
               src="/images/benji-logo-2.png"
               alt=""
-              width={32}
-              height={32}
-              className="h-8 w-auto object-contain flex-shrink-0"
+              width={28}
+              height={28}
+              className="h-7 w-auto object-contain flex-shrink-0"
               style={{ width: "auto" }}
             />
-            <h1 className="text-xl font-bold text-stone-800">{product.name}</h1>
           </div>
-          {product.description && (
-            <div className="text-sm text-primary-600 mb-4 leading-relaxed space-y-4">
-              {product.description.split("\n\n").map((para, i) => (
-                <p key={i}>
-                  {para.split("\n").map((line, j) =>
-                    j === 0 ? line : <>{"\n"}<br />{line}</>
-                  )}
-                </p>
-              ))}
-            </div>
-          )}
-          {product.description && (
-            <div className="border-t border-stone-200 mb-4" />
-          )}
+          <h1 className="text-xl font-bold text-stone-800 text-center mb-4">{product.name}</h1>
+
           {product.imageUrl && (
             <div className="mb-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={product.imageUrl} alt={product.name} className="w-full rounded-xl" />
             </div>
           )}
-          <div className="flex flex-col items-center">
-            <span className="text-3xl font-bold text-primary-700">{priceFormatted}</span>
+
+          {/* Vinkjes (voordelen) — of, als die er niet zijn, de beschrijving */}
+          {product.benefits && product.benefits.length > 0 ? (
+            <>
+              <div className="border-t border-stone-200 mb-4" />
+              <ul className="space-y-2.5 mb-4">
+                {product.benefits.map((benefit, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center mt-0.5">
+                      <svg width="11" height="9" viewBox="0 0 10 8" fill="none">
+                        <path d="M1 4l2.5 2.5L9 1" stroke="#576b8f" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                    <span className="text-sm text-stone-700 leading-snug">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : product.description ? (
+            <>
+              <div className="border-t border-stone-200 mb-4" />
+              <div className="text-sm text-primary-600 mb-4 leading-relaxed space-y-4">
+                {product.description.split("\n\n").map((para, i) => (
+                  <p key={i}>
+                    {para.split("\n").map((line, j) =>
+                      j === 0 ? line : <>{"\n"}<br />{line}</>
+                    )}
+                  </p>
+                ))}
+              </div>
+            </>
+          ) : null}
+
+          {/* Prijs */}
+          <div className="border-t border-stone-200 pt-4 flex items-center justify-between gap-2">
+            <span className="text-sm font-semibold text-stone-700">Vandaag te betalen</span>
+            <span className="text-2xl font-bold text-primary-700">{priceFormatted}</span>
           </div>
         </div>
-
-        {/* Extra tekstblokken — direct onder de prijs (bijv. "wat het programma inhoudt") */}
-        {product.extraTextBlocks && product.extraTextBlocks.length > 0 && (
-          <div className="space-y-4 mb-6">
-            {product.extraTextBlocks.map((block, i) => (
-              <div key={i} className="bg-primary-50 rounded-2xl border-2 border-primary-600 p-6">
-                {block.title && (
-                  <h2 className="text-base font-semibold text-primary-800 mb-3">{block.title}</h2>
-                )}
-                {(block as any).imageUrl && (
-                  <div className="mb-4">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={(block as any).imageUrl} alt={block.title ?? ""} loading="lazy" decoding="async" className="w-full rounded-xl" />
-                  </div>
-                )}
-                <div className="text-sm text-primary-700 leading-relaxed space-y-4">
-                  {block.content.split("\n\n").map((para, j) => (
-                    <p key={j}>
-                      {para.split("\n").map((line, k) =>
-                        k === 0 ? line : <>{"\n"}<br />{line}</>
-                      )}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
 
         {/* Checkout kaart — naam, email, land, betaalgegevens */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-sm">
@@ -939,8 +937,36 @@ export default function BetalenPage() {
           </div>
         </div>
 
-        {!!product.reviews?.length && (
+        {(!!product.reviews?.length || !!product.extraTextBlocks?.length) && (
           <div className="mt-6 space-y-6">
+            {/* "Dit helpt omdat…" — vrije tekstblokken onder de betaling */}
+            {product.extraTextBlocks && product.extraTextBlocks.length > 0 && (
+              <div className="space-y-4">
+                {product.extraTextBlocks.map((block, i) => (
+                  <div key={i} className="bg-primary-50 rounded-2xl border-2 border-primary-600 p-6">
+                    {block.title && (
+                      <h2 className="text-base font-semibold text-primary-800 mb-3">{block.title}</h2>
+                    )}
+                    {(block as any).imageUrl && (
+                      <div className="mb-4">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={(block as any).imageUrl} alt={block.title ?? ""} loading="lazy" decoding="async" className="w-full rounded-xl" />
+                      </div>
+                    )}
+                    <div className="text-sm text-primary-700 leading-relaxed space-y-4">
+                      {block.content.split("\n\n").map((para, j) => (
+                        <p key={j}>
+                          {para.split("\n").map((line, k) =>
+                            k === 0 ? line : <>{"\n"}<br />{line}</>
+                          )}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Reviews / testimonials (indien ingesteld via admin) */}
             {product.reviews && product.reviews.length > 0 && (
               <div>
@@ -952,9 +978,14 @@ export default function BetalenPage() {
                         &ldquo;{review.text}&rdquo;
                       </p>
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center font-semibold text-xs flex-shrink-0 text-primary-600">
-                          {review.author.charAt(0).toUpperCase()}
-                        </div>
+                        {(review as any).imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={(review as any).imageUrl} alt={review.author} loading="lazy" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center font-semibold text-xs flex-shrink-0 text-primary-600">
+                            {review.author.charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         <div>
                           <p className="text-xs font-semibold text-stone-700">{review.author}</p>
                           {review.role && (

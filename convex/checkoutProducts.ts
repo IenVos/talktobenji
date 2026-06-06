@@ -26,7 +26,16 @@ export const list = query({
               return { ...block, imageUrl: blockImageUrl };
             }))
           : undefined;
-        return { ...product, imageUrl, extraTextBlocks };
+        const reviews = product.reviews
+          ? await Promise.all(product.reviews.map(async (review) => {
+              let reviewImageUrl: string | null = null;
+              try {
+                if (review.imageStorageId) reviewImageUrl = await ctx.storage.getUrl(review.imageStorageId);
+              } catch { /* negeer */ }
+              return { ...review, imageUrl: reviewImageUrl };
+            }))
+          : undefined;
+        return { ...product, imageUrl, extraTextBlocks, reviews };
       })
     );
   },
@@ -54,7 +63,16 @@ export const getBySlug = query({
           return { ...block, imageUrl: blockImageUrl };
         }))
       : undefined;
-    return { ...product, imageUrl, extraTextBlocks };
+    const reviews = product.reviews
+      ? await Promise.all(product.reviews.map(async (review) => {
+          let reviewImageUrl: string | null = null;
+          try {
+            if (review.imageStorageId) reviewImageUrl = await ctx.storage.getUrl(review.imageStorageId);
+          } catch { /* negeer */ }
+          return { ...review, imageUrl: reviewImageUrl };
+        }))
+      : undefined;
+    return { ...product, imageUrl, extraTextBlocks, reviews };
   },
 });
 
@@ -102,10 +120,12 @@ export const create = mutation({
     addOnPriceInCents: v.optional(v.number()),
     addOnType: v.optional(v.string()),
     addOnAccessDays: v.optional(v.number()),
+    benefits: v.optional(v.array(v.string())),
     reviews: v.optional(v.array(v.object({
       author: v.string(),
       role: v.optional(v.string()),
       text: v.string(),
+      imageStorageId: v.optional(v.id("_storage")),
     }))),
     extraTextBlocks: v.optional(v.array(v.object({
       title: v.optional(v.string()),
@@ -143,6 +163,7 @@ export const create = mutation({
       addOnPriceInCents: args.addOnPriceInCents,
       addOnType: args.addOnType,
       addOnAccessDays: args.addOnAccessDays,
+      benefits: args.benefits,
       reviews: args.reviews,
       extraTextBlocks: args.extraTextBlocks,
       createdAt: now,
@@ -187,10 +208,12 @@ export const update = mutation({
     addOnPriceInCents: v.optional(v.number()),
     addOnType: v.optional(v.string()),
     addOnAccessDays: v.optional(v.number()),
+    benefits: v.optional(v.array(v.string())),
     reviews: v.optional(v.array(v.object({
       author: v.string(),
       role: v.optional(v.string()),
       text: v.string(),
+      imageStorageId: v.optional(v.id("_storage")),
     }))),
     extraTextBlocks: v.optional(v.array(v.object({
       title: v.optional(v.string()),
