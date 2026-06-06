@@ -186,7 +186,7 @@ function CheckoutForm({
       </div>
 
       {/* Prijssamenvatting */}
-      <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 space-y-1.5 text-sm">
+      <div className="rounded-xl border-2 border-primary-600 bg-primary-50 px-4 py-3 space-y-1.5 text-sm">
         {(() => {
           const hasAddOn = !!(addOnSelected && addOnLabel && addOnPriceInCents);
           const basePrice = hasAddOn ? totalInCents - addOnPriceInCents! : totalInCents;
@@ -256,8 +256,8 @@ function CheckoutForm({
         </div>
       </label>
 
-      <p className="text-center text-sm text-stone-500 leading-snug px-2">
-        Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf.
+      <p className="text-center text-base font-semibold italic text-primary-700 leading-snug px-2">
+        &ldquo;Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf.&rdquo;
       </p>
 
       <button
@@ -513,18 +513,11 @@ export default function BetalenPage() {
           </div>
           <h1 className="text-xl font-bold text-stone-800 text-center mb-4">{product.name}</h1>
 
-          {product.imageUrl && (
-            <div className="mb-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={product.imageUrl} alt={product.name} className="w-full rounded-xl" />
-            </div>
-          )}
-
-          {/* Vinkjes (voordelen) — of, als die er niet zijn, de beschrijving */}
+          {/* Vinkjes (voordelen) — direct onder de naam; valt terug op de beschrijving */}
           {product.benefits && product.benefits.length > 0 ? (
             <>
               <div className="border-t border-stone-200 mb-4" />
-              <ul className="space-y-2.5 mb-4">
+              <ul className="space-y-2.5">
                 {product.benefits.map((benefit, i) => (
                   <li key={i} className="flex items-start gap-2.5">
                     <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 flex items-center justify-center mt-0.5">
@@ -552,9 +545,16 @@ export default function BetalenPage() {
             </>
           ) : null}
 
+          {product.imageUrl && (
+            <div className="mt-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={product.imageUrl} alt={product.name} className="w-full rounded-xl" />
+            </div>
+          )}
+
           {/* Prijs */}
-          <div className="border-t border-stone-200 pt-4 flex items-center justify-between gap-2">
-            <span className="text-sm font-semibold text-stone-700">Vandaag te betalen</span>
+          <div className="border-t border-stone-200 mt-4 pt-4 flex items-center justify-between gap-2">
+            <span className="text-sm font-semibold text-stone-700">Eenmalig</span>
             <span className="text-2xl font-bold text-primary-700">{priceFormatted}</span>
           </div>
         </div>

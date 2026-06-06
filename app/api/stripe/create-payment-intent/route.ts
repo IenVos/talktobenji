@@ -18,15 +18,6 @@ function generateInvoiceNumber(): string {
 }
 
 export async function POST(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const { allowed, retryAfterMs } = rateLimit(`stripe:${ip}`, { maxAttempts: 10, windowMs: 60 * 60 * 1000 });
-  if (!allowed) {
-    return NextResponse.json(
-      { error: `Te veel verzoeken. ${retryAfterMessage(retryAfterMs)}` },
-      { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
-    );
-  }
-
   if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: "Stripe niet geconfigureerd" }, { status: 500 });
   }
@@ -72,6 +63,18 @@ export async function POST(req: NextRequest) {
     }
     await stripe.paymentIntents.update(paymentIntentId, updateParams);
     return NextResponse.json({ success: true });
+  }
+
+  // Rate limit alleen op het aanmaken van een NIEUWE PaymentIntent (niet op de
+  // metadata-updates hierboven). Een gewone bezoeker die de pagina een paar keer
+  // herlaadt zit zo niet meteen op slot; het blokkeert wel bulk-misbruik.
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const { allowed, retryAfterMs } = rateLimit(`stripe:${ip}`, { maxAttempts: 30, windowMs: 60 * 60 * 1000 });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: `Te veel verzoeken. ${retryAfterMessage(retryAfterMs)}` },
+      { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+    );
   }
 
   // countryCode is verplicht bij nieuwe PaymentIntent
