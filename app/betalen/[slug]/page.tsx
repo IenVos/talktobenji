@@ -552,7 +552,7 @@ export default function BetalenPage() {
           {product.imageUrl && (
             <div className="mt-5 mb-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={product.imageUrl} alt={product.name} className="w-full rounded-xl border border-stone-200" />
+              <img src={product.imageUrl} alt={product.name} className="w-full rounded-xl" />
             </div>
           )}
 
@@ -955,7 +955,7 @@ export default function BetalenPage() {
                     {(block as any).imageUrl && (
                       <div className={block.content.trim() ? "mb-4" : ""}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={(block as any).imageUrl} alt={block.title ?? ""} loading="lazy" decoding="async" className="w-full rounded-xl border border-stone-200" />
+                        <img src={(block as any).imageUrl} alt={block.title ?? ""} loading="lazy" decoding="async" className="w-full rounded-xl" />
                       </div>
                     )}
                     {block.content.trim() && (
