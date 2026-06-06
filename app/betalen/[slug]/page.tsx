@@ -458,6 +458,13 @@ export default function BetalenPage() {
 
   const addonPrice = addOnSelected && product.addOnPriceInCents ? product.addOnPriceInCents : 0;
   const displayPrice = (overridePriceInCents ?? product.priceInCents) + addonPrice;
+  // Scheidingsstreep boven "Betaalgegevens" alleen tonen als er iets te scheiden valt
+  // (cadeau- of zakelijk-knop, of een kassakoopje). Anders is het losse ruis.
+  const hasExtraOptions = !!(
+    product.giftEnabled ||
+    product.b2bEnabled !== false ||
+    (product.addOnLabel && product.addOnPriceInCents)
+  );
   const priceFormatted = new Intl.NumberFormat("nl-NL", {
     style: "currency",
     currency: "EUR",
@@ -896,7 +903,7 @@ export default function BetalenPage() {
           )}
 
           {/* Betaalgegevens — altijd zichtbaar, laadt direct met NL als provisorisch land */}
-          <div className="mt-6 pt-6 border-t border-stone-100">
+          <div className={hasExtraOptions ? "mt-6 pt-6 border-t border-stone-100" : "mt-4"}>
             {secretError ? (
               <div className="space-y-3">
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
