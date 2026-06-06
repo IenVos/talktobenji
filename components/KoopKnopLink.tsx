@@ -28,7 +28,7 @@ export function KoopKnopLink({ href, buttonLabel, className, style, children }: 
   }, [href]);
 
   return (
-    <a href={finalHref} onClick={() => trackCtaClick(buttonLabel)} className={className} style={style}>
+    <a data-lp-cta href={finalHref} onClick={() => trackCtaClick(buttonLabel)} className={className} style={style}>
       {children}
     </a>
   );

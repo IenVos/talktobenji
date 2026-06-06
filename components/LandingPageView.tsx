@@ -290,13 +290,30 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
 export function LandingPageView({ slug }: { slug: string }) {
   const [showIen, setShowIen] = useState(false);
   const [stickyBarDismissed, setStickyBarDismissed] = useState(false);
-  // Zwevende bestel-CTA: pas tonen nadat de bezoeker een eind heeft gescrold.
+  // Zwevende bestel-CTA: verschijnt pas als het eerste blok ná de eerste in-page CTA
+  // voorbij is, en verdwijnt zodra er een echte CTA-knop in beeld staat (geen dubbele CTA).
   const [showStickyCta, setShowStickyCta] = useState(false);
   useEffect(() => {
-    const onScroll = () => setShowStickyCta(window.scrollY > 600);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    const update = () => {
+      const ctas = Array.from(document.querySelectorAll<HTMLElement>("[data-lp-cta]"));
+      const vh = window.innerHeight;
+      const first = ctas[0];
+      // Eerste CTA + eerstvolgend blok voorbij? (ruim een half scherm voorbij de eerste CTA)
+      const firstPassed = !!first && first.getBoundingClientRect().bottom < -vh * 0.6;
+      // Staat er ergens een in-page CTA in beeld? Dan de zwevende knop verbergen.
+      const anyVisible = ctas.some((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top < vh - 40 && r.bottom > 40;
+      });
+      setShowStickyCta(firstPassed && !anyVisible);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
   }, []);
   const trackCtaClick = useTrackCtaClick();
   const page = useQuery(api.landingPages.getBySlug, { slug });
