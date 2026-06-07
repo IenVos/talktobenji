@@ -12,7 +12,7 @@ const DEFAULT_NACHT: NachtConfig = {
   inputPlaceholder: "Wat houdt je wakker?",
   showWaaromButton: false,
   buttons: [
-    { id: "voel-me-alleen", label: "Ik kan niet slapen" },
+    { id: "niet-slapen", label: "Ik kan niet slapen" },
     { id: "omgaan-verdriet", label: "Ik zit met verdriet" },
     { id: "verlies-dierbare", label: "Ik mis iemand" },
     { id: "gewoon-praten", label: "Ik wil gewoon praten" },

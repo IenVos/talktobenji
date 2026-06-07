@@ -192,7 +192,8 @@ export default defineSchema({
       v.literal("huisdier"),
       v.literal("hulp"),
       v.literal("gewoon"),
-      v.literal("alleen")
+      v.literal("alleen"),
+      v.literal("slaap")
     ),
     openerVariant: v.union(v.literal(1), v.literal(2), v.literal(3)),
     userContinued: v.boolean(),

@@ -13,7 +13,7 @@ import { api } from "./_generated/api";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
-  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon" | "alleen",
+  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon" | "alleen" | "slaap",
   [string, string, string]
 > = {
   gewoon: [
@@ -22,8 +22,8 @@ const OPENERS: Record<
     "Vertel me wat je bezighoudt. Er is geen goed of fout begin.",
   ],
   verlies: [
-    "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is — of dat nu door de dood is, door afstand of doordat een band verwaterde. Neem de tijd. Ik luister.",
-    "Iemand missen kan op zoveel manieren pijn doen. Je hoeft hier niets uit te leggen — begin gewoon waar je wilt.",
+    "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is. Of dat nu door de dood is, door afstand of doordat een band verwaterde. Neem de tijd. Ik luister.",
+    "Iemand missen kan op zoveel manieren pijn doen. Je hoeft hier niets uit te leggen. Begin gewoon waar je wilt.",
     "Verlies heeft veel gezichten, en ze doen allemaal pijn op hun eigen manier. Vertel me wat je kwijt wilt.",
   ],
   verdriet: [
@@ -42,15 +42,20 @@ const OPENERS: Record<
     "De stap zetten om hulp te zoeken is niet makkelijk. Wat zou je het meest helpen op dit moment?",
   ],
   alleen: [
-    "Alleen voelen is een van de zwaarste dingen die er zijn. Vertel me eens — hoe lang draag je dit al?",
+    "Alleen voelen is een van de zwaarste dingen die er zijn. Vertel me eens, hoe lang draag je dit al?",
     "Ik ben hier. Dat alleen zijn kan zwaar wegen. Wil je me vertellen hoe het voelt voor jou?",
     "Het kost moed om dat te zeggen. Je bent hier niet alleen. Wat speelt er op dit moment?",
+  ],
+  slaap: [
+    "Wakker liggen terwijl de wereld slaapt is eenzaam. Ik ben er. Wat houdt je vannacht uit je slaap?",
+    "De nacht maakt gedachten vaak groter dan ze overdag zijn. Vertel maar, wat speelt er door je hoofd?",
+    "Niet kunnen slapen is slopend. Je hoeft er niet alleen mee te liggen. Wat houdt je wakker?",
   ],
 };
 
 const TOPIC_ID_TO_OPENER_KEY: Record<
   string,
-  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon" | "alleen"
+  "verlies" | "verdriet" | "huisdier" | "hulp" | "gewoon" | "alleen" | "slaap"
 > = {
   "verlies-dierbare": "verlies",
   "omgaan-verdriet": "verdriet",
@@ -58,6 +63,7 @@ const TOPIC_ID_TO_OPENER_KEY: Record<
   "professionele-hulp": "hulp",
   "gewoon-praten": "gewoon",
   "voel-me-alleen": "alleen",
+  "niet-slapen": "slaap",
 };
 
 // ============================================================================
