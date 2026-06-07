@@ -22,9 +22,9 @@ const OPENERS: Record<
     "Vertel me wat je bezighoudt. Er is geen goed of fout begin.",
   ],
   verlies: [
-    "Iemand verliezen laat een leegte achter die moeilijk te beschrijven is. Neem de tijd. Ik luister.",
-    "Het gemis van iemand die er niet meer is, kan overweldigend zijn. Je hoeft hier niets uit te leggen begin waar je wilt.",
-    "Verlies doet pijn, op manieren die anderen niet altijd zien. Vertel me wat je kwijt wilt.",
+    "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is — of dat nu door de dood is, door afstand of doordat een band verwaterde. Neem de tijd. Ik luister.",
+    "Iemand missen kan op zoveel manieren pijn doen. Je hoeft hier niets uit te leggen — begin gewoon waar je wilt.",
+    "Verlies heeft veel gezichten, en ze doen allemaal pijn op hun eigen manier. Vertel me wat je kwijt wilt.",
   ],
   verdriet: [
     "Verdriet heeft geen handleiding. Wat je ook voelt, het is oké. Wat houdt je op dit moment het meest bezig?",
