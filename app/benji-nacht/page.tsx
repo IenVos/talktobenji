@@ -6,7 +6,7 @@ export const revalidate = 60;
 
 // Standaardwaarden — overschrijfbaar in de admin (Pagina's → Benji Nacht).
 const DEFAULT_NACHT: NachtConfig = {
-  introText: "Wakker en alleen met je gedachten? Benji luistert — juist nu, midden in de nacht.",
+  introText: "Wakker en alleen met je gedachten? Benji luistert, juist nu, midden in de nacht.",
   question: "Waar wil je over praten?",
   subText: "Anoniem · zonder oordeel · altijd beschikbaar",
   inputPlaceholder: "Wat houdt je wakker?",

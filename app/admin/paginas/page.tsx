@@ -609,6 +609,7 @@ function VoorJouTab() {
 
 // ─── Tab: Benji Nacht ─────────────────────────────────────────────────────────
 const NACHT_TOPIC_OPTIONS: { id: string; label: string }[] = [
+  { id: "niet-slapen", label: "Ik kan niet slapen" },
   { id: "voel-me-alleen", label: "Ik voel me alleen" },
   { id: "omgaan-verdriet", label: "Ik zit met verdriet" },
   { id: "verlies-dierbare", label: "Ik heb iemand verloren" },
@@ -617,7 +618,7 @@ const NACHT_TOPIC_OPTIONS: { id: string; label: string }[] = [
 ];
 
 const NACHT_DEFAULTS: Record<string, string> = {
-  introText: "Wakker en alleen met je gedachten? Benji luistert — juist nu, midden in de nacht.",
+  introText: "Wakker en alleen met je gedachten? Benji luistert, juist nu, midden in de nacht.",
   question: "Waar wil je over praten?",
   subText: "Anoniem · zonder oordeel · altijd beschikbaar",
   inputPlaceholder: "Wat houdt je wakker?",
@@ -626,7 +627,7 @@ const NACHT_DEFAULTS: Record<string, string> = {
 };
 
 const NACHT_DEFAULT_BUTTONS: { id: string; label: string }[] = [
-  { id: "voel-me-alleen", label: "Ik kan niet slapen" },
+  { id: "niet-slapen", label: "Ik kan niet slapen" },
   { id: "omgaan-verdriet", label: "Ik zit met verdriet" },
   { id: "verlies-dierbare", label: "Ik mis iemand" },
   { id: "gewoon-praten", label: "Ik wil gewoon praten" },
