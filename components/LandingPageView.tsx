@@ -1052,7 +1052,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                     {renderTextWithParagraphs(page.finalCtaBody)}
                   </div>
                 )}
-                {!hasPricing && (
+                {!hasPricing && showInPageCtas && (
                   <>
                   <KoopKnopLink
                     href={ctaUrl}
