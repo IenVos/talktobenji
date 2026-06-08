@@ -307,11 +307,21 @@ export const getStats = query({
       .sort((a, b) => b.visits - a.visits)
       .slice(0, 5);
 
+    // -- Bounce: sessies die maar 1 pagina bekeken (landen en direct weg) --
+    const sessionViewCounts: Record<string, number> = {};
+    for (const view of allViews) {
+      sessionViewCounts[view.sessionId] = (sessionViewCounts[view.sessionId] ?? 0) + 1;
+    }
+    const singlePageSessions = Object.values(sessionViewCounts).filter((c) => c === 1).length;
+    const bounceRate = allSessionIds.size > 0 ? Math.round((singlePageSessions / allSessionIds.size) * 100) : 0;
+
     const totals = {
       views: allViews.length,
       unique: allSessionIds.size,
       avgDuration,
       returningVisitors,
+      singlePageSessions,
+      bounceRate,
     };
 
     // -- Dagelijkse conversies (userSubscriptions + nietAlleenProfiles) --

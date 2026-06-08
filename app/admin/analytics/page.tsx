@@ -442,11 +442,14 @@ export default function AdminAnalytics() {
     }
     if (preset === "maand") return { from: new Date(now.getFullYear(), now.getMonth(), 1).getTime(), to: Date.now() };
     if (preset === "jaar") return { from: new Date(now.getFullYear(), 0, 1).getTime(), to: Date.now() };
-    if (preset === "laatste7") return { from: Date.now() - 7 * 86_400_000, to: Date.now() };
-    if (preset === "laatste14") return { from: Date.now() - 14 * 86_400_000, to: Date.now() };
-    if (preset === "laatste28") return { from: Date.now() - 28 * 86_400_000, to: Date.now() };
-    if (preset === "laatste30") return { from: Date.now() - 30 * 86_400_000, to: Date.now() };
-    if (preset === "laatste90") return { from: Date.now() - 90 * 86_400_000, to: Date.now() };
+    // "Laatste N dagen" = N hele kalenderdagen incl. vandaag. Beginpunt op
+    // dagstart (00:00), zodat het totaal niet minuut-na-minuut zakt doordat
+    // het venster vanaf "exact nu" mee opschuift.
+    if (preset === "laatste7") return { from: today.getTime() - 6 * 86_400_000, to: Date.now() };
+    if (preset === "laatste14") return { from: today.getTime() - 13 * 86_400_000, to: Date.now() };
+    if (preset === "laatste28") return { from: today.getTime() - 27 * 86_400_000, to: Date.now() };
+    if (preset === "laatste30") return { from: today.getTime() - 29 * 86_400_000, to: Date.now() };
+    if (preset === "laatste90") return { from: today.getTime() - 89 * 86_400_000, to: Date.now() };
     if (preset === "vorigeMaand") {
       const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const last = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
@@ -803,6 +806,11 @@ export default function AdminAnalytics() {
                   ? `${Math.round(((stats.totals.returningVisitors ?? 0) / stats.totals.unique) * 100)}% van uniek`
                   : "–"}
               </p>
+            </div>
+            <div className="text-center">
+              <p className="text-[10px] text-primary-400 mb-0.5">Bounce</p>
+              <p className={`text-lg font-bold ${((stats.totals as any).bounceRate ?? 0) >= 70 ? "text-red-600" : "text-primary-900"}`}>{(stats.totals as any).bounceRate ?? 0}%</p>
+              <p className="text-[10px] text-primary-400 mt-0.5">1 pagina, weg</p>
             </div>
             <div className="text-right">
               <p className="text-[10px] text-primary-400 mb-0.5">Gem. verblijf</p>
