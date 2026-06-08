@@ -301,27 +301,11 @@ export function LandingPageView({ slug }: { slug: string }) {
       (window as any).fbq("track", "ViewContent");
     }
   }, []);
+  // De zwevende koopknop (indien aangezet) staat van begin af aan in beeld en
+  // blijft staan. De in-page koopknoppen vervallen dan, dus er is nooit een
+  // dubbele knop of geknipper. Korte fade-in bij het laden.
   useEffect(() => {
-    const update = () => {
-      const ctas = Array.from(document.querySelectorAll<HTMLElement>("[data-lp-cta]"));
-      const vh = window.innerHeight;
-      const first = ctas[0];
-      // Eerste CTA + eerstvolgend blok voorbij? (ruim een half scherm voorbij de eerste CTA)
-      const firstPassed = !!first && first.getBoundingClientRect().bottom < -vh * 0.6;
-      // Staat er ergens een in-page CTA in beeld? Dan de zwevende knop verbergen.
-      const anyVisible = ctas.some((el) => {
-        const r = el.getBoundingClientRect();
-        return r.top < vh - 40 && r.bottom > 40;
-      });
-      setShowStickyCta(firstPassed && !anyVisible);
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
-    return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
+    setShowStickyCta(true);
   }, []);
   const trackCtaClick = useTrackCtaClick();
   const page = useQuery(api.landingPages.getBySlug, { slug });
@@ -451,6 +435,10 @@ export function LandingPageView({ slug }: { slug: string }) {
   const hideWatJeKrijgt = (page as any).hideWatJeKrijgt ?? false;
   const hideStickyBar = (page as any).hideStickyBar ?? false;
   const stickyCtaEnabled = (page as any).stickyCtaEnabled ?? false;
+  // Als de zwevende koopknop aanstaat: verberg de in-page koopknoppen (hero, mid-page
+  // en finale). Dan is er één vaste knop die altijd in beeld staat — geen dubbele
+  // knoppen, geen geknipper. Prijsblok-keuzeknoppen blijven wel staan.
+  const showInPageCtas = !stickyCtaEnabled;
   const stickyCtaText = ((page as any).stickyCtaText as string | undefined)?.trim() || "Ja, ik begin";
   const stickyCtaColor = ((page as any).stickyCtaColor as string | undefined)?.trim() || ctaColor;
   const hideHeader = (page as any).hideHeader ?? false;
@@ -627,7 +615,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                 />
               </div>
             )}
-            {!hasPricing && (
+            {!hasPricing && showInPageCtas && (
               <>
                 <KoopKnopLink
                   href={ctaUrl}
@@ -838,7 +826,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         )}
 
         {/* MID-PAGE CTA */}
-        {!hideMidCta && !hasPricing && (
+        {!hideMidCta && !hasPricing && showInPageCtas && (
           <section className="px-5 pb-8">
             <div className="max-w-md mx-auto text-center">
               <KoopKnopLink
