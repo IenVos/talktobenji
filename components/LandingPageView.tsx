@@ -421,8 +421,8 @@ export function LandingPageView({ slug }: { slug: string }) {
         <div className="max-w-lg mx-auto">
           {(page as any).productImageUrl
             // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={src} alt="Productafbeelding" className="w-full rounded-2xl" />
-            : <Image src={src} alt="Productafbeelding" width={600} height={420} className="w-full rounded-2xl" />
+            ? <img src={src} alt="Productafbeelding" className="mx-auto block w-auto max-w-full max-h-[70vh] rounded-2xl" />
+            : <Image src={src} alt="Productafbeelding" width={600} height={420} className="mx-auto block w-auto max-w-full max-h-[70vh] rounded-2xl" />
           }
         </div>
       </section>
