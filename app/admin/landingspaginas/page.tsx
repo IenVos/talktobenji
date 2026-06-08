@@ -64,6 +64,7 @@ type LandingPage = {
   section2Text?: string;
   productImageStorageId?: Id<"_storage">;
   productImagePath?: string;
+  productImageUrl?: string | null;
   bgImageStorageId?: Id<"_storage">;
   voorWieBullets?: string;
   voorWieTitle?: string;
@@ -662,7 +663,7 @@ export default function AdminLandingspaginasPage() {
         return [{ ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }, { ...EMPTY_PRICING_BLOCK }];
       })(),
     });
-    setEditingProductImageUrl(null); // wordt geladen via aparte query als nodig
+    setEditingProductImageUrl((page as any).productImageUrl ?? null); // opgeslagen upload-URL (via list-query)
     setEditingBgImageUrl(null);
     setEditingId(page._id);
     setShowForm(true);
@@ -1466,14 +1467,12 @@ export default function AdminLandingspaginasPage() {
                 <div className="space-y-2">
                   <label className={labelClass}>Productafbeelding</label>
                   {/* Huidige afbeelding tonen */}
-                  {!removeProductImage && (productPreviewUrl || editingBgImageUrl !== undefined && (editingBgImageUrl === null ? false : true) || form.productImagePath) && (
+                  {!removeProductImage && (productPreviewUrl || form.productImagePath || editingProductImageUrl) && (
                     <div className="flex items-start gap-3 mb-2">
-                      {(productPreviewUrl || form.productImagePath) && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={productPreviewUrl || form.productImagePath} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-primary-200" />
-                      )}
-                      {editingId && !form.productImageFile && !removeProductImage && (
-                        <button type="button" onClick={() => { setRemoveProductImage(true); setForm(f => ({ ...f, productImagePath: "", productImageFile: null })); if (productImageRef.current) productImageRef.current.value = ""; }}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={productPreviewUrl || form.productImagePath || editingProductImageUrl || ""} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-primary-200" />
+                      {!form.productImageFile && (form.productImagePath || editingProductImageUrl) && (
+                        <button type="button" onClick={() => { setRemoveProductImage(true); setEditingProductImageUrl(null); setForm(f => ({ ...f, productImagePath: "", productImageFile: null })); if (productImageRef.current) productImageRef.current.value = ""; }}
                           className="text-xs text-red-500 hover:text-red-700 border border-red-200 rounded-lg px-3 py-1.5 mt-1">
                           Afbeelding verwijderen
                         </button>

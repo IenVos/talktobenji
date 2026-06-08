@@ -5,13 +5,22 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
-/** Admin: lijst alle pagina's, nieuwste eerst */
+/** Admin: lijst alle pagina's, nieuwste eerst (incl. opgeslagen productafbeelding-URL) */
 export const list = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
     const pages = await ctx.db.query("landingPages").collect();
-    return pages.sort((a, b) => b.createdAt - a.createdAt);
+    const sorted = pages.sort((a, b) => b.createdAt - a.createdAt);
+    return Promise.all(
+      sorted.map(async (p) => {
+        let productImageUrl: string | null = null;
+        try {
+          if (p.productImageStorageId) productImageUrl = await ctx.storage.getUrl(p.productImageStorageId);
+        } catch { /* negeer */ }
+        return { ...p, productImageUrl };
+      }),
+    );
   },
 });
 
@@ -312,7 +321,8 @@ export const update = mutation({
     }
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     for (const [key, val] of Object.entries(updates)) {
-      if (val !== undefined) patch[key] = val === "" ? undefined : val;
+      // Lege string of null = veld wissen (undefined laat Convex het veld verwijderen).
+      if (val !== undefined) patch[key] = (val === "" || val === null) ? undefined : val;
     }
     await ctx.db.patch(id, patch);
     return id;
