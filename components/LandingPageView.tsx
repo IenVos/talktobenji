@@ -399,6 +399,9 @@ export function LandingPageView({ slug }: { slug: string }) {
   const ctaPrijsTekst = ((page as any).ctaPrijsTekst as string | undefined)?.trim();
   const ctaMicroCopy = ((page as any).ctaMicroCopy as string | undefined)?.trim();
   const productImagePosition = (page as any).productImagePosition || "after_content";
+  // Uniforme maat voor alle inhouds-afbeeldingen: verhouding behouden, horizontaal vult de
+  // breedte, verticaal wordt begrensd op 70vh (vult dus nooit het hele scherm). Geen bijsnijden.
+  const lpImgSizing = "w-auto max-w-full max-h-[70vh] mx-auto block";
 
   // Klein prijs-tekstje (in knopkleur) + micro-copy onder een CTA-knop.
   const CtaSubtext = () =>
@@ -421,8 +424,8 @@ export function LandingPageView({ slug }: { slug: string }) {
         <div className="max-w-lg mx-auto">
           {(page as any).productImageUrl
             // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={src} alt="Productafbeelding" className="mx-auto block w-auto max-w-full max-h-[70vh] rounded-2xl" />
-            : <Image src={src} alt="Productafbeelding" width={600} height={420} className="mx-auto block w-auto max-w-full max-h-[70vh] rounded-2xl" />
+            ? <img src={src} alt="Productafbeelding" className={`${lpImgSizing} rounded-2xl`} />
+            : <Image src={src} alt="Productafbeelding" width={600} height={420} className={`${lpImgSizing} rounded-2xl`} />
           }
         </div>
       </section>
@@ -734,7 +737,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                 )}
                 {(page as any).section1ImageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={(page as any).section1ImageUrl} alt={page.section1Title || ""} className={`w-full rounded-xl ${page.section1Title || page.section1Text ? "mt-4" : ""}`} />
+                  <img src={(page as any).section1ImageUrl} alt={page.section1Title || ""} className={`${lpImgSizing} rounded-xl ${page.section1Title || page.section1Text ? "mt-4" : ""}`} />
                 )}
               </div>
             </div>
@@ -758,7 +761,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                 )}
                 {(page as any).section2ImageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={(page as any).section2ImageUrl} alt={page.section2Title || ""} className={`w-full rounded-xl ${page.section2Title || page.section2Text ? "mt-4" : ""}`} />
+                  <img src={(page as any).section2ImageUrl} alt={page.section2Title || ""} className={`${lpImgSizing} rounded-xl ${page.section2Title || page.section2Text ? "mt-4" : ""}`} />
                 )}
               </div>
             </div>
@@ -783,7 +786,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                     )}
                     {block.afbeelding && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={block.afbeelding} alt={block.titel || ""} className="w-full rounded-xl border border-gray-100 shadow-sm" />
+                      <img src={block.afbeelding} alt={block.titel || ""} className={`${lpImgSizing} rounded-xl border border-gray-100 shadow-sm`} />
                     )}
                   </div>
                 ))}
