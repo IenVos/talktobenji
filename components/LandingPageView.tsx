@@ -293,6 +293,14 @@ export function LandingPageView({ slug }: { slug: string }) {
   // Zwevende bestel-CTA: verschijnt pas als het eerste blok ná de eerste in-page CTA
   // voorbij is, en verdwijnt zodra er een echte CTA-knop in beeld staat (geen dubbele CTA).
   const [showStickyCta, setShowStickyCta] = useState(false);
+  // Meta Pixel: deze bezoeker bekeek een verkoop-/landingspagina. Apart signaal
+  // naast de generieke PageView, zodat het algoritme op "verkooppagina bekeken"
+  // kan optimaliseren. Eénmalig per laden.
+  useEffect(() => {
+    if (typeof (window as any).fbq === "function") {
+      (window as any).fbq("track", "ViewContent");
+    }
+  }, []);
   useEffect(() => {
     const update = () => {
       const ctas = Array.from(document.querySelectorAll<HTMLElement>("[data-lp-cta]"));

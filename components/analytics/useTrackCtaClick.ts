@@ -16,6 +16,13 @@ export function useTrackCtaClick() {
     try {
       if (localStorage.getItem("ttb_skip_tracking") === "1") return;
 
+      // Meta Pixel: koop-intentie. Geeft het advertentie-algoritme een
+      // tussenstap-signaal (wie klikt op kopen), zodat het kan optimaliseren
+      // richting kopers i.p.v. alleen goedkope landers. Niet zichtbaar voor bezoeker.
+      if (typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "InitiateCheckout");
+      }
+
       const sessionId = localStorage.getItem("ttb_sid") ?? "";
       const path = window.location.pathname;
       const payload = JSON.stringify({ path, buttonLabel, sessionId });
