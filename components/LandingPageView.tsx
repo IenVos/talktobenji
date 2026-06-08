@@ -718,7 +718,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         )}
 
         {/* SECTIE 1 */}
-        {(page.section1Title || page.section1Text) && (
+        {(page.section1Title || page.section1Text || (page as any).section1ImageUrl) && (
           <section className="px-5 pb-8">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
@@ -732,13 +732,17 @@ export function LandingPageView({ slug }: { slug: string }) {
                     {renderTextWithParagraphs(page.section1Text)}
                   </div>
                 )}
+                {(page as any).section1ImageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={(page as any).section1ImageUrl} alt={page.section1Title || ""} className={`w-full rounded-xl ${page.section1Title || page.section1Text ? "mt-4" : ""}`} />
+                )}
               </div>
             </div>
           </section>
         )}
 
         {/* SECTIE 2 */}
-        {(page.section2Title || page.section2Text) && (
+        {(page.section2Title || page.section2Text || (page as any).section2ImageUrl) && (
           <section className="px-5 pb-8">
             <div className="max-w-lg mx-auto">
               <div className="rounded-2xl p-6 sm:p-8" style={{ background: "rgba(255,255,255,0.85)", boxShadow: "0 2px 20px rgba(0,0,0,0.07)" }}>
@@ -751,6 +755,10 @@ export function LandingPageView({ slug }: { slug: string }) {
                   <div className="space-y-3 text-sm leading-relaxed" style={{ color: "#6b6460" }}>
                     {renderTextWithParagraphs(page.section2Text)}
                   </div>
+                )}
+                {(page as any).section2ImageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={(page as any).section2ImageUrl} alt={page.section2Title || ""} className={`w-full rounded-xl ${page.section2Title || page.section2Text ? "mt-4" : ""}`} />
                 )}
               </div>
             </div>

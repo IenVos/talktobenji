@@ -120,8 +120,10 @@ type FormState = {
   hideHeader: boolean;
   section1Title: string;
   section1Text: string;
+  section1ImageUrl: string;
   section2Title: string;
   section2Text: string;
+  section2ImageUrl: string;
   productImageFile: File | null;
   productImagePath: string;
   productImagePosition: string;
@@ -229,8 +231,10 @@ const EMPTY_FORM: FormState = {
   hideHeader: false,
   section1Title: "",
   section1Text: "",
+  section1ImageUrl: "",
   section2Title: "",
   section2Text: "",
+  section2ImageUrl: "",
   productImageFile: null,
   productImagePath: "",
   productImagePosition: "after_content",
@@ -318,6 +322,53 @@ const EMPTY_FORM: FormState = {
 
 function opt(val: string): string | undefined {
   return val.trim() || undefined;
+}
+
+/**
+ * Verklein een geüploade afbeelding naar een nette standaardmaat (max ~1280px aan de
+ * langste zijde) zodat grote foto's niet te zwaar de pagina op komen. Verhouding blijft
+ * behouden, kleinere afbeeldingen worden niet opgeschaald. Video's en gif/svg blijven
+ * ongemoeid. PNG behoudt transparantie, de rest wordt als JPEG (kwaliteit 0.85) opgeslagen.
+ */
+async function resizeImageFile(file: File, maxDim = 1280): Promise<File> {
+  if (typeof window === "undefined") return file;
+  if (!file.type.startsWith("image/")) return file;
+  if (file.type === "image/gif" || file.type === "image/svg+xml") return file;
+  try {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const im = new window.Image();
+      im.onload = () => resolve(im);
+      im.onerror = reject;
+      im.src = dataUrl;
+    });
+    const longest = Math.max(img.width, img.height);
+    if (!longest || longest <= maxDim) return file; // al klein genoeg
+    const scale = maxDim / longest;
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(img, 0, 0, w, h);
+    const isPng = file.type === "image/png";
+    const mime = isPng ? "image/png" : "image/jpeg";
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, mime, isPng ? undefined : 0.85)
+    );
+    if (!blob) return file;
+    const base = file.name.replace(/\.[^.]+$/, "") || "afbeelding";
+    return new File([blob], `${base}.${isPng ? "png" : "jpg"}`, { type: mime });
+  } catch {
+    return file; // bij twijfel: origineel uploaden
+  }
 }
 
 /**
@@ -427,10 +478,14 @@ export default function AdminLandingspaginasPage() {
   const videoRef2 = useRef<HTMLInputElement>(null);
   const heroVideoRef = useRef<HTMLInputElement>(null);
   const heroImageRef = useRef<HTMLInputElement>(null);
+  const section1ImageRef = useRef<HTMLInputElement>(null);
+  const section2ImageRef = useRef<HTMLInputElement>(null);
   const [insertingVideo1, setInsertingVideo1] = useState(false);
   const [insertingVideo2, setInsertingVideo2] = useState(false);
   const [insertingHeroVideo, setInsertingHeroVideo] = useState(false);
   const [insertingHeroImage, setInsertingHeroImage] = useState(false);
+  const [insertingSection1Image, setInsertingSection1Image] = useState(false);
+  const [insertingSection2Image, setInsertingSection2Image] = useState(false);
   const [video1Centered, setVideo1Centered] = useState(false);
   const [video2Centered, setVideo2Centered] = useState(false);
 
@@ -490,8 +545,10 @@ export default function AdminLandingspaginasPage() {
       hideHeader: (page as any).hideHeader ?? false,
       section1Title: page.section1Title ?? "",
       section1Text: page.section1Text ?? "",
+      section1ImageUrl: (page as any).section1ImageUrl ?? "",
       section2Title: page.section2Title ?? "",
       section2Text: page.section2Text ?? "",
+      section2ImageUrl: (page as any).section2ImageUrl ?? "",
       productImageFile: null,
       productImagePath: page.productImagePath ?? "",
       productImagePosition: (page as any).productImagePosition ?? "after_content",
@@ -613,6 +670,8 @@ export default function AdminLandingspaginasPage() {
   };
 
   const uploadFile = async (file: File): Promise<Id<"_storage">> => {
+    // Afbeeldingen automatisch terugschalen naar een nette standaardmaat; video's blijven ongemoeid.
+    file = await resizeImageFile(file);
     const url = await generateUploadUrl();
     const res = await fetch(url, { method: "POST", body: file, headers: { "Content-Type": file.type } });
     const { storageId } = await res.json();
@@ -638,6 +697,21 @@ export default function AdminLandingspaginasPage() {
       if (imageUrl) setForm((f) => ({ ...f, heroImageUrl: imageUrl }));
     } finally {
       setInsertingHeroImage(false);
+    }
+  };
+
+  const uploadSectionImage = async (
+    field: "section1ImageUrl" | "section2ImageUrl",
+    file: File,
+    setInserting: (v: boolean) => void,
+  ) => {
+    setInserting(true);
+    try {
+      const storageId = await uploadFile(file);
+      const imageUrl = await getImageUrl({ storageId });
+      if (imageUrl) setForm((f) => ({ ...f, [field]: imageUrl }));
+    } finally {
+      setInserting(false);
     }
   };
 
@@ -764,8 +838,10 @@ export default function AdminLandingspaginasPage() {
           hideHeader: form.hideHeader,
           section1Title: form.section1Title.trim(),
           section1Text: form.section1Text.trim(),
+          section1ImageUrl: form.section1ImageUrl.trim(),
           section2Title: form.section2Title.trim(),
           section2Text: form.section2Text.trim(),
+          section2ImageUrl: form.section2ImageUrl.trim(),
           productImageStorageId: productImageStorageId as any,
           productImagePath: removeProductImage ? "" : form.productImagePath.trim(),
           productImagePosition: form.productImagePosition,
@@ -872,8 +948,10 @@ export default function AdminLandingspaginasPage() {
           hideHeader: form.hideHeader,
           section1Title: opt(form.section1Title),
           section1Text: opt(form.section1Text),
+          section1ImageUrl: opt(form.section1ImageUrl),
           section2Title: opt(form.section2Title),
           section2Text: opt(form.section2Text),
+          section2ImageUrl: opt(form.section2ImageUrl),
           productImageStorageId,
           productImagePath: opt(form.productImagePath),
           bgImageStorageId,
@@ -1503,6 +1581,30 @@ export default function AdminLandingspaginasPage() {
                   <FormatToolbar getEl={() => section1TextRef.current} onValueChange={(v) => setForm((f) => ({ ...f, section1Text: v }))} />
                   <textarea ref={section1TextRef} placeholder="Het hoeft geen overlijden te zijn…" value={form.section1Text} onChange={set("section1Text")} rows={6} className={inputClass} />
                 </div>
+                <div>
+                  <label className={labelSmClass}>Afbeelding sectie 1 <span className="font-normal text-gray-400">(optioneel — getoond in het blok, groot formaat wordt automatisch verkleind)</span></label>
+                  <input ref={section1ImageRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadSectionImage("section1ImageUrl", file, setInsertingSection1Image);
+                      if (section1ImageRef.current) section1ImageRef.current.value = "";
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => section1ImageRef.current?.click()} disabled={insertingSection1Image}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 border border-purple-200 rounded text-xs text-purple-700 hover:bg-purple-50 disabled:opacity-50">
+                      🖼️ {insertingSection1Image ? "Uploaden…" : "Afbeelding uploaden"}
+                    </button>
+                    {form.section1ImageUrl && (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={form.section1ImageUrl} alt="" className="h-10 rounded object-cover border border-primary-100" />
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, section1ImageUrl: "" }))}
+                          className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </Section>
 
@@ -1537,6 +1639,30 @@ export default function AdminLandingspaginasPage() {
                   </div>
                   <FormatToolbar getEl={() => section2TextRef.current} onValueChange={(v) => setForm((f) => ({ ...f, section2Text: v }))} />
                   <textarea ref={section2TextRef} placeholder="Elke ochtend ontvang je een bericht…" value={form.section2Text} onChange={set("section2Text")} rows={6} className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelSmClass}>Afbeelding sectie 2 <span className="font-normal text-gray-400">(optioneel — getoond in het blok, groot formaat wordt automatisch verkleind)</span></label>
+                  <input ref={section2ImageRef} type="file" accept="image/*" className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadSectionImage("section2ImageUrl", file, setInsertingSection2Image);
+                      if (section2ImageRef.current) section2ImageRef.current.value = "";
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    <button type="button" onClick={() => section2ImageRef.current?.click()} disabled={insertingSection2Image}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 border border-purple-200 rounded text-xs text-purple-700 hover:bg-purple-50 disabled:opacity-50">
+                      🖼️ {insertingSection2Image ? "Uploaden…" : "Afbeelding uploaden"}
+                    </button>
+                    {form.section2ImageUrl && (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={form.section2ImageUrl} alt="" className="h-10 rounded object-cover border border-primary-100" />
+                        <button type="button" onClick={() => setForm((f) => ({ ...f, section2ImageUrl: "" }))}
+                          className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </Section>

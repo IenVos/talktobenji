@@ -714,8 +714,10 @@ export default defineSchema({
     // Body sections (up to 2 text sections)
     section1Title: v.optional(v.string()),
     section1Text: v.optional(v.string()),
+    section1ImageUrl: v.optional(v.string()),
     section2Title: v.optional(v.string()),
     section2Text: v.optional(v.string()),
+    section2ImageUrl: v.optional(v.string()),
     // Product image — upload (storageId) of public path
     productImageStorageId: v.optional(v.id("_storage")),
     productImagePath: v.optional(v.string()),
