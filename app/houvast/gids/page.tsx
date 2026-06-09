@@ -380,9 +380,14 @@ export default function HouvasteGidsPage() {
                 className="rounded-2xl p-6 sm:p-8 space-y-5"
                 style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 24px rgba(0,0,0,0.08)" }}
               >
-                <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#8a8078", letterSpacing: "0.13em" }}>
-                  Moment {huidigMoment.nav}
-                </p>
+                <div className="space-y-1">
+                  <p className="text-xs uppercase tracking-widest font-medium" style={{ color: "#8a8078", letterSpacing: "0.13em" }}>
+                    Moment {huidigMoment.nav}
+                  </p>
+                  <p className="text-xs" style={{ color: "#a09890" }}>
+                    Jouw brief wordt opgebouwd terwijl je deelt.
+                  </p>
+                </div>
 
                 <h2
                   className="text-xl sm:text-2xl font-semibold leading-snug"
