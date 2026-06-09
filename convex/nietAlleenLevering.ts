@@ -13,9 +13,19 @@
 
 const DAG_MS = 86_400_000;
 
+// De ochtend-cron (dagmails) draait om 08:00 UTC.
+const CRON_OCHTEND_UUR_UTC = 8;
+
 // Eerste cron-run met het leveringslogboek live (10 juni 2026, 08:00 UTC).
 // Dagmails die hiervóór gepland stonden zijn niet betrouwbaar geregistreerd.
 export const LEVERING_LOGBOEK_VANAF = Date.UTC(2026, 5, 10, 8, 0);
+
+// Het tijdstip van de laatste ochtend-cron-run op of vóór `now`.
+function laatsteOchtendCron(now: number): number {
+  const d = new Date(now);
+  const vandaag = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), CRON_OCHTEND_UUR_UTC, 0, 0);
+  return now >= vandaag ? vandaag : vandaag - DAG_MS;
+}
 
 export type DagStatus = "verzonden" | "gemist" | "onbekend" | "tekomen";
 
@@ -42,11 +52,12 @@ export type Levering = {
   specials: { dag15: SpecialStatus; dag28: SpecialStatus; dag30: SpecialStatus };
 };
 
-function statusVoor(dueAt: number, geregistreerd: boolean, heeftLog: boolean, now: number): DagStatus {
+function statusVoor(dag: number, verwachtTot: number, dueAt: number, geregistreerd: boolean, heeftLog: boolean): DagStatus {
   if (geregistreerd) return "verzonden";
-  if (dueAt > now) return "tekomen";
-  // Niet geregistreerd én de dag is geweest. Alleen "gemist" als we het ook écht
-  // zouden moeten weten: het logboek was live (dueAt >= cutover) of dit profiel
+  // Nog niet verwacht: de ochtend-cron is nog niet aan dit dagnummer toegekomen.
+  if (dag > verwachtTot) return "tekomen";
+  // Niet geregistreerd én had verstuurd moeten zijn. Alleen "gemist" als we het ook
+  // écht zouden moeten weten: het logboek was live (dueAt >= cutover) of dit profiel
   // heeft al geregistreerde dagen (dan is de lijst leidend en is een gat een gat).
   if (heeftLog || dueAt >= LEVERING_LOGBOEK_VANAF) return "gemist";
   return "onbekend";
@@ -54,6 +65,10 @@ function statusVoor(dueAt: number, geregistreerd: boolean, heeftLog: boolean, no
 
 export function berekenLevering(p: LeveringProfiel, now: number): Levering {
   const dagNummer = Math.floor((now - p.startDatum) / DAG_MS) + 1;
+  // Tot welk dagnummer de cron daadwerkelijk verstuurd zou hebben: berekend op het
+  // tijdstip van de laatste ochtend-cron (08:00 UTC), niet op kijk-moment. Zo toont
+  // de huidige dag niet ten onrechte rood vóór de cron 'm verstuurt.
+  const verwachtTot = Math.floor((laatsteOchtendCron(now) - p.startDatum) / DAG_MS) + 1;
   const verzondenSet = new Set(p.verzondenDagen ?? []);
   const heeftLog = (p.verzondenDagen?.length ?? 0) > 0;
 
@@ -64,7 +79,7 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
 
   for (let d = 1; d <= 30; d++) {
     const dueAt = p.startDatum + (d - 1) * DAG_MS;
-    const status = statusVoor(dueAt, verzondenSet.has(d), heeftLog, now);
+    const status = statusVoor(d, verwachtTot, dueAt, verzondenSet.has(d), heeftLog);
     dagen.push({ dag: d, status });
     if (status === "verzonden") verzonden.push(d);
     else if (status === "gemist") gemist.push(d);
@@ -73,8 +88,8 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
 
   const special = (dag: number, vlag: boolean): SpecialStatus => {
     const dueAt = p.startDatum + (dag - 1) * DAG_MS;
-    const status = statusVoor(dueAt, vlag, heeftLog, now);
-    return { due: dueAt <= now, verzonden: vlag, status };
+    const status = statusVoor(dag, verwachtTot, dueAt, vlag, heeftLog);
+    return { due: dag <= verwachtTot, verzonden: vlag, status };
   };
 
   const wachtrij = (p.inhaalWachtrij ?? []).filter((d) => !verzondenSet.has(d)).sort((a, b) => a - b);
