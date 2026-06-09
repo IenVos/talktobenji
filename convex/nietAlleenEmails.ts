@@ -148,9 +148,9 @@ function excuusBlok(): string {
 /** Lichtgrijze regel onderaan elke dagmail: meld het als je een dag mist. */
 function gemistRegel(): string {
   return `
-    <p style="font-size:12px; line-height:1.6; color:#a0aec0; margin-top:22px;">
-      Mis je een dag? Stuur even een berichtje naar
-      <a href="mailto:contactmetien@talktobenji.com" style="color:#a0aec0; text-decoration:underline;">contactmetien@talktobenji.com</a>,
+    <p style="font-size:12px; line-height:1.7; color:#a0aec0; margin-top:22px; text-align:center;">
+      Mis je een dag?<br>
+      Stuur even een berichtje naar <a href="mailto:contactmetien@talktobenji.com" style="color:#a0aec0; text-decoration:underline;">contactmetien@talktobenji.com</a>,<br>
       dan sturen we hem opnieuw.
     </p>`;
 }
