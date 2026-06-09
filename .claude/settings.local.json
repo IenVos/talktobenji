@@ -21,7 +21,8 @@
       "Read(//tmp/**)",
       "Bash(stripe --version)",
       "WebFetch(domain:www.talktobenji.com)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

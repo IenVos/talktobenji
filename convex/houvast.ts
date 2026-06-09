@@ -122,7 +122,7 @@ export const sendWelkomstMailInternal = internalAction({
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) return;
 
-    const link = `https://talktobenji.com/houvast/gids?token=${args.token}`;
+    const link = `https://talktobenji.com/even-houvast?token=${args.token}`;
     const aanhef = args.name ? `Hi ${args.name},` : "Hi,";
 
     const html = wrapperIen(`

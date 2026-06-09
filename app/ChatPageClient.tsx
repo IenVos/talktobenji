@@ -748,7 +748,7 @@ export default function ChatPageClient({
               {!isNacht && (
                 <div className="flex justify-center mt-3">
                   <Link
-                    href="/houvast/gids"
+                    href="/even-houvast"
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-500 hover:text-gray-700 hover:bg-white/60 transition-colors"
                   >
                     👋 Even Houvast

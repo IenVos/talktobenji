@@ -24,6 +24,8 @@ const nextConfig = {
   async redirects() {
     return [
       { source: "/favicon.ico", destination: "/icon.svg", permanent: false },
+      // Oude mini-gids-URL → nieuwe. Query (?token=, ?type=) blijft automatisch behouden.
+      { source: "/houvast/gids", destination: "/even-houvast", permanent: true },
     ];
   },
 };

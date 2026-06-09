@@ -759,7 +759,7 @@ function EvenHouvastTab() {
   return (
     <div className="space-y-4">
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800">
-        Lege regel = nieuwe alinea. Bezoekers komen binnen via <strong>/houvast/gids?type=persoon</strong> (verliestype bepaalt de Niet Alleen-knop onderaan).
+        Lege regel = nieuwe alinea. Bezoekers komen binnen via <strong>/even-houvast?type=persoon</strong> (verliestype bepaalt de Niet Alleen-knop onderaan).
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
@@ -818,7 +818,7 @@ const TABS: { key: Tab; label: string; href: string }[] = [
   { key: "av",           label: "Alg. voorwaarden",    href: "/algemene-voorwaarden" },
   { key: "faq",          label: "FAQ",                  href: "/faq" },
   { key: "benji-nacht",  label: "Benji Nacht",         href: "/benji-nacht" },
-  { key: "houvast",      label: "Even Houvast",        href: "/houvast/gids" },
+  { key: "houvast",      label: "Even Houvast",        href: "/even-houvast" },
 ];
 
 export default function PaginasAdminPage() {

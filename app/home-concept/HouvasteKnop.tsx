@@ -8,7 +8,7 @@ export function HouvasteKnop({ type }: { type?: string }) {
 
   if (!zichtbaar) return null;
 
-  const href = type ? `/houvast/gids?type=${encodeURIComponent(type)}` : "/houvast/gids";
+  const href = type ? `/even-houvast?type=${encodeURIComponent(type)}` : "/even-houvast";
 
   return (
     <div className="fixed bottom-20 right-4 z-40 flex items-center">
