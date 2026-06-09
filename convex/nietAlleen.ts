@@ -550,6 +550,8 @@ export const syncVerzondenDagen = internalMutation({
   args: {
     email: v.string(),
     verzondenDagen: v.array(v.number()),
+    inhaalWachtrij: v.optional(v.array(v.number())),
+    inhaalExcuusPending: v.optional(v.boolean()),
     dag15: v.optional(v.boolean()),
     dag28: v.optional(v.boolean()),
     dag30: v.optional(v.boolean()),
@@ -564,12 +566,14 @@ export const syncVerzondenDagen = internalMutation({
     await ctx.db.patch(p._id, {
       verzondenDagen: verzonden,
       laatsteDagMail: verzonden[verzonden.length - 1],
+      ...(args.inhaalWachtrij !== undefined ? { inhaalWachtrij: args.inhaalWachtrij.sort((a, b) => a - b) } : {}),
+      ...(args.inhaalExcuusPending !== undefined ? { inhaalExcuusPending: args.inhaalExcuusPending } : {}),
       ...(args.dag15 !== undefined ? { dag15MailVerzonden: args.dag15 } : {}),
       ...(args.dag28 !== undefined ? { dag28MailVerzonden: args.dag28 } : {}),
       ...(args.dag30 !== undefined ? { dag30MailVerzonden: args.dag30 } : {}),
       updatedAt: Date.now(),
     });
-    return { email: args.email, verzonden };
+    return { email: args.email, verzonden, wachtrij: args.inhaalWachtrij ?? p.inhaalWachtrij ?? [] };
   },
 });
 
