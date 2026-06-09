@@ -134,6 +134,27 @@ export const sendWelkomstMail = internalAction({
 // Dagelijkse herinneringsmail (Benji-ondertekening)
 // ─────────────────────────────────────────
 
+/** Klein excuus-blokje bovenaan een nagestuurde mail (na een storing). */
+function excuusBlok(): string {
+  return `
+    <div style="background:#f3f0eb; border-radius:10px; padding:12px 16px; margin-bottom:18px;">
+      <p style="font-size:13px; line-height:1.6; color:#6b6256; margin:0;">
+        Door een technische storing is deze dagmail eerder niet bij je aangekomen. Onze oprechte excuses.
+        We sturen de gemiste dagen de komende dagen rustig alsnog, zodat je niets hoeft te missen.
+      </p>
+    </div>`;
+}
+
+/** Lichtgrijze regel onderaan elke dagmail: meld het als je een dag mist. */
+function gemistRegel(): string {
+  return `
+    <p style="font-size:12px; line-height:1.6; color:#a0aec0; margin-top:22px;">
+      Mis je een dag? Stuur even een berichtje naar
+      <a href="mailto:contactmetien@talktobenji.com" style="color:#a0aec0; text-decoration:underline;">contactmetien@talktobenji.com</a>,
+      dan sturen we hem opnieuw.
+    </p>`;
+}
+
 export const sendDagMail = internalAction({
   args: {
     email: v.string(),
@@ -141,6 +162,7 @@ export const sendDagMail = internalAction({
     dagNummer: v.number(),
     verliesType: v.string(),
     verliesNaam: v.optional(v.string()),
+    metExcuus: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -162,11 +184,38 @@ export const sendDagMail = internalAction({
 
     const html = wrapperBenji(`
       <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
+      ${args.metExcuus ? excuusBlok() : ""}
       <p style="font-size: 13px; color: #a0aec0; margin-bottom: 4px;">Dag ${args.dagNummer} van 30</p>
       ${renderMailTekst(mailTekst, knopHtml)}
+      ${gemistRegel()}
     `);
 
     await verstuurEmail({ to: args.email, subject, html, apiKey: RESEND_API_KEY });
+  },
+});
+
+// ─────────────────────────────────────────
+// Foutmelding naar de beheerder (bij mislukte verzending)
+// ─────────────────────────────────────────
+
+export const meldVerzendFout = internalAction({
+  args: { context: v.string(), detail: v.string() },
+  handler: async (ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) return;
+    const naar = process.env.ADMIN_ALERT_EMAIL || "contactmetien@talktobenji.com";
+    try {
+      const html = wrapperBenji(`
+        <p style="font-size:16px; margin-bottom:8px;">Storing bij Niet Alleen-mails</p>
+        <p style="font-size:14px; color:#4a5568;">Er ging iets mis bij het versturen van een mail:</p>
+        <p style="font-size:14px; color:#2d3748;"><strong>${args.context}</strong></p>
+        <pre style="font-size:12px; color:#718096; white-space:pre-wrap; background:#f7f5f1; padding:12px; border-radius:8px;">${args.detail}</pre>
+        <p style="font-size:13px; color:#718096;">Check de leveringsstatus in het admin-paneel om gemiste mails na te sturen.</p>
+      `);
+      await verstuurEmail({ to: naar, subject: "⚠️ Niet Alleen — mail mislukt", html, apiKey: RESEND_API_KEY });
+    } catch {
+      // Een mislukte foutmelding mag nooit de cron blokkeren.
+    }
   },
 });
 
@@ -225,7 +274,7 @@ export const sendVoorbereidingsMail = internalAction({
 // ─────────────────────────────────────────
 
 export const sendAfsluitMail = internalAction({
-  args: { email: v.string(), naam: v.string(), aantalDagenIngevuld: v.number() },
+  args: { email: v.string(), naam: v.string(), aantalDagenIngevuld: v.number(), metExcuus: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) return;
@@ -239,6 +288,7 @@ export const sendAfsluitMail = internalAction({
 
     const html = wrapperIen(`
       <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
+      ${args.metExcuus ? excuusBlok() : ""}
       ${alineaHtml(bodyTextMet)}
       ${knop("Bekijk jouw dagboek", "https://talktobenji.com/niet-alleen/dagboek")}
       <p style="font-size: 14px; color: #718096;">

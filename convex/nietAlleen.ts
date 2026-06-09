@@ -10,8 +10,9 @@ import {
   mutation,
   query,
 } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 import { v } from "convex/values";
+import { checkAdmin, logAdminAction } from "./adminAuth";
 
 // ─────────────────────────────────────────
 // PUBLIC — gebruikt door de /niet-alleen pagina
@@ -275,6 +276,9 @@ export const maakTestProfiel = mutation({
         nietAlleenAnker: undefined,
         nietAlleenTerugblik: undefined,
         nietAlleenOefeningGesloten: undefined,
+        verzondenDagen: [],
+        inhaalWachtrij: undefined,
+        inhaalExcuusPending: undefined,
         dag15MailVerzonden: undefined,
         dag28MailVerzonden: undefined,
         dag30MailVerzonden: undefined,
@@ -290,6 +294,7 @@ export const maakTestProfiel = mutation({
       verliesType,
       startDatum,
       dagPrompts: [],
+      verzondenDagen: [],
       createdAt: now,
       updatedAt: now,
     });
@@ -349,6 +354,7 @@ export const activateNietAlleen = internalMutation({
         naam: args.naam,
         startDatum: now,
         dagPrompts: [],
+        verzondenDagen: [],
         createdAt: now,
         updatedAt: now,
       });
@@ -387,6 +393,7 @@ export const activateNietAlleenDirect = mutation({
       startDatum: now,
       verliesType: args.verliesType,
       dagPrompts: [],
+      verzondenDagen: [],
       createdAt: now,
       updatedAt: now,
     });
@@ -449,11 +456,191 @@ export const getAllActieveProfielen = internalQuery({
   },
 });
 
-/** Sla het hoogste dagnummer op waarvan de dagmail is verstuurd (voor inhaalslag). */
-export const setLaatsteDagMail = internalMutation({
-  args: { profileId: v.id("nietAlleenProfiles"), dag: v.number() },
+/**
+ * Leg vast dat de dagmail van een bepaald dagnummer is verstuurd.
+ * Voegt toe aan verzondenDagen (uniek) en haalt het dagnummer uit de inhaalwachtrij.
+ * Wist optioneel de excuus-vlag (na het versturen van de eerste inhaalmail).
+ */
+export const recordDagMailVerzonden = internalMutation({
+  args: {
+    profileId: v.id("nietAlleenProfiles"),
+    dag: v.number(),
+    excuusGebruikt: v.optional(v.boolean()),
+  },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.profileId, { laatsteDagMail: args.dag, updatedAt: Date.now() });
+    const p = await ctx.db.get(args.profileId);
+    if (!p) return;
+    const verzonden = Array.from(new Set([...(p.verzondenDagen ?? []), args.dag])).sort((a, b) => a - b);
+    const wachtrij = (p.inhaalWachtrij ?? []).filter((d) => d !== args.dag);
+    await ctx.db.patch(args.profileId, {
+      verzondenDagen: verzonden,
+      laatsteDagMail: verzonden[verzonden.length - 1],
+      inhaalWachtrij: wachtrij,
+      ...(args.excuusGebruikt ? { inhaalExcuusPending: false } : {}),
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/** Zet dagen in de inhaalwachtrij (gespreid nasturen, 1 per dag). Admin. */
+export const queueInhaalDagen = mutation({
+  args: {
+    adminToken: v.string(),
+    profileId: v.id("nietAlleenProfiles"),
+    dagen: v.array(v.number()),
+    metExcuus: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const p = await ctx.db.get(args.profileId);
+    if (!p) throw new Error("Profiel niet gevonden");
+    const wachtrij = Array.from(new Set([...(p.inhaalWachtrij ?? []), ...args.dagen])).sort((a, b) => a - b);
+    await ctx.db.patch(args.profileId, {
+      inhaalWachtrij: wachtrij,
+      ...(args.metExcuus ? { inhaalExcuusPending: true } : {}),
+      updatedAt: Date.now(),
+    });
+    await logAdminAction(ctx, `Niet Alleen inhaalwachtrij gezet voor ${p.email}: dag ${args.dagen.join(", ")}`);
+    return { wachtrij };
+  },
+});
+
+/** Leveringsstatus per klant: welke dagmails zijn (niet) verstuurd. Admin. */
+export const getLeveringsStatus = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const profielen = await ctx.db.query("nietAlleenProfiles").collect();
+    const now = Date.now();
+    return profielen
+      .map((p) => {
+        const dagNummer = Math.floor((now - p.startDatum) / 86400000) + 1;
+        const verzonden = new Set(p.verzondenDagen ?? []);
+        const tot = Math.min(30, Math.max(0, dagNummer));
+        const gemist: number[] = [];
+        for (let d = 1; d <= tot; d++) if (!verzonden.has(d)) gemist.push(d);
+        const wachtrij = (p.inhaalWachtrij ?? []).filter((d) => !verzonden.has(d)).sort((a, b) => a - b);
+        return {
+          profileId: p._id,
+          email: p.email,
+          naam: p.naam,
+          verliesType: p.verliesType ?? "persoon",
+          dagNummer,
+          accountGesloten: p.accountGesloten === true,
+          verzondenDagen: Array.from(verzonden).sort((a, b) => a - b),
+          gemist,
+          wachtrij,
+          excuusPending: p.inhaalExcuusPending === true,
+          specials: {
+            dag15: { due: dagNummer >= 15, verzonden: p.dag15MailVerzonden === true },
+            dag28: { due: dagNummer >= 28, verzonden: p.dag28MailVerzonden === true },
+            dag30: { due: dagNummer >= 30, verzonden: p.dag30MailVerzonden === true },
+          },
+        };
+      })
+      .sort((a, b) => (a.gemist.length === b.gemist.length ? a.naam.localeCompare(b.naam) : b.gemist.length - a.gemist.length));
+  },
+});
+
+/**
+ * Intern: zet verzondenDagen + speciale-mail-vlaggen op basis van de werkelijke
+ * verzendgeschiedenis (bijv. uit Resend). Voor eenmalige correctie/sync.
+ */
+export const syncVerzondenDagen = internalMutation({
+  args: {
+    email: v.string(),
+    verzondenDagen: v.array(v.number()),
+    dag15: v.optional(v.boolean()),
+    dag28: v.optional(v.boolean()),
+    dag30: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const p = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+    if (!p) throw new Error("Profiel niet gevonden: " + args.email);
+    const verzonden = Array.from(new Set(args.verzondenDagen)).sort((a, b) => a - b);
+    await ctx.db.patch(p._id, {
+      verzondenDagen: verzonden,
+      laatsteDagMail: verzonden[verzonden.length - 1],
+      ...(args.dag15 !== undefined ? { dag15MailVerzonden: args.dag15 } : {}),
+      ...(args.dag28 !== undefined ? { dag28MailVerzonden: args.dag28 } : {}),
+      ...(args.dag30 !== undefined ? { dag30MailVerzonden: args.dag30 } : {}),
+      updatedAt: Date.now(),
+    });
+    return { email: args.email, verzonden };
+  },
+});
+
+/** Intern: haal één profiel op (voor admin-action). */
+export const getProfielByIdInternal = internalQuery({
+  args: { profileId: v.id("nietAlleenProfiles") },
+  handler: async (ctx, args) => ctx.db.get(args.profileId),
+});
+
+/**
+ * Stuur gemiste dagmails en/of speciale mails NU direct (gebundeld) na. Admin.
+ * Voor de gespreide variant: gebruik queueInhaalDagen.
+ */
+export const stuurInhaalNu = action({
+  args: {
+    adminToken: v.string(),
+    profileId: v.id("nietAlleenProfiles"),
+    dagen: v.optional(v.array(v.number())),
+    specials: v.optional(v.array(v.union(v.literal(15), v.literal(28), v.literal(30)))),
+    metExcuus: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args): Promise<{ verstuurd: number }> => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
+    const p = await ctx.runQuery(internal.nietAlleen.getProfielByIdInternal, { profileId: args.profileId });
+    if (!p) throw new Error("Profiel niet gevonden");
+
+    const wacht = () => new Promise((r) => setTimeout(r, 1200));
+    let verstuurd = 0;
+    let excuusGedaan = false;
+
+    for (const dag of (args.dagen ?? []).slice().sort((a, b) => a - b)) {
+      const metExcuus: boolean = args.metExcuus === true && !excuusGedaan;
+      await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
+        email: p.email,
+        naam: p.naam,
+        dagNummer: dag,
+        verliesType: p.verliesType ?? "anders",
+        verliesNaam: p.verliesNaam,
+        metExcuus,
+      });
+      await ctx.runMutation(internal.nietAlleen.recordDagMailVerzonden, {
+        profileId: args.profileId,
+        dag,
+        excuusGebruikt: metExcuus,
+      });
+      excuusGedaan = excuusGedaan || metExcuus;
+      verstuurd++;
+      await wacht();
+    }
+
+    for (const special of args.specials ?? []) {
+      if (special === 15) {
+        await ctx.runAction(internal.nietAlleenEmails.sendHalverwegeMail, { email: p.email, naam: p.naam });
+      } else if (special === 28) {
+        await ctx.runAction(internal.nietAlleenEmails.sendVoorbereidingsMail, { email: p.email, naam: p.naam });
+      } else {
+        const metExcuus: boolean = args.metExcuus === true && !excuusGedaan;
+        await ctx.runAction(internal.nietAlleenEmails.sendAfsluitMail, {
+          email: p.email,
+          naam: p.naam,
+          aantalDagenIngevuld: p.dagPrompts.length,
+          metExcuus,
+        });
+        excuusGedaan = excuusGedaan || metExcuus;
+      }
+      await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: args.profileId, dag: special });
+      verstuurd++;
+      await wacht();
+    }
+
+    return { verstuurd };
   },
 });
 
@@ -577,20 +764,23 @@ export const processNietAlleenUsers = internalAction({
   args: {},
   handler: async (ctx) => {
     const profielen = await ctx.runQuery(internal.nietAlleen.getAllActieveProfielen, {});
-    const MAX_INHAAL = 4; // niet meer dan 4 dagmails in één run (voorkomt overspoeling na lange uitval)
+    const AUTO_INHAAL = 2; // automatisch hooguit vandaag + 1 recent gemiste dag (rest via admin-wachtrij)
 
     for (const profiel of profielen) {
       // Per profiel afschermen: een fout bij één klant mag de rest niet blokkeren.
       try {
         const dagNummer = Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
+        const verzonden = new Set(profiel.verzondenDagen ?? []);
+        const eersteKeer = profiel.verzondenDagen === undefined;
 
-        // Dagelijkse herinneringsmail (dag 1 t/m 30) — met inhaalslag voor gemiste dagen.
+        // Dagelijkse herinneringsmail (dag 1 t/m 30).
         if (dagNummer >= 1 && dagNummer <= 30) {
-          // Bij eerste keer (geen tracking): alleen vandaag, geen historische backfill.
-          const laatste = profiel.laatsteDagMail ?? dagNummer - 1;
           const tot = Math.min(30, dagNummer);
-          const van = Math.max(1, laatste + 1, tot - MAX_INHAAL + 1);
+          // Eerste keer zonder logboek: alleen vandaag (geen historische backfill).
+          // Daarna: vandaag + hooguit AUTO_INHAAL-1 recent gemiste dagen automatisch inhalen.
+          const van = eersteKeer ? tot : Math.max(1, tot - AUTO_INHAAL + 1);
           for (let dag = van; dag <= tot; dag++) {
+            if (verzonden.has(dag)) continue;
             await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
               email: profiel.email,
               naam: profiel.naam,
@@ -598,9 +788,27 @@ export const processNietAlleenUsers = internalAction({
               verliesType: profiel.verliesType ?? "anders",
               verliesNaam: profiel.verliesNaam,
             });
-            // Direct na elke geslaagde verzending vastleggen, zodat een latere fout
-            // niet leidt tot dubbele mails bij de volgende run.
-            await ctx.runMutation(internal.nietAlleen.setLaatsteDagMail, { profileId: profiel._id, dag });
+            await ctx.runMutation(internal.nietAlleen.recordDagMailVerzonden, { profileId: profiel._id, dag });
+          }
+
+          // Inhaalwachtrij (admin-gevuld): 1 gemiste dag per run, gespreid, met excuus op de eerste.
+          const wachtrij = (profiel.inhaalWachtrij ?? []).filter((d) => !verzonden.has(d)).sort((a, b) => a - b);
+          if (wachtrij.length > 0) {
+            const dag = wachtrij[0];
+            const metExcuus = profiel.inhaalExcuusPending === true;
+            await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
+              email: profiel.email,
+              naam: profiel.naam,
+              dagNummer: dag,
+              verliesType: profiel.verliesType ?? "anders",
+              verliesNaam: profiel.verliesNaam,
+              metExcuus,
+            });
+            await ctx.runMutation(internal.nietAlleen.recordDagMailVerzonden, {
+              profileId: profiel._id,
+              dag,
+              excuusGebruikt: metExcuus,
+            });
           }
         }
 
@@ -610,6 +818,10 @@ export const processNietAlleenUsers = internalAction({
         }
       } catch (err) {
         console.error(`Niet Alleen ochtend-mail mislukt voor ${profiel.email}:`, err);
+        await ctx.runAction(internal.nietAlleenEmails.meldVerzendFout, {
+          context: `Ochtend-dagmail voor ${profiel.email}`,
+          detail: String(err),
+        });
       }
     }
   },
@@ -655,6 +867,10 @@ export const processNietAlleenAvondMails = internalAction({
         }
       } catch (err) {
         console.error(`Niet Alleen avond-mail mislukt voor ${profiel.email}:`, err);
+        await ctx.runAction(internal.nietAlleenEmails.meldVerzendFout, {
+          context: `Avond-mail (dag 15/28/30) voor ${profiel.email}`,
+          detail: String(err),
+        });
       }
     }
   },

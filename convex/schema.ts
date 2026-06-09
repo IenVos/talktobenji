@@ -662,7 +662,10 @@ export default defineSchema({
       opgeslagenOp: v.number(),
     }))),
     nietAlleenOefeningGesloten: v.optional(v.array(v.number())),
-    laatsteDagMail: v.optional(v.number()), // hoogste dagnummer waarvan de dagmail is verstuurd (voor inhaalslag bij gemiste crons)
+    laatsteDagMail: v.optional(v.number()), // (verouderd) hoogste verstuurde dagnummer — vervangen door verzondenDagen
+    verzondenDagen: v.optional(v.array(v.number())), // logboek: welke dag-nummers zijn écht als dagmail verstuurd
+    inhaalWachtrij: v.optional(v.array(v.number())), // dag-nummers die alsnog (gespreid, 1/dag) nagestuurd moeten worden
+    inhaalExcuusPending: v.optional(v.boolean()), // zet excuus-regel boven de eerstvolgende inhaalmail
     dag15MailVerzonden: v.optional(v.boolean()),
     dag28MailVerzonden: v.optional(v.boolean()),
     dag30MailVerzonden: v.optional(v.boolean()),

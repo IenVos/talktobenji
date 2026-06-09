@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
+import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil, Plus, Trash2, Copy, Eye } from "lucide-react";
 import { useMutation } from "convex/react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
@@ -325,6 +325,173 @@ function ProgrammaPreviewBlok({ verliesTypen }: { verliesTypen: { code: string; 
                 </div>
               )}
             </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type LeveringStatus = {
+  profileId: string;
+  email: string;
+  naam: string;
+  verliesType: string;
+  dagNummer: number;
+  accountGesloten: boolean;
+  verzondenDagen: number[];
+  gemist: number[];
+  wachtrij: number[];
+  excuusPending: boolean;
+  specials: {
+    dag15: { due: boolean; verzonden: boolean };
+    dag28: { due: boolean; verzonden: boolean };
+    dag30: { due: boolean; verzonden: boolean };
+  };
+};
+
+function KlantStatusRij({ k }: { k: LeveringStatus }) {
+  const queueInhaal = useAdminMutation(api.nietAlleen.queueInhaalDagen);
+  const stuurNu = useAdminAction(api.nietAlleen.stuurInhaalNu);
+  const [bezig, setBezig] = useState(false);
+  const [melding, setMelding] = useState("");
+
+  const gemisteSpecials = (
+    [
+      [15, k.specials.dag15],
+      [28, k.specials.dag28],
+      [30, k.specials.dag30],
+    ] as const
+  )
+    .filter(([, s]) => s.due && !s.verzonden)
+    .map(([d]) => d as 15 | 28 | 30);
+
+  const heeftWerk = k.gemist.length > 0 || gemisteSpecials.length > 0 || k.wachtrij.length > 0;
+
+  const doe = async (fn: () => Promise<any>, succes: string) => {
+    setBezig(true);
+    setMelding("");
+    try {
+      await fn();
+      setMelding(succes);
+    } catch (e: any) {
+      setMelding("Fout: " + (e?.message ?? "onbekend"));
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const gespreid = () =>
+    doe(
+      () => queueInhaal({ profileId: k.profileId as any, dagen: k.gemist, metExcuus: true }),
+      `${k.gemist.length} dag(en) in de wachtrij gezet — 1 per dag, met excuus.`
+    );
+  const nuAlles = () =>
+    doe(async () => {
+      await stuurNu({ profileId: k.profileId as any, dagen: k.gemist, specials: gemisteSpecials, metExcuus: true });
+    }, `Direct verstuurd: ${k.gemist.length} dagmail(s)${gemisteSpecials.length ? ` + ${gemisteSpecials.length} afsluitmail(s)` : ""}.`);
+  const alleenSpecials = () =>
+    doe(
+      () => stuurNu({ profileId: k.profileId as any, specials: gemisteSpecials, metExcuus: true }),
+      `Speciale mail(s) verstuurd: dag ${gemisteSpecials.join(", ")}.`
+    );
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-3 bg-white">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <span className="text-sm font-semibold text-gray-800">{k.naam}</span>
+          <span className="text-xs text-gray-400 ml-2">{k.email}</span>
+          <span className="text-xs text-gray-500 ml-2">· dag {k.dagNummer}{k.accountGesloten ? " · afgesloten" : ""}</span>
+        </div>
+        {heeftWerk ? (
+          <span className="text-xs font-semibold text-red-600">
+            {k.gemist.length > 0 ? `${k.gemist.length} gemist` : ""}
+            {gemisteSpecials.length > 0 ? `${k.gemist.length > 0 ? " · " : ""}${gemisteSpecials.length} afsluiting` : ""}
+          </span>
+        ) : (
+          <span className="text-xs font-semibold text-green-600 flex items-center gap-1"><CheckCircle size={13} /> compleet</span>
+        )}
+      </div>
+
+      {k.gemist.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {k.gemist.map((d) => (
+            <span key={d} className="text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 border border-red-100">dag {d}</span>
+          ))}
+        </div>
+      )}
+      {gemisteSpecials.length > 0 && (
+        <p className="mt-2 text-xs text-amber-600">Afsluiting niet verstuurd: dag {gemisteSpecials.join(", ")}.</p>
+      )}
+      {k.wachtrij.length > 0 && (
+        <p className="mt-2 text-xs text-blue-600">In wachtrij (1/dag{k.excuusPending ? ", met excuus" : ""}): dag {k.wachtrij.join(", ")}.</p>
+      )}
+
+      {heeftWerk && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {k.gemist.length > 0 && (
+            <>
+              <button
+                disabled={bezig}
+                onClick={() => { if (confirm(`${k.gemist.length} gemiste dagen gespreid nasturen naar ${k.email}? (1 per dag, met excuus)`)) gespreid(); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+                style={{ background: "#3b82f6" }}
+              >
+                <RotateCcw size={12} /> Gespreid nasturen (1/dag)
+              </button>
+              <button
+                disabled={bezig}
+                onClick={() => { if (confirm(`Alle ${k.gemist.length} gemiste mails NU achter elkaar sturen naar ${k.email}?`)) nuAlles(); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-300 text-gray-700 disabled:opacity-50"
+              >
+                <Send size={12} /> Nu allemaal sturen
+              </button>
+            </>
+          )}
+          {k.gemist.length === 0 && gemisteSpecials.length > 0 && (
+            <button
+              disabled={bezig}
+              onClick={() => { if (confirm(`Afsluitmail(s) (dag ${gemisteSpecials.join(", ")}) sturen naar ${k.email}?`)) alleenSpecials(); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+              style={{ background: "#f59e0b" }}
+            >
+              <Send size={12} /> Afsluitmail sturen
+            </button>
+          )}
+        </div>
+      )}
+      {melding && <p className="mt-2 text-xs text-gray-600">{melding}</p>}
+    </div>
+  );
+}
+
+function LeveringsstatusBlok() {
+  const [open, setOpen] = useState(false);
+  const status = useAdminQuery(api.nietAlleen.getLeveringsStatus, open ? {} : "skip") as LeveringStatus[] | undefined;
+  const aantalMetGemist = (status ?? []).filter((k) => k.gemist.length > 0 || k.wachtrij.length > 0).length;
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <button type="button" onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+        <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
+        <span className="text-sm font-semibold text-gray-800 flex-1">Leveringsstatus &amp; gemiste mails</span>
+        {open && status && aantalMetGemist > 0 && (
+          <span className="text-xs font-semibold text-red-600">{aantalMetGemist} klant(en) met gaten</span>
+        )}
+        {open ? <ChevronDown size={16} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={16} className="text-gray-400 flex-shrink-0" />}
+      </button>
+      {open && (
+        <div className="px-5 pb-5 space-y-3 border-t border-gray-200 pt-4">
+          <p className="text-xs text-gray-500">
+            Per klant: welke dagmails écht verstuurd zijn. Stuur gemiste mails gespreid na (1 per dag, met excuus) of in één keer.
+          </p>
+          {status === undefined ? (
+            <p className="text-sm text-gray-400">Laden…</p>
+          ) : status.length === 0 ? (
+            <p className="text-sm text-gray-400">Nog geen profielen.</p>
+          ) : (
+            status.map((k) => <KlantStatusRij key={k.profileId} k={k} />)
           )}
         </div>
       )}
@@ -1015,6 +1182,7 @@ export default function NietAlleenEmailsPage() {
         </div>
       )}
 
+      <LeveringsstatusBlok />
       <TestProfielBlok />
       <TestEmailBlok />
       <ProgrammaPreviewBlok verliesTypen={verliesTypen as { code: string; naam: string }[] | undefined} />
