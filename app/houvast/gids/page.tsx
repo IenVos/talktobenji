@@ -234,52 +234,6 @@ export default function HouvasteGidsPage() {
       "/lp/je-hoeft-het-niet-alleen-te-doen"
   );
 
-  // Brief-opbouw: de woorden die de bezoeker tot nu toe heeft gedeeld, als
-  // groeiende brief. Bouwt live mee terwijl je schrijft en staat op elke pagina.
-  const ingevuldeMomenten = MOMENTEN.filter((m) => (antwoorden[m.id] || "").trim());
-  const toonBrief = ingevuldeMomenten.length > 0 && huidigStap !== "welkom";
-  const briefAanhef = profiel?.name ? `Lieve ${profiel.name},` : "Lieve jij,";
-  const briefPaneel = (
-    <div
-      className="rounded-2xl px-6 py-6 sm:px-7 sm:py-7 mt-5"
-      style={{
-        background: "rgba(255,255,255,0.72)",
-        border: "1px solid rgba(109,132,168,0.18)",
-        boxShadow: "0 2px 16px rgba(0,0,0,0.05)",
-      }}
-    >
-      <p
-        className="text-[0.65rem] uppercase tracking-widest font-medium mb-4"
-        style={{ color: "#a09890", letterSpacing: "0.14em" }}
-      >
-        Jouw brief tot nu toe
-      </p>
-      <div
-        className="space-y-3"
-        style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-      >
-        <p className="text-sm leading-relaxed" style={{ color: "#3d3530" }}>
-          {briefAanhef}
-        </p>
-        {ingevuldeMomenten.map((m) => (
-          <p
-            key={m.id}
-            className="text-sm leading-relaxed whitespace-pre-line"
-            style={{ color: "#5a534e" }}
-          >
-            {(antwoorden[m.id] || "").trim()}
-          </p>
-        ))}
-      </div>
-      <p
-        className="text-xs leading-relaxed mt-5 pt-4"
-        style={{ color: "#a09890", borderTop: "1px solid rgba(0,0,0,0.06)" }}
-      >
-        Benji weeft jouw woorden straks tot een persoonlijke brief en stuurt die naar je toe.
-      </p>
-    </div>
-  );
-
   // ─── Token aanwezig maar nog aan het laden ───────────────────────────────────
   if (heeftToken && profiel === undefined) {
     return (
@@ -687,9 +641,6 @@ export default function HouvasteGidsPage() {
                 )}
               </div>
             )}
-
-            {/* Groeiende brief — staat op elke pagina (behalve welkom) zodra je iets hebt gedeeld */}
-            {toonBrief && briefPaneel}
 
             {/* Vorige / Volgende */}
             <div className="flex justify-between items-center mt-5 px-1">
