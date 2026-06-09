@@ -5,6 +5,7 @@
 import { v } from "convex/values";
 import { action, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { berekenLevering } from "./nietAlleenLevering";
 
 /** Lijst van alle klant-e-mailadressen in het bestand (voor autocomplete bij zoeken).
  *  Combineert TTB-accounts (credentials) en Niet Alleen-klanten (nietAlleenProfiles). */
@@ -73,6 +74,7 @@ export const getCustomerByEmail = query({
           actief: !naProfile.accountGesloten,
           dag28Verzonden: !!naProfile.dag28MailVerzonden,
           dag30Verzonden: !!naProfile.dag30MailVerzonden,
+          levering: berekenLevering(naProfile, Date.now()),
         },
         producten: [
           { naam: "Niet Alleen (30 dagen)", type: "programma", since: naProfile.createdAt },
@@ -144,6 +146,7 @@ export const getCustomerByEmail = query({
       actief: boolean;
       dag28Verzonden: boolean;
       dag30Verzonden: boolean;
+      levering: ReturnType<typeof berekenLevering>;
     } | null = null;
     if (nietAlleenProfile) {
       const dagNummer = Math.min(
@@ -160,6 +163,7 @@ export const getCustomerByEmail = query({
         actief: !nietAlleenProfile.accountGesloten,
         dag28Verzonden: !!nietAlleenProfile.dag28MailVerzonden,
         dag30Verzonden: !!nietAlleenProfile.dag30MailVerzonden,
+        levering: berekenLevering(nietAlleenProfile, Date.now()),
       };
     }
 

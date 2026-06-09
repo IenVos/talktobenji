@@ -5,11 +5,190 @@ import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import {
   Search, Users, CreditCard, KeyRound, MessageSquare,
-  Palette, BookHeart, CheckCircle, AlertCircle, ChevronDown, AtSign, HelpCircle, ArrowRight,
-  Mail, RotateCcw, Send, Package, BellOff, BellRing,
+  Palette, BookHeart, CheckCircle, AlertCircle, ChevronDown, ChevronRight, AtSign, HelpCircle, ArrowRight,
+  Mail, RotateCcw, Send, Package, BellOff, BellRing, ListChecks,
 } from "lucide-react";
 import { useAction } from "convex/react";
+import { useAdminAction } from "../AdminAuthContext";
 import Link from "next/link";
+
+type DagStatus = "verzonden" | "gemist" | "onbekend" | "tekomen";
+type SpecialStatus = { due: boolean; verzonden: boolean; status: DagStatus };
+type Levering = {
+  dagNummer: number;
+  verzonden: number[];
+  gemist: number[];
+  onbekend: number[];
+  dagen: { dag: number; status: DagStatus }[];
+  wachtrij: number[];
+  excuusPending: boolean;
+  specials: { dag15: SpecialStatus; dag28: SpecialStatus; dag30: SpecialStatus };
+};
+
+const STATUS_STIJL: Record<DagStatus, { box: string; label: string; dot: string }> = {
+  verzonden: { box: "bg-green-50 border-green-200 text-green-700", label: "verstuurd", dot: "bg-green-500" },
+  gemist: { box: "bg-red-50 border-red-200 text-red-600", label: "gemist", dot: "bg-red-500" },
+  onbekend: { box: "bg-gray-50 border-gray-200 text-gray-400", label: "vóór logboek", dot: "bg-gray-300" },
+  tekomen: { box: "bg-white border-dashed border-gray-200 text-gray-300", label: "nog te komen", dot: "bg-gray-200" },
+};
+
+function MailLeveringPanel({ profileId, email, levering }: { profileId: string; email: string; levering: Levering }) {
+  const [open, setOpen] = useState(false);
+  const queueInhaal = useAdminMutation(api.nietAlleen.queueInhaalDagen);
+  const stuurNu = useAdminAction(api.nietAlleen.stuurInhaalNu);
+  const markeerOntvangen = useAdminMutation(api.nietAlleen.markeerAllesOntvangen);
+  const [bezig, setBezig] = useState(false);
+  const [melding, setMelding] = useState<ActionState>(null);
+
+  const gemisteSpecials = (
+    [
+      [15, levering.specials.dag15],
+      [28, levering.specials.dag28],
+      [30, levering.specials.dag30],
+    ] as const
+  )
+    .filter(([, s]) => s.status === "gemist")
+    .map(([d]) => d as 15 | 28 | 30);
+
+  const doe = async (fn: () => Promise<any>, succes: string) => {
+    setBezig(true);
+    setMelding(null);
+    try {
+      await fn();
+      setMelding({ type: "success", message: succes });
+    } catch (e: any) {
+      setMelding({ type: "error", message: e?.message ?? "Mislukt" });
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const SPECIALS = [
+    { dag: 15, naam: "Halverwege-check-in", s: levering.specials.dag15 },
+    { dag: 28, naam: "Voorbereiding", s: levering.specials.dag28 },
+    { dag: 30, naam: "Afsluiting", s: levering.specials.dag30 },
+  ];
+
+  return (
+    <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+      >
+        <ListChecks size={15} className="text-primary-600 flex-shrink-0" />
+        <span className="text-sm font-semibold text-gray-800 flex-1">Mail-levering per dag</span>
+        {levering.gemist.length > 0 ? (
+          <span className="text-xs font-semibold text-red-600">{levering.gemist.length} gemist</span>
+        ) : levering.onbekend.length > 0 ? (
+          <span className="text-xs font-medium text-gray-400">{levering.onbekend.length} vóór logboek</span>
+        ) : (
+          <span className="text-xs font-medium text-green-600 flex items-center gap-1"><CheckCircle size={12} /> compleet</span>
+        )}
+        {open ? <ChevronDown size={15} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-gray-400 flex-shrink-0" />}
+      </button>
+
+      {open && (
+        <div className="px-4 pb-4 pt-1 border-t border-gray-100 space-y-4">
+          {/* Legenda */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-500 pt-3">
+            {(["verzonden", "gemist", "onbekend", "tekomen"] as DagStatus[]).map((s) => (
+              <span key={s} className="flex items-center gap-1.5">
+                <span className={`w-2.5 h-2.5 rounded-full ${STATUS_STIJL[s].dot}`} />
+                {STATUS_STIJL[s].label}
+              </span>
+            ))}
+          </div>
+
+          {/* 30-dagen raster */}
+          <div className="grid grid-cols-10 gap-1.5">
+            {levering.dagen.map(({ dag, status }) => (
+              <div
+                key={dag}
+                title={`Dag ${dag} — ${STATUS_STIJL[status].label}`}
+                className={`rounded-md border py-1.5 text-center text-[11px] font-semibold ${STATUS_STIJL[status].box}`}
+              >
+                {dag}
+              </div>
+            ))}
+          </div>
+
+          {/* Speciale mails */}
+          <div className="flex flex-wrap gap-2">
+            {SPECIALS.filter((x) => x.s.status !== "tekomen").map((x) => (
+              <span
+                key={x.dag}
+                className={`text-[11px] px-2 py-1 rounded-md border ${STATUS_STIJL[x.s.status].box}`}
+              >
+                {x.naam} (dag {x.dag}): {STATUS_STIJL[x.s.status].label}
+              </span>
+            ))}
+          </div>
+
+          {levering.wachtrij.length > 0 && (
+            <p className="text-xs text-blue-600">
+              In de wachtrij om gespreid na te sturen (1/dag{levering.excuusPending ? ", met excuus" : ""}): dag {levering.wachtrij.join(", ")}.
+            </p>
+          )}
+          {levering.onbekend.length > 0 && levering.gemist.length === 0 && (
+            <p className="text-xs text-gray-400">
+              De grijze dagen vielen vóór het leveringslogboek bestond, dus niet geregistreerd. Waarschijnlijk gewoon verstuurd. Markeer als ontvangen als je zeker weet dat alles is aangekomen.
+            </p>
+          )}
+
+          {/* Acties */}
+          <div className="flex flex-wrap gap-2 pt-1">
+            {levering.gemist.length > 0 && (
+              <>
+                <button
+                  disabled={bezig}
+                  onClick={() => { if (confirm(`${levering.gemist.length} gemiste dagen gespreid nasturen naar ${email}? (1 per dag, met excuus)`)) doe(() => queueInhaal({ profileId: profileId as any, dagen: levering.gemist, metExcuus: true }), `${levering.gemist.length} dag(en) in de wachtrij gezet.`); }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+                  style={{ background: "#3b82f6" }}
+                >
+                  <RotateCcw size={12} /> Gespreid nasturen (1/dag)
+                </button>
+                <button
+                  disabled={bezig}
+                  onClick={() => { if (confirm(`Alle ${levering.gemist.length} gemiste mails NU achter elkaar sturen naar ${email}?`)) doe(() => stuurNu({ profileId: profileId as any, dagen: levering.gemist, specials: gemisteSpecials, metExcuus: true }), `Direct verstuurd: ${levering.gemist.length} dagmail(s).`); }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-300 text-gray-700 disabled:opacity-50"
+                >
+                  <Send size={12} /> Nu allemaal sturen
+                </button>
+              </>
+            )}
+            {levering.gemist.length === 0 && gemisteSpecials.length > 0 && (
+              <button
+                disabled={bezig}
+                onClick={() => { if (confirm(`Afsluitmail(s) (dag ${gemisteSpecials.join(", ")}) sturen naar ${email}?`)) doe(() => stuurNu({ profileId: profileId as any, specials: gemisteSpecials, metExcuus: true }), `Speciale mail(s) verstuurd.`); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-50"
+                style={{ background: "#f59e0b" }}
+              >
+                <Send size={12} /> Afsluitmail sturen
+              </button>
+            )}
+            {levering.onbekend.length > 0 && (
+              <button
+                disabled={bezig}
+                onClick={() => { if (confirm(`Markeren dat ${email} alle mails t/m dag ${levering.dagNummer} heeft ontvangen?`)) doe(() => markeerOntvangen({ profileId: profileId as any }), "Gemarkeerd als volledig ontvangen."); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
+              >
+                <CheckCircle size={12} /> Alles als ontvangen markeren
+              </button>
+            )}
+          </div>
+
+          {melding && (
+            <p className={`flex items-center gap-1 text-xs font-medium ${melding.type === "success" ? "text-green-600" : "text-red-600"}`}>
+              {melding.type === "success" ? <CheckCircle size={13} /> : <AlertCircle size={13} />}
+              {melding.message}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const SUB_LABELS: Record<string, string> = {
   free: "Gratis",
@@ -379,6 +558,14 @@ export default function KlantbeheerPage() {
                   </p>
                 </div>
               </div>
+
+              {customer.nietAlleen.levering && (
+                <MailLeveringPanel
+                  profileId={customer.nietAlleen.profileId}
+                  email={activeEmail}
+                  levering={customer.nietAlleen.levering as Levering}
+                />
+              )}
 
               <div className="border-t border-gray-100 pt-4 space-y-3">
                 <p className="text-xs font-semibold text-gray-600">Bijsturen</p>

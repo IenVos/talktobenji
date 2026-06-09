@@ -332,6 +332,8 @@ function ProgrammaPreviewBlok({ verliesTypen }: { verliesTypen: { code: string; 
   );
 }
 
+type SpecialStatus = { due: boolean; verzonden: boolean; status: "verzonden" | "gemist" | "onbekend" | "tekomen" };
+
 type LeveringStatus = {
   profileId: string;
   email: string;
@@ -341,18 +343,20 @@ type LeveringStatus = {
   accountGesloten: boolean;
   verzondenDagen: number[];
   gemist: number[];
+  onbekend: number[];
   wachtrij: number[];
   excuusPending: boolean;
   specials: {
-    dag15: { due: boolean; verzonden: boolean };
-    dag28: { due: boolean; verzonden: boolean };
-    dag30: { due: boolean; verzonden: boolean };
+    dag15: SpecialStatus;
+    dag28: SpecialStatus;
+    dag30: SpecialStatus;
   };
 };
 
 function KlantStatusRij({ k }: { k: LeveringStatus }) {
   const queueInhaal = useAdminMutation(api.nietAlleen.queueInhaalDagen);
   const stuurNu = useAdminAction(api.nietAlleen.stuurInhaalNu);
+  const markeerOntvangen = useAdminMutation(api.nietAlleen.markeerAllesOntvangen);
   const [bezig, setBezig] = useState(false);
   const [melding, setMelding] = useState("");
 
@@ -363,7 +367,7 @@ function KlantStatusRij({ k }: { k: LeveringStatus }) {
       [30, k.specials.dag30],
     ] as const
   )
-    .filter(([, s]) => s.due && !s.verzonden)
+    .filter(([, s]) => s.status === "gemist")
     .map(([d]) => d as 15 | 28 | 30);
 
   const heeftWerk = k.gemist.length > 0 || gemisteSpecials.length > 0 || k.wachtrij.length > 0;
@@ -395,6 +399,11 @@ function KlantStatusRij({ k }: { k: LeveringStatus }) {
       () => stuurNu({ profileId: k.profileId as any, specials: gemisteSpecials, metExcuus: true }),
       `Speciale mail(s) verstuurd: dag ${gemisteSpecials.join(", ")}.`
     );
+  const allesOntvangen = () =>
+    doe(
+      () => markeerOntvangen({ profileId: k.profileId as any }),
+      "Gemarkeerd als volledig ontvangen."
+    );
 
   return (
     <div className="border border-gray-200 rounded-lg p-3 bg-white">
@@ -409,6 +418,8 @@ function KlantStatusRij({ k }: { k: LeveringStatus }) {
             {k.gemist.length > 0 ? `${k.gemist.length} gemist` : ""}
             {gemisteSpecials.length > 0 ? `${k.gemist.length > 0 ? " · " : ""}${gemisteSpecials.length} afsluiting` : ""}
           </span>
+        ) : k.onbekend.length > 0 ? (
+          <span className="text-xs font-semibold text-gray-400">{k.onbekend.length} vóór logboek</span>
         ) : (
           <span className="text-xs font-semibold text-green-600 flex items-center gap-1"><CheckCircle size={13} /> compleet</span>
         )}
@@ -427,9 +438,23 @@ function KlantStatusRij({ k }: { k: LeveringStatus }) {
       {k.wachtrij.length > 0 && (
         <p className="mt-2 text-xs text-blue-600">In wachtrij (1/dag{k.excuusPending ? ", met excuus" : ""}): dag {k.wachtrij.join(", ")}.</p>
       )}
+      {k.onbekend.length > 0 && k.gemist.length === 0 && (
+        <p className="mt-2 text-xs text-gray-400">
+          Dag {k.onbekend.length === 1 ? k.onbekend[0] : `1 t/m ${Math.max(...k.onbekend)}`} vielen vóór het leveringslogboek bestond, dus niet geregistreerd. Waarschijnlijk gewoon verstuurd.
+        </p>
+      )}
 
-      {heeftWerk && (
+      {(heeftWerk || k.onbekend.length > 0) && (
         <div className="mt-3 flex flex-wrap gap-2">
+          {k.onbekend.length > 0 && (
+            <button
+              disabled={bezig}
+              onClick={() => { if (confirm(`Markeren dat ${k.email} alle mails t/m dag ${k.dagNummer} heeft ontvangen?`)) allesOntvangen(); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-green-300 text-green-700 hover:bg-green-50 disabled:opacity-50"
+            >
+              <CheckCircle size={12} /> Alles als ontvangen markeren
+            </button>
+          )}
           {k.gemist.length > 0 && (
             <>
               <button

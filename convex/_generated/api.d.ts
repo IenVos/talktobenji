@@ -52,6 +52,7 @@ import type * as nietAlleenContent from "../nietAlleenContent.js";
 import type * as nietAlleenEenzaamheidContent from "../nietAlleenEenzaamheidContent.js";
 import type * as nietAlleenEmails from "../nietAlleenEmails.js";
 import type * as nietAlleenKinderloosContent from "../nietAlleenKinderloosContent.js";
+import type * as nietAlleenLevering from "../nietAlleenLevering.js";
 import type * as notes from "../notes.js";
 import type * as onderweg from "../onderweg.js";
 import type * as pageContent from "../pageContent.js";
@@ -123,6 +124,7 @@ declare const fullApi: ApiFromModules<{
   nietAlleenEenzaamheidContent: typeof nietAlleenEenzaamheidContent;
   nietAlleenEmails: typeof nietAlleenEmails;
   nietAlleenKinderloosContent: typeof nietAlleenKinderloosContent;
+  nietAlleenLevering: typeof nietAlleenLevering;
   notes: typeof notes;
   onderweg: typeof onderweg;
   pageContent: typeof pageContent;

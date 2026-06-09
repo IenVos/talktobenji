@@ -13,6 +13,7 @@ import {
 import { api, internal } from "./_generated/api";
 import { v } from "convex/values";
 import { checkAdmin, logAdminAction } from "./adminAuth";
+import { berekenLevering } from "./nietAlleenLevering";
 
 // ─────────────────────────────────────────
 // PUBLIC — gebruikt door de /niet-alleen pagina
@@ -505,6 +506,39 @@ export const queueInhaalDagen = mutation({
   },
 });
 
+/**
+ * Markeer dat een klant alle tot nu toe verschenen dagmails (en afsluitmails)
+ * écht heeft ontvangen. Vult het logboek met dag 1 t/m de huidige dag en zet de
+ * speciale-mail-vlaggen. Gebruik dit voor klanten van vóór het logboek waarvan je
+ * zeker weet dat alles is aangekomen. Admin.
+ */
+export const markeerAllesOntvangen = mutation({
+  args: {
+    adminToken: v.string(),
+    profileId: v.id("nietAlleenProfiles"),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const p = await ctx.db.get(args.profileId);
+    if (!p) throw new Error("Profiel niet gevonden");
+    const dagNummer = Math.floor((Date.now() - p.startDatum) / 86400000) + 1;
+    const tot = Math.min(30, Math.max(0, dagNummer));
+    const verzonden = Array.from({ length: tot }, (_, i) => i + 1);
+    await ctx.db.patch(args.profileId, {
+      verzondenDagen: verzonden,
+      laatsteDagMail: tot,
+      inhaalWachtrij: [],
+      inhaalExcuusPending: false,
+      ...(dagNummer >= 15 ? { dag15MailVerzonden: true } : {}),
+      ...(dagNummer >= 28 ? { dag28MailVerzonden: true } : {}),
+      ...(dagNummer >= 30 ? { dag30MailVerzonden: true } : {}),
+      updatedAt: Date.now(),
+    });
+    await logAdminAction(ctx, `Niet Alleen: ${p.email} gemarkeerd als 'alles ontvangen' (dag 1 t/m ${tot}).`);
+    return { verzonden };
+  },
+});
+
 /** Leveringsstatus per klant: welke dagmails zijn (niet) verstuurd. Admin. */
 export const getLeveringsStatus = query({
   args: { adminToken: v.string() },
@@ -514,28 +548,20 @@ export const getLeveringsStatus = query({
     const now = Date.now();
     return profielen
       .map((p) => {
-        const dagNummer = Math.floor((now - p.startDatum) / 86400000) + 1;
-        const verzonden = new Set(p.verzondenDagen ?? []);
-        const tot = Math.min(30, Math.max(0, dagNummer));
-        const gemist: number[] = [];
-        for (let d = 1; d <= tot; d++) if (!verzonden.has(d)) gemist.push(d);
-        const wachtrij = (p.inhaalWachtrij ?? []).filter((d) => !verzonden.has(d)).sort((a, b) => a - b);
+        const l = berekenLevering(p, now);
         return {
           profileId: p._id,
           email: p.email,
           naam: p.naam,
           verliesType: p.verliesType ?? "persoon",
-          dagNummer,
+          dagNummer: l.dagNummer,
           accountGesloten: p.accountGesloten === true,
-          verzondenDagen: Array.from(verzonden).sort((a, b) => a - b),
-          gemist,
-          wachtrij,
-          excuusPending: p.inhaalExcuusPending === true,
-          specials: {
-            dag15: { due: dagNummer >= 15, verzonden: p.dag15MailVerzonden === true },
-            dag28: { due: dagNummer >= 28, verzonden: p.dag28MailVerzonden === true },
-            dag30: { due: dagNummer >= 30, verzonden: p.dag30MailVerzonden === true },
-          },
+          verzondenDagen: l.verzonden,
+          gemist: l.gemist,
+          onbekend: l.onbekend,
+          wachtrij: l.wachtrij,
+          excuusPending: l.excuusPending,
+          specials: l.specials,
         };
       })
       .sort((a, b) => (a.gemist.length === b.gemist.length ? a.naam.localeCompare(b.naam) : b.gemist.length - a.gemist.length));
