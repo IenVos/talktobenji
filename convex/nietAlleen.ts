@@ -449,6 +449,14 @@ export const getAllActieveProfielen = internalQuery({
   },
 });
 
+/** Sla het hoogste dagnummer op waarvan de dagmail is verstuurd (voor inhaalslag). */
+export const setLaatsteDagMail = internalMutation({
+  args: { profileId: v.id("nietAlleenProfiles"), dag: v.number() },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.profileId, { laatsteDagMail: args.dag, updatedAt: Date.now() });
+  },
+});
+
 /** Markeer een speciale mail als verzonden. */
 export const markMailVerzonden = internalMutation({
   args: {
@@ -569,24 +577,39 @@ export const processNietAlleenUsers = internalAction({
   args: {},
   handler: async (ctx) => {
     const profielen = await ctx.runQuery(internal.nietAlleen.getAllActieveProfielen, {});
+    const MAX_INHAAL = 4; // niet meer dan 4 dagmails in één run (voorkomt overspoeling na lange uitval)
 
     for (const profiel of profielen) {
-      const dagNummer = Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
+      // Per profiel afschermen: een fout bij één klant mag de rest niet blokkeren.
+      try {
+        const dagNummer = Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
 
-      // Dagelijkse herinneringsmail (dag 1 t/m 30)
-      if (dagNummer >= 1 && dagNummer <= 30) {
-        await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
-          email: profiel.email,
-          naam: profiel.naam,
-          dagNummer,
-          verliesType: profiel.verliesType ?? "anders",
-          verliesNaam: profiel.verliesNaam,
-        });
-      }
+        // Dagelijkse herinneringsmail (dag 1 t/m 30) — met inhaalslag voor gemiste dagen.
+        if (dagNummer >= 1 && dagNummer <= 30) {
+          // Bij eerste keer (geen tracking): alleen vandaag, geen historische backfill.
+          const laatste = profiel.laatsteDagMail ?? dagNummer - 1;
+          const tot = Math.min(30, dagNummer);
+          const van = Math.max(1, laatste + 1, tot - MAX_INHAAL + 1);
+          for (let dag = van; dag <= tot; dag++) {
+            await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
+              email: profiel.email,
+              naam: profiel.naam,
+              dagNummer: dag,
+              verliesType: profiel.verliesType ?? "anders",
+              verliesNaam: profiel.verliesNaam,
+            });
+            // Direct na elke geslaagde verzending vastleggen, zodat een latere fout
+            // niet leidt tot dubbele mails bij de volgende run.
+            await ctx.runMutation(internal.nietAlleen.setLaatsteDagMail, { profileId: profiel._id, dag });
+          }
+        }
 
-      // Dag 37: account sluiten (7 dagen na einde, zonder upgrade)
-      if (dagNummer >= 37 && !profiel.dag37Verwerkt) {
-        await ctx.runMutation(internal.nietAlleen.sluitAccount, { profileId: profiel._id });
+        // Dag 37: account sluiten (7 dagen na einde, zonder upgrade)
+        if (dagNummer >= 37 && !profiel.dag37Verwerkt) {
+          await ctx.runMutation(internal.nietAlleen.sluitAccount, { profileId: profiel._id });
+        }
+      } catch (err) {
+        console.error(`Niet Alleen ochtend-mail mislukt voor ${profiel.email}:`, err);
       }
     }
   },
@@ -599,34 +622,39 @@ export const processNietAlleenAvondMails = internalAction({
     const profielen = await ctx.runQuery(internal.nietAlleen.getAllActieveProfielen, {});
 
     for (const profiel of profielen) {
-      const dagNummer = Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
+      // Per profiel afschermen: een fout bij één klant mag de rest niet blokkeren.
+      try {
+        const dagNummer = Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
 
-      // Dag 15: halverwege check-in (eenmalig)
-      if (dagNummer === 15 && !profiel.dag15MailVerzonden) {
-        await ctx.runAction(internal.nietAlleenEmails.sendHalverwegeMail, {
-          email: profiel.email,
-          naam: profiel.naam,
-        });
-        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: profiel._id, dag: 15 });
-      }
+        // Dag 15: halverwege check-in (eenmalig) — ook nog versturen als de dag net gemist is.
+        if (dagNummer >= 15 && dagNummer < 28 && !profiel.dag15MailVerzonden) {
+          await ctx.runAction(internal.nietAlleenEmails.sendHalverwegeMail, {
+            email: profiel.email,
+            naam: profiel.naam,
+          });
+          await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: profiel._id, dag: 15 });
+        }
 
-      // Dag 28: voorbereidingsmail (eenmalig)
-      if (dagNummer === 28 && !profiel.dag28MailVerzonden) {
-        await ctx.runAction(internal.nietAlleenEmails.sendVoorbereidingsMail, {
-          email: profiel.email,
-          naam: profiel.naam,
-        });
-        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: profiel._id, dag: 28 });
-      }
+        // Dag 28: voorbereidingsmail (eenmalig)
+        if (dagNummer >= 28 && dagNummer < 30 && !profiel.dag28MailVerzonden) {
+          await ctx.runAction(internal.nietAlleenEmails.sendVoorbereidingsMail, {
+            email: profiel.email,
+            naam: profiel.naam,
+          });
+          await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: profiel._id, dag: 28 });
+        }
 
-      // Dag 30: afsluitmail met download (eenmalig)
-      if (dagNummer === 30 && !profiel.dag30MailVerzonden) {
-        await ctx.runAction(internal.nietAlleenEmails.sendAfsluitMail, {
-          email: profiel.email,
-          naam: profiel.naam,
-          aantalDagenIngevuld: profiel.dagPrompts.length,
-        });
-        await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: profiel._id, dag: 30 });
+        // Dag 30: afsluitmail met download (eenmalig)
+        if (dagNummer >= 30 && !profiel.dag30MailVerzonden) {
+          await ctx.runAction(internal.nietAlleenEmails.sendAfsluitMail, {
+            email: profiel.email,
+            naam: profiel.naam,
+            aantalDagenIngevuld: profiel.dagPrompts.length,
+          });
+          await ctx.runMutation(internal.nietAlleen.markMailVerzonden, { profileId: profiel._id, dag: 30 });
+        }
+      } catch (err) {
+        console.error(`Niet Alleen avond-mail mislukt voor ${profiel.email}:`, err);
       }
     }
   },

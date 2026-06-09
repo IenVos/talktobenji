@@ -18,17 +18,27 @@ async function verstuurEmail(args: {
   html: string;
   apiKey: string;
 }) {
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${args.apiKey}`,
-    },
-    body: JSON.stringify({ from: FROM, to: [args.to], subject: args.subject, html: args.html }),
-  });
-  if (!response.ok) {
+  // Tot 4 pogingen met oplopende wachttijd — vooral voor rate-limit (429),
+  // omdat meerdere crons om 08:00 tegelijk via Resend mailen.
+  const maxPogingen = 4;
+  for (let poging = 1; poging <= maxPogingen; poging++) {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${args.apiKey}`,
+      },
+      body: JSON.stringify({ from: FROM, to: [args.to], subject: args.subject, html: args.html }),
+    });
+    if (response.ok) return;
+
     const error = await response.text();
-    throw new Error(`E-mail verzenden mislukt: ${error}`);
+    // 429 (rate limit) en 5xx zijn tijdelijk → opnieuw proberen
+    const tijdelijk = response.status === 429 || response.status >= 500;
+    if (!tijdelijk || poging === maxPogingen) {
+      throw new Error(`E-mail verzenden mislukt (status ${response.status}): ${error}`);
+    }
+    await new Promise((r) => setTimeout(r, poging * 1500));
   }
 }
 

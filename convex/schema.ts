@@ -662,6 +662,7 @@ export default defineSchema({
       opgeslagenOp: v.number(),
     }))),
     nietAlleenOefeningGesloten: v.optional(v.array(v.number())),
+    laatsteDagMail: v.optional(v.number()), // hoogste dagnummer waarvan de dagmail is verstuurd (voor inhaalslag bij gemiste crons)
     dag15MailVerzonden: v.optional(v.boolean()),
     dag28MailVerzonden: v.optional(v.boolean()),
     dag30MailVerzonden: v.optional(v.boolean()),
