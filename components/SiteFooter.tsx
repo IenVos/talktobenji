@@ -69,7 +69,7 @@ export function SiteFooter({ variant, compact }: { variant?: "light" | "dark"; c
         </div>
       </div>
 
-      {!compact && <p className="text-[10px] text-white/40 mt-1">© Talk To Benji · talktobenji.com</p>}
+      {!compact && <p className="text-[10px] text-white/40 mt-1">© Talk To Benji · {new Date().getFullYear()}</p>}
     </footer>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Instagram, Facebook } from "lucide-react";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -526,6 +527,28 @@ export default async function HomePage() {
             </Link>{" "}
             is een 30-dagen begeleiding via dagelijkse berichten, een kleine stap elke dag.
           </p>
+
+          {/* Socials */}
+          <div className="flex items-center justify-center gap-5 mt-6">
+            <a
+              href="https://www.instagram.com/talkto_benji/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Volg Talk To Benji op Instagram"
+              className="text-primary-700 hover:text-primary-900 transition-colors"
+            >
+              <Instagram size={22} />
+            </a>
+            <a
+              href="https://www.facebook.com/profile.php?id=61583574235175"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Volg Talk To Benji op Facebook"
+              className="text-primary-700 hover:text-primary-900 transition-colors"
+            >
+              <Facebook size={22} />
+            </a>
+          </div>
         </div>
       </section>
 
