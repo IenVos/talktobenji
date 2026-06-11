@@ -17,6 +17,7 @@ import {
   LogIn,
   Mail,
 } from "lucide-react";
+import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
 
 function BedanktContent() {
   const { data: session, status } = useSession();
@@ -25,6 +26,13 @@ function BedanktContent() {
   const addonParam = searchParams?.get("addon") ?? null;
   const boughtBenjiAddon = addonParam === "benji_access";
   const paymentIntentId = searchParams?.get("payment_intent") ?? null;
+
+  // Afhaak-funnel: laatste stap "betaald" (alleen bij een echte Stripe-redirect met
+  // betaling). Sluit de funnel reached → details → pay_click → purchased per product.
+  const fireFunnel = useFunnelTracker("checkout", itemName ?? "");
+  useEffect(() => {
+    if (itemName && paymentIntentId) fireFunnel("purchased");
+  }, [itemName, paymentIntentId, fireFunnel]);
 
   // Nieuwsbrief-opt-in: bewust pas hier (na de aankoop) i.p.v. in de checkout,
   // zodat er rond de betaalknop geen extra drempel staat.

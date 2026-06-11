@@ -591,6 +591,21 @@ export default defineSchema({
     .index("by_timestamp", ["timestamp"])
     .index("by_session", ["sessionId"]),
 
+  // Funnel-stappen (waar haken bezoekers af). Eén event per sessie+stap telt;
+  // ontdubbeling gebeurt in de query. category: "checkout" | "lp".
+  //  - checkout-stappen: "reached" | "details" | "pay_click" | "purchased" (path = product-slug)
+  //  - scroll-diepte (zowel lp als checkout): "load" | "scroll_25" | "scroll_50" | "scroll_75" | "scroll_100" (path = pad)
+  funnelEvents: defineTable({
+    category: v.string(),
+    step: v.string(),
+    path: v.string(),
+    sessionId: v.string(),
+    timestamp: v.number(),
+    ip: v.optional(v.string()),
+  })
+    .index("by_timestamp", ["timestamp"])
+    .index("by_session", ["sessionId"]),
+
   // Aankomende functies (beheerbaar via admin)
   comingSoonFeatures: defineTable({
     featureId: v.string(),   // slug voor vote-tracking

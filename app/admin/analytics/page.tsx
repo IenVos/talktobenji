@@ -28,6 +28,7 @@ import {
   Palette,
   ShoppingCart,
   Megaphone,
+  Filter,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -462,6 +463,7 @@ export default function AdminAnalytics() {
   const adLpStats = useAdminQuery(api.siteAnalytics.getAdLpStats, { from, to });
   const verliesTypeStats = useAdminQuery(api.siteAnalytics.getVerliesTypeStats, { from, to });
   const featureStats = useAdminQuery(api.siteAnalytics.getFeatureStats, { from, to });
+  const funnelStats = useAdminQuery(api.siteAnalytics.getFunnelStats, { from, to });
   const allGoals = useAdminQuery(api.siteAnalytics.listGoalsWithOwner, {});
   const liveVisitors = useAdminQuery(api.siteAnalytics.getLiveVisitors, {});
   const recentRegs = useAdminQuery(api.siteAnalytics.getRecentRegistrations, { days: 7 });
@@ -484,6 +486,7 @@ export default function AdminAnalytics() {
   const [openConversies, setOpenConversies] = useState(true);
   const [openApparaten, setOpenApparaten] = useState(true);
   const [openAdLp, setOpenAdLp] = useState(true);
+  const [openFunnel, setOpenFunnel] = useState(true);
   const [openVerliesType, setOpenVerliesType] = useState(true);
   const [openFeatureGebruik, setOpenFeatureGebruik] = useState(true);
   const [openDoelen, setOpenDoelen] = useState(false);
@@ -1243,6 +1246,116 @@ export default function AdminAnalytics() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Afhaak-funnel — waar haken bezoekers af op checkout + LP */}
+      {funnelStats && (
+        <div className="bg-white rounded-xl border border-primary-200">
+          <button onClick={() => setOpenFunnel((v) => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+            <div className="flex items-center gap-2">
+              <Filter size={16} className="text-primary-500" />
+              <span className="text-base font-semibold text-primary-900">Afhaak-funnel</span>
+              <span className="text-xs text-primary-400 font-normal">waar haken bezoekers af · geselecteerde periode</span>
+            </div>
+            <ChevronDown size={16} className={`text-primary-400 transition-transform ${openFunnel ? "rotate-180" : ""}`} />
+          </button>
+          {openFunnel && (
+            <div className="px-6 pb-6 space-y-8">
+              {/* Checkout-funnel per product */}
+              <div>
+                <h3 className="text-sm font-semibold text-primary-800 mb-1 flex items-center gap-2">
+                  <ShoppingCart size={14} className="text-primary-500" /> Checkout
+                </h3>
+                <p className="text-xs text-primary-500 mb-4">Stap voor stap naar de betaling. Het percentage is t.o.v. iedereen die de checkout bereikte.</p>
+                {funnelStats.checkout.length === 0 ? (
+                  <p className="text-sm text-primary-400 py-2">Nog geen checkout-bezoeken in deze periode.</p>
+                ) : (
+                  <div className="space-y-6">
+                    {funnelStats.checkout.map((c: { slug: string; reached: number; details: number; payClick: number; purchased: number }) => {
+                      const base = c.reached || 1;
+                      const steps = [
+                        { label: "Checkout bereikt", value: c.reached },
+                        { label: "Gegevens ingevuld", value: c.details },
+                        { label: "Op betalen geklikt", value: c.payClick },
+                        { label: "Betaald", value: c.purchased },
+                      ];
+                      return (
+                        <div key={c.slug}>
+                          <div className="text-xs font-medium text-primary-700 mb-2 truncate">{c.slug}</div>
+                          <div className="space-y-1.5">
+                            {steps.map((s, i) => {
+                              const prev = i > 0 ? steps[i - 1].value : null;
+                              const dropped = prev != null && prev > 0 ? prev - s.value : 0;
+                              const dropPct = prev != null && prev > 0 ? Math.round((dropped / prev) * 100) : 0;
+                              return (
+                                <div key={s.label} className="flex items-center gap-3">
+                                  <div className="w-36 flex-shrink-0 text-xs text-primary-700">{s.label}</div>
+                                  <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
+                                    <div className={`h-full rounded-full transition-all ${i === steps.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((s.value / base) * 100)}%` }} />
+                                  </div>
+                                  <div className="w-24 flex-shrink-0 text-right text-xs">
+                                    <span className="font-semibold text-primary-900">{s.value}</span>
+                                    <span className="text-primary-400"> · {Math.round((s.value / base) * 100)}%</span>
+                                  </div>
+                                  <div className="w-20 flex-shrink-0 text-right text-[11px]">
+                                    {dropped > 0 ? <span className="text-red-500">−{dropped} ({dropPct}%)</span> : <span className="text-primary-300">–</span>}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Scroll-diepte per landingspagina */}
+              <div>
+                <h3 className="text-sm font-semibold text-primary-800 mb-1 flex items-center gap-2">
+                  <Eye size={14} className="text-primary-500" /> Scroll-diepte landingspagina&apos;s
+                </h3>
+                <p className="text-xs text-primary-500 mb-4">Hoe ver bezoekers de pagina inkomen. Percentage is t.o.v. iedereen die de pagina opende.</p>
+                {funnelStats.lp.length === 0 ? (
+                  <p className="text-sm text-primary-400 py-2">Nog geen scroll-data in deze periode.</p>
+                ) : (
+                  <div className="space-y-6">
+                    {funnelStats.lp.map((p: { path: string; load: number; scroll25: number; scroll50: number; scroll75: number; scroll100: number }) => {
+                      const base = p.load || 1;
+                      const steps = [
+                        { label: "Geopend", value: p.load },
+                        { label: "25% gezien", value: p.scroll25 },
+                        { label: "50% gezien", value: p.scroll50 },
+                        { label: "75% gezien", value: p.scroll75 },
+                        { label: "Onderaan", value: p.scroll100 },
+                      ];
+                      return (
+                        <div key={p.path}>
+                          <div className="text-xs font-medium text-primary-700 mb-2 truncate">{p.path}</div>
+                          <div className="space-y-1.5">
+                            {steps.map((s, i) => (
+                              <div key={s.label} className="flex items-center gap-3">
+                                <div className="w-28 flex-shrink-0 text-xs text-primary-700">{s.label}</div>
+                                <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
+                                  <div className={`h-full rounded-full transition-all ${i === steps.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((s.value / base) * 100)}%` }} />
+                                </div>
+                                <div className="w-24 flex-shrink-0 text-right text-xs">
+                                  <span className="font-semibold text-primary-900">{s.value}</span>
+                                  <span className="text-primary-400"> · {Math.round((s.value / base) * 100)}%</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

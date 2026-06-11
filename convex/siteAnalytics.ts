@@ -212,6 +212,142 @@ export const updateDuration = mutation({
   },
 });
 
+/**
+ * Sla een funnel-stap op (publiek, geen auth vereist).
+ * Gebruikt voor de afhaak-funnel op checkout en landingspagina's.
+ * Ontdubbelt per sessie + categorie + pad + stap, zodat herladen/scrollen niet dubbel telt.
+ */
+export const trackFunnelStep = mutation({
+  args: {
+    category: v.string(), // "checkout" | "lp"
+    step: v.string(),
+    path: v.string(),
+    sessionId: v.string(),
+    ip: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Skip uitgesloten IP-adressen
+    if (args.ip) {
+      const excluded = await ctx.db.query("analyticsExcludedIps").collect();
+      if (excluded.some((e) => e.ip === args.ip)) return null;
+    }
+    // Ontdubbel: zelfde sessie + categorie + pad + stap telt maar één keer
+    if (args.sessionId) {
+      const existing = await ctx.db
+        .query("funnelEvents")
+        .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+        .collect();
+      if (
+        existing.some(
+          (e) =>
+            e.category === args.category &&
+            e.path === args.path &&
+            e.step === args.step
+        )
+      ) {
+        return null;
+      }
+    }
+    return await ctx.db.insert("funnelEvents", {
+      category: args.category,
+      step: args.step,
+      path: args.path,
+      sessionId: args.sessionId,
+      timestamp: Date.now(),
+      ip: args.ip,
+    });
+  },
+});
+
+/** Verwijder funnel-events van vóór een bepaald tijdstip (admin only). */
+export const deleteFunnelEventsBefore = mutation({
+  args: { adminToken: v.string(), before: v.number() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const old = await ctx.db
+      .query("funnelEvents")
+      .withIndex("by_timestamp", (q) => q.lt("timestamp", args.before))
+      .collect();
+    for (const ev of old) {
+      await ctx.db.delete(ev._id);
+    }
+    return old.length;
+  },
+});
+
+/**
+ * Haal de afhaak-funnel op voor het opgegeven tijdsbereik (admin only).
+ * Telt unieke sessies per stap, per checkout-product en per landingspagina.
+ */
+export const getFunnelStats = query({
+  args: {
+    adminToken: v.string(),
+    from: v.number(),
+    to: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const [rawEvents, excludedIps] = await Promise.all([
+      ctx.db
+        .query("funnelEvents")
+        .withIndex("by_timestamp", (q) =>
+          q.gte("timestamp", args.from).lte("timestamp", args.to)
+        )
+        .collect(),
+      ctx.db.query("analyticsExcludedIps").collect(),
+    ]);
+    const excludedSet = new Set(excludedIps.map((e) => e.ip));
+    const events = rawEvents.filter((e) => !e.ip || !excludedSet.has(e.ip));
+
+    // Unieke sessies per (category|path|step)
+    const sessionsByKey: Record<string, Set<string>> = {};
+    for (const e of events) {
+      const key = `${e.category}|${e.path}|${e.step}`;
+      if (!sessionsByKey[key]) sessionsByKey[key] = new Set();
+      sessionsByKey[key].add(e.sessionId);
+    }
+    const count = (category: string, path: string, step: string) =>
+      sessionsByKey[`${category}|${path}|${step}`]?.size ?? 0;
+
+    // Verzamel unieke paden per categorie
+    const checkoutPaths = new Set<string>();
+    const lpPaths = new Set<string>();
+    for (const e of events) {
+      if (e.category === "checkout") checkoutPaths.add(e.path);
+      else if (e.category === "lp") lpPaths.add(e.path);
+    }
+
+    const checkout = [...checkoutPaths]
+      .map((slug) => ({
+        slug,
+        reached: count("checkout", slug, "reached"),
+        details: count("checkout", slug, "details"),
+        payClick: count("checkout", slug, "pay_click"),
+        purchased: count("checkout", slug, "purchased"),
+        // Scroll-diepte op de checkout (zelfde pad, category "checkout")
+        scroll25: count("checkout", slug, "scroll_25"),
+        scroll50: count("checkout", slug, "scroll_50"),
+        scroll75: count("checkout", slug, "scroll_75"),
+        scroll100: count("checkout", slug, "scroll_100"),
+      }))
+      .sort((a, b) => b.reached - a.reached);
+
+    const lp = [...lpPaths]
+      .map((path) => ({
+        path,
+        load: count("lp", path, "load"),
+        scroll25: count("lp", path, "scroll_25"),
+        scroll50: count("lp", path, "scroll_50"),
+        scroll75: count("lp", path, "scroll_75"),
+        scroll100: count("lp", path, "scroll_100"),
+      }))
+      .sort((a, b) => b.load - a.load);
+
+    return { checkout, lp };
+  },
+});
+
 /** Haal statistieken op voor het opgegeven tijdsbereik (admin only). */
 export const getStats = query({
   args: {

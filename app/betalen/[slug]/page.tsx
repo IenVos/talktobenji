@@ -17,6 +17,8 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { calculateVat, EU_COUNTRY_NAMES_NL } from "@/lib/vat";
+import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
+import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
 
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
@@ -73,6 +75,7 @@ function CheckoutForm({
   addOnLabel,
   addOnPriceInCents,
   addOnSelected,
+  onPayClick,
 }: {
   slug: string;
   buttonText?: string;
@@ -96,6 +99,7 @@ function CheckoutForm({
   addOnLabel?: string;
   addOnPriceInCents?: number;
   addOnSelected?: boolean;
+  onPayClick?: () => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -107,6 +111,9 @@ function CheckoutForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Funnel: bezoeker heeft op de betaalknop geklikt (vóór validatie, zodat ook
+    // afhakers door ontbrekende gegevens/voorwaarden zichtbaar zijn).
+    onPayClick?.();
     if (!stripe || !elements) return;
 
     if (!naam.trim()) {
@@ -292,6 +299,17 @@ export default function BetalenPage() {
   // Naam + email — hier zodat ze zichtbaar zijn voor landkeuze
   const [naam, setNaam] = useState("");
   const [email, setEmail] = useState("");
+
+  // Afhaak-funnel: stappen door de checkout (path = product-slug)
+  const fireFunnel = useFunnelTracker("checkout", slug);
+  // Stap 1: checkout bereikt (zodra de slug bekend is)
+  useEffect(() => {
+    if (slug) fireFunnel("reached");
+  }, [slug, fireFunnel]);
+  // Stap 2: bezoeker heeft een geldig e-mailadres ingevuld (echt begonnen met afrekenen)
+  useEffect(() => {
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) fireFunnel("details");
+  }, [email, fireFunnel]);
 
   // Land + BTW state
   const [countryCode, setCountryCode] = useState("");
@@ -511,6 +529,8 @@ export default function BetalenPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
+      {/* Scroll-diepte op de checkout (gegroepeerd per product-slug) */}
+      <ScrollDepthTracker category="checkout" path={slug} />
       <main className="max-w-md mx-auto px-4 py-8">
         {/* Product samenvatting — Calm-stijl: naam · vinkjes · prijs */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 mb-6 shadow-sm">
@@ -946,6 +966,7 @@ export default function BetalenPage() {
                   addOnLabel={product.addOnLabel}
                   addOnPriceInCents={product.addOnPriceInCents}
                   addOnSelected={addOnSelected}
+                  onPayClick={() => fireFunnel("pay_click")}
                 />
               </Elements>
             )}

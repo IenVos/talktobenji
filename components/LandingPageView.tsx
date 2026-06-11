@@ -9,6 +9,7 @@ import { NietAlleenKeuzeLpView } from "@/components/NietAlleenKeuzeLpView";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
+import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
 import { HouvasteKnop } from "@/app/home-concept/HouvasteKnop";
 import { ChevronLeft, ChevronRight, MessageSquare, PencilLine, CalendarCheck, Gem, Sparkles, HandHelping, Heart, Shield, Clock, BookOpen, Star, Mail, Leaf, Users } from "lucide-react";
@@ -549,6 +550,9 @@ export function LandingPageView({ slug }: { slug: string }) {
 
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>
+
+      {/* Scroll-diepte meten: hoe ver komen bezoekers door de landingspagina */}
+      <ScrollDepthTracker category="lp" />
 
       {/* Even Houvast — zwevende knop (aan/uit per LP via admin) */}
       {(page as any).houvastKnop && <HouvasteKnop type={(page as any).houvastType || undefined} />}
