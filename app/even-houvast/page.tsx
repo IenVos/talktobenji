@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import Image from "next/image";
 import { HeaderBar } from "@/components/chat/HeaderBar";
-import { mergeHouvast, alineas, naarLpUrl, type HouvastContent } from "@/lib/houvastContent";
+import { mergeHouvast, resolveHouvast, alineas, naarLpUrl, type HouvastContent } from "@/lib/houvastContent";
 
 // Warme labels voor de type-keuze; valt terug op de naam uit de verliestypen-tabel.
 const WARME_LABELS: Record<string, string> = {
@@ -33,7 +33,6 @@ export default function HouvasteGidsPage() {
   // Content uit de admin (Pagina's → Even Houvast), met de defaults als fallback.
   const savedContent = useQuery(api.pageContent.getPublicPageContent, { pageKey: "houvast" });
   const content: HouvastContent = mergeHouvast(savedContent as Partial<HouvastContent> | null | undefined);
-  const MOMENTEN = content.momenten;
 
   // Verliestypen (dynamisch) voor de zachte keuze op het welkomstscherm.
   const verliestypen = useQuery(api.verliesTypen.listPublic, {}) as
@@ -56,6 +55,10 @@ export default function HouvasteGidsPage() {
   // Verliestype: uit de URL (?type=) of door de bezoeker zelf gekozen op het welkomstscherm.
   const [gekozenType, setGekozenType] = useState("");
   const actiefType = verliesType || gekozenType;
+
+  // Effectieve teksten voor dit verliestype (welkom/momenten/slot vallen terug op de basis).
+  const gids = resolveHouvast(content, actiefType);
+  const MOMENTEN = gids.momenten;
 
   // Brief per mail
   const [email, setEmail] = useState("");
@@ -216,16 +219,35 @@ export default function HouvasteGidsPage() {
     }
   };
 
-  // Secties: welkom + momenten + bewaar + en nu
-  const ALLE_STAPPEN = ["welkom", ...MOMENTEN.map((m) => m.id), "bewaar", "enu"];
+  // Keuze-stap vooraf: alleen voor bezoekers die zonder ?type= binnenkomen, zodat
+  // de welkomtekst, momenten en brief al op hun verlies kunnen worden afgestemd.
+  const heeftKiesStap = !verliesType;
+
+  // Secties: [kies] + welkom + momenten + bewaar + en nu
+  const ALLE_STAPPEN = [
+    ...(heeftKiesStap ? ["kies"] : []),
+    "welkom",
+    ...MOMENTEN.map((m) => m.id),
+    "bewaar",
+    "enu",
+  ];
+  const momentOffset = heeftKiesStap ? 2 : 1; // index van het eerste moment
+  const welkomIndex = heeftKiesStap ? 1 : 0;
   const huidigStap = ALLE_STAPPEN[stap];
   const isEerste = stap === 0;
   const isLaatste = stap === ALLE_STAPPEN.length - 1;
   const huidigMoment = MOMENTEN.find((m) => m.id === huidigStap);
 
+  const stapLabel = (id: string) =>
+    id === "kies" ? "Start"
+      : id === "welkom" ? "Welkom"
+      : id === "bewaar" ? "Bewaar"
+      : id === "enu" ? "En nu?"
+      : MOMENTEN.find((m) => m.id === id)?.nav ?? "";
+
   // Op slot: je kunt pas verder als elk moment tot nu toe is ingevuld.
   const eersteOnbeantwoord = MOMENTEN.findIndex((m) => !(antwoorden[m.id] && antwoorden[m.id].trim()));
-  const maxStap = eersteOnbeantwoord === -1 ? ALLE_STAPPEN.length - 1 : eersteOnbeantwoord + 1;
+  const maxStap = eersteOnbeantwoord === -1 ? ALLE_STAPPEN.length - 1 : momentOffset + eersteOnbeantwoord;
   const kanVerder = stap < maxStap;
 
   const nietAlleenUrl = naarLpUrl(
@@ -293,28 +315,23 @@ export default function HouvasteGidsPage() {
         {/* Navigatie */}
         <nav className="px-5 pt-4 pb-2">
           <div className="max-w-md mx-auto flex items-center justify-center gap-1.5 flex-wrap">
-            {[
-              { id: "welkom", label: "Welkom" },
-              ...MOMENTEN.map((m) => ({ id: m.id, label: m.nav })),
-              { id: "bewaar", label: "Bewaar" },
-              { id: "enu", label: "En nu?" },
-            ].map((s, i) => {
+            {ALLE_STAPPEN.map((id, i) => {
               const vergrendeld = i > maxStap;
               return (
                 <button
-                  key={s.id}
+                  key={id}
                   onClick={() => !vergrendeld && setStap(i)}
                   disabled={vergrendeld}
                   className="text-xs font-medium px-3 py-1.5 rounded-full transition-all"
                   style={{
-                    background: s.id === huidigStap ? "#6d84a8" : "rgba(255,255,255,0.70)",
-                    color: s.id === huidigStap ? "#fff" : "#8a8078",
-                    boxShadow: s.id === huidigStap ? "0 2px 8px rgba(109,132,168,0.25)" : "none",
+                    background: id === huidigStap ? "#6d84a8" : "rgba(255,255,255,0.70)",
+                    color: id === huidigStap ? "#fff" : "#8a8078",
+                    boxShadow: id === huidigStap ? "0 2px 8px rgba(109,132,168,0.25)" : "none",
                     opacity: vergrendeld ? 0.4 : 1,
                     cursor: vergrendeld ? "not-allowed" : "pointer",
                   }}
                 >
-                  {s.label}
+                  {stapLabel(id)}
                 </button>
               );
             })}
@@ -325,6 +342,46 @@ export default function HouvasteGidsPage() {
         <main className="flex-1 flex items-start justify-center px-5 py-6">
           <div className="w-full max-w-md">
 
+            {/* ── Keuze vooraf: waar gaat je verdriet over? ── */}
+            {huidigStap === "kies" && (
+              <div
+                className="rounded-2xl p-6 sm:p-8 space-y-4"
+                style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 24px rgba(0,0,0,0.08)" }}
+              >
+                <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>
+                  Waar gaat jouw verdriet over?
+                </h2>
+                <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#6b6460" }}>
+                  Zo stemmen we de woorden hierna op jou af. Je hoeft niet te kiezen als je dat niet wil.
+                </p>
+                <div className="flex flex-col gap-2 pt-1">
+                  {typeKeuzes.map((t) => (
+                    <button
+                      key={t.code}
+                      type="button"
+                      onClick={() => { setGekozenType(t.code); setStap(welkomIndex); }}
+                      className="text-left text-sm px-4 py-3 rounded-xl transition-colors"
+                      style={
+                        gekozenType === t.code
+                          ? { background: "#6d84a8", color: "#fff" }
+                          : { background: "rgba(109,132,168,0.10)", color: "#6d84a8" }
+                      }
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setGekozenType(""); setStap(welkomIndex); }}
+                  className="text-xs font-medium pt-1"
+                  style={{ color: "#a09890", background: "none" }}
+                >
+                  Ik kies liever niet, ga verder →
+                </button>
+              </div>
+            )}
+
             {/* ── Welkom ── */}
             {huidigStap === "welkom" && (
               <div
@@ -332,9 +389,9 @@ export default function HouvasteGidsPage() {
                 style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 24px rgba(0,0,0,0.08)" }}
               >
                 <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>
-                  {profiel?.name ? `${content.welkomTitel}, ${profiel.name}` : content.welkomTitel}
+                  {profiel?.name ? `${gids.welkomTitel}, ${profiel.name}` : gids.welkomTitel}
                 </h2>
-                {alineas(content.welkomTekst).map((alinea, i, arr) => (
+                {alineas(gids.welkomTekst).map((alinea, i, arr) => (
                   <p
                     key={i}
                     className="text-sm sm:text-base leading-relaxed"
@@ -343,34 +400,6 @@ export default function HouvasteGidsPage() {
                     {alinea}
                   </p>
                 ))}
-                {/* Zachte type-keuze — alleen als de bezoeker zonder ?type= binnenkomt */}
-                {!verliesType && (
-                  <div className="pt-3 space-y-2 border-t" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-                    <p className="text-sm font-medium pt-1" style={{ color: "#3d3530" }}>
-                      Waar gaat jouw verdriet over?
-                    </p>
-                    <p className="text-xs" style={{ color: "#8a8078" }}>
-                      Zo kunnen we het straks beter op jou afstemmen. Je hoeft niet te kiezen als je dat niet wil.
-                    </p>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {typeKeuzes.map((t) => (
-                        <button
-                          key={t.code}
-                          type="button"
-                          onClick={() => setGekozenType((prev) => (prev === t.code ? "" : t.code))}
-                          className="text-sm px-3.5 py-2 rounded-full transition-colors"
-                          style={
-                            gekozenType === t.code
-                              ? { background: "#6d84a8", color: "#fff" }
-                              : { background: "rgba(109,132,168,0.10)", color: "#6d84a8" }
-                          }
-                        >
-                          {t.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
@@ -573,20 +602,27 @@ export default function HouvasteGidsPage() {
                 className="rounded-2xl p-6 sm:p-8 space-y-5"
                 style={{ background: "rgba(255,255,255,0.88)", boxShadow: "0 2px 24px rgba(0,0,0,0.08)" }}
               >
-                <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>{content.slotTitel}</h2>
+                <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>{gids.slotTitel}</h2>
 
-                {alineas(content.slotTekst).map((alinea, i) => (
+                {alineas(gids.slotTekst).map((alinea, i) => (
                   <p key={i} className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{alinea}</p>
                 ))}
 
                 {/* Doorstroom naar Niet Alleen (per verliestype) */}
-                <a
-                  href={nietAlleenUrl}
-                  className="block w-full text-center py-3.5 rounded-2xl font-medium text-white text-sm"
-                  style={{ background: "#6d84a8" }}
-                >
-                  Ontdek Niet Alleen
-                </a>
+                <div className="space-y-1.5">
+                  <a
+                    href={nietAlleenUrl}
+                    className="block w-full text-center py-3.5 rounded-2xl font-medium text-white text-sm"
+                    style={{ background: "#6d84a8" }}
+                  >
+                    Ontdek Niet Alleen
+                  </a>
+                  {gids.slotPrijsRegel && (
+                    <p className="text-center text-xs" style={{ color: "#a09890" }}>
+                      {gids.slotPrijsRegel}
+                    </p>
+                  )}
+                </div>
 
                 {/* Account aanmaken — alleen als we een e-mailadres hebben */}
                 {(profiel?.email || email) && aanmeldStatus !== "success" && aanmeldStatus !== "bestaand" && (
@@ -695,7 +731,7 @@ export default function HouvasteGidsPage() {
               </a>
             </p>
             <p className="text-xs" style={{ color: "#a09890" }}>
-              © Talk To Benji — talktobenji.com
+              © Talk To Benji · {new Date().getFullYear()}
             </p>
           </div>
         </footer>

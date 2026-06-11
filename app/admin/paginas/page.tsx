@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import { Save, LayoutTemplate, ExternalLink, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
-import { DEFAULT_HOUVAST, mergeHouvast, type HouvastContent } from "@/lib/houvastContent";
+import { DEFAULT_HOUVAST, mergeHouvast, type HouvastContent, type HouvastMoment, type HouvastPerType } from "@/lib/houvastContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = "homepage" | "waarom-benji" | "voor-jou" | "privacy" | "av" | "faq" | "benji-nacht" | "houvast";
@@ -232,17 +232,17 @@ const FAQ_DEFAULTS: FaqSection[] = [
 ];
 
 // ─── Hulpcomponenten ──────────────────────────────────────────────────────────
-function Field({ label, value, onChange, multiline, rows = 3 }: {
-  label: string; value: string; onChange: (v: string) => void; multiline?: boolean; rows?: number;
+function Field({ label, value, onChange, multiline, rows = 3, placeholder }: {
+  label: string; value: string; onChange: (v: string) => void; multiline?: boolean; rows?: number; placeholder?: string;
 }) {
   return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-1">{label}</label>
       {multiline ? (
-        <textarea value={value} onChange={e => onChange(e.target.value)} rows={rows}
+        <textarea value={value} onChange={e => onChange(e.target.value)} rows={rows} placeholder={placeholder}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 resize-y" />
       ) : (
-        <input type="text" value={value} onChange={e => onChange(e.target.value)}
+        <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400" />
       )}
     </div>
@@ -737,12 +737,75 @@ function EvenHouvastTab() {
     if (saved) setContent2(mergeHouvast(saved as unknown as Partial<HouvastContent>));
   }, [saved]);
 
-  const set = <K extends keyof HouvastContent>(key: K, val: HouvastContent[K]) =>
-    setContent2((p) => ({ ...p, [key]: val }));
-  const setMoment = (i: number, patch: Partial<HouvastContent["momenten"][number]>) =>
-    setContent2((p) => ({ ...p, momenten: p.momenten.map((m, j) => (j === i ? { ...m, ...patch } : m)) }));
+  // Welk verliestype wordt nu bewerkt? "" = Basis (de globale versie / terugval).
+  const [bewerkType, setBewerkType] = useState<string>("");
+
   const setLink = (code: string, url: string) =>
     setContent2((p) => ({ ...p, nietAlleenLinks: { ...p.nietAlleenLinks, [code]: url } }));
+
+  // Eén tekstveld lezen voor de huidige selectie (basis of een type).
+  const veld = (key: keyof HouvastPerType): string => {
+    if (bewerkType) return (content.perType?.[bewerkType]?.[key] as string | undefined) ?? "";
+    return (content[key as keyof HouvastContent] as string | undefined) ?? "";
+  };
+  // Eén tekstveld schrijven voor de huidige selectie.
+  const setVeld = (key: keyof HouvastPerType, val: string) => {
+    if (!bewerkType) {
+      setContent2((p) => ({ ...p, [key]: val }));
+      return;
+    }
+    setContent2((p) => ({
+      ...p,
+      perType: { ...(p.perType ?? {}), [bewerkType]: { ...(p.perType?.[bewerkType] ?? {}), [key]: val } },
+    }));
+  };
+
+  // Momenten van de huidige selectie.
+  const huidigMomenten: HouvastMoment[] =
+    (bewerkType ? content.perType?.[bewerkType]?.momenten : content.momenten) ?? [];
+  const heeftEigenMomenten = !bewerkType || (content.perType?.[bewerkType]?.momenten?.length ?? 0) > 0;
+
+  const setMomenten = (momenten: HouvastMoment[] | undefined) => {
+    if (!bewerkType) {
+      setContent2((p) => ({ ...p, momenten: momenten ?? [] }));
+      return;
+    }
+    setContent2((p) => ({
+      ...p,
+      perType: { ...(p.perType ?? {}), [bewerkType]: { ...(p.perType?.[bewerkType] ?? {}), momenten } },
+    }));
+  };
+  // nav opnieuw nummeren (1, 2, 3, ...) zodat de stappenbalk klopt.
+  const hernummer = (lijst: HouvastMoment[]) => lijst.map((m, i) => ({ ...m, nav: String(i + 1) }));
+  const setMoment = (i: number, patch: Partial<HouvastMoment>) =>
+    setMomenten(huidigMomenten.map((m, j) => (j === i ? { ...m, ...patch } : m)));
+  const voegMomentToe = () =>
+    setMomenten(hernummer([
+      ...huidigMomenten,
+      {
+        id: `${bewerkType || "basis"}-${Date.now()}`,
+        nav: String(huidigMomenten.length + 1),
+        titel: "",
+        intro: "",
+        oefeningTitel: "Wat je nu kunt doen",
+        oefeningTekst: "",
+        vraag: "",
+        metFoto: false,
+      },
+    ]));
+  const verwijderMoment = (i: number) => setMomenten(hernummer(huidigMomenten.filter((_, j) => j !== i)));
+  const verplaatsMoment = (i: number, richting: -1 | 1) => {
+    const j = i + richting;
+    if (j < 0 || j >= huidigMomenten.length) return;
+    const kopie = [...huidigMomenten];
+    [kopie[i], kopie[j]] = [kopie[j], kopie[i]];
+    setMomenten(hernummer(kopie));
+  };
+  // Voor een type: begin met een kopie van de basis-momenten (eigen, unieke ids).
+  const kopieerBasisMomenten = () =>
+    setMomenten(content.momenten.map((m, i) => ({ ...m, id: `${bewerkType}-${i + 1}` })));
+  // Terug naar de basis-momenten (eigen set wissen).
+  const wisEigenMomenten = () => setMomenten(undefined);
 
   const handleSave = async () => {
     setSaving(true);
@@ -756,52 +819,132 @@ function EvenHouvastTab() {
     }
   };
 
+  const isBasis = !bewerkType;
+  const huidigTypeNaam = (verliestypen ?? []).find((t) => t.code === bewerkType)?.naam ?? bewerkType;
+
   return (
     <div className="space-y-4">
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800">
-        Lege regel = nieuwe alinea. Bezoekers komen binnen via <strong>/even-houvast?type=persoon</strong> (verliestype bepaalt de Niet Alleen-knop onderaan).
+        Lege regel = nieuwe alinea. Bezoekers komen binnen via <strong>/even-houvast?type=persoon</strong>, of kiezen hun verliestype op het eerste scherm. Per type kun je hieronder eigen teksten zetten; wat je leeg laat, valt terug op de <strong>Basis</strong>.
+      </div>
+
+      {/* Verliestype-kiezer */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
+        <p className="text-xs font-medium text-gray-500">Bewerken voor:</p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setBewerkType("")}
+            className={`text-sm px-3.5 py-1.5 rounded-full font-medium transition-colors ${isBasis ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+          >
+            Basis
+          </button>
+          {(verliestypen ?? []).map((t) => {
+            const eigen = (content.perType?.[t.code]?.momenten?.length ?? 0) > 0
+              || !!content.perType?.[t.code]?.welkomTekst
+              || !!content.perType?.[t.code]?.slotTekst
+              || !!content.perType?.[t.code]?.briefInstructie;
+            return (
+              <button
+                key={t.code}
+                type="button"
+                onClick={() => setBewerkType(t.code)}
+                className={`text-sm px-3.5 py-1.5 rounded-full font-medium transition-colors ${bewerkType === t.code ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+              >
+                {t.naam}{eigen ? " •" : ""}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-gray-400">
+          {isBasis
+            ? "De Basis geldt voor iedereen, en als terugval voor typen zonder eigen tekst."
+            : `Je bewerkt nu: ${huidigTypeNaam}. Leeg laten = de Basis-versie wordt getoond.`}
+        </p>
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
         <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Welkomstscherm</h3>
-        <Field label="Titel" value={content.welkomTitel} onChange={(v) => set("welkomTitel", v)} />
-        <Field label="Tekst (alinea's)" value={content.welkomTekst} onChange={(v) => set("welkomTekst", v)} multiline rows={6} />
+        <Field label="Titel" value={veld("welkomTitel")} onChange={(v) => setVeld("welkomTitel", v)} placeholder={isBasis ? "" : content.welkomTitel} />
+        <Field label="Tekst (alinea's)" value={veld("welkomTekst")} onChange={(v) => setVeld("welkomTekst", v)} multiline rows={6} placeholder={isBasis ? "" : content.welkomTekst} />
       </div>
 
-      {content.momenten.map((m, i) => (
-        <div key={m.id} className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Moment {m.nav}</h3>
-          <Field label="Titel" value={m.titel} onChange={(v) => setMoment(i, { titel: v })} />
-          <Field label="Intro (alinea's)" value={m.intro} onChange={(v) => setMoment(i, { intro: v })} multiline rows={4} />
-          <Field label="Oefening — kopje" value={m.oefeningTitel} onChange={(v) => setMoment(i, { oefeningTitel: v })} />
-          <Field label="Oefening — tekst (alinea's)" value={m.oefeningTekst} onChange={(v) => setMoment(i, { oefeningTekst: v })} multiline rows={3} />
-          <Field label="Vraag (schrijfvak)" value={m.vraag} onChange={(v) => setMoment(i, { vraag: v })} />
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" checked={m.metFoto} onChange={(e) => setMoment(i, { metFoto: e.target.checked })} className="w-4 h-4" />
-            <span className="text-sm text-gray-700">Bezoeker mag bij dit moment een foto toevoegen</span>
-          </label>
+      {/* Momenten */}
+      {!isBasis && !heeftEigenMomenten ? (
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Momenten</h3>
+          <p className="text-sm text-gray-500">Dit type gebruikt nu de <strong>Basis</strong>-momenten.</p>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={kopieerBasisMomenten} className="text-sm px-3 py-1.5 rounded-lg font-medium bg-primary-600 text-white">
+              Eigen momenten maken (kopie van Basis)
+            </button>
+            <button type="button" onClick={voegMomentToe} className="text-sm px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-700">
+              Leeg beginnen
+            </button>
+          </div>
         </div>
-      ))}
+      ) : (
+        <>
+          {!isBasis && (
+            <div className="flex justify-end">
+              <button type="button" onClick={wisEigenMomenten} className="text-xs text-gray-400 hover:text-red-500">
+                Eigen momenten wissen (terug naar Basis)
+              </button>
+            </div>
+          )}
+          {huidigMomenten.map((m, i) => (
+            <div key={m.id} className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900">Moment {m.nav}</h3>
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => verplaatsMoment(i, -1)} disabled={i === 0} className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-500 disabled:opacity-30">↑</button>
+                  <button type="button" onClick={() => verplaatsMoment(i, 1)} disabled={i === huidigMomenten.length - 1} className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-500 disabled:opacity-30">↓</button>
+                  <button type="button" onClick={() => verwijderMoment(i)} className="px-2 py-1 text-xs rounded border border-red-200 text-red-500 hover:bg-red-50 ml-1">Verwijderen</button>
+                </div>
+              </div>
+              <Field label="Titel" value={m.titel} onChange={(v) => setMoment(i, { titel: v })} />
+              <Field label="Intro (alinea's)" value={m.intro} onChange={(v) => setMoment(i, { intro: v })} multiline rows={4} />
+              <Field label="Oefening, kopje" value={m.oefeningTitel} onChange={(v) => setMoment(i, { oefeningTitel: v })} />
+              <Field label="Oefening, tekst (alinea's)" value={m.oefeningTekst} onChange={(v) => setMoment(i, { oefeningTekst: v })} multiline rows={3} />
+              <Field label="Vraag (schrijfvak)" value={m.vraag} onChange={(v) => setMoment(i, { vraag: v })} />
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={m.metFoto} onChange={(e) => setMoment(i, { metFoto: e.target.checked })} className="w-4 h-4" />
+                <span className="text-sm text-gray-700">Bezoeker mag bij dit moment een foto toevoegen</span>
+              </label>
+            </div>
+          ))}
+          <button type="button" onClick={voegMomentToe} className="w-full text-sm py-2.5 rounded-xl font-medium border border-dashed border-gray-300 text-gray-600 hover:bg-gray-50">
+            + Moment toevoegen
+          </button>
+        </>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
         <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Afsluiting (&ldquo;En nu?&rdquo;)</h3>
-        <Field label="Titel" value={content.slotTitel} onChange={(v) => set("slotTitel", v)} />
-        <Field label="Tekst (alinea's)" value={content.slotTekst} onChange={(v) => set("slotTekst", v)} multiline rows={3} />
+        <Field label="Titel" value={veld("slotTitel")} onChange={(v) => setVeld("slotTitel", v)} placeholder={isBasis ? "" : content.slotTitel} />
+        <Field label="Tekst (alinea's)" value={veld("slotTekst")} onChange={(v) => setVeld("slotTekst", v)} multiline rows={4} placeholder={isBasis ? "" : content.slotTekst} />
+        <Field label="Prijsregel onder de knop (optioneel)" value={veld("slotPrijsRegel")} onChange={(v) => setVeld("slotPrijsRegel", v)} placeholder="Bijv. Niet Alleen kost eenmalig € … voor 30 dagen" />
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">Doorstroom naar Niet Alleen (per verliestype)</h3>
-        <p className="text-xs text-gray-400 mb-2">De knop onderaan wijst naar de juiste pagina op basis van <strong>?type=</strong> in de URL.</p>
-        {(verliestypen ?? []).map((t) => (
-          <Field key={t.code} label={t.naam} value={content.nietAlleenLinks[t.code] ?? ""} onChange={(v) => setLink(t.code, v)} />
-        ))}
-        <p className="text-xs text-gray-400">Voeg nieuwe verliestypen toe bij <strong>Niet Alleen → Verliestypen</strong>; ze verschijnen dan automatisch hier.</p>
-      </div>
+      {isBasis && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+          <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">Doorstroom naar Niet Alleen (per verliestype)</h3>
+          <p className="text-xs text-gray-400 mb-2">De knop onderaan wijst naar de juiste pagina op basis van het gekozen verliestype.</p>
+          {(verliestypen ?? []).map((t) => (
+            <Field key={t.code} label={t.naam} value={content.nietAlleenLinks[t.code] ?? ""} onChange={(v) => setLink(t.code, v)} />
+          ))}
+          <p className="text-xs text-gray-400">Voeg nieuwe verliestypen toe bij <strong>Niet Alleen → Verliestypen</strong>; ze verschijnen dan automatisch hier.</p>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">Brief-instructie (toon van de persoonlijke brief)</h3>
-        <p className="text-xs text-gray-400 mb-2">Dit is de opdracht aan Benji (Claude) voor de brief die de bezoeker per mail krijgt. Schrijf in welke toon en stijl je wil.</p>
-        <Field label="" value={content.briefInstructie} onChange={(v) => set("briefInstructie", v)} multiline rows={10} />
+        <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">
+          Brief-instructie {isBasis ? "(basis)" : `(${huidigTypeNaam})`}
+        </h3>
+        <p className="text-xs text-gray-400 mb-2">
+          De opdracht aan Benji (Claude) voor de persoonlijke brief. {isBasis ? "Geldt voor iedereen zonder eigen type-instructie." : "Leeg laten = de basis-instructie wordt gebruikt. Het verliestype wordt sowieso aan Benji meegegeven."}
+        </p>
+        <Field label="" value={veld("briefInstructie")} onChange={(v) => setVeld("briefInstructie", v)} multiline rows={10} placeholder={isBasis ? "" : content.briefInstructie} />
       </div>
 
       <SaveBar onSave={handleSave} saving={saving} saved={saved2} />

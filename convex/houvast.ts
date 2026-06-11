@@ -246,7 +246,13 @@ export const genereerEnVerstuurBrief = action({
     const saved = (await ctx.runQuery(api.pageContent.getPublicPageContent, {
       pageKey: "houvast",
     })) as Record<string, any> | null;
+    // Brief-instructie: per verliestype als die is ingevuld, anders de basis.
+    const typeInstructie =
+      typeof saved?.perType?.[args.verliesType ?? ""]?.briefInstructie === "string"
+        ? saved.perType[args.verliesType ?? ""].briefInstructie.trim()
+        : "";
     const briefInstructie =
+      typeInstructie ||
       (typeof saved?.briefInstructie === "string" ? saved.briefInstructie.trim() : "") ||
       BRIEF_INSTRUCTIE_DEFAULT;
 
@@ -271,8 +277,19 @@ export const genereerEnVerstuurBrief = action({
     }
     const nietAlleenUrl = pad.startsWith("http") ? pad : `https://www.talktobenji.com${pad}`;
 
+    // Korte omschrijving van het verlies, zodat de brief past bij dit verliestype.
+    const VERLIES_CONTEXT: Record<string, string> = {
+      persoon: "het overlijden van een dierbare",
+      huisdier: "het verlies van een huisdier",
+      scheiding: "het einde van een relatie (de ander leeft nog)",
+      eenzaamheid: "diepe eenzaamheid",
+      kinderloos: "ongewenste kinderloosheid, rouw om een kind dat er nooit kwam",
+    };
+    const verliesContext = args.verliesType ? VERLIES_CONTEXT[args.verliesType] : "";
+
     const userContent = [
       args.naam ? `Naam: ${args.naam}` : null,
+      verliesContext ? `Het verdriet gaat over: ${verliesContext}.` : null,
       "De persoon heeft bij Even Houvast het volgende opgeschreven:",
       ...ingevuld.map((a, i) => `${i + 1}. Vraag: ${a.vraag}\n   Antwoord: ${a.antwoord.trim()}`),
     ]

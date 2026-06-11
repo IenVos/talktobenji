@@ -15,15 +15,43 @@ export type HouvastMoment = {
   metFoto: boolean;
 };
 
+// Per verliestype overschrijfbare velden. Alles optioneel: leeg = val terug op de
+// basis-versie (de globale velden hieronder).
+export type HouvastPerType = {
+  welkomTitel?: string;
+  welkomTekst?: string;
+  momenten?: HouvastMoment[];
+  slotTitel?: string;
+  slotTekst?: string;
+  slotPrijsRegel?: string;   // kleine prijs-/verwachtingsregel onder de knop
+  briefInstructie?: string;
+};
+
 export type HouvastContent = {
   welkomTitel: string;
   welkomTekst: string;    // alinea's gescheiden door een lege regel
   momenten: HouvastMoment[];
   slotTitel: string;
   slotTekst: string;      // alinea's gescheiden door een lege regel
+  slotPrijsRegel?: string;          // optionele prijsregel onder de "Ontdek Niet Alleen"-knop (basis)
   briefInstructie: string;          // system prompt voor Claude (Benji-toon)
   nietAlleenLinks: Record<string, string>; // verliestype-code → doel-URL
+  perType?: Record<string, HouvastPerType>; // verliestype-code → eigen teksten
 };
+
+/** Effectieve content voor een bezoeker: per-type velden vallen terug op de basis. */
+export function resolveHouvast(c: HouvastContent, typeCode: string | undefined) {
+  const o: HouvastPerType = (typeCode && c.perType?.[typeCode]) || {};
+  return {
+    welkomTitel: (o.welkomTitel ?? "").trim() || c.welkomTitel,
+    welkomTekst: (o.welkomTekst ?? "").trim() || c.welkomTekst,
+    momenten: o.momenten && o.momenten.length > 0 ? o.momenten : c.momenten,
+    slotTitel: (o.slotTitel ?? "").trim() || c.slotTitel,
+    slotTekst: (o.slotTekst ?? "").trim() || c.slotTekst,
+    slotPrijsRegel: ((o.slotPrijsRegel ?? c.slotPrijsRegel) ?? "").trim(),
+    briefInstructie: (o.briefInstructie ?? "").trim() || c.briefInstructie,
+  };
+}
 
 /**
  * Normaliseert een Niet Alleen-doellink naar een geldige LP-URL.
@@ -167,6 +195,41 @@ export const DEFAULT_HOUVAST: HouvastContent = {
     eenzaamheid: "/lp/ik-voel-me-eenzaam",
     kinderloos: "/lp/ongewenst-kinderloos-die-pijn-gaat-nooit-weg",
   },
+  // Per verliestype: de "En nu?"-tekst is alvast afgestemd. Welkom, momenten en
+  // brief-instructie blijven leeg, dus die vallen terug op de basis tot ze in de
+  // admin per type worden ingevuld.
+  perType: {
+    persoon: {
+      slotTekst: [
+        "Overdag hou je het vol. Maar er zijn momenten dat het ineens te groot is.",
+        "Niet Alleen is er voor die momenten. Dertig dagen, een bericht per dag. Geen grote stappen, alleen iemand die er is.",
+      ].join("\n\n"),
+    },
+    huisdier: {
+      slotTekst: [
+        "Mensen zeggen: het was maar een dier. Jij weet hoe fout dat is.",
+        "Rouw om een huisdier is echte rouw. Niet Alleen begrijpt dat. Dertig dagen lang een bericht per dag, zonder oordeel, zonder dat je het hoeft uit te leggen.",
+      ].join("\n\n"),
+    },
+    scheiding: {
+      slotTekst: [
+        "Je rouwt om iemand die nog leeft. Dat is verwarrend, en het doet evenveel pijn.",
+        "Verdriet om een relatie heeft geen begrafenis, geen kaarten, geen erkend moment van afscheid. Niet Alleen is er voor dit stille verlies. Dertig dagen, op jouw tempo.",
+      ].join("\n\n"),
+    },
+    eenzaamheid: {
+      slotTekst: [
+        "Er zijn van die avonden dat je denkt: niemand zou het merken als ik er niet was.",
+        "Dat gevoel is zwaarder dan het lijkt. Niet Alleen is er juist op die momenten. Elke dag een klein bericht, als een hand op je schouder.",
+      ].join("\n\n"),
+    },
+    kinderloos: {
+      slotTekst: [
+        "Je rouwt om een toekomst die nooit is geweest. Dat is een van de zwaarste vormen van verlies, en een van de meest onzichtbare.",
+        "Niet Alleen is er voor wat anderen niet altijd kunnen benoemen. Dertig dagen, een bericht per dag, voor het verdriet dat geen datum heeft.",
+      ].join("\n\n"),
+    },
+  },
 };
 
 /** Voegt opgeslagen (admin) content samen met de defaults.
@@ -178,6 +241,26 @@ export function mergeHouvast(saved: Partial<HouvastContent> | null | undefined):
   for (const [code, url] of Object.entries(savedLinks)) {
     if (url && url.trim()) nietAlleenLinks[code] = url; // lege waarde = default behouden
   }
+  // Per-type teksten samenvoegen: default-seeds (bv. de "En nu?"-teksten) blijven
+  // staan tot ze in de admin worden overschreven. Per veld wint de opgeslagen waarde
+  // als die bestaat (ook een lege string telt als bewuste keuze: val dan terug op basis).
+  const defaultPerType = DEFAULT_HOUVAST.perType ?? {};
+  const savedPerType = saved.perType ?? {};
+  const perType: Record<string, HouvastPerType> = {};
+  for (const code of new Set([...Object.keys(defaultPerType), ...Object.keys(savedPerType)])) {
+    const d = defaultPerType[code] ?? {};
+    const s = savedPerType[code] ?? {};
+    perType[code] = {
+      welkomTitel: s.welkomTitel ?? d.welkomTitel,
+      welkomTekst: s.welkomTekst ?? d.welkomTekst,
+      momenten: s.momenten && s.momenten.length > 0 ? s.momenten : d.momenten,
+      slotTitel: s.slotTitel ?? d.slotTitel,
+      slotTekst: s.slotTekst ?? d.slotTekst,
+      slotPrijsRegel: s.slotPrijsRegel ?? d.slotPrijsRegel,
+      briefInstructie: s.briefInstructie ?? d.briefInstructie,
+    };
+  }
+
   return {
     welkomTitel: saved.welkomTitel || DEFAULT_HOUVAST.welkomTitel,
     welkomTekst: saved.welkomTekst || DEFAULT_HOUVAST.welkomTekst,
@@ -187,7 +270,9 @@ export function mergeHouvast(saved: Partial<HouvastContent> | null | undefined):
         : DEFAULT_HOUVAST.momenten,
     slotTitel: saved.slotTitel || DEFAULT_HOUVAST.slotTitel,
     slotTekst: saved.slotTekst || DEFAULT_HOUVAST.slotTekst,
+    slotPrijsRegel: saved.slotPrijsRegel ?? DEFAULT_HOUVAST.slotPrijsRegel,
     briefInstructie: saved.briefInstructie || DEFAULT_HOUVAST.briefInstructie,
     nietAlleenLinks,
+    perType,
   };
 }
