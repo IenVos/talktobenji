@@ -22,7 +22,8 @@
       "Bash(stripe --version)",
       "WebFetch(domain:www.talktobenji.com)",
       "Bash(mv:*)",
-      "Bash(echo \"EXIT: $?\")"
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(lsof -ti:3199)"
     ]
   }
 }

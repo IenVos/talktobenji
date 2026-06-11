@@ -52,18 +52,20 @@ export function CookieConsentBanner() {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.45)" }}>
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl p-6 space-y-4">
-        <p className="text-sm text-stone-600 leading-relaxed">
-          We gebruiken cookies om de site goed te laten werken en om anonieme statistieken te verzamelen. Lees meer in ons{" "}
-          <Link href="/privacy" className="text-primary-600 hover:underline">
-            privacybeleid
-          </Link>
-          .
-        </p>
-
+    // Smalle balk onderaan, zonder verduistering: de bezoeker kan de pagina meteen
+    // gebruiken en kiest wanneer het uitkomt. De wrapper laat kliks doorgaan; alleen
+    // de balk zelf vangt kliks op (pointer-events).
+    <div className="fixed bottom-0 inset-x-0 z-[200] flex justify-center p-3 sm:p-4 pointer-events-none">
+      <div className="pointer-events-auto w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-stone-200 p-4 sm:p-5">
         {showSettings ? (
           <div className="space-y-3">
+            <p className="text-sm text-stone-600 leading-relaxed">
+              We gebruiken cookies om de site goed te laten werken en om anonieme statistieken te verzamelen. Lees meer in ons{" "}
+              <Link href="/privacy" className="text-primary-600 hover:underline">
+                privacybeleid
+              </Link>
+              .
+            </p>
             <div className="flex items-center justify-between py-2 border-t border-stone-100">
               <span className="text-sm text-stone-700">Noodzakelijke cookies</span>
               <span className="text-xs text-stone-400">Altijd actief</span>
@@ -103,29 +105,38 @@ export function CookieConsentBanner() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleAcceptAll}
-              className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Akkoord
-            </button>
-            <button
-              type="button"
-              onClick={handleNecessaryOnly}
-              className="px-4 py-2 bg-stone-100 text-stone-700 text-sm font-medium rounded-lg hover:bg-stone-200 transition-colors"
-            >
-              Alleen noodzakelijke
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowSettings(true)}
-              className="px-4 py-2 text-stone-500 hover:text-stone-700 text-sm font-medium inline-flex items-center gap-1"
-            >
-              Instellingen
-              <ChevronDown size={16} />
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <p className="text-sm text-stone-600 leading-relaxed flex-1">
+              We gebruiken cookies om de site goed te laten werken en om anonieme statistieken te verzamelen. Lees meer in ons{" "}
+              <Link href="/privacy" className="text-primary-600 hover:underline">
+                privacybeleid
+              </Link>
+              .
+            </p>
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={handleAcceptAll}
+                className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Akkoord
+              </button>
+              <button
+                type="button"
+                onClick={handleNecessaryOnly}
+                className="px-4 py-2 bg-stone-100 text-stone-700 text-sm font-medium rounded-lg hover:bg-stone-200 transition-colors"
+              >
+                Alleen noodzakelijke
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowSettings(true)}
+                className="px-4 py-2 text-stone-500 hover:text-stone-700 text-sm font-medium inline-flex items-center gap-1"
+              >
+                Instellingen
+                <ChevronDown size={16} />
+              </button>
+            </div>
           </div>
         )}
       </div>
