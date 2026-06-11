@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import {
@@ -413,50 +413,73 @@ export default function AdminAnalytics() {
   const [showList, setShowList] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // `divider: true` start een nieuwe visuele groep (lijntje erboven).
   const PRESETS = [
     { key: "vandaag", label: "Vandaag" },
+    { key: "gisteren", label: "Gisteren" },
     { key: "week", label: "Week tot nu toe" },
     { key: "maand", label: "Maand tot nu toe" },
-    { key: "jaar", label: "Jaar tot nu toe" },
-    { key: "laatste7", label: "Laatste 7 dagen" },
+    { key: "laatste7", label: "Laatste 7 dagen", divider: true },
+    { key: "laatste30", label: "Laatste 30 dagen" },
+    { key: "vorigeMaand", label: "Vorige maand" },
+    { key: "jaar", label: "Jaar tot nu toe", divider: true },
     { key: "laatste14", label: "Laatste 14 dagen" },
     { key: "laatste28", label: "Laatste 28 dagen" },
-    { key: "laatste30", label: "Laatste 30 dagen" },
     { key: "laatste90", label: "Laatste 90 dagen" },
-    { key: "vorigeMaand", label: "Vorige maand" },
-    { key: "custom", label: "Aangepast bereik" },
+    { key: "custom", label: "Aangepast bereik", divider: true },
   ];
 
+  // Onthoud het laatst toegepaste bereik. Zo blijft bij "Aangepast bereik" de
+  // bestaande data staan zolang nog niet beide datums zijn ingevuld — de pagina
+  // herlaadt en verspringt dan niet terwijl je nog typt.
+  const lastRangeRef = useRef<{ from: number; to: number } | null>(null);
+
   const { from, to } = useMemo(() => {
-    if (preset === "custom" && customFrom && customTo) {
-      return {
-        from: new Date(customFrom).getTime(),
-        to: new Date(customTo + "T23:59:59").getTime(),
-      };
+    const remember = (r: { from: number; to: number }) => {
+      lastRangeRef.current = r;
+      return r;
+    };
+    if (preset === "custom") {
+      if (customFrom && customTo) {
+        return remember({
+          from: new Date(customFrom).getTime(),
+          to: new Date(customTo + "T23:59:59").getTime(),
+        });
+      }
+      // Aangepast gekozen maar nog onvolledig: hou het vorige bereik vast.
+      if (lastRangeRef.current) return lastRangeRef.current;
+      // Eerste keer zonder eerder bereik: val terug op laatste 30 dagen.
+      const t0 = new Date();
+      const d0 = new Date(t0.getFullYear(), t0.getMonth(), t0.getDate());
+      return remember({ from: d0.getTime() - 29 * 86_400_000, to: Date.now() });
     }
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    if (preset === "vandaag") return { from: today.getTime(), to: Date.now() };
+    if (preset === "vandaag") return remember({ from: today.getTime(), to: Date.now() });
+    if (preset === "gisteren") {
+      // Hele dag gisteren: van 00:00 gisteren t/m 23:59:59.999 gisteren.
+      return remember({ from: today.getTime() - 86_400_000, to: today.getTime() - 1 });
+    }
     if (preset === "week") {
       const day = today.getDay() === 0 ? 6 : today.getDay() - 1;
-      return { from: new Date(today.getTime() - day * 86_400_000).getTime(), to: Date.now() };
+      return remember({ from: new Date(today.getTime() - day * 86_400_000).getTime(), to: Date.now() });
     }
-    if (preset === "maand") return { from: new Date(now.getFullYear(), now.getMonth(), 1).getTime(), to: Date.now() };
-    if (preset === "jaar") return { from: new Date(now.getFullYear(), 0, 1).getTime(), to: Date.now() };
+    if (preset === "maand") return remember({ from: new Date(now.getFullYear(), now.getMonth(), 1).getTime(), to: Date.now() });
+    if (preset === "jaar") return remember({ from: new Date(now.getFullYear(), 0, 1).getTime(), to: Date.now() });
     // "Laatste N dagen" = N hele kalenderdagen incl. vandaag. Beginpunt op
     // dagstart (00:00), zodat het totaal niet minuut-na-minuut zakt doordat
     // het venster vanaf "exact nu" mee opschuift.
-    if (preset === "laatste7") return { from: today.getTime() - 6 * 86_400_000, to: Date.now() };
-    if (preset === "laatste14") return { from: today.getTime() - 13 * 86_400_000, to: Date.now() };
-    if (preset === "laatste28") return { from: today.getTime() - 27 * 86_400_000, to: Date.now() };
-    if (preset === "laatste30") return { from: today.getTime() - 29 * 86_400_000, to: Date.now() };
-    if (preset === "laatste90") return { from: today.getTime() - 89 * 86_400_000, to: Date.now() };
+    if (preset === "laatste7") return remember({ from: today.getTime() - 6 * 86_400_000, to: Date.now() });
+    if (preset === "laatste14") return remember({ from: today.getTime() - 13 * 86_400_000, to: Date.now() });
+    if (preset === "laatste28") return remember({ from: today.getTime() - 27 * 86_400_000, to: Date.now() });
+    if (preset === "laatste30") return remember({ from: today.getTime() - 29 * 86_400_000, to: Date.now() });
+    if (preset === "laatste90") return remember({ from: today.getTime() - 89 * 86_400_000, to: Date.now() });
     if (preset === "vorigeMaand") {
       const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       const last = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
-      return { from: first.getTime(), to: last.getTime() };
+      return remember({ from: first.getTime(), to: last.getTime() });
     }
-    return { from: Date.now() - 30 * 86_400_000, to: Date.now() };
+    return remember({ from: Date.now() - 30 * 86_400_000, to: Date.now() });
   }, [preset, customFrom, customTo]);
 
   const stats = useAdminQuery(api.siteAnalytics.getStats, { from, to });
@@ -665,7 +688,7 @@ export default function AdminAnalytics() {
                   <button
                     key={p.key}
                     onClick={() => { setPreset(p.key); setDropdownOpen(false); if (p.key !== "custom") { setCustomFrom(""); setCustomTo(""); } }}
-                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${preset === p.key ? "bg-primary-50 text-primary-900 font-medium" : "text-primary-700 hover:bg-primary-50"} ${p.key === "custom" ? "border-t border-primary-100 mt-1 pt-2" : ""}`}
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${preset === p.key ? "bg-primary-50 text-primary-900 font-medium" : "text-primary-700 hover:bg-primary-50"} ${p.divider ? "border-t border-primary-100 mt-1 pt-2" : ""}`}
                   >
                     {p.label}
                   </button>
