@@ -54,6 +54,8 @@ export default function HouvasteGidsPage() {
 
   // Verliestype: uit de URL (?type=) of door de bezoeker zelf gekozen op het welkomstscherm.
   const [gekozenType, setGekozenType] = useState("");
+  // Eenmalig het verliestype mogen wijzigen nadat er gekozen is.
+  const [typeGewijzigd, setTypeGewijzigd] = useState(false);
   const actiefType = verliesType || gekozenType;
 
   // Effectieve teksten voor dit verliestype (welkom/momenten/slot vallen terug op de basis).
@@ -250,6 +252,13 @@ export default function HouvasteGidsPage() {
   const maxStap = eersteOnbeantwoord === -1 ? ALLE_STAPPEN.length - 1 : momentOffset + eersteOnbeantwoord;
   const kanVerder = stap < maxStap;
 
+  // Stappenbalk in rijen: Start/Welkom boven, momenten in het midden, Bewaar/En nu?
+  // onderaan — die laatste twee pas zichtbaar zodra het laatste moment bereikt is.
+  const laatsteMomentIndex = MOMENTEN.length > 0 ? momentOffset + MOMENTEN.length - 1 : welkomIndex;
+  const toonEinde = maxStap >= laatsteMomentIndex;
+  const topRowIds = ALLE_STAPPEN.filter((id) => id === "kies" || id === "welkom");
+  const momentRowIds = MOMENTEN.map((m) => m.id);
+
   const nietAlleenUrl = naarLpUrl(
     (actiefType && content.nietAlleenLinks[actiefType]) ||
       content.nietAlleenLinks.persoon ||
@@ -312,19 +321,19 @@ export default function HouvasteGidsPage() {
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <HeaderBar />
 
-        {/* Navigatie — één rij, gecentreerd als het past, anders horizontaal scrollbaar
-            (geen lelijke afbreking meer op smalle schermen). */}
-        <nav className="pt-4 pb-2">
-          <div className="mx-auto max-w-md overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex items-center justify-center gap-1.5 w-max min-w-full">
-            {ALLE_STAPPEN.map((id, i) => {
+        {/* Navigatie in rijen: Start/Welkom boven, momenten in het midden, Bewaar/En nu?
+            onderaan (pas zichtbaar bij het laatste moment). */}
+        <nav className="px-5 pt-4 pb-2">
+          {(() => {
+            const tab = (id: string) => {
+              const i = ALLE_STAPPEN.indexOf(id);
               const vergrendeld = i > maxStap;
               return (
                 <button
                   key={id}
                   onClick={() => !vergrendeld && setStap(i)}
                   disabled={vergrendeld}
-                  className="shrink-0 whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full transition-all"
+                  className="whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full transition-all"
                   style={{
                     background: id === huidigStap ? "#6d84a8" : "rgba(255,255,255,0.70)",
                     color: id === huidigStap ? "#fff" : "#8a8078",
@@ -336,9 +345,17 @@ export default function HouvasteGidsPage() {
                   {stapLabel(id)}
                 </button>
               );
-            })}
-            </div>
-          </div>
+            };
+            return (
+              <div className="max-w-md mx-auto flex flex-col items-center gap-1.5">
+                <div className="flex items-center justify-center gap-1.5 flex-wrap">{topRowIds.map(tab)}</div>
+                <div className="flex items-center justify-center gap-1.5 flex-wrap">{momentRowIds.map(tab)}</div>
+                {toonEinde && (
+                  <div className="flex items-center justify-center gap-1.5 flex-wrap">{["bewaar", "enu"].map(tab)}</div>
+                )}
+              </div>
+            );
+          })()}
         </nav>
 
         {/* Content */}
@@ -362,7 +379,7 @@ export default function HouvasteGidsPage() {
                     <button
                       key={t.code}
                       type="button"
-                      onClick={() => { setGekozenType(t.code); setStap(welkomIndex); }}
+                      onClick={() => { if (gekozenType) setTypeGewijzigd(true); setGekozenType(t.code); setStap(welkomIndex); }}
                       className="text-left text-sm px-4 py-3 rounded-xl transition-colors"
                       style={
                         gekozenType === t.code
@@ -402,14 +419,26 @@ export default function HouvasteGidsPage() {
                       key={i}
                       className={isOpening ? "text-lg sm:text-xl leading-relaxed" : "text-sm sm:text-base leading-relaxed"}
                       style={{
-                        color: isOpening || isSlot ? "#3d3530" : "#6b6460",
-                        fontWeight: isSlot ? 700 : isOpening ? 500 : 400,
-                      }}
+                        color: isSlot ? "#6d84a8" : isOpening ? "#3d3530" : "#6b6460",
+                        fontWeight: isOpening ? 500 : 400,
+                        textWrap: isOpening ? "balance" : "pretty",
+                      } as React.CSSProperties}
                     >
                       {alinea}
                     </p>
                   );
                 })}
+                {/* Eenmalig het verliestype kunnen wijzigen na de keuze. */}
+                {heeftKiesStap && actiefType && !typeGewijzigd && (
+                  <button
+                    type="button"
+                    onClick={() => setStap(0)}
+                    className="text-xs font-medium pt-1"
+                    style={{ color: "#a09890", background: "none" }}
+                  >
+                    Toch een ander verlies kiezen
+                  </button>
+                )}
               </div>
             )}
 
