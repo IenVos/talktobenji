@@ -71,9 +71,9 @@ function NietAlleenPageInner() {
   const saveProfielFoto = useMutation(api.nietAlleen.saveProfielFoto);
   const sluitOefening = useMutation(api.nietAlleen.sluitOefening);
 
-  const dagNummer = profiel?.startDatum
-    ? Math.min(30, Math.floor((Date.now() - profiel.startDatum) / 86400000) + 1)
-    : 1;
+  // Dagnummer komt server-side mee (kalenderdag in NL-tijd), zodat account, cron en
+  // mail exact hetzelfde rekenen.
+  const dagNummer = profiel?.dagNummer ? Math.min(30, profiel.dagNummer) : 1;
 
   // Als er een ?dag=X param in de URL staat (vanuit email-link), gebruik die dag
   const activeDag = dagParam ? Math.min(30, Math.max(1, parseInt(dagParam))) : dagNummer;
@@ -120,7 +120,7 @@ function NietAlleenPageInner() {
 
     if (!profiel.verliesType) { setScherm("onboarding"); return; }
 
-    const dag = Math.floor((Date.now() - profiel.startDatum) / 86400000) + 1;
+    const dag = profiel.dagNummer ?? 1;
     if (dag > 30) { setScherm("afgerond"); return; }
 
     const vandaag = profiel.dagPrompts.find((p) => p.dag === activeDag);
@@ -463,7 +463,7 @@ function NietAlleenPageInner() {
               style={{ color: "#8a8078" }}>
               ‹
             </button>
-            <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {bekijkDag} van 30</span>
+            <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {bekijkDag}</span>
             <button onClick={() => navigeerNaarDag(bekijkDag + 1)} disabled={bekijkDag >= maxIngevuldeDag}
               className="w-6 h-6 flex items-center justify-center rounded text-base transition-all disabled:opacity-20"
               style={{ color: "#8a8078" }}>
@@ -643,7 +643,7 @@ function NietAlleenPageInner() {
             style={{ color: "#6b6460", borderColor: dagNummer > 1 ? "#d4ccc4" : "transparent", background: dagNummer > 1 ? "white" : "transparent" }}>
             ‹
           </button>
-          <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {dagNummer} van 30</span>
+          <span className="text-sm" style={{ color: "#b0a8a0" }}>Dag {dagNummer}</span>
           <button
             disabled
             className="w-8 h-8 flex items-center justify-center rounded-lg text-base disabled:opacity-20"

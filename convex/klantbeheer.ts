@@ -5,7 +5,7 @@
 import { v } from "convex/values";
 import { action, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { berekenLevering } from "./nietAlleenLevering";
+import { berekenLevering, berekenDagNummer } from "./nietAlleenLevering";
 
 /** Lijst van alle klant-e-mailadressen in het bestand (voor autocomplete bij zoeken).
  *  Combineert TTB-accounts (credentials) en Niet Alleen-klanten (nietAlleenProfiles). */
@@ -55,10 +55,7 @@ export const getCustomerByEmail = query({
         .first();
       if (!naProfile) return null;
 
-      const dagNummer = Math.min(
-        Math.floor((Date.now() - naProfile.startDatum) / 86400000) + 1,
-        30
-      );
+      const dagNummer = Math.min(berekenDagNummer(naProfile.startDatum, Date.now()), 30);
       return {
         userId: null,
         name: naProfile.naam,
@@ -149,10 +146,7 @@ export const getCustomerByEmail = query({
       levering: ReturnType<typeof berekenLevering>;
     } | null = null;
     if (nietAlleenProfile) {
-      const dagNummer = Math.min(
-        Math.floor((Date.now() - nietAlleenProfile.startDatum) / 86400000) + 1,
-        30
-      );
+      const dagNummer = Math.min(berekenDagNummer(nietAlleenProfile.startDatum, Date.now()), 30);
       nietAlleen = {
         profileId: nietAlleenProfile._id.toString(),
         naam: nietAlleenProfile.naam,

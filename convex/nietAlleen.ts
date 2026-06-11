@@ -13,7 +13,7 @@ import {
 import { api, internal } from "./_generated/api";
 import { v } from "convex/values";
 import { checkAdmin, logAdminAction } from "./adminAuth";
-import { berekenLevering } from "./nietAlleenLevering";
+import { berekenLevering, berekenDagNummer } from "./nietAlleenLevering";
 
 // ─────────────────────────────────────────
 // PUBLIC — gebruikt door de /niet-alleen pagina
@@ -23,19 +23,25 @@ import { berekenLevering } from "./nietAlleenLevering";
 export const getProfile = query({
   args: { userId: v.string(), email: v.optional(v.string()) },
   handler: async (ctx, args) => {
+    // dagNummer server-side meegeven, zodat het account exact hetzelfde rekent als
+    // de cron en de mails (kalenderdag in NL-tijd, één bron van waarheid).
+    const metDag = <T extends { startDatum: number }>(p: T | null) =>
+      p ? { ...p, dagNummer: berekenDagNummer(p.startDatum, Date.now()) } : null;
     // Zoek op userId
     const byUserId = await ctx.db
       .query("nietAlleenProfiles")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
       .first();
-    if (byUserId) return byUserId;
+    if (byUserId) return metDag(byUserId);
     // Fallback: zoek op e-mail
     const lookupEmail = args.email ?? (args.userId.includes("@") ? args.userId : null);
     if (lookupEmail) {
-      return await ctx.db
-        .query("nietAlleenProfiles")
-        .withIndex("by_email", (q) => q.eq("email", lookupEmail))
-        .first() ?? null;
+      return metDag(
+        await ctx.db
+          .query("nietAlleenProfiles")
+          .withIndex("by_email", (q) => q.eq("email", lookupEmail))
+          .first() ?? null
+      );
     }
     return null;
   },
@@ -558,7 +564,7 @@ export const markeerAllesOntvangen = mutation({
     await checkAdmin(ctx, args.adminToken);
     const p = await ctx.db.get(args.profileId);
     if (!p) throw new Error("Profiel niet gevonden");
-    const dagNummer = Math.floor((Date.now() - p.startDatum) / 86400000) + 1;
+    const dagNummer = berekenDagNummer(p.startDatum, Date.now());
     const tot = Math.min(30, Math.max(0, dagNummer));
     const verzonden = Array.from({ length: tot }, (_, i) => i + 1);
     await ctx.db.patch(args.profileId, {
@@ -836,7 +842,7 @@ export const processNietAlleenUsers = internalAction({
     for (const profiel of profielen) {
       // Per profiel afschermen: een fout bij één klant mag de rest niet blokkeren.
       try {
-        const dagNummer = Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
+        const dagNummer = berekenDagNummer(profiel.startDatum, Date.now());
         const verzonden = new Set(profiel.verzondenDagen ?? []);
         const eersteKeer = profiel.verzondenDagen === undefined;
 
@@ -903,7 +909,7 @@ export const processNietAlleenAvondMails = internalAction({
     for (const profiel of profielen) {
       // Per profiel afschermen: een fout bij één klant mag de rest niet blokkeren.
       try {
-        const dagNummer = Math.floor((Date.now() - profiel.startDatum) / (1000 * 60 * 60 * 24)) + 1;
+        const dagNummer = berekenDagNummer(profiel.startDatum, Date.now());
 
         // Dag 15: halverwege check-in (eenmalig) — ook nog versturen als de dag net gemist is.
         if (dagNummer >= 15 && dagNummer < 28 && !profiel.dag15MailVerzonden) {

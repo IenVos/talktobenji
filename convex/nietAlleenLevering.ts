@@ -13,6 +13,27 @@
 
 const DAG_MS = 86_400_000;
 
+/**
+ * Dagnummer (1-gebaseerd) op KALENDERDAGEN in Europe/Amsterdam, niet op verstreken
+ * 24-uursblokken vanaf het activatiemoment. Zo wijzigt het nummer alleen om
+ * middernacht (NL), is het overal gelijk (account, cron, mail) en heeft het geen
+ * last van zomertijd of tijdzone. Dit is de enige plek waar het dagnummer berekend
+ * wordt; alle andere plekken roepen deze functie aan.
+ */
+export function berekenDagNummer(startDatum: number, now: number): number {
+  const nlMidnight = (ts: number): number => {
+    const p = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Europe/Amsterdam",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(new Date(ts));
+    const val = (t: string) => Number(p.find((x) => x.type === t)!.value);
+    return Date.UTC(val("year"), val("month") - 1, val("day"));
+  };
+  return Math.floor((nlMidnight(now) - nlMidnight(startDatum)) / DAG_MS) + 1;
+}
+
 // De ochtend-cron (dagmails) draait om 08:00 UTC.
 const CRON_OCHTEND_UUR_UTC = 8;
 
@@ -64,11 +85,11 @@ function statusVoor(dag: number, verwachtTot: number, dueAt: number, geregistree
 }
 
 export function berekenLevering(p: LeveringProfiel, now: number): Levering {
-  const dagNummer = Math.floor((now - p.startDatum) / DAG_MS) + 1;
+  const dagNummer = berekenDagNummer(p.startDatum, now);
   // Tot welk dagnummer de cron daadwerkelijk verstuurd zou hebben: berekend op het
   // tijdstip van de laatste ochtend-cron (08:00 UTC), niet op kijk-moment. Zo toont
   // de huidige dag niet ten onrechte rood vóór de cron 'm verstuurt.
-  const verwachtTot = Math.floor((laatsteOchtendCron(now) - p.startDatum) / DAG_MS) + 1;
+  const verwachtTot = berekenDagNummer(p.startDatum, laatsteOchtendCron(now));
   const verzondenSet = new Set(p.verzondenDagen ?? []);
   const heeftLog = (p.verzondenDagen?.length ?? 0) > 0;
 
