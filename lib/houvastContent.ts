@@ -89,13 +89,11 @@ Toon en stijl:
 Geef alleen de brieftekst terug, niets anders.`;
 
 export const DEFAULT_HOUVAST: HouvastContent = {
-  welkomTitel: "Welkom",
+  welkomTitel: "Wat goed dat je hier bent",
   welkomTekst: [
     "Je bent hier omdat je iets draagt wat zwaar is.",
-    "Misschien weet je precies wat het is. Misschien ook niet. Misschien is het verdriet om iemand die er niet meer is, om iets wat anders liep dan je had gehoopt, om een leven dat er nu anders uitziet dan je had verwacht.",
-    "Het maakt niet uit hoe je het noemt. Het telt.",
-    "Houvast is er niet om je verdriet op te lossen. Dat kan niemand. Maar voor elk moment dat het extra zwaar voelt, vind je hier iets wat je nu meteen kunt doen. Klein. Eerlijk. Zonder dat je er iets voor hoeft te weten of te begrijpen.",
-    "Je hoeft dit niet alleen te dragen.",
+    "Je hoeft hier niets uit te leggen. In de komende vijf momenten krijg je de ruimte om stil te staan bij wat er in je leeft.",
+    "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij hebt gedeeld.",
   ].join("\n\n"),
   momenten: [
     {
@@ -195,35 +193,61 @@ export const DEFAULT_HOUVAST: HouvastContent = {
     eenzaamheid: "/lp/ik-voel-me-eenzaam",
     kinderloos: "/lp/ongewenst-kinderloos-die-pijn-gaat-nooit-weg",
   },
-  // Per verliestype: de "En nu?"-tekst is alvast afgestemd. Welkom, momenten en
-  // brief-instructie blijven leeg, dus die vallen terug op de basis tot ze in de
-  // admin per type worden ingevuld.
+  // Per verliestype: welkomtekst (openingszin + overgang + vaste briefbelofte) en de
+  // "En nu?"-tekst zijn afgestemd. Momenten en brief-instructie blijven leeg, dus die
+  // vallen terug op de basis tot ze in de admin per type worden ingevuld.
+  // Opbouw welkomtekst: 1e alinea = openingszin (groot), laatste = briefbelofte (vet).
   perType: {
     persoon: {
+      welkomTekst: [
+        "Je mist iemand. Dat is een van de zwaarste dingen die er zijn.",
+        "Je hoeft hier niets uit te leggen. In de komende vijf momenten krijg je de ruimte om stil te staan bij wat er in je leeft.",
+        "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij hebt gedeeld.",
+      ].join("\n\n"),
       slotTekst: [
         "Overdag hou je het vol. Maar er zijn momenten dat het ineens te groot is.",
         "Niet Alleen is er voor die momenten. Dertig dagen, een bericht per dag. Geen grote stappen, alleen iemand die er is.",
       ].join("\n\n"),
     },
     huisdier: {
+      welkomTekst: [
+        "Je mist je huisdier. En je weet hoe verkeerd mensen het soms begrijpen. Het telt.",
+        "Je hoeft je hier niet te rechtvaardigen. In de komende vijf momenten krijg je de ruimte om stil te staan bij wat er in je leeft.",
+        "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij hebt gedeeld.",
+      ].join("\n\n"),
       slotTekst: [
         "Mensen zeggen: het was maar een dier. Jij weet hoe fout dat is.",
         "Rouw om een huisdier is echte rouw. Niet Alleen begrijpt dat. Dertig dagen lang een bericht per dag, zonder oordeel, zonder dat je het hoeft uit te leggen.",
       ].join("\n\n"),
     },
     scheiding: {
+      welkomTekst: [
+        "Je relatie is voorbij. Je rouwt om iemand die nog leeft, en dat doet evenveel pijn.",
+        "Er is geen afscheid voor dit verdriet, maar het is er. In de komende vijf momenten krijg je de ruimte om het een plek te geven.",
+        "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij hebt gedeeld.",
+      ].join("\n\n"),
       slotTekst: [
         "Je rouwt om iemand die nog leeft. Dat is verwarrend, en het doet evenveel pijn.",
         "Verdriet om een relatie heeft geen begrafenis, geen kaarten, geen erkend moment van afscheid. Niet Alleen is er voor dit stille verlies. Dertig dagen, op jouw tempo.",
       ].join("\n\n"),
     },
     eenzaamheid: {
+      welkomTekst: [
+        "Je voelt je eenzaam. Misschien met mensen om je heen, en toch ongezien.",
+        "Je hoeft het hier niet uit te leggen. In de komende vijf momenten krijg je de ruimte om stil te staan bij wat je draagt.",
+        "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij hebt gedeeld.",
+      ].join("\n\n"),
       slotTekst: [
         "Er zijn van die avonden dat je denkt: niemand zou het merken als ik er niet was.",
         "Dat gevoel is zwaarder dan het lijkt. Niet Alleen is er juist op die momenten. Elke dag een klein bericht, als een hand op je schouder.",
       ].join("\n\n"),
     },
     kinderloos: {
+      welkomTekst: [
+        "Je kinderwens kwam niet uit. Je rouwt om een toekomst die nooit is geweest.",
+        "Veel mensen weten dit niet te benoemen. Jij hoeft dat hier niet. In de komende vijf momenten krijg je de ruimte om stil te staan bij wat je draagt.",
+        "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij hebt gedeeld.",
+      ].join("\n\n"),
       slotTekst: [
         "Je rouwt om een toekomst die nooit is geweest. Dat is een van de zwaarste vormen van verlies, en een van de meest onzichtbare.",
         "Niet Alleen is er voor wat anderen niet altijd kunnen benoemen. Dertig dagen, een bericht per dag, voor het verdriet dat geen datum heeft.",

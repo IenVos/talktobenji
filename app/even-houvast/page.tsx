@@ -312,9 +312,11 @@ export default function HouvasteGidsPage() {
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", minHeight: "100vh" }}>
         <HeaderBar />
 
-        {/* Navigatie */}
-        <nav className="px-5 pt-4 pb-2">
-          <div className="max-w-md mx-auto flex items-center justify-center gap-1.5 flex-wrap">
+        {/* Navigatie — één rij, gecentreerd als het past, anders horizontaal scrollbaar
+            (geen lelijke afbreking meer op smalle schermen). */}
+        <nav className="pt-4 pb-2">
+          <div className="mx-auto max-w-md overflow-x-auto px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex items-center justify-center gap-1.5 w-max min-w-full">
             {ALLE_STAPPEN.map((id, i) => {
               const vergrendeld = i > maxStap;
               return (
@@ -322,7 +324,7 @@ export default function HouvasteGidsPage() {
                   key={id}
                   onClick={() => !vergrendeld && setStap(i)}
                   disabled={vergrendeld}
-                  className="text-xs font-medium px-3 py-1.5 rounded-full transition-all"
+                  className="shrink-0 whitespace-nowrap text-xs font-medium px-3 py-1.5 rounded-full transition-all"
                   style={{
                     background: id === huidigStap ? "#6d84a8" : "rgba(255,255,255,0.70)",
                     color: id === huidigStap ? "#fff" : "#8a8078",
@@ -335,6 +337,7 @@ export default function HouvasteGidsPage() {
                 </button>
               );
             })}
+            </div>
           </div>
         </nav>
 
@@ -352,7 +355,7 @@ export default function HouvasteGidsPage() {
                   Waar gaat jouw verdriet over?
                 </h2>
                 <p className="text-sm sm:text-base leading-relaxed" style={{ color: "#6b6460" }}>
-                  Zo stemmen we de woorden hierna op jou af. Je hoeft niet te kiezen als je dat niet wil.
+                  Zo kunnen we je beter begeleiden in de stappen hierna.
                 </p>
                 <div className="flex flex-col gap-2 pt-1">
                   {typeKeuzes.map((t) => (
@@ -391,15 +394,22 @@ export default function HouvasteGidsPage() {
                 <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>
                   {profiel?.name ? `${gids.welkomTitel}, ${profiel.name}` : gids.welkomTitel}
                 </h2>
-                {alineas(gids.welkomTekst).map((alinea, i, arr) => (
-                  <p
-                    key={i}
-                    className="text-sm sm:text-base leading-relaxed"
-                    style={{ color: i === arr.length - 1 ? "#3d3530" : "#6b6460", fontWeight: i === arr.length - 1 ? 500 : 400 }}
-                  >
-                    {alinea}
-                  </p>
-                ))}
+                {alineas(gids.welkomTekst).map((alinea, i, arr) => {
+                  const isOpening = i === 0;
+                  const isSlot = i === arr.length - 1 && arr.length > 1;
+                  return (
+                    <p
+                      key={i}
+                      className={isOpening ? "text-lg sm:text-xl leading-relaxed" : "text-sm sm:text-base leading-relaxed"}
+                      style={{
+                        color: isOpening || isSlot ? "#3d3530" : "#6b6460",
+                        fontWeight: isSlot ? 700 : isOpening ? 500 : 400,
+                      }}
+                    >
+                      {alinea}
+                    </p>
+                  );
+                })}
               </div>
             )}
 
