@@ -406,6 +406,31 @@ function AllPagesList({ pages, maxCount }: { pages: TopPage[]; maxCount: number 
 // Hoofd analytics dashboard
 // ---------------------------------------------------------------------------
 
+// Inklap-stand van een sectie die bewaard blijft tussen bezoeken (localStorage).
+function usePersistentToggle(key: string, initial: boolean) {
+  const storageKey = `ttb_analytics_${key}`;
+  const [value, setValue] = useState(initial);
+  const loaded = useRef(false);
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored !== null) setValue(stored === "1");
+    } catch {
+      // localStorage niet beschikbaar — gebruik de standaardwaarde
+    }
+    loaded.current = true;
+  }, [storageKey]);
+  useEffect(() => {
+    if (!loaded.current) return;
+    try {
+      localStorage.setItem(storageKey, value ? "1" : "0");
+    } catch {
+      // negeren
+    }
+  }, [storageKey, value]);
+  return [value, setValue] as const;
+}
+
 export default function AdminAnalytics() {
   const [preset, setPreset] = useState("laatste30");
   const [customFrom, setCustomFrom] = useState("");
@@ -504,16 +529,16 @@ export default function AdminAnalytics() {
   const [cleanupMsg, setCleanupMsg] = useState<string | null>(null);
   const [newExcludedEmail, setNewExcludedEmail] = useState("");
 
-  // Inklapbare secties
-  const [openBezoeken, setOpenBezoeken] = useState(true);
-  const [openConversies, setOpenConversies] = useState(true);
-  const [openApparaten, setOpenApparaten] = useState(true);
-  const [openAdLp, setOpenAdLp] = useState(true);
-  const [openFunnel, setOpenFunnel] = useState(true);
-  const [openVerliesType, setOpenVerliesType] = useState(true);
-  const [openFeatureGebruik, setOpenFeatureGebruik] = useState(true);
-  const [openDoelen, setOpenDoelen] = useState(false);
-  const [openBeheer, setOpenBeheer] = useState(true);
+  // Inklapbare secties — stand blijft bewaard tussen bezoeken
+  const [openBezoeken, setOpenBezoeken] = usePersistentToggle("bezoeken", true);
+  const [openConversies, setOpenConversies] = usePersistentToggle("conversies", true);
+  const [openApparaten, setOpenApparaten] = usePersistentToggle("apparaten", true);
+  const [openAdLp, setOpenAdLp] = usePersistentToggle("adlp", true);
+  const [openFunnel, setOpenFunnel] = usePersistentToggle("funnel", true);
+  const [openVerliesType, setOpenVerliesType] = usePersistentToggle("verliestype", true);
+  const [openFeatureGebruik, setOpenFeatureGebruik] = usePersistentToggle("featuregebruik", true);
+  const [openDoelen, setOpenDoelen] = usePersistentToggle("doelen", false);
+  const [openBeheer, setOpenBeheer] = usePersistentToggle("beheer", true);
 
   useEffect(() => {
     fetch("/api/my-ip").then(r => r.json()).then(d => setMyIp(d.ip ?? null)).catch(() => {});
