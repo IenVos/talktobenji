@@ -99,7 +99,9 @@ function NietAlleenPageInner() {
   );
 
   // Scherm bepalen
-  const isAdminUser = session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EXEMPT_EMAIL;
+  // Beheerder-uitzondering komt server-side mee via getProfile (de server-only
+  // ADMIN_EXEMPT_EMAIL is client-side niet leesbaar).
+  const isAdminUser = profiel?.isAdmin === true;
 
   useEffect(() => {
     if (status === "loading") return;

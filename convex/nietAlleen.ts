@@ -25,8 +25,12 @@ export const getProfile = query({
   handler: async (ctx, args) => {
     // dagNummer server-side meegeven, zodat het account exact hetzelfde rekent als
     // de cron en de mails (kalenderdag in NL-tijd, één bron van waarheid).
+    // isAdmin ook server-side: het account is een client-component en kan de
+    // server-only ADMIN_EXEMPT_EMAIL niet lezen, dus bepalen we het hier.
+    const exempt = process.env.ADMIN_EXEMPT_EMAIL;
+    const isAdmin = !!exempt && (args.email === exempt || args.userId === exempt);
     const metDag = <T extends { startDatum: number }>(p: T | null) =>
-      p ? { ...p, dagNummer: berekenDagNummer(p.startDatum, Date.now()) } : null;
+      p ? { ...p, dagNummer: berekenDagNummer(p.startDatum, Date.now()), isAdmin } : null;
     // Zoek op userId
     const byUserId = await ctx.db
       .query("nietAlleenProfiles")
