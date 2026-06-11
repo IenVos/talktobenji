@@ -507,6 +507,43 @@ export const queueInhaalDagen = mutation({
 });
 
 /**
+ * Haal één dag uit de inhaalwachtrij (wordt dus niet meer nagestuurd). Standaard
+ * wordt die dag ook als ontvangen gemarkeerd (verschijnt groen), omdat de reden om
+ * 'm uit de wachtrij te halen meestal is dat de klant 'm al heeft. Zet
+ * `markeerOntvangen: false` om de dag enkel te annuleren (blijft dan gemist). Admin.
+ */
+export const verwijderUitWachtrij = mutation({
+  args: {
+    adminToken: v.string(),
+    profileId: v.id("nietAlleenProfiles"),
+    dag: v.number(),
+    markeerOntvangen: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const p = await ctx.db.get(args.profileId);
+    if (!p) throw new Error("Profiel niet gevonden");
+    const wachtrij = (p.inhaalWachtrij ?? []).filter((d) => d !== args.dag);
+    const markeer = args.markeerOntvangen !== false; // standaard true
+    const verzonden = markeer
+      ? Array.from(new Set([...(p.verzondenDagen ?? []), args.dag])).sort((a, b) => a - b)
+      : (p.verzondenDagen ?? []);
+    await ctx.db.patch(args.profileId, {
+      inhaalWachtrij: wachtrij,
+      ...(markeer ? { verzondenDagen: verzonden, laatsteDagMail: verzonden[verzonden.length - 1] } : {}),
+      // Excuus-vlag uit zodra de wachtrij leeg is (geen losse excuus-mail meer nodig)
+      ...(wachtrij.length === 0 ? { inhaalExcuusPending: false } : {}),
+      updatedAt: Date.now(),
+    });
+    await logAdminAction(
+      ctx,
+      `Niet Alleen: dag ${args.dag} uit wachtrij gehaald voor ${p.email}${markeer ? " (gemarkeerd als ontvangen)" : " (geannuleerd, blijft gemist)"}.`
+    );
+    return { wachtrij };
+  },
+});
+
+/**
  * Markeer dat een klant alle tot nu toe verschenen dagmails (en afsluitmails)
  * écht heeft ontvangen. Vult het logboek met dag 1 t/m de huidige dag en zet de
  * speciale-mail-vlaggen. Gebruik dit voor klanten van vóór het logboek waarvan je

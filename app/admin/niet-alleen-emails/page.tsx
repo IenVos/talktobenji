@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
-import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil, Plus, Trash2, Copy, Eye } from "lucide-react";
+import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil, Plus, Trash2, Copy, Eye, X } from "lucide-react";
 import { useMutation } from "convex/react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
 import { NIET_ALLEEN_CONTENT, type NietAlleenVerliesType, getMailTekst, getDagInhoud } from "@/convex/nietAlleenContent";
@@ -357,6 +357,7 @@ function KlantStatusRij({ k }: { k: LeveringStatus }) {
   const queueInhaal = useAdminMutation(api.nietAlleen.queueInhaalDagen);
   const stuurNu = useAdminAction(api.nietAlleen.stuurInhaalNu);
   const markeerOntvangen = useAdminMutation(api.nietAlleen.markeerAllesOntvangen);
+  const verwijderWachtrij = useAdminMutation(api.nietAlleen.verwijderUitWachtrij);
   const [bezig, setBezig] = useState(false);
   const [melding, setMelding] = useState("");
 
@@ -436,7 +437,26 @@ function KlantStatusRij({ k }: { k: LeveringStatus }) {
         <p className="mt-2 text-xs text-amber-600">Afsluiting niet verstuurd: dag {gemisteSpecials.join(", ")}.</p>
       )}
       {k.wachtrij.length > 0 && (
-        <p className="mt-2 text-xs text-blue-600">In wachtrij (1/dag{k.excuusPending ? ", met excuus" : ""}): dag {k.wachtrij.join(", ")}.</p>
+        <div className="mt-2 text-xs text-blue-600">
+          <span>In wachtrij (1/dag{k.excuusPending ? ", met excuus" : ""}): </span>
+          <span className="inline-flex flex-wrap gap-1 align-middle">
+            {k.wachtrij.map((dag) => (
+              <span key={dag} className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 pl-2 pr-1 py-0.5 font-semibold text-blue-700">
+                dag {dag}
+                <button
+                  type="button"
+                  disabled={bezig}
+                  title={`Dag ${dag} uit de wachtrij halen — klant heeft 'm al ontvangen, niet meer sturen`}
+                  onClick={() => { if (confirm(`Dag ${dag} NIET nasturen naar ${k.email}? De dag wordt uit de wachtrij gehaald en als ontvangen gemarkeerd.`)) doe(() => verwijderWachtrij({ profileId: k.profileId as any, dag }), `Dag ${dag} uit de wachtrij gehaald en als ontvangen gemarkeerd.`); }}
+                  className="flex items-center justify-center rounded p-0.5 text-blue-400 hover:text-red-500 hover:bg-white disabled:opacity-50"
+                  aria-label={`Dag ${dag} uit wachtrij halen`}
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </span>
+        </div>
       )}
       {k.onbekend.length > 0 && k.gemist.length === 0 && (
         <p className="mt-2 text-xs text-gray-400">

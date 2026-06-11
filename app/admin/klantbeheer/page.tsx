@@ -6,7 +6,7 @@ import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import {
   Search, Users, CreditCard, KeyRound, MessageSquare,
   Palette, BookHeart, CheckCircle, AlertCircle, ChevronDown, ChevronRight, AtSign, HelpCircle, ArrowRight,
-  Mail, RotateCcw, Send, Package, BellOff, BellRing, ListChecks,
+  Mail, RotateCcw, Send, Package, BellOff, BellRing, ListChecks, X,
 } from "lucide-react";
 import { useAction } from "convex/react";
 import { useAdminAction } from "../AdminAuthContext";
@@ -37,6 +37,7 @@ function MailLeveringPanel({ profileId, email, levering }: { profileId: string; 
   const queueInhaal = useAdminMutation(api.nietAlleen.queueInhaalDagen);
   const stuurNu = useAdminAction(api.nietAlleen.stuurInhaalNu);
   const markeerOntvangen = useAdminMutation(api.nietAlleen.markeerAllesOntvangen);
+  const verwijderWachtrij = useAdminMutation(api.nietAlleen.verwijderUitWachtrij);
   const [bezig, setBezig] = useState(false);
   const [melding, setMelding] = useState<ActionState>(null);
 
@@ -126,9 +127,26 @@ function MailLeveringPanel({ profileId, email, levering }: { profileId: string; 
           </div>
 
           {levering.wachtrij.length > 0 && (
-            <p className="text-xs text-blue-600">
-              In de wachtrij om gespreid na te sturen (1/dag{levering.excuusPending ? ", met excuus" : ""}): dag {levering.wachtrij.join(", ")}.
-            </p>
+            <div className="text-xs text-blue-600 space-y-1.5">
+              <p>In de wachtrij om gespreid na te sturen (1/dag{levering.excuusPending ? ", met excuus" : ""}):</p>
+              <div className="flex flex-wrap gap-1.5">
+                {levering.wachtrij.map((dag) => (
+                  <span key={dag} className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 pl-2 pr-1 py-0.5 font-semibold text-blue-700">
+                    dag {dag}
+                    <button
+                      type="button"
+                      disabled={bezig}
+                      title={`Dag ${dag} uit de wachtrij halen — klant heeft 'm al ontvangen, niet meer sturen`}
+                      onClick={() => { if (confirm(`Dag ${dag} NIET nasturen naar ${email}? De dag wordt uit de wachtrij gehaald en als ontvangen gemarkeerd.`)) doe(() => verwijderWachtrij({ profileId: profileId as any, dag }), `Dag ${dag} uit de wachtrij gehaald en als ontvangen gemarkeerd.`); }}
+                      className="flex items-center justify-center rounded p-0.5 text-blue-400 hover:text-red-500 hover:bg-white disabled:opacity-50"
+                      aria-label={`Dag ${dag} uit wachtrij halen`}
+                    >
+                      <X size={12} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
           {levering.onbekend.length > 0 && levering.gemist.length === 0 && (
             <p className="text-xs text-gray-400">
