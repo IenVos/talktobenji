@@ -5,9 +5,10 @@ import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import { Save, LayoutTemplate, ExternalLink, Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { DEFAULT_HOUVAST, mergeHouvast, type HouvastContent, type HouvastMoment, type HouvastPerType } from "@/lib/houvastContent";
+import { DEFAULT_NIET_ALLEEN_PAGINA, mergeNietAlleenPagina, type NietAlleenPaginaContent } from "@/lib/nietAlleenPaginaContent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "homepage" | "waarom-benji" | "voor-jou" | "privacy" | "av" | "faq" | "benji-nacht" | "houvast";
+type Tab = "homepage" | "waarom-benji" | "voor-jou" | "privacy" | "av" | "faq" | "benji-nacht" | "houvast" | "niet-alleen";
 type Section = { title: string; body: string };
 type FaqItem = { q: string; a: string };
 type FaqSection = { title: string; items: FaqItem[] };
@@ -952,6 +953,82 @@ function EvenHouvastTab() {
   );
 }
 
+// ─── Niet Alleen — vaste teksten van de programmapagina (/niet-alleen) ──────────
+function NietAlleenTab() {
+  const saved = useAdminQuery(api.pageContent.getPageContent, { pageKey: "niet-alleen" });
+  const setContent = useAdminMutation(api.pageContent.setPageContent);
+  const [content, setContent2] = useState<NietAlleenPaginaContent>(DEFAULT_NIET_ALLEEN_PAGINA);
+  const [saving, setSaving] = useState(false);
+  const [saved2, setSaved2] = useState(false);
+
+  useEffect(() => {
+    if (saved) setContent2(mergeNietAlleenPagina(saved as unknown as Partial<NietAlleenPaginaContent>));
+  }, [saved]);
+
+  const set = (key: keyof NietAlleenPaginaContent, val: string) =>
+    setContent2((p) => ({ ...p, [key]: val }));
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved2(false);
+    try {
+      await setContent({ pageKey: "niet-alleen", content: JSON.stringify(content) });
+      setSaved2(true);
+      setTimeout(() => setSaved2(false), 2000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800">
+        De vaste teksten van de programmapagina (<strong>/niet-alleen</strong>). De dagelijkse dagteksten beheer je apart bij <strong>Niet Alleen e-mails &rarr; dagtemplates</strong>. De keuzeknoppen (Persoon, Huisdier, ...) komen uit <strong>Niet Alleen &rarr; Verliestypen</strong>. Bekijken vereist inloggen met een Niet Alleen-account.
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Welkom (eerste scherm na aankoop)</h3>
+        <Field label="Titel" value={content.welkomTitel} onChange={(v) => set("welkomTitel", v)} />
+        <Field label="Tekst" value={content.welkomTekst} onChange={(v) => set("welkomTekst", v)} multiline rows={3} />
+        <Field label="Kopje boven de keuzeknoppen" value={content.verliesLabel} onChange={(v) => set("verliesLabel", v)} />
+        <Field label="Knop (verder)" value={content.verderKnop} onChange={(v) => set("verderKnop", v)} />
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Naam invullen (tweede scherm)</h3>
+        <Field label="Titel bij persoon" value={content.naamTitelPersoon} onChange={(v) => set("naamTitelPersoon", v)} />
+        <Field label="Titel bij huisdier" value={content.naamTitelHuisdier} onChange={(v) => set("naamTitelHuisdier", v)} />
+        <Field label="Tekst" value={content.naamTekst} onChange={(v) => set("naamTekst", v)} multiline rows={2} />
+        <Field label="Knop (beginnen)" value={content.naamKnop} onChange={(v) => set("naamKnop", v)} />
+        <Field label="Knop (overslaan)" value={content.naamOverslaan} onChange={(v) => set("naamOverslaan", v)} />
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Na 30 dagen (programma klaar)</h3>
+        <Field label="Titel" value={content.afgerondTitel} onChange={(v) => set("afgerondTitel", v)} />
+        <Field label="Tekst" value={content.afgerondTekst} onChange={(v) => set("afgerondTekst", v)} multiline rows={2} />
+        <Field label="Knop (dagboek)" value={content.afgerondKnopDagboek} onChange={(v) => set("afgerondKnopDagboek", v)} />
+        <Field label="Knop (verder met Benji)" value={content.afgerondKnopBenji} onChange={(v) => set("afgerondKnopBenji", v)} />
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Account gesloten (vanaf dag 37)</h3>
+        <p className="text-xs text-gray-400">Het dagboek blijft bereikbaar, ook na sluiting. De knop wijst naar het dagboek.</p>
+        <Field label="Tekst" value={content.geslotenTekst} onChange={(v) => set("geslotenTekst", v)} multiline rows={2} />
+        <Field label="Knop" value={content.geslotenKnop} onChange={(v) => set("geslotenKnop", v)} />
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Geen toegang (niet ingelogd)</h3>
+        <Field label="Tekst" value={content.geenToegangTekst} onChange={(v) => set("geenToegangTekst", v)} multiline rows={2} />
+        <Field label="Knop" value={content.geenToegangKnop} onChange={(v) => set("geenToegangKnop", v)} />
+      </div>
+
+      <SaveBar onSave={handleSave} saving={saving} saved={saved2} />
+    </div>
+  );
+}
+
 // ─── Hoofdpagina ──────────────────────────────────────────────────────────────
 const TABS: { key: Tab; label: string; href: string }[] = [
   { key: "homepage",     label: "Homepage",            href: "/" },
@@ -962,6 +1039,7 @@ const TABS: { key: Tab; label: string; href: string }[] = [
   { key: "faq",          label: "FAQ",                  href: "/faq" },
   { key: "benji-nacht",  label: "Benji Nacht",         href: "/benji-nacht" },
   { key: "houvast",      label: "Even Houvast",        href: "/even-houvast" },
+  { key: "niet-alleen",  label: "Niet Alleen",         href: "/niet-alleen" },
 ];
 
 export default function PaginasAdminPage() {
@@ -1004,6 +1082,7 @@ export default function PaginasAdminPage() {
       {tab === "faq"          && <FaqTab />}
       {tab === "benji-nacht"  && <BenjiNachtTab />}
       {tab === "houvast"      && <EvenHouvastTab />}
+      {tab === "niet-alleen"  && <NietAlleenTab />}
     </div>
   );
 }

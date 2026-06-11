@@ -7,6 +7,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { getDagInhoud } from "@/convex/nietAlleenContent";
 import { ANKER_DAGEN } from "@/convex/nietAlleenAnkerContent";
+import { mergeNietAlleenPagina, type NietAlleenPaginaContent } from "@/lib/nietAlleenPaginaContent";
 import Image from "next/image";
 import Link from "next/link";
 import { ImagePlus, X, Mic, MicOff, ChevronLeft } from "lucide-react";
@@ -32,6 +33,11 @@ function NietAlleenPageInner() {
   const router = useRouter();
   const dagParam = searchParams?.get("dag");
   const verliesTypen = useQuery(api.verliesTypen.listPublic, {});
+  // Vaste schermteksten (beheerbaar via Admin > Pagina's > Niet Alleen)
+  const paginaSaved = useQuery(api.pageContent.getPublicPageContent, { pageKey: "niet-alleen" });
+  const pagina: NietAlleenPaginaContent = mergeNietAlleenPagina(
+    paginaSaved as Partial<NietAlleenPaginaContent> | null | undefined
+  );
   const [scherm, setScherm] = useState<Scherm>("laden");
   const [stapOnboarding, setStapOnboarding] = useState<StapOnboarding>("verlies");
   const [geselecteerdType, setGeselecteerdType] = useState<string | null>(null);
@@ -296,10 +302,10 @@ function NietAlleenPageInner() {
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#fdf9f4" }}>
         <div className="text-center space-y-4 max-w-sm">
           <p style={{ color: "#6b6460" }}>
-            Je hebt geen toegang tot deze pagina. Log in met het account waarmee je Niet Alleen hebt aangeschaft.
+            {pagina.geenToegangTekst}
           </p>
           <Link href="/inloggen" className="inline-block text-sm font-medium underline" style={{ color: "#6d84a8" }}>
-            Inloggen
+            {pagina.geenToegangKnop}
           </Link>
         </div>
       </div>
@@ -312,10 +318,10 @@ function NietAlleenPageInner() {
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#fdf9f4" }}>
         <div className="text-center space-y-4 max-w-sm">
           <p style={{ color: "#6b6460" }}>
-            Je 30 dagen zijn afgelopen en je gratis account is gesloten. Wil je alles bewaren?
+            {pagina.geslotenTekst}
           </p>
-          <Link href="/lp/prijzen" className="inline-block px-5 py-2.5 rounded-xl text-sm font-medium text-white" style={{ background: "#6d84a8" }}>
-            Bekijk abonnementen
+          <Link href="/niet-alleen/dagboek" className="inline-block px-5 py-2.5 rounded-xl text-sm font-medium text-white" style={{ background: "#6d84a8" }}>
+            {pagina.geslotenKnop}
           </Link>
         </div>
       </div>
@@ -333,13 +339,13 @@ function NietAlleenPageInner() {
         </div>
         <div className="max-w-md mx-auto px-6 py-14 space-y-8">
           <div className="space-y-3">
-            <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>Welkom bij Niet Alleen</h1>
+            <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>{pagina.welkomTitel}</h1>
             <p className="text-base leading-relaxed" style={{ color: "#6b6460" }}>
-              De komende 30 dagen lopen we samen met je mee — één dag tegelijk. Vertel ons eerst waarvoor je hier bent.
+              {pagina.welkomTekst}
             </p>
           </div>
           <div className="space-y-2.5">
-            <p className="text-sm font-medium" style={{ color: "#3d3530" }}>Ik verwerk verlies van:</p>
+            <p className="text-sm font-medium" style={{ color: "#3d3530" }}>{pagina.verliesLabel}</p>
             {(verliesTypen ?? []).map(({ code, naam }) => (
               <button key={code} onClick={() => setGeselecteerdType(code)}
                 className="w-full text-left px-4 py-3 rounded-xl border-2 transition-all text-sm"
@@ -351,7 +357,7 @@ function NietAlleenPageInner() {
           <button onClick={handleVerliesTypeVerder} disabled={!geselecteerdType || bezig}
             className="w-full py-3 rounded-xl font-medium text-white transition-all text-sm"
             style={{ background: geselecteerdType && !bezig ? "#6d84a8" : "#c4cdd8", cursor: geselecteerdType && !bezig ? "pointer" : "default" }}>
-            {bezig ? "Even geduld..." : "Verder"}
+            {bezig ? "Even geduld..." : pagina.verderKnop}
           </button>
         </div>
       </div>
@@ -360,7 +366,7 @@ function NietAlleenPageInner() {
 
   // ── Onboarding stap 2: naam
   if (scherm === "onboarding" && stapOnboarding === "naam") {
-    const typeLabel = geselecteerdType === "huisdier" ? "je huisdier" : "deze persoon";
+    const naamTitel = geselecteerdType === "huisdier" ? pagina.naamTitelHuisdier : pagina.naamTitelPersoon;
     return (
       <div className="min-h-screen" style={{ background: "#fdf9f4" }}>
         <div className="px-6 pt-6">
@@ -370,9 +376,9 @@ function NietAlleenPageInner() {
         </div>
         <div className="max-w-md mx-auto px-6 py-14 space-y-8">
           <div className="space-y-3">
-            <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>Hoe heette {typeLabel}?</h1>
+            <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>{naamTitel}</h1>
             <p className="text-base leading-relaxed" style={{ color: "#6b6460" }}>
-              Als je een naam invult, gebruiken we die in de dagelijkse berichten. Je kunt dit ook overslaan.
+              {pagina.naamTekst}
             </p>
           </div>
           <input type="text" value={verliesNaamInput} onChange={(e) => setVerliesNaamInput(e.target.value)}
@@ -384,10 +390,10 @@ function NietAlleenPageInner() {
             <button onClick={() => { void handleBeginnen(); }} disabled={bezig}
               className="w-full py-3 rounded-xl font-medium text-white transition-all text-sm"
               style={{ background: !bezig ? "#6d84a8" : "#c4cdd8", cursor: !bezig ? "pointer" : "default" }}>
-              {bezig ? "Even geduld..." : "Begin mijn 30 dagen"}
+              {bezig ? "Even geduld..." : pagina.naamKnop}
             </button>
             <button onClick={() => { void handleBeginnen(""); }} className="w-full py-2 text-sm text-center" style={{ color: "#b0a8a0" }}>
-              Overslaan
+              {pagina.naamOverslaan}
             </button>
           </div>
         </div>
@@ -406,17 +412,17 @@ function NietAlleenPageInner() {
         </div>
         <div className="max-w-md mx-auto px-6 py-14 text-center space-y-6">
           <div className="space-y-3">
-            <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>Je 30 dagen zijn klaar</h1>
+            <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>{pagina.afgerondTitel}</h1>
             <p className="text-base leading-relaxed" style={{ color: "#6b6460" }}>
-              Dertig dagen lang ben je er geweest voor jezelf. Alles wat je hebt geschreven is van jou.
+              {pagina.afgerondTekst}
             </p>
           </div>
           <div className="space-y-3">
             <Link href="/niet-alleen/dagboek" className="block px-6 py-3 rounded-xl font-medium text-white text-sm" style={{ background: "#6d84a8" }}>
-              Bekijk en bewaar jouw dagboek
+              {pagina.afgerondKnopDagboek}
             </Link>
             <Link href="/niet-alleen/ontdek" className="block px-6 py-3 rounded-xl font-medium text-sm border" style={{ color: "#6b6460", borderColor: "#d4ccc4", background: "white" }}>
-              Ga verder met TalkToBenji
+              {pagina.afgerondKnopBenji}
             </Link>
           </div>
         </div>
