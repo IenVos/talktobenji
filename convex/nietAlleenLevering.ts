@@ -13,12 +13,30 @@
 
 const DAG_MS = 86_400_000;
 
+// De ochtend-cron (dagmails) draait om 08:00 UTC.
+const CRON_OCHTEND_UUR_UTC = 8;
+
+/**
+ * Effectieve startdag = de dag waarop dag 1 dáádwerkelijk wordt verstuurd: de eerste
+ * ochtendcron (08:00 UTC) op of ná het aanmeldmoment. Wie zich ná de cron van de
+ * aanmelddag aanmeldt, krijgt dag 1 pas de volgende ochtend. Door hierop te ankeren
+ * loopt het dagnummer gelijk met wat de klant echt ontvangt, in plaats van één dag
+ * vooruit te rennen bij late aanmeldingen.
+ */
+export function effectieveStartDatum(startDatum: number): number {
+  const d = new Date(startDatum);
+  let cron = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), CRON_OCHTEND_UUR_UTC, 0, 0);
+  if (startDatum > cron) cron += DAG_MS; // aangemeld ná de cron → dag 1 gaat morgen
+  return cron;
+}
+
 /**
  * Dagnummer (1-gebaseerd) op KALENDERDAGEN in Europe/Amsterdam, niet op verstreken
  * 24-uursblokken vanaf het activatiemoment. Zo wijzigt het nummer alleen om
  * middernacht (NL), is het overal gelijk (account, cron, mail) en heeft het geen
- * last van zomertijd of tijdzone. Dit is de enige plek waar het dagnummer berekend
- * wordt; alle andere plekken roepen deze functie aan.
+ * last van zomertijd of tijdzone. Geankerd op de effectieve startdag (zie boven),
+ * zodat het gelijk loopt met wat de klant echt heeft gekregen. Dit is de enige plek
+ * waar het dagnummer berekend wordt; alle andere plekken roepen deze functie aan.
  */
 export function berekenDagNummer(startDatum: number, now: number): number {
   const nlMidnight = (ts: number): number => {
@@ -31,11 +49,8 @@ export function berekenDagNummer(startDatum: number, now: number): number {
     const val = (t: string) => Number(p.find((x) => x.type === t)!.value);
     return Date.UTC(val("year"), val("month") - 1, val("day"));
   };
-  return Math.floor((nlMidnight(now) - nlMidnight(startDatum)) / DAG_MS) + 1;
+  return Math.floor((nlMidnight(now) - nlMidnight(effectieveStartDatum(startDatum))) / DAG_MS) + 1;
 }
-
-// De ochtend-cron (dagmails) draait om 08:00 UTC.
-const CRON_OCHTEND_UUR_UTC = 8;
 
 // Eerste cron-run met het leveringslogboek live (10 juni 2026, 08:00 UTC).
 // Dagmails die hiervóór gepland stonden zijn niet betrouwbaar geregistreerd.
@@ -92,6 +107,7 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
   const verwachtTot = berekenDagNummer(p.startDatum, laatsteOchtendCron(now));
   const verzondenSet = new Set(p.verzondenDagen ?? []);
   const heeftLog = (p.verzondenDagen?.length ?? 0) > 0;
+  const eff = effectieveStartDatum(p.startDatum);
 
   const dagen: { dag: number; status: DagStatus }[] = [];
   const verzonden: number[] = [];
@@ -99,7 +115,7 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
   const onbekend: number[] = [];
 
   for (let d = 1; d <= 30; d++) {
-    const dueAt = p.startDatum + (d - 1) * DAG_MS;
+    const dueAt = eff + (d - 1) * DAG_MS;
     const status = statusVoor(d, verwachtTot, dueAt, verzondenSet.has(d), heeftLog);
     dagen.push({ dag: d, status });
     if (status === "verzonden") verzonden.push(d);
@@ -108,7 +124,7 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
   }
 
   const special = (dag: number, vlag: boolean): SpecialStatus => {
-    const dueAt = p.startDatum + (dag - 1) * DAG_MS;
+    const dueAt = eff + (dag - 1) * DAG_MS;
     const status = statusVoor(dag, verwachtTot, dueAt, vlag, heeftLog);
     return { due: dag <= verwachtTot, verzonden: vlag, status };
   };
