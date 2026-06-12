@@ -1362,42 +1362,43 @@ export default function AdminAnalytics() {
                 )}
               </div>
 
-              {/* Scroll-diepte per landingspagina */}
+              {/* Sectie-diepte per landingspagina */}
               <div>
                 <h3 className="text-sm font-semibold text-primary-800 mb-1 flex items-center gap-2">
-                  <Eye size={14} className="text-primary-500" /> Scroll-diepte landingspagina&apos;s
+                  <Eye size={14} className="text-primary-500" /> Sectie-diepte landingspagina&apos;s
                 </h3>
-                <p className="text-xs text-primary-500 mb-4">Hoe ver bezoekers de pagina inkomen. Percentage is t.o.v. iedereen die de pagina opende.</p>
+                <p className="text-xs text-primary-500 mb-4">Welke blokken bezoekers in beeld kregen. Device-onafhankelijk: &ldquo;Reviews gezien&rdquo; betekent op mobiel hetzelfde als op desktop. Percentage is t.o.v. iedereen die de pagina opende.</p>
                 {funnelStats.lp.length === 0 ? (
-                  <p className="text-sm text-primary-400 py-2">Nog geen scroll-data in deze periode.</p>
+                  <p className="text-sm text-primary-400 py-2">Nog geen sectie-data in deze periode.</p>
                 ) : (
                   <div className="space-y-6">
-                    {funnelStats.lp.map((p: { path: string; load: number; scroll25: number; scroll50: number; scroll75: number; scroll100: number }) => {
+                    {funnelStats.lp.map((p: { path: string; load: number; secties: { key: string; label: string; value: number }[] }) => {
                       const base = p.load || 1;
                       const steps = [
                         { label: "Geopend", value: p.load },
-                        { label: "25% gezien", value: p.scroll25 },
-                        { label: "50% gezien", value: p.scroll50 },
-                        { label: "75% gezien", value: p.scroll75 },
-                        { label: "Onderaan", value: p.scroll100 },
+                        ...p.secties.map((s) => ({ label: s.label, value: s.value })),
                       ];
                       return (
                         <div key={p.path}>
                           <div className="text-xs font-medium text-primary-700 mb-2 truncate">{p.path}</div>
-                          <div className="space-y-1.5">
-                            {steps.map((s, i) => (
-                              <div key={s.label} className="flex items-center gap-3">
-                                <div className="w-28 flex-shrink-0 text-xs text-primary-700">{s.label}</div>
-                                <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
-                                  <div className={`h-full rounded-full transition-all ${i === steps.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((s.value / base) * 100)}%` }} />
+                          {p.secties.length === 0 ? (
+                            <p className="text-xs text-primary-400 py-1">Nog geen sectie-meting op deze pagina (gaat vanaf nu meten).</p>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {steps.map((s, i) => (
+                                <div key={s.label} className="flex items-center gap-3">
+                                  <div className="w-28 flex-shrink-0 text-xs text-primary-700">{s.label}</div>
+                                  <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
+                                    <div className={`h-full rounded-full transition-all ${i === steps.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((s.value / base) * 100)}%` }} />
+                                  </div>
+                                  <div className="w-24 flex-shrink-0 text-right text-xs">
+                                    <span className="font-semibold text-primary-900">{s.value}</span>
+                                    <span className="text-primary-400"> · {Math.round((s.value / base) * 100)}%</span>
+                                  </div>
                                 </div>
-                                <div className="w-24 flex-shrink-0 text-right text-xs">
-                                  <span className="font-semibold text-primary-900">{s.value}</span>
-                                  <span className="text-primary-400"> · {Math.round((s.value / base) * 100)}%</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       );
                     })}

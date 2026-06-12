@@ -9,7 +9,7 @@ import { NietAlleenKeuzeLpView } from "@/components/NietAlleenKeuzeLpView";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
-import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
+import { SectieTracker, SectieMarker } from "@/components/analytics/SectieTracker";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
 import { HouvasteKnop } from "@/app/home-concept/HouvasteKnop";
 import { ChevronLeft, ChevronRight, MessageSquare, PencilLine, CalendarCheck, Gem, Sparkles, HandHelping, Heart, Shield, Clock, BookOpen, Star, Mail, Leaf, Users } from "lucide-react";
@@ -551,8 +551,8 @@ export function LandingPageView({ slug }: { slug: string }) {
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>
 
-      {/* Scroll-diepte meten: hoe ver komen bezoekers door de landingspagina */}
-      <ScrollDepthTracker category="lp" />
+      {/* Sectie-diepte meten: welke blokken (Prijs/Reviews/FAQ/CTA) komen in beeld */}
+      <SectieTracker />
 
       {/* Even Houvast — zwevende knop (aan/uit per LP via admin) */}
       {(page as any).houvastKnop && <HouvasteKnop type={(page as any).houvastType || undefined} />}
@@ -644,6 +644,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         {/* PRIJSBLOKKEN BOVENAAN */}
         {hasPricing && (
           <section className="px-4 sm:px-6 pb-14">
+            <SectieMarker naam="prijs" />
             <div className="max-w-2xl mx-auto">
               {(pricingTitel || pricingSubtitel) && (
                 <div className="text-center mb-8">
@@ -859,6 +860,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         {/* ERVARINGEN */}
         {ervaringen.length > 0 && !hideErvaringen && (
           <section className="px-5 pb-8">
+            <SectieMarker naam="reviews" />
             <div className="max-w-lg mx-auto">
               {/* Titel — altijd zichtbaar, fallback als niets ingevuld */}
               <h2 className="text-xl font-semibold mb-1 text-center" style={{ color: "#3d3530" }}>
@@ -934,6 +936,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         {/* FAQ */}
         {vragen.length > 0 && !hideVragen && (
           <section className="px-5 pb-8">
+            <SectieMarker naam="faq" />
             <div className="max-w-lg mx-auto">
               <div
                 className="rounded-2xl p-6 sm:p-7"
@@ -1002,6 +1005,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         {/* PRIJSBLOKKEN ONDERAAN — compacte versie */}
         {hasPricing && (
           <section className="px-5 pb-8">
+            <SectieMarker naam="prijs" />
             <div className="max-w-2xl mx-auto">
               <div className={`grid gap-3 ${activePricingBlocks.length === 1 ? "grid-cols-1 max-w-xs mx-auto" : activePricingBlocks.length === 2 ? "grid-cols-2" : "grid-cols-1 sm:grid-cols-3"}`}>
                 {activePricingBlocks.map((block, i) => (
@@ -1052,6 +1056,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         {/* FINALE CTA */}
         {(page.finalCtaTitle || page.finalCtaBody) && (
           <section className="px-5 pb-20">
+            <SectieMarker naam="cta" />
             <div className="max-w-md mx-auto text-center">
               <div
                 className="rounded-2xl px-6 sm:px-10 py-10"

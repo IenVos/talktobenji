@@ -333,14 +333,23 @@ export const getFunnelStats = query({
       }))
       .sort((a, b) => b.reached - a.reached);
 
+    // Sectie-diepte: hoe ver kwamen bezoekers, gemeten op echte blokken in plaats
+    // van percentages (device-onafhankelijk). Labels in vaste vololgorde; alleen
+    // secties die op een pagina voorkwamen (count > 0) verschijnen.
+    const SECTIE_LABELS: { key: string; label: string }[] = [
+      { key: "prijs", label: "Prijs gezien" },
+      { key: "reviews", label: "Reviews gezien" },
+      { key: "faq", label: "FAQ gezien" },
+      { key: "cta", label: "Onderaan (CTA)" },
+    ];
     const lp = [...lpPaths]
       .map((path) => ({
         path,
         load: count("lp", path, "load"),
-        scroll25: count("lp", path, "scroll_25"),
-        scroll50: count("lp", path, "scroll_50"),
-        scroll75: count("lp", path, "scroll_75"),
-        scroll100: count("lp", path, "scroll_100"),
+        secties: SECTIE_LABELS
+          .map(({ key, label }) => ({ key, label, value: count("lp", path, `section_${key}`) }))
+          .filter((s) => s.value > 0)
+          .sort((a, b) => b.value - a.value),
       }))
       .sort((a, b) => b.load - a.load);
 
