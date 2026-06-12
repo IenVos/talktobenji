@@ -540,6 +540,17 @@ export default function AdminAnalytics() {
   const [openDoelen, setOpenDoelen] = usePersistentToggle("doelen", false);
   const [openBeheer, setOpenBeheer] = usePersistentToggle("beheer", true);
 
+  // Welke tab actief is (Overzicht vs Funnel & pagina's), bewaard tussen bezoeken.
+  const [tab, setTab] = useState<"overzicht" | "funnel">("overzicht");
+  useEffect(() => {
+    const s = localStorage.getItem("ttb_analytics_tab");
+    if (s === "funnel" || s === "overzicht") setTab(s);
+  }, []);
+  const kiesTab = (t: "overzicht" | "funnel") => {
+    setTab(t);
+    try { localStorage.setItem("ttb_analytics_tab", t); } catch {}
+  };
+
   useEffect(() => {
     fetch("/api/my-ip").then(r => r.json()).then(d => setMyIp(d.ip ?? null)).catch(() => {});
   }, []);
@@ -730,6 +741,21 @@ export default function AdminAnalytics() {
           )}
         </div>
       </div>
+
+      {/* Tabs: Overzicht vs Funnel & pagina's */}
+      <div className="flex items-center gap-1 border-b border-primary-200">
+        {([["overzicht", "Overzicht"], ["funnel", "Funnel & pagina's"]] as const).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => kiesTab(key)}
+            className={`px-4 py-2 text-sm font-medium -mb-px border-b-2 transition-colors ${tab === key ? "border-primary-600 text-primary-900" : "border-transparent text-primary-500 hover:text-primary-700"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "overzicht" && (<>
 
       {/* Nieuwe inschrijvingen banner */}
       {recentRegs && recentRegs.today > 0 && (
@@ -1246,6 +1272,10 @@ export default function AdminAnalytics() {
         </div>
       </div>}
 
+      </>)}
+
+      {tab === "funnel" && (<>
+
       {/* Ad LP statistieken */}
       {adLpStats && (
         <div className="bg-white rounded-xl border border-primary-200">
@@ -1409,6 +1439,10 @@ export default function AdminAnalytics() {
           )}
         </div>
       )}
+
+      </>)}
+
+      {tab === "overzicht" && (<>
 
       {/* Verliestype — meest gekozen (op basis van Niet Alleen-aankopen) */}
       {verliesTypeStats && (
@@ -1637,6 +1671,8 @@ export default function AdminAnalytics() {
         </div>
 
       </div>}
+
+      </>)}
     </div>
   );
 }
