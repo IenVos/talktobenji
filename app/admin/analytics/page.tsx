@@ -1392,38 +1392,37 @@ export default function AdminAnalytics() {
                 )}
               </div>
 
-              {/* Sectie-diepte per landingspagina */}
+              {/* Blok-diepte per landingspagina */}
               <div>
                 <h3 className="text-sm font-semibold text-primary-800 mb-1 flex items-center gap-2">
-                  <Eye size={14} className="text-primary-500" /> Sectie-diepte landingspagina&apos;s
+                  <Eye size={14} className="text-primary-500" /> Blok-diepte landingspagina&apos;s
                 </h3>
-                <p className="text-xs text-primary-500 mb-4">Welke blokken bezoekers in beeld kregen. Device-onafhankelijk: &ldquo;Reviews gezien&rdquo; betekent op mobiel hetzelfde als op desktop. Percentage is t.o.v. iedereen die de pagina opende.</p>
+                <p className="text-xs text-primary-500 mb-4">Hoe ver bezoekers door de blokken van een pagina komen. Elke pagina telt zijn eigen blokken; een blok telt zodra het in beeld komt (device-onafhankelijk). Blok 1 = 100% (iedereen die begon).</p>
                 {funnelStats.lp.length === 0 ? (
-                  <p className="text-sm text-primary-400 py-2">Nog geen sectie-data in deze periode.</p>
+                  <p className="text-sm text-primary-400 py-2">Nog geen blok-data in deze periode.</p>
                 ) : (
                   <div className="space-y-6">
-                    {funnelStats.lp.map((p: { path: string; load: number; secties: { key: string; label: string; value: number }[] }) => {
-                      const base = p.load || 1;
-                      const steps = [
-                        { label: "Geopend", value: p.load },
-                        ...p.secties.map((s) => ({ label: s.label, value: s.value })),
-                      ];
+                    {funnelStats.lp.map((p: { path: string; totaalBlokken: number; blokken: { index: number; value: number }[] }) => {
+                      const base = p.blokken[0]?.value || 1;
                       return (
                         <div key={p.path}>
-                          <div className="text-xs font-medium text-primary-700 mb-2 truncate">{p.path}</div>
-                          {p.secties.length === 0 ? (
-                            <p className="text-xs text-primary-400 py-1">Nog geen sectie-meting op deze pagina (gaat vanaf nu meten).</p>
+                          <div className="flex items-center justify-between mb-2 gap-2">
+                            <span className="text-xs font-medium text-primary-700 truncate">{p.path}</span>
+                            <span className="text-[11px] text-primary-400 flex-shrink-0">{p.totaalBlokken} blokken</span>
+                          </div>
+                          {p.blokken.length === 0 ? (
+                            <p className="text-xs text-primary-400 py-1">Nog geen blok-meting op deze pagina (gaat vanaf nu meten).</p>
                           ) : (
                             <div className="space-y-1.5">
-                              {steps.map((s, i) => (
-                                <div key={s.label} className="flex items-center gap-3">
-                                  <div className="w-28 flex-shrink-0 text-xs text-primary-700">{s.label}</div>
+                              {p.blokken.map((b, i) => (
+                                <div key={b.index} className="flex items-center gap-3">
+                                  <div className="w-20 flex-shrink-0 text-xs text-primary-700">Blok {b.index}</div>
                                   <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
-                                    <div className={`h-full rounded-full transition-all ${i === steps.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((s.value / base) * 100)}%` }} />
+                                    <div className={`h-full rounded-full transition-all ${i === p.blokken.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((b.value / base) * 100)}%` }} />
                                   </div>
                                   <div className="w-24 flex-shrink-0 text-right text-xs">
-                                    <span className="font-semibold text-primary-900">{s.value}</span>
-                                    <span className="text-primary-400"> · {Math.round((s.value / base) * 100)}%</span>
+                                    <span className="font-semibold text-primary-900">{b.value}</span>
+                                    <span className="text-primary-400"> · {Math.round((b.value / base) * 100)}%</span>
                                   </div>
                                 </div>
                               ))}

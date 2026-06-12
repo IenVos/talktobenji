@@ -333,25 +333,25 @@ export const getFunnelStats = query({
       }))
       .sort((a, b) => b.reached - a.reached);
 
-    // Sectie-diepte: hoe ver kwamen bezoekers, gemeten op echte blokken in plaats
-    // van percentages (device-onafhankelijk). Labels in vaste vololgorde; alleen
-    // secties die op een pagina voorkwamen (count > 0) verschijnen.
-    const SECTIE_LABELS: { key: string; label: string }[] = [
-      { key: "prijs", label: "Prijs gezien" },
-      { key: "reviews", label: "Reviews gezien" },
-      { key: "faq", label: "FAQ gezien" },
-      { key: "cta", label: "Onderaan (CTA)" },
-    ];
+    // Blok-diepte: hoe ver kwamen bezoekers, gemeten op de blokken van de pagina
+    // (device-onafhankelijk). Elke pagina nummert zijn eigen blokken 1..N; het totaal
+    // komt uit de `blokken_<N>`-events. Blok 1 is de noemer (iedereen die begon).
     const lp = [...lpPaths]
-      .map((path) => ({
-        path,
-        load: count("lp", path, "load"),
-        secties: SECTIE_LABELS
-          .map(({ key, label }) => ({ key, label, value: count("lp", path, `section_${key}`) }))
-          .filter((s) => s.value > 0)
-          .sort((a, b) => b.value - a.value),
-      }))
-      .sort((a, b) => b.load - a.load);
+      .map((path) => {
+        const prefix = `lp|${path}|blokken_`;
+        let totaalBlokken = 0;
+        for (const key of Object.keys(sessionsByKey)) {
+          if (!key.startsWith(prefix)) continue;
+          const n = parseInt(key.slice(prefix.length), 10);
+          if (Number.isFinite(n)) totaalBlokken = Math.max(totaalBlokken, n);
+        }
+        const blokken = Array.from({ length: totaalBlokken }, (_, i) => ({
+          index: i + 1,
+          value: count("lp", path, `block_${i + 1}`),
+        }));
+        return { path, load: count("lp", path, "load"), totaalBlokken, blokken };
+      })
+      .sort((a, b) => (b.blokken[0]?.value ?? 0) - (a.blokken[0]?.value ?? 0));
 
     return { checkout, lp };
   },

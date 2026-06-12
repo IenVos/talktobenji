@@ -6,20 +6,20 @@ import { api } from "@/convex/_generated/api";
 import { usePathname } from "next/navigation";
 
 /**
- * Onzichtbaar markeringspuntje voor een sectie op een landingspagina. Plaats dit
- * bovenin het blok dat je wilt meten (Prijs, Reviews, FAQ, finale CTA). De
- * SectieTracker vuurt een funnel-stap zodra dit punt in beeld komt, ongeacht
- * schermgrootte. Zo betekent "Reviews gezien" op mobiel hetzelfde als op desktop.
+ * Onzichtbaar meetpunt voor een blok op een landingspagina. Plaats dit bovenin elk
+ * blok dat je wilt meten. De SectieTracker nummert ze automatisch op DOM-volgorde
+ * (blok 1, 2, 3, ...) en weet zo hoeveel blokken een pagina heeft. Zo past de meting
+ * zich vanzelf aan elke pagina aan, ongeacht het aantal of soort blokken.
  */
-export function SectieMarker({ naam }: { naam: string }) {
-  return <div data-ttb-sectie={naam} aria-hidden="true" style={{ height: 0 }} />;
+export function SectieMarker() {
+  return <div data-ttb-blok="" aria-hidden="true" style={{ height: 0 }} />;
 }
 
 /**
- * Meet hoe ver een bezoeker door een landingspagina komt, op CONTENT in plaats van
- * op percentages: hij vuurt één "load"-event bij binnenkomst (de noemer) en daarna
- * een `section_<naam>`-event zodra elke gemarkeerde sectie in beeld komt. Dat is
- * device-onafhankelijk, anders dan een percentage van de paginahoogte.
+ * Meet hoe ver een bezoeker door een landingspagina komt, op BLOKKEN in plaats van
+ * percentages van de paginahoogte (device-onafhankelijk). De tracker telt de blok-
+ * meetpunten op de pagina, vuurt het totaal (`blokken_<N>`), en vuurt `block_<i>`
+ * zodra blok i in beeld komt. Blok 1 is de noemer (iedereen die begon).
  *
  * Vervangt de scroll-percentage-meting voor landingspagina's. De checkout blijft de
  * losse ScrollDepthTracker gebruiken.
@@ -64,7 +64,13 @@ export function SectieTracker() {
       });
     };
 
-    // Haal IP op voor uitsluiting, vuur dan pas "load" (zodat IP meegaat)
+    // Tel de blok-meetpunten (DOM-volgorde) en koppel elk aan een index 1..N.
+    const markers = Array.from(document.querySelectorAll<HTMLElement>("[data-ttb-blok]"));
+    const indexVan = new Map<HTMLElement, number>();
+    markers.forEach((m, i) => indexVan.set(m, i + 1));
+    const totaal = markers.length;
+
+    // Haal IP op voor uitsluiting, vuur dan pas "load" + het bloktotaal (zodat IP meegaat).
     let cancelled = false;
     fetch("/api/my-ip")
       .then((r) => r.json())
@@ -73,22 +79,23 @@ export function SectieTracker() {
       })
       .catch(() => {})
       .finally(() => {
-        if (!cancelled) fire("load");
+        if (cancelled) return;
+        fire("load");
+        if (totaal > 0) fire(`blokken_${totaal}`);
       });
 
-    // Observeer alle sectie-markeringen: vuur zodra er één in beeld komt.
-    const markers = Array.from(document.querySelectorAll<HTMLElement>("[data-ttb-sectie]"));
+    // Observeer de blokken: vuur block_<i> zodra blok i in beeld komt.
     let observer: IntersectionObserver | null = null;
-    if (markers.length > 0 && "IntersectionObserver" in window) {
+    if (totaal > 0 && "IntersectionObserver" in window) {
       observer = new IntersectionObserver(
         (entries) => {
           for (const entry of entries) {
             if (!entry.isIntersecting) continue;
-            const naam = (entry.target as HTMLElement).dataset.ttbSectie;
-            if (naam) fire(`section_${naam}`);
+            const i = indexVan.get(entry.target as HTMLElement);
+            if (i) fire(`block_${i}`);
           }
         },
-        // Iets in beeld schuiven voordat het meetelt, zodat een sectie echt gezien is.
+        // Iets in beeld schuiven voordat het meetelt, zodat een blok echt gezien is.
         { root: null, rootMargin: "0px 0px -15% 0px", threshold: 0 }
       );
       markers.forEach((m) => observer!.observe(m));
