@@ -472,7 +472,8 @@ export default async function FaqPage() {
           </FaqItem>
           <FaqItem question="Kan ik Benji cadeau doen aan iemand?">
             <p>
-              Momenteel niet direct, maar je kunt iemand wijzen op Benji. Iedereen kan Benji gratis proberen met het gratis account (tot 10 gesprekken per maand). In de toekomst kunnen we cadeaubonnen of gift subscriptions overwegen.
+              Ja, dat kan. Stuur een berichtje naar{" "}
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> en we regelen een cadeaubon voor je. Staat er bij de checkout een cadeau-icoontje? Dan kun je de cadeaubon daar meteen zelf bestellen.
             </p>
           </FaqItem>
           <FaqItem question="Gebruiken jullie cookies?">
