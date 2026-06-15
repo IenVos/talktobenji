@@ -9,7 +9,7 @@ const FUNCTIES = [
     icon: MessageCircle,
     titel: "Gesprekken met Benji",
     beschrijving:
-      "Altijd iemand die luistert. Geen oordeel, geen haast. Benji is er wanneer jij het nodig hebt — ook 's nachts.",
+      "Altijd iemand die luistert. Geen oordeel, geen haast. Benji is er wanneer jij het nodig hebt, ook 's nachts.",
   },
   {
     icon: Heart,
@@ -21,7 +21,7 @@ const FUNCTIES = [
     icon: BookOpen,
     titel: "Handreikingen",
     beschrijving:
-      "Geleide oefeningen — zoals het geheugenarchief en de brief aan wie je mist — om het verlies een plek te geven.",
+      "Geleide oefeningen, zoals het geheugenarchief en de brief aan wie je mist, om het verlies een plek te geven.",
   },
   {
     icon: Lightbulb,
@@ -51,11 +51,11 @@ export default function OntdekPage() {
         {/* Intro */}
         <div className="space-y-3">
           <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>
-            Er is meer — wanneer je er klaar voor bent
+            Er is meer, wanneer je er klaar voor bent
           </h1>
           <p className="text-base leading-relaxed" style={{ color: "#6b6460" }}>
-            Niet Alleen is een begin. Met een volledig Talk To Benji account ga je
-            verder — op je eigen tempo, met alles wat je nodig hebt.
+            Niet Alleen is een begin. Met volledige toegang tot Talk To Benji ga je
+            verder, op je eigen tempo, met alles wat je nodig hebt.
           </p>
           <p className="text-sm" style={{ color: "#a09890" }}>
             Na je 30 dagen kun je hier verder. Of eerder, als je wilt.
@@ -97,8 +97,8 @@ export default function OntdekPage() {
             Jouw 30 dagen verdwijnen niet
           </p>
           <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-            Alles wat je hebt geschreven blijft bewaard als je een abonnement neemt.
-            Benji heeft ook toegang tot wat je hebt gedeeld — zodat gesprekken
+            Alles wat je hebt geschreven blijft bewaard als je met Benji verdergaat.
+            Benji heeft ook toegang tot wat je hebt gedeeld, zodat gesprekken
             direct persoonlijk kunnen beginnen.
           </p>
         </div>
@@ -110,7 +110,7 @@ export default function OntdekPage() {
             className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl font-medium text-white text-sm"
             style={{ background: "#6d84a8" }}
           >
-            Bekijk abonnementen
+            Bekijk wat Benji biedt
             <ArrowRight size={16} />
           </Link>
           <Link
