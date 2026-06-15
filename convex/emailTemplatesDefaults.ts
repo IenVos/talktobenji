@@ -3,16 +3,16 @@
  */
 export const DEFAULT_TEMPLATES = {
   trial_day5: {
-    subject: "Nog 2 dagen — je proefperiode loopt bijna af",
+    subject: "Nog 2 dagen, je proefperiode loopt bijna af",
     aanhef: "Lieve {naam},",
-    bodyText: `Over 2 dagen loopt je proefperiode af.\n\nIk hoop dat je in deze week hebt gevoeld waarvoor Benji er is — een plek om je verhaal kwijt te kunnen, op je eigen tempo.\n\nAls je wilt doorgaan met wat je bent begonnen, je gesprekken, je reflecties, je doelen, dan is er een mogelijkheid die bij je past. Wat je tot nu toe hebt opgebouwd, blijft altijd van jou.`,
+    bodyText: `Over 2 dagen loopt je proefperiode af.\n\nIk hoop dat je in deze week hebt gevoeld waarvoor Benji er is, een plek om je verhaal kwijt te kunnen, op je eigen tempo.\n\nAls je wilt doorgaan met wat je bent begonnen, je gesprekken, je reflecties, je doelen, dan is er een mogelijkheid die bij je past. Wat je tot nu toe hebt opgebouwd, blijft altijd van jou.`,
     buttonText: "Kies wat bij je past",
     buttonUrl: "https://www.talktobenji.com/lp/prijzen",
   },
   trial_day7: {
     subject: "Vandaag is de laatste dag van je proefperiode",
     aanhef: "Lieve {naam},",
-    bodyText: `Hoe gaat het met je?\n\nVandaag is de laatste dag van je 7 dagen met Benji. Ik hoop dat het iets heeft gebracht — al was het maar het gevoel dat je er niet alleen voor stond.\n\nAlles wat je hebt opgebouwd — je gesprekken, reflecties, memories — blijft bewaard, wat je ook kiest.\n\nWil je verder? De deur staat open.`,
+    bodyText: `Hoe gaat het met je?\n\nVandaag is de laatste dag van je 7 dagen met Benji. Ik hoop dat het iets heeft gebracht, al was het maar het gevoel dat je er niet alleen voor stond.\n\nAlles wat je hebt opgebouwd, je gesprekken, reflecties en memories, blijft bewaard, wat je ook kiest.\n\nWil je verder? De deur staat open.`,
     buttonText: "Kies wat bij je past",
     buttonUrl: "https://www.talktobenji.com/lp/prijzen",
   },
@@ -20,19 +20,19 @@ export const DEFAULT_TEMPLATES = {
   renewal_jaar_1: {
     subject: "Hoe gaat het met je?",
     aanhef: "Hi {naam},",
-    bodyText: `Het is bijna een jaar geleden dat je met Talk To Benji bent begonnen. Ik hoop dat het je heeft geholpen — op welke manier dan ook.\n\nJe toegang loopt over ongeveer een maand af op {einddatum}. Als je nog een jaar samen wil gaan, is dat van harte welkom.`,
+    bodyText: `Het is bijna een jaar geleden dat je met Talk To Benji bent begonnen. Ik hoop dat het je heeft geholpen, op welke manier dan ook.\n\nJe toegang loopt over ongeveer een maand af op {einddatum}. Als je nog een jaar samen wil gaan, is dat van harte welkom.`,
     buttonText: "Nog een jaar samen",
     buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
   },
   renewal_jaar_2: {
-    subject: "Nog twee weken — wil je verder?",
+    subject: "Nog twee weken, wil je verder?",
     aanhef: "Hi {naam},",
-    bodyText: `Nog twee weken, dan loopt je toegang tot Talk To Benji af op {einddatum}.\n\nAlles wat je hebt opgebouwd — je gesprekken, reflecties, memories — blijft bewaard zolang je account bestaat. Maar Benji zal na die datum niet meer voor je beschikbaar zijn.\n\nWil je nog een jaar verder?`,
+    bodyText: `Nog twee weken, dan loopt je toegang tot Talk To Benji af op {einddatum}.\n\nAlles wat je hebt opgebouwd, je gesprekken, reflecties en memories, blijft bewaard zolang je account bestaat. Maar Benji zal na die datum niet meer voor je beschikbaar zijn.\n\nWil je nog een jaar verder?`,
     buttonText: "Toegang verlengen",
     buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
   },
   renewal_jaar_3: {
-    subject: "Vandaag is je laatste dag — tot ziens, of tot snel",
+    subject: "Vandaag is je laatste dag, tot ziens of tot snel",
     aanhef: "Hi {naam},",
     bodyText: `Vandaag is de laatste dag van je jaar met Talk To Benji.\n\nIk ben blij dat je er was. Ik hoop dat het jaar je iets heeft gegeven, al was het maar het gevoel dat je er niet alleen voor stond.\n\nAls je nog een jaar verder wilt, kun je dat hieronder regelen. Benji staat voor je klaar.\n\nWil je liever stoppen? Je kunt al je gegevens downloaden of je account verwijderen via Instellingen in je account.`,
     buttonText: "Nog een jaar samen",
@@ -43,14 +43,14 @@ export const DEFAULT_TEMPLATES = {
   renewal_kwartaal_1: {
     subject: "Je kwartaal loopt bijna af",
     aanhef: "Hi {naam},",
-    bodyText: `Over twee weken loopt je toegang tot Talk To Benji af op {einddatum}.\n\nIk hoop dat de afgelopen maanden je iets hebben gegeven — een plek om je verhaal kwijt te kunnen, op je eigen tempo.\n\nWil je doorgaan?`,
+    bodyText: `Over twee weken loopt je toegang tot Talk To Benji af op {einddatum}.\n\nIk hoop dat de afgelopen maanden je iets hebben gegeven, een plek om je verhaal kwijt te kunnen, op je eigen tempo.\n\nWil je doorgaan?`,
     buttonText: "Nog een kwartaal",
     buttonUrl: "https://www.talktobenji.com/betalen/47-kwartaal",
     upsellText: "Een heel jaar voor €97",
     upsellUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
   },
   renewal_kwartaal_2: {
-    subject: "Nog een week — wil je verder?",
+    subject: "Nog een week, wil je verder?",
     aanhef: "Hi {naam},",
     bodyText: `Nog één week, dan loopt je toegang af op {einddatum}.\n\nAlles wat je hebt opgebouwd blijft bewaard, wat je ook kiest. Maar Benji zal na die datum niet meer voor je beschikbaar zijn.\n\nWil je nog een kwartaal?`,
     buttonText: "Toegang verlengen",
@@ -61,7 +61,7 @@ export const DEFAULT_TEMPLATES = {
   renewal_kwartaal_3: {
     subject: "Vandaag is je laatste dag",
     aanhef: "Hi {naam},",
-    bodyText: `Vandaag loopt je toegang tot Talk To Benji af.\n\nIk ben blij dat je er was. Als je wilt doorgaan, kun je dat hieronder regelen — Benji staat voor je klaar.\n\nWil je liever stoppen? Je kunt al je gegevens downloaden via Instellingen in je account.`,
+    bodyText: `Vandaag loopt je toegang tot Talk To Benji af.\n\nIk ben blij dat je er was. Als je wilt doorgaan, kun je dat hieronder regelen. Benji staat voor je klaar.\n\nWil je liever stoppen? Je kunt al je gegevens downloaden via Instellingen in je account.`,
     buttonText: "Nog een kwartaal",
     buttonUrl: "https://www.talktobenji.com/betalen/47-kwartaal",
     upsellText: "Een heel jaar voor €97",
@@ -79,7 +79,7 @@ export const DEFAULT_TEMPLATES = {
     upsellUrl: "https://www.talktobenji.com/betalen/47-kwartaal",
   },
   renewal_maand_2: {
-    subject: "Nog 3 dagen — wil je verder?",
+    subject: "Nog 3 dagen, wil je verder?",
     aanhef: "Hi {naam},",
     bodyText: `Nog 3 dagen, dan loopt je toegang af op {einddatum}.\n\nAlles wat je hebt opgebouwd blijft bewaard. Maar Benji zal na die datum niet meer voor je beschikbaar zijn.\n\nWil je nog een maand?`,
     buttonText: "Toegang verlengen",
@@ -106,7 +106,7 @@ export const DEFAULT_TEMPLATES = {
     buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
   },
   renewal_email2: {
-    subject: "Nog twee weken — wil je verder?",
+    subject: "Nog twee weken, wil je verder?",
     aanhef: "Hi {naam},",
     bodyText: `Je toegang loopt binnenkort af.`,
     buttonText: "Toegang verlengen",
@@ -144,10 +144,10 @@ Benji`,
   },
   niet_alleen_dag28: {
     subject: "Nog twee dagen en wat er daarna is",
-    bodyText: `Over twee dagen zijn je 30 dagen klaar. Wat je hebt geschreven, is van jou. Het verdwijnt niet zomaar.\n\nOp dag 30 sturen we je een overzicht van alles wat je hebt ingevuld, zodat je het kunt bewaren. Wil je daarna gewoon verdergaan? Dan kun je je account omzetten naar een volledig abonnement.`,
+    bodyText: `Over twee dagen zijn je 30 dagen klaar. Wat je hebt geschreven, is van jou. Het verdwijnt niet zomaar.\n\nOp dag 30 sturen we je een overzicht van alles wat je hebt ingevuld, zodat je het kunt bewaren. Wil je daarna gewoon verdergaan? Dan kun je volledige toegang tot Benji nemen, zonder verplichting.`,
   },
   niet_alleen_dag30: {
-    subject: "Je 30 dagen zijn klaar — dit is voor jou",
+    subject: "Je 30 dagen zijn klaar, dit is voor jou",
     bodyText: `Je hebt het gedaan. 30 dagen lang ben je er geweest voor jezelf. Dat is meer dan het klinkt.
 
 Alles wat je hebt geschreven kun je nu bekijken en downloaden als persoonlijk dagboek, een herinnering die helemaal van jou is.
