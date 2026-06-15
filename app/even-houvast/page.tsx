@@ -654,7 +654,7 @@ export default function HouvasteGidsPage() {
                     className="block w-full text-center py-3.5 rounded-2xl font-medium text-white text-sm"
                     style={{ background: "#6d84a8" }}
                   >
-                    Ontdek Niet Alleen
+                    Ik wil er niet alleen voor staan
                   </a>
                   {gids.slotPrijsRegel && (
                     <p className="text-center text-xs" style={{ color: "#a09890" }}>

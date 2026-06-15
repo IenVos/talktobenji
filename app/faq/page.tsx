@@ -206,10 +206,10 @@ export default async function FaqPage() {
           </FaqItem>
         </FaqSection>
 
-        <FaqSection title="Kosten & Abonnementen">
+        <FaqSection title="Kosten & Toegang">
           <FaqItem question="Wat kost Talk To Benji?">
             <p>
-              Je kunt Benji altijd gratis proberen — zonder account, geen creditcard nodig. Wil je Benji vaker gebruiken of toegang tot extra functies? Dan zijn er betaalde abonnementen beschikbaar.
+              Je kunt Benji altijd gratis proberen, zonder account, geen creditcard nodig. Wil je Benji vaker gebruiken of toegang tot extra functies? Dan koop je toegang voor een periode die bij je past.
             </p>
             <p className="mt-2">
               <a href="/lp/prijzen" className="text-primary-600 hover:text-primary-700 underline">Bekijk alle opties en actuele prijzen →</a>
@@ -217,12 +217,12 @@ export default async function FaqPage() {
           </FaqItem>
           <FaqItem question="Is er een gratis versie?">
             <p>
-              Ja. Je kunt gewoon beginnen met praten zonder account aan te maken. Zo kun je Benji leren kennen en kijken of het bij je past. Voor meer gesprekken en extra functies zijn er betaalde abonnementen.
+              Ja. Je kunt gewoon beginnen met praten zonder account aan te maken. Zo kun je Benji leren kennen en kijken of het bij je past. Voor meer gesprekken en extra functies kun je betaalde toegang nemen.
             </p>
           </FaqItem>
           <FaqItem question="Waarom kost Benji geld?">
             <p>
-              AI technologie kost geld per gesprek — denk aan serverkosten, hosting, onderhoud en doorontwikkeling. Om Benji goed en veilig te houden, hebben we inkomsten nodig. We proberen de prijzen zo toegankelijk mogelijk te houden zodat zoveel mogelijk mensen Benji kunnen gebruiken wanneer ze het nodig hebben.
+              AI technologie kost geld per gesprek, denk aan serverkosten, hosting, onderhoud en doorontwikkeling. Om Benji goed en veilig te houden, hebben we inkomsten nodig. We proberen de prijzen zo toegankelijk mogelijk te houden zodat zoveel mogelijk mensen Benji kunnen gebruiken wanneer ze het nodig hebben.
             </p>
           </FaqItem>
           <FaqItem question="Hoe betaal ik?">
@@ -235,8 +235,8 @@ export default async function FaqPage() {
           </FaqItem>
           <FaqItem question="Bieden jullie kortingen voor mensen in een moeilijke financiële situatie?">
             <p>
-              We begrijpen dat een abonnement niet voor iedereen haalbaar is. Neem contact op via{" "}
-              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> als financiën een drempel vormen — we denken graag mee.
+              We begrijpen dat betaalde toegang niet voor iedereen haalbaar is. Neem contact op via{" "}
+              <a href="mailto:contactmetien@talktobenji.com" className="text-primary-600 hover:underline">contactmetien@talktobenji.com</a> als financiën een drempel vormen, we denken graag mee.
             </p>
           </FaqItem>
         </FaqSection>
@@ -494,7 +494,7 @@ export default async function FaqPage() {
           </FaqItem>
           <FaqItem question="Kan ik Benji eerst proberen voordat ik betaal?">
             <p>
-              Ja, je kunt Benji altijd eerst proberen zonder account aan te maken. Je eerste gesprekken zijn toegankelijk zonder registratie. Als je een gratis account aanmaakt, kun je tot 10 gesprekken per maand voeren. Zo kun je rustig kijken of Benji bij je past voordat je eventueel upgradet naar een betaald abonnement.
+              Ja, je kunt Benji altijd eerst proberen zonder account aan te maken. Je eerste gesprekken zijn toegankelijk zonder registratie. Als je een gratis account aanmaakt, kun je tot 10 gesprekken per maand voeren. Zo kun je rustig kijken of Benji bij je past voordat je eventueel betaalde toegang neemt.
             </p>
           </FaqItem>
         </FaqSection>
