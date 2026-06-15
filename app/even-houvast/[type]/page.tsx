@@ -1,6 +1,6 @@
 "use client";
 
-import { HouvasteGids } from "../page";
+import { HouvasteGids } from "../HouvastGids";
 
 // Nette URL per verliestype: /even-houvast/huisdier, /even-houvast/persoon, enz.
 // Het type komt direct uit het pad en wordt op naam (de code) in de content

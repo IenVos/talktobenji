@@ -23,7 +23,8 @@
       "WebFetch(domain:www.talktobenji.com)",
       "Bash(mv:*)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(lsof -ti:3199)"
+      "Bash(lsof -ti:3199)",
+      "Bash(echo \"EXIT=$?\")"
     ]
   }
 }
