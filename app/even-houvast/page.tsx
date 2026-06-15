@@ -20,10 +20,13 @@ const WARME_LABELS: Record<string, string> = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function HouvasteGidsPage() {
+// Het verliestype komt uit het pad (/even-houvast/[type]) of uit ?type=.
+// Nieuwe types uit de admin werken automatisch mee: het type wordt op naam
+// (de code) opgezocht in de content, zonder dat hier iets aangepast hoeft.
+export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride?: string }) {
   const searchParams = useSearchParams();
   const token = searchParams?.get("token") ?? "";
-  const verliesType = searchParams?.get("type") ?? "";
+  const verliesType = verliesTypeOverride || (searchParams?.get("type") ?? "");
   const heeftToken = !!token;
 
   // Toegang via token blijft werken; zonder token loopt de gids in open modus
@@ -778,4 +781,8 @@ export default function HouvasteGidsPage() {
       </div>
     </div>
   );
+}
+
+export default function HouvasteGidsPage() {
+  return <HouvasteGids />;
 }
