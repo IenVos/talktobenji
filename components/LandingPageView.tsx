@@ -482,8 +482,14 @@ export function LandingPageView({ slug }: { slug: string }) {
     "Handreikingen":       { icon: HandHelping,   kleur: "#e11d48" },
   };
 
+  // Regelafbrekingen (\n) binnen een tekst-/opmaakdeel omzetten naar <br/>, zodat
+  // opmaak als **vet** ook werkt wanneer het over meerdere regels loopt.
+  const withBreaks = (s: string): React.ReactNode[] =>
+    s.split("\n").flatMap((seg, i) => (i === 0 ? [seg] : [<br key={`br-${i}`} />, seg]));
+
   const renderInline = (text: string): React.ReactNode[] => {
-    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_)/g);
+    // [\s\S] i.p.v. [^*] zodat opmaak ook over regelgrenzen heen matcht.
+    const parts = text.split(/(\*\*[\s\S]+?\*\*|\*[\s\S]+?\*|_[\s\S]+?_)/g);
     return parts.map((part, k) => {
       if (part.startsWith("**") && part.endsWith("**")) {
         const label = part.slice(2, -2);
@@ -497,13 +503,13 @@ export function LandingPageView({ slug }: { slug: string }) {
             </span>
           );
         }
-        return <strong key={k}>{label}</strong>;
+        return <strong key={k}>{withBreaks(label)}</strong>;
       }
       if (part.startsWith("*") && part.endsWith("*"))
-        return <em key={k}>{part.slice(1, -1)}</em>;
+        return <em key={k}>{withBreaks(part.slice(1, -1))}</em>;
       if (part.startsWith("_") && part.endsWith("_"))
-        return <u key={k}>{part.slice(1, -1)}</u>;
-      return part;
+        return <u key={k}>{withBreaks(part.slice(1, -1))}</u>;
+      return <span key={k}>{withBreaks(part)}</span>;
     });
   };
 
@@ -571,10 +577,11 @@ export function LandingPageView({ slug }: { slug: string }) {
       let textRun: string[] = [];
       const flushText = (k: string) => {
         if (textRun.some((l) => l.trim())) {
-          const run = textRun;
+          // Hele tekstrun (incl. regelafbrekingen) in één keer door de markdown-
+          // renderer, zodat **vet** ook over meerdere regels blijft werken.
           out.push(
             <p key={k} className={opts?.pClassName} style={{ ...(opts?.pStyle ?? {}), ...(align ? { textAlign: align } : {}) }}>
-              {run.map((line, j) => (<span key={j}>{renderInline(line)}{j < run.length - 1 && <br />}</span>))}
+              {renderInline(textRun.join("\n"))}
             </p>
           );
         }
