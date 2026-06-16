@@ -10,7 +10,6 @@ import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
 import { SectieTracker, SectieMarker } from "@/components/analytics/SectieTracker";
-import { VerhaalPopup } from "@/components/VerhaalPopup";
 import { HouvasteKnop } from "@/app/home-concept/HouvasteKnop";
 import { ChevronLeft, ChevronRight, MessageSquare, PencilLine, CalendarCheck, Gem, Sparkles, HandHelping, Heart, Shield, Clock, BookOpen, Star, Mail, Leaf, Users } from "lucide-react";
 
@@ -289,7 +288,6 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
 }
 
 export function LandingPageView({ slug }: { slug: string }) {
-  const [showIen, setShowIen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [stickyBarDismissed, setStickyBarDismissed] = useState(false);
   // Zwevende bestel-CTA: verschijnt pas als het eerste blok ná de eerste in-page CTA
@@ -990,17 +988,10 @@ export function LandingPageView({ slug }: { slug: string }) {
                   )}
                 </div>
                 {page.wieIsText && (
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: "#6b6460" }}>
+                  <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
                     {page.wieIsText}
                   </p>
                 )}
-                <button
-                  onClick={() => setShowIen(true)}
-                  className="text-sm font-medium text-left"
-                  style={{ color: "#6d84a8" }}
-                >
-                  Lees haar verhaal: Waarom Benji →
-                </button>
               </div>
             </div>
           </section>
@@ -1209,7 +1200,6 @@ export function LandingPageView({ slug }: { slug: string }) {
 
       </div>
 
-      {showIen && <VerhaalPopup onClose={() => setShowIen(false)} />}
 
       {/* ZWEVENDE BESTEL-CTA — per pagina aan te zetten; verschijnt na scrollen */}
       {stickyCtaEnabled && (
