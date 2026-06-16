@@ -165,7 +165,7 @@ type FormState = {
   typeButtonLabelRelatie: string;
   typeButtonLabelEenzaamheid: string;
   typeButtonLabelKinderloos: string;
-  contentBlocks: { titel: string; tekst: string; afbeelding: string; file: File | null }[];
+  contentBlocks: { titel: string; tekst: string; afbeelding: string; file: File | null; accent?: boolean }[];
   watJeKrijgt: WatItemForm[];
   watJeKrijgtTitel: string;
   kpHeroKop1: string;
@@ -588,7 +588,7 @@ export default function AdminLandingspaginasPage() {
       typeButtonLabelRelatie: (page as any).typeButtonLabelRelatie ?? "",
       typeButtonLabelEenzaamheid: (page as any).typeButtonLabelEenzaamheid ?? "",
       typeButtonLabelKinderloos: (page as any).typeButtonLabelKinderloos ?? "",
-      contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p.map((b: any) => ({ titel: b.titel ?? "", tekst: b.tekst ?? "", afbeelding: b.afbeelding ?? "", file: null })) : []; } catch { return []; } })(),
+      contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p.map((b: any) => ({ titel: b.titel ?? "", tekst: b.tekst ?? "", afbeelding: b.afbeelding ?? "", file: null, accent: b.accent ?? false })) : []; } catch { return []; } })(),
       watJeKrijgt: (() => { try { const p = JSON.parse((page as any).watJeKrijgtJson || "[]"); return Array.isArray(p) ? p : []; } catch { return []; } })(),
       watJeKrijgtTitel: (page as any).watJeKrijgtTitel ?? "",
       kpHeroKop1: (page as any).kpHeroKop1 ?? "",
@@ -764,7 +764,7 @@ export default function AdminLandingspaginasPage() {
   };
 
   const buildContentBlocksJson = async (blocks: FormState["contentBlocks"]) => {
-    const result: { titel: string; tekst: string; afbeelding?: string }[] = [];
+    const result: { titel: string; tekst: string; afbeelding?: string; accent?: boolean }[] = [];
     for (const b of blocks) {
       if (!b.titel && !b.tekst && !b.afbeelding && !b.file) continue;
       let afbeelding = b.afbeelding;
@@ -773,7 +773,7 @@ export default function AdminLandingspaginasPage() {
         const url = await getImageUrl({ storageId });
         if (url) afbeelding = url;
       }
-      result.push({ titel: b.titel, tekst: b.tekst, afbeelding: afbeelding || undefined });
+      result.push({ titel: b.titel, tekst: b.tekst, afbeelding: afbeelding || undefined, accent: b.accent || undefined });
     }
     return result.length ? JSON.stringify(result) : "";
   };
@@ -2133,6 +2133,15 @@ export default function AdminLandingspaginasPage() {
                         </div>
                       )}
                     </div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={block.accent ?? false}
+                        onChange={(e) => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], accent: e.target.checked }; return { ...f, contentBlocks: b }; })}
+                        className="rounded border-primary-300 text-primary-600"
+                      />
+                      <span className="text-xs text-gray-600">Lichtblauw kader (met donkere rand)</span>
+                    </label>
                   </div>
                 ))}
                 <button type="button"
