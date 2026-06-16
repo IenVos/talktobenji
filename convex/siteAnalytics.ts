@@ -1009,21 +1009,30 @@ export const getRevenueOverview = query({
     type Verkoop = { timestamp: number; prijs: number; productSlug: string };
     const alleVerkopen: Verkoop[] = [];
 
+    // Niet Alleen kan meerdere producten hebben (bijv. algemeen + huisdier). Koppel
+    // elk profiel aan ÉÉN product op basis van verliesType, anders telt elk profiel
+    // dubbel mee voor elk niet_alleen-product.
+    const naProducts = products.filter((p) => p.subscriptionType === "niet_alleen");
+    const naByType = new Map<string, typeof naProducts[number]>();
+    for (const p of naProducts) if (p.verliesType) naByType.set(p.verliesType, p);
+    const naFallback = naProducts.find((p) => !p.verliesType) ?? naProducts[0];
+
+    for (const na of echteNA) {
+      const p = (na.verliesType && naByType.get(na.verliesType)) || naFallback;
+      if (!p) continue;
+      alleVerkopen.push({ timestamp: na.createdAt, prijs: p.priceInCents / 100, productSlug: p.slug });
+    }
+
     for (const p of products) {
+      if (p.subscriptionType === "niet_alleen") continue;
       const prijs = p.priceInCents / 100;
-      if (p.subscriptionType === "niet_alleen") {
-        for (const na of echteNA) {
-          alleVerkopen.push({ timestamp: na.createdAt, prijs, productSlug: p.slug });
-        }
-      } else {
-        for (const s of echteAankopen) {
-          if (s.subscriptionType === p.subscriptionType) {
-            alleVerkopen.push({
-              timestamp: s.startedAt ?? s._creationTime,
-              prijs: s.pricePaid ?? prijs,
-              productSlug: p.slug,
-            });
-          }
+      for (const s of echteAankopen) {
+        if (s.subscriptionType === p.subscriptionType) {
+          alleVerkopen.push({
+            timestamp: s.startedAt ?? s._creationTime,
+            prijs: s.pricePaid ?? prijs,
+            productSlug: p.slug,
+          });
         }
       }
     }
