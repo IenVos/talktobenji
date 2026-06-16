@@ -517,36 +517,88 @@ export function LandingPageView({ slug }: { slug: string }) {
     };
   };
 
-  const renderTextWithParagraphs = (text: string) =>
-    text.split("\n\n").map((para, i) => {
+  // Bullet-regels herkennen (✓, •, -, – of —) zodat ze in checkout-stijl renderen.
+  const BULLET_RE = /^\s*(?:✓|•|‣|·|-|–|—)\s+(.+)$/;
+
+  // Bullets in dezelfde stijl als de checkout: rond badge + vinkje. align "center"
+  // zet de hele lijst gecentreerd met de items links uitgelijnd, zodat alle vinkjes
+  // op dezelfde lijn beginnen (in plaats van elke regel los te centreren).
+  const renderCheckBullets = (items: string[], align: "center" | "left" | undefined, key: React.Key) => {
+    const list = (
+      <ul className="space-y-2.5 text-left my-3">
+        {items.map((item, i) => (
+          <li key={i} className="flex items-start gap-2.5">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5" style={{ background: "#eef1f6" }}>
+              <svg width="11" height="9" viewBox="0 0 10 8" fill="none">
+                <path d="M1 4l2.5 2.5L9 1" stroke="#6d84a8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span className="text-base leading-snug" style={{ color: "#6b6460" }}>{renderInline(item)}</span>
+          </li>
+        ))}
+      </ul>
+    );
+    return align === "center"
+      ? <div key={key} className="flex justify-center my-3">{list}</div>
+      : <div key={key}>{list}</div>;
+  };
+
+  // Tekstblok renderen: alinea's (gescheiden door lege regel), met bullet-detectie
+  // en uitlijn-tag ([midden]/[links]). defaultBulletAlign bepaalt de uitlijning van
+  // bullets als er geen tag staat (hero = gecentreerd, content = links).
+  const renderRich = (
+    text: string,
+    opts?: { pClassName?: string; pStyle?: React.CSSProperties; defaultBulletAlign?: "center" | "left" }
+  ): React.ReactNode[] => {
+    const out: React.ReactNode[] = [];
+    text.split("\n\n").forEach((para, pIdx) => {
       const videoMatch = para.trim().match(/^\[video:(.+)\]$/);
       if (videoMatch) {
         const inner = videoMatch[1];
         const isCenter = inner.endsWith(":center");
         const src = isCenter ? inner.slice(0, -7) : inner;
-        return isCenter ? (
-          <div key={i} className="my-4 flex justify-center">
-            <video src={src} autoPlay muted loop playsInline controls
-              className="rounded-xl max-h-[360px] w-auto max-w-full"
-              style={{ maxWidth: "60%" }}
-            />
+        out.push(isCenter ? (
+          <div key={`v${pIdx}`} className="my-4 flex justify-center">
+            <video src={src} autoPlay muted loop playsInline controls className="rounded-xl max-h-[360px] w-auto max-w-full" style={{ maxWidth: "60%" }} />
           </div>
         ) : (
-          <video key={i} src={src} autoPlay muted loop playsInline controls
-            className="w-auto max-w-full rounded-xl my-4 max-h-[360px] mx-auto block"
-          />
-        );
+          <video key={`v${pIdx}`} src={src} autoPlay muted loop playsInline controls className="w-auto max-w-full rounded-xl my-4 max-h-[360px] mx-auto block" />
+        ));
+        return;
       }
       const { align, text: paraText } = stripAlign(para);
       const lines = paraText.split("\n");
-      return (
-        <p key={i} style={align ? { textAlign: align } : undefined}>
-          {lines.map((line, j) => (
-            <span key={j}>{renderInline(line)}{j < lines.length - 1 && <br />}</span>
-          ))}
-        </p>
-      );
+      let textRun: string[] = [];
+      const flushText = (k: string) => {
+        if (textRun.some((l) => l.trim())) {
+          const run = textRun;
+          out.push(
+            <p key={k} className={opts?.pClassName} style={{ ...(opts?.pStyle ?? {}), ...(align ? { textAlign: align } : {}) }}>
+              {run.map((line, j) => (<span key={j}>{renderInline(line)}{j < run.length - 1 && <br />}</span>))}
+            </p>
+          );
+        }
+        textRun = [];
+      };
+      let bi = 0;
+      for (let i = 0; i < lines.length; i++) {
+        const m = lines[i].match(BULLET_RE);
+        if (m) {
+          flushText(`${pIdx}-t${i}`);
+          const items: string[] = [];
+          while (i < lines.length && lines[i].match(BULLET_RE)) { items.push(lines[i].match(BULLET_RE)![1]); i++; }
+          i--;
+          out.push(renderCheckBullets(items, align ?? opts?.defaultBulletAlign, `${pIdx}-b${bi++}`));
+        } else {
+          textRun.push(lines[i]);
+        }
+      }
+      flushText(`${pIdx}-tend`);
     });
+    return out;
+  };
+
+  const renderTextWithParagraphs = (text: string) => renderRich(text);
 
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>
@@ -591,33 +643,27 @@ export function LandingPageView({ slug }: { slug: string }) {
                 </h1>
               );
             })()}
-            {page.heroSubtitle && (() => {
-              const { align, nodes } = renderHeroField(page.heroSubtitle);
-              return (
-                <p className="text-base leading-relaxed mb-3" style={{ color: "#6b6460", textWrap: "pretty", textAlign: align } as React.CSSProperties}>
-                  {nodes}
-                </p>
-              );
-            })()}
-            {page.heroBody && (() => {
-              const { align, nodes } = renderHeroField(page.heroBody);
-              return (
-                <p className="text-sm leading-relaxed mb-6" style={{ color: "#8a8078", textWrap: "pretty", textAlign: align } as React.CSSProperties}>
-                  {nodes}
-                </p>
-              );
-            })()}
+            {page.heroSubtitle && (
+              <div className="mb-3 space-y-2">
+                {renderRich(page.heroSubtitle, {
+                  pClassName: "text-base leading-relaxed",
+                  pStyle: { color: "#6b6460", textWrap: "pretty" } as React.CSSProperties,
+                  defaultBulletAlign: "center",
+                })}
+              </div>
+            )}
+            {page.heroBody && (
+              <div className="mb-6 space-y-2">
+                {renderRich(page.heroBody, {
+                  pClassName: "text-sm leading-relaxed",
+                  pStyle: { color: "#8a8078", textWrap: "pretty" } as React.CSSProperties,
+                  defaultBulletAlign: "center",
+                })}
+              </div>
+            )}
             {(page as any).heroVideoUrl && (
               <div className="mb-6">
                 <video src={(page as any).heroVideoUrl} autoPlay muted loop playsInline controls
-                  className="w-auto max-w-full mx-auto block rounded-2xl"
-                  style={{ maxHeight: "420px" }}
-                />
-              </div>
-            )}
-            {(page as any).heroImageUrl && (
-              <div className="mb-6">
-                <img src={(page as any).heroImageUrl} alt=""
                   className="w-auto max-w-full mx-auto block rounded-2xl"
                   style={{ maxHeight: "420px" }}
                 />
@@ -635,6 +681,15 @@ export function LandingPageView({ slug }: { slug: string }) {
                 </KoopKnopLink>
                 <CtaSubtext />
               </>
+            )}
+            {/* Hero-afbeelding: onder de CTA */}
+            {(page as any).heroImageUrl && (
+              <div className="mt-6">
+                <img src={(page as any).heroImageUrl} alt=""
+                  className="w-auto max-w-full mx-auto block rounded-2xl"
+                  style={{ maxHeight: "420px" }}
+                />
+              </div>
             )}
           </div>
         </section>
