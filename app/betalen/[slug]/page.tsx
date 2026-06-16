@@ -272,11 +272,16 @@ function CheckoutForm({
 
         <button
           type="submit"
-          disabled={submitting || !stripe || !elements}
+          disabled={submitting || !stripe || !elements || !termsAccepted}
           className="w-full py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-base"
         >
           {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
         </button>
+        {!termsAccepted && (
+          <p className="text-center text-xs text-stone-500 -mt-1">
+            Vink hierboven de voorwaarden aan om verder te gaan.
+          </p>
+        )}
       </div>
 
       <p className="text-center text-xs text-stone-500 font-medium">
@@ -576,6 +581,36 @@ export default function BetalenPage() {
     </Elements>
   );
 
+  // Naam + e-mail — in de rustige layout staan deze in het betaalblok (zelfde ids,
+  // zodat de scroll/focus bij validatie blijft werken).
+  const gegevensNode = (
+    <div className="space-y-4">
+      <div>
+        <label className={labelClass}>Jouw naam</label>
+        <input
+          id="checkout-naam"
+          type="text"
+          placeholder="Voor- en achternaam"
+          value={naam}
+          onChange={(e) => setNaam(e.target.value)}
+          className={inputClass}
+          required
+        />
+      </div>
+      <div>
+        <label className={labelClass}>Jouw e-mailadres</label>
+        <input
+          type="email"
+          placeholder="jouw@email.nl"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className={inputClass}
+          required
+        />
+      </div>
+    </div>
+  );
+
   // Rustige layout (variant voor verdriet/rouw) — zelfde betaal-plumbing, andere opbouw.
   if ((product as any).checkoutLayout === "rustig") {
     return (
@@ -584,6 +619,7 @@ export default function BetalenPage() {
         <RustigeCheckout
           product={product as any}
           priceFormatted={priceFormatted}
+          gegevensNode={gegevensNode}
           paymentNode={paymentNode}
         />
       </>

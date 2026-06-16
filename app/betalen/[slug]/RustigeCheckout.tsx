@@ -132,10 +132,12 @@ function SectieFoto({ url, alt, ratio = "aspect-[4/3]" }: { url?: string | null;
 export function RustigeCheckout({
   product,
   priceFormatted,
+  gegevensNode,
   paymentNode,
 }: {
   product: { name: string; rustigeContent?: RustigeContent | null; reviews?: Review[] };
   priceFormatted: string;
+  gegevensNode?: ReactNode;
   paymentNode: ReactNode;
 }) {
   const rc = product.rustigeContent ?? {};
@@ -272,11 +274,12 @@ export function RustigeCheckout({
 
         {/* ── Betaalblok ── */}
         <section id="betaalblok" className="scroll-mt-6">
-          <div className="rounded-3xl border p-6 space-y-4" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
+          <div id="jouw-gegevens" className="rounded-3xl border p-6 space-y-5 scroll-mt-6" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
             <div className="flex items-baseline justify-between">
               <span className="text-base font-medium" style={{ color: KLEUR.titel }}>{product.name}</span>
               <span className="text-lg font-semibold" style={{ color: KLEUR.titel }}>{priceFormatted}</span>
             </div>
+            {gegevensNode}
             {paymentNode}
           </div>
         </section>

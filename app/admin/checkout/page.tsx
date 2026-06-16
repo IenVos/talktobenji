@@ -1335,6 +1335,15 @@ export default function AdminCheckoutPage() {
                           <code className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
                             /betalen/{product.slug}
                           </code>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                              product.checkoutLayout === "rustig"
+                                ? "bg-violet-100 text-violet-800"
+                                : "bg-stone-100 text-stone-600"
+                            }`}
+                          >
+                            {product.checkoutLayout === "rustig" ? "Rustige layout" : "Standaard layout"}
+                          </span>
                           <span className="text-xs font-semibold text-primary-700">
                             {formatPrice(product.priceInCents)}
                           </span>
