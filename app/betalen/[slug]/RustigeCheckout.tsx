@@ -112,12 +112,17 @@ function Vinkjes({ items }: { items?: string[] }) {
               <path d="M1 4l2.5 2.5L9 1" stroke={KLEUR.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </span>
-          <span className="text-base leading-relaxed" style={{ color: KLEUR.tekst }}>{b}</span>
+          <span className="text-base leading-relaxed text-pretty" style={{ color: KLEUR.tekst }}>{b}</span>
         </li>
       ))}
     </ul>
   );
 }
+
+// Vast, iets smaller kader voor álle losse tekst (koppen, alinea's, vinkjes):
+// links uitgelijnd zodat alles over de hele pagina op dezelfde lijn begint.
+// De kaarten (prompts, quote, reviews, foto's) blijven juist op de volle breedte.
+const FRAME = "max-w-md text-left";
 
 function SectieFoto({ url, alt, ratio = "aspect-[4/3]" }: { url?: string | null; alt: string; ratio?: string }) {
   if (!url) return null;
@@ -161,27 +166,23 @@ export function RustigeCheckout({
             <Image src="/images/benji-logo-2.png" alt="" width={36} height={36} className="opacity-60" style={{ width: "auto", height: "auto" }} />
           </div>
           <SectieFoto url={hero.imageUrl} alt={hero.titel ?? product.name} ratio="aspect-[3/2]" />
-          <div className="space-y-4 text-center">
-            <h1 className="text-3xl font-semibold tracking-tight" style={{ color: KLEUR.titel }}>{hero.titel || product.name}</h1>
-            <p className="text-lg leading-relaxed" style={{ color: KLEUR.tekst }}>{hero.subtitel}</p>
+          <div className={`${FRAME} space-y-4`}>
+            <h1 className="text-3xl font-semibold tracking-tight text-balance" style={{ color: KLEUR.titel }}>{hero.titel || product.name}</h1>
+            <p className="text-lg leading-relaxed text-pretty" style={{ color: KLEUR.tekst }}>{hero.subtitel}</p>
             {hero.intro?.trim() && (
-              <p className="text-base leading-relaxed" style={{ color: KLEUR.tekst }}>{hero.intro}</p>
+              <p className="text-base leading-relaxed text-pretty" style={{ color: KLEUR.tekst }}>{hero.intro}</p>
             )}
-          </div>
-          <div className="max-w-sm mx-auto">
             <Vinkjes items={hero.bullets} />
+            <p className="text-2xl font-semibold pt-1" style={{ color: KLEUR.titel }}>{hero.prijsLabel || priceFormatted}</p>
           </div>
-          <div className="text-center space-y-4 pt-2">
-            <p className="text-2xl font-semibold" style={{ color: KLEUR.titel }}>{hero.prijsLabel || priceFormatted}</p>
-            <button
-              type="button"
-              onClick={scrollNaarBetalen}
-              className="w-full max-w-sm mx-auto block py-4 rounded-2xl font-medium text-white text-base"
-              style={{ background: KLEUR.accent }}
-            >
-              {hero.buttonText}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={scrollNaarBetalen}
+            className="block w-full py-4 rounded-2xl font-medium text-white text-base"
+            style={{ background: KLEUR.accent }}
+          >
+            {hero.buttonText}
+          </button>
         </section>
 
         {/* ── Sectie 2 — Wat je krijgt ── */}
@@ -197,9 +198,9 @@ export function RustigeCheckout({
               ))}
             </div>
           )}
-          <div className="space-y-4">
-            {wjk.titel?.trim() && <h2 className="text-2xl font-semibold" style={{ color: KLEUR.titel }}>{wjk.titel}</h2>}
-            <Alineas tekst={wjk.tekst} className="text-lg leading-relaxed" />
+          <div className={`${FRAME} space-y-4`}>
+            {wjk.titel?.trim() && <h2 className="text-2xl font-semibold text-balance" style={{ color: KLEUR.titel }}>{wjk.titel}</h2>}
+            <Alineas tekst={wjk.tekst} className="text-lg leading-relaxed text-pretty" />
             <div className="pt-1"><Vinkjes items={wjk.bullets} /></div>
           </div>
         </section>
@@ -213,17 +214,17 @@ export function RustigeCheckout({
               <Alineas tekst={herk.quote} className="text-xl leading-relaxed font-medium" />
             </div>
           ) : null}
-          <div className="space-y-4">
+          <div className={`${FRAME} space-y-4`}>
             {herk.intro?.trim() && <p className="text-lg" style={{ color: KLEUR.titel }}>{herk.intro}</p>}
             <Vinkjes items={herk.bullets} />
-            {herk.slot?.trim() && <p className="text-lg leading-relaxed pt-1" style={{ color: KLEUR.titel }}>{herk.slot}</p>}
+            {herk.slot?.trim() && <p className="text-lg leading-relaxed text-pretty pt-1" style={{ color: KLEUR.titel }}>{herk.slot}</p>}
           </div>
         </section>
 
         {/* ── Sectie 4 — Reviews ── */}
         {reviews.length > 0 && (
           <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-center" style={{ color: KLEUR.titel }}>{reviewsTitel}</h2>
+            <h2 className={`text-xl font-semibold ${FRAME}`} style={{ color: KLEUR.titel }}>{reviewsTitel}</h2>
             <div className="space-y-3">
               {reviews.map((r, i) => (
                 <div key={i} className="rounded-2xl border p-6" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
@@ -252,20 +253,20 @@ export function RustigeCheckout({
         {(benji.tekst?.trim() || benji.imageUrl) && (
           <section className="space-y-5">
             <SectieFoto url={benji.imageUrl} alt={benji.titel ?? "Benji"} ratio="aspect-[3/2]" />
-            <div className="space-y-3">
-              {benji.titel?.trim() && <h2 className="text-xl font-semibold" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
-              <Alineas tekst={benji.tekst} className="text-base leading-relaxed" />
+            <div className={`${FRAME} space-y-3`}>
+              {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
+              <Alineas tekst={benji.tekst} className="text-base leading-relaxed text-pretty" />
             </div>
           </section>
         )}
 
         {/* ── Sectie 6 — Veiligheid vlak boven de laatste knop ── */}
         <section className="space-y-5">
-          <div className="max-w-sm mx-auto"><Vinkjes items={veilig.bullets} /></div>
+          <div className={FRAME}><Vinkjes items={veilig.bullets} /></div>
           <button
             type="button"
             onClick={scrollNaarBetalen}
-            className="w-full max-w-sm mx-auto block py-4 rounded-2xl font-medium text-white text-base"
+            className="block w-full py-4 rounded-2xl font-medium text-white text-base"
             style={{ background: KLEUR.accent }}
           >
             {veilig.buttonText}
@@ -287,7 +288,7 @@ export function RustigeCheckout({
         {/* ── Sectie 7 — FAQ ── */}
         {faq.length > 0 && (
           <section className="space-y-3">
-            <h2 className="text-xl font-semibold text-center" style={{ color: KLEUR.titel }}>Veelgestelde vragen</h2>
+            <h2 className={`text-xl font-semibold ${FRAME}`} style={{ color: KLEUR.titel }}>Veelgestelde vragen</h2>
             <div className="space-y-2">
               {faq.map((item, i) => (
                 <div key={i} className="rounded-2xl border overflow-hidden" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
