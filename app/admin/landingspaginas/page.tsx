@@ -325,6 +325,32 @@ function opt(val: string): string | undefined {
   return val.trim() || undefined;
 }
 
+// Inklapbare sectie. Op moduleniveau (stabiele identiteit) zodat een toggle alleen
+// déze sectie hertekent en niet de hele admin opnieuw mount (anders sprong de
+// pagina naar boven en verloor je focus bij het openklappen van een blok).
+function Section({ id, title, children, badge, openSet, onToggle }: {
+  id: string; title: string; children: React.ReactNode; badge?: string;
+  openSet: Set<string>; onToggle: (id: string) => void;
+}) {
+  const open = openSet.has(id);
+  return (
+    <div className="border-t border-primary-100">
+      <button
+        type="button"
+        onClick={() => onToggle(id)}
+        className="w-full flex items-center justify-between py-2.5 text-left"
+      >
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+          {title}
+          {badge && <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full normal-case tracking-normal">{badge}</span>}
+        </span>
+        <span className="text-gray-400 text-xs">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && <div className="pb-4 space-y-3">{children}</div>}
+    </div>
+  );
+}
+
 /**
  * Verklein een geüploade afbeelding naar een nette standaardmaat (max ~1280px aan de
  * langste zijde) zodat grote foto's niet te zwaar de pagina op komen. Verhouding blijft
@@ -1037,25 +1063,6 @@ export default function AdminLandingspaginasPage() {
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
   const labelSmClass = "block text-xs text-gray-500 mb-1";
 
-  const Section = useCallback(({ id, title, children, badge }: { id: string; title: string; children: React.ReactNode; badge?: string }) => {
-    const open = openSections.has(id);
-    return (
-      <div className="border-t border-primary-100">
-        <button
-          type="button"
-          onClick={() => toggleSection(id)}
-          className="w-full flex items-center justify-between py-2.5 text-left"
-        >
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
-            {title}
-            {badge && <span className="text-xs font-medium text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full normal-case tracking-normal">{badge}</span>}
-          </span>
-          <span className="text-gray-400 text-xs">{open ? "▲" : "▼"}</span>
-        </button>
-        {open && <div className="pb-4 space-y-3">{children}</div>}
-      </div>
-    );
-  }, [openSections, toggleSection]);
 
   const editingPage = editingId ? pages?.find((p: LandingPage) => p._id === editingId) : null;
 
@@ -1264,7 +1271,7 @@ export default function AdminLandingspaginasPage() {
             </div>
 
             {/* Hero */}
-            <Section id="hero" title="Hero">
+            <Section openSet={openSections} onToggle={toggleSection} id="hero" title="Hero">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Kleine tekst boven de titel (heroLabel)</label>
@@ -1461,7 +1468,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Afbeeldingen */}
-            <Section id="afbeeldingen" title="Afbeeldingen">
+            <Section openSet={openSections} onToggle={toggleSection} id="afbeeldingen" title="Afbeeldingen">
               <div className="space-y-5">
                 {/* Productafbeelding */}
                 <div className="space-y-2">
@@ -1551,7 +1558,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Sectie 1 */}
-            <Section id="sectie1" title="Sectie 1">
+            <Section openSet={openSections} onToggle={toggleSection} id="sectie1" title="Sectie 1">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Titel sectie 1</label>
@@ -1610,7 +1617,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Sectie 2 */}
-            <Section id="sectie2" title="Sectie 2">
+            <Section openSet={openSections} onToggle={toggleSection} id="sectie2" title="Sectie 2">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Titel sectie 2</label>
@@ -1669,7 +1676,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Prijsblokken */}
-            <Section id="prijsblokken" title="Prijsblokken">
+            <Section openSet={openSections} onToggle={toggleSection} id="prijsblokken" title="Prijsblokken">
               <p className="text-xs text-gray-400 mb-3">Laat leeg om de sectie niet te tonen. Vul titel of prijs in om te activeren.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <div>
@@ -1819,7 +1826,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Feature slider */}
-            <Section id="featureslider" title="Feature slider">
+            <Section openSet={openSections} onToggle={toggleSection} id="featureslider" title="Feature slider">
               <p className="text-xs text-gray-400 mb-3">Afbeeldingen of video's met titels naast elkaar (slider op mobiel). Laat leeg om niet te tonen.</p>
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1912,7 +1919,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Voor wie */}
-            <Section id="voorwie" title="Voor wie">
+            <Section openSet={openSections} onToggle={toggleSection} id="voorwie" title="Voor wie">
               <div>
                 <label className={labelSmClass}>Voor wie — één bullet per regel</label>
                 <textarea
@@ -1948,7 +1955,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Ervaringen */}
-            <Section id="ervaringen" title="Ervaringen">
+            <Section openSet={openSections} onToggle={toggleSection} id="ervaringen" title="Ervaringen">
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -1977,7 +1984,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* FAQ */}
-            <Section id="faq" title="FAQ">
+            <Section openSet={openSections} onToggle={toggleSection} id="faq" title="FAQ">
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
@@ -2037,7 +2044,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Wie is Ien */}
-            <Section id="wieisien" title="Wie is Ien">
+            <Section openSet={openSections} onToggle={toggleSection} id="wieisien" title="Wie is Ien">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Titel "Wie is Ien"</label>
@@ -2051,7 +2058,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Finale CTA */}
-            <Section id="finalecta" title="Finale CTA">
+            <Section openSet={openSections} onToggle={toggleSection} id="finalecta" title="Finale CTA">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Titel finale CTA</label>
@@ -2066,7 +2073,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Footer */}
-            <Section id="footer" title="Footer">
+            <Section openSet={openSections} onToggle={toggleSection} id="footer" title="Footer">
               <div className="space-y-3">
                 <div>
                   <label className={labelSmClass}>Footertekst</label>
@@ -2080,7 +2087,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Inhoudsblokken */}
-            <Section id="inhoudsblokken" title="Inhoudsblokken">
+            <Section openSet={openSections} onToggle={toggleSection} id="inhoudsblokken" title="Inhoudsblokken">
               <p className="text-xs text-gray-400 mb-3">Witte kaarten die onder sectie 2 verschijnen. Voeg toe, verwijder of dupliceer blokken.</p>
               <div className="space-y-3">
                 {form.contentBlocks.map((block, i) => (
@@ -2153,7 +2160,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Wat je krijgt — iconenrij */}
-            <Section id="watjekrijgt" title="Wat je krijgt (iconenrij)">
+            <Section openSet={openSections} onToggle={toggleSection} id="watjekrijgt" title="Wat je krijgt (iconenrij)">
               <p className="text-xs text-gray-400 mb-3">De rij met icoontjes. Laat de lijst leeg om de <strong>standaardrij</strong> te tonen. Voeg items toe om die te vervangen. (Verbergen kan met de schakelaar bij Hero → Secties zichtbaar.)</p>
               <div className="mb-3">
                 <label className={labelSmClass}>Titel boven de rij</label>
@@ -2217,7 +2224,7 @@ export default function AdminLandingspaginasPage() {
             </Section>
 
             {/* Niet Alleen Keuze LP */}
-            <Section id="keuzepagina" title="Niet Alleen — Keuzepagina">
+            <Section openSet={openSections} onToggle={toggleSection} id="keuzepagina" title="Niet Alleen — Keuzepagina">
               <p className="text-xs text-gray-400 mb-3">Stel <code>lpType</code> in op <code>niet_alleen_keuze</code> om de keuzepagina te renderen (in plaats van de standaard LP). Vul de CTA-URL's in per verliestype — laat leeg om de knop uit te grijzen.</p>
               <div className="space-y-3">
                 <div>
