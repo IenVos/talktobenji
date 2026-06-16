@@ -16,6 +16,9 @@ const DAG_MS = 86_400_000;
 // De ochtend-cron (dagmails) draait om 08:00 UTC.
 const CRON_OCHTEND_UUR_UTC = 8;
 
+// De avond-cron (speciale mails: dag 15/28/30) draait om 18:00 UTC.
+const CRON_AVOND_UUR_UTC = 18;
+
 /**
  * Effectieve startdag = de dag waarop dag 1 dáádwerkelijk wordt verstuurd: de eerste
  * ochtendcron (08:00 UTC) op of ná het aanmeldmoment. Wie zich ná de cron van de
@@ -56,10 +59,10 @@ export function berekenDagNummer(startDatum: number, now: number): number {
 // Dagmails die hiervóór gepland stonden zijn niet betrouwbaar geregistreerd.
 export const LEVERING_LOGBOEK_VANAF = Date.UTC(2026, 5, 10, 8, 0);
 
-// Het tijdstip van de laatste ochtend-cron-run op of vóór `now`.
-function laatsteOchtendCron(now: number): number {
+// Het tijdstip van de laatste cron-run (op `uurUTC`) op of vóór `now`.
+function laatsteCron(now: number, uurUTC: number): number {
   const d = new Date(now);
-  const vandaag = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), CRON_OCHTEND_UUR_UTC, 0, 0);
+  const vandaag = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), uurUTC, 0, 0);
   return now >= vandaag ? vandaag : vandaag - DAG_MS;
 }
 
@@ -104,7 +107,11 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
   // Tot welk dagnummer de cron daadwerkelijk verstuurd zou hebben: berekend op het
   // tijdstip van de laatste ochtend-cron (08:00 UTC), niet op kijk-moment. Zo toont
   // de huidige dag niet ten onrechte rood vóór de cron 'm verstuurt.
-  const verwachtTot = berekenDagNummer(p.startDatum, laatsteOchtendCron(now));
+  const verwachtTot = berekenDagNummer(p.startDatum, laatsteCron(now, CRON_OCHTEND_UUR_UTC));
+  // Speciale mails (dag 15/28/30) worden door de avond-cron (18:00 UTC) verstuurd,
+  // niet door de ochtend-cron. Tot die cron gedraaid heeft, zijn ze "nog te komen"
+  // en niet "gemist" — anders staan ze tussen ochtend en avond ten onrechte rood.
+  const verwachtTotAvond = berekenDagNummer(p.startDatum, laatsteCron(now, CRON_AVOND_UUR_UTC));
   const verzondenSet = new Set(p.verzondenDagen ?? []);
   const heeftLog = (p.verzondenDagen?.length ?? 0) > 0;
   const eff = effectieveStartDatum(p.startDatum);
@@ -125,8 +132,8 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
 
   const special = (dag: number, vlag: boolean): SpecialStatus => {
     const dueAt = eff + (dag - 1) * DAG_MS;
-    const status = statusVoor(dag, verwachtTot, dueAt, vlag, heeftLog);
-    return { due: dag <= verwachtTot, verzonden: vlag, status };
+    const status = statusVoor(dag, verwachtTotAvond, dueAt, vlag, heeftLog);
+    return { due: dag <= verwachtTotAvond, verzonden: vlag, status };
   };
 
   const wachtrij = (p.inhaalWachtrij ?? []).filter((d) => !verzondenSet.has(d)).sort((a, b) => a - b);
