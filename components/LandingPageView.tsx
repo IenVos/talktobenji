@@ -290,6 +290,7 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
 
 export function LandingPageView({ slug }: { slug: string }) {
   const [showIen, setShowIen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [stickyBarDismissed, setStickyBarDismissed] = useState(false);
   // Zwevende bestel-CTA: verschijnt pas als het eerste blok ná de eerste in-page CTA
   // voorbij is, en verdwijnt zodra er een echte CTA-knop in beeld staat (geen dubbele CTA).
@@ -1031,11 +1032,23 @@ export function LandingPageView({ slug }: { slug: string }) {
                     )}
                   </div>
                 </div>
-                <div className="space-y-6">
+                {/* Accordion-stijl zoals de checkout: klik om een vraag uit te klappen. */}
+                <div className="space-y-2">
                   {vragen.map((v, i) => (
-                    <div key={i}>
-                      <p className="text-sm font-semibold mb-1" style={{ color: "#3d3530" }}>{v.vraag}</p>
-                      <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{renderInline(v.antwoord)}</p>
+                    <div key={i} className="rounded-xl border overflow-hidden" style={{ borderColor: "#e8e0d8" }}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                        className="w-full text-left px-4 py-3.5 flex items-center justify-between gap-3"
+                      >
+                        <span className="text-sm font-medium" style={{ color: "#3d3530" }}>{v.vraag}</span>
+                        <span className="flex-shrink-0 text-lg leading-none" style={{ color: "#a09890" }}>{openFaq === i ? "−" : "+"}</span>
+                      </button>
+                      {openFaq === i && (
+                        <div className="px-4 pb-4 -mt-1">
+                          <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{renderInline(v.antwoord)}</p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
