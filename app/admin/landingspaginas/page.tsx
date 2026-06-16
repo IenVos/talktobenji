@@ -1467,10 +1467,12 @@ export default function AdminLandingspaginasPage() {
                 <div className="space-y-2">
                   <label className={labelClass}>Productafbeelding</label>
                   {/* Huidige afbeelding tonen */}
-                  {!removeProductImage && (productPreviewUrl || form.productImagePath || editingProductImageUrl) && (
+                  {!removeProductImage && (productPreviewUrl || editingProductImageUrl || form.productImagePath) && (
                     <div className="flex items-start gap-3 mb-2">
+                      {/* Zelfde prioriteit als de live pagina (upload wint van pad), zodat
+                          de admin niet per ongeluk het standaardplaatje toont. */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={productPreviewUrl || form.productImagePath || editingProductImageUrl || ""} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-primary-200" />
+                      <img src={productPreviewUrl || editingProductImageUrl || form.productImagePath || ""} alt="Preview" className="w-20 h-20 object-cover rounded-lg border border-primary-200" />
                       {!form.productImageFile && (form.productImagePath || editingProductImageUrl) && (
                         <button type="button" onClick={() => { setRemoveProductImage(true); setEditingProductImageUrl(null); setForm(f => ({ ...f, productImagePath: "", productImageFile: null })); if (productImageRef.current) productImageRef.current.value = ""; }}
                           className="text-xs text-red-500 hover:text-red-700 border border-red-200 rounded-lg px-3 py-1.5 mt-1">
