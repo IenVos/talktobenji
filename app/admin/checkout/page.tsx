@@ -49,6 +49,16 @@ type CheckoutProduct = {
   benefits?: string[];
   reviews?: { author: string; role?: string; text: string; imageStorageId?: string; imageUrl?: string | null }[];
   extraTextBlocks?: { title?: string; content: string; imageStorageId?: string; imageUrl?: string | null }[];
+  checkoutLayout?: string;
+  rustigeContent?: {
+    hero?: { imageStorageId?: string; imageUrl?: string | null; titel?: string; subtitel?: string; intro?: string; bullets?: string[]; prijsLabel?: string; buttonText?: string };
+    watJeKrijgt?: { imageStorageId?: string; imageUrl?: string | null; titel?: string; tekst?: string; bullets?: string[]; prompts?: { dag: string; vraag: string }[] };
+    herkenning?: { imageStorageId?: string; imageUrl?: string | null; quote?: string; intro?: string; bullets?: string[]; slot?: string };
+    reviewsTitel?: string;
+    benjiVerhaal?: { imageStorageId?: string; imageUrl?: string | null; titel?: string; tekst?: string };
+    veiligheid?: { bullets?: string[]; buttonText?: string };
+    faq?: { vraag: string; antwoord: string }[];
+  } | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -79,7 +89,64 @@ type FormState = {
   addOnPriceInCents: string;
   addOnType: string;
   addOnAccessDays: string;
+  checkoutLayout: string; // "standaard" | "rustig"
 };
+
+// Rustige checkout-variant: alle teksten als regel-gebaseerde velden (eenvoudig te bewerken)
+type RustigForm = {
+  heroTitel: string; heroSubtitel: string; heroIntro: string; heroBullets: string; heroPrijsLabel: string; heroButton: string;
+  heroImageFile: File | null; heroImageStorageId?: string; heroImageUrl?: string | null;
+  wjkTitel: string; wjkTekst: string; wjkBullets: string; wjkPrompts: string;
+  wjkImageFile: File | null; wjkImageStorageId?: string; wjkImageUrl?: string | null;
+  herkQuote: string; herkIntro: string; herkBullets: string; herkSlot: string;
+  herkImageFile: File | null; herkImageStorageId?: string; herkImageUrl?: string | null;
+  reviewsTitel: string;
+  benjiTitel: string; benjiTekst: string;
+  benjiImageFile: File | null; benjiImageStorageId?: string; benjiImageUrl?: string | null;
+  veiligBullets: string; veiligButton: string;
+  faq: string;
+};
+
+const EMPTY_RUSTIG: RustigForm = {
+  heroTitel: "", heroSubtitel: "", heroIntro: "", heroBullets: "", heroPrijsLabel: "", heroButton: "",
+  heroImageFile: null, heroImageStorageId: undefined, heroImageUrl: null,
+  wjkTitel: "", wjkTekst: "", wjkBullets: "", wjkPrompts: "",
+  wjkImageFile: null, wjkImageStorageId: undefined, wjkImageUrl: null,
+  herkQuote: "", herkIntro: "", herkBullets: "", herkSlot: "",
+  herkImageFile: null, herkImageStorageId: undefined, herkImageUrl: null,
+  reviewsTitel: "",
+  benjiTitel: "", benjiTekst: "",
+  benjiImageFile: null, benjiImageStorageId: undefined, benjiImageUrl: null,
+  veiligBullets: "", veiligButton: "",
+  faq: "",
+};
+
+// Regel-helpers voor de rustige velden
+const naarRegels = (arr?: string[]) => (arr ?? []).join("\n");
+const regelsNaarArr = (s: string) => s.split("\n").map((r) => r.trim()).filter(Boolean);
+const splitPipe = (regel: string): [string, string] => {
+  const i = regel.indexOf("|");
+  return i === -1 ? [regel.trim(), ""] : [regel.slice(0, i).trim(), regel.slice(i + 1).trim()];
+};
+
+function rustigFromProduct(product: CheckoutProduct): RustigForm {
+  const rc = product.rustigeContent ?? undefined;
+  return {
+    heroTitel: rc?.hero?.titel ?? "", heroSubtitel: rc?.hero?.subtitel ?? "", heroIntro: rc?.hero?.intro ?? "",
+    heroBullets: naarRegels(rc?.hero?.bullets), heroPrijsLabel: rc?.hero?.prijsLabel ?? "", heroButton: rc?.hero?.buttonText ?? "",
+    heroImageFile: null, heroImageStorageId: rc?.hero?.imageStorageId, heroImageUrl: rc?.hero?.imageUrl ?? null,
+    wjkTitel: rc?.watJeKrijgt?.titel ?? "", wjkTekst: rc?.watJeKrijgt?.tekst ?? "", wjkBullets: naarRegels(rc?.watJeKrijgt?.bullets),
+    wjkPrompts: (rc?.watJeKrijgt?.prompts ?? []).map((p) => `${p.dag} | ${p.vraag}`).join("\n"),
+    wjkImageFile: null, wjkImageStorageId: rc?.watJeKrijgt?.imageStorageId, wjkImageUrl: rc?.watJeKrijgt?.imageUrl ?? null,
+    herkQuote: rc?.herkenning?.quote ?? "", herkIntro: rc?.herkenning?.intro ?? "", herkBullets: naarRegels(rc?.herkenning?.bullets), herkSlot: rc?.herkenning?.slot ?? "",
+    herkImageFile: null, herkImageStorageId: rc?.herkenning?.imageStorageId, herkImageUrl: rc?.herkenning?.imageUrl ?? null,
+    reviewsTitel: rc?.reviewsTitel ?? "",
+    benjiTitel: rc?.benjiVerhaal?.titel ?? "", benjiTekst: rc?.benjiVerhaal?.tekst ?? "",
+    benjiImageFile: null, benjiImageStorageId: rc?.benjiVerhaal?.imageStorageId, benjiImageUrl: rc?.benjiVerhaal?.imageUrl ?? null,
+    veiligBullets: naarRegels(rc?.veiligheid?.bullets), veiligButton: rc?.veiligheid?.buttonText ?? "",
+    faq: (rc?.faq ?? []).map((f) => `${f.vraag} | ${f.antwoord}`).join("\n"),
+  };
+}
 
 const EMPTY_FORM: FormState = {
   slug: "",
@@ -107,6 +174,7 @@ const EMPTY_FORM: FormState = {
   addOnPriceInCents: "",
   addOnType: "",
   addOnAccessDays: "",
+  checkoutLayout: "standaard",
 };
 
 function opt(val: string): string | undefined {
@@ -124,6 +192,36 @@ const BILLING_OPTIONS = [
   { value: "half_yearly", label: "Half jaar" },
   { value: "yearly", label: "Jaar" },
 ] as const;
+
+function RustigImage({ label, file, url, onPick, onClear }: {
+  label: string;
+  file: File | null;
+  url?: string | null;
+  onPick: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClear: () => void;
+}) {
+  const preview = file ? URL.createObjectURL(file) : url ?? null;
+  return (
+    <div>
+      <span className="block text-xs text-gray-500 mb-1">{label}</span>
+      <div className="flex items-center gap-3">
+        {preview ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={preview} alt="" className="w-16 h-16 rounded-lg object-cover border border-stone-200" />
+        ) : (
+          <div className="w-16 h-16 rounded-lg border border-dashed border-stone-300 flex items-center justify-center text-[10px] text-gray-400">geen</div>
+        )}
+        <label className="text-xs text-primary-600 hover:text-primary-800 cursor-pointer border border-dashed border-primary-300 rounded-lg px-2 py-1.5 hover:bg-primary-50">
+          {preview ? "Vervangen" : "Uploaden"}
+          <input type="file" accept="image/*" onChange={onPick} className="hidden" />
+        </label>
+        {preview && (
+          <button type="button" onClick={onClear} className="text-xs text-red-500 hover:text-red-700">Verwijderen</button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function AdminCheckoutPage() {
   const { adminToken } = useAdminAuth();
@@ -143,6 +241,7 @@ export default function AdminCheckoutPage() {
   const [benefits, setBenefits] = useState<string[]>([]);
   const [reviews, setReviews] = useState<ReviewForm[]>([]);
   const [extraTextBlocks, setExtraTextBlocks] = useState<ExtraTextBlockForm[]>([]);
+  const [rustig, setRustig] = useState<RustigForm>(EMPTY_RUSTIG);
   const [savedOk, setSavedOk] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [sendingTest, setSendingTest] = useState(false);
@@ -157,12 +256,20 @@ export default function AdminCheckoutPage() {
     e: React.ChangeEvent<HTMLInputElement>
   ) => setForm((f) => ({ ...f, [field]: e.target.checked }));
 
+  const setR = (field: keyof RustigForm) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => setRustig((r) => ({ ...r, [field]: e.target.value }));
+  const setRImg = (field: "heroImageFile" | "wjkImageFile" | "herkImageFile" | "benjiImageFile") => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => { const file = e.target.files?.[0] ?? null; if (file) setRustig((r) => ({ ...r, [field]: file })); };
+
   const resetForm = () => {
     setForm(EMPTY_FORM);
     setGiftVariants([]);
     setBenefits([]);
     setReviews([]);
     setExtraTextBlocks([]);
+    setRustig(EMPTY_RUSTIG);
     setEditingId(null);
     setEditingImageUrl(null);
     setShowForm(false);
@@ -203,7 +310,9 @@ export default function AdminCheckoutPage() {
       addOnPriceInCents: product.addOnPriceInCents != null ? String(product.addOnPriceInCents) : "",
       addOnType: product.addOnType ?? "",
       addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
+      checkoutLayout: product.checkoutLayout ?? "standaard",
     });
+    setRustig(rustigFromProduct(product));
     setGiftVariants(variantsToForm(product.giftVariants));
     setBenefits(product.benefits ?? []);
     setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text, imageStorageId: r.imageStorageId, imagePreviewUrl: r.imageUrl ?? undefined, imageFile: null })));
@@ -241,7 +350,9 @@ export default function AdminCheckoutPage() {
       addOnPriceInCents: product.addOnPriceInCents != null ? String(product.addOnPriceInCents) : "",
       addOnType: product.addOnType ?? "",
       addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
+      checkoutLayout: product.checkoutLayout ?? "standaard",
     });
+    setRustig(rustigFromProduct(product));
     setGiftVariants(variantsToForm(product.giftVariants));
     setBenefits(product.benefits ?? []);
     setReviews((product.reviews ?? []).map((r) => ({ author: r.author, role: r.role ?? "", text: r.text, imageStorageId: r.imageStorageId, imagePreviewUrl: r.imageUrl ?? undefined, imageFile: null })));
@@ -279,6 +390,37 @@ export default function AdminCheckoutPage() {
           accessDays: parseInt(v.accessDays, 10),
         }))
         .filter((v) => !isNaN(v.priceInCents) && !isNaN(v.accessDays) && v.priceInCents > 0);
+
+      // Rustige layout: bouw de gestructureerde content op (incl. sectie-afbeeldingen)
+      let rustigeContent: any = undefined;
+      if (form.checkoutLayout === "rustig") {
+        const secImg = async (file: File | null, existing?: string) =>
+          file ? await uploadFile(file) : (existing as Id<"_storage"> | undefined);
+        const heroImg = await secImg(rustig.heroImageFile, rustig.heroImageStorageId);
+        const wjkImg = await secImg(rustig.wjkImageFile, rustig.wjkImageStorageId);
+        const herkImg = await secImg(rustig.herkImageFile, rustig.herkImageStorageId);
+        const benjiImg = await secImg(rustig.benjiImageFile, rustig.benjiImageStorageId);
+        rustigeContent = {
+          hero: {
+            imageStorageId: heroImg,
+            titel: opt(rustig.heroTitel), subtitel: opt(rustig.heroSubtitel), intro: opt(rustig.heroIntro),
+            bullets: regelsNaarArr(rustig.heroBullets), prijsLabel: opt(rustig.heroPrijsLabel), buttonText: opt(rustig.heroButton),
+          },
+          watJeKrijgt: {
+            imageStorageId: wjkImg,
+            titel: opt(rustig.wjkTitel), tekst: opt(rustig.wjkTekst), bullets: regelsNaarArr(rustig.wjkBullets),
+            prompts: regelsNaarArr(rustig.wjkPrompts).map((r) => { const [dag, vraag] = splitPipe(r); return { dag, vraag }; }).filter((p) => p.dag || p.vraag),
+          },
+          herkenning: {
+            imageStorageId: herkImg,
+            quote: opt(rustig.herkQuote), intro: opt(rustig.herkIntro), bullets: regelsNaarArr(rustig.herkBullets), slot: opt(rustig.herkSlot),
+          },
+          reviewsTitel: opt(rustig.reviewsTitel),
+          benjiVerhaal: { imageStorageId: benjiImg, titel: opt(rustig.benjiTitel), tekst: opt(rustig.benjiTekst) },
+          veiligheid: { bullets: regelsNaarArr(rustig.veiligBullets), buttonText: opt(rustig.veiligButton) },
+          faq: regelsNaarArr(rustig.faq).map((r) => { const [vraag, antwoord] = splitPipe(r); return { vraag, antwoord }; }).filter((f) => f.vraag),
+        };
+      }
 
       const payload = {
         slug: form.slug.trim(),
@@ -333,6 +475,8 @@ export default function AdminCheckoutPage() {
             };
           })
         ),
+        checkoutLayout: form.checkoutLayout,
+        rustigeContent,
       };
       if (editingId) {
         // Geen afbeelding meer? Stuur clearImage mee zodat de mutatie het veld echt wist
@@ -1045,6 +1189,89 @@ export default function AdminCheckoutPage() {
                   Tekstblok toevoegen
                 </button>
               </div>
+
+              {/* ── Layout-keuze ── */}
+              <div className="border-t border-primary-100 pt-4">
+                <label className={labelClass}>Layout van de checkout</label>
+                <select value={form.checkoutLayout} onChange={set("checkoutLayout")} className={inputClass}>
+                  <option value="standaard">Standaard checkout</option>
+                  <option value="rustig">Rustige checkout (verdriet/rouw)</option>
+                </select>
+                <p className="text-xs text-gray-400 mt-1">
+                  &ldquo;Rustig&rdquo; toont de zachte opbouw in 7 secties hieronder. De velden vallen terug op nette standaardteksten als je ze leeg laat.
+                </p>
+              </div>
+
+              {/* ── Rustige checkout: secties ── */}
+              {form.checkoutLayout === "rustig" && (
+                <div className="space-y-5 bg-stone-50 border border-stone-200 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">
+                    Tip: bij vinkjes-lijsten zet je één regel per vinkje. Bij prompts en FAQ gebruik je het formaat <code className="bg-white px-1 rounded">links | rechts</code> (één per regel).
+                  </p>
+
+                  {/* Sectie 1 — Hero */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-primary-800">1. Hero</p>
+                    <RustigImage label="Hero-afbeelding" file={rustig.heroImageFile} url={rustig.heroImageUrl} onPick={setRImg("heroImageFile")} onClear={() => setRustig((r) => ({ ...r, heroImageFile: null, heroImageStorageId: undefined, heroImageUrl: null }))} />
+                    <input className={inputClass} placeholder="Titel (bijv. Niet Alleen)" value={rustig.heroTitel} onChange={setR("heroTitel")} />
+                    <textarea className={inputClass} rows={2} placeholder="Subtitel" value={rustig.heroSubtitel} onChange={setR("heroSubtitel")} />
+                    <input className={inputClass} placeholder="Intro-regel (bijv. 💙 Een klein dagelijks ankerpunt…)" value={rustig.heroIntro} onChange={setR("heroIntro")} />
+                    <textarea className={inputClass} rows={4} placeholder="Vinkjes (één per regel)" value={rustig.heroBullets} onChange={setR("heroBullets")} />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input className={inputClass} placeholder="Prijsregel (bijv. €37 eenmalig)" value={rustig.heroPrijsLabel} onChange={setR("heroPrijsLabel")} />
+                      <input className={inputClass} placeholder="Knoptekst" value={rustig.heroButton} onChange={setR("heroButton")} />
+                    </div>
+                  </div>
+
+                  {/* Sectie 2 — Wat je krijgt */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-primary-800">2. Wat je krijgt</p>
+                    <RustigImage label="Afbeelding (bijv. telefoon-mockup)" file={rustig.wjkImageFile} url={rustig.wjkImageUrl} onPick={setRImg("wjkImageFile")} onClear={() => setRustig((r) => ({ ...r, wjkImageFile: null, wjkImageStorageId: undefined, wjkImageUrl: null }))} />
+                    <textarea className={inputClass} rows={3} placeholder="Voorbeeld-prompts (Dag 3 | Wat heb je vandaag nodig?)" value={rustig.wjkPrompts} onChange={setR("wjkPrompts")} />
+                    <input className={inputClass} placeholder="Titel (bijv. Geen grote opdrachten)" value={rustig.wjkTitel} onChange={setR("wjkTitel")} />
+                    <textarea className={inputClass} rows={2} placeholder="Tekst" value={rustig.wjkTekst} onChange={setR("wjkTekst")} />
+                    <textarea className={inputClass} rows={4} placeholder="Vinkjes (één per regel)" value={rustig.wjkBullets} onChange={setR("wjkBullets")} />
+                  </div>
+
+                  {/* Sectie 3 — Herkenning */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-primary-800">3. Herkenning</p>
+                    <RustigImage label="Quote-afbeelding (optioneel)" file={rustig.herkImageFile} url={rustig.herkImageUrl} onPick={setRImg("herkImageFile")} onClear={() => setRustig((r) => ({ ...r, herkImageFile: null, herkImageStorageId: undefined, herkImageUrl: null }))} />
+                    <textarea className={inputClass} rows={2} placeholder="Quote (gebruikt als er geen afbeelding is)" value={rustig.herkQuote} onChange={setR("herkQuote")} />
+                    <input className={inputClass} placeholder="Intro (bijv. Misschien herken je dit:)" value={rustig.herkIntro} onChange={setR("herkIntro")} />
+                    <textarea className={inputClass} rows={4} placeholder="Vinkjes (één per regel)" value={rustig.herkBullets} onChange={setR("herkBullets")} />
+                    <input className={inputClass} placeholder="Slotzin (bijv. Dan is Niet Alleen voor jou gemaakt.)" value={rustig.herkSlot} onChange={setR("herkSlot")} />
+                  </div>
+
+                  {/* Sectie 4 — Reviews */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-primary-800">4. Reviews</p>
+                    <input className={inputClass} placeholder="Titel boven de reviews" value={rustig.reviewsTitel} onChange={setR("reviewsTitel")} />
+                    <p className="text-xs text-gray-400">De reviews zelf beheer je hierboven bij &ldquo;Reviews / testimonials&rdquo;.</p>
+                  </div>
+
+                  {/* Sectie 5 — Persoonlijk verhaal Benji */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-primary-800">5. Persoonlijk verhaal</p>
+                    <RustigImage label="Foto van Benji" file={rustig.benjiImageFile} url={rustig.benjiImageUrl} onPick={setRImg("benjiImageFile")} onClear={() => setRustig((r) => ({ ...r, benjiImageFile: null, benjiImageStorageId: undefined, benjiImageUrl: null }))} />
+                    <input className={inputClass} placeholder="Titel" value={rustig.benjiTitel} onChange={setR("benjiTitel")} />
+                    <textarea className={inputClass} rows={4} placeholder="Verhaal (4 tot 6 regels)" value={rustig.benjiTekst} onChange={setR("benjiTekst")} />
+                  </div>
+
+                  {/* Sectie 6 — Veiligheid */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-primary-800">6. Veiligheid + laatste knop</p>
+                    <textarea className={inputClass} rows={4} placeholder="Vinkjes (één per regel)" value={rustig.veiligBullets} onChange={setR("veiligBullets")} />
+                    <input className={inputClass} placeholder="Knoptekst (bijv. Ja, ik gun mezelf dit moment)" value={rustig.veiligButton} onChange={setR("veiligButton")} />
+                  </div>
+
+                  {/* Sectie 7 — FAQ */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-primary-800">7. FAQ</p>
+                    <textarea className={inputClass} rows={6} placeholder={"Eén vraag per regel: Vraag | Antwoord"} value={rustig.faq} onChange={setR("faq")} />
+                  </div>
+                </div>
+              )}
 
               <label className="flex items-center gap-2 cursor-pointer">
                 <input

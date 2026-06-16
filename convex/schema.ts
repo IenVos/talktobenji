@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 import { authTables } from "./authSchema";
+import { rustigeContentValidator } from "./checkoutValidators";
 
 export default defineSchema({
   ...authTables,
@@ -916,6 +917,10 @@ export default defineSchema({
       content: v.string(),
       imageStorageId: v.optional(v.id("_storage")),
     }))),
+    // Layout van de checkout: "standaard" (default) of "rustig" (variant voor verdriet/rouw)
+    checkoutLayout: v.optional(v.string()),
+    // Inhoud voor de rustige layout (alleen gebruikt als checkoutLayout === "rustig")
+    rustigeContent: v.optional(rustigeContentValidator),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

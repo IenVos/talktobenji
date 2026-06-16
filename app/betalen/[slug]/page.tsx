@@ -19,6 +19,7 @@ import {
 import { calculateVat, EU_COUNTRY_NAMES_NL } from "@/lib/vat";
 import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
 import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
+import { RustigeCheckout } from "./RustigeCheckout";
 
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
@@ -527,6 +528,68 @@ export default function BetalenPage() {
     }
   }
 
+  // Betaalblok (Stripe) — gedeeld tussen de standaard- en de rustige layout.
+  const paymentNode = secretError ? (
+    <div className="space-y-3">
+      <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+        {secretError}
+      </div>
+      <button
+        type="button"
+        onClick={() => createPaymentIntent()}
+        className="w-full py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors text-sm"
+      >
+        Opnieuw proberen
+      </button>
+    </div>
+  ) : (loadingSecret || !clientSecret) ? (
+    <div className="py-8 flex justify-center">
+      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
+    </div>
+  ) : (
+    <Elements key={clientSecret} stripe={stripePromise} options={elementsOptions}>
+      <CheckoutForm
+        slug={slug}
+        buttonText={product.buttonText}
+        trustText={(product as any).trustText}
+        quoteText={(product as any).quoteText}
+        clientSecret={clientSecret}
+        naam={naam}
+        email={email}
+        isGift={isGift}
+        recipientEmail={recipientEmail}
+        recipientName={recipientName}
+        personalMessage={personalMessage}
+        deliveryMethod={deliveryMethod}
+        scheduledDate={scheduledDate}
+        selectedVariant={selectedVariant}
+        addOnType={addOnSelected && product.addOnType ? product.addOnType : undefined}
+        productName={product.name}
+        totalInCents={displayPrice}
+        vatLine={vatLine}
+        vatAmountInCents={vatAmountInCents}
+        addOnLabel={product.addOnLabel}
+        addOnPriceInCents={product.addOnPriceInCents}
+        addOnSelected={addOnSelected}
+        onPayClick={() => fireFunnel("pay_click")}
+      />
+    </Elements>
+  );
+
+  // Rustige layout (variant voor verdriet/rouw) — zelfde betaal-plumbing, andere opbouw.
+  if ((product as any).checkoutLayout === "rustig") {
+    return (
+      <>
+        <ScrollDepthTracker category="checkout" path={slug} />
+        <RustigeCheckout
+          product={product as any}
+          priceFormatted={priceFormatted}
+          paymentNode={paymentNode}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-stone-50">
       {/* Scroll-diepte op de checkout (gegroepeerd per product-slug) */}
@@ -924,52 +987,7 @@ export default function BetalenPage() {
 
           {/* Betaalgegevens — altijd zichtbaar, laadt direct met NL als provisorisch land */}
           <div className={hasExtraOptions ? "mt-6 pt-6 border-t border-stone-100" : "mt-4"}>
-            {secretError ? (
-              <div className="space-y-3">
-                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-                  {secretError}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => createPaymentIntent()}
-                  className="w-full py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors text-sm"
-                >
-                  Opnieuw proberen
-                </button>
-              </div>
-            ) : (loadingSecret || !clientSecret) ? (
-              <div className="py-8 flex justify-center">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
-              </div>
-            ) : (
-              <Elements key={clientSecret} stripe={stripePromise} options={elementsOptions}>
-                <CheckoutForm
-                  slug={slug}
-                  buttonText={product.buttonText}
-                  trustText={(product as any).trustText}
-                  quoteText={(product as any).quoteText}
-                  clientSecret={clientSecret}
-                  naam={naam}
-                  email={email}
-                  isGift={isGift}
-                  recipientEmail={recipientEmail}
-                  recipientName={recipientName}
-                  personalMessage={personalMessage}
-                  deliveryMethod={deliveryMethod}
-                  scheduledDate={scheduledDate}
-                  selectedVariant={selectedVariant}
-                  addOnType={addOnSelected && product.addOnType ? product.addOnType : undefined}
-                  productName={product.name}
-                  totalInCents={displayPrice}
-                  vatLine={vatLine}
-                  vatAmountInCents={vatAmountInCents}
-                  addOnLabel={product.addOnLabel}
-                  addOnPriceInCents={product.addOnPriceInCents}
-                  addOnSelected={addOnSelected}
-                  onPayClick={() => fireFunnel("pay_click")}
-                />
-              </Elements>
-            )}
+            {paymentNode}
           </div>
         </div>
 

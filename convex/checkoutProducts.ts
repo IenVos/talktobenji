@@ -4,6 +4,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
+import { rustigeContentValidator } from "./checkoutValidators";
 
 /** Haal alle checkout producten op (admin only). */
 export const list = query({
@@ -72,7 +73,23 @@ export const getBySlug = query({
           return { ...review, imageUrl: reviewImageUrl };
         }))
       : undefined;
-    return { ...product, imageUrl, extraTextBlocks, reviews };
+    // Rustige layout: voeg per sectie met een afbeelding de publieke URL toe.
+    const resolveUrl = async (storageId?: string): Promise<string | null> => {
+      if (!storageId) return null;
+      try { return await ctx.storage.getUrl(storageId as any); } catch { return null; }
+    };
+    let rustigeContent = product.rustigeContent as any;
+    if (rustigeContent) {
+      const rc = rustigeContent;
+      rustigeContent = {
+        ...rc,
+        hero: rc.hero ? { ...rc.hero, imageUrl: await resolveUrl(rc.hero.imageStorageId) } : undefined,
+        watJeKrijgt: rc.watJeKrijgt ? { ...rc.watJeKrijgt, imageUrl: await resolveUrl(rc.watJeKrijgt.imageStorageId) } : undefined,
+        herkenning: rc.herkenning ? { ...rc.herkenning, imageUrl: await resolveUrl(rc.herkenning.imageStorageId) } : undefined,
+        benjiVerhaal: rc.benjiVerhaal ? { ...rc.benjiVerhaal, imageUrl: await resolveUrl(rc.benjiVerhaal.imageStorageId) } : undefined,
+      };
+    }
+    return { ...product, imageUrl, extraTextBlocks, reviews, rustigeContent };
   },
 });
 
@@ -133,6 +150,8 @@ export const create = mutation({
       content: v.string(),
       imageStorageId: v.optional(v.id("_storage")),
     }))),
+    checkoutLayout: v.optional(v.string()),
+    rustigeContent: v.optional(rustigeContentValidator),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -168,6 +187,8 @@ export const create = mutation({
       benefits: args.benefits,
       reviews: args.reviews,
       extraTextBlocks: args.extraTextBlocks,
+      checkoutLayout: args.checkoutLayout,
+      rustigeContent: args.rustigeContent,
       createdAt: now,
       updatedAt: now,
     });
@@ -224,6 +245,8 @@ export const update = mutation({
       content: v.string(),
       imageStorageId: v.optional(v.id("_storage")),
     }))),
+    checkoutLayout: v.optional(v.string()),
+    rustigeContent: v.optional(rustigeContentValidator),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
