@@ -103,26 +103,31 @@ function Alineas({ tekst, className }: { tekst?: string; className?: string }) {
 
 function Vinkjes({ items }: { items?: string[] }) {
   if (!items?.length) return null;
+  // Vinkjes als groep gecentreerd, items links uitgelijnd zodat ze onder elkaar
+  // op één lijn beginnen.
   return (
-    <ul className="space-y-3">
-      {items.map((b, i) => (
-        <li key={i} className="flex items-start gap-3">
-          <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5" style={{ background: KLEUR.accentZacht }}>
-            <svg width="11" height="9" viewBox="0 0 10 8" fill="none">
-              <path d="M1 4l2.5 2.5L9 1" stroke={KLEUR.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-          <span className="text-base leading-relaxed text-pretty" style={{ color: KLEUR.tekst }}>{b}</span>
-        </li>
-      ))}
-    </ul>
+    <div className="flex justify-center">
+      <ul className="space-y-3 text-left">
+        {items.map((b, i) => (
+          <li key={i} className="flex items-start gap-3">
+            <span className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5" style={{ background: KLEUR.accentZacht }}>
+              <svg width="11" height="9" viewBox="0 0 10 8" fill="none">
+                <path d="M1 4l2.5 2.5L9 1" stroke={KLEUR.accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span className="text-base leading-relaxed text-pretty" style={{ color: KLEUR.tekst }}>{b}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
-// Vast, iets smaller kader voor álle losse tekst (koppen, alinea's, vinkjes):
-// links uitgelijnd zodat alles over de hele pagina op dezelfde lijn begint.
-// De kaarten (prompts, quote, reviews, foto's) blijven juist op de volle breedte.
-const FRAME = "max-w-md text-left";
+// Vast, iets smaller kader voor álle losse tekst (koppen, subkoppen, alinea's):
+// gecentreerd op de pagina, tekst gecentreerd. Vinkjes vormen een gecentreerde
+// groep met links uitgelijnde items. Kaarten (prompts, quote, reviews, foto's)
+// blijven op de volle breedte.
+const FRAME = "max-w-md mx-auto text-center";
 
 function SectieFoto({ url, alt, ratio = "aspect-[4/3]" }: { url?: string | null; alt: string; ratio?: string }) {
   if (!url) return null;
