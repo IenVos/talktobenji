@@ -986,6 +986,19 @@ function NietAlleenTab() {
         De vaste teksten van de programmapagina (<strong>/niet-alleen</strong>). De dagelijkse dagteksten beheer je apart bij <strong>Niet Alleen e-mails &rarr; dagtemplates</strong>. De keuzeknoppen (Persoon, Huisdier, ...) komen uit <strong>Niet Alleen &rarr; Verliestypen</strong>. Bekijken vereist inloggen met een Niet Alleen-account.
       </div>
 
+      <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">Welkomstpagina (na aankoop)</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            De pagina waar klanten na aankoop op landen (<strong>/niet-alleen/welkom</strong>). Normaal alleen bereikbaar na inloggen. Open een voorbeeldweergave om te zien hoe die eruitziet.
+          </p>
+        </div>
+        <a href="/niet-alleen/welkom?preview=1" target="_blank" rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors flex-shrink-0">
+          <ExternalLink size={14} /> Bekijk voorbeeld
+        </a>
+      </div>
+
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
         <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Welkom (eerste scherm na aankoop)</h3>
         <Field label="Titel" value={content.welkomTitel} onChange={(v) => set("welkomTitel", v)} />

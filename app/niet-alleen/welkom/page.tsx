@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -14,8 +14,11 @@ const NAAM_PLACEHOLDER: Record<string, string> = {
   huisdier: "Bijv. Luna, Appie, Boris...",
 };
 
-export default function NietAlleenWelkomPage() {
+function WelkomInhoud() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Voorbeeldweergave voor de admin: toont de pagina zonder login en zonder iets op te slaan.
+  const preview = searchParams?.get("preview") === "1";
   const { data: session, status } = useSession();
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -87,11 +90,11 @@ export default function NietAlleenWelkomPage() {
     }
   }
 
-  if (status === "loading" || profiel === undefined) {
+  if (!preview && (status === "loading" || profiel === undefined)) {
     return <div style={{ minHeight: "100vh", background: "#fdf9f4" }} />;
   }
 
-  if (status === "unauthenticated" || !profiel) {
+  if (!preview && (status === "unauthenticated" || !profiel)) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#fdf9f4" }}>
         <div className="text-center space-y-4 max-w-sm">
@@ -104,16 +107,23 @@ export default function NietAlleenWelkomPage() {
     );
   }
 
-  // Verliestype is al ingesteld — welkom-flow is eenmalig
-  if (profiel.verliesType) {
+  // Verliestype is al ingesteld — welkom-flow is eenmalig (niet in voorbeeldweergave)
+  if (!preview && profiel!.verliesType) {
     router.replace("/niet-alleen");
     return <div style={{ minHeight: "100vh", background: "#fdf9f4" }} />;
   }
 
-  const voornaam = profiel.naam.split(" ")[0];
+  // In voorbeeldweergave tonen we dummy-gegevens, zodat de admin de pagina kan zien.
+  const effProfiel = preview ? { naam: "Voorbeeld", verliesNaam: null } : profiel!;
+  const voornaam = effProfiel.naam.split(" ")[0];
 
   return (
     <div className="min-h-screen" style={{ background: "#fdf9f4" }}>
+      {preview && (
+        <div className="text-center text-xs py-2 px-4" style={{ background: "#6d84a8", color: "white" }}>
+          Voorbeeldweergave. Zo ziet de welkomstpagina eruit. Knoppen slaan hier niets op.
+        </div>
+      )}
       <div className="flex justify-center px-6 pt-8">
         <Image src="/images/benji-logo-2.png" alt="Talk To Benji" width={38} height={38} className="hover:opacity-70 transition-opacity" />
       </div>
@@ -193,7 +203,7 @@ export default function NietAlleenWelkomPage() {
               </label>
               <input
                 type="text"
-                value={naamInput || (profiel.verliesNaam ?? "")}
+                value={naamInput || (effProfiel.verliesNaam ?? "")}
                 onChange={(e) => setNaamInput(e.target.value)}
                 placeholder={NAAM_PLACEHOLDER[huidigVerliesType!] ?? ""}
                 className="w-full px-3 py-2.5 rounded-xl border text-sm focus:outline-none"
@@ -273,5 +283,13 @@ export default function NietAlleenWelkomPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function NietAlleenWelkomPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#fdf9f4" }} />}>
+      <WelkomInhoud />
+    </Suspense>
   );
 }
