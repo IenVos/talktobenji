@@ -848,7 +848,11 @@ export const processNietAlleenUsers = internalAction({
       try {
         const dagNummer = berekenDagNummer(profiel.startDatum, Date.now());
         const verzonden = new Set(profiel.verzondenDagen ?? []);
-        const eersteKeer = profiel.verzondenDagen === undefined;
+        // "Eerste keer" = nog geen enkele dag geregistreerd. Profielen worden
+        // aangemaakt/gereset met verzondenDagen: [] (een lege array, niet undefined),
+        // dus op lengte toetsen — anders pakt de eerste cron-run meteen het
+        // auto-inhaal-venster (gisteren + vandaag) en komen bv. dag 29 en 30 samen aan.
+        const eersteKeer = (profiel.verzondenDagen?.length ?? 0) === 0;
 
         // Dagelijkse herinneringsmail (dag 1 t/m 30).
         if (dagNummer >= 1 && dagNummer <= 30) {
