@@ -165,7 +165,7 @@ type FormState = {
   typeButtonLabelRelatie: string;
   typeButtonLabelEenzaamheid: string;
   typeButtonLabelKinderloos: string;
-  contentBlocks: { titel: string; tekst: string; afbeelding: string; file: File | null; accent?: boolean }[];
+  contentBlocks: { titel: string; tekst: string; afbeelding: string; file: File | null; video: string; videoFile: File | null; accent?: boolean }[];
   watJeKrijgt: WatItemForm[];
   watJeKrijgtTitel: string;
   kpHeroKop1: string;
@@ -614,7 +614,7 @@ export default function AdminLandingspaginasPage() {
       typeButtonLabelRelatie: (page as any).typeButtonLabelRelatie ?? "",
       typeButtonLabelEenzaamheid: (page as any).typeButtonLabelEenzaamheid ?? "",
       typeButtonLabelKinderloos: (page as any).typeButtonLabelKinderloos ?? "",
-      contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p.map((b: any) => ({ titel: b.titel ?? "", tekst: b.tekst ?? "", afbeelding: b.afbeelding ?? "", file: null, accent: b.accent ?? false })) : []; } catch { return []; } })(),
+      contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p.map((b: any) => ({ titel: b.titel ?? "", tekst: b.tekst ?? "", afbeelding: b.afbeelding ?? "", file: null, video: b.video ?? "", videoFile: null, accent: b.accent ?? false })) : []; } catch { return []; } })(),
       watJeKrijgt: (() => { try { const p = JSON.parse((page as any).watJeKrijgtJson || "[]"); return Array.isArray(p) ? p : []; } catch { return []; } })(),
       watJeKrijgtTitel: (page as any).watJeKrijgtTitel ?? "",
       kpHeroKop1: (page as any).kpHeroKop1 ?? "",
@@ -790,16 +790,22 @@ export default function AdminLandingspaginasPage() {
   };
 
   const buildContentBlocksJson = async (blocks: FormState["contentBlocks"]) => {
-    const result: { titel: string; tekst: string; afbeelding?: string; accent?: boolean }[] = [];
+    const result: { titel: string; tekst: string; afbeelding?: string; video?: string; accent?: boolean }[] = [];
     for (const b of blocks) {
-      if (!b.titel && !b.tekst && !b.afbeelding && !b.file) continue;
+      if (!b.titel && !b.tekst && !b.afbeelding && !b.file && !b.video && !b.videoFile) continue;
       let afbeelding = b.afbeelding;
       if (b.file) {
         const storageId = await uploadFile(b.file);
         const url = await getImageUrl({ storageId });
         if (url) afbeelding = url;
       }
-      result.push({ titel: b.titel, tekst: b.tekst, afbeelding: afbeelding || undefined, accent: b.accent || undefined });
+      let video = b.video;
+      if (b.videoFile) {
+        const storageId = await uploadFile(b.videoFile);
+        const url = await getImageUrl({ storageId });
+        if (url) video = url;
+      }
+      result.push({ titel: b.titel, tekst: b.tekst, afbeelding: afbeelding || undefined, video: video || undefined, accent: b.accent || undefined });
     }
     return result.length ? JSON.stringify(result) : "";
   };
@@ -2140,6 +2146,24 @@ export default function AdminLandingspaginasPage() {
                         </div>
                       )}
                     </div>
+                    <div>
+                      <label className={labelSmClass}>Video <span className="text-gray-400">(optioneel, mp4)</span></label>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                          const videoFile = e.target.files?.[0] ?? null;
+                          setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], videoFile, video: videoFile ? "" : b[i].video }; return { ...f, contentBlocks: b }; });
+                        }}
+                        className="block w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:bg-primary-100 file:text-primary-800"
+                      />
+                      {(block.videoFile || block.video) && (
+                        <div className="mt-1 flex items-center gap-2">
+                          <video src={block.videoFile ? URL.createObjectURL(block.videoFile) : block.video} className="h-16 rounded border border-primary-100" muted playsInline />
+                          <button type="button" onClick={() => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], videoFile: null, video: "" }; return { ...f, contentBlocks: b }; })} className="text-xs text-red-400 hover:text-red-600">Verwijderen</button>
+                        </div>
+                      )}
+                    </div>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -2152,7 +2176,7 @@ export default function AdminLandingspaginasPage() {
                   </div>
                 ))}
                 <button type="button"
-                  onClick={() => setForm(f => ({ ...f, contentBlocks: [...f.contentBlocks, { titel: "", tekst: "", afbeelding: "", file: null }] }))}
+                  onClick={() => setForm(f => ({ ...f, contentBlocks: [...f.contentBlocks, { titel: "", tekst: "", afbeelding: "", file: null, video: "", videoFile: null }] }))}
                   className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 font-medium">
                   <Plus size={14} /> Blok toevoegen
                 </button>

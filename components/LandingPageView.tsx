@@ -839,7 +839,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* INHOUDSBLOKKEN */}
         {(() => {
-          let blocks: { titel: string; tekst: string; afbeelding?: string; accent?: boolean }[] = [];
+          let blocks: { titel: string; tekst: string; afbeelding?: string; video?: string; accent?: boolean }[] = [];
           try { if ((page as any).contentBlocksJson) blocks = JSON.parse((page as any).contentBlocksJson); } catch {}
           if (!blocks.length) return null;
           return (
@@ -855,10 +855,12 @@ export function LandingPageView({ slug }: { slug: string }) {
                         {renderTextWithParagraphs(block.tekst)}
                       </div>
                     )}
-                    {block.afbeelding && (
+                    {block.video ? (
+                      <video src={block.video} controls playsInline className={`${lpImgSizing} rounded-xl border border-gray-100 shadow-sm`} />
+                    ) : block.afbeelding ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={block.afbeelding} alt={block.titel || ""} className={`${lpImgSizing} rounded-xl border border-gray-100 shadow-sm`} />
-                    )}
+                    ) : null}
                   </div>
                 ))}
               </div>
