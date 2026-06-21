@@ -229,13 +229,15 @@ export function RustigeCheckout({
         {/* ── Sectie 5 — Persoonlijk verhaal Benji ── */}
         {(benji.tekst?.trim() || benji.imageUrl) && (
           <section className="space-y-5">
-            <div className="max-w-md mx-auto text-left space-y-3">
+            <div className="max-w-md mx-auto flex items-start gap-4 text-left">
               {benji.imageUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={benji.imageUrl} alt={benji.titel ?? "Benji"} loading="lazy" className="w-16 h-16 rounded-full object-cover" />
+                <img src={benji.imageUrl} alt={benji.titel ?? "Benji"} loading="lazy" className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
               )}
-              {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
-              <Alineas tekst={benji.tekst} className="text-base leading-relaxed text-pretty" />
+              <div className="min-w-0 space-y-3">
+                {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
+                <Alineas tekst={benji.tekst} className="text-base leading-relaxed text-pretty" />
+              </div>
             </div>
           </section>
         )}
