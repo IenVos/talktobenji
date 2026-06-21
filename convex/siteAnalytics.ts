@@ -323,6 +323,7 @@ export const getFunnelStats = query({
         slug,
         reached: count("checkout", slug, "reached"),
         details: count("checkout", slug, "details"),
+        termsClick: count("checkout", slug, "terms_click"),
         payClick: count("checkout", slug, "pay_click"),
         purchased: count("checkout", slug, "purchased"),
         // Scroll-diepte op de checkout (zelfde pad, category "checkout")

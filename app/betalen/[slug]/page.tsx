@@ -77,6 +77,7 @@ function CheckoutForm({
   addOnPriceInCents,
   addOnSelected,
   onPayClick,
+  onTermsLinkClick,
 }: {
   slug: string;
   buttonText?: string;
@@ -101,6 +102,7 @@ function CheckoutForm({
   addOnPriceInCents?: number;
   addOnSelected?: boolean;
   onPayClick?: () => void;
+  onTermsLinkClick?: () => void;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -251,18 +253,12 @@ function CheckoutForm({
         <Checkbox checked={termsAccepted} onChange={() => {}} />
         <span className="text-xs text-stone-600 leading-snug pt-0.5">
           Ik ga akkoord met de{" "}
-          <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-primary-600 underline">algemene voorwaarden</a>
+          <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); onTermsLinkClick?.(); }} className="text-primary-600 underline">algemene voorwaarden</a>
           {" en het "}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-primary-600 underline">privacybeleid</a>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); onTermsLinkClick?.(); }} className="text-primary-600 underline">privacybeleid</a>
           {"."}
         </span>
       </label>
-
-      {termsError && (
-        <p className="text-sm text-red-600 font-medium">
-          Je moet akkoord gaan met de voorwaarden om door te gaan.
-        </p>
-      )}
 
       {/* Quote + betaalknop samen in één dun kader zodat ze bij elkaar horen */}
       <div className="rounded-2xl border border-stone-200 p-4 space-y-4">
@@ -272,13 +268,13 @@ function CheckoutForm({
 
         <button
           type="submit"
-          disabled={submitting || !stripe || !elements || !termsAccepted}
+          disabled={submitting || !stripe || !elements}
           className="w-full py-4 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-base"
         >
           {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
         </button>
-        {!termsAccepted && (
-          <p className="text-center text-xs text-stone-500 -mt-1">
+        {termsError && (
+          <p className="text-center text-sm text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2 -mt-1">
             Vink hierboven de voorwaarden aan om verder te gaan.
           </p>
         )}
@@ -577,6 +573,7 @@ export default function BetalenPage() {
         addOnPriceInCents={product.addOnPriceInCents}
         addOnSelected={addOnSelected}
         onPayClick={() => fireFunnel("pay_click")}
+        onTermsLinkClick={() => fireFunnel("terms_click")}
       />
     </Elements>
   );
