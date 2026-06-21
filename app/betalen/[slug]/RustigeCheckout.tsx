@@ -226,34 +226,6 @@ export function RustigeCheckout({
           </div>
         </section>
 
-        {/* ── Sectie 4 — Reviews ── */}
-        {reviews.length > 0 && (
-          <section className="space-y-4">
-            <h2 className={`text-xl font-semibold ${FRAME}`} style={{ color: KLEUR.titel }}>{reviewsTitel}</h2>
-            <div className="space-y-3">
-              {reviews.map((r, i) => (
-                <div key={i} className="rounded-2xl border p-6" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
-                  <p className="text-base leading-relaxed italic mb-3" style={{ color: KLEUR.tekst }}>&ldquo;{r.text}&rdquo;</p>
-                  <div className="flex items-center gap-2.5">
-                    {r.imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={r.imageUrl} alt={r.author} loading="lazy" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs flex-shrink-0" style={{ background: KLEUR.accentZacht, color: KLEUR.accent }}>
-                        {r.author.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm font-semibold" style={{ color: KLEUR.titel }}>{r.author}</p>
-                      {r.role && <p className="text-xs" style={{ color: KLEUR.zacht }}>{r.role}</p>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
         {/* ── Sectie 5 — Persoonlijk verhaal Benji ── */}
         {(benji.tekst?.trim() || benji.imageUrl) && (
           <section className="space-y-5">
@@ -280,6 +252,34 @@ export function RustigeCheckout({
             {veilig.buttonText}
           </button>
         </section>
+
+        {/* ── Reviews — vlak boven het betaalscherm voor extra vertrouwen ── */}
+        {reviews.length > 0 && (
+          <section className="space-y-4">
+            <h2 className={`text-xl font-semibold ${FRAME}`} style={{ color: KLEUR.titel }}>{reviewsTitel}</h2>
+            <div className="space-y-3">
+              {reviews.map((r, i) => (
+                <div key={i} className="rounded-2xl border p-6" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
+                  <p className="text-base leading-relaxed italic mb-3" style={{ color: KLEUR.tekst }}>&ldquo;{r.text}&rdquo;</p>
+                  <div className="flex items-center gap-2.5">
+                    {r.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={r.imageUrl} alt={r.author} loading="lazy" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs flex-shrink-0" style={{ background: KLEUR.accentZacht, color: KLEUR.accent }}>
+                        {r.author.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: KLEUR.titel }}>{r.author}</p>
+                      {r.role && <p className="text-xs" style={{ color: KLEUR.zacht }}>{r.role}</p>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* ── Betaalblok ── */}
         <section id="betaalblok" className="scroll-mt-6">
