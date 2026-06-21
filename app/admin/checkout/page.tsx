@@ -1219,8 +1219,9 @@ export default function AdminCheckoutPage() {
                     <textarea className={inputClass} rows={4} placeholder="Vinkjes (één per regel)" value={rustig.heroBullets} onChange={setR("heroBullets")} />
                     <div className="grid grid-cols-2 gap-2">
                       <input className={inputClass} placeholder="Prijsregel (bijv. €37 eenmalig)" value={rustig.heroPrijsLabel} onChange={setR("heroPrijsLabel")} />
-                      <input className={inputClass} placeholder="Knoptekst" value={rustig.heroButton} onChange={setR("heroButton")} />
+                      <input className={inputClass} placeholder="Knoptekst (scroll-knop)" value={rustig.heroButton} onChange={setR("heroButton")} />
                     </div>
+                    <p className="text-xs text-gray-400">Let op: deze knop is een <strong>scroll-CTA</strong>, hij springt naar het betaalblok (net als de knop bij Veiligheid). De échte betaalknop pas je aan bij &ldquo;Knoptekst (standaard: Betalen)&rdquo; bovenaan.</p>
                   </div>
 
                   {/* Sectie 2 — Wat je krijgt */}

@@ -229,7 +229,7 @@ export function RustigeCheckout({
         {/* ── Sectie 5 — Persoonlijk verhaal Benji ── */}
         {(benji.tekst?.trim() || benji.imageUrl) && (
           <section className="space-y-5">
-            <div className="max-w-md mx-auto flex items-start gap-4 text-left rounded-2xl border p-6" style={{ borderColor: KLEUR.rand }}>
+            <div className="flex items-start gap-4 text-left rounded-2xl border p-6" style={{ borderColor: KLEUR.rand }}>
               {benji.imageUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={benji.imageUrl} alt={benji.titel ?? "Benji"} loading="lazy" className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
