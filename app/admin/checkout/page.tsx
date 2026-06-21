@@ -740,10 +740,10 @@ export default function AdminCheckoutPage() {
                 />
               </div>
               <div>
-                <label className={labelSmClass}>Geruststelling onder knop <span className="font-normal text-gray-400">(standaard: "Veilig betalen via Stripe…")</span></label>
+                <label className={labelSmClass}>Zin onder de knop <span className="font-normal text-gray-400">(standaard: "Niet tevreden, voelt het niet goed? Laat het weten.")</span></label>
                 <input
                   type="text"
-                  placeholder="🔒 Veilig betalen via Stripe · digitaal product · direct toegang"
+                  placeholder="Niet tevreden, voelt het niet goed? Laat het weten."
                   value={form.trustText}
                   onChange={set("trustText")}
                   className={inputClass}
