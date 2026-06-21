@@ -257,8 +257,11 @@ export function RustigeCheckout({
         {/* ── Sectie 5 — Persoonlijk verhaal Benji ── */}
         {(benji.tekst?.trim() || benji.imageUrl) && (
           <section className="space-y-5">
-            <SectieFoto url={benji.imageUrl} alt={benji.titel ?? "Benji"} ratio="aspect-[3/2]" />
             <div className={`${FRAME} space-y-3`}>
+              {benji.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={benji.imageUrl} alt={benji.titel ?? "Benji"} loading="lazy" className="w-16 h-16 rounded-full object-cover mx-auto" />
+              )}
               {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
               <Alineas tekst={benji.tekst} className="text-base leading-relaxed text-pretty" />
             </div>
