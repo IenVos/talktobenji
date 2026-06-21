@@ -274,7 +274,9 @@ function CheckoutForm({
           {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
         </button>
         <p className="text-center text-sm text-stone-600 -mt-1">
-          {trustText?.trim() || "Niet tevreden, voelt het niet goed? Laat het weten."}
+          {(trustText?.trim() || "Niet tevreden, voelt het niet goed? Laat het weten.")
+            .split(/(?<=[.?!])\s+/)
+            .map((zin, i) => <span key={i} className="block">{zin}</span>)}
         </p>
         {termsError && (
           <p className="text-center text-sm text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2 -mt-1">
