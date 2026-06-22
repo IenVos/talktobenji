@@ -278,6 +278,33 @@ export const deleteFunnelEventsBefore = mutation({
 });
 
 /**
+ * Verwijder funnel-events van bepaalde stappen (admin only). Bedoeld om eigen
+ * testinvullingen op te schonen, bv. checkout "details"/"pay_click". Optioneel te
+ * beperken tot één path. Geeft het aantal verwijderde events terug.
+ */
+export const deleteFunnelEventsByStep = mutation({
+  args: {
+    adminToken: v.string(),
+    category: v.string(),
+    steps: v.array(v.string()),
+    path: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const all = await ctx.db.query("funnelEvents").collect();
+    const stepSet = new Set(args.steps);
+    const toDelete = all.filter(
+      (e) =>
+        e.category === args.category &&
+        stepSet.has(e.step) &&
+        (args.path === undefined || e.path === args.path)
+    );
+    for (const e of toDelete) await ctx.db.delete(e._id);
+    return { deleted: toDelete.length };
+  },
+});
+
+/**
  * Haal de afhaak-funnel op voor het opgegeven tijdsbereik (admin only).
  * Telt unieke sessies per stap, per checkout-product en per landingspagina.
  */
