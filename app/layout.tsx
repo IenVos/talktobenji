@@ -84,6 +84,17 @@ export default function RootLayout({
             src="https://www.facebook.com/tr?id=1255091969361681&ev=PageView&noscript=1"
           />
         </noscript>
+        {/* GTM-fallback voor bezoekers zonder JS. Bewust in <head> i.p.v. <body>:
+            een <noscript> binnen de gehydrateerde <body> veroorzaakt op iOS Safari
+            een hydration-mismatch (flikkering). */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-58JWMLNK"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -122,14 +133,6 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-58JWMLNK"
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
         <Script id="gtm" strategy="afterInteractive">
           {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
