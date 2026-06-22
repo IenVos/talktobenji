@@ -183,7 +183,7 @@ export function RustigeCheckout({
           <button
             type="button"
             onClick={scrollNaarBetalen}
-            className="block w-full py-4 rounded-2xl font-medium text-white text-base"
+            className="block w-full max-w-xs mx-auto py-3.5 rounded-2xl font-medium text-white text-base"
             style={{ background: KLEUR.accent }}
           >
             {hero.buttonText}
@@ -204,13 +204,13 @@ export function RustigeCheckout({
             </div>
           )}
           {(wjk.titel?.trim() || wjk.tekst?.trim()) && (
-            <div className="max-w-md mx-auto text-left rounded-2xl border p-6 space-y-4" style={{ borderColor: KLEUR.rand }}>
+            <div className="text-left rounded-2xl border p-6 space-y-4" style={{ borderColor: KLEUR.rand }}>
               {wjk.titel?.trim() && <h2 className="text-2xl font-semibold text-balance" style={{ color: KLEUR.titel }}>{wjk.titel}</h2>}
               <Alineas tekst={wjk.tekst} className="text-lg leading-relaxed text-pretty" />
             </div>
           )}
           {wjk.bullets && wjk.bullets.length > 0 && (
-            <div className="max-w-md mx-auto"><Vinkjes items={wjk.bullets} /></div>
+            <div><Vinkjes items={wjk.bullets} /></div>
           )}
         </section>
 
@@ -252,7 +252,7 @@ export function RustigeCheckout({
           <button
             type="button"
             onClick={scrollNaarBetalen}
-            className="block w-full py-4 rounded-2xl font-medium text-white text-base"
+            className="block w-full max-w-xs mx-auto py-3.5 rounded-2xl font-medium text-white text-base"
             style={{ background: KLEUR.accent }}
           >
             {veilig.buttonText}
