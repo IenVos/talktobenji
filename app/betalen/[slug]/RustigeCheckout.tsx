@@ -204,9 +204,9 @@ export function RustigeCheckout({
             </div>
           )}
           {(wjk.titel?.trim() || wjk.tekst?.trim()) && (
-            <div className="text-left rounded-2xl border p-6 space-y-4" style={{ borderColor: KLEUR.rand }}>
-              {wjk.titel?.trim() && <h2 className="text-2xl font-semibold text-balance" style={{ color: KLEUR.titel }}>{wjk.titel}</h2>}
-              <Alineas tekst={wjk.tekst} className="text-lg leading-relaxed text-pretty" />
+            <div className="text-center rounded-2xl border p-6 space-y-4" style={{ borderColor: KLEUR.rand }}>
+              {wjk.titel?.trim() && <h2 className="text-xl font-semibold text-balance" style={{ color: KLEUR.titel }}>{wjk.titel}</h2>}
+              <Alineas tekst={wjk.tekst} className="text-base leading-relaxed text-pretty" />
             </div>
           )}
           {wjk.bullets && wjk.bullets.length > 0 && (
@@ -239,7 +239,7 @@ export function RustigeCheckout({
                 <img src={benji.imageUrl} alt={benji.titel ?? "Benji"} loading="lazy" className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
               )}
               <div className="min-w-0 space-y-3">
-                {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
+                {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance text-center" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
                 <Alineas tekst={benji.tekst} className="text-base leading-relaxed text-pretty" />
               </div>
             </div>

@@ -18,6 +18,7 @@ import type * as benjiTeasers from "../benjiTeasers.js";
 import type * as blogPosts from "../blogPosts.js";
 import type * as chat from "../chat.js";
 import type * as checkoutProducts from "../checkoutProducts.js";
+import type * as checkoutValidators from "../checkoutValidators.js";
 import type * as comingSoonFeatures from "../comingSoonFeatures.js";
 import type * as credentials from "../credentials.js";
 import type * as crons from "../crons.js";
@@ -90,6 +91,7 @@ declare const fullApi: ApiFromModules<{
   blogPosts: typeof blogPosts;
   chat: typeof chat;
   checkoutProducts: typeof checkoutProducts;
+  checkoutValidators: typeof checkoutValidators;
   comingSoonFeatures: typeof comingSoonFeatures;
   credentials: typeof credentials;
   crons: typeof crons;
