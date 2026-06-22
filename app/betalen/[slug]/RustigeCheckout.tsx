@@ -233,14 +233,14 @@ export function RustigeCheckout({
         {/* ── Sectie 5 — Persoonlijk verhaal Benji ── */}
         {(benji.tekst?.trim() || benji.imageUrl) && (
           <section className="space-y-5">
-            <div className="flex items-start gap-4 text-left rounded-2xl border p-6" style={{ borderColor: KLEUR.rand }}>
-              {benji.imageUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={benji.imageUrl} alt={benji.titel ?? "Benji"} loading="lazy" className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
-              )}
-              <div className="min-w-0 space-y-3">
-                {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance text-center" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
-                <Alineas tekst={benji.tekst} className="text-base leading-relaxed text-pretty" />
+            <div className="rounded-2xl border p-6 space-y-3" style={{ borderColor: KLEUR.rand }}>
+              {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance text-center" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
+              <div className="flex items-start gap-4 text-left">
+                {benji.imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={benji.imageUrl} alt={benji.titel ?? "Benji"} loading="lazy" className="w-16 h-16 rounded-full object-cover flex-shrink-0" />
+                )}
+                <div className="min-w-0"><Alineas tekst={benji.tekst} className="text-base leading-relaxed text-pretty" /></div>
               </div>
             </div>
           </section>
