@@ -552,6 +552,7 @@ export default defineSchema({
     sessionId: v.string(),
     timestamp: v.number(),
     device: v.string(),
+    os: v.optional(v.string()), // besturingssysteem: iOS | Android | Windows | macOS | Linux | Overig
     duration: v.optional(v.number()),
     ip: v.optional(v.string()),
     referrer: v.optional(v.string()),

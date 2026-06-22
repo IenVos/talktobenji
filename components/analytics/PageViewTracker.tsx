@@ -5,6 +5,20 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { usePathname } from "next/navigation";
 
+/** Leid het besturingssysteem af uit de user-agent (iOS / Android / Windows / macOS / Linux). */
+function detectOS(): string {
+  if (typeof navigator === "undefined") return "Overig";
+  const ua = navigator.userAgent || "";
+  if (/android/i.test(ua)) return "Android";
+  if (/iphone|ipad|ipod/i.test(ua)) return "iOS";
+  // iPad op iOS 13+ meldt zich als "Macintosh"; herken via touch-ondersteuning.
+  if (/macintosh/i.test(ua) && navigator.maxTouchPoints > 1) return "iOS";
+  if (/windows/i.test(ua)) return "Windows";
+  if (/macintosh|mac os x/i.test(ua)) return "macOS";
+  if (/linux/i.test(ua)) return "Linux";
+  return "Overig";
+}
+
 export function PageViewTracker() {
   const pathname = usePathname();
   const trackPageView = useMutation(api.siteAnalytics.trackPageView);
@@ -12,6 +26,7 @@ export function PageViewTracker() {
 
   const sessionIdRef = useRef<string | null>(null);
   const deviceRef = useRef<string>("desktop");
+  const osRef = useRef<string>("Overig");
   const ipRef = useRef<string | undefined>(undefined);
   const pageLoadTimeRef = useRef<number>(Date.now());
   const lastPathRef = useRef<string | null>(null);
@@ -34,6 +49,7 @@ export function PageViewTracker() {
       sessionIdRef.current = newId;
     }
     deviceRef.current = window.innerWidth < 768 ? "mobile" : window.innerWidth < 1024 ? "tablet" : "desktop";
+    osRef.current = detectOS();
     // Haal IP op voor uitsluiting – track pas nadat dit klaar is
     fetch("/api/my-ip")
       .then((r) => r.json())
@@ -54,6 +70,7 @@ export function PageViewTracker() {
       path: pathname ?? "/",
       sessionId: sessionIdRef.current ?? "",
       device: deviceRef.current,
+      os: osRef.current,
       ip: ipRef.current,
       referrer: document.referrer || undefined,
     }).catch(() => {

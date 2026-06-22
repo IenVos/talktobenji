@@ -11,6 +11,7 @@ export const trackPageView = mutation({
     path: v.string(),
     sessionId: v.string(),
     device: v.string(),
+    os: v.optional(v.string()),
     ip: v.optional(v.string()),
     referrer: v.optional(v.string()),
   },
@@ -31,6 +32,7 @@ export const trackPageView = mutation({
       sessionId: args.sessionId,
       timestamp: Date.now(),
       device: args.device,
+      os: args.os,
       ip: args.ip,
       referrer: args.referrer,
     });
@@ -411,11 +413,18 @@ export const getStats = query({
     let mobile = 0;
     let tablet = 0;
     let desktop = 0;
+    // -- Besturingssystemen (iOS / Android / Windows / macOS / Linux / Overig) --
+    const osCounts: Record<string, number> = {};
     for (const view of allViews) {
       if (view.device === "mobile") mobile++;
       else if (view.device === "tablet") tablet++;
       else desktop++;
+      const os = view.os || "Onbekend";
+      osCounts[os] = (osCounts[os] ?? 0) + 1;
     }
+    const besturingssystemen = Object.entries(osCounts)
+      .sort(([, a], [, b]) => b - a)
+      .map(([os, count]) => ({ os, count }));
 
     // -- Totalen --
     const allSessionIds = new Set(allViews.map((v) => v.sessionId));
@@ -642,6 +651,7 @@ export const getStats = query({
       dailyConversions,
       topPages,
       devices: { mobile, tablet, desktop },
+      besturingssystemen,
       totals,
       hourlyViews,
       bronnen,

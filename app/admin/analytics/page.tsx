@@ -1163,6 +1163,23 @@ export default function AdminAnalytics() {
                   {Math.round((donutData.tablet / donutData.total) * 100)}%
                 </span>
               </div>
+
+              {/* Besturingssysteem (iOS / Android / …) */}
+              {stats.besturingssystemen && stats.besturingssystemen.length > 0 && (() => {
+                const osTotal = stats.besturingssystemen.reduce((s: number, o: { os: string; count: number }) => s + o.count, 0);
+                if (osTotal === 0) return null;
+                return (
+                  <div className="pt-3 mt-1 border-t border-primary-100 space-y-2.5">
+                    <p className="text-xs font-medium text-primary-400 uppercase tracking-wide">Systeem</p>
+                    {stats.besturingssystemen.map((o: { os: string; count: number }) => (
+                      <div key={o.os} className="flex items-center justify-between text-sm">
+                        <span className="text-primary-700">{o.os}</span>
+                        <span className="text-primary-500 font-medium">{Math.round((o.count / osTotal) * 100)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>
