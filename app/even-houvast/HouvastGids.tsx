@@ -71,10 +71,6 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
   const [briefStatus, setBriefStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [briefFout, setBriefFout] = useState("Er ging iets mis. Probeer het opnieuw.");
 
-  // Account aanmaken (alleen relevant met token / bekend e-mailadres)
-  const [wachtwoord, setWachtwoord] = useState("");
-  const [aanmeldStatus, setAanmeldStatus] = useState<"idle" | "loading" | "success" | "bestaand" | "error">("idle");
-
   useEffect(() => {
     setHeeftSpeechSupport(!!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition));
   }, []);
@@ -193,34 +189,6 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
     } catch {
       setBriefFout("Er ging iets mis. Probeer het opnieuw.");
       setBriefStatus("error");
-    }
-  };
-
-  const registreer = async () => {
-    const aanmeldEmail = email || profiel?.email;
-    if (!aanmeldEmail || wachtwoord.length < 8) return;
-    setAanmeldStatus("loading");
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: aanmeldEmail,
-          password: wachtwoord,
-          name: profiel?.name ?? "",
-          source: "houvast",
-        }),
-      });
-      const data = await res.json();
-      if (res.status === 409 || data?.error?.toLowerCase().includes("bestaat")) {
-        setAanmeldStatus("bestaand");
-      } else if (!res.ok) {
-        setAanmeldStatus("error");
-      } else {
-        setAanmeldStatus("success");
-      }
-    } catch {
-      setAanmeldStatus("error");
     }
   };
 
@@ -650,7 +618,7 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
                   <p key={i} className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{alinea}</p>
                 ))}
 
-                {/* Doorstroom naar Niet Alleen (per verliestype) */}
+                {/* Doorstroom naar Niet Alleen (per verliestype) — enige pad vanaf hier */}
                 <div className="space-y-1.5">
                   <a
                     href={nietAlleenUrl}
@@ -665,63 +633,6 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
                     </p>
                   )}
                 </div>
-
-                {/* Account aanmaken — alleen als we een e-mailadres hebben */}
-                {(profiel?.email || email) && aanmeldStatus !== "success" && aanmeldStatus !== "bestaand" && (
-                  <div className="space-y-3 pt-2 border-t" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
-                    <p className="text-sm font-medium" style={{ color: "#3d3530" }}>
-                      Of: start 7 dagen gratis met Benji
-                    </p>
-                    <input
-                      type="password"
-                      placeholder="Kies een wachtwoord (min. 8 tekens)"
-                      value={wachtwoord}
-                      onChange={(e) => setWachtwoord(e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-                      style={{ background: "rgba(255,255,255,0.90)", border: "1px solid rgba(0,0,0,0.08)", color: "#3d3530" }}
-                    />
-                    {aanmeldStatus === "error" && (
-                      <p className="text-xs" style={{ color: "#c0392b" }}>Er ging iets mis. Probeer het opnieuw.</p>
-                    )}
-                    <button
-                      onClick={registreer}
-                      disabled={aanmeldStatus === "loading" || wachtwoord.length < 8}
-                      className="w-full py-3 rounded-2xl font-medium text-sm disabled:opacity-50"
-                      style={{ background: "rgba(109,132,168,0.10)", color: "#6d84a8" }}
-                    >
-                      {aanmeldStatus === "loading" ? "Bezig…" : "Maak mijn account aan"}
-                    </button>
-                  </div>
-                )}
-                {aanmeldStatus === "success" && (
-                  <div className="rounded-xl px-5 py-5 text-center space-y-2" style={{ background: "rgba(109,132,168,0.08)" }}>
-                    <p className="text-sm font-medium" style={{ color: "#3d3530" }}>Account aangemaakt.</p>
-                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-                      Je hebt 7 dagen gratis toegang tot alles. Log in om te beginnen.
-                    </p>
-                    <Link
-                      href={`/inloggen?email=${encodeURIComponent(email || profiel?.email || "")}&registered=1`}
-                      className="inline-block mt-2 w-full py-3 rounded-2xl font-medium text-white text-sm"
-                      style={{ background: "#6d84a8" }}
-                    >
-                      Inloggen bij Benji
-                    </Link>
-                  </div>
-                )}
-                {aanmeldStatus === "bestaand" && (
-                  <div className="rounded-xl px-5 py-5 space-y-3" style={{ background: "rgba(109,132,168,0.08)" }}>
-                    <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
-                      Je hebt al een account met dit e-mailadres. Log direct in.
-                    </p>
-                    <Link
-                      href={`/inloggen?email=${encodeURIComponent(email || profiel?.email || "")}`}
-                      className="block w-full text-center py-3 rounded-2xl font-medium text-white text-sm"
-                      style={{ background: "#6d84a8" }}
-                    >
-                      Inloggen bij Benji
-                    </Link>
-                  </div>
-                )}
               </div>
             )}
 
