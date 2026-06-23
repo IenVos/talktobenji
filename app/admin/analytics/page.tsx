@@ -984,6 +984,33 @@ export default function AdminAnalytics() {
                   />
                 </div>
               </div>
+              {/* Stap 3 — echte eindconversie: Niet Alleen aangeschaft */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-1.5 text-xs text-primary-600">
+                    <ArrowRight size={10} className="text-primary-400" />
+                    Niet Alleen aangeschaft
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-primary-900">{featureStats.houvast.nietAlleen ?? 0}</span>
+                    {featureStats.houvast.total > 0 && (
+                      <span className="text-xs text-primary-400">
+                        {Math.round(((featureStats.houvast.nietAlleen ?? 0) / featureStats.houvast.total) * 100)}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="h-2.5 bg-primary-50 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-amber-500"
+                    style={{
+                      width: featureStats.houvast.total > 0
+                        ? `${Math.round(((featureStats.houvast.nietAlleen ?? 0) / featureStats.houvast.total) * 100)}%`
+                        : "0%",
+                    }}
+                  />
+                </div>
+              </div>
               <p className="text-xs text-primary-400 pt-1">
                 Totaal ooit aangevraagd: <span className="font-semibold text-primary-600">{featureStats.houvast.allTime}</span>
               </p>
@@ -1000,7 +1027,7 @@ export default function AdminAnalytics() {
                   </button>
                   {showList && (
                     <div className="space-y-0">
-                      {featureStats.houvast.list.map((h: { email: string; name: string | null; createdAt: number; heeftAccount: boolean }, i: number) => (
+                      {featureStats.houvast.list.map((h: { email: string; name: string | null; createdAt: number; heeftAccount: boolean; heeftNietAlleen?: boolean }, i: number) => (
                         <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-primary-50 last:border-0">
                           <div>
                             {h.name && <span className="font-medium text-primary-800 mr-1.5">{h.name}</span>}
@@ -1010,7 +1037,9 @@ export default function AdminAnalytics() {
                             <span className="text-primary-400">
                               {new Date(h.createdAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}
                             </span>
-                            {h.heeftAccount ? (
+                            {h.heeftNietAlleen ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-100 text-amber-800">Niet Alleen</span>
+                            ) : h.heeftAccount ? (
                               <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700">account</span>
                             ) : (
                               <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-400">geen account</span>

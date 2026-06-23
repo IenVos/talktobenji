@@ -826,7 +826,7 @@ export const getFeatureStats = query({
 
     const inRange = (ts: number) => ts >= args.from && ts <= args.to;
 
-    const [notes, emotions, checkIns, goals, memories, houvasteProfielen, houvastBrieven, users, preferences, excludedEmailRecords] = await Promise.all([
+    const [notes, emotions, checkIns, goals, memories, houvasteProfielen, houvastBrieven, users, preferences, excludedEmailRecords, nietAlleenProfielen] = await Promise.all([
       ctx.db.query("notes").collect(),
       ctx.db.query("emotionEntries").collect(),
       ctx.db.query("checkInEntries").collect(),
@@ -837,6 +837,7 @@ export const getFeatureStats = query({
       ctx.db.query("users").collect(),
       ctx.db.query("userPreferences").collect(),
       ctx.db.query("analyticsExcludedEmails").collect(),
+      ctx.db.query("nietAlleenProfiles").collect(),
     ]);
 
     const excludedEmailSet = new Set(excludedEmailRecords.map((e: any) => e.email.toLowerCase()));
@@ -868,15 +869,26 @@ export const getFeatureStats = query({
     const houvasteInPeriod = houvasteNietUitgesloten.filter((h: any) => inRange(h.createdAt));
     const houvasteConverted = houvasteInPeriod.filter((h: any) => userEmailsLc.has(h.email.toLowerCase()));
 
+    // Niet Alleen-aankoop = een nietAlleenProfiles-record op dat e-mailadres.
+    // Dit is de echte eindconversie van de Even Houvast-trechter.
+    const nietAlleenEmailsLc = new Set(
+      nietAlleenProfielen
+        .map((p: any) => (p.email ?? "").toLowerCase())
+        .filter((e: string) => e && !excludedEmailSet.has(e))
+    );
+    const houvasteNaarNietAlleen = houvasteInPeriod.filter((h: any) => nietAlleenEmailsLc.has(h.email.toLowerCase()));
+
     // Feature gebruik in periode — gebruik _creationTime als fallback als createdAt ontbreekt
     const ts = (item: any) => item.createdAt ?? item._creationTime ?? 0;
 
     const convertedEmails = new Set(houvasteConverted.map((h: any) => h.email));
+    const nietAlleenEmailsExact = new Set(houvasteNaarNietAlleen.map((h: any) => h.email));
 
     return {
       houvast: {
         total: houvasteInPeriod.length,
         converted: houvasteConverted.length,
+        nietAlleen: houvasteNaarNietAlleen.length,
         allTime: houvasteNietUitgesloten.length,
         list: houvasteNietUitgesloten
           .sort((a: any, b: any) => b.createdAt - a.createdAt)
@@ -885,6 +897,7 @@ export const getFeatureStats = query({
             name: h.name ?? null,
             createdAt: h.createdAt,
             heeftAccount: convertedEmails.has(h.email),
+            heeftNietAlleen: nietAlleenEmailsExact.has(h.email),
           })),
       },
       features: [
