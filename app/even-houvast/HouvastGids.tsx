@@ -186,6 +186,15 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
       }
       if (!res.ok) throw new Error("Fout");
       setBriefStatus("done");
+      // Meta Lead-event: de bezoeker heeft z'n e-mail achtergelaten voor de brief.
+      // Hiermee kan Meta de Even Houvast-advertentie op leads optimaliseren.
+      // (fbq bestaat alleen als de bezoeker akkoord ging met statistiek-cookies.)
+      if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+        (window as any).fbq("track", "Lead", {
+          content_name: "Even Houvast",
+          content_category: actiefType || undefined,
+        });
+      }
     } catch {
       setBriefFout("Er ging iets mis. Probeer het opnieuw.");
       setBriefStatus("error");
