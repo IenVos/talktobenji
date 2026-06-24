@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 import { ConvexClientProvider } from "@/lib/ConvexClientProvider";
@@ -80,22 +79,9 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <head>
-        <noscript>
-          <img height="1" width="1" style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1255091969361681&ev=PageView&noscript=1"
-          />
-        </noscript>
-        {/* GTM-fallback voor bezoekers zonder JS. Bewust in <head> i.p.v. <body>:
-            een <noscript> binnen de gehydrateerde <body> veroorzaakt op iOS Safari
-            een hydration-mismatch (flikkering). */}
-        <noscript>
-          <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-58JWMLNK"
-            height="0"
-            width="0"
-            style={{ display: "none", visibility: "hidden" }}
-          />
-        </noscript>
+        {/* Tracking (GTM, Meta Pixel, Clarity) staat in ConsentScripts en laadt pas
+            ná cookie-toestemming. De oude <noscript>-fallbacks zijn bewust verwijderd:
+            die vuurden buiten de consent om en no-JS-bezoekers kunnen de banner niet bedienen. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -134,13 +120,6 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <Script id="gtm" strategy="afterInteractive">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-58JWMLNK');`}
-        </Script>
         <ConsentScripts />
         <ErrorBoundary>
           <SessionProvider>

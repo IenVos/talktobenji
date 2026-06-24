@@ -21,9 +21,10 @@ function analyticsToegestaan(): boolean {
 }
 
 // Tracking-scripts die pas mogen laden ná toestemming (AVG-conform):
+//  - Google Tag Manager: container voor marketing-/analytics-tags
 //  - Microsoft Clarity: sessie-opnames + heatmaps (statistieken)
 //  - Meta Pixel: meet advertentie-effectiviteit (marketing)
-// Beide hangen aan dezelfde 'statistieken'-toestemming uit de cookiebanner.
+// Alle drie hangen aan dezelfde 'statistieken'-toestemming uit de cookiebanner.
 export function ConsentScripts() {
   const [toegestaan, setToegestaan] = useState(false);
 
@@ -44,6 +45,13 @@ export function ConsentScripts() {
 
   return (
     <>
+      <Script id="gtm" strategy="afterInteractive">
+        {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-58JWMLNK');`}
+      </Script>
       <Script id="meta-pixel" strategy="afterInteractive">
         {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
