@@ -40,6 +40,8 @@ export function CookieConsentBanner() {
   const saveAndClose = (prefs: CookiePrefs) => {
     if (typeof window !== "undefined") {
       localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(prefs));
+      // Laat consent-afhankelijke scripts (bijv. Clarity) reageren zonder herladen.
+      window.dispatchEvent(new Event("cookie-consent-changed"));
       setShow(false);
     }
   };
