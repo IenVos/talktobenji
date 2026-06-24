@@ -5,7 +5,7 @@ import Script from "next/script";
 
 const COOKIE_CONSENT_KEY = "benji_cookie_consent";
 
-// Leest of de bezoeker akkoord is met statistiek-cookies. Zelfde opslag/shape
+// Leest of de bezoeker akkoord is met statistiek-/trackingcookies. Zelfde opslag/shape
 // als CookieConsentBanner (benji_cookie_consent → { necessary, analytics }).
 function analyticsToegestaan(): boolean {
   if (typeof window === "undefined") return false;
@@ -20,9 +20,11 @@ function analyticsToegestaan(): boolean {
   return false;
 }
 
-// Microsoft Clarity (sessie-opnames + heatmaps), bewust pas geladen nadat de
-// bezoeker akkoord is met statistiek-cookies — AVG-conform.
-export function ClarityConsent() {
+// Tracking-scripts die pas mogen laden ná toestemming (AVG-conform):
+//  - Microsoft Clarity: sessie-opnames + heatmaps (statistieken)
+//  - Meta Pixel: meet advertentie-effectiviteit (marketing)
+// Beide hangen aan dezelfde 'statistieken'-toestemming uit de cookiebanner.
+export function ConsentScripts() {
   const [toegestaan, setToegestaan] = useState(false);
 
   useEffect(() => {
@@ -41,12 +43,24 @@ export function ClarityConsent() {
   if (!toegestaan) return null;
 
   return (
-    <Script id="ms-clarity" strategy="afterInteractive">
-      {`(function(c,l,a,r,i,t,y){
+    <>
+      <Script id="meta-pixel" strategy="afterInteractive">
+        {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window,document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1255091969361681');fbq('track','PageView');`}
+      </Script>
+      <Script id="ms-clarity" strategy="afterInteractive">
+        {`(function(c,l,a,r,i,t,y){
 c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
 t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
 y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
 })(window, document, "clarity", "script", "xbwjysj1hl");`}
-    </Script>
+      </Script>
+    </>
   );
 }

@@ -173,8 +173,7 @@ export default async function PrivacyPage() {
               <p>
                 Voor de analytische cookies maken we gebruik van <strong>Microsoft Clarity</strong>. Clarity helpt ons begrijpen hoe
                 bezoekers de site gebruiken (zoals klikken, scrollen en geanonimiseerde sessie-overzichten), zodat we knelpunten kunnen
-                verbeteren. Ingevulde gegevens in formulieren worden daarbij standaard afgeschermd. Deze cookies worden pas geplaatst nadat
-                je toestemming hebt gegeven voor statistieken. Meer informatie vind je in het{" "}
+                verbeteren. Ingevulde gegevens in formulieren worden daarbij standaard afgeschermd. Meer informatie vind je in het{" "}
                 <a
                   href="https://privacy.microsoft.com/privacystatement"
                   target="_blank"
@@ -184,6 +183,22 @@ export default async function PrivacyPage() {
                   privacybeleid van Microsoft
                 </a>
                 .
+              </p>
+              <p>
+                Daarnaast gebruiken we de <strong>Meta-pixel</strong> (Facebook/Instagram) om te meten hoe effectief onze advertenties zijn,
+                bijvoorbeeld of een bezoeker via een advertentie binnenkomt. Hiervoor kan Meta cookies plaatsen. Meer informatie vind je in het{" "}
+                <a
+                  href="https://www.facebook.com/privacy/policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-600 hover:underline"
+                >
+                  privacybeleid van Meta
+                </a>
+                .
+              </p>
+              <p>
+                Deze statistiek- en marketingcookies plaatsen we pas nadat je daarvoor toestemming hebt gegeven. Je kunt je keuze altijd aanpassen.
               </p>
               <p>
                 <CookieSettingsLink />
