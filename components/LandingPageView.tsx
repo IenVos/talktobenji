@@ -289,6 +289,8 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
 
 export function LandingPageView({ slug }: { slug: string }) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  // Klik-om-te-vergroten: bezoekers tikken op de afbeeldingen om ze groter te zien.
+  const [zoomImg, setZoomImg] = useState<string | null>(null);
   const [stickyBarDismissed, setStickyBarDismissed] = useState(false);
   // Zwevende bestel-CTA: verschijnt pas als het eerste blok ná de eerste in-page CTA
   // voorbij is, en verdwijnt zodra er een echte CTA-knop in beeld staat (geen dubbele CTA).
@@ -609,6 +611,25 @@ export function LandingPageView({ slug }: { slug: string }) {
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>
 
+      {/* Klik-om-te-vergroten pop-up: opent een afbeelding op volledige grootte. */}
+      {zoomImg && (
+        <div
+          onClick={() => setZoomImg(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", cursor: "zoom-out" }}
+        >
+          <button
+            type="button"
+            onClick={() => setZoomImg(null)}
+            aria-label="Sluiten"
+            style={{ position: "absolute", top: 16, right: 20, color: "#fff", fontSize: 30, lineHeight: 1, background: "none", border: "none", cursor: "pointer" }}
+          >
+            ×
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={zoomImg} alt="" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "100%", maxHeight: "92vh", borderRadius: 12, objectFit: "contain" }} />
+        </div>
+      )}
+
       {/* Sectie-diepte meten: welke blokken (Prijs/Reviews/FAQ/CTA) komen in beeld */}
       <SectieTracker />
 
@@ -692,7 +713,8 @@ export function LandingPageView({ slug }: { slug: string }) {
             {(page as any).heroImageUrl && (
               <div className="mt-6">
                 <img src={(page as any).heroImageUrl} alt=""
-                  className="w-auto max-w-full mx-auto block rounded-2xl"
+                  onClick={() => setZoomImg((page as any).heroImageUrl)}
+                  className="w-auto max-w-full mx-auto block rounded-2xl cursor-zoom-in"
                   style={{ maxHeight: "420px" }}
                 />
               </div>
@@ -805,7 +827,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                 )}
                 {(page as any).section1ImageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={(page as any).section1ImageUrl} alt={page.section1Title || ""} className={`${lpImgSizing} rounded-xl ${page.section1Title || page.section1Text ? "mt-4" : ""}`} />
+                  <img src={(page as any).section1ImageUrl} alt={page.section1Title || ""} onClick={() => setZoomImg((page as any).section1ImageUrl)} className={`${lpImgSizing} rounded-xl cursor-zoom-in ${page.section1Title || page.section1Text ? "mt-4" : ""}`} />
                 )}
               </div>
             </div>
@@ -830,7 +852,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                 )}
                 {(page as any).section2ImageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={(page as any).section2ImageUrl} alt={page.section2Title || ""} className={`${lpImgSizing} rounded-xl ${page.section2Title || page.section2Text ? "mt-4" : ""}`} />
+                  <img src={(page as any).section2ImageUrl} alt={page.section2Title || ""} onClick={() => setZoomImg((page as any).section2ImageUrl)} className={`${lpImgSizing} rounded-xl cursor-zoom-in ${page.section2Title || page.section2Text ? "mt-4" : ""}`} />
                 )}
               </div>
             </div>
@@ -859,7 +881,12 @@ export function LandingPageView({ slug }: { slug: string }) {
                       <video src={block.video} controls playsInline className={`${lpImgSizing} rounded-xl border border-gray-100 shadow-sm`} />
                     ) : block.afbeelding ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={block.afbeelding} alt={block.titel || ""} className={`${lpImgSizing} rounded-xl border border-gray-100 shadow-sm`} />
+                      <img
+                        src={block.afbeelding}
+                        alt={block.titel || ""}
+                        onClick={() => setZoomImg(block.afbeelding!)}
+                        className={`${lpImgSizing} rounded-xl border border-gray-100 shadow-sm cursor-zoom-in`}
+                      />
                     ) : null}
                   </div>
                 ))}
