@@ -32,6 +32,14 @@ crons.daily(
   {}
 );
 
+// Even Houvast opvolgreeks — één keer per dag. Doet niets tot env EH_OPVOLG_ACTIEF === "true".
+crons.daily(
+  "even houvast opvolgmails",
+  { hourUTC: 9, minuteUTC: 0 },
+  internal.evenHouvastOpvolg.processEvenHouvastOpvolg,
+  {}
+);
+
 crons.daily(
   "jaar renewal emails",
   { hourUTC: 9, minuteUTC: 0 },

@@ -158,6 +158,37 @@ Je hebt nog 7 dagen om alles te bewaren en te beslissen wat je wilt.
 
 We zijn blij dat je er was.`,
   },
+  // ── Even Houvast opvolgreeks (huisdier) ──
+  eh_huisdier_1: {
+    subject: "Ik dacht aan je vandaag",
+    bodyText: `Hoi {voornaam},\n\nEen paar dagen geleden heb je Even Houvast gedaan. En daarna een brief aan jezelf gekregen.\n\nIk hoop dat die brief iets heeft gedaan. Iets kleins. Een zucht. Een traan. Of gewoon het gevoel: dit klopt.\n\nHoe was het om die brief te lezen?\n\nJe hoeft me niet te antwoorden. Maar als er iets in je opkomt, mag je altijd terugschrijven. Ik lees het.\n\nWat ik je vandaag mee wil geven, is één ding:\n\nWat je voelt na het verlies van je huisdier is echt. Het is niet overdreven. Het is niet klein. Jij miste iemand die elke dag bij je was. Dat is een groot verlies, ook al begrijpt niet iedereen dat.\n\nJe mag dat gewoon weten.\n\nIk denk aan je.`,
+    buttonText: "Schrijf Ien een bericht",
+    buttonUrl: "mailto:contactmetien@talktobenji.com",
+  },
+  eh_huisdier_2: {
+    subject: "Je bent niet overdreven",
+    bodyText: `Hoi {voornaam},\n\nMisschien heb je het al eens gehoord. Van iemand die het goed bedoelde.\n\n"Het was maar een kat." Of: "Je kunt toch een nieuwe nemen."\n\nHet steekt elke keer. Omdat het niet klopt.\n\nJe huisdier was er altijd. Op de slechte ochtenden. Op de late avonden. Op de dagen dat je het even niet trok. Hij of zij vroeg nooit iets terug. Was er gewoon.\n\nDat soort verbinding verdwijnt niet vanzelf als je van rouw praat. Maar het wordt er wel minder over gezegd.\n\nWeet je wat ik veel hoor van mensen die een huisdier verloren? Dat ze het verdriet een beetje verstopten. Dat ze het kleiner maakten dan het was. Omdat ze bang waren dat anderen het niet zouden begrijpen.\n\nMaar verdriet wordt niet kleiner als je het wegstopt. Het wacht gewoon.\n\nJij hoeft het niet weg te stoppen. Je mag rouwen om dit verlies, net zoals je om een ander groot verlies zou rouwen. Zonder excuses. Zonder uitleg.\n\nJe bent niet overdreven.`,
+    buttonText: "Meer lezen over rouw om een huisdier",
+    buttonUrl: "https://www.talktobenji.com/blog",
+  },
+  eh_huisdier_3: {
+    subject: "Wat als je er elke dag even bij stil mocht staan?",
+    bodyText: `Hoi {voornaam},\n\nRouwen is niet iets wat je in een weekend doet. Of in een gesprek. Of in één goede huilbui.\n\nHet gaat in golven. Soms verwacht. Soms midden in de supermarkt.\n\nWat helpt, is niet proberen het sneller te laten gaan. Maar er een beetje ruimte voor maken. Elke dag. Een paar minuten.\n\nDaarom bestaat Niet Alleen.\n\nHet is een programma van 30 dagen. Elke dag krijg je een korte mail in je inbox. Geen zware opdrachten, geen therapie. Gewoon een rustig moment voor jou, en voor het verlies dat je draagt.\n\nJe leest het wanneer jij er klaar voor bent. Soms op de ochtend. Soms laat op de avond. Sommige mensen lezen het op de dag zelf. Anderen bewaren de mails voor een moment dat ze er iets meer voor openstaan.\n\nEr is geen goed of fout.\n\nIk schreef Niet Alleen vanuit mijn eigen verlies. Niet als therapeut, maar als iemand die weet hoe het is om iets te missen dat er altijd was.\n\nVolgende week vertel ik je meer over wat het mensen geeft. Maar voor nu: weet dat het er is, als je er behoefte aan hebt.`,
+    buttonText: "Lees meer over Niet Alleen",
+    buttonUrl: "https://www.talktobenji.com/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
+  },
+  eh_huisdier_4: {
+    subject: `"Ik wist niet dat ik dit nodig had"`,
+    bodyText: `Hoi {voornaam},\n\nIk wil je iets laten lezen van iemand die Niet Alleen deed na het verlies van haar hond.\n\n"Ik begon eigenlijk zonder grote verwachtingen. Ik dacht: wat kan een mailtje nou doen? Maar elke ochtend was er ineens iets wat me het gevoel gaf dat ik er niet alleen voor stond. Niet dat de pijn minder werd. Maar ik wist beter hoe ermee te zijn."\n\nDit is wat ik zo vaak hoor: niet dat het verdriet verdwijnt, maar dat mensen beter leren er naast te staan. Dat ze ruimte maken, in plaats van wegduwen.\n\n30 korte mails. Elke dag één moment voor jou.\n\nSommige mensen lezen ze in één adem door op een moeilijke dag. Anderen nemen er de volle 30 dagen voor. Allebei goed.\n\nNiet Alleen is er voor wie niet elke keer opnieuw wil uitleggen hoe het voelt. Die gewoon even een hand wil vasthouden. Stil. Zonder veel woorden.`,
+    buttonText: "Lees meer ervaringen",
+    buttonUrl: "https://www.talktobenji.com/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
+  },
+  eh_huisdier_5: {
+    subject: "Je hoeft dit niet alleen te doen",
+    bodyText: `Hoi {voornaam},\n\nDe afgelopen dagen heb ik je wat meer verteld over Niet Alleen. Vandaag vertel ik je ook gewoon wat het kost, want dat wil je weten.\n\nNiet Alleen kost eenmalig €37. Dat is iets meer dan een euro per dag. Geen abonnement, geen automatische verlengingen. Je koopt het één keer, en je hebt er 30 dagen begeleiding voor.\n\nJe start wanneer jij er klaar voor bent. Er is geen haast.\n\nWat je krijgt:\n\nElke dag een korte, zachte mail. Geschreven voor mensen die rouwen om iemand die er altijd voor hen was. Geen opdrachten die aanvoelen als huiswerk. Geen druk om snel beter te worden.\n\nGewoon ruimte. En het gevoel: hier ben ik niet alleen.\n\nAls je denkt: dit is iets voor mij, dan is de knop hieronder de enige stap.\n\nEn als je twijfelt: dat is ook goed. Dan bewaar je deze mail, en je opent hem als de tijd er rijp voor is.\n\nIk ben blij dat je er bent.`,
+    buttonText: "Start Niet Alleen — eenmalig €37",
+    buttonUrl: "https://www.talktobenji.com/betalen/niet-alleen-huisdier",
+  },
   // ── Cadeau ──
   gift_gever: {
     subject: "Je cadeaucode voor {product}",

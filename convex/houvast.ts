@@ -95,13 +95,23 @@ export const briefAlVerzonden = internalQuery({
 });
 
 export const markBriefVerzonden = internalMutation({
-  args: { email: v.string() },
+  args: { email: v.string(), verliesType: v.optional(v.string()), naam: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const bestaand = await ctx.db
       .query("houvastBrieven")
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
-    if (!bestaand) await ctx.db.insert("houvastBrieven", { email: args.email, sentAt: Date.now() });
+    if (!bestaand) {
+      await ctx.db.insert("houvastBrieven", {
+        email: args.email,
+        sentAt: Date.now(),
+        verliesType: args.verliesType,
+        naam: args.naam,
+      });
+    } else if (!bestaand.verliesType && args.verliesType) {
+      // Vul type/naam aan als die er nog niet was (oude records).
+      await ctx.db.patch(bestaand._id, { verliesType: args.verliesType, naam: args.naam ?? bestaand.naam });
+    }
   },
 });
 
@@ -390,7 +400,7 @@ export const genereerEnVerstuurBrief = action({
       html,
       apiKey: RESEND_API_KEY,
     });
-    await ctx.runMutation(internal.houvast.markBriefVerzonden, { email: emailLc });
+    await ctx.runMutation(internal.houvast.markBriefVerzonden, { email: emailLc, verliesType: args.verliesType, naam: args.naam });
     return { success: true };
   },
 });

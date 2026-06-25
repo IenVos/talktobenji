@@ -1174,6 +1174,144 @@ function DertigDagenEditor({ dagTemplates, niches }: { dagTemplates: any[]; nich
   );
 }
 
+// ── Even Houvast opvolgmails (aparte categorie) ──────────────────────────────
+
+const EH_META: { n: number; titel: string; subtitel: string }[] = [
+  { n: 1, titel: "Mail 1 — Erkenning", subtitel: "Dag 0/1, direct na de brief. Geen verkoop, alleen erkenning." },
+  { n: 2, titel: "Mail 2 — Normaliseren", subtitel: "Dag 3. Rouw om een huisdier mag er zijn." },
+  { n: 3, titel: "Mail 3 — Niet Alleen introduceren", subtitel: "Dag 5. Knop naar de verkoop-LP." },
+  { n: 4, titel: "Mail 4 — Verhaal / ervaring", subtitel: "Dag 8. Knop naar de verkoop-LP." },
+  { n: 5, titel: "Mail 5 — Uitnodiging met prijs", subtitel: "Dag 11/12. Knop direct naar de checkout." },
+];
+
+function EHMailEditor({
+  n, titel, subtitel, saved, onSave,
+}: {
+  n: number;
+  titel: string;
+  subtitel: string;
+  saved: any;
+  onSave: (n: number, f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string }) => Promise<void>;
+}) {
+  const def = (DEFAULT_TEMPLATES as any)[`eh_huisdier_${n}`];
+  const [subject, setSubject] = useState<string>(saved?.subject ?? def.subject);
+  const [bodyText, setBodyText] = useState<string>(saved?.bodyText ?? def.bodyText);
+  const [buttonText, setButtonText] = useState<string>(saved?.buttonText ?? def.buttonText ?? "");
+  const [buttonUrl, setButtonUrl] = useState<string>(saved?.buttonUrl ?? def.buttonUrl ?? "");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+
+  const save = async () => {
+    setStatus("saving");
+    await onSave(n, { subject, bodyText, buttonText, buttonUrl });
+    setStatus("saved");
+    setTimeout(() => setStatus("idle"), 2000);
+  };
+
+  const inputCls = "w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-300";
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+      <div>
+        <p className="font-semibold text-gray-900 text-sm">{titel}</p>
+        <p className="text-xs text-gray-500">{subtitel}</p>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Onderwerp</label>
+        <input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Tekst (gebruik {"{voornaam}"}; lege regel = nieuwe alinea)</label>
+        <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} rows={10} className={`${inputCls} font-mono leading-relaxed`} />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Knoptekst</label>
+          <input value={buttonText} onChange={(e) => setButtonText(e.target.value)} className={inputCls} />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-600 mb-1">Knop-URL</label>
+          <input value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} className={inputCls} />
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <button onClick={save} disabled={status === "saving"} className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-semibold hover:bg-primary-700 disabled:opacity-50">
+          {status === "saving" ? "Opslaan…" : status === "saved" ? "Opgeslagen ✓" : "Opslaan"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EvenHouvastOpvolgBlok() {
+  const templates = useAdminQuery(api.emailTemplates.listTemplates, {});
+  const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
+  const stuurTest = useAdminAction(api.evenHouvastOpvolg.stuurTestOpvolg);
+  const [open, setOpen] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
+  const [testNaam, setTestNaam] = useState("");
+  const [testStatus, setTestStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
+
+  const getT = (n: number) => templates?.find((t: any) => t.key === `eh_huisdier_${n}`);
+  const save = async (n: number, f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string }) => {
+    await upsertTemplate({
+      key: `eh_huisdier_${n}`,
+      subject: f.subject,
+      bodyText: f.bodyText,
+      buttonText: f.buttonText || undefined,
+      buttonUrl: f.buttonUrl || undefined,
+    });
+  };
+  const test = async () => {
+    if (!testEmail.includes("@")) return;
+    setTestStatus("sending");
+    try {
+      await stuurTest({ email: testEmail.trim(), naam: testNaam.trim() || undefined });
+      setTestStatus("done");
+    } catch {
+      setTestStatus("error");
+    }
+  };
+
+  return (
+    <div className="border-t border-gray-200 pt-6 space-y-4">
+      <div>
+        <h2 className="text-lg font-bold text-gray-900">Even Houvast — opvolgmails</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          5 mails naar wie Even Houvast (huisdier) deed, richting Niet Alleen. Dag 0/1, 3, 5, 8, 11.
+          Stopt automatisch als iemand koopt. Gaat pas live als de schakelaar <code>EH_OPVOLG_ACTIEF</code> aanstaat.
+        </p>
+      </div>
+
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+        <p className="text-sm font-medium text-amber-900">Test — stuur alle 5 mails naar een inbox</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input placeholder="jouw@email.nl" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} className="px-3 py-2 border border-amber-200 rounded-lg text-sm" />
+          <input placeholder="Voornaam (optioneel)" value={testNaam} onChange={(e) => setTestNaam(e.target.value)} className="px-3 py-2 border border-amber-200 rounded-lg text-sm" />
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={test} disabled={testStatus === "sending" || !testEmail.includes("@")} className="px-4 py-2 bg-amber-500 text-white rounded-lg text-sm font-semibold hover:bg-amber-600 disabled:opacity-50">
+            {testStatus === "sending" ? "Versturen…" : "Stuur 5 testmails"}
+          </button>
+          {testStatus === "done" && <span className="text-sm text-green-700">Verstuurd ✓</span>}
+          {testStatus === "error" && <span className="text-sm text-red-600">Er ging iets mis</span>}
+        </div>
+      </div>
+
+      <button onClick={() => setOpen((v) => !v)} className="text-sm font-medium text-primary-700 hover:text-primary-900">
+        {open ? "Verberg de 5 mails" : "Bewerk de 5 mails"}
+      </button>
+
+      {open && (
+        <div className="space-y-4">
+          {EH_META.map((m) => (
+            <EHMailEditor key={m.n} n={m.n} titel={m.titel} subtitel={m.subtitel} saved={getT(m.n)} onSave={save} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function NietAlleenEmailsPage() {
   const templates = useAdminQuery(api.emailTemplates.listTemplates, {});
   const dagTemplates = useAdminQuery(api.emailTemplates.listDagTemplates, {});
@@ -1244,6 +1382,8 @@ export default function NietAlleenEmailsPage() {
           />
         );
       })}
+
+      <EvenHouvastOpvolgBlok />
 
       <div className="border-t border-gray-200 pt-6">
         {dagTemplates !== undefined && verliesTypen !== undefined ? (

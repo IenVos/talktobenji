@@ -866,6 +866,21 @@ export default defineSchema({
   houvastBrieven: defineTable({
     email: v.string(),
     sentAt: v.number(),
+    verliesType: v.optional(v.string()), // voor de opvolgreeks per type (bijv. "huisdier")
+    naam: v.optional(v.string()),
+  }).index("by_email", ["email"]),
+
+  // Even Houvast opvolgmails — logboek welke mail (1..5) al naar welke lead is gestuurd
+  ehOpvolgVerzonden: defineTable({
+    email: v.string(),
+    mailNummer: v.number(),
+    sentAt: v.number(),
+  }).index("by_email", ["email"]),
+
+  // Even Houvast opvolgmails — afmeldingen (uitschrijvingen uit de reeks)
+  ehAfmeldingen: defineTable({
+    email: v.string(),
+    createdAt: v.number(),
   }).index("by_email", ["email"]),
 
   // Checkout producten (beheerbaar via admin, publiek via /betalen/[slug])
