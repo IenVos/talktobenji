@@ -990,7 +990,7 @@ export function LandingPageView({ slug }: { slug: string }) {
                   )}
                 </div>
                 {page.wieIsText && (
-                  <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+                  <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "#6b6460" }}>
                     {page.wieIsText}
                   </p>
                 )}
@@ -1191,9 +1191,11 @@ export function LandingPageView({ slug }: { slug: string }) {
                 ) : page.footerText}
               </p>
             )}
-            <p className="text-xs" style={{ color: "#8a8078" }}>
-              Gesprekken zijn privé en beveiligd. Benji is geen vervanging van professionele hulp.
-            </p>
+            {!(page as any).hideFooterDisclaimer && (
+              <p className="text-xs" style={{ color: "#8a8078" }}>
+                Gesprekken zijn privé en beveiligd. Benji is geen vervanging van professionele hulp.
+              </p>
+            )}
             <p className="text-xs" style={{ color: "#a09890" }}>
               © Talk To Benji — talktobenji.com
             </p>

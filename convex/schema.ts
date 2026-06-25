@@ -776,6 +776,7 @@ export default defineSchema({
     // Footer
     footerText: v.optional(v.string()),
     footerCtaUrl: v.optional(v.string()),
+    hideFooterDisclaimer: v.optional(v.boolean()), // verberg de "Benji is geen vervanging..."-regel (bijv. op Even Houvast-LP)
     // Analytics
     trackAds: v.optional(v.boolean()), // Toon in advertentie-blok in analytics
     // Type-keuzepagina (lpType === "niet_alleen_keuze")
