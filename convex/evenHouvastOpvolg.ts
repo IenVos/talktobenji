@@ -175,6 +175,22 @@ export const _statusVoorLead = internalQuery({
   },
 });
 
+// Effectieve dag-offsets per mail: opgeslagen dagOffset uit de admin, anders de default.
+export const _dagSchema = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const result: Record<number, number> = { ...SCHEMA };
+    for (let n = 1; n <= 5; n++) {
+      const t = await ctx.db
+        .query("emailTemplates")
+        .withIndex("by_key", (q) => q.eq("key", TEMPLATE_KEY(n)))
+        .unique();
+      if (t && typeof (t as any).dagOffset === "number") result[n] = (t as any).dagOffset;
+    }
+    return result;
+  },
+});
+
 export const _logVerzonden = internalMutation({
   args: { email: v.string(), mailNummer: v.number() },
   handler: async (ctx, args) => {
@@ -198,6 +214,7 @@ export const processEvenHouvastOpvolg = internalAction({
     if (!apiKey) return;
 
     const leads = await ctx.runQuery(internal.evenHouvastOpvolg._leadsVoorOpvolg, {});
+    const schema = await ctx.runQuery(internal.evenHouvastOpvolg._dagSchema, {});
     const nu = Date.now();
 
     for (const lead of leads) {
@@ -209,7 +226,7 @@ export const processEvenHouvastOpvolg = internalAction({
       // Eerste mail die wél verschuldigd is en nog niet verstuurd. Maximaal één per run.
       let teVersturen: number | null = null;
       for (let n = 1; n <= 5; n++) {
-        if (dagenGeleden >= SCHEMA[n] && !status.gestuurd.includes(n)) {
+        if (dagenGeleden >= schema[n] && !status.gestuurd.includes(n)) {
           teVersturen = n;
           break;
         }
@@ -247,6 +264,18 @@ export const stuurTestOpvolg = action({
       await verstuurOpvolgMail(ctx, { email: args.email, naam: args.naam, mailNummer: n, apiKey });
     }
     return { verstuurd: 5 };
+  },
+});
+
+// Test: stuur één specifieke mail (1..5) naar een inbox.
+export const stuurTestOpvolgEnkel = action({
+  args: { adminToken: v.string(), email: v.string(), naam: v.optional(v.string()), mailNummer: v.number() },
+  handler: async (ctx, args) => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
+    await verstuurOpvolgMail(ctx, { email: args.email, naam: args.naam, mailNummer: args.mailNummer, apiKey });
+    return { ok: true };
   },
 });
 

@@ -115,6 +115,7 @@ export const upsertTemplate = mutation({
     buttonUrl: v.optional(v.string()),
     upsellText: v.optional(v.string()),
     upsellUrl: v.optional(v.string()),
+    dagOffset: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -130,6 +131,7 @@ export const upsertTemplate = mutation({
       buttonUrl: args.buttonUrl,
       upsellText: args.upsellText,
       upsellUrl: args.upsellUrl,
+      dagOffset: args.dagOffset,
       updatedAt: Date.now(),
     };
 

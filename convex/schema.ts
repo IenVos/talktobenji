@@ -494,6 +494,7 @@ export default defineSchema({
     buttonUrl: v.optional(v.string()),
     upsellText: v.optional(v.string()),
     upsellUrl: v.optional(v.string()),
+    dagOffset: v.optional(v.number()), // voor de Even Houvast-opvolgmails: dagen na de brief
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 
