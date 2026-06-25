@@ -200,6 +200,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
           { href: "/admin/trial-emails", label: "E-mails", icon: Mail },
           { href: "/admin/niet-alleen-emails", label: "Niet Alleen emails", icon: Mail },
+          { href: "/admin/even-houvast-emails", label: "Even Houvast emails", icon: Mail },
           { href: "/admin/cadeaucodes", label: "Cadeaucodes", icon: GiftCodeIcon },
           { href: "/admin/onderweg", label: "Voor Jou (Onderweg)", icon: ShoppingBag },
         ],
