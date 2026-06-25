@@ -11,10 +11,11 @@
  *   - Respecteert afmeldingen (ehAfmeldingen) met afmeldlink onder elke mail.
  *   - Stuurt hoogstens één mail per lead per run (geen blast bij achterstand).
  */
-import { internalAction, action, internalQuery, internalMutation, mutation } from "./_generated/server";
+import { internalAction, action, internalQuery, internalMutation, mutation, query } from "./_generated/server";
 import { internal, api } from "./_generated/api";
 import { v } from "convex/values";
 import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
+import { checkAdmin } from "./adminAuth";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
 const DAG_MS = 24 * 60 * 60 * 1000;
@@ -276,6 +277,40 @@ export const stuurTestOpvolgEnkel = action({
     if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
     await verstuurOpvolgMail(ctx, { email: args.email, naam: args.naam, mailNummer: args.mailNummer, apiKey });
     return { ok: true };
+  },
+});
+
+// ── Funnel-overzicht voor de admin ──────────────────────────────────────────────
+// Toont per huisdier-lead waar die in de opvolgreeks zit (laatste verstuurde mail),
+// of die is afgemeld, en of die Niet Alleen heeft gekocht.
+export const funnelOverzicht = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const leads = (await ctx.db.query("houvastBrieven").collect()).filter(
+      (b: any) => b.verliesType === VERLIES_TYPE && b.sentAt >= EH_OPVOLG_START
+    );
+    const nu = Date.now();
+    const rijen = [];
+    for (const lead of leads) {
+      const lc = lead.email.toLowerCase();
+      const [verzonden, afgemeld, profiel] = await Promise.all([
+        ctx.db.query("ehOpvolgVerzonden").withIndex("by_email", (q) => q.eq("email", lc)).collect(),
+        ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", lc)).first(),
+        ctx.db.query("nietAlleenProfiles").withIndex("by_email", (q) => q.eq("email", lc)).first(),
+      ]);
+      const laatsteMail = verzonden.length ? Math.max(...verzonden.map((v: any) => v.mailNummer)) : 0;
+      rijen.push({
+        email: lead.email,
+        naam: lead.naam ?? null,
+        dagenGeleden: Math.floor((nu - lead.sentAt) / DAG_MS),
+        laatsteMail,
+        afgemeld: !!afgemeld,
+        gekocht: !!profiel,
+      });
+    }
+    rijen.sort((a, b) => a.dagenGeleden - b.dagenGeleden);
+    return rijen;
   },
 });
 

@@ -125,10 +125,19 @@ function EHMailEditor({
 
 export default function EvenHouvastEmailsPage() {
   const templates = useAdminQuery(api.emailTemplates.listTemplates, {});
+  const overzicht = useAdminQuery(api.evenHouvastOpvolg.funnelOverzicht, {}) as
+    | { email: string; naam: string | null; dagenGeleden: number; laatsteMail: number; afgemeld: boolean; gekocht: boolean }[]
+    | undefined;
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
   const stuurTestEnkel = useAdminAction(api.evenHouvastOpvolg.stuurTestOpvolgEnkel);
   const [testEmail, setTestEmail] = useState("");
   const [testNaam, setTestNaam] = useState("");
+  const [toonLijst, setToonLijst] = useState(false);
+
+  const totaal = overzicht?.length ?? 0;
+  const gekocht = overzicht?.filter((r) => r.gekocht).length ?? 0;
+  const afgemeld = overzicht?.filter((r) => r.afgemeld && !r.gekocht).length ?? 0;
+  const lopend = totaal - gekocht - afgemeld;
 
   const getT = (n: number) => templates?.find((t: any) => t.key === `eh_huisdier_${n}`);
   const save = async (
@@ -156,8 +165,75 @@ export default function EvenHouvastEmailsPage() {
         <p className="text-sm text-gray-500 mt-1">
           De opvolgreeks naar wie Even Houvast (huisdier) deed, richting Niet Alleen. Klap een mail open om de tekst,
           de knop en de verzenddag aan te passen, en stuur 'm los als test. Stopt automatisch als iemand koopt.
-          Gaat pas live als de schakelaar <code>EH_OPVOLG_ACTIEF</code> aanstaat.
+          De reeks is <strong>actief</strong>: nieuwe huisdier-leads krijgen de mails automatisch.
         </p>
+      </div>
+
+      {/* Funnel-overzicht: hoeveel leads en waar ze zitten */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-semibold text-gray-900">In de funnel</h2>
+          <span className="text-xs text-gray-400">vanaf 25 juni 2026</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{totaal}</p><p className="text-xs text-gray-500">leads totaal</p></div>
+          <div className="rounded-lg bg-primary-50 p-3"><p className="text-2xl font-bold text-primary-700">{lopend}</p><p className="text-xs text-gray-500">lopend in reeks</p></div>
+          <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{gekocht}</p><p className="text-xs text-gray-500">kocht Niet Alleen</p></div>
+          <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-500">{afgemeld}</p><p className="text-xs text-gray-500">afgemeld</p></div>
+        </div>
+        {/* Verdeling per mail (alleen lopende leads) */}
+        <div className="space-y-1.5">
+          {[1, 2, 3, 4, 5].map((n) => {
+            const aantal = overzicht?.filter((r) => !r.gekocht && !r.afgemeld && r.laatsteMail === n).length ?? 0;
+            const pct = lopend > 0 ? Math.round((aantal / lopend) * 100) : 0;
+            return (
+              <div key={n} className="flex items-center gap-3 text-xs">
+                <span className="w-28 flex-shrink-0 text-gray-600">Laatst: mail {n}</span>
+                <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden"><div className="h-full bg-primary-400 rounded-full" style={{ width: `${pct}%` }} /></div>
+                <span className="w-10 text-right font-semibold text-gray-700">{aantal}</span>
+              </div>
+            );
+          })}
+          {(() => {
+            const wachtNul = overzicht?.filter((r) => !r.gekocht && !r.afgemeld && r.laatsteMail === 0).length ?? 0;
+            return wachtNul > 0 ? (
+              <div className="flex items-center gap-3 text-xs">
+                <span className="w-28 flex-shrink-0 text-gray-400">Nog geen mail</span>
+                <div className="flex-1" />
+                <span className="w-10 text-right font-semibold text-gray-400">{wachtNul}</span>
+              </div>
+            ) : null;
+          })()}
+        </div>
+        {totaal > 0 && (
+          <div className="pt-1 border-t border-gray-100">
+            <button onClick={() => setToonLijst((v) => !v)} className="text-xs font-medium text-primary-700 hover:text-primary-900">
+              {toonLijst ? "Verberg lijst" : `Toon ${totaal} leads (per e-mail)`}
+            </button>
+            {toonLijst && (
+              <div className="mt-2 space-y-0">
+                {overzicht?.map((r, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50 last:border-0">
+                    <div className="truncate">
+                      {r.naam && <span className="font-medium text-gray-800 mr-1.5">{r.naam}</span>}
+                      <span className="text-gray-500">{r.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      <span className="text-gray-400">dag {r.dagenGeleden}</span>
+                      {r.gekocht ? (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-green-50 text-green-700">gekocht</span>
+                      ) : r.afgemeld ? (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500">afgemeld</span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-600">{r.laatsteMail > 0 ? `mail ${r.laatsteMail}` : "wacht"}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
