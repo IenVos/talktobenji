@@ -29,8 +29,10 @@ export async function POST(req: NextRequest) {
       name: name && typeof name === "string" ? name.trim() : undefined,
     });
 
-    // MailerLite — voeg toe aan groep Gratis-gebruikers (triggert MailerLite-automation)
-    const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
+    // MailerLite — voeg toe aan de aparte groep "Even Houvast" (NIET de Gratis-groep,
+    // want die triggert de automation). Deze leads krijgen al de eigen Even Houvast-
+    // opvolgreeks, dus ze gaan in een groep zonder automation.
+    const mailerLiteGroep = process.env.MAILERLITE_GROUP_EVEN_HOUVAST;
     if (mailerLiteGroep) {
       await addToMailerLite({
         email,

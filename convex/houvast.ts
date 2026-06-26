@@ -2,9 +2,9 @@
  * Houvast — gratis mini-gids toegankelijk via magic link token.
  */
 import { v } from "convex/values";
-import { action, internalAction, internalMutation, internalQuery, query } from "./_generated/server";
+import { action, internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
-import { checkAdmin } from "./adminAuth";
+import { checkAdmin, logAdminAction } from "./adminAuth";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
 
@@ -503,5 +503,50 @@ export const leadsVoortgang = query({
     }
     rijen.sort((a, b) => b.laatsteActiviteit - a.laatsteActiviteit);
     return rijen;
+  },
+});
+
+// Verwijder een Even Houvast-lead volledig uit de lead-tabellen (admin).
+// Raakt bewust NIET nietAlleenProfiles aan: een gekochte Niet Alleen blijft staan.
+async function verwijderLeadRecords(ctx: any, emailRaw: string): Promise<number> {
+  const email = emailRaw.trim().toLowerCase();
+  let verwijderd = 0;
+  const tabellen = ["houvasteProfielen", "houvastBrieven", "ehOpvolgVerzonden", "ehAfmeldingen"] as const;
+  for (const tabel of tabellen) {
+    const rijen = await ctx.db.query(tabel).withIndex("by_email", (q: any) => q.eq("email", email)).collect();
+    for (const r of rijen) {
+      await ctx.db.delete(r._id);
+      verwijderd++;
+    }
+  }
+  return verwijderd;
+}
+
+export const verwijderLead = mutation({
+  args: { adminToken: v.string(), email: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const verwijderd = await verwijderLeadRecords(ctx, args.email);
+    await logAdminAction(ctx, `Even Houvast lead verwijderd: ${args.email.trim().toLowerCase()}`);
+    return { verwijderd };
+  },
+});
+
+// Eenmalige opruiming: verwijder alle Even Houvast-leads behalve één e-mailadres.
+// Bedoeld om testleads in één keer op te ruimen (via npx convex run).
+export const opruimLeadsBehalve = internalMutation({
+  args: { behoudEmail: v.string() },
+  handler: async (ctx, args) => {
+    const behoud = args.behoudEmail.trim().toLowerCase();
+    const emails = new Set<string>();
+    for (const p of await ctx.db.query("houvasteProfielen").collect()) emails.add(p.email.trim().toLowerCase());
+    for (const b of await ctx.db.query("houvastBrieven").collect()) emails.add(b.email.trim().toLowerCase());
+    const verwijderdeEmails: string[] = [];
+    for (const email of emails) {
+      if (email === behoud) continue;
+      await verwijderLeadRecords(ctx, email);
+      verwijderdeEmails.push(email);
+    }
+    return { behoud, verwijderd: verwijderdeEmails };
   },
 });

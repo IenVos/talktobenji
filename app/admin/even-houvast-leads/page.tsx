@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Mail, FileHeart, CheckCircle2, XCircle, ShoppingBag } from "lucide-react";
+import { ChevronDown, ChevronRight, Mail, FileHeart, CheckCircle2, XCircle, ShoppingBag, Trash2 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
-import { useAdminQuery } from "../AdminAuthContext";
+import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 
 type Lead = {
   email: string;
@@ -77,8 +77,19 @@ function Stap({
   );
 }
 
-function LeadCard({ lead }: { lead: Lead }) {
+function LeadCard({ lead, onVerwijder }: { lead: Lead; onVerwijder: (email: string) => Promise<void> }) {
   const [open, setOpen] = useState(false);
+  const [verwijderen, setVerwijderen] = useState(false);
+
+  const verwijder = async () => {
+    if (!window.confirm(`Lead ${lead.naam || lead.email} verwijderen uit het overzicht? Dit kan niet ongedaan worden gemaakt.`)) return;
+    setVerwijderen(true);
+    try {
+      await onVerwijder(lead.email);
+    } catch {
+      setVerwijderen(false);
+    }
+  };
 
   const status: { label: string; cls: string } = lead.gekocht
     ? { label: "Kocht Niet Alleen", cls: "bg-green-50 text-green-700 border-green-200" }
@@ -88,30 +99,39 @@ function LeadCard({ lead }: { lead: Lead }) {
         ? { label: "In opvolgreeks", cls: "bg-primary-50 text-primary-600 border-primary-200" }
         : { label: "Nog niet voltooid", cls: "bg-amber-50 text-amber-700 border-amber-200" };
 
-  const laatsteOpvolg = lead.opvolgmails.length ? Math.max(...lead.opvolgmails.map((o) => o.mailNummer)) : 0;
-
   return (
     <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
-      >
-        {open ? <ChevronDown size={15} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-gray-400 flex-shrink-0" />}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-800 truncate">
-            {lead.naam || lead.email}
-            {lead.naam && <span className="font-normal text-gray-400 ml-2">{lead.email}</span>}
-          </p>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {lead.verliesType ? TYPE_LABEL[lead.verliesType] || lead.verliesType : "Type onbekend"}
-            {lead.briefAt && <> · brief op {datum(lead.briefAt)}</>}
-          </p>
-        </div>
-        <span className={`flex-shrink-0 text-[11px] font-semibold border rounded-full px-2.5 py-0.5 ${status.cls}`}>
-          {status.label}
-        </span>
-      </button>
+      <div className="w-full flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-3 flex-1 min-w-0 text-left"
+        >
+          {open ? <ChevronDown size={15} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-gray-400 flex-shrink-0" />}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-800 truncate">
+              {lead.naam || lead.email}
+              {lead.naam && <span className="font-normal text-gray-400 ml-2">{lead.email}</span>}
+            </p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {lead.verliesType ? TYPE_LABEL[lead.verliesType] || lead.verliesType : "Type onbekend"}
+              {lead.briefAt && <> · brief op {datum(lead.briefAt)}</>}
+            </p>
+          </div>
+          <span className={`flex-shrink-0 text-[11px] font-semibold border rounded-full px-2.5 py-0.5 ${status.cls}`}>
+            {status.label}
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={verwijder}
+          disabled={verwijderen}
+          title="Lead verwijderen"
+          className="flex-shrink-0 p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
+        >
+          <Trash2 size={15} />
+        </button>
+      </div>
 
       {open && (
         <div className="px-4 pb-4 pt-1 border-t border-gray-100 space-y-3">
@@ -174,7 +194,12 @@ function LeadCard({ lead }: { lead: Lead }) {
 
 export default function EvenHouvastLeadsPage() {
   const leads = useAdminQuery(api.houvast.leadsVoortgang, {}) as Lead[] | undefined;
+  const verwijderLead = useAdminMutation(api.houvast.verwijderLead);
   const [filter, setFilter] = useState<"alle" | "voltooid" | "onvoltooid" | "gekocht">("alle");
+
+  const onVerwijder = async (email: string) => {
+    await verwijderLead({ email });
+  };
 
   const totaal = leads?.length ?? 0;
   const metBrief = leads?.filter((l) => l.briefAt).length ?? 0;
@@ -251,7 +276,7 @@ export default function EvenHouvastLeadsPage() {
       ) : (
         <div className="space-y-2">
           {zichtbaar.map((lead) => (
-            <LeadCard key={lead.email} lead={lead} />
+            <LeadCard key={lead.email} lead={lead} onVerwijder={onVerwijder} />
           ))}
         </div>
       )}
