@@ -12,7 +12,7 @@ import {
   Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3,
   MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell,
   ShoppingBag, Mail, Users, HelpCircle, ThumbsUp,
-  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield, Newspaper, Layers, MousePointerClick, Smile, Network, Heart,
+  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield, Newspaper, Layers, MousePointerClick, Smile, Network, Heart, FileHeart,
 } from "lucide-react";
 
 function GiftCodeIcon({ size = 17, className }: { size?: number; className?: string }) {
@@ -214,6 +214,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         icon: Users,
         items: [
           { href: "/admin/klantbeheer", label: "Klantbeheer", icon: Users },
+          { href: "/admin/even-houvast-leads", label: "Even Houvast leads", icon: FileHeart },
           { href: "/admin/support-faq", label: "Support FAQ", icon: HelpCircle },
         ],
       },

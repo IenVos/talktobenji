@@ -4,6 +4,7 @@
 import { v } from "convex/values";
 import { action, internalAction, internalMutation, internalQuery, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
+import { checkAdmin } from "./adminAuth";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
 
@@ -414,5 +415,93 @@ export const getByToken = query({
       .query("houvasteProfielen")
       .withIndex("by_token", (q) => q.eq("token", args.token))
       .first();
+  },
+});
+
+// ─── Voortgang per lead (admin) ──────────────────────────────────────────────
+// Toont per Even Houvast-lead (álle verliestypen) waar die in het traject zit.
+// Combineert:
+//   - houvasteProfielen  → aangemeld via magic link (welkomstmail verstuurd)
+//   - houvastBrieven     → alle momenten ingevuld + brief verstuurd (met type)
+//   - ehOpvolgVerzonden  → opvolgmails 1..5 met datum
+//   - ehAfmeldingen      → afgemeld uit de opvolgreeks
+//   - nietAlleenProfiles → kocht Niet Alleen
+//
+// Let op: de antwoorden op de momenten zelf worden bewust niet opgeslagen
+// (privacy, ze blijven in de browser). Een verstuurde brief betekent dus dat
+// alle momenten zijn ingevuld; zonder brief is het traject nog niet voltooid.
+const DAG_MS = 24 * 60 * 60 * 1000;
+
+export const leadsVoortgang = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const profielen = await ctx.db.query("houvasteProfielen").collect();
+    const brieven = await ctx.db.query("houvastBrieven").collect();
+
+    type Basis = {
+      email: string;
+      naam: string | null;
+      welkomstAt: number | null; // aangemeld via magic link
+      briefAt: number | null; // brief verstuurd = alle momenten ingevuld
+      verliesType: string | null;
+    };
+    const byEmail = new Map<string, Basis>();
+    const ensure = (emailRaw: string): Basis => {
+      const email = emailRaw.trim().toLowerCase();
+      let r = byEmail.get(email);
+      if (!r) {
+        r = { email, naam: null, welkomstAt: null, briefAt: null, verliesType: null };
+        byEmail.set(email, r);
+      }
+      return r;
+    };
+
+    for (const p of profielen) {
+      const r = ensure(p.email);
+      r.welkomstAt = p.createdAt;
+      if (p.name && !r.naam) r.naam = p.name;
+    }
+    for (const b of brieven) {
+      const r = ensure(b.email);
+      r.briefAt = b.sentAt;
+      if (b.verliesType && !r.verliesType) r.verliesType = b.verliesType;
+      if (b.naam && !r.naam) r.naam = b.naam;
+    }
+
+    const rijen = [];
+    for (const r of byEmail.values()) {
+      const [opvolg, afgemeld, profiel] = await Promise.all([
+        ctx.db.query("ehOpvolgVerzonden").withIndex("by_email", (q) => q.eq("email", r.email)).collect(),
+        ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", r.email)).first(),
+        ctx.db.query("nietAlleenProfiles").withIndex("by_email", (q) => q.eq("email", r.email)).first(),
+      ]);
+      const opvolgmails = opvolg
+        .map((o: any) => ({ mailNummer: o.mailNummer as number, sentAt: o.sentAt as number }))
+        .sort((a, b) => a.mailNummer - b.mailNummer);
+      const gekochtAt = profiel ? (profiel.startDatum as number) : null;
+      const laatsteActiviteit = Math.max(
+        r.welkomstAt ?? 0,
+        r.briefAt ?? 0,
+        gekochtAt ?? 0,
+        ...opvolgmails.map((o) => o.sentAt),
+      );
+      rijen.push({
+        email: r.email,
+        naam: r.naam,
+        verliesType: r.verliesType,
+        welkomstAt: r.welkomstAt,
+        briefAt: r.briefAt,
+        opvolgmails,
+        afgemeld: !!afgemeld,
+        gekocht: !!profiel,
+        gekochtAt,
+        dagenSindsBrief: r.briefAt ? Math.floor((Date.now() - r.briefAt) / DAG_MS) : null,
+        laatsteActiviteit,
+      });
+    }
+    rijen.sort((a, b) => b.laatsteActiviteit - a.laatsteActiviteit);
+    return rijen;
   },
 });
