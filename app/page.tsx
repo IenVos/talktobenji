@@ -348,7 +348,7 @@ export default async function HomePage() {
               />
             </div>
             <p className="text-xs font-semibold text-primary-900">Ien</p>
-            <p className="text-xs text-primary-400">Oprichter Talk To Benji</p>
+            <p className="text-xs text-primary-400">Founder Talk To Benji</p>
           </div>
 
           <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-2 text-center">Over Benji</p>

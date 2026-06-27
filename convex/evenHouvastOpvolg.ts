@@ -51,6 +51,19 @@ function knop(tekst: string, url: string): string {
     </div>`;
 }
 
+// Ingetogen knop, gecentreerd: zelfde achtergrond als de mail, blauwe tekst, dun
+// blauw randje. Gebruikt onder een afbeelding (bijv. de boekje-cover).
+function zachteKnop(tekst: string, url: string): string {
+  return `
+    <div style="margin: 16px 0 4px; text-align: center;">
+      <a href="${url}" style="background-color: #fdf9f4; color: #6d84a8; padding: 11px 24px;
+         border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600;
+         display: inline-block; border: 1px solid #6d84a8;">
+        ${tekst}
+      </a>
+    </div>`;
+}
+
 // Klikbare afbeelding (bijv. boekje-cover) met optioneel zacht bijschrift.
 // Een flipbook/iframe kan niet in e-mail; dit toont de cover die naar het boekje linkt.
 function coverBlok(imageUrl: string, linkUrl?: string, caption?: string): string {
@@ -74,7 +87,7 @@ function handtekeningIen(): string {
         </td>
         <td style="vertical-align: middle;">
           <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0;">Ien</p>
-          <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0;">Oprichtster van Talk To Benji</p>
+          <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0;">Founder van Talk To Benji</p>
         </td>
       </tr>
     </table>`;
@@ -158,7 +171,7 @@ async function verstuurOpvolgMail(
   const html = wrapper(`
     ${alineaHtml(body)}
     ${imageUrl ? coverBlok(imageUrl, buttonUrl, imageCaption) : ""}
-    ${buttonText && buttonUrl ? knop(buttonText, buttonUrl) : ""}
+    ${buttonText && buttonUrl ? (imageUrl ? zachteKnop(buttonText, buttonUrl) : knop(buttonText, buttonUrl)) : ""}
     ${handtekeningIen()}
     ${afmeldVoettekst(afmeldUrl)}
   `);
