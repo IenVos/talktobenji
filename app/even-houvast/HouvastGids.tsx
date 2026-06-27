@@ -67,6 +67,7 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
 
   // Brief per mail
   const [email, setEmail] = useState("");
+  const [naam, setNaam] = useState("");
   const [honeypot, setHoneypot] = useState(""); // onzichtbaar veld tegen bots
   const [briefStatus, setBriefStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [briefFout, setBriefFout] = useState("Er ging iets mis. Probeer het opnieuw.");
@@ -79,6 +80,11 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
   useEffect(() => {
     if (profiel?.email) setEmail(profiel.email);
   }, [profiel?.email]);
+
+  // Prefill voornaam vanuit het token-profiel (als die al bekend is).
+  useEffect(() => {
+    if (profiel?.name) setNaam(profiel.name);
+  }, [profiel?.name]);
 
   // Laad opgeslagen antwoorden + foto's uit localStorage.
   useEffect(() => {
@@ -172,7 +178,7 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim(),
-          name: profiel?.name ?? undefined,
+          name: naam.trim() || profiel?.name || undefined,
           verliesType: actiefType || undefined,
           antwoorden: MOMENTEN.map((m) => ({ vraag: m.vraag, antwoord: antwoorden[m.id] || "" })),
           fotos: Object.values(fotos).filter(Boolean),
@@ -586,6 +592,14 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
                         onChange={(e) => setHoneypot(e.target.value)}
                         aria-hidden="true"
                         style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Jouw voornaam (optioneel)"
+                        value={naam}
+                        onChange={(e) => setNaam(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                        style={{ background: "rgba(255,255,255,0.90)", border: "1px solid rgba(0,0,0,0.09)", color: "#3d3530" }}
                       />
                       <input
                         type="email"
