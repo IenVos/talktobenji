@@ -948,6 +948,16 @@ function EvenHouvastTab() {
         <Field label="" value={veld("briefInstructie")} onChange={(v) => setVeld("briefInstructie", v)} multiline rows={10} placeholder={isBasis ? "" : content.briefInstructie} />
       </div>
 
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+        <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">
+          Gedicht onder de foto's {isBasis ? "(basis)" : `(${huidigTypeNaam})`}
+        </h3>
+        <p className="text-xs text-gray-400 mb-2">
+          Een vast gedichtje van 4 regels dat in de brief-mail onder de bewaarde foto's verschijnt. Eén regel per zin. {isBasis ? "Geldt als terugval voor typen zonder eigen gedicht." : "Leeg laten = het basis-gedicht wordt gebruikt."}
+        </p>
+        <Field label="" value={veld("fotoGedicht")} onChange={(v) => setVeld("fotoGedicht", v)} multiline rows={4} placeholder={isBasis ? "" : (content.fotoGedicht ?? "")} />
+      </div>
+
       <SaveBar onSave={handleSave} saving={saving} saved={saved2} />
     </div>
   );

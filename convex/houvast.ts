@@ -254,6 +254,189 @@ function wrapperBrief(inhoud: string, ps: string = ""): string {
 }
 
 /**
+ * Bouwt de complete HTML van de brief-mail. Gedeeld door de echte brief én de
+ * testbrief, zodat beide er identiek uitzien.
+ */
+function bouwBriefHtml(opts: {
+  aanhef: string;
+  briefHtml: string;
+  fotoUrls: string[];
+  gedichtTekst: string;
+  nietAlleenUrl: string;
+}): string {
+  const { aanhef, briefHtml, fotoUrls, gedichtTekst, nietAlleenUrl } = opts;
+
+  let fotoHtml = "";
+  if (fotoUrls.length > 0) {
+    // Groter en volledig zichtbaar (geen bijsnijden): max 3 naast elkaar,
+    // breedte verdeeld over het aantal foto's, hoogte volgt de verhouding.
+    const perRij = Math.min(fotoUrls.length, 3);
+    const celBreedte = Math.floor(100 / perRij);
+    const rijen: string[][] = [];
+    for (let i = 0; i < fotoUrls.length; i += 3) rijen.push(fotoUrls.slice(i, i + 3));
+    const rijenHtml = rijen
+      .map((rij) => {
+        const cellen = rij
+          .map(
+            (u) =>
+              `<td width="${celBreedte}%" style="padding:0 5px 10px 5px;vertical-align:top;">
+                <img src="${u}" alt="" width="100%" style="width:100%;height:auto;border-radius:10px;display:block;" />
+              </td>`
+          )
+          .join("");
+        const opvulling =
+          rij.length < perRij
+            ? Array(perRij - rij.length).fill(`<td width="${celBreedte}%"></td>`).join("")
+            : "";
+        return `<tr>${cellen}${opvulling}</tr>`;
+      })
+      .join("");
+
+    const gedichtRegels = gedichtTekst
+      .split("\n")
+      .map((r) => r.trim())
+      .filter(Boolean);
+    const gedichtHtml =
+      gedichtRegels.length > 0
+        ? `<div style="margin:20px 0 0 0;text-align:center;">
+             <p style="font-size:15px;line-height:1.85;color:#6b6460;font-style:italic;margin:0;">${gedichtRegels.join(
+               "<br>"
+             )}</p>
+           </div>`
+        : "";
+
+    fotoHtml = `
+      <div style="margin:28px 0 4px 0;">
+        <p style="font-size:13px;color:#8a8078;margin:0 0 14px 0;">De foto's die je bewaarde:</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          ${rijenHtml}
+        </table>
+        ${gedichtHtml}
+      </div>`;
+  }
+
+  // Zacht P.S. ná de afsluiting: vriendelijke tekst + ingetogen knop
+  // (zelfde achtergrond als de mail, blauwe tekst, dun blauw randje).
+  const psHtml = `
+    <div style="margin:26px 0 0 0;border-top:1px solid #e8e0d8;padding-top:22px;">
+      <p style="font-size:14px;line-height:1.75;color:#6b6460;margin:0 0 16px 0;">
+        <strong style="color:#4a5568;">P.S.</strong> Voor de langere weg is er Niet Alleen. Dag voor dag, samen, in jouw tempo. Geen haast, gewoon iemand die met je meeloopt.
+      </p>
+      <a href="${nietAlleenUrl}" style="background-color:#fdf9f4;color:#6d84a8;padding:11px 24px;border-radius:10px;
+         text-decoration:none;font-size:14px;font-weight:600;display:inline-block;border:1px solid #6d84a8;">
+        Ontdek Niet Alleen
+      </a>
+    </div>`;
+
+  return wrapperBrief(
+    `
+    <p style="font-size:16px;margin:0 0 18px 0;color:#3d3530;">${aanhef}</p>
+    ${briefHtml}
+    ${fotoHtml}
+  `,
+    psHtml
+  );
+}
+
+/** Resolvet het gedichtje onder de foto's voor een verliestype (admin-override → default). */
+function resolveFotoGedicht(saved: Record<string, any> | null, type: string): string {
+  const eigen = saved?.perType?.[type]?.fotoGedicht;
+  if (typeof eigen === "string" && eigen.trim()) return eigen.trim();
+  return GEDICHT_PER_TYPE[type] || GEDICHT_PER_TYPE.persoon;
+}
+
+const NIET_ALLEEN_DEFAULT_LINKS: Record<string, string> = {
+  persoon: "/lp/je-mist-iemand",
+  huisdier: "/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
+  scheiding: "/lp/mijn-relatie-is-voorbij",
+  eenzaamheid: "/lp/ik-voel-me-eenzaam",
+  kinderloos: "/lp/ongewenst-kinderloos-die-pijn-gaat-nooit-weg",
+};
+
+/** Doel-URL voor de Niet Alleen-knop (per verliestype, genormaliseerd + absoluut). */
+function bepaalNietAlleenUrl(saved: Record<string, any> | null, type: string): string {
+  const links: Record<string, string> = saved?.nietAlleenLinks ?? {};
+  const rawUrl =
+    (links[type] && links[type].trim()) ||
+    NIET_ALLEEN_DEFAULT_LINKS[type] ||
+    "/lp/je-hoeft-het-niet-alleen-te-doen";
+  let pad = rawUrl.trim();
+  if (!pad.startsWith("http")) {
+    if (!pad.startsWith("/lp/")) pad = `/lp/${pad.replace(/^\/+/, "").replace(/^lp\//, "")}`;
+  }
+  return pad.startsWith("http") ? pad : `https://www.talktobenji.com${pad}`;
+}
+
+const VERLIES_CONTEXT: Record<string, string> = {
+  persoon: "het overlijden van een dierbare",
+  huisdier: "het verlies van een huisdier",
+  scheiding: "het einde van een relatie (de ander leeft nog)",
+  eenzaamheid: "diepe eenzaamheid",
+  kinderloos: "ongewenste kinderloosheid, rouw om een kind dat er nooit kwam",
+};
+
+/** Genereert de brieftekst (Benji-toon, via Claude) en zet die om in HTML-alinea's. */
+async function genereerBriefHtml(opts: {
+  apiKey: string;
+  saved: Record<string, any> | null;
+  naam?: string;
+  verliesType?: string;
+  ingevuld: Array<{ vraag: string; antwoord: string }>;
+}): Promise<{ aanhef: string; briefHtml: string }> {
+  const { apiKey, saved, naam, verliesType, ingevuld } = opts;
+  // Brief-instructie: per verliestype als die is ingevuld, anders de basis.
+  const typeInstructie =
+    typeof saved?.perType?.[verliesType ?? ""]?.briefInstructie === "string"
+      ? saved.perType[verliesType ?? ""].briefInstructie.trim()
+      : "";
+  const briefInstructie =
+    typeInstructie ||
+    (typeof saved?.briefInstructie === "string" ? saved.briefInstructie.trim() : "") ||
+    BRIEF_INSTRUCTIE_DEFAULT;
+
+  const verliesContext = verliesType ? VERLIES_CONTEXT[verliesType] : "";
+  const userContent = [
+    naam ? `Naam: ${naam}` : null,
+    verliesContext ? `Het verdriet gaat over: ${verliesContext}.` : null,
+    "De persoon heeft bij Even Houvast het volgende opgeschreven:",
+    ...ingevuld.map((a, i) => `${i + 1}. Vraag: ${a.vraag}\n   Antwoord: ${a.antwoord.trim()}`),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 800,
+      system: briefInstructie,
+      messages: [{ role: "user", content: userContent }],
+    }),
+  });
+  if (!response.ok) throw new Error(`AI-fout: ${await response.text()}`);
+  const data = (await response.json()) as { content?: Array<{ text?: string }> };
+  const briefRaw: string = (data.content?.[0]?.text ?? "").trim();
+  if (!briefRaw) throw new Error("Lege brief gegenereerd.");
+  // Geen gedachtestreepjes in de tekst (— of –) → vervang door een komma.
+  const brief = briefRaw.replace(/\s*[—–]\s*/g, ", ").replace(/, ,/g, ",");
+
+  const aanhef = naam ? `Lieve ${naam},` : "Voor jou,";
+  const briefHtml = brief
+    .split(/\n\s*\n/)
+    .map(
+      (p) =>
+        `<p style="font-size:15px;line-height:1.9;color:#3d3530;margin:0 0 16px 0;">${p.replace(/\n/g, "<br>")}</p>`
+    )
+    .join("");
+  return { aanhef, briefHtml };
+}
+
+/**
  * Genereert op basis van de ingevulde antwoorden een persoonlijke "brief aan
  * zichzelf" (Benji-toon, via Claude) en stuurt die naar het opgegeven e-mailadres.
  */
@@ -283,88 +466,17 @@ export const genereerEnVerstuurBrief = action({
     const saved = (await ctx.runQuery(api.pageContent.getPublicPageContent, {
       pageKey: "houvast",
     })) as Record<string, any> | null;
-    // Brief-instructie: per verliestype als die is ingevuld, anders de basis.
-    const typeInstructie =
-      typeof saved?.perType?.[args.verliesType ?? ""]?.briefInstructie === "string"
-        ? saved.perType[args.verliesType ?? ""].briefInstructie.trim()
-        : "";
-    const briefInstructie =
-      typeInstructie ||
-      (typeof saved?.briefInstructie === "string" ? saved.briefInstructie.trim() : "") ||
-      BRIEF_INSTRUCTIE_DEFAULT;
-
-    // Doel-URL voor de Niet Alleen-knop in de mail (per verliestype, absoluut maken).
-    const DEFAULT_LINKS: Record<string, string> = {
-      persoon: "/lp/je-mist-iemand",
-      huisdier: "/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
-      scheiding: "/lp/mijn-relatie-is-voorbij",
-      eenzaamheid: "/lp/ik-voel-me-eenzaam",
-      kinderloos: "/lp/ongewenst-kinderloos-die-pijn-gaat-nooit-weg",
-    };
-    const links: Record<string, string> = saved?.nietAlleenLinks ?? {};
     const type = args.verliesType || "persoon";
-    const rawUrl =
-      (links[type] && links[type].trim()) ||
-      DEFAULT_LINKS[type] ||
-      "/lp/je-hoeft-het-niet-alleen-te-doen";
-    // Normaliseer een slug (met/zonder /lp/) naar een geldige LP-URL, dan absoluut maken.
-    let pad = rawUrl.trim();
-    if (!pad.startsWith("http")) {
-      if (!pad.startsWith("/lp/")) pad = `/lp/${pad.replace(/^\/+/, "").replace(/^lp\//, "")}`;
-    }
-    const nietAlleenUrl = pad.startsWith("http") ? pad : `https://www.talktobenji.com${pad}`;
-
-    // Korte omschrijving van het verlies, zodat de brief past bij dit verliestype.
-    const VERLIES_CONTEXT: Record<string, string> = {
-      persoon: "het overlijden van een dierbare",
-      huisdier: "het verlies van een huisdier",
-      scheiding: "het einde van een relatie (de ander leeft nog)",
-      eenzaamheid: "diepe eenzaamheid",
-      kinderloos: "ongewenste kinderloosheid, rouw om een kind dat er nooit kwam",
-    };
-    const verliesContext = args.verliesType ? VERLIES_CONTEXT[args.verliesType] : "";
-
-    const userContent = [
-      args.naam ? `Naam: ${args.naam}` : null,
-      verliesContext ? `Het verdriet gaat over: ${verliesContext}.` : null,
-      "De persoon heeft bij Even Houvast het volgende opgeschreven:",
-      ...ingevuld.map((a, i) => `${i + 1}. Vraag: ${a.vraag}\n   Antwoord: ${a.antwoord.trim()}`),
-    ]
-      .filter(Boolean)
-      .join("\n\n");
-
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 800,
-        system: briefInstructie,
-        messages: [{ role: "user", content: userContent }],
-      }),
+    const nietAlleenUrl = bepaalNietAlleenUrl(saved, type);
+    const { aanhef, briefHtml } = await genereerBriefHtml({
+      apiKey: ANTHROPIC_API_KEY,
+      saved,
+      naam: args.naam,
+      verliesType: args.verliesType,
+      ingevuld,
     });
-    if (!response.ok) throw new Error(`AI-fout: ${await response.text()}`);
-    const data = (await response.json()) as { content?: Array<{ text?: string }> };
-    const briefRaw: string = (data.content?.[0]?.text ?? "").trim();
-    if (!briefRaw) throw new Error("Lege brief gegenereerd.");
-    // Geen gedachtestreepjes in de tekst (— of –) → vervang door een komma.
-    const brief = briefRaw.replace(/\s*[—–]\s*/g, ", ").replace(/, ,/g, ",");
-
-    const aanhef = args.naam ? `Lieve ${args.naam},` : "Voor jou,";
-    const briefHtml = brief
-      .split(/\n\s*\n/)
-      .map(
-        (p) =>
-          `<p style="font-size:15px;line-height:1.9;color:#3d3530;margin:0 0 16px 0;">${p.replace(/\n/g, "<br>")}</p>`
-      )
-      .join("");
 
     // Foto's: opslaan in Convex storage en als echte URL in de mail tonen.
-    let fotoHtml = "";
     const fotoUrls: string[] = [];
     for (const dataUrl of args.fotos ?? []) {
       const blob = dataUrlToBlob(dataUrl);
@@ -377,81 +489,14 @@ export const genereerEnVerstuurBrief = action({
         /* sla deze foto over */
       }
     }
-    if (fotoUrls.length > 0) {
-      // Groter en volledig zichtbaar (geen bijsnijden): max 3 naast elkaar,
-      // breedte verdeeld over het aantal foto's, hoogte volgt de verhouding.
-      const perRij = Math.min(fotoUrls.length, 3);
-      const celBreedte = Math.floor(100 / perRij);
-      const rijen: string[][] = [];
-      for (let i = 0; i < fotoUrls.length; i += 3) rijen.push(fotoUrls.slice(i, i + 3));
-      const rijenHtml = rijen
-        .map((rij) => {
-          const cellen = rij
-            .map(
-              (u) =>
-                `<td width="${celBreedte}%" style="padding:0 5px 10px 5px;vertical-align:top;">
-                  <img src="${u}" alt="" width="100%" style="width:100%;height:auto;border-radius:10px;display:block;" />
-                </td>`
-            )
-            .join("");
-          const opvulling =
-            rij.length < perRij
-              ? Array(perRij - rij.length).fill(`<td width="${celBreedte}%"></td>`).join("")
-              : "";
-          return `<tr>${cellen}${opvulling}</tr>`;
-        })
-        .join("");
 
-      // Vast gedichtje per verliestype (admin-override mogelijk), onder de foto's.
-      const gedichtTekst =
-        (typeof saved?.perType?.[type]?.fotoGedicht === "string" &&
-          saved.perType[type].fotoGedicht.trim()) ||
-        GEDICHT_PER_TYPE[type] ||
-        GEDICHT_PER_TYPE.persoon;
-      const gedichtRegels = gedichtTekst
-        .split("\n")
-        .map((r: string) => r.trim())
-        .filter(Boolean);
-      const gedichtHtml =
-        gedichtRegels.length > 0
-          ? `<div style="margin:20px 0 0 0;text-align:center;">
-               <p style="font-size:15px;line-height:1.85;color:#6b6460;font-style:italic;margin:0;">${gedichtRegels.join(
-                 "<br>"
-               )}</p>
-             </div>`
-          : "";
-
-      fotoHtml = `
-        <div style="margin:28px 0 4px 0;">
-          <p style="font-size:13px;color:#8a8078;margin:0 0 14px 0;">De foto's die je bewaarde:</p>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-            ${rijenHtml}
-          </table>
-          ${gedichtHtml}
-        </div>`;
-    }
-
-    // Zacht P.S. ná de afsluiting: vriendelijke tekst + ingetogen knop
-    // (zelfde achtergrond als de mail, blauwe tekst, dun blauw randje).
-    const psHtml = `
-      <div style="margin:26px 0 0 0;border-top:1px solid #e8e0d8;padding-top:22px;">
-        <p style="font-size:14px;line-height:1.75;color:#6b6460;margin:0 0 16px 0;">
-          <strong style="color:#4a5568;">P.S.</strong> Voor de langere weg is er Niet Alleen. Dag voor dag, samen, in jouw tempo. Geen haast, gewoon iemand die met je meeloopt.
-        </p>
-        <a href="${nietAlleenUrl}" style="background-color:#fdf9f4;color:#6d84a8;padding:11px 24px;border-radius:10px;
-           text-decoration:none;font-size:14px;font-weight:600;display:inline-block;border:1px solid #6d84a8;">
-          Ontdek Niet Alleen
-        </a>
-      </div>`;
-
-    const html = wrapperBrief(
-      `
-      <p style="font-size:16px;margin:0 0 18px 0;color:#3d3530;">${aanhef}</p>
-      ${briefHtml}
-      ${fotoHtml}
-    `,
-      psHtml
-    );
+    const html = bouwBriefHtml({
+      aanhef,
+      briefHtml,
+      fotoUrls,
+      gedichtTekst: resolveFotoGedicht(saved, type),
+      nietAlleenUrl,
+    });
 
     await verstuurEmail({
       to: emailLc,
@@ -460,6 +505,77 @@ export const genereerEnVerstuurBrief = action({
       apiKey: RESEND_API_KEY,
     });
     await ctx.runMutation(internal.houvast.markBriefVerzonden, { email: emailLc, verliesType: args.verliesType, naam: args.naam });
+    return { success: true };
+  },
+});
+
+// Voorbeeldantwoorden voor de testbrief (algemeen, passend bij elk verliestype).
+const TESTBRIEF_ANTWOORDEN = [
+  {
+    vraag: "Wat mis je op dit moment het meest?",
+    antwoord: "De kleine, gewone momenten. Samen op de bank, het geluid van thuiskomen.",
+  },
+  {
+    vraag: "Welke herinnering komt nu naar boven?",
+    antwoord: "Een doodgewone ochtend, niets bijzonders, en juist daarom zo dierbaar.",
+  },
+];
+
+/**
+ * Stuurt een TESTversie van de brief-mail naar een opgegeven adres (admin).
+ * Gebruikt voorbeeldantwoorden + twee voorbeeldfoto's, zodat de hele opmaak
+ * (foto's, gedicht, P.S.) zichtbaar is. Slaat niets op en omzeilt de "1 brief
+ * per adres"-grens. Bouwt de mail met exact dezelfde helpers als de echte brief.
+ */
+export const stuurTestBrief = action({
+  args: {
+    adminToken: v.string(),
+    email: v.string(),
+    naam: v.optional(v.string()),
+    verliesType: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    if (!RESEND_API_KEY) throw new Error("E-mail niet geconfigureerd (RESEND_API_KEY).");
+    if (!ANTHROPIC_API_KEY) throw new Error("AI niet geconfigureerd (ANTHROPIC_API_KEY).");
+    const emailLc = args.email.trim().toLowerCase();
+    if (!emailLc.includes("@")) throw new Error("Vul een geldig test-e-mailadres in.");
+
+    const saved = (await ctx.runQuery(api.pageContent.getPublicPageContent, {
+      pageKey: "houvast",
+    })) as Record<string, any> | null;
+    const type = args.verliesType || "persoon";
+    const nietAlleenUrl = bepaalNietAlleenUrl(saved, type);
+    const { aanhef, briefHtml } = await genereerBriefHtml({
+      apiKey: ANTHROPIC_API_KEY,
+      saved,
+      naam: args.naam,
+      verliesType: args.verliesType,
+      ingevuld: TESTBRIEF_ANTWOORDEN,
+    });
+
+    // Twee voorbeeldfoto's (verschillende verhoudingen) om de opmaak te tonen.
+    const fotoUrls = [
+      "https://www.talktobenji.com/images/ien-founder.png",
+      "https://www.talktobenji.com/images/benji-app-homescreen.png",
+    ];
+
+    const html = bouwBriefHtml({
+      aanhef,
+      briefHtml,
+      fotoUrls,
+      gedichtTekst: resolveFotoGedicht(saved, type),
+      nietAlleenUrl,
+    });
+
+    await verstuurEmail({
+      to: emailLc,
+      subject: "[TEST] Jouw woorden — Even Houvast",
+      html,
+      apiKey: RESEND_API_KEY,
+    });
     return { success: true };
   },
 });

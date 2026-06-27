@@ -130,8 +130,14 @@ export default function EvenHouvastEmailsPage() {
     | undefined;
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
   const stuurTestEnkel = useAdminAction(api.evenHouvastOpvolg.stuurTestOpvolgEnkel);
+  const stuurTestBrief = useAdminAction(api.houvast.stuurTestBrief);
+  const verliestypen = useAdminQuery(api.verliesTypen.list, {}) as
+    | { code: string; naam: string }[]
+    | undefined;
   const [testEmail, setTestEmail] = useState("");
   const [testNaam, setTestNaam] = useState("");
+  const [briefType, setBriefType] = useState("huisdier");
+  const [briefState, setBriefState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [toonLijst, setToonLijst] = useState(false);
 
   const totaal = overzicht?.length ?? 0;
@@ -157,6 +163,17 @@ export default function EvenHouvastEmailsPage() {
     await stuurTestEnkel({ email: testEmail.trim(), naam: testNaam.trim() || undefined, mailNummer: n });
   };
   const canTest = testEmail.includes("@");
+
+  const testBrief = async () => {
+    setBriefState("sending");
+    try {
+      await stuurTestBrief({ email: testEmail.trim(), naam: testNaam.trim() || undefined, verliesType: briefType });
+      setBriefState("done");
+      setTimeout(() => setBriefState("idle"), 3000);
+    } catch {
+      setBriefState("error");
+    }
+  };
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -236,9 +253,30 @@ export default function EvenHouvastEmailsPage() {
         )}
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <input placeholder="Test-e-mail (jouw@email.nl)" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} className="px-3 py-2 border border-amber-200 rounded-lg text-sm" />
-        <input placeholder="Voornaam (optioneel)" value={testNaam} onChange={(e) => setTestNaam(e.target.value)} className="px-3 py-2 border border-amber-200 rounded-lg text-sm" />
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <input placeholder="Test-e-mail (jouw@email.nl)" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} className="px-3 py-2 border border-amber-200 rounded-lg text-sm" />
+          <input placeholder="Voornaam (optioneel)" value={testNaam} onChange={(e) => setTestNaam(e.target.value)} className="px-3 py-2 border border-amber-200 rounded-lg text-sm" />
+        </div>
+        {/* Testbrief: de brief-mail zelf (met foto's, gedicht en P.S.) */}
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200">
+          <span className="text-xs font-semibold text-amber-800 w-full sm:w-auto">Stuur de brief-mail als test:</span>
+          <select value={briefType} onChange={(e) => setBriefType(e.target.value)} className="px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white">
+            {(verliestypen ?? [{ code: "huisdier", naam: "Huisdier" }]).map((t) => (
+              <option key={t.code} value={t.code}>{t.naam}</option>
+            ))}
+          </select>
+          <button
+            onClick={testBrief}
+            disabled={!canTest || briefState === "sending"}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-50 disabled:opacity-40 bg-white"
+          >
+            <Send size={13} /> {briefState === "sending" ? "Versturen…" : "Stuur testbrief"}
+          </button>
+          {briefState === "done" && <span className="text-sm text-green-600">Verstuurd ✓</span>}
+          {briefState === "error" && <span className="text-sm text-red-600">Mislukt</span>}
+          <p className="text-[11px] text-amber-700 w-full">Voorbeeldbrief met twee voorbeeldfoto's, het gedicht en het P.S., zodat je de hele opmaak ziet. Het gedicht pas je aan bij Pagina's → Even Houvast.</p>
+        </div>
       </div>
 
       <div className="space-y-2">

@@ -25,6 +25,7 @@ export type HouvastPerType = {
   slotTekst?: string;
   slotPrijsRegel?: string;   // kleine prijs-/verwachtingsregel onder de knop
   briefInstructie?: string;
+  fotoGedicht?: string;      // 4-regelig gedichtje onder de foto's in de brief-mail
 };
 
 export type HouvastContent = {
@@ -35,6 +36,7 @@ export type HouvastContent = {
   slotTekst: string;      // alinea's gescheiden door een lege regel
   slotPrijsRegel?: string;          // optionele prijsregel onder de "Ontdek Niet Alleen"-knop (basis)
   briefInstructie: string;          // system prompt voor Claude (Benji-toon)
+  fotoGedicht?: string;             // basis 4-regelig gedichtje onder de foto's (terugval)
   nietAlleenLinks: Record<string, string>; // verliestype-code → doel-URL
   perType?: Record<string, HouvastPerType>; // verliestype-code → eigen teksten
 };
@@ -50,6 +52,7 @@ export function resolveHouvast(c: HouvastContent, typeCode: string | undefined) 
     slotTekst: (o.slotTekst ?? "").trim() || c.slotTekst,
     slotPrijsRegel: ((o.slotPrijsRegel ?? c.slotPrijsRegel) ?? "").trim(),
     briefInstructie: (o.briefInstructie ?? "").trim() || c.briefInstructie,
+    fotoGedicht: (o.fotoGedicht ?? "").trim() || (c.fotoGedicht ?? "").trim(),
   };
 }
 
@@ -87,6 +90,31 @@ Toon en stijl:
 - Eindig met iets wat rust en nabijheid geeft, zonder te beloven dat het overgaat.
 
 Geef alleen de brieftekst terug, niets anders.`;
+
+// Vast, unisex gedichtje (4 regels) onder de foto's in de brief-mail, per verliestype.
+// Spiegelbeeld van GEDICHT_PER_TYPE in convex/houvast.ts (houd beide gelijk).
+export const HOUVAST_FOTO_GEDICHT_DEFAULT: Record<string, string> = {
+  persoon: `Wat jullie hadden,
+neemt niemand ooit weg.
+Het leeft in deze beelden,
+en in jou, voorgoed.`,
+  huisdier: `Trouw tot het einde,
+dichtbij zonder woorden.
+Wat jullie samen waren,
+draag je voor altijd mee.`,
+  scheiding: `Niet alles wat eindigt,
+ging verloren.
+Wat echt was, blijft echt,
+en jij komt hier doorheen.`,
+  eenzaamheid: `Ook in de stilte
+ben je meer dan dit moment.
+Je bent niet vergeten,
+en je staat er niet alleen voor.`,
+  kinderloos: `Een liefde zo groot,
+voor wie er nooit kwam.
+Dit gemis is echt,
+en het mag er zijn.`,
+};
 
 export const DEFAULT_HOUVAST: HouvastContent = {
   welkomTitel: "Wat goed dat je hier bent",
@@ -179,6 +207,7 @@ export const DEFAULT_HOUVAST: HouvastContent = {
     "Geen grote stappen, geen druk, alles in jouw eigen tempo. Gewoon iemand die naast je staat, dag voor dag, zodat de zwaarste momenten net iets lichter worden. En aan het eind houd je een blijvend document over dat helemaal van jou is.",
   ].join("\n\n"),
   briefInstructie: HOUVAST_BRIEF_INSTRUCTIE_DEFAULT,
+  fotoGedicht: HOUVAST_FOTO_GEDICHT_DEFAULT.persoon,
   nietAlleenLinks: {
     persoon: "/lp/je-mist-iemand",
     huisdier: "/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
@@ -563,6 +592,7 @@ export function mergeHouvast(saved: Partial<HouvastContent> | null | undefined):
       slotTekst: s.slotTekst ?? d.slotTekst,
       slotPrijsRegel: s.slotPrijsRegel ?? d.slotPrijsRegel,
       briefInstructie: s.briefInstructie ?? d.briefInstructie,
+      fotoGedicht: s.fotoGedicht ?? d.fotoGedicht ?? HOUVAST_FOTO_GEDICHT_DEFAULT[code],
     };
   }
 
@@ -577,6 +607,7 @@ export function mergeHouvast(saved: Partial<HouvastContent> | null | undefined):
     slotTekst: saved.slotTekst || DEFAULT_HOUVAST.slotTekst,
     slotPrijsRegel: saved.slotPrijsRegel ?? DEFAULT_HOUVAST.slotPrijsRegel,
     briefInstructie: saved.briefInstructie || DEFAULT_HOUVAST.briefInstructie,
+    fotoGedicht: saved.fotoGedicht || DEFAULT_HOUVAST.fotoGedicht,
     nietAlleenLinks,
     perType,
   };
