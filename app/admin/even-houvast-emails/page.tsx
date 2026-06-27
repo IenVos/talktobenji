@@ -22,7 +22,7 @@ function EHMailEditor({
   subtitel: string;
   defaultDag: number;
   saved: any;
-  onSave: (n: number, f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; dagOffset: number }) => Promise<void>;
+  onSave: (n: number, f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; imageUrl: string; imageCaption: string; dagOffset: number }) => Promise<void>;
   onTest: (n: number) => Promise<void>;
   canTest: boolean;
 }) {
@@ -32,6 +32,8 @@ function EHMailEditor({
   const [bodyText, setBodyText] = useState<string>(saved?.bodyText ?? def.bodyText);
   const [buttonText, setButtonText] = useState<string>(saved?.buttonText ?? def.buttonText ?? "");
   const [buttonUrl, setButtonUrl] = useState<string>(saved?.buttonUrl ?? def.buttonUrl ?? "");
+  const [imageUrl, setImageUrl] = useState<string>(saved?.imageUrl ?? def.imageUrl ?? "");
+  const [imageCaption, setImageCaption] = useState<string>(saved?.imageCaption ?? def.imageCaption ?? "");
   const [dag, setDag] = useState<number>(saved?.dagOffset ?? defaultDag);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [testState, setTestState] = useState<"idle" | "sending" | "done" | "error">("idle");
@@ -41,16 +43,18 @@ function EHMailEditor({
     setBodyText(saved?.bodyText ?? def.bodyText);
     setButtonText(saved?.buttonText ?? def.buttonText ?? "");
     setButtonUrl(saved?.buttonUrl ?? def.buttonUrl ?? "");
+    setImageUrl(saved?.imageUrl ?? def.imageUrl ?? "");
+    setImageCaption(saved?.imageCaption ?? def.imageCaption ?? "");
     setDag(saved?.dagOffset ?? defaultDag);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saved?.subject, saved?.bodyText, saved?.buttonText, saved?.buttonUrl, saved?.dagOffset]);
+  }, [saved?.subject, saved?.bodyText, saved?.buttonText, saved?.buttonUrl, saved?.imageUrl, saved?.imageCaption, saved?.dagOffset]);
 
   const isEdited = !!saved;
   const inputCls = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
 
   const save = async () => {
     setStatus("saving");
-    await onSave(n, { subject, bodyText, buttonText, buttonUrl, dagOffset: dag });
+    await onSave(n, { subject, bodyText, buttonText, buttonUrl, imageUrl, imageCaption, dagOffset: dag });
     setStatus("saved");
     setTimeout(() => setStatus("idle"), 2000);
   };
@@ -106,6 +110,21 @@ function EHMailEditor({
               <input value={buttonUrl} onChange={(e) => setButtonUrl(e.target.value)} className={inputCls} />
             </div>
           </div>
+          <div className="rounded-lg border border-gray-200 bg-gray-50/60 p-3 space-y-3">
+            <p className="text-xs font-semibold text-gray-600">Klikbare afbeelding (bijv. boekje-cover)</p>
+            <p className="text-[11px] text-gray-400 -mt-1">Plak een directe afbeeldings-URL. De afbeelding linkt naar de Knop-URL hierboven (bijv. een flipbook). Een embed/iframe werkt niet in e-mail; een klikbare cover wel.</p>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Afbeelding-URL</label>
+              <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://… (directe link naar de afbeelding)" className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Bijschrift onder de afbeelding (optioneel)</label>
+              <input value={imageCaption} onChange={(e) => setImageCaption(e.target.value)} placeholder="Bijv. Woorden die je omarmen, open het boekje" className={inputCls} />
+            </div>
+            {imageUrl && (
+              <img src={imageUrl} alt="" className="max-w-[180px] rounded-lg border border-gray-200" />
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button onClick={save} disabled={status === "saving"} className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-semibold hover:bg-primary-700 disabled:opacity-50">
               <Save size={14} /> {status === "saving" ? "Opslaan…" : status === "saved" ? "Opgeslagen" : "Opslaan"}
@@ -148,7 +167,7 @@ export default function EvenHouvastEmailsPage() {
   const getT = (n: number) => templates?.find((t: any) => t.key === `eh_huisdier_${n}`);
   const save = async (
     n: number,
-    f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; dagOffset: number }
+    f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; imageUrl: string; imageCaption: string; dagOffset: number }
   ) => {
     await upsertTemplate({
       key: `eh_huisdier_${n}`,
@@ -156,6 +175,8 @@ export default function EvenHouvastEmailsPage() {
       bodyText: f.bodyText,
       buttonText: f.buttonText || undefined,
       buttonUrl: f.buttonUrl || undefined,
+      imageUrl: f.imageUrl || undefined,
+      imageCaption: f.imageCaption || undefined,
       dagOffset: f.dagOffset,
     });
   };

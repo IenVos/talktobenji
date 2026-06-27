@@ -492,6 +492,8 @@ export default defineSchema({
     aanhef: v.optional(v.string()),
     buttonText: v.optional(v.string()),
     buttonUrl: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),     // klikbare afbeelding (bijv. boekje-cover), linkt naar buttonUrl
+    imageCaption: v.optional(v.string()), // zacht bijschrift onder de afbeelding
     upsellText: v.optional(v.string()),
     upsellUrl: v.optional(v.string()),
     dagOffset: v.optional(v.number()), // voor de Even Houvast-opvolgmails: dagen na de brief

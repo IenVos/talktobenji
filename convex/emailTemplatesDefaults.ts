@@ -167,9 +167,11 @@ We zijn blij dat je er was.`,
   },
   eh_huisdier_2: {
     subject: "Je bent niet overdreven",
-    bodyText: `Hoi {voornaam},\n\nMisschien heb je het al eens gehoord. Van iemand die het goed bedoelde.\n\n"Het was maar een kat." Of: "Je kunt toch een nieuwe nemen."\n\nHet steekt elke keer. Omdat het niet klopt.\n\nJe huisdier was er altijd. Op de slechte ochtenden. Op de late avonden. Op de dagen dat je het even niet trok. Hij of zij vroeg nooit iets terug. Was er gewoon.\n\nDat soort verbinding verdwijnt niet vanzelf als je van rouw praat. Maar het wordt er wel minder over gezegd.\n\nWeet je wat ik veel hoor van mensen die een huisdier verloren? Dat ze het verdriet een beetje verstopten. Dat ze het kleiner maakten dan het was. Omdat ze bang waren dat anderen het niet zouden begrijpen.\n\nMaar verdriet wordt niet kleiner als je het wegstopt. Het wacht gewoon.\n\nJij hoeft het niet weg te stoppen. Je mag rouwen om dit verlies, net zoals je om een ander groot verlies zou rouwen. Zonder excuses. Zonder uitleg.\n\nJe bent niet overdreven.`,
-    buttonText: "Meer lezen over rouw om een huisdier",
-    buttonUrl: "https://www.talktobenji.com/blog",
+    bodyText: `Hoi {voornaam},\n\nMisschien heb je het al eens gehoord. Van iemand die het goed bedoelde.\n\n"Het was maar een kat." Of: "Je kunt toch een nieuwe nemen."\n\nHet steekt elke keer. Omdat het niet klopt.\n\nJe huisdier was er altijd. Op de slechte ochtenden. Op de late avonden. Op de dagen dat je het even niet trok. Hij of zij vroeg nooit iets terug. Was er gewoon.\n\nDat soort verbinding verdwijnt niet vanzelf als je van rouw praat. Maar het wordt er wel minder over gezegd.\n\nWeet je wat ik veel hoor van mensen die een huisdier verloren? Dat ze het verdriet een beetje verstopten. Dat ze het kleiner maakten dan het was. Omdat ze bang waren dat anderen het niet zouden begrijpen.\n\nMaar verdriet wordt niet kleiner als je het wegstopt. Het wacht gewoon.\n\nJij hoeft het niet weg te stoppen. Je mag rouwen om dit verlies, net zoals je om een ander groot verlies zou rouwen. Zonder excuses. Zonder uitleg.\n\nJe bent niet overdreven.
+
+Ik heb een klein boekje voor je gemaakt. Woorden die je omarmen: spreuken en gedichtjes om bij stil te staan op de momenten dat het zwaar is. Klik op het boekje om het te openen.`,
+    buttonUrl: "https://heyzine.com/flip-book/1b15e11883.html",
+    imageCaption: "Woorden die je omarmen, open het boekje",
   },
   eh_huisdier_3: {
     subject: "Wat als je er elke dag even bij stil mocht staan?",

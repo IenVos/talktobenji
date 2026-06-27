@@ -48,6 +48,19 @@ function knop(tekst: string, url: string): string {
     </div>`;
 }
 
+// Klikbare afbeelding (bijv. boekje-cover) met optioneel zacht bijschrift.
+// Een flipbook/iframe kan niet in e-mail; dit toont de cover die naar het boekje linkt.
+function coverBlok(imageUrl: string, linkUrl?: string, caption?: string): string {
+  const img = `<img src="${imageUrl}" alt="" style="max-width:240px;width:100%;height:auto;border-radius:10px;display:block;margin:0 auto;box-shadow:0 4px 18px rgba(0,0,0,0.12);" />`;
+  const inner = linkUrl ? `<a href="${linkUrl}" style="text-decoration:none;display:inline-block;">${img}</a>` : img;
+  const cap = caption
+    ? `<p style="font-size:13px;color:#6b6460;margin:12px 0 0 0;">${
+        linkUrl ? `<a href="${linkUrl}" style="color:#6d84a8;text-decoration:none;">${caption} →</a>` : caption
+      }</p>`
+    : "";
+  return `<div style="margin:26px 0;text-align:center;">${inner}${cap}</div>`;
+}
+
 function handtekeningIen(): string {
   return `
     <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 24px;">
@@ -128,6 +141,8 @@ async function verstuurOpvolgMail(
   const bodyText: string = saved?.bodyText ?? def.bodyText;
   const buttonText: string | undefined = saved?.buttonText ?? def.buttonText;
   const buttonUrl: string | undefined = saved?.buttonUrl ?? def.buttonUrl;
+  const imageUrl: string | undefined = saved?.imageUrl ?? def.imageUrl;
+  const imageCaption: string | undefined = saved?.imageCaption ?? def.imageCaption;
 
   const voornaam = (args.naam || "").trim().split(" ")[0];
   const body = bodyText
@@ -139,6 +154,7 @@ async function verstuurOpvolgMail(
 
   const html = wrapper(`
     ${alineaHtml(body)}
+    ${imageUrl ? coverBlok(imageUrl, buttonUrl, imageCaption) : ""}
     ${buttonText && buttonUrl ? knop(buttonText, buttonUrl) : ""}
     ${handtekeningIen()}
     ${afmeldVoettekst(afmeldUrl)}
