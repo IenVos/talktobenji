@@ -17,7 +17,7 @@ import { v } from "convex/values";
 import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
 import { checkAdmin } from "./adminAuth";
 
-const FROM = "Talk To Benji <noreply@talktobenji.com>";
+const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 const DAG_MS = 24 * 60 * 60 * 1000;
 
 // Niet versturen aan leads van vóór deze datum (voorkomt mailen van oude leads).
@@ -192,9 +192,10 @@ async function verstuurOpvolgMail(
   const imageCaption: string | undefined = saved?.imageCaption ?? def?.imageCaption;
 
   const voornaam = (args.naam || "").trim().split(" ")[0];
+  // Vul {voornaam} in; zonder naam blijft "Hi ," / "Hoi ," over → opschonen.
   const body = bodyText
-    .replace("Hoi {voornaam},", voornaam ? `Hoi ${voornaam},` : "Hoi,")
-    .replace(/\{voornaam\}/g, voornaam);
+    .replace(/\{voornaam\}/g, voornaam)
+    .replace(/(Hi|Hoi)\s+,/g, "$1,");
 
   const token = await afmeldToken(args.email);
   const afmeldUrl = `${appBase()}/api/afmelden?e=${encodeURIComponent(args.email)}&t=${token}`;

@@ -6,7 +6,7 @@ import { action, internalAction, internalMutation, internalQuery, mutation, quer
 import { api, internal } from "./_generated/api";
 import { checkAdmin, logAdminAction } from "./adminAuth";
 
-const FROM = "Talk To Benji <noreply@talktobenji.com>";
+const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 
 // Fallback-instructie voor de persoonlijke brief (Benji-toon). Beheerbaar via
 // admin → Pagina's → Even Houvast (veld "Brief-instructie").
