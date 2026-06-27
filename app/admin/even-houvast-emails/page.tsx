@@ -40,6 +40,7 @@ function EHMailEditor({
   const [dag, setDag] = useState<number>(saved?.dagOffset ?? defaultDag);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [testState, setTestState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [testError, setTestError] = useState("");
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -64,8 +65,9 @@ function EHMailEditor({
   };
   const test = async () => {
     setTestState("sending");
+    setTestError("");
     try { await onTest(n); setTestState("done"); setTimeout(() => setTestState("idle"), 2500); }
-    catch { setTestState("error"); }
+    catch (e: any) { setTestError(e?.message ?? "Onbekende fout"); setTestState("error"); }
   };
 
   return (
@@ -165,6 +167,9 @@ function EHMailEditor({
             {testState === "done" && <span className="text-sm text-green-600">Verstuurd ✓</span>}
             {testState === "error" && <span className="text-sm text-red-600">Mislukt</span>}
           </div>
+          {testState === "error" && testError && (
+            <p className="text-[11px] text-red-500 break-words">{testError}</p>
+          )}
           <p className="text-[11px] text-gray-400">Sla eerst op om je wijzigingen mee te testen. De testmail gebruikt de opgeslagen versie.</p>
         </div>
       )}
@@ -190,6 +195,9 @@ export default function EvenHouvastEmailsPage() {
   const [briefType, setBriefType] = useState("huisdier");
   const [briefState, setBriefState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [toonLijst, setToonLijst] = useState(false);
+  const [testMailNr, setTestMailNr] = useState<number>(EH_META[0].n);
+  const [opvolgState, setOpvolgState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [opvolgError, setOpvolgError] = useState("");
 
   const totaal = overzicht?.length ?? 0;
   const gekocht = overzicht?.filter((r) => r.gekocht).length ?? 0;
@@ -216,6 +224,20 @@ export default function EvenHouvastEmailsPage() {
     await stuurTestEnkel({ email: testEmail.trim(), naam: testNaam.trim() || undefined, mailNummer: n });
   };
   const canTest = testEmail.includes("@");
+
+  // Testmail van een gekozen opvolgmail (via de dropdown), met zichtbare fout.
+  const testOpvolg = async () => {
+    setOpvolgState("sending");
+    setOpvolgError("");
+    try {
+      await stuurTestEnkel({ email: testEmail.trim(), naam: testNaam.trim() || undefined, mailNummer: testMailNr });
+      setOpvolgState("done");
+      setTimeout(() => setOpvolgState("idle"), 3000);
+    } catch (e: any) {
+      setOpvolgError(e?.message ?? "Onbekende fout");
+      setOpvolgState("error");
+    }
+  };
 
   // Upload een afbeelding naar Convex storage en geef de publieke URL terug.
   const uploadImage = async (file: File): Promise<string | null> => {
@@ -319,6 +341,29 @@ export default function EvenHouvastEmailsPage() {
           <input placeholder="Test-e-mail (jouw@email.nl)" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} className="px-3 py-2 border border-amber-200 rounded-lg text-sm" />
           <input placeholder="Voornaam (optioneel)" value={testNaam} onChange={(e) => setTestNaam(e.target.value)} className="px-3 py-2 border border-amber-200 rounded-lg text-sm" />
         </div>
+        {/* Testmail van een opvolgmail: kies welke mail en stuur 'm los */}
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200">
+          <span className="text-xs font-semibold text-amber-800 w-full sm:w-auto">Stuur een opvolgmail als test:</span>
+          <select value={testMailNr} onChange={(e) => setTestMailNr(Number(e.target.value))} className="px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white">
+            {EH_META.map((m) => (
+              <option key={m.n} value={m.n}>Mail {m.n} — {m.titel} (dag {m.defaultDag})</option>
+            ))}
+          </select>
+          <button
+            onClick={testOpvolg}
+            disabled={!canTest || opvolgState === "sending"}
+            className="flex items-center gap-2 px-3 py-2 text-sm text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-50 disabled:opacity-40 bg-white"
+          >
+            <Send size={13} /> {opvolgState === "sending" ? "Versturen…" : "Stuur testmail"}
+          </button>
+          {opvolgState === "done" && <span className="text-sm text-green-600">Verstuurd ✓</span>}
+          {opvolgState === "error" && <span className="text-sm text-red-600">Mislukt</span>}
+          {opvolgState === "error" && opvolgError && (
+            <p className="text-[11px] text-red-500 w-full break-words">{opvolgError}</p>
+          )}
+          <p className="text-[11px] text-amber-700 w-full">Stuurt de opgeslagen versie van de gekozen mail. Vul hierboven een test-e-mail in.</p>
+        </div>
+
         {/* Testbrief: de brief-mail zelf (met foto's, gedicht en P.S.) */}
         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200">
           <span className="text-xs font-semibold text-amber-800 w-full sm:w-auto">Stuur de brief-mail als test:</span>
