@@ -6,8 +6,10 @@ import { api } from "@/convex/_generated/api";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
 import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
 
+// Volgorde = chronologisch (op dag). Mail 6 valt op dag 2, tussen mail 1 en 2.
 const EH_META: { n: number; titel: string; subtitel: string; defaultDag: number }[] = [
   { n: 1, titel: "Erkenning", subtitel: "Direct na de brief. Geen verkoop, alleen erkenning.", defaultDag: 0 },
+  { n: 6, titel: "Wie ik ben", subtitel: "Persoonlijk: Ien stelt zich voor (verhaal Zoro). Geen verkoop.", defaultDag: 2 },
   { n: 2, titel: "Normaliseren", subtitel: "Rouw om een huisdier mag er zijn.", defaultDag: 3 },
   { n: 3, titel: "Niet Alleen introduceren", subtitel: "Zacht introduceren. Knop naar de verkoop-LP.", defaultDag: 5 },
   { n: 4, titel: "Verhaal / ervaring", subtitel: "Een echt verhaal. Knop naar de verkoop-LP.", defaultDag: 8 },
@@ -259,7 +261,7 @@ export default function EvenHouvastEmailsPage() {
         </div>
         {/* Verdeling per mail (alleen lopende leads) */}
         <div className="space-y-1.5">
-          {[1, 2, 3, 4, 5].map((n) => {
+          {EH_META.map((m) => m.n).map((n) => {
             const aantal = overzicht?.filter((r) => !r.gekocht && !r.afgemeld && r.laatsteMail === n).length ?? 0;
             const pct = lopend > 0 ? Math.round((aantal / lopend) * 100) : 0;
             return (

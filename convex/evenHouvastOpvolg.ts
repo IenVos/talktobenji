@@ -24,7 +24,10 @@ const DAG_MS = 24 * 60 * 60 * 1000;
 const EH_OPVOLG_START = Date.UTC(2026, 5, 25); // 25 juni 2026
 
 // Welke mail op welke dag na de brief. Sleutel = mailnummer, waarde = dagoffset.
-const SCHEMA: Record<number, number> = { 1: 0, 2: 3, 3: 5, 4: 8, 5: 11 };
+// Mail 6 ("Wie ik ben") valt chronologisch op dag 2, tussen mail 1 en 2. De
+// verzendvolgorde wordt op dagoffset bepaald, niet op mailnummer.
+const SCHEMA: Record<number, number> = { 1: 0, 6: 2, 2: 3, 3: 5, 4: 8, 5: 11 };
+const MAIL_NUMMERS = Object.keys(SCHEMA).map(Number);
 const TEMPLATE_KEY = (n: number) => `eh_huisdier_${n}`;
 const VERLIES_TYPE = "huisdier";
 
@@ -197,7 +200,7 @@ export const _dagSchema = internalQuery({
   args: {},
   handler: async (ctx) => {
     const result: Record<number, number> = { ...SCHEMA };
-    for (let n = 1; n <= 5; n++) {
+    for (const n of MAIL_NUMMERS) {
       const t = await ctx.db
         .query("emailTemplates")
         .withIndex("by_key", (q) => q.eq("key", TEMPLATE_KEY(n)))
@@ -240,9 +243,11 @@ export const processEvenHouvastOpvolg = internalAction({
 
       const dagenGeleden = Math.floor((nu - lead.sentAt) / DAG_MS);
 
-      // Eerste mail die wél verschuldigd is en nog niet verstuurd. Maximaal één per run.
+      // Eerste mail (op dagvolgorde) die wél verschuldigd is en nog niet verstuurd.
+      // Maximaal één per run.
+      const volgorde = MAIL_NUMMERS.slice().sort((a, b) => schema[a] - schema[b]);
       let teVersturen: number | null = null;
-      for (let n = 1; n <= 5; n++) {
+      for (const n of volgorde) {
         if (dagenGeleden >= schema[n] && !status.gestuurd.includes(n)) {
           teVersturen = n;
           break;
@@ -277,10 +282,11 @@ export const stuurTestOpvolg = action({
     await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
-    for (let n = 1; n <= 5; n++) {
+    const volgorde = MAIL_NUMMERS.slice().sort((a, b) => SCHEMA[a] - SCHEMA[b]);
+    for (const n of volgorde) {
       await verstuurOpvolgMail(ctx, { email: args.email, naam: args.naam, mailNummer: n, apiKey });
     }
-    return { verstuurd: 5 };
+    return { verstuurd: volgorde.length };
   },
 });
 
@@ -315,7 +321,12 @@ export const funnelOverzicht = query({
         ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", lc)).first(),
         ctx.db.query("nietAlleenProfiles").withIndex("by_email", (q) => q.eq("email", lc)).first(),
       ]);
-      const laatsteMail = verzonden.length ? Math.max(...verzonden.map((v: any) => v.mailNummer)) : 0;
+      // Laatste mail op dagvolgorde (niet op nummer: mail 6 valt op dag 2).
+      const laatsteMail = verzonden.length
+        ? verzonden
+            .map((v: any) => v.mailNummer as number)
+            .reduce((best: number, n: number) => ((SCHEMA[n] ?? 0) > (SCHEMA[best] ?? 0) ? n : best))
+        : 0;
       rijen.push({
         email: lead.email,
         naam: lead.naam ?? null,

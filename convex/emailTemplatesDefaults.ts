@@ -191,6 +191,10 @@ Ik heb een klein boekje voor je gemaakt. Woorden die je omarmen: spreuken en ged
     buttonText: "Start Niet Alleen — eenmalig €37",
     buttonUrl: "https://www.talktobenji.com/betalen/niet-alleen-huisdier",
   },
+  eh_huisdier_6: {
+    subject: "Even voorstellen, dit ben ik",
+    bodyText: `Hoi {voornaam},\n\nIk wil je even vertellen wie ik ben. Want je krijgt de komende dagen mails van mij, en dat verdient wat context.\n\nIk ben Ien. Ik woon al veertien jaar in Zweden, samen met de liefde van mijn leven. In de loop der jaren heb ik veel verlies gekend. Een kindje dat er niet mocht zijn, een bedrijf dat we ondanks alles moesten loslaten. Verlies heeft me gevormd op manieren die ik niet altijd had gevraagd.\n\nMaar het verlies dat me het meest heeft bijgehouden, begon op een gewone dag.\n\nZoro was negen jaar oud toen hij werd aangereden. Hij verloor een poot. De dierenarts was voorzichtig over wat Zoro nog zou kunnen.\n\nZoro dacht daar anders over.\n\nHij liep. Hij kwispelde. Elke ochtend stond hij bij de deur te wachten, drie poten, een hart zo groot als een huis. We hebben hem nog acht jaar gehad in die vorm. Op 22 maart 2016 overleed hij. Hij werd zeventien jaar oud.\n\nErgens in huis staat een bronzen beeldje van een hondje op drie poten. Op zware dagen kijk ik er even naar.\n\nIk mis hem nog steeds.\n\nHet is uit dat verdriet, en uit alles wat ik daarna heb geleerd over hoe verlies werkt, dat ik Talk To Benji heb gebouwd. En Niet Alleen.\n\nNiet omdat ik alle antwoorden heb. Maar omdat ik weet hoe het voelt als de wereld gewoon doorgaat terwijl jij nog midden in iets zit.\n\nJe bent hier op de goede plek.\n\nVeel liefs,`,
+  },
   // ── Cadeau ──
   gift_gever: {
     subject: "Je cadeaucode voor {product}",
