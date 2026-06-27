@@ -16,10 +16,21 @@ const EH_META: { n: number; titel: string; subtitel: string; defaultDag: number 
   { n: 5, titel: "Uitnodiging met prijs", subtitel: "De uitnodiging. Knop direct naar de checkout.", defaultDag: 11 },
 ];
 
+// Verliestypes met een eigen reeks. "algemeen" = leads die geen type kozen.
+const EH_TYPE_TABS: { code: string; naam: string }[] = [
+  { code: "persoon", naam: "Persoon" },
+  { code: "huisdier", naam: "Huisdier" },
+  { code: "scheiding", naam: "Scheiding" },
+  { code: "eenzaamheid", naam: "Eenzaamheid" },
+  { code: "kinderloos", naam: "Kinderloos" },
+  { code: "algemeen", naam: "Algemeen (geen type)" },
+];
+
 function EHMailEditor({
-  n, titel, subtitel, defaultDag, saved, onSave, onTest, canTest, onUploadImage,
+  n, type, titel, subtitel, defaultDag, saved, onSave, onTest, canTest, onUploadImage,
 }: {
   n: number;
+  type: string;
   titel: string;
   subtitel: string;
   defaultDag: number;
@@ -29,7 +40,7 @@ function EHMailEditor({
   canTest: boolean;
   onUploadImage: (file: File) => Promise<string | null>;
 }) {
-  const def = (DEFAULT_TEMPLATES as any)[`eh_huisdier_${n}`];
+  const def = (DEFAULT_TEMPLATES as any)[`eh_${type}_${n}`] ?? {};
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState<string>(saved?.subject ?? def.subject);
   const [bodyText, setBodyText] = useState<string>(saved?.bodyText ?? def.bodyText);
@@ -192,6 +203,7 @@ export default function EvenHouvastEmailsPage() {
     | undefined;
   const [testEmail, setTestEmail] = useState("");
   const [testNaam, setTestNaam] = useState("");
+  const [bewerkType, setBewerkType] = useState("huisdier");
   const [briefType, setBriefType] = useState("huisdier");
   const [briefState, setBriefState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [toonLijst, setToonLijst] = useState(false);
@@ -204,13 +216,13 @@ export default function EvenHouvastEmailsPage() {
   const afgemeld = overzicht?.filter((r) => r.afgemeld && !r.gekocht).length ?? 0;
   const lopend = totaal - gekocht - afgemeld;
 
-  const getT = (n: number) => templates?.find((t: any) => t.key === `eh_huisdier_${n}`);
+  const getT = (n: number) => templates?.find((t: any) => t.key === `eh_${bewerkType}_${n}`);
   const save = async (
     n: number,
     f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; imageUrl: string; imageCaption: string; dagOffset: number }
   ) => {
     await upsertTemplate({
-      key: `eh_huisdier_${n}`,
+      key: `eh_${bewerkType}_${n}`,
       subject: f.subject,
       bodyText: f.bodyText,
       buttonText: f.buttonText || undefined,
@@ -221,7 +233,7 @@ export default function EvenHouvastEmailsPage() {
     });
   };
   const test = async (n: number) => {
-    await stuurTestEnkel({ email: testEmail.trim(), naam: testNaam.trim() || undefined, mailNummer: n });
+    await stuurTestEnkel({ email: testEmail.trim(), naam: testNaam.trim() || undefined, mailNummer: n, type: bewerkType });
   };
   const canTest = testEmail.includes("@");
 
@@ -230,7 +242,7 @@ export default function EvenHouvastEmailsPage() {
     setOpvolgState("sending");
     setOpvolgError("");
     try {
-      await stuurTestEnkel({ email: testEmail.trim(), naam: testNaam.trim() || undefined, mailNummer: testMailNr });
+      await stuurTestEnkel({ email: testEmail.trim(), naam: testNaam.trim() || undefined, mailNummer: testMailNr, type: bewerkType });
       setOpvolgState("done");
       setTimeout(() => setOpvolgState("idle"), 3000);
     } catch (e: any) {
@@ -263,9 +275,9 @@ export default function EvenHouvastEmailsPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Even Houvast e-mails</h1>
         <p className="text-sm text-gray-500 mt-1">
-          De opvolgreeks naar wie Even Houvast (huisdier) deed, richting Niet Alleen. Klap een mail open om de tekst,
+          De opvolgreeks naar wie Even Houvast deed, richting Niet Alleen. Er is een reeks <strong>per verliestype</strong>
+          (kies hieronder); leads zonder gekozen type krijgen de <strong>algemene</strong> reeks. Klap een mail open om de tekst,
           de knop en de verzenddag aan te passen, en stuur 'm los als test. Stopt automatisch als iemand koopt.
-          De reeks is <strong>actief</strong>: nieuwe huisdier-leads krijgen de mails automatisch.
         </p>
       </div>
 
@@ -385,11 +397,27 @@ export default function EvenHouvastEmailsPage() {
         </div>
       </div>
 
+      {/* Verliestype-keuze: per type een eigen reeks bewerken/testen */}
+      <div className="bg-white rounded-xl border border-gray-200 p-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium text-gray-500 w-full sm:w-auto mr-1">Reeks voor:</span>
+        {EH_TYPE_TABS.map((t) => (
+          <button
+            key={t.code}
+            type="button"
+            onClick={() => setBewerkType(t.code)}
+            className={`text-sm px-3.5 py-1.5 rounded-full font-medium transition-colors ${bewerkType === t.code ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+          >
+            {t.naam}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-2">
         {EH_META.map((m) => (
           <EHMailEditor
-            key={m.n}
+            key={`${bewerkType}-${m.n}`}
             n={m.n}
+            type={bewerkType}
             titel={m.titel}
             subtitel={m.subtitel}
             defaultDag={m.defaultDag}

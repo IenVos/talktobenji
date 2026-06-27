@@ -28,8 +28,23 @@ const EH_OPVOLG_START = Date.UTC(2026, 5, 25); // 25 juni 2026
 // verzendvolgorde wordt op dagoffset bepaald, niet op mailnummer.
 const SCHEMA: Record<number, number> = { 1: 0, 6: 2, 2: 3, 3: 5, 4: 8, 5: 11 };
 const MAIL_NUMMERS = Object.keys(SCHEMA).map(Number);
-const TEMPLATE_KEY = (n: number) => `eh_huisdier_${n}`;
-const VERLIES_TYPE = "huisdier";
+
+// Verliestypes met een eigen reeks. Leads zonder (geldig) type krijgen "algemeen".
+const EH_TYPES = ["persoon", "huisdier", "scheiding", "eenzaamheid", "kinderloos"] as const;
+const ALGEMEEN = "algemeen";
+function normType(t?: string | null): string {
+  return t && (EH_TYPES as readonly string[]).includes(t) ? t : ALGEMEEN;
+}
+const TEMPLATE_KEY = (type: string, n: number) => `eh_${type}_${n}`;
+
+// Labels voor de "waar gaat jouw verdriet over?"-keuze in de algemene reeks.
+const VERLIES_KEUZES: { type: string; label: string }[] = [
+  { type: "persoon", label: "Ik mis iemand die overleden is" },
+  { type: "huisdier", label: "Ik verloor mijn huisdier" },
+  { type: "scheiding", label: "Mijn relatie is voorbij" },
+  { type: "eenzaamheid", label: "Ik voel me eenzaam" },
+  { type: "kinderloos", label: "Mijn kinderwens kwam niet uit" },
+];
 
 // ── HTML-helpers (zelfde stijl als de Niet Alleen-mails) ──────────────────────
 
@@ -61,6 +76,20 @@ function zachteKnop(tekst: string, url: string): string {
          display: inline-block; border: 1px solid #6d84a8;">
         ${tekst}
       </a>
+    </div>`;
+}
+
+// Keuzeblok voor de algemene reeks: per verlies een knop die het type vastlegt
+// en doorstuurt naar de juiste landingspagina (via /api/houvast/verlies).
+function verliesKeuzeBlok(email: string, token: string): string {
+  const links = VERLIES_KEUZES.map(({ type, label }) => {
+    const url = `${appBase()}/api/houvast/verlies?e=${encodeURIComponent(email)}&t=${token}&type=${type}`;
+    return `<a href="${url}" style="display:block; margin:8px 0; padding:11px 16px; background-color:#fdf9f4; color:#6d84a8; text-decoration:none; font-size:14px; font-weight:600; border:1px solid #6d84a8; border-radius:10px; text-align:center;">${label}</a>`;
+  }).join("");
+  return `
+    <div style="margin:22px 0 8px;">
+      <p style="font-size:14px; line-height:1.7; color:#6b6460; margin:0 0 10px;">Waar gaat jouw verdriet vooral over? Kies wat past, dan sluit alles beter aan:</p>
+      ${links}
     </div>`;
 }
 
@@ -148,17 +177,19 @@ async function verstuurEmail(args: { to: string; subject: string; html: string; 
 // Bouw + verstuur één opvolgmail. Gebruikt opgeslagen template of de default.
 async function verstuurOpvolgMail(
   ctx: any,
-  args: { email: string; naam?: string; mailNummer: number; apiKey: string }
+  args: { email: string; naam?: string; type: string; mailNummer: number; apiKey: string }
 ) {
-  const key = TEMPLATE_KEY(args.mailNummer);
+  const type = normType(args.type);
+  const key = TEMPLATE_KEY(type, args.mailNummer);
   const saved = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key });
   const def = (DEFAULT_TEMPLATES as any)[key];
-  const subject: string = saved?.subject ?? def.subject;
-  const bodyText: string = saved?.bodyText ?? def.bodyText;
-  const buttonText: string | undefined = saved?.buttonText ?? def.buttonText;
-  const buttonUrl: string | undefined = saved?.buttonUrl ?? def.buttonUrl;
-  const imageUrl: string | undefined = saved?.imageUrl ?? def.imageUrl;
-  const imageCaption: string | undefined = saved?.imageCaption ?? def.imageCaption;
+  if (!def && !saved) throw new Error(`Geen template voor ${key}`);
+  const subject: string = saved?.subject ?? def?.subject ?? "";
+  const bodyText: string = saved?.bodyText ?? def?.bodyText ?? "";
+  const buttonText: string | undefined = saved?.buttonText ?? def?.buttonText;
+  const buttonUrl: string | undefined = saved?.buttonUrl ?? def?.buttonUrl;
+  const imageUrl: string | undefined = saved?.imageUrl ?? def?.imageUrl;
+  const imageCaption: string | undefined = saved?.imageCaption ?? def?.imageCaption;
 
   const voornaam = (args.naam || "").trim().split(" ")[0];
   const body = bodyText
@@ -168,8 +199,15 @@ async function verstuurOpvolgMail(
   const token = await afmeldToken(args.email);
   const afmeldUrl = `${appBase()}/api/afmelden?e=${encodeURIComponent(args.email)}&t=${token}`;
 
+  // Algemene reeks: vraag in de vroege mails uit welk verlies het is, zodat we
+  // de lead naar de juiste landingspagina en reeks kunnen sturen.
+  const keuzeBlok = type === ALGEMEEN && (args.mailNummer === 1 || args.mailNummer === 3)
+    ? verliesKeuzeBlok(args.email, token)
+    : "";
+
   const html = wrapper(`
     ${alineaHtml(body)}
+    ${keuzeBlok}
     ${imageUrl ? coverBlok(imageUrl, buttonUrl, imageCaption) : ""}
     ${buttonText && buttonUrl ? (imageUrl ? zachteKnop(buttonText, buttonUrl) : knop(buttonText, buttonUrl)) : ""}
     ${handtekeningIen()}
@@ -186,8 +224,8 @@ export const _leadsVoorOpvolg = internalQuery({
   handler: async (ctx) => {
     const alle = await ctx.db.query("houvastBrieven").collect();
     return alle
-      .filter((b: any) => b.verliesType === VERLIES_TYPE && b.sentAt >= EH_OPVOLG_START)
-      .map((b: any) => ({ email: b.email, naam: b.naam ?? null, sentAt: b.sentAt }));
+      .filter((b: any) => b.sentAt >= EH_OPVOLG_START)
+      .map((b: any) => ({ email: b.email, naam: b.naam ?? null, sentAt: b.sentAt, verliesType: b.verliesType ?? null }));
   },
 });
 
@@ -208,15 +246,17 @@ export const _statusVoorLead = internalQuery({
   },
 });
 
-// Effectieve dag-offsets per mail: opgeslagen dagOffset uit de admin, anders de default.
+// Effectieve dag-offsets per mail voor één type: opgeslagen dagOffset uit de admin,
+// anders de default.
 export const _dagSchema = internalQuery({
-  args: {},
-  handler: async (ctx) => {
+  args: { type: v.string() },
+  handler: async (ctx, args) => {
+    const type = normType(args.type);
     const result: Record<number, number> = { ...SCHEMA };
     for (const n of MAIL_NUMMERS) {
       const t = await ctx.db
         .query("emailTemplates")
-        .withIndex("by_key", (q) => q.eq("key", TEMPLATE_KEY(n)))
+        .withIndex("by_key", (q) => q.eq("key", TEMPLATE_KEY(type, n)))
         .unique();
       if (t && typeof (t as any).dagOffset === "number") result[n] = (t as any).dagOffset;
     }
@@ -247,12 +287,18 @@ export const processEvenHouvastOpvolg = internalAction({
     if (!apiKey) return;
 
     const leads = await ctx.runQuery(internal.evenHouvastOpvolg._leadsVoorOpvolg, {});
-    const schema = await ctx.runQuery(internal.evenHouvastOpvolg._dagSchema, {});
     const nu = Date.now();
+    const schemaCache: Record<string, Record<number, number>> = {};
 
     for (const lead of leads) {
       const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: lead.email });
       if (status.afgemeld || status.heeftGekocht) continue;
+
+      const type = normType(lead.verliesType);
+      if (!schemaCache[type]) {
+        schemaCache[type] = await ctx.runQuery(internal.evenHouvastOpvolg._dagSchema, { type });
+      }
+      const schema = schemaCache[type];
 
       const dagenGeleden = Math.floor((nu - lead.sentAt) / DAG_MS);
 
@@ -272,6 +318,7 @@ export const processEvenHouvastOpvolg = internalAction({
         await verstuurOpvolgMail(ctx, {
           email: lead.email,
           naam: lead.naam ?? undefined,
+          type,
           mailNummer: teVersturen,
           apiKey,
         });
@@ -290,40 +337,41 @@ export const processEvenHouvastOpvolg = internalAction({
 // ── Testfunctie (admin): stuur alle 5 mails naar één inbox ──────────────────────
 
 export const stuurTestOpvolg = action({
-  args: { adminToken: v.string(), email: v.string(), naam: v.optional(v.string()) },
+  args: { adminToken: v.string(), email: v.string(), naam: v.optional(v.string()), type: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
+    const type = normType(args.type);
     const volgorde = MAIL_NUMMERS.slice().sort((a, b) => SCHEMA[a] - SCHEMA[b]);
     for (const n of volgorde) {
-      await verstuurOpvolgMail(ctx, { email: args.email, naam: args.naam, mailNummer: n, apiKey });
+      await verstuurOpvolgMail(ctx, { email: args.email, naam: args.naam, type, mailNummer: n, apiKey });
     }
     return { verstuurd: volgorde.length };
   },
 });
 
-// Test: stuur één specifieke mail (1..5) naar een inbox.
+// Test: stuur één specifieke mail (1..6) van een gekozen verliestype naar een inbox.
 export const stuurTestOpvolgEnkel = action({
-  args: { adminToken: v.string(), email: v.string(), naam: v.optional(v.string()), mailNummer: v.number() },
+  args: { adminToken: v.string(), email: v.string(), naam: v.optional(v.string()), mailNummer: v.number(), type: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
-    await verstuurOpvolgMail(ctx, { email: args.email, naam: args.naam, mailNummer: args.mailNummer, apiKey });
+    await verstuurOpvolgMail(ctx, { email: args.email, naam: args.naam, type: normType(args.type), mailNummer: args.mailNummer, apiKey });
     return { ok: true };
   },
 });
 
 // ── Funnel-overzicht voor de admin ──────────────────────────────────────────────
-// Toont per huisdier-lead waar die in de opvolgreeks zit (laatste verstuurde mail),
-// of die is afgemeld, en of die Niet Alleen heeft gekocht.
+// Toont per lead (alle verliestypes) waar die in de opvolgreeks zit (laatste
+// verstuurde mail), het type, of die is afgemeld, en of Niet Alleen is gekocht.
 export const funnelOverzicht = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
     const leads = (await ctx.db.query("houvastBrieven").collect()).filter(
-      (b: any) => b.verliesType === VERLIES_TYPE && b.sentAt >= EH_OPVOLG_START
+      (b: any) => b.sentAt >= EH_OPVOLG_START
     );
     const nu = Date.now();
     const rijen = [];
@@ -343,6 +391,7 @@ export const funnelOverzicht = query({
       rijen.push({
         email: lead.email,
         naam: lead.naam ?? null,
+        type: normType(lead.verliesType),
         dagenGeleden: Math.floor((nu - lead.sentAt) / DAG_MS),
         laatsteMail,
         afgemeld: !!afgemeld,
@@ -366,5 +415,27 @@ export const registreerAfmelding = mutation({
     const bestaand = await ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", lc)).first();
     if (!bestaand) await ctx.db.insert("ehAfmeldingen", { email: lc, createdAt: Date.now() });
     return { ok: true };
+  },
+});
+
+// ── Verliestype vastleggen (vanuit de algemene reeks, na token-check) ────────────
+// De lead kiest in de mail waar het verdriet over gaat; dat leggen we vast op de
+// houvastBrief(ven) van dit e-mailadres, zodat de juiste type-reeks doorloopt.
+export const setVerliesType = mutation({
+  args: { email: v.string(), type: v.string(), secret: v.string() },
+  handler: async (ctx, args) => {
+    if (!process.env.ADMIN_SESSION_SECRET || args.secret !== process.env.ADMIN_SESSION_SECRET) {
+      throw new Error("Niet geautoriseerd");
+    }
+    if (!(EH_TYPES as readonly string[]).includes(args.type)) throw new Error("Onbekend verliestype");
+    const lc = args.email.trim().toLowerCase();
+    const brieven = await ctx.db
+      .query("houvastBrieven")
+      .withIndex("by_email", (q) => q.eq("email", lc))
+      .collect();
+    for (const b of brieven) {
+      await ctx.db.patch(b._id, { verliesType: args.type });
+    }
+    return { ok: true, aangepast: brieven.length };
   },
 });

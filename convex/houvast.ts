@@ -235,19 +235,19 @@ function dataUrlToBlob(dataUrl: string): Blob | null {
 // Brief-mail: zelfde sans-serif look als de overige mails, ondertekend door Benji.
 const BRIEF_FONT = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-function wrapperBrief(inhoud: string, ps: string = ""): string {
+function wrapperBrief(inhoud: string, nietAlleenUrl: string): string {
   return `
     <div style="font-family: ${BRIEF_FONT}; max-width: 560px; margin: 0 auto;
                 color: #2d3748; background: #fdf9f4; padding: 36px 28px;">
       <p style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#9a9088;margin:0 0 20px 0;">Even Houvast</p>
       ${inhoud}
-      <p style="font-size:15px;margin-top:28px;color:#4a5568;">Met warme groet,<br>Benji van</p>
-      ${ps}
-      <div style="text-align:center;margin-top:30px;">
-        <a href="https://www.talktobenji.com" style="font-size:16px;font-weight:600;color:#6d84a8;text-decoration:none;">talktobenji</a>
-        <p style="font-size:13px;color:#718096;margin:10px 0 0 0;">contact</p>
-        <p style="font-size:13px;margin:2px 0 0 0;">
-          <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;text-decoration:none;">contactmetien@talktobenji.com</a>
+      <p style="font-size:15px;margin-top:28px;color:#4a5568;">Met warme groet,<br>Benji</p>
+      <div style="text-align:center;margin-top:52px;">
+        <p style="font-size:14px;font-weight:600;color:#3d3530;margin:0;">
+          Talk To Benji · <a href="${nietAlleenUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen</a>
+        </p>
+        <p style="font-size:13px;color:#718096;margin:7px 0 0 0;">
+          vragen? <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;text-decoration:underline;">contactmetien@talktobenji.com</a>
         </p>
       </div>
     </div>`;
@@ -292,49 +292,38 @@ function bouwBriefHtml(opts: {
       })
       .join("");
 
-    const gedichtRegels = gedichtTekst
-      .split("\n")
-      .map((r) => r.trim())
-      .filter(Boolean);
-    const gedichtHtml =
-      gedichtRegels.length > 0
-        ? `<div style="margin:20px 0 0 0;text-align:center;">
-             <p style="font-size:15px;line-height:1.85;color:#6b6460;font-style:italic;margin:0;">${gedichtRegels.join(
-               "<br>"
-             )}</p>
-           </div>`
-        : "";
-
     fotoHtml = `
       <div style="margin:28px 0 4px 0;">
         <p style="font-size:13px;color:#8a8078;margin:0 0 14px 0;">De foto's die je bewaarde:</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
           ${rijenHtml}
         </table>
-        ${gedichtHtml}
       </div>`;
   }
 
-  // Zacht P.S. ná de afsluiting: vriendelijke tekst + ingetogen knop
-  // (zelfde achtergrond als de mail, blauwe tekst, dun blauw randje).
-  const psHtml = `
-    <div style="margin:26px 0 0 0;border-top:1px solid #e8e0d8;padding-top:22px;">
-      <p style="font-size:14px;line-height:1.75;color:#6b6460;margin:0 0 16px 0;">
-        <strong style="color:#4a5568;">P.S.</strong> Voor de langere weg is er Niet Alleen. Dag voor dag, samen, in jouw tempo. Geen haast, gewoon iemand die met je meeloopt.
-      </p>
-      <a href="${nietAlleenUrl}" style="background-color:#fdf9f4;color:#6d84a8;padding:11px 24px;border-radius:10px;
-         text-decoration:none;font-size:14px;font-weight:600;display:inline-block;border:1px solid #6d84a8;">
-        Ontdek Niet Alleen
-      </a>
-    </div>`;
+  // Gedichtje: altijd tonen (ook zonder foto's). Onder de foto's als die er zijn,
+  // anders als losse afsluitende verzen onder de brief.
+  const gedichtRegels = gedichtTekst
+    .split("\n")
+    .map((r) => r.trim())
+    .filter(Boolean);
+  const gedichtHtml =
+    gedichtRegels.length > 0
+      ? `<div style="margin:${fotoUrls.length > 0 ? "20px" : "30px"} 0 0 0;text-align:center;">
+           <p style="font-size:15px;line-height:1.85;color:#6b6460;font-style:italic;margin:0;">${gedichtRegels.join(
+             "<br>"
+           )}</p>
+         </div>`
+      : "";
 
   return wrapperBrief(
     `
     <p style="font-size:16px;margin:0 0 18px 0;color:#3d3530;">${aanhef}</p>
     ${briefHtml}
     ${fotoHtml}
+    ${gedichtHtml}
   `,
-    psHtml
+    nietAlleenUrl
   );
 }
 
