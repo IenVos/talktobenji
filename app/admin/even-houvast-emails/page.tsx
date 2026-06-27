@@ -383,6 +383,7 @@ export default function EvenHouvastEmailsPage() {
             {(verliestypen ?? [{ code: "huisdier", naam: "Huisdier" }]).map((t) => (
               <option key={t.code} value={t.code}>{t.naam}</option>
             ))}
+            <option value="algemeen">Algemeen (geen type)</option>
           </select>
           <button
             onClick={testBrief}
