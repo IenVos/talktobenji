@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronDown, ChevronRight, Save, Send } from "lucide-react";
+import { ChevronDown, ChevronRight, Save, Send, Upload } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
 import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
@@ -15,7 +15,7 @@ const EH_META: { n: number; titel: string; subtitel: string; defaultDag: number 
 ];
 
 function EHMailEditor({
-  n, titel, subtitel, defaultDag, saved, onSave, onTest, canTest,
+  n, titel, subtitel, defaultDag, saved, onSave, onTest, canTest, onUploadImage,
 }: {
   n: number;
   titel: string;
@@ -25,6 +25,7 @@ function EHMailEditor({
   onSave: (n: number, f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; imageUrl: string; imageCaption: string; dagOffset: number }) => Promise<void>;
   onTest: (n: number) => Promise<void>;
   canTest: boolean;
+  onUploadImage: (file: File) => Promise<string | null>;
 }) {
   const def = (DEFAULT_TEMPLATES as any)[`eh_huisdier_${n}`];
   const [open, setOpen] = useState(false);
@@ -37,6 +38,7 @@ function EHMailEditor({
   const [dag, setDag] = useState<number>(saved?.dagOffset ?? defaultDag);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [testState, setTestState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     setSubject(saved?.subject ?? def.subject);
@@ -112,10 +114,36 @@ function EHMailEditor({
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50/60 p-3 space-y-3">
             <p className="text-xs font-semibold text-gray-600">Klikbare afbeelding (bijv. boekje-cover)</p>
-            <p className="text-[11px] text-gray-400 -mt-1">Plak een directe afbeeldings-URL. De afbeelding linkt naar de Knop-URL hierboven (bijv. een flipbook). Een embed/iframe werkt niet in e-mail; een klikbare cover wel.</p>
+            <p className="text-[11px] text-gray-400 -mt-1">Upload een afbeelding of plak een directe URL. De afbeelding linkt naar de Knop-URL hierboven (bijv. een flipbook). Een embed/iframe werkt niet in e-mail; een klikbare cover wel.</p>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Afbeelding-URL</label>
-              <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://… (directe link naar de afbeelding)" className={inputCls} />
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Afbeelding</label>
+              <div className="flex flex-wrap items-center gap-2">
+                <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://… (of upload hiernaast)" className={`${inputCls} flex-1 min-w-[180px]`} />
+                <label className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg border cursor-pointer ${uploading ? "opacity-50 border-gray-200" : "border-primary-200 text-primary-700 hover:bg-primary-50"}`}>
+                  <Upload size={13} /> {uploading ? "Uploaden…" : "Upload"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploading(true);
+                      try {
+                        const url = await onUploadImage(file);
+                        if (url) setImageUrl(url);
+                      } finally {
+                        setUploading(false);
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                </label>
+                {imageUrl && (
+                  <button type="button" onClick={() => setImageUrl("")} className="text-xs text-gray-400 hover:text-red-500">Verwijderen</button>
+                )}
+              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Bijschrift onder de afbeelding (optioneel)</label>
@@ -150,6 +178,8 @@ export default function EvenHouvastEmailsPage() {
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
   const stuurTestEnkel = useAdminAction(api.evenHouvastOpvolg.stuurTestOpvolgEnkel);
   const stuurTestBrief = useAdminAction(api.houvast.stuurTestBrief);
+  const generateUploadUrl = useAdminMutation(api.pageContent.generateUploadUrl);
+  const getImageUrl = useAdminMutation(api.pageContent.getImageUrl);
   const verliestypen = useAdminQuery(api.verliesTypen.list, {}) as
     | { code: string; naam: string }[]
     | undefined;
@@ -184,6 +214,14 @@ export default function EvenHouvastEmailsPage() {
     await stuurTestEnkel({ email: testEmail.trim(), naam: testNaam.trim() || undefined, mailNummer: n });
   };
   const canTest = testEmail.includes("@");
+
+  // Upload een afbeelding naar Convex storage en geef de publieke URL terug.
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const url = await generateUploadUrl();
+    const res = await fetch(url, { method: "POST", body: file, headers: { "Content-Type": file.type } });
+    const { storageId } = await res.json();
+    return await getImageUrl({ storageId });
+  };
 
   const testBrief = async () => {
     setBriefState("sending");
@@ -312,6 +350,7 @@ export default function EvenHouvastEmailsPage() {
             onSave={save}
             onTest={test}
             canTest={canTest}
+            onUploadImage={uploadImage}
           />
         ))}
       </div>

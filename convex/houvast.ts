@@ -535,7 +535,8 @@ export const stuurTestBrief = action({
     verliesType: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await checkAdmin(ctx, args.adminToken);
+    // Actions hebben geen ctx.db → valideer de admin-sessie via een query.
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
     if (!RESEND_API_KEY) throw new Error("E-mail niet geconfigureerd (RESEND_API_KEY).");
