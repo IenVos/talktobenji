@@ -23,6 +23,31 @@ Toon en stijl:
 
 Geef alleen de brieftekst terug, niets anders.`;
 
+// Vast, unisex gedichtje (4 regels) onder de foto's in de brief-mail. Per
+// verliestype. Te overschrijven via admin (perType[type].fotoGedicht).
+const GEDICHT_PER_TYPE: Record<string, string> = {
+  persoon: `Wat jullie hadden,
+neemt niemand ooit weg.
+Het leeft in deze beelden,
+en in jou, voorgoed.`,
+  huisdier: `Trouw tot het einde,
+dichtbij zonder woorden.
+Wat jullie samen waren,
+draag je voor altijd mee.`,
+  scheiding: `Niet alles wat eindigt,
+ging verloren.
+Wat echt was, blijft echt,
+en jij komt hier doorheen.`,
+  eenzaamheid: `Ook in de stilte
+ben je meer dan dit moment.
+Je bent niet vergeten,
+en je staat er niet alleen voor.`,
+  kinderloos: `Een liefde zo groot,
+voor wie er nooit kwam.
+Dit gemis is echt,
+en het mag er zijn.`,
+};
+
 async function verstuurEmail(args: { to: string; subject: string; html: string; apiKey: string }) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -210,13 +235,14 @@ function dataUrlToBlob(dataUrl: string): Blob | null {
 // Brief-mail: zelfde sans-serif look als de overige mails, ondertekend door Benji.
 const BRIEF_FONT = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-function wrapperBrief(inhoud: string): string {
+function wrapperBrief(inhoud: string, ps: string = ""): string {
   return `
     <div style="font-family: ${BRIEF_FONT}; max-width: 560px; margin: 0 auto;
                 color: #2d3748; background: #fdf9f4; padding: 36px 28px;">
       <p style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#9a9088;margin:0 0 20px 0;">Even Houvast</p>
       ${inhoud}
       <p style="font-size:15px;margin-top:28px;color:#4a5568;">Met warme groet,<br>Benji van</p>
+      ${ps}
       <div style="text-align:center;margin-top:30px;">
         <a href="https://www.talktobenji.com" style="font-size:16px;font-weight:600;color:#6d84a8;text-decoration:none;">talktobenji</a>
         <p style="font-size:13px;color:#718096;margin:10px 0 0 0;">contact</p>
@@ -352,7 +378,10 @@ export const genereerEnVerstuurBrief = action({
       }
     }
     if (fotoUrls.length > 0) {
-      // Kleine thumbnails, max 3 naast elkaar (via tabel — betrouwbaar in mailclients).
+      // Groter en volledig zichtbaar (geen bijsnijden): max 3 naast elkaar,
+      // breedte verdeeld over het aantal foto's, hoogte volgt de verhouding.
+      const perRij = Math.min(fotoUrls.length, 3);
+      const celBreedte = Math.floor(100 / perRij);
       const rijen: string[][] = [];
       for (let i = 0; i < fotoUrls.length; i += 3) rijen.push(fotoUrls.slice(i, i + 3));
       const rijenHtml = rijen
@@ -360,40 +389,69 @@ export const genereerEnVerstuurBrief = action({
           const cellen = rij
             .map(
               (u) =>
-                `<td width="33%" style="padding:0 4px 8px 0;vertical-align:top;">
-                  <img src="${u}" alt="" width="100%" style="width:100%;height:84px;object-fit:cover;border-radius:8px;display:block;" />
+                `<td width="${celBreedte}%" style="padding:0 5px 10px 5px;vertical-align:top;">
+                  <img src="${u}" alt="" width="100%" style="width:100%;height:auto;border-radius:10px;display:block;" />
                 </td>`
             )
             .join("");
           const opvulling =
-            rij.length < 3 ? Array(3 - rij.length).fill('<td width="33%"></td>').join("") : "";
+            rij.length < perRij
+              ? Array(perRij - rij.length).fill(`<td width="${celBreedte}%"></td>`).join("")
+              : "";
           return `<tr>${cellen}${opvulling}</tr>`;
         })
         .join("");
+
+      // Vast gedichtje per verliestype (admin-override mogelijk), onder de foto's.
+      const gedichtTekst =
+        (typeof saved?.perType?.[type]?.fotoGedicht === "string" &&
+          saved.perType[type].fotoGedicht.trim()) ||
+        GEDICHT_PER_TYPE[type] ||
+        GEDICHT_PER_TYPE.persoon;
+      const gedichtRegels = gedichtTekst
+        .split("\n")
+        .map((r: string) => r.trim())
+        .filter(Boolean);
+      const gedichtHtml =
+        gedichtRegels.length > 0
+          ? `<div style="margin:20px 0 0 0;text-align:center;">
+               <p style="font-size:15px;line-height:1.85;color:#6b6460;font-style:italic;margin:0;">${gedichtRegels.join(
+                 "<br>"
+               )}</p>
+             </div>`
+          : "";
+
       fotoHtml = `
-        <div style="margin:26px 0 4px 0;">
-          <p style="font-size:13px;color:#8a8078;margin:0 0 12px 0;">De foto's die je bewaarde:</p>
+        <div style="margin:28px 0 4px 0;">
+          <p style="font-size:13px;color:#8a8078;margin:0 0 14px 0;">De foto's die je bewaarde:</p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
             ${rijenHtml}
           </table>
+          ${gedichtHtml}
         </div>`;
     }
 
-    const ctaHtml = `
-      <div style="margin:30px 0 4px 0;text-align:center;border-top:1px solid #e8e0d8;padding-top:26px;">
-        <p style="font-size:14px;color:#6b6460;margin:0 0 16px 0;">Voor de langere weg is er Niet Alleen — dag voor dag, samen.</p>
-        <a href="${nietAlleenUrl}" style="background-color:#6d84a8;color:#ffffff;padding:13px 26px;border-radius:10px;
-           text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">
+    // Zacht P.S. ná de afsluiting: vriendelijke tekst + ingetogen knop
+    // (zelfde achtergrond als de mail, blauwe tekst, dun blauw randje).
+    const psHtml = `
+      <div style="margin:26px 0 0 0;border-top:1px solid #e8e0d8;padding-top:22px;">
+        <p style="font-size:14px;line-height:1.75;color:#6b6460;margin:0 0 16px 0;">
+          <strong style="color:#4a5568;">P.S.</strong> Voor de langere weg is er Niet Alleen. Dag voor dag, samen, in jouw tempo. Geen haast, gewoon iemand die met je meeloopt.
+        </p>
+        <a href="${nietAlleenUrl}" style="background-color:#fdf9f4;color:#6d84a8;padding:11px 24px;border-radius:10px;
+           text-decoration:none;font-size:14px;font-weight:600;display:inline-block;border:1px solid #6d84a8;">
           Ontdek Niet Alleen
         </a>
       </div>`;
 
-    const html = wrapperBrief(`
+    const html = wrapperBrief(
+      `
       <p style="font-size:16px;margin:0 0 18px 0;color:#3d3530;">${aanhef}</p>
       ${briefHtml}
       ${fotoHtml}
-      ${ctaHtml}
-    `);
+    `,
+      psHtml
+    );
 
     await verstuurEmail({
       to: emailLc,
