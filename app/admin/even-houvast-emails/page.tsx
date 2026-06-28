@@ -116,6 +116,9 @@ function EHMailEditor({
               Tekst <span className="font-normal text-gray-400">(gebruik {"{voornaam}"}; handtekening en afmeldlink worden automatisch toegevoegd)</span>
             </label>
             <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} rows={10} className={`${inputCls} font-mono leading-relaxed resize-y`} />
+            <p className="text-[11px] text-gray-400 mt-1">
+              Tip: zet <code className="bg-gray-100 px-1 rounded">[afbeelding]</code> op een eigen regel om de afbeelding hieronder midden in de tekst te tonen. Een afsluitgroet als &ldquo;Lieve groet&rdquo; op de laatste regel komt automatisch onder de knop, vlak boven Ien&rsquo;s naam.
+            </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -128,8 +131,8 @@ function EHMailEditor({
             </div>
           </div>
           <div className="rounded-lg border border-gray-200 bg-gray-50/60 p-3 space-y-3">
-            <p className="text-xs font-semibold text-gray-600">Klikbare afbeelding (bijv. boekje-cover)</p>
-            <p className="text-[11px] text-gray-400 -mt-1">Upload een afbeelding of plak een directe URL. De afbeelding linkt naar de Knop-URL hierboven (bijv. een flipbook). Een embed/iframe werkt niet in e-mail; een klikbare cover wel.</p>
+            <p className="text-xs font-semibold text-gray-600">Afbeelding</p>
+            <p className="text-[11px] text-gray-400 -mt-1">Upload een afbeelding of plak een directe URL. Zonder <code className="bg-gray-100 px-1 rounded">[afbeelding]</code>-marker verschijnt hij als klikbare cover boven de knop (linkt naar de Knop-URL). Zet je de marker in de tekst, dan staat hij groter, midden in de mail op die plek (niet klikbaar). Een embed/iframe werkt niet in e-mail.</p>
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Afbeelding</label>
               <div className="flex flex-wrap items-center gap-2">

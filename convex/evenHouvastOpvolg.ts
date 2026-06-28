@@ -48,12 +48,33 @@ const VERLIES_KEUZES: { type: string; label: string }[] = [
 
 // ── HTML-helpers (zelfde stijl als de Niet Alleen-mails) ──────────────────────
 
-function alineaHtml(bodyText: string): string {
-  return bodyText
-    .trim()
-    .split(/\n\n+/)
-    .map((p) => `<p style="font-size: 15px; line-height: 1.8; color: #4a5568;">${p.trim().replace(/\n/g, "<br/>")}</p>`)
-    .join("\n");
+function alineaPHtml(p: string): string {
+  return `<p style="font-size: 15px; line-height: 1.8; color: #4a5568;">${p.trim().replace(/\n/g, "<br/>")}</p>`;
+}
+
+// Afsluitgroeten die net boven Ien's naam horen te staan (onder de knop), niet
+// midden in de mail. Herkend als de hele laatste alinea, los van leestekens.
+const AFSLUITINGEN = [
+  "lieve groet", "lieve groetjes", "veel liefs", "liefs", "met liefs",
+  "warme groet", "een warme groet", "met warme groet", "groetjes",
+  "warme groetjes", "veel sterkte", "sterkte",
+];
+function isAfsluiting(par: string): boolean {
+  const g = par.toLowerCase().replace(/[.,!\s]+$/g, "").trim();
+  return AFSLUITINGEN.includes(g);
+}
+
+// Marker die Ien ergens in de tekst kan zetten om de geüploade afbeelding daar
+// inline te tonen: een losse regel met [afbeelding].
+const AFBEELDING_MARKER = /^\[afbeelding\]$/i;
+
+// Inline afbeelding ergens in de tekst (breder dan de boekje-cover, niet geklikt).
+function inlineAfbeelding(imageUrl: string, caption?: string): string {
+  const img = `<img src="${imageUrl}" alt="" style="width:100%;max-width:480px;height:auto;border-radius:12px;display:block;margin:0 auto;" />`;
+  const cap = caption
+    ? `<p style="font-size:13px;color:#6b6460;text-align:center;margin:10px 0 0 0;">${caption}</p>`
+    : "";
+  return `<div style="margin:24px 0;">${img}${cap}</div>`;
 }
 
 function knop(tekst: string, url: string): string {
@@ -206,11 +227,32 @@ async function verstuurOpvolgMail(
     ? verliesKeuzeBlok(args.email, token)
     : "";
 
+  // Splits de tekst: afsluitgroet (laatste alinea) hoort onder de knop, vlak
+  // boven Ien's naam. De rest is de romp, met optioneel een inline-afbeelding
+  // op de plek van de [afbeelding]-marker.
+  const alineas = body.trim().split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+  const afsluiting = alineas.length > 1 && isAfsluiting(alineas[alineas.length - 1])
+    ? alineas.pop()!
+    : "";
+  const heeftInline = alineas.some((p) => AFBEELDING_MARKER.test(p));
+  const rompHtml = alineas
+    .map((p) =>
+      AFBEELDING_MARKER.test(p)
+        ? imageUrl ? inlineAfbeelding(imageUrl, imageCaption) : ""
+        : alineaPHtml(p)
+    )
+    .join("\n");
+
+  // De cover-afbeelding (boven de knop) alleen tonen als de afbeelding niet al
+  // inline in de tekst staat, anders zou hij dubbel verschijnen.
+  const toonCover = !!imageUrl && !heeftInline;
+
   const html = wrapper(`
-    ${alineaHtml(body)}
+    ${rompHtml}
     ${keuzeBlok}
-    ${imageUrl ? coverBlok(imageUrl, buttonUrl, imageCaption) : ""}
-    ${buttonText && buttonUrl ? (imageUrl ? zachteKnop(buttonText, buttonUrl) : knop(buttonText, buttonUrl)) : ""}
+    ${toonCover ? coverBlok(imageUrl!, buttonUrl, imageCaption) : ""}
+    ${buttonText && buttonUrl ? (toonCover ? zachteKnop(buttonText, buttonUrl) : knop(buttonText, buttonUrl)) : ""}
+    ${afsluiting ? alineaPHtml(afsluiting) : ""}
     ${handtekeningIen()}
     ${afmeldVoettekst(afmeldUrl)}
   `);
