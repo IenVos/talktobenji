@@ -105,7 +105,7 @@ function zachteKnop(tekst: string, url: string): string {
 function verliesKeuzeBlok(email: string, token: string): string {
   const links = VERLIES_KEUZES.map(({ type, label }) => {
     const url = `${appBase()}/api/houvast/verlies?e=${encodeURIComponent(email)}&t=${token}&type=${type}`;
-    return `<div style="text-align:center; margin:8px 0;"><a href="${url}" style="display:inline-block; padding:9px 18px; background-color:#fdf9f4; color:#6d84a8; text-decoration:none; font-size:14px; font-weight:600; border:1px solid #6d84a8; border-radius:10px;">${label}</a></div>`;
+    return `<div style="text-align:center; margin:8px 0;"><a href="${url}" style="display:inline-block; box-sizing:border-box; width:300px; max-width:100%; padding:11px 16px; background-color:#fdf9f4; color:#6d84a8; text-decoration:none; font-size:14px; font-weight:600; border:1px solid #6d84a8; border-radius:10px; text-align:center;">${label}</a></div>`;
   }).join("");
   return `
     <div style="margin:22px 0 8px;">
