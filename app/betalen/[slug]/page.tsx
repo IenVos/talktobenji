@@ -628,7 +628,7 @@ export default function BetalenPage() {
     return (
       <>
         <ScrollDepthTracker category="checkout" path={slug} />
-        <EvenHouvastPopup enabled={!!(product as any).evenHouvastPopupEnabled} />
+        <EvenHouvastPopup enabled={!!(product as any).evenHouvastPopupEnabled} tekst={(product as any).evenHouvastPopupTekst} />
         <RustigeCheckout
           product={product as any}
           priceFormatted={priceFormatted}

@@ -28,7 +28,17 @@
       "Bash(echo \"PROJECT_EXIT=$?\")",
       "Bash(echo \"CONVEX_EXIT=$?\")",
       "Bash(npx next *)",
-      "Bash(npx playwright *)"
+      "Bash(npx playwright *)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(pkill -f \"next-server\")",
+      "Bash(rm -rf .next)",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(echo \"nu: $\\(node -e 'console.log\\(Date.now\\(\\)\\)'\\)\")",
+      "Bash(echo \"convex: $?\")",
+      "Bash(echo \"project: $?\")",
+      "Skill(update-config)",
+      "Edit",
+      "Write"
     ]
   }
 }

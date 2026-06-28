@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { EVEN_HOUVAST_POPUP_DEFAULT_TEKST } from "@/components/EvenHouvastPopup";
 import {
   CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink, Send, Copy, ChevronDown,
 } from "lucide-react";
@@ -40,6 +41,7 @@ type CheckoutProduct = {
   giftEnabled?: boolean;
   b2bEnabled?: boolean;
   evenHouvastPopupEnabled?: boolean;
+  evenHouvastPopupTekst?: string;
   giftVariants?: { label: string; priceInCents: number; billingPeriod: "monthly" | "quarterly" | "half_yearly" | "yearly"; accessDays: number }[];
   addOnEnabled?: boolean;
   addOnLabel?: string;
@@ -85,6 +87,7 @@ type FormState = {
   giftEnabled: boolean;
   b2bEnabled: boolean;
   evenHouvastPopupEnabled: boolean;
+  evenHouvastPopupTekst: string;
   addOnEnabled: boolean;
   addOnLabel: string;
   addOnDescription: string;
@@ -171,6 +174,7 @@ const EMPTY_FORM: FormState = {
   giftEnabled: false,
   b2bEnabled: true,
   evenHouvastPopupEnabled: false,
+  evenHouvastPopupTekst: "",
   addOnEnabled: false,
   addOnLabel: "",
   addOnDescription: "",
@@ -234,6 +238,7 @@ export default function AdminCheckoutPage() {
   const updateProduct = useAdminMutation(api.checkoutProducts.update);
   const removeProduct = useAdminMutation(api.checkoutProducts.remove);
   const generateUploadUrl = useAdminMutation(api.checkoutProducts.generateUploadUrl);
+  const getImageUrl = useAdminMutation(api.landingPages.getImageUrl);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"checkoutProducts"> | null>(null);
@@ -308,6 +313,7 @@ export default function AdminCheckoutPage() {
       giftEnabled: product.giftEnabled ?? false,
       b2bEnabled: product.b2bEnabled ?? true,
       evenHouvastPopupEnabled: product.evenHouvastPopupEnabled ?? false,
+      evenHouvastPopupTekst: product.evenHouvastPopupTekst ?? "",
       addOnEnabled: product.addOnEnabled ?? !!(product.addOnLabel && product.addOnPriceInCents),
       addOnLabel: product.addOnLabel ?? "",
       addOnDescription: product.addOnDescription ?? "",
@@ -349,6 +355,7 @@ export default function AdminCheckoutPage() {
       giftEnabled: product.giftEnabled ?? false,
       b2bEnabled: product.b2bEnabled ?? true,
       evenHouvastPopupEnabled: product.evenHouvastPopupEnabled ?? false,
+      evenHouvastPopupTekst: product.evenHouvastPopupTekst ?? "",
       addOnEnabled: product.addOnEnabled ?? !!(product.addOnLabel && product.addOnPriceInCents),
       addOnLabel: product.addOnLabel ?? "",
       addOnDescription: product.addOnDescription ?? "",
@@ -447,6 +454,7 @@ export default function AdminCheckoutPage() {
         giftEnabled: form.giftEnabled,
         b2bEnabled: form.b2bEnabled,
         evenHouvastPopupEnabled: form.evenHouvastPopupEnabled,
+        evenHouvastPopupTekst: form.evenHouvastPopupTekst.trim() || undefined,
         giftVariants: parsedVariants.length > 0 ? parsedVariants : undefined,
         addOnEnabled: form.addOnEnabled,
         addOnLabel: form.addOnEnabled ? opt(form.addOnLabel) : undefined,
@@ -954,6 +962,41 @@ export default function AdminCheckoutPage() {
                   </span>
                 </span>
               </label>
+              {form.evenHouvastPopupEnabled && (
+                <div className="ml-6 space-y-2">
+                  <textarea
+                    value={form.evenHouvastPopupTekst}
+                    onChange={(e) => setForm((f) => ({ ...f, evenHouvastPopupTekst: e.target.value }))}
+                    rows={9}
+                    placeholder={EVEN_HOUVAST_POPUP_DEFAULT_TEKST}
+                    className="w-full rounded-lg border border-primary-200 p-2 text-sm"
+                  />
+                  <p className="text-xs text-gray-400">
+                    Eerste regel = kop. Elke regel = alinea. Opmaak: **vet**, *schuin*, _onderstreept_. Leeg laten = standaardtekst.
+                  </p>
+                  <label className="inline-flex items-center gap-1.5 text-xs text-primary-600 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const sid = await uploadFile(file);
+                        const url = await getImageUrl({ storageId: sid });
+                        if (!url) return;
+                        setForm((f) => ({
+                          ...f,
+                          evenHouvastPopupTekst:
+                            (f.evenHouvastPopupTekst.trim() ? f.evenHouvastPopupTekst.trimEnd() + "\n" : "") + `[afbeelding:${url}]`,
+                        }));
+                        e.target.value = "";
+                      }}
+                    />
+                    <span className="underline">+ Afbeelding toevoegen</span>
+                  </label>
+                </div>
+              )}
 
               {/* Kassakoopje */}
               <div className="border border-primary-100 rounded-lg p-4 space-y-3 bg-primary-50">

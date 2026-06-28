@@ -127,6 +127,7 @@ export const create = mutation({
     giftEnabled: v.optional(v.boolean()),
     b2bEnabled: v.optional(v.boolean()),
     evenHouvastPopupEnabled: v.optional(v.boolean()),
+    evenHouvastPopupTekst: v.optional(v.string()),
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),
       priceInCents: v.number(),
@@ -179,6 +180,7 @@ export const create = mutation({
       giftEnabled: args.giftEnabled,
       b2bEnabled: args.b2bEnabled,
       evenHouvastPopupEnabled: args.evenHouvastPopupEnabled,
+      evenHouvastPopupTekst: args.evenHouvastPopupTekst,
       giftVariants: args.giftVariants,
       addOnEnabled: args.addOnEnabled,
       addOnLabel: args.addOnLabel,
@@ -224,6 +226,7 @@ export const update = mutation({
     giftEnabled: v.optional(v.boolean()),
     b2bEnabled: v.optional(v.boolean()),
     evenHouvastPopupEnabled: v.optional(v.boolean()),
+    evenHouvastPopupTekst: v.optional(v.string()),
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),
       priceInCents: v.number(),

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { EVEN_HOUVAST_POPUP_DEFAULT_TEKST } from "@/components/EvenHouvastPopup";
 import {
   LayoutTemplate, Plus, Edit, Trash2, Save, X, Copy, Eye, EyeOff, ExternalLink, Download,
 } from "lucide-react";
@@ -141,6 +142,7 @@ type FormState = {
   footerText: string;
   footerCtaUrl: string;
   evenHouvastPopupEnabled: boolean;
+  evenHouvastPopupTekst: string;
   trackAds: boolean;
   houvastKnop: boolean;
   houvastType: string;
@@ -253,6 +255,7 @@ const EMPTY_FORM: FormState = {
   footerText: "",
   footerCtaUrl: "",
   evenHouvastPopupEnabled: false,
+  evenHouvastPopupTekst: "",
   trackAds: false,
   houvastKnop: false,
   houvastType: "",
@@ -594,6 +597,7 @@ export default function AdminLandingspaginasPage() {
       footerText: page.footerText ?? "",
       footerCtaUrl: (page as any).footerCtaUrl ?? "",
       evenHouvastPopupEnabled: (page as any).evenHouvastPopupEnabled ?? false,
+      evenHouvastPopupTekst: (page as any).evenHouvastPopupTekst ?? "",
       trackAds: (page as any).trackAds ?? false,
       houvastKnop: (page as any).houvastKnop ?? false,
       houvastType: (page as any).houvastType ?? "",
@@ -893,6 +897,7 @@ export default function AdminLandingspaginasPage() {
           footerText: form.footerText.trim(),
           footerCtaUrl: form.footerCtaUrl.trim(),
           evenHouvastPopupEnabled: form.evenHouvastPopupEnabled,
+          evenHouvastPopupTekst: form.evenHouvastPopupTekst.trim() || undefined,
           trackAds: form.trackAds,
           houvastKnop: form.houvastKnop,
           houvastType: form.houvastType.trim() || undefined,
@@ -1003,6 +1008,7 @@ export default function AdminLandingspaginasPage() {
           footerText: opt(form.footerText),
           footerCtaUrl: opt(form.footerCtaUrl),
           evenHouvastPopupEnabled: form.evenHouvastPopupEnabled,
+          evenHouvastPopupTekst: form.evenHouvastPopupTekst.trim() || undefined,
           trackAds: form.trackAds,
           houvastKnop: form.houvastKnop,
           houvastType: form.houvastType.trim() || undefined,
@@ -1264,6 +1270,41 @@ export default function AdminLandingspaginasPage() {
                 />
                 <span className="text-sm text-gray-700">Even Houvast-pop-up bij ~80% scroll</span>
               </label>
+              {form.evenHouvastPopupEnabled && (
+                <div className="ml-6 space-y-2">
+                  <textarea
+                    value={form.evenHouvastPopupTekst}
+                    onChange={(e) => setForm((f) => ({ ...f, evenHouvastPopupTekst: e.target.value }))}
+                    rows={9}
+                    placeholder={EVEN_HOUVAST_POPUP_DEFAULT_TEKST}
+                    className="w-full rounded-lg border border-primary-200 p-2 text-sm"
+                  />
+                  <p className="text-xs text-gray-400">
+                    Eerste regel = kop. Elke regel = alinea. Opmaak: **vet**, *schuin*, _onderstreept_. Leeg laten = standaardtekst.
+                  </p>
+                  <label className="inline-flex items-center gap-1.5 text-xs text-primary-600 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const sid = await uploadFile(file);
+                        const url = await getImageUrl({ storageId: sid });
+                        if (!url) return;
+                        setForm((f) => ({
+                          ...f,
+                          evenHouvastPopupTekst:
+                            (f.evenHouvastPopupTekst.trim() ? f.evenHouvastPopupTekst.trimEnd() + "\n" : "") + `[afbeelding:${url}]`,
+                        }));
+                        e.target.value = "";
+                      }}
+                    />
+                    <span className="underline">+ Afbeelding toevoegen</span>
+                  </label>
+                </div>
+              )}
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
