@@ -18,6 +18,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { calculateVat, EU_COUNTRY_NAMES_NL } from "@/lib/vat";
 import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
+import { leesBronLp } from "@/components/analytics/bronLp";
 import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
 import { RustigeCheckout } from "./RustigeCheckout";
 
@@ -361,12 +362,14 @@ export default function BetalenPage() {
     setSecretError(null);
     setClientSecret(null);
 
-    // Bron-LP (uit ?from= in de URL, anders de verwijzende pagina) + sessie meesturen,
-    // zodat de server "checkout bereikt" betrouwbaar per LP kan loggen.
+    // Bron-LP (uit sessionStorage; ?from= blijft werken voor oude links, anders de
+    // verwijzende pagina) + sessie meesturen, zodat de server "checkout bereikt"
+    // betrouwbaar per LP kan loggen, zonder de checkout-URL te vervuilen.
     const fromParam = new URLSearchParams(window.location.search).get("from");
+    const bronLp = leesBronLp();
     let referrerPath = "";
     try { if (document.referrer) referrerPath = new URL(document.referrer).pathname; } catch {}
-    const source = fromParam || referrerPath || "";
+    const source = fromParam || bronLp || referrerPath || "";
     const sessionId = localStorage.getItem("ttb_sid") ?? "";
 
     const body = JSON.stringify({

@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { NietAlleenKeuzeLpView } from "@/components/NietAlleenKeuzeLpView";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
+import { onthoudBronLp } from "@/components/analytics/bronLp";
 import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
 import { SectieTracker, SectieMarker } from "@/components/analytics/SectieTracker";
 import { HouvasteKnop } from "@/app/home-concept/HouvasteKnop";
@@ -1240,7 +1241,7 @@ export function LandingPageView({ slug }: { slug: string }) {
         >
           <a
             href={ctaUrl}
-            onClick={() => trackCtaClick(`${stickyCtaText} (zwevend)`)}
+            onClick={() => { onthoudBronLp(ctaUrl); trackCtaClick(`${stickyCtaText} (zwevend)`); }}
             className="mx-auto block max-w-md text-center px-4 py-3.5 rounded-2xl text-sm font-semibold text-white shadow-lg"
             style={{ background: stickyCtaColor }}
           >
