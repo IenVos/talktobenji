@@ -972,7 +972,7 @@ export default function AdminCheckoutPage() {
                     className="w-full rounded-lg border border-primary-200 p-2 text-sm"
                   />
                   <p className="text-xs text-gray-400">
-                    Eerste regel = kop. Elke regel = alinea. Opmaak: **vet**, *schuin*, _onderstreept_. Leeg laten = standaardtekst.
+                    Eerste regel = kop. Elke regel = alinea. Opmaak: **vet**, *schuin*, _onderstreept_. Knoptekst: zet een regel [knop:Jouw tekst] (of [knop:Tekst|https://link]). Leeg laten = standaardtekst.
                   </p>
                   <label className="inline-flex items-center gap-1.5 text-xs text-primary-600 cursor-pointer">
                     <input

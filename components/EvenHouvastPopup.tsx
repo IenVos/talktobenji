@@ -27,6 +27,8 @@ export const EVEN_HOUVAST_POPUP_DEFAULT_TEKST = [
 ].join("\n");
 
 const IMG_RE = /^\[(?:afbeelding|img):(.+)\]$/i;
+const KNOP_RE = /^\[(?:knop|cta|button):(.+)\]$/i;
+const STANDAARD_KNOP = "Begin gratis met Even Houvast →";
 
 // Inline-opmaak: **vet**, *schuin*, _onderstreept_.
 function renderInline(text: string): React.ReactNode[] {
@@ -103,7 +105,22 @@ export function EvenHouvastPopup({
     .map((r) => r.trim())
     .filter(Boolean);
   const titel = regels[0] ?? "";
-  const rest = regels.slice(1);
+
+  // Knop-regel ([knop:Tekst] of [knop:Tekst|https://link]) eruit halen; de rest
+  // zijn alinea's/afbeeldingen.
+  let knopLabel = STANDAARD_KNOP;
+  let knopUrl = evenHouvastUrl;
+  const inhoud: string[] = [];
+  for (const regel of regels.slice(1)) {
+    const knop = regel.match(KNOP_RE);
+    if (knop) {
+      const [label, url] = knop[1].split("|").map((s) => s.trim());
+      if (label) knopLabel = label;
+      if (url) knopUrl = url;
+      continue;
+    }
+    inhoud.push(regel);
+  }
 
   return (
     <div
@@ -159,7 +176,7 @@ export function EvenHouvastPopup({
           </h3>
         )}
 
-        {rest.map((regel, i) => {
+        {inhoud.map((regel, i) => {
           const img = regel.match(IMG_RE);
           if (img) {
             return (
@@ -180,7 +197,7 @@ export function EvenHouvastPopup({
         })}
 
         <a
-          href={evenHouvastUrl}
+          href={knopUrl}
           style={{
             display: "block",
             marginTop: 16,
@@ -194,7 +211,7 @@ export function EvenHouvastPopup({
             textDecoration: "none",
           }}
         >
-          Begin gratis met Even Houvast →
+          {knopLabel}
         </a>
 
         <button
