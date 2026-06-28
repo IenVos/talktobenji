@@ -540,6 +540,15 @@ export default function AdminAnalytics() {
   const [openDoelen, setOpenDoelen] = usePersistentToggle("doelen", false);
   const [openBeheer, setOpenBeheer] = usePersistentToggle("beheer", true);
 
+  // Welke landingspagina's in de blok-diepte uitgeklapt zijn (standaard ingeklapt).
+  const [openLpBlok, setOpenLpBlok] = useState<Set<string>>(new Set());
+  const toggleLpBlok = (path: string) =>
+    setOpenLpBlok((vorig) => {
+      const next = new Set(vorig);
+      next.has(path) ? next.delete(path) : next.add(path);
+      return next;
+    });
+
   // Welke tab actief is (Overzicht vs Funnel & pagina's), bewaard tussen bezoeken.
   const [tab, setTab] = useState<"overzicht" | "funnel">("overzicht");
   useEffect(() => {
@@ -1451,31 +1460,50 @@ export default function AdminAnalytics() {
                 {funnelStats.lp.length === 0 ? (
                   <p className="text-sm text-primary-400 py-2">Nog geen blok-data in deze periode.</p>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-2">
                     {funnelStats.lp.map((p: { path: string; totaalBlokken: number; blokken: { index: number; value: number }[] }) => {
                       const base = p.blokken[0]?.value || 1;
+                      const open = openLpBlok.has(p.path);
+                      const laatste = p.blokken[p.blokken.length - 1];
+                      const eindPct = laatste ? Math.round((laatste.value / base) * 100) : 0;
                       return (
-                        <div key={p.path}>
-                          <div className="flex items-center justify-between mb-2 gap-2">
-                            <span className="text-xs font-medium text-primary-700 truncate">{p.path}</span>
-                            <span className="text-[11px] text-primary-400 flex-shrink-0">{p.totaalBlokken} blokken</span>
-                          </div>
-                          {p.blokken.length === 0 ? (
-                            <p className="text-xs text-primary-400 py-1">Nog geen blok-meting op deze pagina (gaat vanaf nu meten).</p>
-                          ) : (
-                            <div className="space-y-1.5">
-                              {p.blokken.map((b, i) => (
-                                <div key={b.index} className="flex items-center gap-3">
-                                  <div className="w-20 flex-shrink-0 text-xs text-primary-700">Blok {b.index}</div>
-                                  <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
-                                    <div className={`h-full rounded-full transition-all ${i === p.blokken.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((b.value / base) * 100)}%` }} />
-                                  </div>
-                                  <div className="w-24 flex-shrink-0 text-right text-xs">
-                                    <span className="font-semibold text-primary-900">{b.value}</span>
-                                    <span className="text-primary-400"> · {Math.round((b.value / base) * 100)}%</span>
-                                  </div>
+                        <div key={p.path} className="border border-primary-100 rounded-lg overflow-hidden">
+                          <button
+                            type="button"
+                            onClick={() => toggleLpBlok(p.path)}
+                            className="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-left hover:bg-primary-50/50 transition-colors"
+                          >
+                            <span className="flex items-center gap-2 min-w-0">
+                              <ChevronDown size={14} className={`text-primary-400 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
+                              <span className="text-xs font-medium text-primary-700 truncate">{p.path}</span>
+                            </span>
+                            <span className="flex items-center gap-3 flex-shrink-0 text-[11px] text-primary-400">
+                              {p.blokken.length > 0 && (
+                                <span>tot blok {laatste.index} · <span className="font-semibold text-primary-600">{eindPct}%</span></span>
+                              )}
+                              <span>{p.totaalBlokken} blokken</span>
+                            </span>
+                          </button>
+                          {open && (
+                            <div className="px-3 pb-3 pt-1">
+                              {p.blokken.length === 0 ? (
+                                <p className="text-xs text-primary-400 py-1">Nog geen blok-meting op deze pagina (gaat vanaf nu meten).</p>
+                              ) : (
+                                <div className="space-y-1.5">
+                                  {p.blokken.map((b, i) => (
+                                    <div key={b.index} className="flex items-center gap-3">
+                                      <div className="w-20 flex-shrink-0 text-xs text-primary-700">Blok {b.index}</div>
+                                      <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
+                                        <div className={`h-full rounded-full transition-all ${i === p.blokken.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((b.value / base) * 100)}%` }} />
+                                      </div>
+                                      <div className="w-24 flex-shrink-0 text-right text-xs">
+                                        <span className="font-semibold text-primary-900">{b.value}</span>
+                                        <span className="text-primary-400"> · {Math.round((b.value / base) * 100)}%</span>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
+                              )}
                             </div>
                           )}
                         </div>
