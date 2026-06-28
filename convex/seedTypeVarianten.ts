@@ -684,6 +684,32 @@ const KINDERLOOS: VariantCopy = {
   checkoutReview: { author: "Marit", role: "Onvervulde kinderwens 🤍", text: "In 30 dagen kreeg mijn onzichtbare verdriet eindelijk een plek." },
 };
 
+// Demo: zet de Even Houvast-pop-up aan op de persoon-concept-LP met een
+// voorbeeldtekst die opmaak (**vet**, *schuin*) en een eigen [knop:...] toont.
+export const demoEvenHouvastPopupAan = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "je-mist-iemand-concept";
+    const tekst = [
+      "Nog niet klaar? Dat begrijp ik. 💙",
+      "Soms is de stap naar een volledig programma nog te groot. **En dat hoeft ook niet vandaag.**",
+      "Maar als je hier bent, draag je iets. En dat verdient een plek.",
+      "Even Houvast is *gratis*, en het kost je maar een paar minuten.",
+      "Benji stelt je een paar korte vragen over wie je mist. Wat je nog zou willen zeggen, wat je bij wil houden.",
+      "Van jouw antwoorden maakt Benji een persoonlijke brief, om te bewaren, voor jezelf.",
+      "[knop:Ja, ik begin met Even Houvast]",
+    ].join("\n");
+
+    const lp = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!lp) return { gevonden: false, slug };
+    await ctx.db.patch(lp._id, { evenHouvastPopupEnabled: true, evenHouvastPopupTekst: tekst, updatedAt: Date.now() } as any);
+    return { gevonden: true, slug };
+  },
+});
+
 // Eenmalige migratie: hernoem de eerder geseede "…-concept"-checkouts naar de
 // schone slug. De checkouts worden nog niet gebruikt en bestonden nog niet live,
 // dus dit is veilig. Behoudt het record (geen dubbele). Na 1x draaien een no-op.
