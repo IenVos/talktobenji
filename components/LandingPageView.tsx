@@ -9,6 +9,7 @@ import { NietAlleenKeuzeLpView } from "@/components/NietAlleenKeuzeLpView";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { onthoudBronLp } from "@/components/analytics/bronLp";
+import { EvenHouvastPopup } from "@/components/EvenHouvastPopup";
 import { useTrackCtaClick } from "@/components/analytics/useTrackCtaClick";
 import { SectieTracker, SectieMarker } from "@/components/analytics/SectieTracker";
 import { HouvasteKnop } from "@/app/home-concept/HouvasteKnop";
@@ -1249,6 +1250,9 @@ export function LandingPageView({ slug }: { slug: string }) {
           </a>
         </div>
       )}
+
+      {/* Zachte Even Houvast-pop-up bij ~80% scroll (per pagina aan/uit) */}
+      <EvenHouvastPopup enabled={!!(page as any).evenHouvastPopupEnabled} />
 
       {/* STICKY TRIAL BAR */}
       {!hideStickyBar && !stickyBarDismissed && (

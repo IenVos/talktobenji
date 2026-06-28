@@ -126,6 +126,7 @@ export const create = mutation({
     followUpEmailBody: v.optional(v.string()),
     giftEnabled: v.optional(v.boolean()),
     b2bEnabled: v.optional(v.boolean()),
+    evenHouvastPopupEnabled: v.optional(v.boolean()),
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),
       priceInCents: v.number(),
@@ -177,6 +178,7 @@ export const create = mutation({
       followUpEmailBody: args.followUpEmailBody,
       giftEnabled: args.giftEnabled,
       b2bEnabled: args.b2bEnabled,
+      evenHouvastPopupEnabled: args.evenHouvastPopupEnabled,
       giftVariants: args.giftVariants,
       addOnEnabled: args.addOnEnabled,
       addOnLabel: args.addOnLabel,
@@ -221,6 +223,7 @@ export const update = mutation({
     followUpEmailBody: v.optional(v.string()),
     giftEnabled: v.optional(v.boolean()),
     b2bEnabled: v.optional(v.boolean()),
+    evenHouvastPopupEnabled: v.optional(v.boolean()),
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),
       priceInCents: v.number(),

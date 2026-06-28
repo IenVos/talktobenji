@@ -780,6 +780,8 @@ export default defineSchema({
     footerText: v.optional(v.string()),
     footerCtaUrl: v.optional(v.string()),
     hideFooterDisclaimer: v.optional(v.boolean()), // verberg de "Benji is geen vervanging..."-regel (bijv. op Even Houvast-LP)
+    // Zachte Even Houvast-pop-up bij ~80% scroll (gratis instap i.p.v. volledig programma)
+    evenHouvastPopupEnabled: v.optional(v.boolean()),
     // Analytics
     trackAds: v.optional(v.boolean()), // Toon in advertentie-blok in analytics
     // Type-keuzepagina (lpType === "niet_alleen_keuze")
@@ -913,6 +915,7 @@ export default defineSchema({
     followUpEmailBody: v.optional(v.string()),
     giftEnabled: v.optional(v.boolean()), // Cadeau-optie tonen op checkout
     b2bEnabled: v.optional(v.boolean()), // "Zakelijke aankoop?" tonen op checkout (undefined = aan voor bestaande producten)
+    evenHouvastPopupEnabled: v.optional(v.boolean()), // Zachte Even Houvast-pop-up bij ~80% scroll
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),       // "Maand", "Kwartaal", "Jaar"
       priceInCents: v.number(),

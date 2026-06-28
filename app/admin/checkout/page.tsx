@@ -39,6 +39,7 @@ type CheckoutProduct = {
   followUpEmailBody?: string;
   giftEnabled?: boolean;
   b2bEnabled?: boolean;
+  evenHouvastPopupEnabled?: boolean;
   giftVariants?: { label: string; priceInCents: number; billingPeriod: "monthly" | "quarterly" | "half_yearly" | "yearly"; accessDays: number }[];
   addOnEnabled?: boolean;
   addOnLabel?: string;
@@ -83,6 +84,7 @@ type FormState = {
   followUpEmailBody: string;
   giftEnabled: boolean;
   b2bEnabled: boolean;
+  evenHouvastPopupEnabled: boolean;
   addOnEnabled: boolean;
   addOnLabel: string;
   addOnDescription: string;
@@ -168,6 +170,7 @@ const EMPTY_FORM: FormState = {
   followUpEmailBody: "",
   giftEnabled: false,
   b2bEnabled: true,
+  evenHouvastPopupEnabled: false,
   addOnEnabled: false,
   addOnLabel: "",
   addOnDescription: "",
@@ -304,6 +307,7 @@ export default function AdminCheckoutPage() {
       followUpEmailBody: product.followUpEmailBody ?? "",
       giftEnabled: product.giftEnabled ?? false,
       b2bEnabled: product.b2bEnabled ?? true,
+      evenHouvastPopupEnabled: product.evenHouvastPopupEnabled ?? false,
       addOnEnabled: product.addOnEnabled ?? !!(product.addOnLabel && product.addOnPriceInCents),
       addOnLabel: product.addOnLabel ?? "",
       addOnDescription: product.addOnDescription ?? "",
@@ -344,6 +348,7 @@ export default function AdminCheckoutPage() {
       followUpEmailBody: product.followUpEmailBody ?? "",
       giftEnabled: product.giftEnabled ?? false,
       b2bEnabled: product.b2bEnabled ?? true,
+      evenHouvastPopupEnabled: product.evenHouvastPopupEnabled ?? false,
       addOnEnabled: product.addOnEnabled ?? !!(product.addOnLabel && product.addOnPriceInCents),
       addOnLabel: product.addOnLabel ?? "",
       addOnDescription: product.addOnDescription ?? "",
@@ -441,6 +446,7 @@ export default function AdminCheckoutPage() {
         followUpEmailBody: opt(form.followUpEmailBody),
         giftEnabled: form.giftEnabled,
         b2bEnabled: form.b2bEnabled,
+        evenHouvastPopupEnabled: form.evenHouvastPopupEnabled,
         giftVariants: parsedVariants.length > 0 ? parsedVariants : undefined,
         addOnEnabled: form.addOnEnabled,
         addOnLabel: form.addOnEnabled ? opt(form.addOnLabel) : undefined,
@@ -929,6 +935,22 @@ export default function AdminCheckoutPage() {
                   &quot;Zakelijke aankoop?&quot; tonen op checkout{" "}
                   <span className="text-xs text-gray-400 font-normal">
                     — koper kan een btw-nummer invullen (reverse charge, geen btw)
+                  </span>
+                </span>
+              </label>
+
+              {/* Even Houvast-pop-up */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.evenHouvastPopupEnabled}
+                  onChange={setCheck("evenHouvastPopupEnabled")}
+                  className="rounded border-primary-300 text-primary-600"
+                />
+                <span className="text-sm text-gray-700">
+                  Even Houvast-pop-up bij ~80% scroll{" "}
+                  <span className="text-xs text-gray-400 font-normal">
+                    — zachte gratis instap voor wie nog twijfelt
                   </span>
                 </span>
               </label>

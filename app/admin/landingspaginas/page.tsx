@@ -140,6 +140,7 @@ type FormState = {
   finalCtaBody: string;
   footerText: string;
   footerCtaUrl: string;
+  evenHouvastPopupEnabled: boolean;
   trackAds: boolean;
   houvastKnop: boolean;
   houvastType: string;
@@ -251,6 +252,7 @@ const EMPTY_FORM: FormState = {
   finalCtaBody: "",
   footerText: "",
   footerCtaUrl: "",
+  evenHouvastPopupEnabled: false,
   trackAds: false,
   houvastKnop: false,
   houvastType: "",
@@ -591,6 +593,7 @@ export default function AdminLandingspaginasPage() {
       finalCtaBody: page.finalCtaBody ?? "",
       footerText: page.footerText ?? "",
       footerCtaUrl: (page as any).footerCtaUrl ?? "",
+      evenHouvastPopupEnabled: (page as any).evenHouvastPopupEnabled ?? false,
       trackAds: (page as any).trackAds ?? false,
       houvastKnop: (page as any).houvastKnop ?? false,
       houvastType: (page as any).houvastType ?? "",
@@ -889,6 +892,7 @@ export default function AdminLandingspaginasPage() {
           finalCtaBody: form.finalCtaBody.trim(),
           footerText: form.footerText.trim(),
           footerCtaUrl: form.footerCtaUrl.trim(),
+          evenHouvastPopupEnabled: form.evenHouvastPopupEnabled,
           trackAds: form.trackAds,
           houvastKnop: form.houvastKnop,
           houvastType: form.houvastType.trim() || undefined,
@@ -998,6 +1002,7 @@ export default function AdminLandingspaginasPage() {
           finalCtaBody: opt(form.finalCtaBody),
           footerText: opt(form.footerText),
           footerCtaUrl: opt(form.footerCtaUrl),
+          evenHouvastPopupEnabled: form.evenHouvastPopupEnabled,
           trackAds: form.trackAds,
           houvastKnop: form.houvastKnop,
           houvastType: form.houvastType.trim() || undefined,
@@ -1249,6 +1254,15 @@ export default function AdminLandingspaginasPage() {
                   className="rounded border-primary-300 text-primary-600"
                 />
                 <span className="text-sm text-gray-700">Ad LP — zichtbaar in analytics</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.evenHouvastPopupEnabled}
+                  onChange={(e) => setForm((f) => ({ ...f, evenHouvastPopupEnabled: e.target.checked }))}
+                  className="rounded border-primary-300 text-primary-600"
+                />
+                <span className="text-sm text-gray-700">Even Houvast-pop-up bij ~80% scroll</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input

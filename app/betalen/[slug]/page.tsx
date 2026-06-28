@@ -19,6 +19,7 @@ import {
 import { calculateVat, EU_COUNTRY_NAMES_NL } from "@/lib/vat";
 import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
 import { leesBronLp } from "@/components/analytics/bronLp";
+import { EvenHouvastPopup } from "@/components/EvenHouvastPopup";
 import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
 import { RustigeCheckout } from "./RustigeCheckout";
 
@@ -627,6 +628,7 @@ export default function BetalenPage() {
     return (
       <>
         <ScrollDepthTracker category="checkout" path={slug} />
+        <EvenHouvastPopup enabled={!!(product as any).evenHouvastPopupEnabled} />
         <RustigeCheckout
           product={product as any}
           priceFormatted={priceFormatted}
@@ -641,6 +643,7 @@ export default function BetalenPage() {
     <div className="min-h-screen bg-stone-50">
       {/* Scroll-diepte op de checkout (gegroepeerd per product-slug) */}
       <ScrollDepthTracker category="checkout" path={slug} />
+      <EvenHouvastPopup enabled={!!(product as any).evenHouvastPopupEnabled} />
       <main className="max-w-md mx-auto px-4 py-8">
         {/* Product samenvatting — Calm-stijl: naam · vinkjes · prijs */}
         <div className="bg-white rounded-2xl border border-stone-200 p-6 mb-6 shadow-sm">
