@@ -200,9 +200,9 @@ async function verstuurOpvolgMail(
   const token = await afmeldToken(args.email);
   const afmeldUrl = `${appBase()}/api/afmelden?e=${encodeURIComponent(args.email)}&t=${token}`;
 
-  // Algemene reeks: vraag in de vroege mails uit welk verlies het is, zodat we
-  // de lead naar de juiste landingspagina en reeks kunnen sturen.
-  const keuzeBlok = type === ALGEMEEN && (args.mailNummer === 1 || args.mailNummer === 3)
+  // Algemene reeks: vraag alleen in de eerste mail uit welk verlies het is, zodat
+  // we de lead naar de juiste landingspagina en reeks kunnen sturen.
+  const keuzeBlok = type === ALGEMEEN && args.mailNummer === 1
     ? verliesKeuzeBlok(args.email, token)
     : "";
 
