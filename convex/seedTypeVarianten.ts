@@ -138,7 +138,7 @@ export const seedPersoonLpConcept = mutation({
       ctaColor: "#6d84a8",
       ctaPrijsTekst: "€ 37,- eenmalig · 30 dagen",
       ctaMicroCopy: "Dat is iets meer dan een euro per dag.",
-      ctaUrl: "https://www.talktobenji.com/betalen/niet-alleen-verlies-persoon-concept",
+      ctaUrl: "https://www.talktobenji.com/betalen/niet-alleen-verlies-persoon",
 
       finalCtaTitle: "Je hoeft het niet alleen te dragen.",
       finalCtaBody:
@@ -181,7 +181,7 @@ export const seedPersoonLpConcept = mutation({
 export const seedPersoonCheckoutConcept = mutation({
   args: {},
   handler: async (ctx) => {
-    const slug = "niet-alleen-verlies-persoon-concept";
+    const slug = "niet-alleen-verlies-persoon";
     const now = Date.now();
 
     const rustigeContent = {
@@ -507,7 +507,7 @@ async function schrijfVariant(ctx: any, c: VariantCopy) {
 const SCHEIDING: VariantCopy = {
   type: "scheiding",
   lpSlug: "mijn-relatie-is-voorbij-concept",
-  checkoutSlug: "niet-alleen-relatie-concept",
+  checkoutSlug: "niet-alleen-relatie",
   kortNaam: "N.A. relatie (concept)",
   pageTitle: "Niet Alleen, voor wie een relatie verloor",
   heroLabel: "Voor wie rouwt om een relatie die voorbij is",
@@ -567,7 +567,7 @@ const SCHEIDING: VariantCopy = {
 const EENZAAMHEID: VariantCopy = {
   type: "eenzaamheid",
   lpSlug: "ik-voel-me-eenzaam-concept",
-  checkoutSlug: "niet-alleen-eenzaamheid-concept",
+  checkoutSlug: "niet-alleen-eenzaamheid",
   kortNaam: "N.A. eenzaamheid (concept)",
   pageTitle: "Niet Alleen, voor wie zich eenzaam voelt",
   heroLabel: "Voor wie zich alleen voelt, ook tussen anderen",
@@ -627,7 +627,7 @@ const EENZAAMHEID: VariantCopy = {
 const KINDERLOOS: VariantCopy = {
   type: "kinderloos",
   lpSlug: "ongewenst-kinderloos-concept",
-  checkoutSlug: "niet-alleen-kinderloos-concept",
+  checkoutSlug: "niet-alleen-kinderloos",
   kortNaam: "N.A. kinderloos (concept)",
   pageTitle: "Niet Alleen, voor wie een kinderwens verloor",
   heroLabel: "Voor wie rouwt om een kind dat er nooit kwam",
@@ -683,6 +683,43 @@ const KINDERLOOS: VariantCopy = {
     "Ik maakte Niet Alleen vanuit mijn eigen ervaring, omdat ik zag hoe alleen mensen zich kunnen voelen met een verdriet dat anderen niet zien.\n\nDaarom ontvang je elke dag een klein moment van steun. Geen druk. Geen verwachtingen.\n\nLieve groet,\n\nIen & Benji",
   checkoutReview: { author: "Marit", role: "Onvervulde kinderwens 🤍", text: "In 30 dagen kreeg mijn onzichtbare verdriet eindelijk een plek." },
 };
+
+// Eenmalige migratie: hernoem de eerder geseede "…-concept"-checkouts naar de
+// schone slug. De checkouts worden nog niet gebruikt en bestonden nog niet live,
+// dus dit is veilig. Behoudt het record (geen dubbele). Na 1x draaien een no-op.
+export const hernoemConceptCheckoutsNaarSchoneSlug = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const map: Record<string, string> = {
+      "niet-alleen-verlies-persoon-concept": "niet-alleen-verlies-persoon",
+      "niet-alleen-relatie-concept": "niet-alleen-relatie",
+      "niet-alleen-eenzaamheid-concept": "niet-alleen-eenzaamheid",
+      "niet-alleen-kinderloos-concept": "niet-alleen-kinderloos",
+    };
+    const resultaat = [];
+    for (const [oud, nieuw] of Object.entries(map)) {
+      const oudRec = await ctx.db
+        .query("checkoutProducts")
+        .withIndex("by_slug", (q) => q.eq("slug", oud))
+        .first();
+      const nieuwBestaat = await ctx.db
+        .query("checkoutProducts")
+        .withIndex("by_slug", (q) => q.eq("slug", nieuw))
+        .first();
+      if (oudRec && !nieuwBestaat) {
+        await ctx.db.patch(oudRec._id, { slug: nieuw, updatedAt: Date.now() } as any);
+        resultaat.push({ van: oud, naar: nieuw, actie: "hernoemd" });
+      } else if (oudRec && nieuwBestaat) {
+        // Schone slug bestaat al → oude concept-dubbel opruimen.
+        await ctx.db.delete(oudRec._id);
+        resultaat.push({ van: oud, naar: nieuw, actie: "dubbel verwijderd" });
+      } else {
+        resultaat.push({ van: oud, naar: nieuw, actie: "niets te doen" });
+      }
+    }
+    return { resultaat };
+  },
+});
 
 // Eén mutatie die alle drie de overige varianten (her)schrijft.
 export const seedOverigeTypeVarianten = mutation({
