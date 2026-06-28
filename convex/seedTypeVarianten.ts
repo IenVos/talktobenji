@@ -684,29 +684,39 @@ const KINDERLOOS: VariantCopy = {
   checkoutReview: { author: "Marit", role: "Onvervulde kinderwens 🤍", text: "In 30 dagen kreeg mijn onzichtbare verdriet eindelijk een plek." },
 };
 
-// Demo: zet de Even Houvast-pop-up aan op de persoon-concept-LP met een
-// voorbeeldtekst die opmaak (**vet**, *schuin*) en een eigen [knop:...] toont.
+// Zet de Even Houvast-pop-up aan op de live huisdier-LP (met vinkjes-opsomming)
+// en zet de eerdere concept-demo weer uit.
 export const demoEvenHouvastPopupAan = mutation({
   args: {},
   handler: async (ctx) => {
-    const slug = "je-mist-iemand-concept";
+    const huisdierSlug = "niet-alleen-voor-hulp-bij-verlies-van-huisdier";
+    const conceptSlug = "je-mist-iemand-concept";
     const tekst = [
       "Nog niet klaar? Dat begrijp ik. 💙",
-      "Soms is de stap naar een volledig programma nog te groot. **En dat hoeft ook niet vandaag.**",
+      "Soms is de stap naar een volledig programma nog te groot. En dat hoeft ook niet vandaag.",
       "Maar als je hier bent, draag je iets. En dat verdient een plek.",
-      "Even Houvast is *gratis*, en het kost je maar een paar minuten.",
-      "Benji stelt je een paar korte vragen over wie je mist. Wat je nog zou willen zeggen, wat je bij wil houden.",
-      "Van jouw antwoorden maakt Benji een persoonlijke brief, om te bewaren, voor jezelf.",
-      "[knop:Ja, ik begin met Even Houvast]",
+      "Even Houvast is gratis, en het kost je maar een paar minuten:",
+      "✓ Vijf korte vragen over je huisdier",
+      "✓ Typen, inspreken of een foto toevoegen",
+      "✓ Benji maakt er een persoonlijke brief van, om te bewaren",
+      "Geen programma. Geen verplichting. Gewoon een klein moment voor het verlies dat je draagt.",
     ].join("\n");
 
+    // Concept-demo weer uit.
+    const concept = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", conceptSlug))
+      .first();
+    if (concept) await ctx.db.patch(concept._id, { evenHouvastPopupEnabled: false, updatedAt: Date.now() } as any);
+
+    // Huisdier-LP aan.
     const lp = await ctx.db
       .query("landingPages")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .withIndex("by_slug", (q) => q.eq("slug", huisdierSlug))
       .first();
-    if (!lp) return { gevonden: false, slug };
+    if (!lp) return { gevonden: false, slug: huisdierSlug };
     await ctx.db.patch(lp._id, { evenHouvastPopupEnabled: true, evenHouvastPopupTekst: tekst, updatedAt: Date.now() } as any);
-    return { gevonden: true, slug };
+    return { gevonden: true, slug: huisdierSlug, conceptUit: !!concept };
   },
 });
 

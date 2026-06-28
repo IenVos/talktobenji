@@ -28,7 +28,32 @@ export const EVEN_HOUVAST_POPUP_DEFAULT_TEKST = [
 
 const IMG_RE = /^\[(?:afbeelding|img):(.+)\]$/i;
 const KNOP_RE = /^\[(?:knop|cta|button):(.+)\]$/i;
+// Opsommingsregel (✓, •, -, – of —) → zelfde vinkje-stijl als de LP/checkout.
+const BULLET_RE = /^\s*(?:✓|•|‣|·|-|–|—)\s+(.+)$/;
 const STANDAARD_KNOP = "Begin gratis met Even Houvast →";
+
+// Rond badge met vinkje, identiek aan de LP/checkout-bullets.
+function Vinkje() {
+  return (
+    <span
+      style={{
+        flexShrink: 0,
+        width: 20,
+        height: 20,
+        borderRadius: 9999,
+        background: "#eef1f6",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 2,
+      }}
+    >
+      <svg width="11" height="9" viewBox="0 0 10 8" fill="none">
+        <path d="M1 4l2.5 2.5L9 1" stroke="#6d84a8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
 
 // Inline-opmaak: **vet**, *schuin*, _onderstreept_.
 function renderInline(text: string): React.ReactNode[] {
@@ -176,25 +201,52 @@ export function EvenHouvastPopup({
           </h3>
         )}
 
-        {inhoud.map((regel, i) => {
-          const img = regel.match(IMG_RE);
-          if (img) {
-            return (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={img[1].trim()}
-                alt=""
-                style={{ width: "100%", borderRadius: 14, margin: "6px 0 12px", display: "block" }}
-              />
+        {(() => {
+          const blokken: React.ReactNode[] = [];
+          let i = 0;
+          while (i < inhoud.length) {
+            const regel = inhoud[i];
+            const img = regel.match(IMG_RE);
+            if (img) {
+              blokken.push(
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={i}
+                  src={img[1].trim()}
+                  alt=""
+                  style={{ width: "100%", borderRadius: 14, margin: "6px 0 12px", display: "block" }}
+                />
+              );
+              i++;
+              continue;
+            }
+            if (BULLET_RE.test(regel)) {
+              const items: string[] = [];
+              while (i < inhoud.length && BULLET_RE.test(inhoud[i])) {
+                items.push(inhoud[i].match(BULLET_RE)![1]);
+                i++;
+              }
+              blokken.push(
+                <ul key={`b${i}`} style={{ listStyle: "none", margin: "4px 0 12px", padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {items.map((it, j) => (
+                    <li key={j} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                      <Vinkje />
+                      <span style={{ fontSize: 14.5, lineHeight: 1.5, color: "#5a5249" }}>{renderInline(it)}</span>
+                    </li>
+                  ))}
+                </ul>
+              );
+              continue;
+            }
+            blokken.push(
+              <p key={i} style={{ margin: "0 0 11px", fontSize: 14.5, lineHeight: 1.6, color: "#5a5249" }}>
+                {renderInline(regel)}
+              </p>
             );
+            i++;
           }
-          return (
-            <p key={i} style={{ margin: "0 0 11px", fontSize: 14.5, lineHeight: 1.6, color: "#5a5249" }}>
-              {renderInline(regel)}
-            </p>
-          );
-        })}
+          return blokken;
+        })()}
 
         <a
           href={knopUrl}
@@ -213,22 +265,6 @@ export function EvenHouvastPopup({
         >
           {knopLabel}
         </a>
-
-        <button
-          onClick={sluit}
-          style={{
-            display: "block",
-            width: "100%",
-            marginTop: 10,
-            border: "none",
-            background: "transparent",
-            color: "#9b8e80",
-            fontSize: 13,
-            cursor: "pointer",
-          }}
-        >
-          Nee, nu even niet
-        </button>
       </div>
     </div>
   );
