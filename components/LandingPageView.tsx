@@ -615,13 +615,13 @@ export function LandingPageView({ slug }: { slug: string }) {
       {zoomImg && (
         <div
           onClick={() => setZoomImg(null)}
-          style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", cursor: "zoom-out" }}
+          style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(253,249,244,0.95)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", cursor: "zoom-out" }}
         >
           <button
             type="button"
             onClick={() => setZoomImg(null)}
             aria-label="Sluiten"
-            style={{ position: "absolute", top: 16, right: 20, color: "#fff", fontSize: 30, lineHeight: 1, background: "none", border: "none", cursor: "pointer" }}
+            style={{ position: "absolute", top: 16, right: 20, color: "#3d3530", fontSize: 30, lineHeight: 1, background: "none", border: "none", cursor: "pointer" }}
           >
             ×
           </button>
