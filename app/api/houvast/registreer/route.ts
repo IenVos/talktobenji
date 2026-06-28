@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { email, name } = body;
+  const { email, name, bron, bronUrl } = body;
 
   if (!email || typeof email !== "string" || !email.includes("@")) {
     return NextResponse.json({ error: "Ongeldig e-mailadres" }, { status: 400 });
@@ -27,6 +27,8 @@ export async function POST(req: NextRequest) {
     await convex.action(api.houvast.registreer, {
       email,
       name: name && typeof name === "string" ? name.trim() : undefined,
+      bron: typeof bron === "string" && bron ? bron : undefined,
+      bronUrl: typeof bronUrl === "string" && bronUrl ? bronUrl : undefined,
     });
 
     // MailerLite — voeg toe aan de aparte groep "Even Houvast" (NIET de Gratis-groep,

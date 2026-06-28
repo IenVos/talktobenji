@@ -861,6 +861,8 @@ export default defineSchema({
     token: v.string(),
     name: v.optional(v.string()),
     createdAt: v.number(),
+    bron: v.optional(v.string()),    // compacte bron-regel (kanaal · pad)
+    bronUrl: v.optional(v.string()), // volledige landings-URL
   })
     .index("by_email", ["email"])
     .index("by_token", ["token"]),
@@ -871,6 +873,8 @@ export default defineSchema({
     sentAt: v.number(),
     verliesType: v.optional(v.string()), // voor de opvolgreeks per type (bijv. "huisdier")
     naam: v.optional(v.string()),
+    bron: v.optional(v.string()),    // compacte bron-regel (kanaal · pad)
+    bronUrl: v.optional(v.string()), // volledige landings-URL
   }).index("by_email", ["email"]),
 
   // Even Houvast opvolgmails — logboek welke mail (1..5) al naar welke lead is gestuurd

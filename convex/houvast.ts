@@ -98,13 +98,15 @@ export const getByEmailInternal = internalQuery({
 });
 
 export const createProfiel = internalMutation({
-  args: { email: v.string(), token: v.string(), name: v.optional(v.string()) },
+  args: { email: v.string(), token: v.string(), name: v.optional(v.string()), bron: v.optional(v.string()), bronUrl: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await ctx.db.insert("houvasteProfielen", {
       email: args.email,
       token: args.token,
       name: args.name,
       createdAt: Date.now(),
+      bron: args.bron,
+      bronUrl: args.bronUrl,
     });
   },
 });
@@ -121,7 +123,7 @@ export const briefAlVerzonden = internalQuery({
 });
 
 export const markBriefVerzonden = internalMutation({
-  args: { email: v.string(), verliesType: v.optional(v.string()), naam: v.optional(v.string()) },
+  args: { email: v.string(), verliesType: v.optional(v.string()), naam: v.optional(v.string()), bron: v.optional(v.string()), bronUrl: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const bestaand = await ctx.db
       .query("houvastBrieven")
@@ -133,6 +135,8 @@ export const markBriefVerzonden = internalMutation({
         sentAt: Date.now(),
         verliesType: args.verliesType,
         naam: args.naam,
+        bron: args.bron,
+        bronUrl: args.bronUrl,
       });
     } else if (!bestaand.verliesType && args.verliesType) {
       // Vul type/naam aan als die er nog niet was (oude records).
@@ -197,7 +201,7 @@ export const sendWelkomstMailInternal = internalAction({
 
 /** Registreer een nieuw Houvast profiel en stuur de welkomstmail. */
 export const registreer = action({
-  args: { email: v.string(), name: v.optional(v.string()) },
+  args: { email: v.string(), name: v.optional(v.string()), bron: v.optional(v.string()), bronUrl: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const email = args.email.trim().toLowerCase();
     const name = args.name?.trim() || undefined;
@@ -211,7 +215,7 @@ export const registreer = action({
       }
     } else {
       token = crypto.randomUUID();
-      await ctx.runMutation(internal.houvast.createProfiel, { email, token, name });
+      await ctx.runMutation(internal.houvast.createProfiel, { email, token, name, bron: args.bron, bronUrl: args.bronUrl });
     }
     await ctx.runAction(internal.houvast.sendWelkomstMailInternal, { email, token, name: name ?? existing?.name });
     return { success: true };
@@ -436,6 +440,8 @@ export const genereerEnVerstuurBrief = action({
     verliesType: v.optional(v.string()),
     antwoorden: v.array(v.object({ vraag: v.string(), antwoord: v.string() })),
     fotos: v.optional(v.array(v.string())), // base64 data-URL's
+    bron: v.optional(v.string()),
+    bronUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -493,7 +499,7 @@ export const genereerEnVerstuurBrief = action({
       html,
       apiKey: RESEND_API_KEY,
     });
-    await ctx.runMutation(internal.houvast.markBriefVerzonden, { email: emailLc, verliesType: args.verliesType, naam: args.naam });
+    await ctx.runMutation(internal.houvast.markBriefVerzonden, { email: emailLc, verliesType: args.verliesType, naam: args.naam, bron: args.bron, bronUrl: args.bronUrl });
     return { success: true };
   },
 });
@@ -610,13 +616,15 @@ export const leadsVoortgang = query({
       welkomstAt: number | null; // aangemeld via magic link
       briefAt: number | null; // brief verstuurd = alle momenten ingevuld
       verliesType: string | null;
+      bron: string | null; // herkomst (kanaal · pad)
+      bronUrl: string | null; // volledige landings-URL
     };
     const byEmail = new Map<string, Basis>();
     const ensure = (emailRaw: string): Basis => {
       const email = emailRaw.trim().toLowerCase();
       let r = byEmail.get(email);
       if (!r) {
-        r = { email, naam: null, welkomstAt: null, briefAt: null, verliesType: null };
+        r = { email, naam: null, welkomstAt: null, briefAt: null, verliesType: null, bron: null, bronUrl: null };
         byEmail.set(email, r);
       }
       return r;
@@ -626,12 +634,14 @@ export const leadsVoortgang = query({
       const r = ensure(p.email);
       r.welkomstAt = p.createdAt;
       if (p.name && !r.naam) r.naam = p.name;
+      if (p.bron && !r.bron) { r.bron = p.bron; r.bronUrl = p.bronUrl ?? null; }
     }
     for (const b of brieven) {
       const r = ensure(b.email);
       r.briefAt = b.sentAt;
       if (b.verliesType && !r.verliesType) r.verliesType = b.verliesType;
       if (b.naam && !r.naam) r.naam = b.naam;
+      if (b.bron && !r.bron) { r.bron = b.bron; r.bronUrl = b.bronUrl ?? null; }
     }
 
     const rijen = [];
@@ -655,6 +665,8 @@ export const leadsVoortgang = query({
         email: r.email,
         naam: r.naam,
         verliesType: r.verliesType,
+        bron: r.bron,
+        bronUrl: r.bronUrl,
         welkomstAt: r.welkomstAt,
         briefAt: r.briefAt,
         opvolgmails,

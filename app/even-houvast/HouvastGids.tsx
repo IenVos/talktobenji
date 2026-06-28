@@ -8,6 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { mergeHouvast, resolveHouvast, alineas, naarLpUrl, type HouvastContent } from "@/lib/houvastContent";
+import { bepaalBron } from "@/lib/leadBron";
 
 // Warme labels voor de type-keuze; valt terug op de naam uit de verliestypen-tabel.
 const WARME_LABELS: Record<string, string> = {
@@ -183,6 +184,7 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
           antwoorden: MOMENTEN.map((m) => ({ vraag: m.vraag, antwoord: antwoorden[m.id] || "" })),
           fotos: Object.values(fotos).filter(Boolean),
           honeypot,
+          ...bepaalBron(),
         }),
       });
       if (res.status === 409) {

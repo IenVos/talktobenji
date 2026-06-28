@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
+import { bepaalBron } from "@/lib/leadBron";
 
 export function HouvastePopup({ onClose }: { onClose: () => void }) {
   const [naam, setNaam] = useState("");
@@ -16,7 +17,7 @@ export function HouvastePopup({ onClose }: { onClose: () => void }) {
       const res = await fetch("/api/houvast/registreer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), name: naam.trim() || undefined }),
+        body: JSON.stringify({ email: email.trim(), name: naam.trim() || undefined, ...bepaalBron() }),
       });
       if (!res.ok) throw new Error("Fout");
       setStatus("done");

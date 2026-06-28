@@ -7,6 +7,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { VerhaalPopup } from "@/components/VerhaalPopup";
+import { bepaalBron } from "@/lib/leadBron";
 
 function HouvasteWolkje() {
   const [open, setOpen] = useState(false);
@@ -22,7 +23,7 @@ function HouvasteWolkje() {
       const res = await fetch("/api/houvast/registreer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), name: naam.trim() || undefined }),
+        body: JSON.stringify({ email: email.trim(), name: naam.trim() || undefined, ...bepaalBron() }),
       });
       setStatus(res.ok ? "done" : "error");
     } catch {

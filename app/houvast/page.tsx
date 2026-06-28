@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { HeaderBar } from "@/components/chat/HeaderBar";
+import { bepaalBron } from "@/lib/leadBron";
 
 export default function HouvasteePage() {
   const [naam, setNaam] = useState("");
@@ -17,7 +18,7 @@ export default function HouvasteePage() {
       const res = await fetch("/api/houvast/registreer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), name: naam.trim() || undefined }),
+        body: JSON.stringify({ email: email.trim(), name: naam.trim() || undefined, ...bepaalBron() }),
       });
       if (!res.ok) throw new Error("Fout");
       setStatus("done");

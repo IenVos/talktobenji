@@ -9,6 +9,8 @@ type Lead = {
   email: string;
   naam: string | null;
   verliesType: string | null;
+  bron: string | null;
+  bronUrl: string | null;
   welkomstAt: number | null;
   briefAt: number | null;
   opvolgmails: { mailNummer: number; sentAt: number }[];
@@ -116,6 +118,7 @@ function LeadCard({ lead, onVerwijder }: { lead: Lead; onVerwijder: (email: stri
             <p className="text-xs text-gray-400 mt-0.5">
               {lead.verliesType ? TYPE_LABEL[lead.verliesType] || lead.verliesType : "Type onbekend"}
               {lead.briefAt && <> · brief op {datum(lead.briefAt)}</>}
+              {lead.bron && <> · via {lead.bron}</>}
             </p>
           </div>
           <span className={`flex-shrink-0 text-[11px] font-semibold border rounded-full px-2.5 py-0.5 ${status.cls}`}>
@@ -181,6 +184,23 @@ function LeadCard({ lead, onVerwijder }: { lead: Lead; onVerwijder: (email: stri
               />
             )}
           </div>
+
+          {lead.bron && (
+            <div className="text-[11px] text-gray-500 border-t border-gray-100 pt-2">
+              <span className="font-medium text-gray-600">Herkomst:</span> {lead.bron}
+              {lead.bronUrl && (
+                <a
+                  href={lead.bronUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-gray-400 hover:text-primary-600 truncate"
+                  title={lead.bronUrl}
+                >
+                  {lead.bronUrl}
+                </a>
+              )}
+            </div>
+          )}
 
           <p className="text-[11px] text-gray-400 border-t border-gray-100 pt-2">
             De woorden die bij de momenten zijn opgeschreven worden niet bewaard (privacy). Een verstuurde brief

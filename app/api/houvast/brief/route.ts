@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { email, name, verliesType, antwoorden, fotos, honeypot } = body ?? {};
+  const { email, name, verliesType, antwoorden, fotos, honeypot, bron, bronUrl } = body ?? {};
 
   // Honeypot: alleen bots vullen dit verborgen veld in → doe alsof het lukte.
   if (typeof honeypot === "string" && honeypot.trim() !== "") {
@@ -50,6 +50,8 @@ export async function POST(req: NextRequest) {
       verliesType: verliesType && typeof verliesType === "string" ? verliesType : undefined,
       antwoorden: schoon,
       fotos: schoneFotos.length > 0 ? schoneFotos : undefined,
+      bron: typeof bron === "string" && bron ? bron : undefined,
+      bronUrl: typeof bronUrl === "string" && bronUrl ? bronUrl : undefined,
     });
 
     // MailerLite — voeg toe aan de aparte groep "Even Houvast" (NIET de Gratis-groep).
