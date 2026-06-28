@@ -8,8 +8,9 @@
  * herschreven.
  *
  * Veilig: schrijft naar CONCEPT-slugs ("…-concept"), zichtbaar maar nergens
- * gelinkt en zonder ads-tracking. De live pagina's blijven onaangeroerd. Na
- * akkoord promoten we de concepten naar de echte slug.
+ * gelinkt. De live pagina's blijven onaangeroerd. Na akkoord promoten we de
+ * concepten naar de echte slug. trackAds staat bewust al op true (bijna geen
+ * verkeer/ads op de concepten), zodat het bij go-live niet vergeten wordt.
  *
  * LET OP: deze seed OVERSCHRIJFT het concept bij elke run (zodat we kunnen
  * itereren vóór review). Bewerk je het concept zelf in de admin, draai 'm dan
@@ -108,9 +109,9 @@ export const seedPersoonLpConcept = mutation({
 
     const velden = {
       pageTitle: "Niet Alleen, voor wie iemand mist",
-      isLive: true, // zichtbaar voor preview; niet gelinkt en trackAds=false
+      isLive: true, // zichtbaar voor preview; nog niet gelinkt
       categorie: "Niet Alleen",
-      trackAds: false,
+      trackAds: true, // bewust AAN: bijna geen verkeer/ads op deze concepten, zo staat het bij go-live al goed
       houvastType: "persoon",
 
       heroLabel: "Voor wie iemand verloor die altijd dichtbij was",
@@ -370,9 +371,9 @@ async function schrijfVariant(ctx: any, c: VariantCopy) {
 
   const lpVelden = {
     pageTitle: c.pageTitle,
-    isLive: true, // zichtbaar voor preview; niet gelinkt en trackAds=false
+    isLive: true, // zichtbaar voor preview; nog niet gelinkt
     categorie: "Niet Alleen",
-    trackAds: false,
+    trackAds: true, // bewust AAN: bijna geen verkeer/ads op deze concepten, zo staat het bij go-live al goed
     houvastType: c.type,
 
     heroLabel: c.heroLabel,
