@@ -32,10 +32,14 @@ crons.daily(
   {}
 );
 
-// Even Houvast opvolgreeks — één keer per dag. Doet niets tot env EH_OPVOLG_ACTIEF === "true".
+// Even Houvast opvolgreeks — één keer per dag in de avond, zodat mensen rustig
+// de dag kunnen doornemen en meer tijd nemen om te lezen. Doet niets tot env
+// EH_OPVOLG_ACTIEF === "true".
+// 17:30 UTC = 19:30 NL in de zomer (CEST). In de winter (CET) wordt dit 18:30 NL;
+// pas dan eventueel aan naar 18:30 UTC als je het exact op 19:30 wilt houden.
 crons.daily(
   "even houvast opvolgmails",
-  { hourUTC: 9, minuteUTC: 0 },
+  { hourUTC: 17, minuteUTC: 30 },
   internal.evenHouvastOpvolg.processEvenHouvastOpvolg,
   {}
 );
