@@ -16,6 +16,7 @@ import { internal, api } from "./_generated/api";
 import { v } from "convex/values";
 import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
 import { checkAdmin } from "./adminAuth";
+import { ehFooter, nietAlleenUrlVoorType } from "./ehMailFooter";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 const DAG_MS = 24 * 60 * 60 * 1000;
@@ -143,14 +144,6 @@ function handtekeningIen(): string {
     </table>`;
 }
 
-function afmeldVoettekst(afmeldUrl: string): string {
-  return `
-    <p style="font-size: 12px; line-height: 1.6; color: #a0aec0; margin-top: 28px; border-top: 1px solid #ece5dc; padding-top: 16px;">
-      Je ontvangt deze mails omdat je Even Houvast hebt gedaan.
-      <a href="${afmeldUrl}" style="color: #a0aec0; text-decoration: underline;">Geen opvolgmails meer ontvangen</a>.
-    </p>`;
-}
-
 function wrapper(inhoud: string): string {
   return `
     <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -207,8 +200,11 @@ async function verstuurOpvolgMail(
   if (!def && !saved) throw new Error(`Geen template voor ${key}`);
   const subject: string = saved?.subject ?? def?.subject ?? "";
   const bodyText: string = saved?.bodyText ?? def?.bodyText ?? "";
-  const buttonText: string | undefined = saved?.buttonText ?? def?.buttonText;
-  const buttonUrl: string | undefined = saved?.buttonUrl ?? def?.buttonUrl;
+  // Knop alleen tonen als ér echt een tekst én link is (na trimmen). Leeg of
+  // alleen spaties = geen knop, ook geen lege gekleurde pil.
+  const knopTekst: string = (saved?.buttonText ?? def?.buttonText ?? "").trim();
+  const knopUrl: string = (saved?.buttonUrl ?? def?.buttonUrl ?? "").trim();
+  const toonKnop = !!knopTekst && !!knopUrl;
   const imageUrl: string | undefined = saved?.imageUrl ?? def?.imageUrl;
   const imageCaption: string | undefined = saved?.imageCaption ?? def?.imageCaption;
 
@@ -250,11 +246,11 @@ async function verstuurOpvolgMail(
   const html = wrapper(`
     ${rompHtml}
     ${keuzeBlok}
-    ${toonCover ? coverBlok(imageUrl!, buttonUrl, imageCaption) : ""}
-    ${buttonText && buttonUrl ? (toonCover ? zachteKnop(buttonText, buttonUrl) : knop(buttonText, buttonUrl)) : ""}
+    ${toonCover ? coverBlok(imageUrl!, knopUrl || undefined, imageCaption) : ""}
+    ${toonKnop ? (toonCover ? zachteKnop(knopTekst, knopUrl) : knop(knopTekst, knopUrl)) : ""}
     ${afsluiting ? alineaPHtml(afsluiting) : ""}
     ${handtekeningIen()}
-    ${afmeldVoettekst(afmeldUrl)}
+    ${ehFooter(nietAlleenUrlVoorType(type), afmeldUrl)}
   `);
 
   await verstuurEmail({ to: args.email, subject, html, apiKey: args.apiKey });

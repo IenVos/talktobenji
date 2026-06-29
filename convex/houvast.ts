@@ -5,6 +5,7 @@ import { v } from "convex/values";
 import { action, internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { checkAdmin, logAdminAction } from "./adminAuth";
+import { ehFooter, ehAfmeldUrl } from "./ehMailFooter";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 
@@ -245,22 +246,14 @@ function dataUrlToBlob(dataUrl: string): Blob | null {
 // Brief-mail: zelfde sans-serif look als de overige mails, ondertekend door Benji.
 const BRIEF_FONT = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-function wrapperBrief(inhoud: string, nietAlleenUrl: string): string {
+function wrapperBrief(inhoud: string, nietAlleenUrl: string, afmeldUrl: string): string {
   return `
     <div style="font-family: ${BRIEF_FONT}; max-width: 560px; margin: 0 auto;
                 color: #2d3748; background: #fdf9f4; padding: 36px 28px;">
       <p style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#9a9088;margin:0 0 20px 0;">Even Houvast</p>
       ${inhoud}
       <p style="font-size:15px;margin-top:28px;color:#4a5568;">Met warme groet,<br>Benji</p>
-      <div style="text-align:center;margin-top:52px;">
-        <img src="https://talktobenji.com/images/benji-logo-2.png" alt="Talk To Benji" width="46" height="46" style="display:inline-block;width:46px;height:46px;margin:0 0 12px 0;" />
-        <p style="font-size:14px;font-weight:600;color:#3d3530;margin:0;">
-          <a href="${nietAlleenUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen voor jou</a>
-        </p>
-        <p style="font-size:13px;color:#718096;margin:7px 0 0 0;">
-          Heb je vragen? Beantwoord gewoon deze mail.
-        </p>
-      </div>
+      ${ehFooter(nietAlleenUrl, afmeldUrl)}
     </div>`;
 }
 
@@ -274,8 +267,9 @@ function bouwBriefHtml(opts: {
   fotoUrls: string[];
   gedichtTekst: string;
   nietAlleenUrl: string;
+  afmeldUrl: string;
 }): string {
-  const { aanhef, briefHtml, fotoUrls, gedichtTekst, nietAlleenUrl } = opts;
+  const { aanhef, briefHtml, fotoUrls, gedichtTekst, nietAlleenUrl, afmeldUrl } = opts;
 
   let fotoHtml = "";
   if (fotoUrls.length > 0) {
@@ -337,7 +331,8 @@ function bouwBriefHtml(opts: {
     ${fotoHtml}
     ${gedichtHtml}
   `,
-    nietAlleenUrl
+    nietAlleenUrl,
+    afmeldUrl
   );
 }
 
@@ -505,6 +500,7 @@ export const genereerEnVerstuurBrief = action({
       fotoUrls,
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
+      afmeldUrl: await ehAfmeldUrl(emailLc),
     });
 
     await verstuurEmail({
@@ -578,6 +574,7 @@ export const stuurTestBrief = action({
       fotoUrls,
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
+      afmeldUrl: await ehAfmeldUrl(emailLc),
     });
 
     await verstuurEmail({
