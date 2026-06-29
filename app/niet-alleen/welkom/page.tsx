@@ -222,7 +222,7 @@ function WelkomInhoud() {
           <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
             Kies het moment dat jou het beste past om er even bij stil te staan.
           </p>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="flex flex-col gap-2">
             {([
               { code: "ochtend", label: "Ochtend", uitleg: "begin van de dag" },
               { code: "middag", label: "Middag", uitleg: "rond lunchtijd" },
@@ -231,15 +231,15 @@ function WelkomInhoud() {
               <button
                 key={o.code}
                 onClick={() => setMailVoorkeur(o.code)}
-                className="px-2 py-3 rounded-xl text-sm font-medium text-center transition-all border"
+                className="w-full px-4 py-3 rounded-xl text-sm font-medium text-left transition-all border flex items-center justify-between gap-3"
                 style={{
                   background: mailVoorkeur === o.code ? "#6d84a8" : "white",
                   color: mailVoorkeur === o.code ? "white" : "#4a5568",
                   borderColor: mailVoorkeur === o.code ? "#6d84a8" : "#e2d9cf",
                 }}
               >
-                <span className="block">{o.label}</span>
-                <span className="block text-xs mt-0.5" style={{ opacity: 0.8 }}>{o.uitleg}</span>
+                <span>{o.label}</span>
+                <span className="text-xs" style={{ opacity: 0.8 }}>{o.uitleg}</span>
               </button>
             ))}
           </div>
