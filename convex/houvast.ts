@@ -495,7 +495,7 @@ export const genereerEnVerstuurBrief = action({
 
     await verstuurEmail({
       to: emailLc,
-      subject: "Jouw woorden — Even Houvast",
+      subject: "Jouw woorden die je hebt gedeeld in Even Houvast",
       html,
       apiKey: RESEND_API_KEY,
     });
@@ -568,7 +568,7 @@ export const stuurTestBrief = action({
 
     await verstuurEmail({
       to: emailLc,
-      subject: "[TEST] Jouw woorden — Even Houvast",
+      subject: "[TEST] Jouw woorden die je hebt gedeeld in Even Houvast",
       html,
       apiKey: RESEND_API_KEY,
     });
