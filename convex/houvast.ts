@@ -46,6 +46,12 @@ en je staat er niet alleen voor.`,
 voor wie er nooit kwam.
 Dit gemis is echt,
 en het mag er zijn.`,
+  // Algemeen vers: past op elk verlies. Laatste terugval als er geen eigen of
+  // Algemene tekst is ingevuld.
+  algemeen: `Wat je draagt is echt,
+ook als het stil blijft.
+Je hoeft het niet alleen te dragen,
+en je verdriet mag er zijn.`,
 };
 
 async function verstuurEmail(args: { to: string; subject: string; html: string; apiKey: string }) {
@@ -336,9 +342,13 @@ function bouwBriefHtml(opts: {
 
 /** Resolvet het gedichtje onder de foto's voor een verliestype (admin-override → default). */
 function resolveFotoGedicht(saved: Record<string, any> | null, type: string): string {
+  // Eigen gedicht voor dit type → de Algemene tekst (top-level, "Basis"-tab) → het vaste default-vers.
+  // Net als de andere brief-velden valt het type dus eerst terug op de Algemene tekst.
   const eigen = saved?.perType?.[type]?.fotoGedicht;
   if (typeof eigen === "string" && eigen.trim()) return eigen.trim();
-  return GEDICHT_PER_TYPE[type] || GEDICHT_PER_TYPE.persoon;
+  const algemeen = saved?.fotoGedicht;
+  if (typeof algemeen === "string" && algemeen.trim()) return algemeen.trim();
+  return GEDICHT_PER_TYPE[type] || GEDICHT_PER_TYPE.algemeen;
 }
 
 const NIET_ALLEEN_DEFAULT_LINKS: Record<string, string> = {

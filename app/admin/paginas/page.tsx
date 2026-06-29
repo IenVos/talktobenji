@@ -826,7 +826,7 @@ function EvenHouvastTab() {
   return (
     <div className="space-y-4">
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800">
-        Lege regel = nieuwe alinea. Bezoekers komen binnen via <strong>/even-houvast?type=persoon</strong>, of kiezen hun verliestype op het eerste scherm. Per type kun je hieronder eigen teksten zetten; wat je leeg laat, valt terug op de <strong>Basis</strong>.
+        Lege regel = nieuwe alinea. Bezoekers komen binnen via <strong>/even-houvast?type=persoon</strong>, of kiezen hun verliestype op het eerste scherm. Per type kun je hieronder eigen teksten zetten; wat je leeg laat, valt terug op <strong>Algemeen</strong>.
       </div>
 
       {/* Verliestype-kiezer */}
@@ -838,7 +838,7 @@ function EvenHouvastTab() {
             onClick={() => setBewerkType("")}
             className={`text-sm px-3.5 py-1.5 rounded-full font-medium transition-colors ${isBasis ? "bg-primary-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
           >
-            Basis
+            Algemeen
           </button>
           {(verliestypen ?? []).map((t) => {
             const eigen = (content.perType?.[t.code]?.momenten?.length ?? 0) > 0
@@ -859,8 +859,8 @@ function EvenHouvastTab() {
         </div>
         <p className="text-xs text-gray-400">
           {isBasis
-            ? "De Basis geldt voor iedereen, en als terugval voor typen zonder eigen tekst."
-            : `Je bewerkt nu: ${huidigTypeNaam}. Leeg laten = de Basis-versie wordt getoond.`}
+            ? "Algemeen geldt voor iedereen, en als terugval voor typen zonder eigen tekst."
+            : `Je bewerkt nu: ${huidigTypeNaam}. Leeg laten = de Algemene versie wordt getoond.`}
         </p>
       </div>
 
@@ -874,10 +874,10 @@ function EvenHouvastTab() {
       {!isBasis && !heeftEigenMomenten ? (
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
           <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Momenten</h3>
-          <p className="text-sm text-gray-500">Dit type gebruikt nu de <strong>Basis</strong>-momenten.</p>
+          <p className="text-sm text-gray-500">Dit type gebruikt nu de <strong>Algemene</strong> momenten.</p>
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={kopieerBasisMomenten} className="text-sm px-3 py-1.5 rounded-lg font-medium bg-primary-600 text-white">
-              Eigen momenten maken (kopie van Basis)
+              Eigen momenten maken (kopie van Algemeen)
             </button>
             <button type="button" onClick={voegMomentToe} className="text-sm px-3 py-1.5 rounded-lg font-medium border border-gray-300 text-gray-700">
               Leeg beginnen
@@ -889,7 +889,7 @@ function EvenHouvastTab() {
           {!isBasis && (
             <div className="flex justify-end">
               <button type="button" onClick={wisEigenMomenten} className="text-xs text-gray-400 hover:text-red-500">
-                Eigen momenten wissen (terug naar Basis)
+                Eigen momenten wissen (terug naar Algemeen)
               </button>
             </div>
           )}
@@ -940,20 +940,20 @@ function EvenHouvastTab() {
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
         <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">
-          Brief-instructie {isBasis ? "(basis)" : `(${huidigTypeNaam})`}
+          Brief-instructie {isBasis ? "(algemeen)" : `(${huidigTypeNaam})`}
         </h3>
         <p className="text-xs text-gray-400 mb-2">
-          De opdracht aan Benji (Claude) voor de persoonlijke brief. {isBasis ? "Geldt voor iedereen zonder eigen type-instructie." : "Leeg laten = de basis-instructie wordt gebruikt. Het verliestype wordt sowieso aan Benji meegegeven."}
+          De opdracht aan Benji (Claude) voor de persoonlijke brief. {isBasis ? "Geldt voor iedereen zonder eigen type-instructie." : "Leeg laten = de algemene instructie wordt gebruikt. Het verliestype wordt sowieso aan Benji meegegeven."}
         </p>
         <Field label="" value={veld("briefInstructie")} onChange={(v) => setVeld("briefInstructie", v)} multiline rows={10} placeholder={isBasis ? "" : content.briefInstructie} />
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
         <h3 className="text-sm font-semibold text-gray-900 pb-1 border-b border-gray-100">
-          Gedicht onder de foto's {isBasis ? "(basis)" : `(${huidigTypeNaam})`}
+          Gedicht onder de foto's {isBasis ? "(algemeen)" : `(${huidigTypeNaam})`}
         </h3>
         <p className="text-xs text-gray-400 mb-2">
-          Een vast gedichtje van 4 regels dat in de brief-mail onder de bewaarde foto's verschijnt. Eén regel per zin. {isBasis ? "Geldt als terugval voor typen zonder eigen gedicht." : "Leeg laten = het basis-gedicht wordt gebruikt."}
+          Een vast gedichtje van 4 regels dat in de brief-mail onder de bewaarde foto's verschijnt. Eén regel per zin. {isBasis ? "Geldt als terugval voor typen zonder eigen gedicht." : "Leeg laten = het algemene gedicht wordt gebruikt."}
         </p>
         <Field label="" value={veld("fotoGedicht")} onChange={(v) => setVeld("fotoGedicht", v)} multiline rows={4} placeholder={isBasis ? "" : (content.fotoGedicht ?? "")} />
       </div>
