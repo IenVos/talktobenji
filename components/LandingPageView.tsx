@@ -1252,7 +1252,13 @@ export function LandingPageView({ slug }: { slug: string }) {
       )}
 
       {/* Zachte Even Houvast-pop-up bij ~80% scroll (per pagina aan/uit) */}
-      <EvenHouvastPopup enabled={!!(page as any).evenHouvastPopupEnabled} tekst={(page as any).evenHouvastPopupTekst} />
+      <EvenHouvastPopup
+        enabled={!!(page as any).evenHouvastPopupEnabled}
+        tekst={(page as any).evenHouvastPopupTekst}
+        knopTekst={(page as any).evenHouvastPopupKnopTekst}
+        knopUrl={(page as any).evenHouvastPopupKnopUrl}
+        knopKleur={(page as any).evenHouvastPopupKnopKleur}
+      />
 
       {/* STICKY TRIAL BAR */}
       {!hideStickyBar && !stickyBarDismissed && (

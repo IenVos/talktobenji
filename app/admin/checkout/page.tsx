@@ -42,6 +42,9 @@ type CheckoutProduct = {
   b2bEnabled?: boolean;
   evenHouvastPopupEnabled?: boolean;
   evenHouvastPopupTekst?: string;
+  evenHouvastPopupKnopTekst?: string;
+  evenHouvastPopupKnopUrl?: string;
+  evenHouvastPopupKnopKleur?: string;
   giftVariants?: { label: string; priceInCents: number; billingPeriod: "monthly" | "quarterly" | "half_yearly" | "yearly"; accessDays: number }[];
   addOnEnabled?: boolean;
   addOnLabel?: string;
@@ -88,6 +91,9 @@ type FormState = {
   b2bEnabled: boolean;
   evenHouvastPopupEnabled: boolean;
   evenHouvastPopupTekst: string;
+  evenHouvastPopupKnopTekst: string;
+  evenHouvastPopupKnopUrl: string;
+  evenHouvastPopupKnopKleur: string;
   addOnEnabled: boolean;
   addOnLabel: string;
   addOnDescription: string;
@@ -175,6 +181,9 @@ const EMPTY_FORM: FormState = {
   b2bEnabled: true,
   evenHouvastPopupEnabled: false,
   evenHouvastPopupTekst: "",
+  evenHouvastPopupKnopTekst: "",
+  evenHouvastPopupKnopUrl: "",
+  evenHouvastPopupKnopKleur: "",
   addOnEnabled: false,
   addOnLabel: "",
   addOnDescription: "",
@@ -314,6 +323,9 @@ export default function AdminCheckoutPage() {
       b2bEnabled: product.b2bEnabled ?? true,
       evenHouvastPopupEnabled: product.evenHouvastPopupEnabled ?? false,
       evenHouvastPopupTekst: product.evenHouvastPopupTekst ?? "",
+      evenHouvastPopupKnopTekst: product.evenHouvastPopupKnopTekst ?? "",
+      evenHouvastPopupKnopUrl: product.evenHouvastPopupKnopUrl ?? "",
+      evenHouvastPopupKnopKleur: product.evenHouvastPopupKnopKleur ?? "",
       addOnEnabled: product.addOnEnabled ?? !!(product.addOnLabel && product.addOnPriceInCents),
       addOnLabel: product.addOnLabel ?? "",
       addOnDescription: product.addOnDescription ?? "",
@@ -356,6 +368,9 @@ export default function AdminCheckoutPage() {
       b2bEnabled: product.b2bEnabled ?? true,
       evenHouvastPopupEnabled: product.evenHouvastPopupEnabled ?? false,
       evenHouvastPopupTekst: product.evenHouvastPopupTekst ?? "",
+      evenHouvastPopupKnopTekst: product.evenHouvastPopupKnopTekst ?? "",
+      evenHouvastPopupKnopUrl: product.evenHouvastPopupKnopUrl ?? "",
+      evenHouvastPopupKnopKleur: product.evenHouvastPopupKnopKleur ?? "",
       addOnEnabled: product.addOnEnabled ?? !!(product.addOnLabel && product.addOnPriceInCents),
       addOnLabel: product.addOnLabel ?? "",
       addOnDescription: product.addOnDescription ?? "",
@@ -455,6 +470,9 @@ export default function AdminCheckoutPage() {
         b2bEnabled: form.b2bEnabled,
         evenHouvastPopupEnabled: form.evenHouvastPopupEnabled,
         evenHouvastPopupTekst: form.evenHouvastPopupTekst.trim() || undefined,
+        evenHouvastPopupKnopTekst: form.evenHouvastPopupKnopTekst.trim() || undefined,
+        evenHouvastPopupKnopUrl: form.evenHouvastPopupKnopUrl.trim() || undefined,
+        evenHouvastPopupKnopKleur: form.evenHouvastPopupKnopKleur.trim() || undefined,
         giftVariants: parsedVariants.length > 0 ? parsedVariants : undefined,
         addOnEnabled: form.addOnEnabled,
         addOnLabel: form.addOnEnabled ? opt(form.addOnLabel) : undefined,
@@ -995,6 +1013,46 @@ export default function AdminCheckoutPage() {
                     />
                     <span className="underline">+ Afbeelding toevoegen</span>
                   </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-0.5">Knoptekst</label>
+                      <input
+                        type="text"
+                        value={form.evenHouvastPopupKnopTekst}
+                        onChange={(e) => setForm((f) => ({ ...f, evenHouvastPopupKnopTekst: e.target.value }))}
+                        placeholder="Begin gratis met Even Houvast →"
+                        className="w-full rounded-lg border border-primary-200 p-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-0.5">Knop-link</label>
+                      <input
+                        type="text"
+                        value={form.evenHouvastPopupKnopUrl}
+                        onChange={(e) => setForm((f) => ({ ...f, evenHouvastPopupKnopUrl: e.target.value }))}
+                        placeholder="/even-houvast"
+                        className="w-full rounded-lg border border-primary-200 p-2 text-sm"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-gray-500">Knopkleur</label>
+                      <input
+                        type="color"
+                        value={form.evenHouvastPopupKnopKleur || "#6d84a8"}
+                        onChange={(e) => setForm((f) => ({ ...f, evenHouvastPopupKnopKleur: e.target.value }))}
+                        className="h-8 w-12 rounded border border-primary-200 cursor-pointer"
+                      />
+                      {form.evenHouvastPopupKnopKleur && (
+                        <button
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, evenHouvastPopupKnopKleur: "" }))}
+                          className="text-xs text-gray-400 underline"
+                        >
+                          standaard
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 

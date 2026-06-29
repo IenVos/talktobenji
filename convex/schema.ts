@@ -783,6 +783,9 @@ export default defineSchema({
     // Zachte Even Houvast-pop-up bij ~80% scroll (gratis instap i.p.v. volledig programma)
     evenHouvastPopupEnabled: v.optional(v.boolean()),
     evenHouvastPopupTekst: v.optional(v.string()), // eigen pop-uptekst (1e regel = kop, opmaak + [afbeelding:URL] toegestaan)
+    evenHouvastPopupKnopTekst: v.optional(v.string()), // eigen knoptekst
+    evenHouvastPopupKnopUrl: v.optional(v.string()),   // eigen knop-link (leeg = /even-houvast)
+    evenHouvastPopupKnopKleur: v.optional(v.string()), // eigen knopkleur (leeg = #6d84a8)
     // Analytics
     trackAds: v.optional(v.boolean()), // Toon in advertentie-blok in analytics
     // Type-keuzepagina (lpType === "niet_alleen_keuze")
@@ -918,6 +921,9 @@ export default defineSchema({
     b2bEnabled: v.optional(v.boolean()), // "Zakelijke aankoop?" tonen op checkout (undefined = aan voor bestaande producten)
     evenHouvastPopupEnabled: v.optional(v.boolean()), // Zachte Even Houvast-pop-up bij ~80% scroll
     evenHouvastPopupTekst: v.optional(v.string()),    // eigen pop-uptekst (1e regel = kop, opmaak + [afbeelding:URL] toegestaan)
+    evenHouvastPopupKnopTekst: v.optional(v.string()), // eigen knoptekst
+    evenHouvastPopupKnopUrl: v.optional(v.string()),   // eigen knop-link (leeg = /even-houvast)
+    evenHouvastPopupKnopKleur: v.optional(v.string()), // eigen knopkleur (leeg = #6d84a8)
     giftVariants: v.optional(v.array(v.object({
       label: v.string(),       // "Maand", "Kwartaal", "Jaar"
       priceInCents: v.number(),

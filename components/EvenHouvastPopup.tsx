@@ -66,13 +66,32 @@ function renderInline(text: string): React.ReactNode[] {
   });
 }
 
+// Hang een "via=popup"-signaal (+ de bronpagina) aan de knop-link, zodat een
+// Even Houvast-lead herkenbaar als "Pop-up" wordt vastgelegd.
+function metPopupBron(href: string): string {
+  if (typeof window === "undefined") return href;
+  try {
+    const sep = href.includes("?") ? "&" : "?";
+    const pad = encodeURIComponent(window.location.pathname || "");
+    return `${href}${sep}via=popup&bronpad=${pad}`;
+  } catch {
+    return href;
+  }
+}
+
 export function EvenHouvastPopup({
   enabled,
   tekst,
+  knopTekst,
+  knopUrl,
+  knopKleur,
   evenHouvastUrl = "/even-houvast",
 }: {
   enabled: boolean;
   tekst?: string;
+  knopTekst?: string;
+  knopUrl?: string;
+  knopKleur?: string;
   evenHouvastUrl?: string;
 }) {
   const [open, setOpen] = useState(false); // 80% bereikt
@@ -134,18 +153,23 @@ export function EvenHouvastPopup({
   // Knop-regel ([knop:Tekst] of [knop:Tekst|https://link]) eruit halen; de rest
   // zijn alinea's/afbeeldingen.
   let knopLabel = STANDAARD_KNOP;
-  let knopUrl = evenHouvastUrl;
+  let knopHref = evenHouvastUrl;
   const inhoud: string[] = [];
   for (const regel of regels.slice(1)) {
     const knop = regel.match(KNOP_RE);
     if (knop) {
       const [label, url] = knop[1].split("|").map((s) => s.trim());
       if (label) knopLabel = label;
-      if (url) knopUrl = url;
+      if (url) knopHref = url;
       continue;
     }
     inhoud.push(regel);
   }
+
+  // Aparte admin-velden hebben voorrang op de [knop:...]-regel.
+  if (knopTekst && knopTekst.trim()) knopLabel = knopTekst.trim();
+  if (knopUrl && knopUrl.trim()) knopHref = knopUrl.trim();
+  const knopKleurFinal = (knopKleur && knopKleur.trim()) || "#6d84a8";
 
   return (
     <div
@@ -249,14 +273,14 @@ export function EvenHouvastPopup({
         })()}
 
         <a
-          href={knopUrl}
+          href={metPopupBron(knopHref)}
           style={{
             display: "block",
             marginTop: 16,
             textAlign: "center",
             padding: "13px 18px",
             borderRadius: 14,
-            background: "#6d84a8",
+            background: knopKleurFinal,
             color: "#fff",
             fontWeight: 600,
             fontSize: 15,

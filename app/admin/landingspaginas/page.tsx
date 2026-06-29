@@ -143,6 +143,9 @@ type FormState = {
   footerCtaUrl: string;
   evenHouvastPopupEnabled: boolean;
   evenHouvastPopupTekst: string;
+  evenHouvastPopupKnopTekst: string;
+  evenHouvastPopupKnopUrl: string;
+  evenHouvastPopupKnopKleur: string;
   trackAds: boolean;
   houvastKnop: boolean;
   houvastType: string;
@@ -256,6 +259,9 @@ const EMPTY_FORM: FormState = {
   footerCtaUrl: "",
   evenHouvastPopupEnabled: false,
   evenHouvastPopupTekst: "",
+  evenHouvastPopupKnopTekst: "",
+  evenHouvastPopupKnopUrl: "",
+  evenHouvastPopupKnopKleur: "",
   trackAds: false,
   houvastKnop: false,
   houvastType: "",
@@ -598,6 +604,9 @@ export default function AdminLandingspaginasPage() {
       footerCtaUrl: (page as any).footerCtaUrl ?? "",
       evenHouvastPopupEnabled: (page as any).evenHouvastPopupEnabled ?? false,
       evenHouvastPopupTekst: (page as any).evenHouvastPopupTekst ?? "",
+      evenHouvastPopupKnopTekst: (page as any).evenHouvastPopupKnopTekst ?? "",
+      evenHouvastPopupKnopUrl: (page as any).evenHouvastPopupKnopUrl ?? "",
+      evenHouvastPopupKnopKleur: (page as any).evenHouvastPopupKnopKleur ?? "",
       trackAds: (page as any).trackAds ?? false,
       houvastKnop: (page as any).houvastKnop ?? false,
       houvastType: (page as any).houvastType ?? "",
@@ -898,6 +907,9 @@ export default function AdminLandingspaginasPage() {
           footerCtaUrl: form.footerCtaUrl.trim(),
           evenHouvastPopupEnabled: form.evenHouvastPopupEnabled,
           evenHouvastPopupTekst: form.evenHouvastPopupTekst.trim() || undefined,
+          evenHouvastPopupKnopTekst: form.evenHouvastPopupKnopTekst.trim() || undefined,
+          evenHouvastPopupKnopUrl: form.evenHouvastPopupKnopUrl.trim() || undefined,
+          evenHouvastPopupKnopKleur: form.evenHouvastPopupKnopKleur.trim() || undefined,
           trackAds: form.trackAds,
           houvastKnop: form.houvastKnop,
           houvastType: form.houvastType.trim() || undefined,
@@ -1009,6 +1021,9 @@ export default function AdminLandingspaginasPage() {
           footerCtaUrl: opt(form.footerCtaUrl),
           evenHouvastPopupEnabled: form.evenHouvastPopupEnabled,
           evenHouvastPopupTekst: form.evenHouvastPopupTekst.trim() || undefined,
+          evenHouvastPopupKnopTekst: form.evenHouvastPopupKnopTekst.trim() || undefined,
+          evenHouvastPopupKnopUrl: form.evenHouvastPopupKnopUrl.trim() || undefined,
+          evenHouvastPopupKnopKleur: form.evenHouvastPopupKnopKleur.trim() || undefined,
           trackAds: form.trackAds,
           houvastKnop: form.houvastKnop,
           houvastType: form.houvastType.trim() || undefined,
@@ -1303,6 +1318,46 @@ export default function AdminLandingspaginasPage() {
                     />
                     <span className="underline">+ Afbeelding toevoegen</span>
                   </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-0.5">Knoptekst</label>
+                      <input
+                        type="text"
+                        value={form.evenHouvastPopupKnopTekst}
+                        onChange={(e) => setForm((f) => ({ ...f, evenHouvastPopupKnopTekst: e.target.value }))}
+                        placeholder="Begin gratis met Even Houvast →"
+                        className="w-full rounded-lg border border-primary-200 p-2 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-0.5">Knop-link</label>
+                      <input
+                        type="text"
+                        value={form.evenHouvastPopupKnopUrl}
+                        onChange={(e) => setForm((f) => ({ ...f, evenHouvastPopupKnopUrl: e.target.value }))}
+                        placeholder="/even-houvast"
+                        className="w-full rounded-lg border border-primary-200 p-2 text-sm"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-gray-500">Knopkleur</label>
+                      <input
+                        type="color"
+                        value={form.evenHouvastPopupKnopKleur || "#6d84a8"}
+                        onChange={(e) => setForm((f) => ({ ...f, evenHouvastPopupKnopKleur: e.target.value }))}
+                        className="h-8 w-12 rounded border border-primary-200 cursor-pointer"
+                      />
+                      {form.evenHouvastPopupKnopKleur && (
+                        <button
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, evenHouvastPopupKnopKleur: "" }))}
+                          className="text-xs text-gray-400 underline"
+                        >
+                          standaard
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
               <label className="flex items-center gap-2 cursor-pointer">

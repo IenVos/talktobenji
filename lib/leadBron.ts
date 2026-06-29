@@ -18,6 +18,13 @@ export function bepaalBron(): { bron: string; bronUrl: string } {
     const gclid = params.get("gclid");
     const ref = document.referrer || "";
 
+    // Kwam de bezoeker via de Even Houvast-pop-up? Dan herkenbaar als "Pop-up",
+    // met de bronpagina (bronpad) als pad i.p.v. de huidige /even-houvast-pagina.
+    if (params.get("via") === "popup") {
+      const bronpad = params.get("bronpad")?.trim() || window.location.pathname || "/";
+      return { bron: `Pop-up · ${bronpad}`, bronUrl: window.location.href };
+    }
+
     let kanaal: string;
     if (utmCampaign) kanaal = utmCampaign;
     else if (utmSource) kanaal = utmSource;
