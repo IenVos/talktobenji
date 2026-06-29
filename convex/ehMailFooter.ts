@@ -8,10 +8,9 @@
  */
 
 export function appBase(): string {
-  // Apex (zonder www) = afzenderdomein van de mails, zodat links matchen met
-  // het verzenddomein. Let op: env APP_URL overschrijft dit (zet die op Vercel
-  // ook op https://talktobenji.com).
-  return (process.env.APP_URL || "https://talktobenji.com").replace(/\/+$/, "");
+  // www = het canonieke domein (apex 307-redirect naar www). Maillinks dus direct
+  // naar www, geen redirect-hop. Env APP_URL kan dit overschrijven.
+  return (process.env.APP_URL || "https://www.talktobenji.com").replace(/\/+$/, "");
 }
 
 // Niet Alleen-landingspagina per verliestype (zelfde paden als de mail-defaults).
@@ -51,7 +50,7 @@ export async function ehAfmeldUrl(email: string): Promise<string> {
 export function ehFooter(nietAlleenUrl: string, afmeldUrl: string): string {
   return `
     <div style="text-align:center;margin-top:48px;">
-      <img src="https://talktobenji.com/images/benji-logo-2.png" alt="Talk To Benji" width="46" height="46" style="display:inline-block;width:46px;height:46px;margin:0 0 12px 0;" />
+      <img src="https://www.talktobenji.com/images/benji-logo-2.png" alt="Talk To Benji" width="46" height="46" style="display:inline-block;width:46px;height:46px;margin:0 0 12px 0;" />
       <p style="font-size:14px;font-weight:600;color:#3d3530;margin:0;">
         <a href="${nietAlleenUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen voor jou</a>
       </p>
