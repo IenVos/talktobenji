@@ -253,11 +253,12 @@ function wrapperBrief(inhoud: string, nietAlleenUrl: string): string {
       ${inhoud}
       <p style="font-size:15px;margin-top:28px;color:#4a5568;">Met warme groet,<br>Benji</p>
       <div style="text-align:center;margin-top:52px;">
+        <img src="https://talktobenji.com/images/benji-logo-2.png" alt="Talk To Benji" width="46" height="46" style="display:inline-block;width:46px;height:46px;margin:0 0 12px 0;" />
         <p style="font-size:14px;font-weight:600;color:#3d3530;margin:0;">
-          Talk To Benji · <a href="${nietAlleenUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen</a>
+          <a href="${nietAlleenUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen voor jou</a>
         </p>
         <p style="font-size:13px;color:#718096;margin:7px 0 0 0;">
-          vragen? <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;text-decoration:underline;">contactmetien@talktobenji.com</a>
+          Heb je vragen? Beantwoord gewoon deze mail.
         </p>
       </div>
     </div>`;
