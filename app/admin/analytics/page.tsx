@@ -766,18 +766,23 @@ export default function AdminAnalytics() {
 
       {tab === "overzicht" && (<>
 
-      {/* Nieuwe inschrijvingen banner */}
-      {recentRegs && recentRegs.today > 0 && (
+      {/* Nieuwe inschrijvingen banner. Teller + lijst beide op NL-kalenderdag
+          (browser-lokaal), zodat ze altijd gelijklopen. */}
+      {(() => {
+        if (!recentRegs) return null;
+        const vandaag = recentRegs.users.filter(
+          (u: { createdAt: number; name: string; email: string }) => u.createdAt >= new Date().setHours(0, 0, 0, 0)
+        );
+        if (vandaag.length === 0) return null;
+        return (
         <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-start gap-3">
           <Users size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-green-800">
-              {recentRegs.today} nieuwe inschrijving{recentRegs.today !== 1 ? "en" : ""} vandaag
+              {vandaag.length} nieuwe inschrijving{vandaag.length !== 1 ? "en" : ""} vandaag
             </p>
             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-              {recentRegs.users
-                .filter((u: { createdAt: number; name: string; email: string }) => u.createdAt >= new Date().setHours(0, 0, 0, 0))
-                .map((u: { createdAt: number; name: string; email: string }, i: number) => (
+              {vandaag.map((u: { createdAt: number; name: string; email: string }, i: number) => (
                   <span key={i} className="text-xs text-green-700">
                     {u.name || u.email}
                     <span className="text-green-400 ml-1">
@@ -789,19 +794,24 @@ export default function AdminAnalytics() {
           </div>
           <span className="text-xs text-green-500 flex-shrink-0">{recentRegs.total} deze week</span>
         </div>
-      )}
+        );
+      })()}
 
-      {recentHouvast && recentHouvast.today > 0 && (
+      {(() => {
+        if (!recentHouvast) return null;
+        const vandaag = recentHouvast.profielen.filter(
+          (p: { createdAt: number }) => p.createdAt >= new Date().setHours(0, 0, 0, 0)
+        );
+        if (vandaag.length === 0) return null;
+        return (
         <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-start gap-3">
           <Leaf size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-green-800">
-              {recentHouvast.today} nieuwe Houvast aanvra{recentHouvast.today !== 1 ? "gen" : "ag"} vandaag
+              {vandaag.length} nieuwe Houvast aanvra{vandaag.length !== 1 ? "gen" : "ag"} vandaag
             </p>
             <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-              {recentHouvast.profielen
-                .filter((p: { createdAt: number }) => p.createdAt >= new Date().setHours(0, 0, 0, 0))
-                .map((p: { createdAt: number; name: string | null; email: string }, i: number) => (
+              {vandaag.map((p: { createdAt: number; name: string | null; email: string }, i: number) => (
                   <span key={i} className="text-xs text-green-700">
                     {p.name || p.email}
                     <span className="text-green-400 ml-1">
@@ -813,7 +823,8 @@ export default function AdminAnalytics() {
           </div>
           <span className="text-xs text-green-500 flex-shrink-0">{recentHouvast.total} deze week</span>
         </div>
-      )}
+        );
+      })()}
 
       {/* Sectie 1: Samenvattingskaarten */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
