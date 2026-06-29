@@ -1,0 +1,14 @@
+# Houd geheimen buiten de AI-context en indexering van Cursor.
+# (.gitignore doet dit NIET voor Cursor; dit bestand wel.)
+.env
+.env.*
+!.env.example
+
+# Sleutels / certificaten
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Lokale geheimen-mappen
+.vercel
