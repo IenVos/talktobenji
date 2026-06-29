@@ -175,7 +175,7 @@ function WelkomInhoud() {
 
         {/* Verliestype keuze */}
         <div className="space-y-3">
-          <p className="text-base font-semibold" style={{ color: "#3d3530" }}>Wie of wat mis je?</p>
+          <p className="text-base font-semibold" style={{ color: "#3d3530" }}>Waar gaat jouw verdriet over?</p>
           <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
             Dit helpt ons de dagelijkse teksten persoonlijker te maken.
           </p>
@@ -286,7 +286,7 @@ function WelkomInhoud() {
           <div className="space-y-2.5">
             {[
               "Voeg hierboven een foto toe die jou elke dag een warm gevoel geeft",
-              "Kies hierboven wie of wat je mist, zodat de teksten bij jou passen",
+              "Kies hierboven waar jouw verdriet over gaat, zodat de teksten bij jou passen",
               "Zorg dat je e-mailmeldingen aan hebt, zodat je de dagelijkse mail niet mist",
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-2">
