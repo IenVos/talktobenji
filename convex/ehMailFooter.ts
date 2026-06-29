@@ -8,7 +8,10 @@
  */
 
 export function appBase(): string {
-  return (process.env.APP_URL || "https://www.talktobenji.com").replace(/\/+$/, "");
+  // Apex (zonder www) = afzenderdomein van de mails, zodat links matchen met
+  // het verzenddomein. Let op: env APP_URL overschrijft dit (zet die op Vercel
+  // ook op https://talktobenji.com).
+  return (process.env.APP_URL || "https://talktobenji.com").replace(/\/+$/, "");
 }
 
 // Niet Alleen-landingspagina per verliestype (zelfde paden als de mail-defaults).

@@ -2,7 +2,9 @@
  * Standaard e-mail templates — plain TS, veilig te importeren in browser én server.
  */
 
-const TTB = "https://www.talktobenji.com";
+// Apex-domein (zonder www) = het afzenderdomein van de mails. Links matchen
+// daarmee het verzenddomein (Resend-deliverability). Alleen voor de EH-mails.
+const TTB = "https://talktobenji.com";
 const BOEKJE_URL = "https://heyzine.com/flip-book/1b15e11883.html";
 
 // Gedeelde "Wie ik ben"-mail (Ien's verhaal). Per verliestype aanpasbaar in de

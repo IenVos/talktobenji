@@ -16,7 +16,7 @@ import { internal, api } from "./_generated/api";
 import { v } from "convex/values";
 import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
 import { checkAdmin } from "./adminAuth";
-import { ehFooter, nietAlleenUrlVoorType } from "./ehMailFooter";
+import { ehFooter, nietAlleenUrlVoorType, appBase } from "./ehMailFooter";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 const DAG_MS = 24 * 60 * 60 * 1000;
@@ -166,9 +166,6 @@ async function afmeldToken(email: string): Promise<string> {
   return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 24);
 }
 
-function appBase(): string {
-  return (process.env.APP_URL || "https://www.talktobenji.com").replace(/\/+$/, "");
-}
 
 async function verstuurEmail(args: { to: string; subject: string; html: string; apiKey: string }) {
   const maxPogingen = 4;
