@@ -313,10 +313,13 @@ function bouwBriefHtml(opts: {
     .filter(Boolean);
   const gedichtHtml =
     gedichtRegels.length > 0
-      ? `<div style="margin:${fotoUrls.length > 0 ? "20px" : "30px"} 0 0 0;text-align:center;">
-           <p style="font-size:15px;line-height:1.85;color:#6b6460;font-style:italic;margin:0;">${gedichtRegels.join(
-             "<br>"
-           )}</p>
+      ? `<div style="margin:${fotoUrls.length > 0 ? "24px" : "34px"} 0 6px 0;text-align:center;">
+           <div style="display:inline-block;max-width:400px;background:#ffffff;border:1px solid #ece5dc;border-radius:16px;padding:26px 32px;box-sizing:border-box;">
+             <div style="font-size:20px;line-height:1;margin:0 0 14px 0;">🍃</div>
+             <p style="font-size:15px;line-height:1.95;color:#6b6460;font-style:italic;margin:0;">${gedichtRegels.join(
+               "<br>"
+             )}</p>
+           </div>
          </div>`
       : "";
 
