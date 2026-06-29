@@ -24,6 +24,7 @@ function WelkomInhoud() {
   const [uploading, setUploading] = useState(false);
   const [geselecteerd, setGeselecteerd] = useState<string | null>(null);
   const [naamInput, setNaamInput] = useState("");
+  const [mailVoorkeur, setMailVoorkeur] = useState<"ochtend" | "middag" | "avond">("ochtend");
   const [bezig, setBezig] = useState(false);
   const fotoInputRef = useRef<HTMLInputElement>(null);
 
@@ -38,6 +39,7 @@ function WelkomInhoud() {
   const saveProfielFoto = useMutation(api.nietAlleen.saveProfielFoto);
   const setVerliesType = useMutation(api.nietAlleen.setVerliesType);
   const setVerliesNaam = useMutation(api.nietAlleen.setVerliesNaam);
+  const setMailVoorkeurMut = useMutation(api.nietAlleen.setMailVoorkeur);
 
   const profielFotoStorageId = profiel?.profielFoto;
   const profielFotoUrl = useQuery(
@@ -84,6 +86,7 @@ function WelkomInhoud() {
       if ((type === "persoon" || type === "huisdier") && naamInput.trim()) {
         await setVerliesNaam({ userId, verliesNaam: naamInput.trim() });
       }
+      await setMailVoorkeurMut({ userId, mailVoorkeur });
       router.push("/niet-alleen");
     } finally {
       setBezig(false);
@@ -213,6 +216,35 @@ function WelkomInhoud() {
           )}
         </div>
 
+        {/* Voorkeurmoment dagmail */}
+        <div className="space-y-3">
+          <p className="text-base font-semibold" style={{ color: "#3d3530" }}>Wanneer wil je je dagelijkse mailtje?</p>
+          <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
+            Kies het moment dat jou het beste past om er even bij stil te staan.
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { code: "ochtend", label: "Ochtend", uitleg: "begin van de dag" },
+              { code: "middag", label: "Middag", uitleg: "rond lunchtijd" },
+              { code: "avond", label: "Avond", uitleg: "begin van de avond" },
+            ] as const).map((o) => (
+              <button
+                key={o.code}
+                onClick={() => setMailVoorkeur(o.code)}
+                className="px-2 py-3 rounded-xl text-sm font-medium text-center transition-all border"
+                style={{
+                  background: mailVoorkeur === o.code ? "#6d84a8" : "white",
+                  color: mailVoorkeur === o.code ? "white" : "#4a5568",
+                  borderColor: mailVoorkeur === o.code ? "#6d84a8" : "#e2d9cf",
+                }}
+              >
+                <span className="block">{o.label}</span>
+                <span className="block text-xs mt-0.5" style={{ opacity: 0.8 }}>{o.uitleg}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Hoe het werkt */}
         <div className="space-y-4">
           <p className="text-base font-semibold" style={{ color: "#3d3530" }}>Zo werkt het</p>
@@ -220,7 +252,7 @@ function WelkomInhoud() {
             {[
               {
                 stap: "1",
-                tekst: "Elke ochtend ontvang je een mailtje met een kleine vraag om even bij stil te staan.",
+                tekst: `Elke ${mailVoorkeur} ontvang je een mailtje met een kleine vraag om even bij stil te staan.`,
               },
               {
                 stap: "2",

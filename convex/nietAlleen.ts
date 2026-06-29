@@ -130,6 +130,27 @@ export const setVerliesType = mutation({
   },
 });
 
+/** Sla het voorkeurmoment voor de dagelijkse mail op (ochtend/middag/avond). */
+export const setMailVoorkeur = mutation({
+  args: {
+    userId: v.string(),
+    mailVoorkeur: v.union(v.literal("ochtend"), v.literal("middag"), v.literal("avond")),
+  },
+  handler: async (ctx, args) => {
+    const profiel = await ctx.db
+      .query("nietAlleenProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (!profiel) throw new Error("Profiel niet gevonden");
+
+    await ctx.db.patch(profiel._id, {
+      mailVoorkeur: args.mailVoorkeur,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
 /** Sla de tekst op voor een specifieke dag. Overschrijft indien al ingevuld. */
 export const saveDagPrompt = mutation({
   args: {
@@ -838,12 +859,16 @@ export const sluitAccount = internalMutation({
  */
 // Ochtend (09:00 NL): dagelijkse herinneringsmails + account sluiten
 export const processNietAlleenUsers = internalAction({
-  args: {},
-  handler: async (ctx) => {
+  // slot = welk voorkeurmoment deze run bedient (ochtend/middag/avond). De cron
+  // draait 3x per dag; elke run pakt alleen de klanten met dat voorkeurmoment.
+  args: { slot: v.union(v.literal("ochtend"), v.literal("middag"), v.literal("avond")) },
+  handler: async (ctx, args) => {
     const profielen = await ctx.runQuery(internal.nietAlleen.getAllActieveProfielen, {});
     const AUTO_INHAAL = 2; // automatisch hooguit vandaag + 1 recent gemiste dag (rest via admin-wachtrij)
 
     for (const profiel of profielen) {
+      // Alleen de klanten die dit voorkeurmoment kozen. Leeg = "ochtend".
+      if ((profiel.mailVoorkeur ?? "ochtend") !== args.slot) continue;
       // Per profiel afschermen: een fout bij één klant mag de rest niet blokkeren.
       try {
         const dagNummer = berekenDagNummer(profiel.startDatum, Date.now());
@@ -898,9 +923,9 @@ export const processNietAlleenUsers = internalAction({
           await ctx.runMutation(internal.nietAlleen.sluitAccount, { profileId: profiel._id });
         }
       } catch (err) {
-        console.error(`Niet Alleen ochtend-mail mislukt voor ${profiel.email}:`, err);
+        console.error(`Niet Alleen dagmail (${args.slot}) mislukt voor ${profiel.email}:`, err);
         await ctx.runAction(internal.nietAlleenEmails.meldVerzendFout, {
-          context: `Ochtend-dagmail voor ${profiel.email}`,
+          context: `Dagmail (${args.slot}) voor ${profiel.email}`,
           detail: String(err),
         });
       }

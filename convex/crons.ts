@@ -18,13 +18,34 @@ crons.daily(
   {}
 );
 
+// Dagelijkse Niet Alleen-mail in 3 voorkeurmomenten. De klant kiest bij de
+// onboarding ochtend/middag/avond; elke run pakt alleen die groep.
+// Vaste UTC-tijden, dus zomer/wintertijd schuiven mee:
+//   06:00 UTC = 08:00 NL zomer / 07:00 NL winter (ochtend)
+//   12:00 UTC = 14:00 NL zomer / 13:00 NL winter (middag)
+//   18:00 UTC = 20:00 NL zomer / 19:00 NL winter (avond)
 crons.daily(
-  "process niet alleen",
-  { hourUTC: 8, minuteUTC: 0 },
+  "process niet alleen ochtend",
+  { hourUTC: 6, minuteUTC: 0 },
   internal.nietAlleen.processNietAlleenUsers,
-  {}
+  { slot: "ochtend" }
 );
 
+crons.daily(
+  "process niet alleen middag",
+  { hourUTC: 12, minuteUTC: 0 },
+  internal.nietAlleen.processNietAlleenUsers,
+  { slot: "middag" }
+);
+
+crons.daily(
+  "process niet alleen avond-dagmail",
+  { hourUTC: 18, minuteUTC: 0 },
+  internal.nietAlleen.processNietAlleenUsers,
+  { slot: "avond" }
+);
+
+// Speciale mijlpaal-mails (dag 15/28/30) blijven voor iedereen 's avonds (18:00 UTC).
 crons.daily(
   "process niet alleen avond",
   { hourUTC: 18, minuteUTC: 0 },

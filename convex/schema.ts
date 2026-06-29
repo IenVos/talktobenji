@@ -660,6 +660,8 @@ export default defineSchema({
     startDatum: v.number(),
     verliesType: v.optional(v.string()), // "persoon" | "huisdier" | "scheiding" | etc.
     verliesNaam: v.optional(v.string()), // naam van wie/wat er gemist wordt
+    // Voorkeurmoment voor de dagelijkse mail. Leeg = "ochtend" (gedrag van vóór deze feature).
+    mailVoorkeur: v.optional(v.union(v.literal("ochtend"), v.literal("middag"), v.literal("avond"))),
     profielFoto: v.optional(v.id("_storage")), // profielfoto van de gebruiker
     dagPrompts: v.array(v.object({
       dag: v.number(),
