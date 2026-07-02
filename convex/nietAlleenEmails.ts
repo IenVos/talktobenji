@@ -131,6 +131,50 @@ export const sendWelkomstMail = internalAction({
 });
 
 // ─────────────────────────────────────────
+// Onboarding-herinnering (Ien-ondertekening)
+// Zolang de klant haar verliestype nog niet koos, staat het programma vast. Deze
+// mail stuurt haar (vriendelijk) terug naar de welkomstap. Beurt 1 en 2 verschillen
+// alleen in toon; na 2 keer stopt de reeks.
+// ─────────────────────────────────────────
+
+export const sendOnboardingHerinnering = internalAction({
+  args: { email: v.string(), naam: v.string(), beurt: v.number() },
+  handler: async (ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) return;
+
+    const voornaam = args.naam.split(" ")[0];
+    const eerste = args.beurt <= 1;
+
+    const subject = eerste
+      ? "Je Niet Alleen staat nog even op pauze"
+      : "We wachten op je, wanneer jij er klaar voor bent";
+
+    const intro = eerste
+      ? `Je hebt Niet Alleen aangeschaft, fijn dat je er bent. Er is nog één klein stapje voordat je dagelijkse berichten beginnen: laat ons weten wat je hebt verloren. Zo passen we alles aan op jouw situatie en krijg je geen woorden die niet kloppen.`
+      : `Je Niet Alleen staat nog steeds klaar. We willen je niet zomaar berichten sturen die misschien niet passen bij jouw verlies, daarom wachten we tot jij het even hebt ingevuld. Het duurt maar een minuutje.`;
+
+    const slot = eerste
+      ? `Zodra je dat hebt gedaan, begint dag 1 en ontvang je elke dag een bericht op het moment dat jij kiest.`
+      : `Heb je er nu geen ruimte voor? Dat is oké. Het staat voor je klaar wanneer jij er wel aan toe bent, er is geen haast.`;
+
+    const html = wrapperIen(`
+      <p style="font-size: 16px; margin-bottom: 8px;">Hi ${voornaam},</p>
+      ${alineaHtml(intro)}
+      ${knop("Mijn Niet Alleen instellen", "https://talktobenji.com/niet-alleen/welkom")}
+      ${alineaHtml(slot)}
+      <p style="font-size: 14px; color: #718096;">
+        Lukt het niet of heb je een vraag? Stuur gerust een mail naar
+        <a href="mailto:contactmetien@talktobenji.com" style="color: #6d84a8;">contactmetien@talktobenji.com</a>,
+        dan help ik je persoonlijk.
+      </p>
+    `);
+
+    await verstuurEmail({ to: args.email, subject, html, apiKey: RESEND_API_KEY });
+  },
+});
+
+// ─────────────────────────────────────────
 // Dagelijkse herinneringsmail (Benji-ondertekening)
 // ─────────────────────────────────────────
 

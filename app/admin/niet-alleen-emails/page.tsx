@@ -339,6 +339,8 @@ type LeveringStatus = {
   email: string;
   naam: string;
   verliesType: string;
+  wachtOpVerliestype: boolean;
+  onboardingHerinneringen: number;
   dagNummer: number;
   accountGesloten: boolean;
   verzondenDagen: number[];
@@ -412,9 +414,15 @@ function KlantStatusRij({ k }: { k: LeveringStatus }) {
         <div>
           <span className="text-sm font-semibold text-gray-800">{k.naam}</span>
           <span className="text-xs text-gray-400 ml-2">{k.email}</span>
-          <span className="text-xs text-gray-500 ml-2">· dag {k.dagNummer}{k.accountGesloten ? " · afgesloten" : ""}</span>
+          {k.wachtOpVerliestype
+            ? <span className="text-xs text-amber-600 ml-2">· nog niet gestart</span>
+            : <span className="text-xs text-gray-500 ml-2">· dag {k.dagNummer}{k.accountGesloten ? " · afgesloten" : ""}</span>}
         </div>
-        {heeftWerk ? (
+        {k.wachtOpVerliestype ? (
+          <span className="text-xs font-semibold text-amber-600" title="Klant heeft nog geen verliestype gekozen; het programma staat vast tot ze de welkomstap doet.">
+            wacht op verliestype{k.onboardingHerinneringen > 0 ? ` · ${k.onboardingHerinneringen} herinnering${k.onboardingHerinneringen > 1 ? "en" : ""} verstuurd` : ""}
+          </span>
+        ) : heeftWerk ? (
           <span className="text-xs font-semibold text-red-600">
             {k.gemist.length > 0 ? `${k.gemist.length} gemist` : ""}
             {gemisteSpecials.length > 0 ? `${k.gemist.length > 0 ? " · " : ""}${gemisteSpecials.length} afsluiting` : ""}

@@ -45,6 +45,16 @@ crons.daily(
   { slot: "avond" }
 );
 
+// Onboarding-vangnet: klanten die hun verliestype nog niet kozen, staan met hun
+// programma in de wacht. Deze run stuurt hooguit 2 herinneringen (gespreid, binnen
+// een week) om ze naar de welkomstap te leiden. 08:00 UTC = 10:00 NL zomer.
+crons.daily(
+  "niet alleen onboarding-herinneringen",
+  { hourUTC: 8, minuteUTC: 0 },
+  internal.nietAlleen.processNietAlleenOnboardingHerinneringen,
+  {}
+);
+
 // Speciale mijlpaal-mails (dag 15/28/30) blijven voor iedereen 's avonds (18:00 UTC).
 crons.daily(
   "process niet alleen avond",

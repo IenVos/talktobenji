@@ -692,6 +692,10 @@ export default defineSchema({
     dag28MailVerzonden: v.optional(v.boolean()),
     dag30MailVerzonden: v.optional(v.boolean()),
     dag37Verwerkt: v.optional(v.boolean()),
+    // Onboarding-vangnet: zolang verliesType nog niet gekozen is, houden we de
+    // dagmails vast (start pas als het verlies bekend is) en sturen we hooguit een
+    // paar herinneringen. Dit telt hoeveel onboarding-herinneringen al verstuurd zijn.
+    onboardingHerinneringen: v.optional(v.number()),
     accountGesloten: v.optional(v.boolean()),
     pendingAddonType: v.optional(v.string()),       // bijv. "benji_access" — activeren bij registratie
     pendingAddonAccessDays: v.optional(v.number()), // bijv. 30

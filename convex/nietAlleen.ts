@@ -15,6 +15,15 @@ import { v } from "convex/values";
 import { checkAdmin, logAdminAction } from "./adminAuth";
 import { berekenLevering, berekenDagNummer } from "./nietAlleenLevering";
 
+/**
+ * Heeft dit profiel een gekozen verliestype? Zo niet, dan staat het programma in
+ * de wacht: er gaan geen dagmails of mijlpaalmails uit tot de klant haar verlies
+ * kiest in de welkomstap. Lege string of ontbrekend = nog niet gekozen.
+ */
+function heeftVerliesTypeWaarde(verliesType: string | undefined | null): boolean {
+  return typeof verliesType === "string" && verliesType.trim().length > 0;
+}
+
 // ─────────────────────────────────────────
 // PUBLIC — gebruikt door de /niet-alleen pagina
 // ─────────────────────────────────────────
@@ -123,8 +132,18 @@ export const setVerliesType = mutation({
 
     if (!profiel) throw new Error("Profiel niet gevonden");
 
+    // Onboarding-vangnet: zolang het verliesType nog niet gekozen was, stond het
+    // programma vast (geen dagmails). Nu de klant haar verlies kiest, laten we het
+    // programma vandaag beginnen: dag 1 = vandaag. Zo verliest ze geen dagen door
+    // te wachten met invullen. Alleen verschuiven als het programma nog niet liep
+    // (geen verliesType én nog geen dagmail verstuurd) — nooit een lopend programma
+    // terugzetten.
+    const nogNietGestart = !heeftVerliesTypeWaarde(profiel.verliesType)
+      && (profiel.verzondenDagen?.length ?? 0) === 0;
+
     await ctx.db.patch(profiel._id, {
       verliesType: args.verliesType,
+      ...(nogNietGestart ? { startDatum: Date.now() } : {}),
       updatedAt: Date.now(),
     });
   },
@@ -622,6 +641,9 @@ export const getLeveringsStatus = query({
           email: p.email,
           naam: p.naam,
           verliesType: p.verliesType ?? "persoon",
+          // Onboarding-vangnet: verliestype nog niet gekozen → programma staat vast.
+          wachtOpVerliestype: !heeftVerliesTypeWaarde(p.verliesType),
+          onboardingHerinneringen: p.onboardingHerinneringen ?? 0,
           dagNummer: l.dagNummer,
           accountGesloten: p.accountGesloten === true,
           verzondenDagen: l.verzonden,
@@ -632,7 +654,12 @@ export const getLeveringsStatus = query({
           specials: l.specials,
         };
       })
-      .sort((a, b) => (a.gemist.length === b.gemist.length ? a.naam.localeCompare(b.naam) : b.gemist.length - a.gemist.length));
+      // "Wacht op verliestype" bovenaan (vraagt actie), daarna op aantal gemiste dagen.
+      .sort((a, b) => {
+        if (a.wachtOpVerliestype !== b.wachtOpVerliestype) return a.wachtOpVerliestype ? -1 : 1;
+        if (a.gemist.length !== b.gemist.length) return b.gemist.length - a.gemist.length;
+        return a.naam.localeCompare(b.naam);
+      });
   },
 });
 
@@ -869,6 +896,10 @@ export const processNietAlleenUsers = internalAction({
     for (const profiel of profielen) {
       // Alleen de klanten die dit voorkeurmoment kozen. Leeg = "ochtend".
       if ((profiel.mailVoorkeur ?? "ochtend") !== args.slot) continue;
+      // Onboarding-vangnet: zolang het verliestype nog niet gekozen is, houden we
+      // het programma vast. De onboarding-herinneringen (aparte cron) sturen haar
+      // naar de welkomstap; zodra ze kiest, begint dag 1 op die dag.
+      if (!heeftVerliesTypeWaarde(profiel.verliesType)) continue;
       // Per profiel afschermen: een fout bij één klant mag de rest niet blokkeren.
       try {
         const dagNummer = berekenDagNummer(profiel.startDatum, Date.now());
@@ -940,6 +971,8 @@ export const processNietAlleenAvondMails = internalAction({
     const profielen = await ctx.runQuery(internal.nietAlleen.getAllActieveProfielen, {});
 
     for (const profiel of profielen) {
+      // Onboarding-vangnet: geen mijlpaalmails zolang het verliestype nog leeg is.
+      if (!heeftVerliesTypeWaarde(profiel.verliesType)) continue;
       // Per profiel afschermen: een fout bij één klant mag de rest niet blokkeren.
       try {
         const dagNummer = berekenDagNummer(profiel.startDatum, Date.now());
@@ -975,6 +1008,72 @@ export const processNietAlleenAvondMails = internalAction({
         console.error(`Niet Alleen avond-mail mislukt voor ${profiel.email}:`, err);
         await ctx.runAction(internal.nietAlleenEmails.meldVerzendFout, {
           context: `Avond-mail (dag 15/28/30) voor ${profiel.email}`,
+          detail: String(err),
+        });
+      }
+    }
+  },
+});
+
+// ─────────────────────────────────────────
+// Onboarding-vangnet: herinneringen zolang het verliestype nog niet gekozen is.
+// ─────────────────────────────────────────
+
+const DAG_MS = 86_400_000;
+// Na hoeveel dagen (sinds aankoop) de 1e en 2e herinnering ten vroegste mogen. Beide
+// binnen een week; daarna stopt de reeks en blijft het profiel in de admin zichtbaar
+// als "wacht op verliestype".
+const HERINNERING_DAG_1 = 2;
+const HERINNERING_DAG_2 = 5;
+const MAX_HERINNERINGEN = 2;
+
+/** Verhoog de teller van verzonden onboarding-herinneringen. */
+export const recordOnboardingHerinnering = internalMutation({
+  args: { profileId: v.id("nietAlleenProfiles") },
+  handler: async (ctx, args) => {
+    const p = await ctx.db.get(args.profileId);
+    if (!p) return;
+    await ctx.db.patch(args.profileId, {
+      onboardingHerinneringen: (p.onboardingHerinneringen ?? 0) + 1,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Stuur onboarding-herinneringen naar klanten die hun verliestype nog niet kozen.
+ * Draait 1x per dag. Verstuurt hooguit MAX_HERINNERINGEN mails, gespreid, en alleen
+ * zolang het verliestype leeg blijft. Zodra de klant kiest, valt ze uit deze reeks
+ * en start het programma vanzelf (zie setVerliesType).
+ */
+export const processNietAlleenOnboardingHerinneringen = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const profielen = await ctx.runQuery(internal.nietAlleen.getAllActieveProfielen, {});
+    const now = Date.now();
+
+    for (const profiel of profielen) {
+      // Alleen wie nog geen verliestype koos.
+      if (heeftVerliesTypeWaarde(profiel.verliesType)) continue;
+      const alVerstuurd = profiel.onboardingHerinneringen ?? 0;
+      if (alVerstuurd >= MAX_HERINNERINGEN) continue;
+
+      const dagenSindsAankoop = Math.floor((now - profiel.createdAt) / DAG_MS);
+      // Volgende herinnering pas als de bijbehorende drempel bereikt is.
+      const drempel = alVerstuurd === 0 ? HERINNERING_DAG_1 : HERINNERING_DAG_2;
+      if (dagenSindsAankoop < drempel) continue;
+
+      try {
+        await ctx.runAction(internal.nietAlleenEmails.sendOnboardingHerinnering, {
+          email: profiel.email,
+          naam: profiel.naam,
+          beurt: alVerstuurd + 1,
+        });
+        await ctx.runMutation(internal.nietAlleen.recordOnboardingHerinnering, { profileId: profiel._id });
+      } catch (err) {
+        console.error(`Niet Alleen onboarding-herinnering mislukt voor ${profiel.email}:`, err);
+        await ctx.runAction(internal.nietAlleenEmails.meldVerzendFout, {
+          context: `Onboarding-herinnering voor ${profiel.email}`,
           detail: String(err),
         });
       }
