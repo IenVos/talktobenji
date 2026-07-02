@@ -4,6 +4,7 @@
 import { v } from "convex/values";
 import { action, internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
 import { checkAdmin, logAdminAction } from "./adminAuth";
 import { ehFooter, ehAfmeldUrl } from "./ehMailFooter";
 
@@ -480,15 +481,17 @@ export const genereerEnVerstuurBrief = action({
       ingevuld,
     });
 
-    // Foto's: opslaan in Convex storage en als echte URL in de mail tonen.
+    // Foto's: opslaan in Convex storage en via de eigen /api/eh-foto proxy tonen,
+    // zodat de <img>-src op talktobenji.com staat i.p.v. de rauwe convex.cloud-URL.
+    // Dat voorkomt dat Gmail de mail als verdacht ziet (Resend-insight: afbeeldingen
+    // op het verzenddomein hosten).
     const fotoUrls: string[] = [];
     for (const dataUrl of args.fotos ?? []) {
       const blob = dataUrlToBlob(dataUrl);
       if (!blob) continue;
       try {
         const storageId = await ctx.storage.store(blob);
-        const url = await ctx.storage.getUrl(storageId);
-        if (url) fotoUrls.push(url);
+        fotoUrls.push(`https://www.talktobenji.com/api/eh-foto/${storageId}`);
       } catch {
         /* sla deze foto over */
       }
@@ -584,6 +587,24 @@ export const stuurTestBrief = action({
       apiKey: RESEND_API_KEY,
     });
     return { success: true };
+  },
+});
+
+/**
+ * Los een storageId op naar de actuele Convex-download-URL. Gebruikt door de
+ * /api/eh-foto proxy zodat de brief-mail de foto's via talktobenji.com serveert
+ * i.p.v. de rauwe convex.cloud-URL (Resend/Gmail-insight: afbeeldingen op het
+ * verzenddomein hosten). Publiek: het is enkel een niet-raadbare storageId.
+ */
+export const getEhFotoUrl = query({
+  args: { storageId: v.string() },
+  handler: async (ctx, args) => {
+    if (!args.storageId) return null;
+    try {
+      return await ctx.storage.getUrl(args.storageId as Id<"_storage">);
+    } catch {
+      return null;
+    }
   },
 });
 
