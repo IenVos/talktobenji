@@ -439,6 +439,99 @@ export const funnelOverzicht = query({
   },
 });
 
+// ── Advertentie-overzicht voor de admin ─────────────────────────────────────────
+// Trekt de opgeslagen tracking-URL (bronUrl) per lead uit elkaar en groepeert op
+// campagne + advertentie. Zo zie je per ad hoeveel aanvragen, klanten en omzet die
+// opleverde, zonder per lead te hoeven zoeken. Werkt op bestaande data: er hoeft
+// niets in Meta veranderd te worden, mits de ads-URL UTM-parameters bevat.
+function parseAdVanUrl(
+  bronUrl?: string | null,
+  bronRegel?: string | null
+): { campagne: string; ad: string; kanaal: string; getagd: boolean } {
+  if (bronUrl) {
+    try {
+      const p = new URL(bronUrl).searchParams;
+      const campagne = (p.get("utm_campaign") ?? "").trim();
+      const ad = (p.get("utm_content") ?? p.get("utm_term") ?? "").trim();
+      const kanaal = (p.get("utm_source") ?? "").trim();
+      if (campagne || ad) {
+        return {
+          campagne: campagne || "(zonder campagnenaam)",
+          ad: ad || "(hele campagne)",
+          kanaal,
+          getagd: true,
+        };
+      }
+    } catch {
+      // ongeldige URL — val terug op de bron-regel
+    }
+  }
+  // Geen UTM-tags gevonden: groepeer op de compacte bron-regel (bijv. "Meta (FB/IG) · /lp/..").
+  return { campagne: bronRegel || "Onbekend", ad: "", kanaal: "", getagd: false };
+}
+
+export const advertentieOverzicht = query({
+  args: { adminToken: v.string(), from: v.number(), to: v.number() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const [leads, excluded, naProfiles, subs] = await Promise.all([
+      ctx.db.query("houvastBrieven").collect(),
+      ctx.db.query("analyticsExcludedEmails").collect(),
+      ctx.db.query("nietAlleenProfiles").collect(),
+      ctx.db.query("userSubscriptions").collect(),
+    ]);
+
+    const uitgesloten = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    const naEmails = new Set(naProfiles.map((p: any) => p.email.toLowerCase()));
+    const omzetPerEmail: Record<string, number> = {};
+    for (const s of subs) {
+      if (!s.email || !s.pricePaid) continue;
+      const e = s.email.toLowerCase();
+      omzetPerEmail[e] = (omzetPerEmail[e] ?? 0) + s.pricePaid;
+    }
+
+    type Groep = {
+      campagne: string;
+      ad: string;
+      kanaal: string;
+      getagd: boolean;
+      aanvragen: number;
+      klanten: number;
+      omzet: number;
+    };
+    const groepen: Record<string, Groep> = {};
+
+    const inRange = leads.filter(
+      (l: any) =>
+        l.sentAt >= args.from &&
+        l.sentAt <= args.to &&
+        !uitgesloten.has(l.email.toLowerCase())
+    );
+
+    for (const lead of inRange) {
+      const { campagne, ad, kanaal, getagd } = parseAdVanUrl(lead.bronUrl, lead.bron);
+      const key = `${campagne}||${ad}`;
+      if (!groepen[key]) {
+        groepen[key] = { campagne, ad, kanaal, getagd, aanvragen: 0, klanten: 0, omzet: 0 };
+      }
+      const g = groepen[key];
+      g.aanvragen++;
+      const e = lead.email.toLowerCase();
+      const omzet = omzetPerEmail[e] ?? 0;
+      if (naEmails.has(e) || omzet > 0) g.klanten++;
+      g.omzet += omzet;
+    }
+
+    const rijen = Object.values(groepen).map((g) => ({
+      ...g,
+      conversie: g.aanvragen > 0 ? Math.round((g.klanten / g.aanvragen) * 100) : 0,
+    }));
+    rijen.sort((a, b) => b.aanvragen - a.aanvragen);
+    return rijen;
+  },
+});
+
 // ── Afmelding registreren (aangeroepen door /api/afmelden na token-check) ────────
 
 export const registreerAfmelding = mutation({

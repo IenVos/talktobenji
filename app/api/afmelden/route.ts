@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
+import { unsubscribeFromMailerLite } from "@/lib/mailerlite";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -42,6 +43,10 @@ export async function GET(request: NextRequest) {
   } catch {
     return bevestigingsPagina("Er ging iets mis", "We konden je afmelding niet verwerken. Probeer het later opnieuw of mail contactmetien@talktobenji.com.");
   }
+
+  // Ook in MailerLite op "unsubscribed" zetten, zodat deze persoon geen campagnes of
+  // automations meer krijgt. Mag de bevestiging nooit breken: alleen loggen bij falen.
+  await unsubscribeFromMailerLite({ email, context: "EH-afmelding" }).catch(() => false);
 
   return bevestigingsPagina(
     "Je bent afgemeld",

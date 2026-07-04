@@ -512,6 +512,7 @@ export default function AdminAnalytics() {
   const verliesTypeStats = useAdminQuery(api.siteAnalytics.getVerliesTypeStats, { from, to });
   const featureStats = useAdminQuery(api.siteAnalytics.getFeatureStats, { from, to });
   const funnelStats = useAdminQuery(api.siteAnalytics.getFunnelStats, { from, to });
+  const adsStats = useAdminQuery(api.evenHouvastOpvolg.advertentieOverzicht, { from, to });
   const allGoals = useAdminQuery(api.siteAnalytics.listGoalsWithOwner, {});
   const liveVisitors = useAdminQuery(api.siteAnalytics.getLiveVisitors, {});
   const recentRegs = useAdminQuery(api.siteAnalytics.getRecentRegistrations, { days: 7 });
@@ -549,13 +550,13 @@ export default function AdminAnalytics() {
       return next;
     });
 
-  // Welke tab actief is (Overzicht vs Funnel & pagina's), bewaard tussen bezoeken.
-  const [tab, setTab] = useState<"overzicht" | "funnel">("overzicht");
+  // Welke tab actief is (Overzicht / Funnel / Advertenties), bewaard tussen bezoeken.
+  const [tab, setTab] = useState<"overzicht" | "funnel" | "ads">("overzicht");
   useEffect(() => {
     const s = localStorage.getItem("ttb_analytics_tab");
-    if (s === "funnel" || s === "overzicht") setTab(s);
+    if (s === "funnel" || s === "overzicht" || s === "ads") setTab(s);
   }, []);
-  const kiesTab = (t: "overzicht" | "funnel") => {
+  const kiesTab = (t: "overzicht" | "funnel" | "ads") => {
     setTab(t);
     try { localStorage.setItem("ttb_analytics_tab", t); } catch {}
   };
@@ -753,7 +754,7 @@ export default function AdminAnalytics() {
 
       {/* Tabs: Overzicht vs Funnel & pagina's */}
       <div className="flex items-center gap-1 border-b border-primary-200">
-        {([["overzicht", "Overzicht"], ["funnel", "Funnel & pagina's"]] as const).map(([key, label]) => (
+        {([["overzicht", "Overzicht"], ["funnel", "Funnel & pagina's"], ["ads", "Advertenties"]] as const).map(([key, label]) => (
           <button
             key={key}
             onClick={() => kiesTab(key)}
@@ -1527,6 +1528,68 @@ export default function AdminAnalytics() {
           )}
         </div>
       )}
+
+      </>)}
+
+      {tab === "ads" && (<>
+
+      {/* Advertenties — per ad/campagne uit de tracking-URL van elke lead.
+          Beantwoordt: welke advertentie levert aanvragen én klanten op? */}
+      <div className="bg-white rounded-xl border border-primary-200">
+        <div className="flex items-center gap-2 px-6 py-4 border-b border-primary-100">
+          <Megaphone size={16} className="text-primary-500" />
+          <span className="text-base font-semibold text-primary-900">Advertenties</span>
+          <span className="text-xs text-primary-400 font-normal">geselecteerde periode · o.b.v. tracking-URL per aanvraag</span>
+        </div>
+        {!adsStats ? (
+          <div className="px-6 py-10 text-center text-sm text-primary-400">Laden…</div>
+        ) : adsStats.length === 0 ? (
+          <div className="px-6 py-10 text-center text-sm text-primary-400">
+            Geen aanvragen in deze periode.
+          </div>
+        ) : (
+          <div className="px-6 pb-6 pt-2 overflow-x-auto">
+            <table className="w-full text-sm min-w-[560px]">
+              <thead>
+                <tr className="border-b border-primary-100">
+                  <th className="py-2 text-left text-xs font-medium text-primary-500">Advertentie / campagne</th>
+                  <th className="py-2 text-right text-xs font-medium text-primary-500">Aanvragen</th>
+                  <th className="py-2 text-right text-xs font-medium text-primary-500">Klant geworden</th>
+                  <th className="py-2 text-right text-xs font-medium text-primary-500">Conversie</th>
+                  <th className="py-2 text-right text-xs font-medium text-primary-500">Omzet</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-primary-50">
+                {adsStats.map((r: { campagne: string; ad: string; kanaal: string; getagd: boolean; aanvragen: number; klanten: number; conversie: number; omzet: number }, i: number) => (
+                  <tr key={`${r.campagne}||${r.ad}||${i}`}>
+                    <td className="py-2.5">
+                      <span className="font-medium text-primary-800">{r.ad || r.campagne}</span>
+                      {r.ad && (
+                        <span className="block text-[11px] text-primary-400">{r.campagne}{r.kanaal ? ` · ${r.kanaal}` : ""}</span>
+                      )}
+                      {!r.getagd && (
+                        <span className="inline-block mt-0.5 text-[10px] text-amber-600 bg-amber-50 rounded px-1.5 py-0.5">geen ad-tracking</span>
+                      )}
+                    </td>
+                    <td className="py-2.5 text-right font-semibold text-primary-900">{r.aanvragen}</td>
+                    <td className="py-2.5 text-right">
+                      <span className={`font-semibold ${r.klanten > 0 ? "text-green-700" : "text-primary-400"}`}>
+                        {r.klanten > 0 ? r.klanten : "–"}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-right text-primary-600">{r.klanten > 0 ? `${r.conversie}%` : "–"}</td>
+                    <td className="py-2.5 text-right text-primary-600">{r.omzet > 0 ? `€ ${r.omzet.toLocaleString("nl-NL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "–"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-4 text-[11px] leading-relaxed text-primary-400">
+              Gegroepeerd op <code className="text-primary-500">utm_content</code> (advertentie) en <code className="text-primary-500">utm_campaign</code> (campagne) uit de landings-URL van elke aanvraag.
+              &quot;Klant geworden&quot; = die aanvrager kocht later Niet Alleen. Rijen met &quot;geen ad-tracking&quot; hadden geen UTM-parameters in de URL.
+            </p>
+          </div>
+        )}
+      </div>
 
       </>)}
 
