@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { Mail, Save, CheckCircle, RotateCcw, Send, FlaskConical, UserPlus, ChevronDown, ChevronRight, Pencil, Plus, Trash2, Copy, Eye, X } from "lucide-react";
-import { useMutation } from "convex/react";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
 import { NIET_ALLEEN_CONTENT, type NietAlleenVerliesType, getMailTekst, getDagInhoud } from "@/convex/nietAlleenContent";
 import { ANKER_DAGEN } from "@/convex/nietAlleenAnkerContent";
@@ -553,7 +551,7 @@ function LeveringsstatusBlok() {
 }
 
 function TestProfielBlok() {
-  const maakTestProfiel = useMutation(api.nietAlleen.maakTestProfiel);
+  const maakTestProfiel = useAdminMutation(api.nietAlleen.maakTestProfiel);
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [naam, setNaam] = useState("");
@@ -645,8 +643,8 @@ function TestProfielBlok() {
 }
 
 function TestEmailBlok() {
-  const stuurTestEmails = useAction(api.nietAlleen.stuurTestEmails);
-  const stuurTestEmailEnkel = useAction(api.nietAlleen.stuurTestEmailEnkel);
+  const stuurTestEmails = useAdminAction(api.nietAlleen.stuurTestEmails);
+  const stuurTestEmailEnkel = useAdminAction(api.nietAlleen.stuurTestEmailEnkel);
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [naam, setNaam] = useState("");

@@ -2,7 +2,7 @@
  * Landingspagina's — admin beheert, publiek zichtbaar via /lp/[slug].
  */
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
 /** Admin: lijst alle pagina's, nieuwste eerst (incl. opgeslagen productafbeelding-URL) */
@@ -567,7 +567,7 @@ export const seedJaarToegang = mutation({
 });
 
 /** Admin: maak de Niet Alleen keuzepagina aan als die nog niet bestaat */
-export const fixNietAlleenRelatieWieIs = mutation({
+export const fixNietAlleenRelatieWieIs = internalMutation({
   args: {},
   handler: async (ctx) => {
     const slug = "niet-alleen-verlies-persoon";
@@ -617,7 +617,7 @@ export const seedNietAlleenKeuzeLp = mutation({
 });
 
 /** Eenmalig: maak Niet Alleen Relatie LP aan */
-export const seedNietAlleenRelatie = mutation({
+export const seedNietAlleenRelatie = internalMutation({
   args: {},
   handler: async (ctx) => {
     const slug = "niet-alleen-verlies-persoon";
@@ -667,7 +667,7 @@ export const seedNietAlleenRelatie = mutation({
   },
 });
 
-export const seedOngewenstKinderloos = mutation({
+export const seedOngewenstKinderloos = internalMutation({
   args: {},
   handler: async (ctx) => {
     const slug = "ongewenst-kinderloos-die-pijn-gaat-nooit-weg";
@@ -729,7 +729,7 @@ export const seedOngewenstKinderloos = mutation({
   },
 });
 
-export const seedVerliesPersoon = mutation({
+export const seedVerliesPersoon = internalMutation({
   args: {},
   handler: async (ctx) => {
     const slug = "je-mist-iemand";
@@ -791,7 +791,7 @@ export const seedVerliesPersoon = mutation({
   },
 });
 
-export const seedNietAlleenEenzaamheid = mutation({
+export const seedNietAlleenEenzaamheid = internalMutation({
   args: {},
   handler: async (ctx) => {
     const slug = "ik-voel-me-eenzaam";

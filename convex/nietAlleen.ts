@@ -206,11 +206,13 @@ export const saveDagPrompt = mutation({
  */
 export const stuurTestEmails = action({
   args: {
+    adminToken: v.string(),
     email: v.string(),
     naam: v.string(),
     verliesType: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     await ctx.runAction(internal.nietAlleenEmails.stuurAlleEmailsTest, {
       email: args.email,
       naam: args.naam,
@@ -222,6 +224,7 @@ export const stuurTestEmails = action({
 /** Stuur één losse test-mail naar je eigen inbox (admin testpaneel). */
 export const stuurTestEmailEnkel = action({
   args: {
+    adminToken: v.string(),
     email: v.string(),
     naam: v.string(),
     verliesType: v.optional(v.string()),
@@ -235,6 +238,7 @@ export const stuurTestEmailEnkel = action({
     dagNummer: v.optional(v.number()), // alleen bij mail === "dag"
   },
   handler: async (ctx, args) => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     const email = args.email;
     const naam = args.naam;
     switch (args.mail) {
@@ -296,6 +300,7 @@ export const stuurWelkomstMailZonderAccount = action({
 /** Maak een testprofiel voor een bestaand account — alleen voor testing. */
 export const maakTestProfiel = mutation({
   args: {
+    adminToken: v.string(),
     userId: v.string(),
     email: v.string(),
     naam: v.string(),
@@ -303,6 +308,7 @@ export const maakTestProfiel = mutation({
     dagOffset: v.number(), // 0 = vandaag dag 1, 5 = 5 dagen geleden gestart (dag 6 nu)
   },
   handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
     const now = Date.now();
     const startDatum = now - args.dagOffset * 86400000;
     // "scheiding" is een oud label — normaliseer naar "relatie"

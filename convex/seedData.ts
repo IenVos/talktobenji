@@ -11,13 +11,13 @@
  * 4. Klik "Run" om uit te voeren
  */
 
-import { mutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 
 /**
  * Seed de knowledge base – TalkToBenji start met een lege knowledge base.
  * Voeg eventueel later Q&As toe via het admin panel (/admin/knowledge).
  */
-export const seedKnowledgeBase = mutation({
+export const seedKnowledgeBase = internalMutation({
   handler: async (ctx) => {
     const existing = await ctx.db.query("knowledgeBase").collect();
     return {
@@ -32,7 +32,7 @@ export const seedKnowledgeBase = mutation({
  * Verwijder ALLE data uit de database (gebruik met voorzichtigheid!)
  * Handig voor development/testing
  */
-export const clearAllData = mutation({
+export const clearAllData = internalMutation({
   handler: async (ctx) => {
     // Verwijder alle Q&As
     const questions = await ctx.db.query("knowledgeBase").collect();
@@ -88,7 +88,7 @@ export const clearAllData = mutation({
  * Template voor je eigen Q&As
  * Kopieer deze structuur en vul je eigen Q&As in!
  */
-export const addYourOwnQAs = mutation({
+export const addYourOwnQAs = internalMutation({
   handler: async (ctx) => {
     const now = Date.now();
 

@@ -2,7 +2,7 @@
  * Subscription & feature access management
  */
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 // Admin email met volledige toegang — via env var, niet hardcoded
@@ -450,7 +450,7 @@ export const cancelOwnSubscription = mutation({
 /**
  * Maak of update subscription (voor admin of na betaling)
  */
-export const upsertSubscription = mutation({
+export const upsertSubscription = internalMutation({
   args: {
     userId: v.string(),
     email: v.string(),

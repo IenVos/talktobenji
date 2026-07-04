@@ -16,7 +16,7 @@
  * itereren vóór review). Bewerk je het concept zelf in de admin, draai 'm dan
  * niet opnieuw, anders gaan die wijzigingen verloren.
  */
-import { mutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 
 // Gedeelde (type-onafhankelijke) afbeeldingen uit de huisdier-pagina, zodat de
 // layout intact blijft. Sommige hiervan kunnen huisdier-getint zijn → in de
@@ -31,7 +31,7 @@ const HUISDIER_CONTENT_IMG = "https://hardy-turtle-320.convex.cloud/api/storage/
 const IEN_VERHAAL_IMG_STORAGE_ID = "kg22ezdetn5jwk4jddxk92hb99892626";
 
 // ── Landingspagina: persoon (concept) ────────────────────────────────────────
-export const seedPersoonLpConcept = mutation({
+export const seedPersoonLpConcept = internalMutation({
   args: {},
   handler: async (ctx) => {
     const slug = "je-mist-iemand-concept";
@@ -178,7 +178,7 @@ export const seedPersoonLpConcept = mutation({
 });
 
 // ── Checkout: persoon (concept) ──────────────────────────────────────────────
-export const seedPersoonCheckoutConcept = mutation({
+export const seedPersoonCheckoutConcept = internalMutation({
   args: {},
   handler: async (ctx) => {
     const slug = "niet-alleen-verlies-persoon";
@@ -686,7 +686,7 @@ const KINDERLOOS: VariantCopy = {
 
 // Zet de Even Houvast-pop-up aan op de live huisdier-LP (met vinkjes-opsomming)
 // en zet de eerdere concept-demo weer uit.
-export const demoEvenHouvastPopupAan = mutation({
+export const demoEvenHouvastPopupAan = internalMutation({
   args: {},
   handler: async (ctx) => {
     const huisdierSlug = "niet-alleen-voor-hulp-bij-verlies-van-huisdier";
@@ -723,7 +723,7 @@ export const demoEvenHouvastPopupAan = mutation({
 // Eenmalige migratie: hernoem de eerder geseede "…-concept"-checkouts naar de
 // schone slug. De checkouts worden nog niet gebruikt en bestonden nog niet live,
 // dus dit is veilig. Behoudt het record (geen dubbele). Na 1x draaien een no-op.
-export const hernoemConceptCheckoutsNaarSchoneSlug = mutation({
+export const hernoemConceptCheckoutsNaarSchoneSlug = internalMutation({
   args: {},
   handler: async (ctx) => {
     const map: Record<string, string> = {
@@ -758,7 +758,7 @@ export const hernoemConceptCheckoutsNaarSchoneSlug = mutation({
 });
 
 // Eén mutatie die alle drie de overige varianten (her)schrijft.
-export const seedOverigeTypeVarianten = mutation({
+export const seedOverigeTypeVarianten = internalMutation({
   args: {},
   handler: async (ctx) => {
     const resultaten = [];
