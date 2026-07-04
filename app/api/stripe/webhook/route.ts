@@ -366,6 +366,7 @@ export async function POST(req: NextRequest) {
         if (isNietAlleen) {
           try {
             await convex.mutation(api.nietAlleen.activateNietAlleenDirect, {
+              webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
               email,
               naam: name || email,
               verliesType: product?.verliesType, // undefined = klant kiest zelf
@@ -397,6 +398,7 @@ export async function POST(req: NextRequest) {
           if (!addonActivated) {
             try {
               await convex.mutation(api.nietAlleen.setPendingAddon, {
+                webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
                 email,
                 addonType: "benji_access",
                 accessDays: addonAccessDays,

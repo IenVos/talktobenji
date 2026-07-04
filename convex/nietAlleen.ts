@@ -422,11 +422,17 @@ export const activateNietAlleen = internalMutation({
  */
 export const activateNietAlleenDirect = mutation({
   args: {
+    webhookSecret: v.string(),
     email: v.string(),
     naam: v.string(),
     verliesType: v.optional(v.string()), // "persoon" | "huisdier" | "scheiding" — bepaalt welke mailreeks start
   },
   handler: async (ctx, args) => {
+    // Alleen aanroepbaar vanuit de server-side betaalflow (webhook), niet vanuit de browser:
+    // anders zou iedereen zichzelf gratis een Niet Alleen-profiel (betaalde mailreeks) kunnen geven.
+    if (args.webhookSecret !== (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)) {
+      throw new Error("Ongeldig webhook secret");
+    }
     const now = Date.now();
     const email = args.email.toLowerCase().trim();
 
@@ -456,11 +462,15 @@ export const activateNietAlleenDirect = mutation({
 /** Sla een pending addon op voor activatie bij registratie (als er nog geen account is). */
 export const setPendingAddon = mutation({
   args: {
+    webhookSecret: v.string(),
     email: v.string(),
     addonType: v.string(),
     accessDays: v.number(),
   },
   handler: async (ctx, args) => {
+    if (args.webhookSecret !== (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)) {
+      throw new Error("Ongeldig webhook secret");
+    }
     const email = args.email.toLowerCase().trim();
     const profiel = await ctx.db
       .query("nietAlleenProfiles")
