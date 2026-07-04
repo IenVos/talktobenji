@@ -155,6 +155,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Webhook error: ${err.message}` }, { status: 400 });
   }
 
+  // Idempotentie: Stripe kan eenzelfde event vaker afleveren. Verwerk elk event maar
+  // één keer (voorkomt dubbele cadeaucodes, mails en verkoopmeldingen). Faalt de check
+  // (bijv. Convex tijdelijk onbereikbaar), dan gaan we door: liever een zeldzame dubbele
+  // dan een gemiste verwerking.
+  try {
+    const { alreadyProcessed } = await convex.mutation(api.stripeEvents.markProcessed, {
+      webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
+      eventId: event.id,
+    });
+    if (alreadyProcessed) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+  } catch (err: any) {
+    console.error("[Stripe webhook] idempotentie-check mislukt, ga toch door:", err?.message);
+  }
+
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object as Stripe.PaymentIntent;
     const {

@@ -902,6 +902,13 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_email", ["email"]),
 
+  // Verwerkte Stripe-webhookgebeurtenissen. Stripe kan eenzelfde event meer dan
+  // eens afleveren; dit logboek voorkomt dubbele verwerking (dubbele mail/cadeaucode).
+  processedStripeEvents: defineTable({
+    eventId: v.string(),
+    processedAt: v.number(),
+  }).index("by_eventId", ["eventId"]),
+
   // Checkout producten (beheerbaar via admin, publiek via /betalen/[slug])
   checkoutProducts: defineTable({
     slug: v.string(),

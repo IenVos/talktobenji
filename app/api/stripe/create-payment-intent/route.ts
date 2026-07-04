@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
   const {
     slug, email, name, paymentIntentId, optIn,
     isGift, recipientEmail, recipientName, personalMessage, deliveryMethod, scheduledSendDate,
-    giftVariantPriceInCents, giftVariantBillingPeriod, giftVariantAccessDays, giftVariantLabel,
+    giftVariantPriceInCents, giftVariantBillingPeriod, giftVariantLabel,
     countryCode, vatNumber, benjiAddon,
-    addOnPriceInCents, addOnType, addOnAccessDays,
+    addOnPriceInCents, addOnType,
     source, sessionId,
   } = await req.json();
 
@@ -37,6 +37,27 @@ export async function POST(req: NextRequest) {
 
   // Update bestaande PaymentIntent met e-mail/naam (bij formulierindiening)
   if (paymentIntentId && email) {
+    // Cadeau-variant: prijs en toegangsduur NOOIT uit de browser vertrouwen. We
+    // zoeken de gekozen variant op in het product (Convex) en gebruiken díe waarden,
+    // zodat niemand via een aangepast verzoek een goedkopere cadeauprijs kan afdwingen.
+    let variant: { label?: string; priceInCents: number; billingPeriod: string; accessDays: number } | null = null;
+    const wilVariant =
+      isGift &&
+      (!!giftVariantLabel ||
+        !!giftVariantBillingPeriod ||
+        (typeof giftVariantPriceInCents === "number" && giftVariantPriceInCents > 0));
+    if (wilVariant) {
+      const giftProduct = slug ? await convex.query(api.checkoutProducts.getBySlug, { slug }).catch(() => null) : null;
+      const varianten: any[] = giftProduct?.giftVariants ?? [];
+      variant =
+        varianten.find((v) => giftVariantLabel && v.label === giftVariantLabel) ??
+        varianten.find((v) => giftVariantBillingPeriod && v.billingPeriod === giftVariantBillingPeriod) ??
+        null;
+      if (!variant) {
+        return NextResponse.json({ error: "Ongeldige cadeau-variant" }, { status: 400 });
+      }
+    }
+
     const updateParams: Stripe.PaymentIntentUpdateParams = {
       metadata: {
         email,
@@ -49,17 +70,17 @@ export async function POST(req: NextRequest) {
           personalMessage: personalMessage || "",
           deliveryMethod: deliveryMethod || "manual",
           scheduledSendDate: scheduledSendDate ? String(scheduledSendDate) : "",
-          ...(giftVariantBillingPeriod && {
-            giftBillingPeriod: giftVariantBillingPeriod,
-            giftAccessDays: giftVariantAccessDays ? String(giftVariantAccessDays) : "",
-            giftLabel: giftVariantLabel || "",
+          ...(variant && {
+            giftBillingPeriod: variant.billingPeriod,
+            giftAccessDays: String(variant.accessDays),
+            giftLabel: variant.label || "",
           }),
         }),
       },
     };
-    // Als cadeau met variant: pas ook het bedrag aan
-    if (isGift && giftVariantPriceInCents && typeof giftVariantPriceInCents === "number" && giftVariantPriceInCents > 0) {
-      updateParams.amount = giftVariantPriceInCents;
+    // Cadeau met variant: bedrag naar de serverside prijs van die variant.
+    if (variant) {
+      updateParams.amount = variant.priceInCents;
     }
     await stripe.paymentIntents.update(paymentIntentId, updateParams);
     return NextResponse.json({ success: true });
@@ -95,14 +116,30 @@ export async function POST(req: NextRequest) {
 
   const isBusiness = typeof vatNumber === "string" && vatNumber.trim().length >= 4;
   const effectiveCountry = isBusiness ? "OTHER" : (isOutsideEU ? "OTHER" : normalizedCountry);
-  // Addon: generiek (addOnPriceInCents) of legacy benjiAddon vlag
-  const addonPrice = typeof addOnPriceInCents === "number" && addOnPriceInCents > 0
-    ? addOnPriceInCents
-    : benjiAddon === true ? 1000 : 0;
+  // Addon (kassakoopje): de browser mag alleen SIGNALEREN dat het is aangevinkt.
+  // Prijs, type en toegangsduur halen we uit het product in Convex, zodat niemand
+  // via een aangepast verzoek een goedkoper bedrag kan afdwingen.
+  const wilAddon =
+    benjiAddon === true ||
+    (typeof addOnPriceInCents === "number" && addOnPriceInCents > 0) ||
+    (typeof addOnType === "string" && addOnType.length > 0);
+  const addonUitProduct =
+    product.addOnEnabled === true &&
+    typeof product.addOnPriceInCents === "number" &&
+    product.addOnPriceInCents > 0;
+  const addonPrice = !wilAddon
+    ? 0
+    : addonUitProduct
+      ? product.addOnPriceInCents!
+      : benjiAddon === true
+        ? 1000 // legacy: /niet-alleen-nl/betalen zonder addon-config op het product
+        : 0;
   const addonType = addonPrice > 0
-    ? (typeof addOnType === "string" && addOnType ? addOnType : benjiAddon === true ? "benji_access" : "")
+    ? (addonUitProduct ? (product.addOnType ?? "") : "benji_access")
     : "";
-  const addonAccessDays = typeof addOnAccessDays === "number" ? addOnAccessDays : 30;
+  const addonAccessDays = addonPrice > 0
+    ? (addonUitProduct ? (product.addOnAccessDays ?? 30) : 30)
+    : 30;
 
   const totalPrice = product.priceInCents + addonPrice;
   const vat = calculateVat(totalPrice, effectiveCountry);
