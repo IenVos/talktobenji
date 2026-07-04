@@ -18,8 +18,16 @@ export function checkOrigin(req: Request): boolean {
   // Geen origin header = server-to-server of curl = accepteren
   if (!origin && !referer) return true;
 
-  if (origin) return ALLOWED_ORIGINS.some((o) => origin.startsWith(o));
-  if (referer) return ALLOWED_ORIGINS.some((o) => referer.startsWith(o));
+  // Exacte origin-match. NIET startsWith: dat zou "https://talktobenji.com.evil.com"
+  // ten onrechte doorlaten omdat het met een toegestane origin begint.
+  if (origin) return ALLOWED_ORIGINS.includes(origin);
+  if (referer) {
+    try {
+      return ALLOWED_ORIGINS.includes(new URL(referer).origin);
+    } catch {
+      return false;
+    }
+  }
 
   return false;
 }
