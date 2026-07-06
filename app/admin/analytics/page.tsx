@@ -1563,7 +1563,20 @@ export default function AdminAnalytics() {
                 {adsStats.map((r: { campagne: string; ad: string; kanaal: string; getagd: boolean; aanvragen: number; klanten: number; conversie: number; omzet: number }, i: number) => (
                   <tr key={`${r.campagne}||${r.ad}||${i}`}>
                     <td className="py-2.5">
-                      <span className="font-medium text-primary-800">{r.ad || r.campagne}</span>
+                      {/* Puur numerieke ad = Meta advertentie-ID → klikbaar naar Ads Manager (gefilterd op die ad). */}
+                      {r.ad && /^\d{6,}$/.test(r.ad) ? (
+                        <a
+                          href={`https://www.facebook.com/adsmanager/manage/ads?selected_ad_ids=${r.ad}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-primary-600 hover:underline"
+                          title="Open deze advertentie in Meta Ads Manager"
+                        >
+                          {r.ad} ↗
+                        </a>
+                      ) : (
+                        <span className="font-medium text-primary-800">{r.ad || r.campagne}</span>
+                      )}
                       {r.ad && (
                         <span className="block text-[11px] text-primary-400">{r.campagne}{r.kanaal ? ` · ${r.kanaal}` : ""}</span>
                       )}
