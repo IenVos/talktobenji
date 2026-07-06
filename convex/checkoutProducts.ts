@@ -90,11 +90,15 @@ async function resolveProduct(ctx: QueryCtx, product: Doc<"checkoutProducts">) {
 export const getBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, args) => {
+    // Kies expliciet het LIVE product met deze slug. Als er tijdelijk twee producten
+    // dezelfde slug hebben (bijv. bij het overzetten van een kopie naar de schone
+    // URL), pakken we altijd de live variant en nooit per ongeluk de offline versie.
     const product = await ctx.db
       .query("checkoutProducts")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .filter((q) => q.eq(q.field("isLive"), true))
       .first();
-    if (!product || !product.isLive) return null;
+    if (!product) return null;
     return await resolveProduct(ctx, product);
   },
 });
