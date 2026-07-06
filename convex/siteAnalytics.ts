@@ -956,11 +956,13 @@ export const getLiveVisitors = query({
 
 /** Haal recente inschrijvingen op (admin only). */
 export const getRecentHouvasteSignups = query({
-  args: { adminToken: v.string(), days: v.optional(v.number()) },
+  args: { adminToken: v.string(), days: v.optional(v.number()), from: v.optional(v.number()), to: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const daysBack = args.days ?? 7;
-    const since = Date.now() - daysBack * 24 * 60 * 60 * 1000;
+    // Periode: gebruik from/to als die meekomen (volgt de datumkiezer), anders
+    // een terugval op de laatste `days` dagen. `to` standaard "nu".
+    const since = args.from ?? (Date.now() - (args.days ?? 7) * 24 * 60 * 60 * 1000);
+    const until = args.to ?? Date.now();
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -983,7 +985,7 @@ export const getRecentHouvasteSignups = query({
       if (!prev || b.sentAt > prev.createdAt) map.set(lc, { name: prev?.name ?? null, email: b.email, createdAt: b.sentAt });
     }
     const recent = Array.from(map.values())
-      .filter((p) => p.createdAt >= since)
+      .filter((p) => p.createdAt >= since && p.createdAt <= until)
       .sort((a, b) => b.createdAt - a.createdAt);
 
     return {
@@ -999,11 +1001,12 @@ export const getRecentHouvasteSignups = query({
 });
 
 export const getRecentRegistrations = query({
-  args: { adminToken: v.string(), days: v.optional(v.number()) },
+  args: { adminToken: v.string(), days: v.optional(v.number()), from: v.optional(v.number()), to: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const daysBack = args.days ?? 7;
-    const since = Date.now() - daysBack * 24 * 60 * 60 * 1000;
+    // Periode: from/to volgt de datumkiezer; anders terugval op laatste `days` dagen.
+    const since = args.from ?? (Date.now() - (args.days ?? 7) * 24 * 60 * 60 * 1000);
+    const until = args.to ?? Date.now();
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -1012,7 +1015,7 @@ export const getRecentRegistrations = query({
       .order("desc")
       .collect();
 
-    const recent = users.filter((u: any) => u._creationTime >= since);
+    const recent = users.filter((u: any) => u._creationTime >= since && u._creationTime <= until);
 
     return {
       total: recent.length,

@@ -412,12 +412,12 @@ function RecentLeadsBanner({
   icon: Icon,
   title,
   leads,
-  weekTotal,
+  periodeTotal,
 }: {
   icon: LucideIcon;
   title: string;
   leads: { createdAt: number; name: string | null; email: string }[];
-  weekTotal: number;
+  periodeTotal: number;
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -429,7 +429,7 @@ function RecentLeadsBanner({
       >
         <Icon size={18} className="text-green-600 flex-shrink-0" />
         <span className="text-sm font-semibold text-green-800 flex-1 min-w-0">{title}</span>
-        <span className="text-xs text-green-500 flex-shrink-0">{weekTotal} deze week</span>
+        <span className="text-xs text-green-500 flex-shrink-0">{periodeTotal} in periode</span>
         <ChevronDown
           size={15}
           className={`text-green-500 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
@@ -564,8 +564,8 @@ export default function AdminAnalytics() {
   const adsStats = useAdminQuery(api.evenHouvastOpvolg.advertentieOverzicht, { from, to });
   const allGoals = useAdminQuery(api.siteAnalytics.listGoalsWithOwner, {});
   const liveVisitors = useAdminQuery(api.siteAnalytics.getLiveVisitors, {});
-  const recentRegs = useAdminQuery(api.siteAnalytics.getRecentRegistrations, { days: 7 });
-  const recentHouvast = useAdminQuery(api.siteAnalytics.getRecentHouvasteSignups, { days: 7 });
+  const recentRegs = useAdminQuery(api.siteAnalytics.getRecentRegistrations, { from, to });
+  const recentHouvast = useAdminQuery(api.siteAnalytics.getRecentHouvasteSignups, { from, to });
   const excludedIps = useAdminQuery(api.siteAnalytics.listExcludedIps, {});
   const addExcludedIp = useAdminMutation(api.siteAnalytics.addExcludedIp);
   const removeExcludedIp = useAdminMutation(api.siteAnalytics.removeExcludedIp);
@@ -829,7 +829,7 @@ export default function AdminAnalytics() {
             icon={Users}
             title={`${vandaag.length} nieuwe inschrijving${vandaag.length !== 1 ? "en" : ""} vandaag`}
             leads={vandaag.map((u: { createdAt: number; name: string; email: string }) => ({ createdAt: u.createdAt, name: u.name ?? null, email: u.email }))}
-            weekTotal={recentRegs.total}
+            periodeTotal={recentRegs.total}
           />
         );
       })()}
@@ -845,7 +845,7 @@ export default function AdminAnalytics() {
             icon={Leaf}
             title={`${vandaag.length} nieuwe Houvast aanvra${vandaag.length !== 1 ? "gen" : "ag"} vandaag`}
             leads={vandaag}
-            weekTotal={recentHouvast.total}
+            periodeTotal={recentHouvast.total}
           />
         );
       })()}
