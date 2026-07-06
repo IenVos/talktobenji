@@ -2,7 +2,8 @@
  * Landingspagina's — admin beheert, publiek zichtbaar via /lp/[slug].
  */
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, type QueryCtx } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import { checkAdmin } from "./adminAuth";
 
 /** Admin: lijst alle pagina's, nieuwste eerst (incl. opgeslagen productafbeelding-URL) */
@@ -33,17 +34,39 @@ export const getBySlug = query({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
     if (!page || !page.isLive) return null;
-    let productImageUrl: string | null = null;
-    let bgImageUrl: string | null = null;
-    try {
-      if (page.productImageStorageId) productImageUrl = await ctx.storage.getUrl(page.productImageStorageId);
-    } catch { /* negeer */ }
-    try {
-      if (page.bgImageStorageId) bgImageUrl = await ctx.storage.getUrl(page.bgImageStorageId);
-    } catch { /* negeer */ }
-    return { ...page, productImageUrl, bgImageUrl };
+    return await resolveLandingPage(ctx, page);
   },
 });
+
+/**
+ * Concept-preview: haal een landingspagina op via slug ongeacht of hij live is.
+ * Alleen voor ingelogde admins — zo kan een LP bekeken worden vóór hij live gaat.
+ */
+export const getBySlugPreview = query({
+  args: { slug: v.string(), adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const page = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (!page) return null;
+    return await resolveLandingPage(ctx, page);
+  },
+});
+
+/** Los de afbeeldings-URL's van een landingspagina op (gedeeld door live + preview). */
+async function resolveLandingPage(ctx: QueryCtx, page: Doc<"landingPages">) {
+  let productImageUrl: string | null = null;
+  let bgImageUrl: string | null = null;
+  try {
+    if (page.productImageStorageId) productImageUrl = await ctx.storage.getUrl(page.productImageStorageId);
+  } catch { /* negeer */ }
+  try {
+    if (page.bgImageStorageId) bgImageUrl = await ctx.storage.getUrl(page.bgImageStorageId);
+  } catch { /* negeer */ }
+  return { ...page, productImageUrl, bgImageUrl };
+}
 
 /** Admin: genereer upload URL voor afbeeldingen/video */
 export const generateUploadUrl = mutation({

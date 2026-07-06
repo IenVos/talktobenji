@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
+import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { EVEN_HOUVAST_POPUP_DEFAULT_TEKST } from "@/components/EvenHouvastPopup";
@@ -474,6 +474,14 @@ function FormatToolbar({
 }
 
 export default function AdminLandingspaginasPage() {
+  const { adminToken } = useAdminAuth();
+  // Concept-preview: bewaar de admin-token kort in localStorage en open de LP met
+  // ?preview=1, zodat de pagina zichtbaar is ook als hij nog niet live is.
+  const openPreview = (slug: string) => {
+    if (!slug.trim()) return;
+    if (adminToken) localStorage.setItem("ttb_admin_token", adminToken);
+    window.open(`/lp/${slug.trim()}?preview=1`, "_blank", "noopener");
+  };
   const pages = useAdminQuery(api.landingPages.list, {});
   const verliestypen = useAdminQuery(api.verliesTypen.list, {}) as { code: string; naam: string }[] | undefined;
   const createPage = useAdminMutation(api.landingPages.create);
@@ -1210,17 +1218,30 @@ export default function AdminLandingspaginasPage() {
 
         {showForm && (
           <div className="space-y-5 mb-6">
-            {/* Bekijk pagina link */}
-            {editingId && editingPage?.isLive && (
-              <a
-                href={`/lp/${editingPage.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-primary-600 hover:underline"
-              >
-                <ExternalLink size={15} />
-                Bekijk pagina: /lp/{editingPage.slug}
-              </a>
+            {/* Bekijk pagina link + concept-preview */}
+            {editingId && editingPage && (
+              <div className="flex flex-wrap items-center gap-4">
+                {editingPage.isLive && (
+                  <a
+                    href={`/lp/${editingPage.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-primary-600 hover:underline"
+                  >
+                    <ExternalLink size={15} />
+                    Bekijk pagina: /lp/{editingPage.slug}
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => openPreview(editingPage.slug)}
+                  className="inline-flex items-center gap-2 text-sm text-amber-700 hover:underline"
+                  title="Bekijk als concept (ook als de pagina nog niet live is)"
+                >
+                  <Eye size={15} />
+                  Bekijk als concept
+                </button>
+              </div>
             )}
 
             {/* Basis */}
@@ -2547,10 +2568,14 @@ export default function AdminLandingspaginasPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        {page.isLive && (
+                        {page.isLive ? (
                           <a href={`/lp/${page.slug}`} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg" title="Bekijk pagina">
                             <ExternalLink size={17} />
                           </a>
+                        ) : (
+                          <button type="button" onClick={() => openPreview(page.slug)} className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg" title="Bekijk als concept (nog niet live)">
+                            <ExternalLink size={17} />
+                          </button>
                         )}
                         <button type="button" onClick={() => handleToggleLive(page._id)} className={`p-2 rounded-lg ${page.isLive ? "text-green-600 hover:bg-green-50" : "text-gray-400 hover:bg-gray-100"}`} title={page.isLive ? "Zet offline" : "Zet online"}>
                           {page.isLive ? <Eye size={17} /> : <EyeOff size={17} />}

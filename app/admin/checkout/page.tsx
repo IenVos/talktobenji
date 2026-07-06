@@ -5,8 +5,9 @@ import { useAdminQuery, useAdminMutation, useAdminAuth } from "../AdminAuthConte
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { EVEN_HOUVAST_POPUP_DEFAULT_TEKST } from "@/components/EvenHouvastPopup";
+import { RUSTIGE_SECTIE_VOLGORDE, RUSTIGE_SECTIE_LABELS } from "@/app/betalen/[slug]/RustigeCheckout";
 import {
-  CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink, Send, Copy, ChevronDown,
+  CreditCard, Plus, Edit, Trash2, Save, X, ExternalLink, Send, Copy, ChevronDown, Eye,
 } from "lucide-react";
 
 type GiftVariantForm = {
@@ -57,13 +58,14 @@ type CheckoutProduct = {
   extraTextBlocks?: { title?: string; content: string; imageStorageId?: string; imageUrl?: string | null }[];
   checkoutLayout?: string;
   rustigeContent?: {
-    hero?: { imageStorageId?: string; imageUrl?: string | null; titel?: string; subtitel?: string; intro?: string; bullets?: string[]; prijsLabel?: string; buttonText?: string };
+    hero?: { imageStorageId?: string; imageUrl?: string | null; titel?: string; subtitel?: string; intro?: string; bullets?: string[]; prijsLabel?: string; buttonText?: string; buttonEnabled?: boolean; buttonColor?: string };
     watJeKrijgt?: { imageStorageId?: string; imageUrl?: string | null; titel?: string; tekst?: string; bullets?: string[]; prompts?: { dag: string; vraag: string }[] };
     herkenning?: { imageStorageId?: string; imageUrl?: string | null; quote?: string; intro?: string; bullets?: string[]; slot?: string };
     reviewsTitel?: string;
     benjiVerhaal?: { imageStorageId?: string; imageUrl?: string | null; titel?: string; tekst?: string };
-    veiligheid?: { bullets?: string[]; buttonText?: string };
+    veiligheid?: { bullets?: string[]; buttonText?: string; buttonEnabled?: boolean; buttonColor?: string };
     faq?: { vraag: string; antwoord: string }[];
+    sectionOrder?: string[];
   } | null;
   createdAt: number;
   updatedAt: number;
@@ -106,6 +108,7 @@ type FormState = {
 // Rustige checkout-variant: alle teksten als regel-gebaseerde velden (eenvoudig te bewerken)
 type RustigForm = {
   heroTitel: string; heroSubtitel: string; heroIntro: string; heroBullets: string; heroPrijsLabel: string; heroButton: string;
+  heroButtonEnabled: boolean; heroButtonColor: string;
   heroImageFile: File | null; heroImageStorageId?: string; heroImageUrl?: string | null;
   wjkTitel: string; wjkTekst: string; wjkBullets: string; wjkPrompts: string;
   wjkImageFile: File | null; wjkImageStorageId?: string; wjkImageUrl?: string | null;
@@ -115,11 +118,22 @@ type RustigForm = {
   benjiTitel: string; benjiTekst: string;
   benjiImageFile: File | null; benjiImageStorageId?: string; benjiImageUrl?: string | null;
   veiligBullets: string; veiligButton: string;
+  veiligButtonEnabled: boolean; veiligButtonColor: string;
   faq: string;
+  sectionOrder: string[];
 };
+
+// Maak een volledige, geldige sectievolgorde: bewaarde volgorde eerst (alleen geldige
+// sleutels), daarna ontbrekende sleutels in standaardvolgorde achteraan.
+function normaliseerVolgorde(order?: string[]): string[] {
+  const geldig = (order ?? []).filter((k) => (RUSTIGE_SECTIE_VOLGORDE as readonly string[]).includes(k));
+  const rest = RUSTIGE_SECTIE_VOLGORDE.filter((k) => !geldig.includes(k));
+  return [...geldig, ...rest];
+}
 
 const EMPTY_RUSTIG: RustigForm = {
   heroTitel: "", heroSubtitel: "", heroIntro: "", heroBullets: "", heroPrijsLabel: "", heroButton: "",
+  heroButtonEnabled: true, heroButtonColor: "",
   heroImageFile: null, heroImageStorageId: undefined, heroImageUrl: null,
   wjkTitel: "", wjkTekst: "", wjkBullets: "", wjkPrompts: "",
   wjkImageFile: null, wjkImageStorageId: undefined, wjkImageUrl: null,
@@ -129,7 +143,9 @@ const EMPTY_RUSTIG: RustigForm = {
   benjiTitel: "", benjiTekst: "",
   benjiImageFile: null, benjiImageStorageId: undefined, benjiImageUrl: null,
   veiligBullets: "", veiligButton: "",
+  veiligButtonEnabled: true, veiligButtonColor: "",
   faq: "",
+  sectionOrder: normaliseerVolgorde(),
 };
 
 // Regel-helpers voor de rustige velden
@@ -145,6 +161,7 @@ function rustigFromProduct(product: CheckoutProduct): RustigForm {
   return {
     heroTitel: rc?.hero?.titel ?? "", heroSubtitel: rc?.hero?.subtitel ?? "", heroIntro: rc?.hero?.intro ?? "",
     heroBullets: naarRegels(rc?.hero?.bullets), heroPrijsLabel: rc?.hero?.prijsLabel ?? "", heroButton: rc?.hero?.buttonText ?? "",
+    heroButtonEnabled: rc?.hero?.buttonEnabled !== false, heroButtonColor: rc?.hero?.buttonColor ?? "",
     heroImageFile: null, heroImageStorageId: rc?.hero?.imageStorageId, heroImageUrl: rc?.hero?.imageUrl ?? null,
     wjkTitel: rc?.watJeKrijgt?.titel ?? "", wjkTekst: rc?.watJeKrijgt?.tekst ?? "", wjkBullets: naarRegels(rc?.watJeKrijgt?.bullets),
     wjkPrompts: (rc?.watJeKrijgt?.prompts ?? []).map((p) => `${p.dag} | ${p.vraag}`).join("\n"),
@@ -155,7 +172,9 @@ function rustigFromProduct(product: CheckoutProduct): RustigForm {
     benjiTitel: rc?.benjiVerhaal?.titel ?? "", benjiTekst: rc?.benjiVerhaal?.tekst ?? "",
     benjiImageFile: null, benjiImageStorageId: rc?.benjiVerhaal?.imageStorageId, benjiImageUrl: rc?.benjiVerhaal?.imageUrl ?? null,
     veiligBullets: naarRegels(rc?.veiligheid?.bullets), veiligButton: rc?.veiligheid?.buttonText ?? "",
+    veiligButtonEnabled: rc?.veiligheid?.buttonEnabled !== false, veiligButtonColor: rc?.veiligheid?.buttonColor ?? "",
     faq: (rc?.faq ?? []).map((f) => `${f.vraag} | ${f.antwoord}`).join("\n"),
+    sectionOrder: normaliseerVolgorde(rc?.sectionOrder),
   };
 }
 
@@ -239,6 +258,43 @@ function RustigImage({ label, file, url, onPick, onClear }: {
   );
 }
 
+// Kleine bediening voor een CTA-knop: aan/uit + kleur. Lege kleur = standaardkleur.
+function CtaControls({ enabled, onEnabledChange, color, onColorChange }: {
+  enabled: boolean;
+  onEnabledChange: (v: boolean) => void;
+  color: string;
+  onColorChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+      <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+        <input
+          type="checkbox"
+          checked={enabled}
+          onChange={(e) => onEnabledChange(e.target.checked)}
+          className="rounded border-primary-300 text-primary-600"
+        />
+        Knop tonen
+      </label>
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-gray-500">Kleur</span>
+        <input
+          type="color"
+          value={color || "#6d84a8"}
+          onChange={(e) => onColorChange(e.target.value)}
+          className="w-8 h-8 rounded border border-stone-200 cursor-pointer bg-white p-0.5"
+          title="Knopkleur"
+        />
+        {color && (
+          <button type="button" onClick={() => onColorChange("")} className="text-xs text-gray-400 hover:text-gray-600 underline">
+            standaardkleur
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminCheckoutPage() {
   const { adminToken } = useAdminAuth();
   const products = useAdminQuery(api.checkoutProducts.list, {});
@@ -248,6 +304,25 @@ export default function AdminCheckoutPage() {
   const removeProduct = useAdminMutation(api.checkoutProducts.remove);
   const generateUploadUrl = useAdminMutation(api.checkoutProducts.generateUploadUrl);
   const getImageUrl = useAdminMutation(api.landingPages.getImageUrl);
+
+  // Concept-preview: bewaar de admin-token kort in localStorage en open de
+  // betaalpagina met ?preview=1. Zo is de pagina zichtbaar ook als hij niet live is.
+  const openPreview = (slug: string) => {
+    if (!slug.trim()) return;
+    if (adminToken) localStorage.setItem("ttb_admin_token", adminToken);
+    window.open(`/betalen/${slug.trim()}?preview=1`, "_blank", "noopener");
+  };
+
+  // Verplaats een sectie in de rustige checkout omhoog (-1) of omlaag (+1).
+  const moveSectie = (index: number, dir: -1 | 1) => {
+    setRustig((r) => {
+      const arr = [...r.sectionOrder];
+      const j = index + dir;
+      if (j < 0 || j >= arr.length) return r;
+      [arr[index], arr[j]] = [arr[j], arr[index]];
+      return { ...r, sectionOrder: arr };
+    });
+  };
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"checkoutProducts"> | null>(null);
@@ -432,6 +507,7 @@ export default function AdminCheckoutPage() {
             imageStorageId: heroImg,
             titel: opt(rustig.heroTitel), subtitel: opt(rustig.heroSubtitel), intro: opt(rustig.heroIntro),
             bullets: regelsNaarArr(rustig.heroBullets), prijsLabel: opt(rustig.heroPrijsLabel), buttonText: opt(rustig.heroButton),
+            buttonEnabled: rustig.heroButtonEnabled, buttonColor: opt(rustig.heroButtonColor),
           },
           watJeKrijgt: {
             imageStorageId: wjkImg,
@@ -444,8 +520,9 @@ export default function AdminCheckoutPage() {
           },
           reviewsTitel: opt(rustig.reviewsTitel),
           benjiVerhaal: { imageStorageId: benjiImg, titel: opt(rustig.benjiTitel), tekst: opt(rustig.benjiTekst) },
-          veiligheid: { bullets: regelsNaarArr(rustig.veiligBullets), buttonText: opt(rustig.veiligButton) },
+          veiligheid: { bullets: regelsNaarArr(rustig.veiligBullets), buttonText: opt(rustig.veiligButton), buttonEnabled: rustig.veiligButtonEnabled, buttonColor: opt(rustig.veiligButtonColor) },
           faq: regelsNaarArr(rustig.faq).map((r) => { const [vraag, antwoord] = splitPipe(r); return { vraag, antwoord }; }).filter((f) => f.vraag),
+          sectionOrder: normaliseerVolgorde(rustig.sectionOrder),
         };
       }
 
@@ -581,15 +658,26 @@ export default function AdminCheckoutPage() {
           <div className="space-y-4 mb-6">
             {/* Link naar pagina bij bewerken */}
             {editingId && (
-              <a
-                href={`/betalen/${form.slug}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-primary-600 hover:underline"
-              >
-                <ExternalLink size={15} />
-                Bekijk pagina: /betalen/{form.slug}
-              </a>
+              <div className="flex flex-wrap items-center gap-4">
+                <a
+                  href={`/betalen/${form.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-primary-600 hover:underline"
+                >
+                  <ExternalLink size={15} />
+                  Bekijk pagina: /betalen/{form.slug}
+                </a>
+                <button
+                  type="button"
+                  onClick={() => openPreview(form.slug)}
+                  className="inline-flex items-center gap-2 text-sm text-amber-700 hover:underline"
+                  title="Bekijk als concept (ook als de pagina nog niet live is)"
+                >
+                  <ExternalLink size={15} />
+                  Bekijk als concept
+                </button>
+              </div>
             )}
 
             {/* Basis */}
@@ -1321,7 +1409,7 @@ export default function AdminCheckoutPage() {
                   <option value="rustig">Rustige checkout (verdriet/rouw)</option>
                 </select>
                 <p className="text-xs text-gray-400 mt-1">
-                  &ldquo;Rustig&rdquo; toont de zachte opbouw in 7 secties hieronder. De velden vallen terug op nette standaardteksten als je ze leeg laat.
+                  &ldquo;Rustig&rdquo; toont de zachte opbouw in secties hieronder. Wat je leeg laat, blijft leeg op de pagina (lege secties verdwijnen).
                 </p>
               </div>
 
@@ -1331,6 +1419,23 @@ export default function AdminCheckoutPage() {
                   <p className="text-sm text-gray-500">
                     Tip: bij vinkjes-lijsten zet je één regel per vinkje. Bij prompts en FAQ gebruik je het formaat <code className="bg-white px-1 rounded">links | rechts</code> (één per regel).
                   </p>
+
+                  {/* Volgorde van de blokken */}
+                  <div className="border border-stone-200 rounded-lg bg-white p-3 space-y-2">
+                    <p className="text-sm font-semibold text-primary-800">Volgorde van de blokken</p>
+                    <p className="text-xs text-gray-400">Zet met de pijltjes een blok hoger of lager op de pagina (bijv. het betaalblok naar boven, of een quote eronder). Lege blokken tonen niets.</p>
+                    <ul className="space-y-1">
+                      {rustig.sectionOrder.map((key, i) => (
+                        <li key={key} className="flex items-center justify-between gap-2 rounded-md border border-stone-100 bg-stone-50 px-3 py-1.5">
+                          <span className="text-sm text-gray-700">{i + 1}. {RUSTIGE_SECTIE_LABELS[key] ?? key}</span>
+                          <span className="flex items-center gap-1">
+                            <button type="button" disabled={i === 0} onClick={() => moveSectie(i, -1)} className="w-7 h-7 flex items-center justify-center rounded border border-stone-200 text-gray-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed" title="Omhoog">↑</button>
+                            <button type="button" disabled={i === rustig.sectionOrder.length - 1} onClick={() => moveSectie(i, 1)} className="w-7 h-7 flex items-center justify-center rounded border border-stone-200 text-gray-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed" title="Omlaag">↓</button>
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
 
                   {/* Sectie 1 — Hero */}
                   <div className="space-y-2">
@@ -1344,6 +1449,12 @@ export default function AdminCheckoutPage() {
                       <input className={inputClass} placeholder="Prijsregel (bijv. €37 eenmalig)" value={rustig.heroPrijsLabel} onChange={setR("heroPrijsLabel")} />
                       <input className={inputClass} placeholder="Knoptekst (scroll-knop)" value={rustig.heroButton} onChange={setR("heroButton")} />
                     </div>
+                    <CtaControls
+                      enabled={rustig.heroButtonEnabled}
+                      onEnabledChange={(v) => setRustig((r) => ({ ...r, heroButtonEnabled: v }))}
+                      color={rustig.heroButtonColor}
+                      onColorChange={(v) => setRustig((r) => ({ ...r, heroButtonColor: v }))}
+                    />
                     <p className="text-xs text-gray-400">Let op: deze knop is een <strong>scroll-CTA</strong>, hij springt naar het betaalblok (net als de knop bij Veiligheid). De échte betaalknop pas je aan bij &ldquo;Knoptekst (standaard: Betalen)&rdquo; bovenaan.</p>
                   </div>
 
@@ -1387,6 +1498,12 @@ export default function AdminCheckoutPage() {
                     <p className="text-sm font-semibold text-primary-800">6. Veiligheid + laatste knop</p>
                     <textarea className={inputClass} rows={4} placeholder="Vinkjes (één per regel)" value={rustig.veiligBullets} onChange={setR("veiligBullets")} />
                     <input className={inputClass} placeholder="Knoptekst (bijv. Ja, ik gun mezelf dit moment)" value={rustig.veiligButton} onChange={setR("veiligButton")} />
+                    <CtaControls
+                      enabled={rustig.veiligButtonEnabled}
+                      onEnabledChange={(v) => setRustig((r) => ({ ...r, veiligButtonEnabled: v }))}
+                      color={rustig.veiligButtonColor}
+                      onColorChange={(v) => setRustig((r) => ({ ...r, veiligButtonColor: v }))}
+                    />
                   </div>
 
                   {/* Sectie 7 — FAQ */}
@@ -1489,7 +1606,7 @@ export default function AdminCheckoutPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        {product.isLive && (
+                        {product.isLive ? (
                           <a
                             href={`/betalen/${product.slug}`}
                             target="_blank"
@@ -1499,6 +1616,15 @@ export default function AdminCheckoutPage() {
                           >
                             <ExternalLink size={17} />
                           </a>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => openPreview(product.slug)}
+                            className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg"
+                            title="Bekijk als concept (nog niet live)"
+                          >
+                            <Eye size={17} />
+                          </button>
                         )}
                         <button
                           type="button"

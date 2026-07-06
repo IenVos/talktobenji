@@ -17,6 +17,8 @@ export const rustigeContentValidator = v.object({
       bullets: v.optional(v.array(v.string())),
       prijsLabel: v.optional(v.string()),
       buttonText: v.optional(v.string()),
+      buttonEnabled: v.optional(v.boolean()),
+      buttonColor: v.optional(v.string()),
     })
   ),
   // Sectie 2 — Wat je krijgt (met voorbeeld-prompts)
@@ -56,10 +58,16 @@ export const rustigeContentValidator = v.object({
     v.object({
       bullets: v.optional(v.array(v.string())),
       buttonText: v.optional(v.string()),
+      buttonEnabled: v.optional(v.boolean()),
+      buttonColor: v.optional(v.string()),
     })
   ),
   // Sectie 7 — FAQ
   faq: v.optional(
     v.array(v.object({ vraag: v.string(), antwoord: v.string() }))
   ),
+  // Volgorde van de secties (sleutels: hero, watJeKrijgt, herkenning, benjiVerhaal,
+  // veiligheid, reviews, betaalblok, extra, faq). Ontbrekende sleutels worden
+  // achteraan in standaardvolgorde aangevuld.
+  sectionOrder: v.optional(v.array(v.string())),
 });

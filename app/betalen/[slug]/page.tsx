@@ -304,7 +304,23 @@ export default function BetalenPage() {
   const params = useParams()!;
   const slug = typeof params?.slug === "string" ? params.slug : Array.isArray(params?.slug) ? params.slug[0] : "";
 
-  const product = useQuery(api.checkoutProducts.getBySlug, slug ? { slug } : "skip");
+  // Concept-preview: met ?preview=1 haalt een ingelogde admin de pagina op ook als
+  // hij nog niet live is. De admin-token komt via localStorage (niet in de URL).
+  const [isPreview] = useState(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "1"
+  );
+  const [previewToken] = useState<string | null>(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "1"
+      ? localStorage.getItem("ttb_admin_token")
+      : null
+  );
+
+  const liveProduct = useQuery(api.checkoutProducts.getBySlug, !isPreview && slug ? { slug } : "skip");
+  const previewProduct = useQuery(
+    api.checkoutProducts.getBySlugPreview,
+    isPreview && slug && previewToken ? { slug, adminToken: previewToken } : "skip"
+  );
+  const product = isPreview ? previewProduct : liveProduct;
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loadingSecret, setLoadingSecret] = useState(false);
   const [secretError, setSecretError] = useState<string | null>(null);
@@ -317,14 +333,14 @@ export default function BetalenPage() {
 
   // Afhaak-funnel: stappen door de checkout (path = product-slug)
   const fireFunnel = useFunnelTracker("checkout", slug);
-  // Stap 1: checkout bereikt (zodra de slug bekend is)
+  // Stap 1: checkout bereikt (zodra de slug bekend is). In preview niet meten.
   useEffect(() => {
-    if (slug) fireFunnel("reached");
-  }, [slug, fireFunnel]);
+    if (slug && !isPreview) fireFunnel("reached");
+  }, [slug, fireFunnel, isPreview]);
   // Stap 2: bezoeker heeft een geldig e-mailadres ingevuld (echt begonnen met afrekenen)
   useEffect(() => {
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) fireFunnel("details");
-  }, [email, fireFunnel]);
+    if (!isPreview && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) fireFunnel("details");
+  }, [email, fireFunnel, isPreview]);
 
   // Land + BTW state
   const [countryCode, setCountryCode] = useState("");
@@ -442,6 +458,23 @@ export default function BetalenPage() {
       setVatNumberCommitted(committed);
     }
   };
+
+  // Preview zonder admin-token (niet ingelogd of tab direct geopend): duidelijk melden.
+  if (isPreview && !previewToken) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex flex-col items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-stone-800 mb-3">Concept-weergave</h1>
+          <p className="text-stone-500 mb-6">
+            Open de conceptpagina via de admin met de knop &ldquo;Bekijk als concept&rdquo;. Zo weten we dat je bent ingelogd.
+          </p>
+          <Link href="/admin/checkout" className="text-primary-600 hover:underline text-sm">
+            Naar de admin
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (product === undefined) {
     return (
@@ -623,11 +656,19 @@ export default function BetalenPage() {
     </div>
   );
 
+  // Concept-banner boven de pagina in preview-modus.
+  const conceptBanner = isPreview ? (
+    <div className="sticky top-0 z-[60] bg-amber-400 text-amber-950 text-center text-sm font-medium py-2 px-4">
+      Conceptweergave — {product.isLive ? "deze pagina is al live" : "nog niet live, alleen voor jou zichtbaar"}.
+    </div>
+  ) : null;
+
   // Rustige layout (variant voor verdriet/rouw) — zelfde betaal-plumbing, andere opbouw.
   if ((product as any).checkoutLayout === "rustig") {
     return (
       <>
-        <ScrollDepthTracker category="checkout" path={slug} />
+        {conceptBanner}
+        {!isPreview && <ScrollDepthTracker category="checkout" path={slug} />}
         <EvenHouvastPopup
           enabled={!!(product as any).evenHouvastPopupEnabled}
           tekst={(product as any).evenHouvastPopupTekst}
@@ -647,8 +688,9 @@ export default function BetalenPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
+      {conceptBanner}
       {/* Scroll-diepte op de checkout (gegroepeerd per product-slug) */}
-      <ScrollDepthTracker category="checkout" path={slug} />
+      {!isPreview && <ScrollDepthTracker category="checkout" path={slug} />}
       <EvenHouvastPopup enabled={!!(product as any).evenHouvastPopupEnabled} />
       <main className="max-w-md mx-auto px-4 py-8">
         {/* Product samenvatting — Calm-stijl: naam · vinkjes · prijs */}

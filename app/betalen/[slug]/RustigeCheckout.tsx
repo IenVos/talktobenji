@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, Fragment, type ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -25,64 +25,41 @@ const KLEUR = {
 
 type Prompt = { dag: string; vraag: string };
 type Review = { author: string; role?: string; text: string; imageUrl?: string | null };
+type TextBlock = { title?: string; content: string; imageUrl?: string | null };
 
 export type RustigeContent = {
-  hero?: { imageUrl?: string | null; titel?: string; subtitel?: string; intro?: string; bullets?: string[]; prijsLabel?: string; buttonText?: string };
+  hero?: { imageUrl?: string | null; titel?: string; subtitel?: string; intro?: string; bullets?: string[]; prijsLabel?: string; buttonText?: string; buttonEnabled?: boolean; buttonColor?: string };
   watJeKrijgt?: { imageUrl?: string | null; titel?: string; tekst?: string; bullets?: string[]; prompts?: Prompt[] };
   herkenning?: { imageUrl?: string | null; quote?: string; intro?: string; bullets?: string[]; slot?: string };
   reviewsTitel?: string;
   benjiVerhaal?: { imageUrl?: string | null; titel?: string; tekst?: string };
-  veiligheid?: { bullets?: string[]; buttonText?: string };
+  veiligheid?: { bullets?: string[]; buttonText?: string; buttonEnabled?: boolean; buttonColor?: string };
   faq?: { vraag: string; antwoord: string }[];
+  // Volgorde van de secties op de pagina (sleutels uit SECTIE_SLEUTELS). Ontbrekende
+  // sleutels worden in de standaardvolgorde achteraan aangevuld.
+  sectionOrder?: string[];
 };
 
-const DEFAULT: Required<Omit<RustigeContent, "reviewsTitel">> & { reviewsTitel: string } = {
-  hero: {
-    titel: "Niet Alleen",
-    subtitel: "30 dagen zachte begeleiding wanneer je hoofd vol zit en je even niet weet hoe verder.",
-    intro: "💙 Een klein dagelijks ankerpunt voor mensen die door een moeilijke periode gaan.",
-    bullets: ["Slechts 3 tot 5 minuten per dag", "Geen zware opdrachten", "Op jouw tempo", "Direct toegang"],
-    prijsLabel: "€37 eenmalig",
-    buttonText: "Ja, ik wil beginnen",
-  },
-  watJeKrijgt: {
-    titel: "Geen grote opdrachten",
-    tekst: "Gewoon kleine dagelijkse momenten die helpen om stil te staan bij wat je voelt.",
-    bullets: ["30 dagen begeleiding", "Reflectievragen", "Kleine oefeningen", "Meer rust en overzicht"],
-    prompts: [
-      { dag: "Dag 3", vraag: "Wat heb je vandaag nodig?" },
-      { dag: "Dag 7", vraag: "Welke gedachte blijft steeds terugkomen?" },
-      { dag: "Dag 14", vraag: "Wat zou je tegen jezelf zeggen als je je beste vriend was?" },
-    ],
-  },
-  herkenning: {
-    quote: "Soms ben je niet verdrietig.\nSoms ben je gewoon moe van alles dragen.",
-    intro: "Misschien herken je dit:",
-    bullets: [
-      "Je hoofd blijft maar doorgaan",
-      "Je weet niet goed wat je voelt",
-      "Je probeert sterk te blijven",
-      "Je bent moe van alles alleen dragen",
-    ],
-    slot: "Dan is Niet Alleen voor jou gemaakt.",
-  },
-  reviewsTitel: "Hoe anderen dit hebben ervaren",
-  benjiVerhaal: {
-    titel: "Waarom ik dit maakte",
-    tekst: "Ik heb Niet Alleen gemaakt omdat ik zag hoe vaak mensen alleen gelaten worden met verdriet.",
-  },
-  veiligheid: {
-    bullets: ["Direct toegang na betaling", "Eenmalig, geen abonnement", "Op jouw tempo", "Geen druk of verwachtingen"],
-    buttonText: "Ja, ik gun mezelf dit moment",
-  },
-  faq: [
-    { vraag: "Moet ik veel schrijven?", antwoord: "Nee. Een paar woorden is genoeg. Je hoeft niets, je mag alles." },
-    { vraag: "Hoeveel tijd kost dit?", antwoord: "Een paar minuten per dag, meer niet." },
-    { vraag: "Is dit therapie?", antwoord: "Nee. Het is zachte begeleiding, geen vervanging voor professionele hulp." },
-    { vraag: "Krijg ik direct toegang?", antwoord: "Ja, meteen na je betaling kun je beginnen." },
-    { vraag: "Wat als ik een dag oversla?", antwoord: "Helemaal niet erg. Je pakt het op wanneer het jou uitkomt, op jouw tempo." },
-  ],
+// Vaste standaardvolgorde van de secties. Admin kan hiervan afwijken via sectionOrder.
+export const RUSTIGE_SECTIE_VOLGORDE = [
+  "hero", "watJeKrijgt", "herkenning", "benjiVerhaal", "veiligheid", "reviews", "betaalblok", "extra", "faq",
+] as const;
+
+// Labels voor in de admin (zelfde sleutels).
+export const RUSTIGE_SECTIE_LABELS: Record<string, string> = {
+  hero: "Hero",
+  watJeKrijgt: "Wat je krijgt",
+  herkenning: "Herkenning",
+  benjiVerhaal: "Persoonlijk verhaal",
+  veiligheid: "Veiligheid + knop",
+  reviews: "Reviews",
+  betaalblok: "Betaalblok",
+  extra: "Extra tekstblokken",
+  faq: "FAQ",
 };
+
+// Bewust géén standaardteksten: wat in de admin leeg blijft, blijft leeg op de
+// voorkant. Alleen kleine functionele terugval (knoplabels, prijs) hieronder.
 
 function scrollNaarBetalen() {
   document.getElementById("betaalblok")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -145,27 +122,36 @@ export function RustigeCheckout({
   gegevensNode,
   paymentNode,
 }: {
-  product: { name: string; rustigeContent?: RustigeContent | null; reviews?: Review[] };
+  product: { name: string; rustigeContent?: RustigeContent | null; reviews?: Review[]; extraTextBlocks?: TextBlock[] };
   priceFormatted: string;
   gegevensNode?: ReactNode;
   paymentNode: ReactNode;
 }) {
   const rc = product.rustigeContent ?? {};
-  const hero = { ...DEFAULT.hero, ...(rc.hero ?? {}) };
-  const wjk = { ...DEFAULT.watJeKrijgt, ...(rc.watJeKrijgt ?? {}) };
-  const herk = { ...DEFAULT.herkenning, ...(rc.herkenning ?? {}) };
-  const benji = { ...DEFAULT.benjiVerhaal, ...(rc.benjiVerhaal ?? {}) };
-  const veilig = { ...DEFAULT.veiligheid, ...(rc.veiligheid ?? {}) };
-  const faq = rc.faq?.length ? rc.faq : DEFAULT.faq;
-  const reviewsTitel = rc.reviewsTitel?.trim() || DEFAULT.reviewsTitel;
+  // Geen standaardteksten: wat leeg is in de admin blijft leeg. Alleen knoplabels
+  // en de prijs vallen terug op iets neutraals zodat knoppen niet leeg zijn.
+  const hero = rc.hero ?? {};
+  const wjk = rc.watJeKrijgt ?? {};
+  const herk = rc.herkenning ?? {};
+  const benji = rc.benjiVerhaal ?? {};
+  const veilig = rc.veiligheid ?? {};
+  const faq = rc.faq ?? [];
+  const reviewsTitel = rc.reviewsTitel?.trim() || "Hoe anderen dit hebben ervaren";
   const reviews = product.reviews ?? [];
+  const extraBlocks = product.extraTextBlocks ?? [];
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  return (
-    <div className="min-h-screen" style={{ background: KLEUR.bg }}>
-      <main className="max-w-xl mx-auto px-5 py-10 space-y-16">
+  // Per sectie bepalen of er überhaupt iets te tonen is, zodat lege secties
+  // (en hun witruimte) volledig verdwijnen.
+  const heeftWjk = !!(wjk.imageUrl || wjk.prompts?.length || wjk.titel?.trim() || wjk.tekst?.trim() || wjk.bullets?.length);
+  const heeftHerk = !!(herk.imageUrl || herk.quote?.trim() || herk.intro?.trim() || herk.bullets?.length || herk.slot?.trim());
+  const heeftVeilig = !!(veilig.bullets?.length || veilig.buttonText?.trim());
 
-        {/* ── Sectie 1 — Hero ── */}
+  // Elke sectie als los blok, gekoppeld aan een sleutel. Lege secties zijn null en
+  // vallen weg. De volgorde bepaalt de admin (rc.sectionOrder), met een terugval op
+  // de standaardvolgorde en aanvulling van ontbrekende sleutels.
+  const secties: Record<string, ReactNode> = {
+    hero: (
         <section className="space-y-6">
           <div className="flex justify-center">
             <Image src="/images/benji-logo-2.png" alt="" width={36} height={36} className="opacity-60" style={{ width: "auto", height: "auto" }} />
@@ -173,24 +159,28 @@ export function RustigeCheckout({
           <SectieFoto url={hero.imageUrl} alt={hero.titel ?? product.name} ratio="aspect-[3/2]" />
           <div className={`${FRAME} space-y-4`}>
             <h1 className="text-3xl font-semibold tracking-tight text-balance" style={{ color: KLEUR.titel }}>{hero.titel || product.name}</h1>
-            <p className="text-lg leading-relaxed text-pretty" style={{ color: KLEUR.tekst }}>{hero.subtitel}</p>
+            {hero.subtitel?.trim() && (
+              <p className="text-lg leading-relaxed text-pretty" style={{ color: KLEUR.tekst }}>{hero.subtitel}</p>
+            )}
             {hero.intro?.trim() && (
               <p className="text-base leading-relaxed text-pretty" style={{ color: KLEUR.tekst }}>{hero.intro}</p>
             )}
             <Vinkjes items={hero.bullets} />
             <p className="text-2xl font-semibold pt-1" style={{ color: KLEUR.titel }}>{hero.prijsLabel || priceFormatted}</p>
           </div>
-          <button
-            type="button"
-            onClick={scrollNaarBetalen}
-            className="block w-full max-w-xs mx-auto py-3.5 rounded-2xl font-medium text-white text-base"
-            style={{ background: KLEUR.accent }}
-          >
-            {hero.buttonText}
-          </button>
+          {hero.buttonEnabled !== false && (
+            <button
+              type="button"
+              onClick={scrollNaarBetalen}
+              className="block w-full max-w-xs mx-auto py-3.5 rounded-2xl font-medium text-white text-base"
+              style={{ background: hero.buttonColor || KLEUR.accent }}
+            >
+              {hero.buttonText || "Ja, ik wil beginnen"}
+            </button>
+          )}
         </section>
-
-        {/* ── Sectie 2 — Wat je krijgt ── */}
+    ),
+    watJeKrijgt: heeftWjk ? (
         <section className="space-y-6">
           <SectieFoto url={wjk.imageUrl} alt={wjk.titel ?? "Wat je krijgt"} />
           {wjk.prompts && wjk.prompts.length > 0 && (
@@ -213,8 +203,8 @@ export function RustigeCheckout({
             <div><Vinkjes items={wjk.bullets} /></div>
           )}
         </section>
-
-        {/* ── Sectie 3 — Herkenning ── */}
+    ) : null,
+    herkenning: heeftHerk ? (
         <section className="space-y-6">
           {herk.imageUrl ? (
             <SectieFoto url={herk.imageUrl} alt="" ratio="aspect-[3/2]" />
@@ -229,9 +219,8 @@ export function RustigeCheckout({
             {herk.slot?.trim() && <p className="text-lg leading-relaxed text-pretty pt-1" style={{ color: KLEUR.titel }}>{herk.slot}</p>}
           </div>
         </section>
-
-        {/* ── Sectie 5 — Persoonlijk verhaal Benji ── */}
-        {(benji.tekst?.trim() || benji.imageUrl) && (
+    ) : null,
+    benjiVerhaal: (benji.tekst?.trim() || benji.imageUrl) ? (
           <section className="space-y-5">
             <div className="rounded-2xl border p-6 space-y-3" style={{ borderColor: KLEUR.rand }}>
               {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance text-center" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
@@ -244,23 +233,23 @@ export function RustigeCheckout({
               </div>
             </div>
           </section>
-        )}
-
-        {/* ── Sectie 6 — Veiligheid vlak boven de laatste knop ── */}
+    ) : null,
+    veiligheid: heeftVeilig ? (
         <section className="space-y-5">
           <div className={FRAME}><Vinkjes items={veilig.bullets} /></div>
-          <button
-            type="button"
-            onClick={scrollNaarBetalen}
-            className="block w-full max-w-xs mx-auto py-3.5 rounded-2xl font-medium text-white text-base"
-            style={{ background: KLEUR.accent }}
-          >
-            {veilig.buttonText}
-          </button>
+          {veilig.buttonEnabled !== false && veilig.buttonText?.trim() && (
+            <button
+              type="button"
+              onClick={scrollNaarBetalen}
+              className="block w-full max-w-xs mx-auto py-3.5 rounded-2xl font-medium text-white text-base"
+              style={{ background: veilig.buttonColor || KLEUR.accent }}
+            >
+              {veilig.buttonText}
+            </button>
+          )}
         </section>
-
-        {/* ── Reviews — vlak boven het betaalscherm voor extra vertrouwen ── */}
-        {reviews.length > 0 && (
+    ) : null,
+    reviews: reviews.length > 0 ? (
           <section className="space-y-4">
             <h2 className={`text-xl font-semibold ${FRAME}`} style={{ color: KLEUR.titel }}>{reviewsTitel}</h2>
             <div className="space-y-3">
@@ -285,9 +274,8 @@ export function RustigeCheckout({
               ))}
             </div>
           </section>
-        )}
-
-        {/* ── Betaalblok ── */}
+    ) : null,
+    betaalblok: (
         <section id="betaalblok" className="scroll-mt-6">
           <div id="jouw-gegevens" className="rounded-3xl border p-6 space-y-5 scroll-mt-6" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
             <div>
@@ -301,9 +289,25 @@ export function RustigeCheckout({
             {paymentNode}
           </div>
         </section>
-
-        {/* ── Sectie 7 — FAQ ── */}
-        {faq.length > 0 && (
+    ),
+    extra: extraBlocks.length > 0 ? (
+          <section className="space-y-4">
+            {extraBlocks.map((block, i) => (
+              <div key={i} className="rounded-2xl border p-6 space-y-3" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
+                {block.title?.trim() && (
+                  <h2 className="text-lg font-semibold text-balance text-center" style={{ color: KLEUR.titel }}>{block.title}</h2>
+                )}
+                {block.imageUrl && (
+                  <SectieFoto url={block.imageUrl} alt={block.title ?? ""} />
+                )}
+                {block.content.trim() && (
+                  <Alineas tekst={block.content} className="text-base leading-relaxed text-pretty" />
+                )}
+              </div>
+            ))}
+          </section>
+    ) : null,
+    faq: faq.length > 0 ? (
           <section className="space-y-3">
             <h2 className={`text-xl font-semibold ${FRAME}`} style={{ color: KLEUR.titel }}>Veelgestelde vragen</h2>
             <div className="space-y-2">
@@ -326,7 +330,18 @@ export function RustigeCheckout({
               ))}
             </div>
           </section>
-        )}
+    ) : null,
+  };
+
+  // Volgorde: admin-keuze eerst (alleen geldige sleutels), daarna ontbrekende in
+  // standaardvolgorde. Zo blijft een oude/onvolledige volgorde altijd compleet.
+  const gekozen = (rc.sectionOrder ?? []).filter((k) => k in secties);
+  const volgorde = [...gekozen, ...RUSTIGE_SECTIE_VOLGORDE.filter((k) => !gekozen.includes(k))];
+
+  return (
+    <div className="min-h-screen" style={{ background: KLEUR.bg }}>
+      <main className="max-w-xl mx-auto px-5 py-10 space-y-16">
+        {volgorde.map((k) => (secties[k] ? <Fragment key={k}>{secties[k]}</Fragment> : null))}
 
         <p className="text-center text-xs" style={{ color: KLEUR.zacht }}>
           <Link href="/privacy" className="hover:underline">Privacy</Link>

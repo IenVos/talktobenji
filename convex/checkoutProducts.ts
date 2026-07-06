@@ -2,7 +2,8 @@
  * Checkout producten — beheerbaar via admin, publiek via /betalen/[slug]
  */
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type QueryCtx } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import { checkAdmin } from "./adminAuth";
 import { rustigeContentValidator } from "./checkoutValidators";
 
@@ -42,6 +43,49 @@ export const list = query({
   },
 });
 
+/** Los alle afbeeldings-URL's van een product op (gedeeld door live + preview). */
+async function resolveProduct(ctx: QueryCtx, product: Doc<"checkoutProducts">) {
+  let imageUrl: string | null = null;
+  try {
+    if (product.imageStorageId) imageUrl = await ctx.storage.getUrl(product.imageStorageId);
+  } catch { /* negeer */ }
+  const extraTextBlocks = product.extraTextBlocks
+    ? await Promise.all(product.extraTextBlocks.map(async (block) => {
+        let blockImageUrl: string | null = null;
+        try {
+          if (block.imageStorageId) blockImageUrl = await ctx.storage.getUrl(block.imageStorageId);
+        } catch { /* negeer */ }
+        return { ...block, imageUrl: blockImageUrl };
+      }))
+    : undefined;
+  const reviews = product.reviews
+    ? await Promise.all(product.reviews.map(async (review) => {
+        let reviewImageUrl: string | null = null;
+        try {
+          if (review.imageStorageId) reviewImageUrl = await ctx.storage.getUrl(review.imageStorageId);
+        } catch { /* negeer */ }
+        return { ...review, imageUrl: reviewImageUrl };
+      }))
+    : undefined;
+  // Rustige layout: voeg per sectie met een afbeelding de publieke URL toe.
+  const resolveUrl = async (storageId?: string): Promise<string | null> => {
+    if (!storageId) return null;
+    try { return await ctx.storage.getUrl(storageId as any); } catch { return null; }
+  };
+  let rustigeContent = product.rustigeContent as any;
+  if (rustigeContent) {
+    const rc = rustigeContent;
+    rustigeContent = {
+      ...rc,
+      hero: rc.hero ? { ...rc.hero, imageUrl: await resolveUrl(rc.hero.imageStorageId) } : undefined,
+      watJeKrijgt: rc.watJeKrijgt ? { ...rc.watJeKrijgt, imageUrl: await resolveUrl(rc.watJeKrijgt.imageStorageId) } : undefined,
+      herkenning: rc.herkenning ? { ...rc.herkenning, imageUrl: await resolveUrl(rc.herkenning.imageStorageId) } : undefined,
+      benjiVerhaal: rc.benjiVerhaal ? { ...rc.benjiVerhaal, imageUrl: await resolveUrl(rc.benjiVerhaal.imageStorageId) } : undefined,
+    };
+  }
+  return { ...product, imageUrl, extraTextBlocks, reviews, rustigeContent };
+}
+
 /** Haal één live product op via slug (publiek, geen auth). */
 export const getBySlug = query({
   args: { slug: v.string() },
@@ -51,45 +95,25 @@ export const getBySlug = query({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
     if (!product || !product.isLive) return null;
-    let imageUrl: string | null = null;
-    try {
-      if (product.imageStorageId) imageUrl = await ctx.storage.getUrl(product.imageStorageId);
-    } catch { /* negeer */ }
-    const extraTextBlocks = product.extraTextBlocks
-      ? await Promise.all(product.extraTextBlocks.map(async (block) => {
-          let blockImageUrl: string | null = null;
-          try {
-            if (block.imageStorageId) blockImageUrl = await ctx.storage.getUrl(block.imageStorageId);
-          } catch { /* negeer */ }
-          return { ...block, imageUrl: blockImageUrl };
-        }))
-      : undefined;
-    const reviews = product.reviews
-      ? await Promise.all(product.reviews.map(async (review) => {
-          let reviewImageUrl: string | null = null;
-          try {
-            if (review.imageStorageId) reviewImageUrl = await ctx.storage.getUrl(review.imageStorageId);
-          } catch { /* negeer */ }
-          return { ...review, imageUrl: reviewImageUrl };
-        }))
-      : undefined;
-    // Rustige layout: voeg per sectie met een afbeelding de publieke URL toe.
-    const resolveUrl = async (storageId?: string): Promise<string | null> => {
-      if (!storageId) return null;
-      try { return await ctx.storage.getUrl(storageId as any); } catch { return null; }
-    };
-    let rustigeContent = product.rustigeContent as any;
-    if (rustigeContent) {
-      const rc = rustigeContent;
-      rustigeContent = {
-        ...rc,
-        hero: rc.hero ? { ...rc.hero, imageUrl: await resolveUrl(rc.hero.imageStorageId) } : undefined,
-        watJeKrijgt: rc.watJeKrijgt ? { ...rc.watJeKrijgt, imageUrl: await resolveUrl(rc.watJeKrijgt.imageStorageId) } : undefined,
-        herkenning: rc.herkenning ? { ...rc.herkenning, imageUrl: await resolveUrl(rc.herkenning.imageStorageId) } : undefined,
-        benjiVerhaal: rc.benjiVerhaal ? { ...rc.benjiVerhaal, imageUrl: await resolveUrl(rc.benjiVerhaal.imageStorageId) } : undefined,
-      };
-    }
-    return { ...product, imageUrl, extraTextBlocks, reviews, rustigeContent };
+    return await resolveProduct(ctx, product);
+  },
+});
+
+/**
+ * Concept-preview: haal een product op via slug ongeacht of het live is.
+ * Alleen voor ingelogde admins (token vereist) — zo kan een pagina bekeken
+ * worden vóórdat hij live gezet wordt.
+ */
+export const getBySlugPreview = query({
+  args: { slug: v.string(), adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const product = await ctx.db
+      .query("checkoutProducts")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (!product) return null;
+    return await resolveProduct(ctx, product);
   },
 });
 

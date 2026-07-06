@@ -300,11 +300,21 @@ export function LandingPageView({ slug }: { slug: string }) {
   // Meta Pixel: deze bezoeker bekeek een verkoop-/landingspagina. Apart signaal
   // naast de generieke PageView, zodat het algoritme op "verkooppagina bekeken"
   // kan optimaliseren. Eénmalig per laden.
+  // Concept-preview: met ?preview=1 bekijkt een ingelogde admin de pagina ook als
+  // hij nog niet live is. De admin-token komt via localStorage (niet in de URL).
+  const [isPreview] = useState(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "1"
+  );
+  const [previewToken] = useState<string | null>(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "1"
+      ? localStorage.getItem("ttb_admin_token")
+      : null
+  );
   useEffect(() => {
-    if (typeof (window as any).fbq === "function") {
+    if (!isPreview && typeof (window as any).fbq === "function") {
       (window as any).fbq("track", "ViewContent");
     }
-  }, []);
+  }, [isPreview]);
   // De zwevende koopknop (indien aangezet) staat van begin af aan in beeld en
   // blijft staan. De in-page koopknoppen vervallen dan, dus er is nooit een
   // dubbele knop of geknipper. Korte fade-in bij het laden.
@@ -312,7 +322,24 @@ export function LandingPageView({ slug }: { slug: string }) {
     setShowStickyCta(true);
   }, []);
   const trackCtaClick = useTrackCtaClick();
-  const page = useQuery(api.landingPages.getBySlug, { slug });
+  const livePage = useQuery(api.landingPages.getBySlug, !isPreview ? { slug } : "skip");
+  const previewPage = useQuery(
+    api.landingPages.getBySlugPreview,
+    isPreview && previewToken ? { slug, adminToken: previewToken } : "skip"
+  );
+  const page = isPreview ? previewPage : livePage;
+
+  // Preview zonder admin-token: duidelijk melden i.p.v. eindeloos laden.
+  if (isPreview && !previewToken) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#fdf9f4", display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", textAlign: "center" }}>
+        <div>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#3d3530", marginBottom: "0.75rem" }}>Concept-weergave</h1>
+          <p style={{ color: "#6b6460" }}>Open de conceptpagina via de admin met de knop &ldquo;Bekijk als concept&rdquo;.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (page === undefined) {
     return (
@@ -327,9 +354,17 @@ export function LandingPageView({ slug }: { slug: string }) {
     return null;
   }
 
+  // Concept-banner bovenaan in preview-modus (fixed, dus werkt in elke layout).
+  const previewBanner = isPreview ? (
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999, background: "#fbbf24", color: "#451a03", textAlign: "center", fontSize: "0.875rem", fontWeight: 500, padding: "0.5rem 1rem" }}>
+      Conceptweergave — {page.isLive ? "deze pagina is al live" : "nog niet live, alleen voor jou zichtbaar"}.
+    </div>
+  ) : null;
+
   if ((page as any).lpType === "niet_alleen_keuze") {
     return (
       <>
+        {previewBanner}
         {(page as any).houvastKnop && <HouvasteKnop type={(page as any).houvastType || undefined} />}
       <NietAlleenKeuzeLpView
         typeCtaUrlPersoon={(page as any).typeCtaUrlPersoon}
@@ -612,6 +647,7 @@ export function LandingPageView({ slug }: { slug: string }) {
 
   return (
     <div style={{ minHeight: "100vh", background: "#fdf9f4", position: "relative" }}>
+      {previewBanner}
 
       {/* Klik-om-te-vergroten pop-up: opent een afbeelding op volledige grootte. */}
       {zoomImg && (
