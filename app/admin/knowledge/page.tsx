@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useAdminMutation } from "../AdminAuthContext";
+import { useAdminMutation, useAdminAction } from "../AdminAuthContext";
 import { Id } from "@/convex/_generated/dataModel";
 import {
   Plus,
@@ -71,9 +71,9 @@ export default function KnowledgeBasePage() {
   const activateQuestion = useAdminMutation(api.knowledgeBase.activateQuestion);
   const deactivateQuestion = useAdminMutation(api.knowledgeBase.deactivateQuestion);
   const bulkImportQuestions = useAdminMutation(api.knowledgeBase.bulkImportQuestions);
-  const generateAlternativeQuestions = useAction(api.ai.generateAlternativeQuestions);
-  const generateAlternativeAnswers = useAction(api.ai.generateAlternativeAnswers);
-  const generateTags = useAction(api.ai.generateTags);
+  const generateAlternativeQuestions = useAdminAction(api.ai.generateAlternativeQuestions);
+  const generateAlternativeAnswers = useAdminAction(api.ai.generateAlternativeAnswers);
+  const generateTags = useAdminAction(api.ai.generateTags);
   const embedAllKbItems = useAction(api.embeddings.embedAllKbItems);
 
   const [showForm, setShowForm] = useState(false);

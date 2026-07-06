@@ -9,7 +9,7 @@
 
 import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
-import { api } from "./_generated/api";
+import { internal } from "./_generated/api";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
@@ -700,7 +700,7 @@ export const endSession = mutation({
     });
 
     // Genereer kwaliteitsrapport voor beheerder op de achtergrond
-    await ctx.scheduler.runAfter(5000, api.ai.analyzeSessionAdmin, {
+    await ctx.scheduler.runAfter(5000, internal.ai.analyzeSessionAdmin, {
       sessionId: args.sessionId,
     });
 
@@ -737,7 +737,7 @@ export const markSessionsAsAbandoned = internalMutation({
         wasResolved: false,
         endedAt: Date.now(),
       });
-      await ctx.scheduler.runAfter(0, api.ai.analyzeSessionAdmin, {
+      await ctx.scheduler.runAfter(0, internal.ai.analyzeSessionAdmin, {
         sessionId: session._id,
       });
     }

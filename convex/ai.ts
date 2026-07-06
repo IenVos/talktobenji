@@ -88,7 +88,7 @@ const CLAUDE_MODEL = "claude-sonnet-4-6";
  */
 
 import { v } from "convex/values";
-import { action } from "./_generated/server";
+import { action, internalAction } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 
 // ============================================================================
@@ -244,7 +244,7 @@ export const handleUserMessage = action({
 
         // Trigger achtergrond-samenvattingen van vorige sessies (alleen bij eerste bericht)
         if (isFirstMessageInSession) {
-          await ctx.scheduler.runAfter(0, api.ai.summarizeSession, {
+          await ctx.scheduler.runAfter(0, internal.ai.summarizeSession, {
             userId: uid,
             excludeSessionId: args.sessionId,
           });
@@ -306,7 +306,7 @@ export const handleUserMessage = action({
         );
 
         if (isFirstMessageInSession) {
-          await ctx.scheduler.runAfter(0, api.ai.summarizeSession, {
+          await ctx.scheduler.runAfter(0, internal.ai.summarizeSession, {
             anonymousId: anonId,
             excludeSessionId: args.sessionId,
           });
@@ -1096,7 +1096,7 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
  * Wordt aangeroepen bij het eerste bericht van een nieuw gesprek.
  * Zoekt sessies die nog geen AI-samenvatting hebben en vat ze samen.
  */
-export const summarizeSession = action({
+export const summarizeSession = internalAction({
   args: {
     userId: v.optional(v.string()),
     anonymousId: v.optional(v.string()),
@@ -1194,7 +1194,7 @@ Schrijf beknopt en feitelijk. Geen inleiding of afsluiting.`,
  * Leest de berichten maar schrijft GEEN citaten — alleen inzichten.
  * Wordt automatisch getriggerd als een sessie eindigt.
  */
-export const analyzeSessionAdmin = action({
+export const analyzeSessionAdmin = internalAction({
   args: { sessionId: v.id("chatSessions") },
   handler: async (ctx, args) => {
     const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -1308,11 +1308,13 @@ Antwoord ALLEEN in dit JSON formaat:
  */
 export const generateAlternativeQuestions = action({
   args: {
+    adminToken: v.string(),
     question: v.string(),
     answer: v.string(),
     existingToAvoid: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args): Promise<string[]> => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     try {
       const apiKey = process.env.ANTHROPIC_API_KEY;
       if (!apiKey || apiKey === "your-api-key-here") {
@@ -1387,10 +1389,12 @@ Regels:
  */
 export const generateAlternativeAnswers = action({
   args: {
+    adminToken: v.string(),
     question: v.string(),
     answer: v.string(),
   },
   handler: async (ctx, args): Promise<string[]> => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     try {
       const apiKey = process.env.ANTHROPIC_API_KEY;
       if (!apiKey || apiKey === "your-api-key-here") {
@@ -1456,11 +1460,13 @@ Regels:
  */
 export const generateTags = action({
   args: {
+    adminToken: v.string(),
     question: v.string(),
     answer: v.string(),
     category: v.optional(v.string()),
   },
   handler: async (ctx, args): Promise<string[]> => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     try {
       const apiKey = process.env.ANTHROPIC_API_KEY;
       if (!apiKey || apiKey === "your-api-key-here") {

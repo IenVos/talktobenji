@@ -11,7 +11,7 @@
 import { v } from "convex/values";
 import { mutation, query, action } from "./_generated/server";
 import { checkAdmin, logAdminAction } from "./adminAuth";
-import { api } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 // ============================================================================
 // CHAT HISTORY QUERIES (voor admin overzicht)
@@ -1188,7 +1188,7 @@ export const retriggerRapporten = mutation({
     );
 
     for (const session of pending) {
-      await ctx.scheduler.runAfter(0, api.ai.analyzeSessionAdmin, {
+      await ctx.scheduler.runAfter(0, internal.ai.analyzeSessionAdmin, {
         sessionId: session._id,
       });
     }
