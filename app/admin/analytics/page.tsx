@@ -29,6 +29,7 @@ import {
   ShoppingCart,
   Megaphone,
   Filter,
+  type LucideIcon,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -397,6 +398,54 @@ function AllPagesList({ pages, maxCount }: { pages: TopPage[]; maxCount: number 
           <ChevronDown size={13} className={`transition-transform ${expanded ? "rotate-180" : ""}`} />
           {expanded ? "Minder tonen" : `Toon alle ${pages.length} pagina's`}
         </button>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Groene "nieuwe leads"-balk met uitklapbare lijst (e-mail + tijd) en weektotaal.
+// Gebruikt voor zowel inschrijvingen als Houvast-aanvragen.
+// ---------------------------------------------------------------------------
+
+function RecentLeadsBanner({
+  icon: Icon,
+  title,
+  leads,
+  weekTotal,
+}: {
+  icon: LucideIcon;
+  title: string;
+  leads: { createdAt: number; name: string | null; email: string }[];
+  weekTotal: number;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-3 text-left"
+      >
+        <Icon size={18} className="text-green-600 flex-shrink-0" />
+        <span className="text-sm font-semibold text-green-800 flex-1 min-w-0">{title}</span>
+        <span className="text-xs text-green-500 flex-shrink-0">{weekTotal} deze week</span>
+        <ChevronDown
+          size={15}
+          className={`text-green-500 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && leads.length > 0 && (
+        <ul className="mt-2 pt-2 border-t border-green-200 space-y-1">
+          {leads.map((p, i) => (
+            <li key={i} className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-green-700 truncate">{p.email}</span>
+              <span className="text-green-400 flex-shrink-0">
+                {new Date(p.createdAt).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
@@ -776,25 +825,12 @@ export default function AdminAnalytics() {
         );
         if (vandaag.length === 0) return null;
         return (
-        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-start gap-3">
-          <Users size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-green-800">
-              {vandaag.length} nieuwe inschrijving{vandaag.length !== 1 ? "en" : ""} vandaag
-            </p>
-            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-              {vandaag.map((u: { createdAt: number; name: string; email: string }, i: number) => (
-                  <span key={i} className="text-xs text-green-700">
-                    {u.name || u.email}
-                    <span className="text-green-400 ml-1">
-                      {new Date(u.createdAt).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </span>
-                ))}
-            </div>
-          </div>
-          <span className="text-xs text-green-500 flex-shrink-0">{recentRegs.total} deze week</span>
-        </div>
+          <RecentLeadsBanner
+            icon={Users}
+            title={`${vandaag.length} nieuwe inschrijving${vandaag.length !== 1 ? "en" : ""} vandaag`}
+            leads={vandaag.map((u: { createdAt: number; name: string; email: string }) => ({ createdAt: u.createdAt, name: u.name ?? null, email: u.email }))}
+            weekTotal={recentRegs.total}
+          />
         );
       })()}
 
@@ -805,25 +841,12 @@ export default function AdminAnalytics() {
         );
         if (vandaag.length === 0) return null;
         return (
-        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-start gap-3">
-          <Leaf size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-green-800">
-              {vandaag.length} nieuwe Houvast aanvra{vandaag.length !== 1 ? "gen" : "ag"} vandaag
-            </p>
-            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-              {vandaag.map((p: { createdAt: number; name: string | null; email: string }, i: number) => (
-                  <span key={i} className="text-xs text-green-700">
-                    {p.name || p.email}
-                    <span className="text-green-400 ml-1">
-                      {new Date(p.createdAt).toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </span>
-                ))}
-            </div>
-          </div>
-          <span className="text-xs text-green-500 flex-shrink-0">{recentHouvast.total} deze week</span>
-        </div>
+          <RecentLeadsBanner
+            icon={Leaf}
+            title={`${vandaag.length} nieuwe Houvast aanvra${vandaag.length !== 1 ? "gen" : "ag"} vandaag`}
+            leads={vandaag}
+            weekTotal={recentHouvast.total}
+          />
         );
       })()}
 
