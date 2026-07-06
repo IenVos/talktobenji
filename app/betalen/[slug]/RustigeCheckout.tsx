@@ -38,6 +38,9 @@ export type RustigeContent = {
   // Volgorde van de secties op de pagina (sleutels uit SECTIE_SLEUTELS). Ontbrekende
   // sleutels worden in de standaardvolgorde achteraan aangevuld.
   sectionOrder?: string[];
+  // Secties die expliciet uit staan (aan/uit-vinkje in admin). Het betaalblok kan
+  // niet uit. Een sectie die uit staat toont niets, ook al is hij ingevuld.
+  hiddenSections?: string[];
 };
 
 // Vaste standaardvolgorde van de secties. Admin kan hiervan afwijken via sectionOrder.
@@ -141,17 +144,22 @@ export function RustigeCheckout({
   const extraBlocks = product.extraTextBlocks ?? [];
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
+  // Secties die in de admin op "uit" staan tonen niets (behalve het betaalblok).
+  const uit = (k: string) => (rc.hiddenSections ?? []).includes(k);
+
   // Per sectie bepalen of er überhaupt iets te tonen is, zodat lege secties
-  // (en hun witruimte) volledig verdwijnen.
-  const heeftWjk = !!(wjk.imageUrl || wjk.prompts?.length || wjk.titel?.trim() || wjk.tekst?.trim() || wjk.bullets?.length);
-  const heeftHerk = !!(herk.imageUrl || herk.quote?.trim() || herk.intro?.trim() || herk.bullets?.length || herk.slot?.trim());
-  const heeftVeilig = !!(veilig.bullets?.length || veilig.buttonText?.trim());
+  // (en hun witruimte) volledig verdwijnen. Een sectie die uit staat telt als leeg.
+  const heeftWjk = !uit("watJeKrijgt") && !!(wjk.imageUrl || wjk.prompts?.length || wjk.titel?.trim() || wjk.tekst?.trim() || wjk.bullets?.length);
+  const heeftHerk = !uit("herkenning") && !!(herk.imageUrl || herk.quote?.trim() || herk.intro?.trim() || herk.bullets?.length || herk.slot?.trim());
+  const heeftVeilig = !uit("veiligheid") && !!(veilig.bullets?.length || veilig.buttonText?.trim());
+  // Persoonlijk verhaal alleen tonen als er tekst is (een losse foto is geen verhaal).
+  const heeftBenji = !uit("benjiVerhaal") && !!(benji.titel?.trim() || benji.tekst?.trim());
 
   // Elke sectie als los blok, gekoppeld aan een sleutel. Lege secties zijn null en
   // vallen weg. De volgorde bepaalt de admin (rc.sectionOrder), met een terugval op
   // de standaardvolgorde en aanvulling van ontbrekende sleutels.
   const secties: Record<string, ReactNode> = {
-    hero: (
+    hero: !uit("hero") ? (
         <section className="space-y-6">
           <div className="flex justify-center">
             <Image src="/images/benji-logo-2.png" alt="" width={36} height={36} className="opacity-60" style={{ width: "auto", height: "auto" }} />
@@ -179,7 +187,7 @@ export function RustigeCheckout({
             </button>
           )}
         </section>
-    ),
+    ) : null,
     watJeKrijgt: heeftWjk ? (
         <section className="space-y-6">
           <SectieFoto url={wjk.imageUrl} alt={wjk.titel ?? "Wat je krijgt"} />
@@ -220,7 +228,7 @@ export function RustigeCheckout({
           </div>
         </section>
     ) : null,
-    benjiVerhaal: (benji.tekst?.trim() || benji.imageUrl) ? (
+    benjiVerhaal: heeftBenji ? (
           <section className="space-y-5">
             <div className="rounded-2xl border p-6 space-y-3" style={{ borderColor: KLEUR.rand }}>
               {benji.titel?.trim() && <h2 className="text-xl font-semibold text-balance text-center" style={{ color: KLEUR.titel }}>{benji.titel}</h2>}
@@ -249,7 +257,7 @@ export function RustigeCheckout({
           )}
         </section>
     ) : null,
-    reviews: reviews.length > 0 ? (
+    reviews: !uit("reviews") && reviews.length > 0 ? (
           <section className="space-y-4">
             <h2 className={`text-xl font-semibold ${FRAME}`} style={{ color: KLEUR.titel }}>{reviewsTitel}</h2>
             <div className="space-y-3">
@@ -290,7 +298,7 @@ export function RustigeCheckout({
           </div>
         </section>
     ),
-    extra: extraBlocks.length > 0 ? (
+    extra: !uit("extra") && extraBlocks.length > 0 ? (
           <section className="space-y-4">
             {extraBlocks.map((block, i) => (
               <div key={i} className="rounded-2xl border p-6 space-y-3" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
@@ -307,7 +315,7 @@ export function RustigeCheckout({
             ))}
           </section>
     ) : null,
-    faq: faq.length > 0 ? (
+    faq: !uit("faq") && faq.length > 0 ? (
           <section className="space-y-3">
             <h2 className={`text-xl font-semibold ${FRAME}`} style={{ color: KLEUR.titel }}>Veelgestelde vragen</h2>
             <div className="space-y-2">

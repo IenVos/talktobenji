@@ -70,4 +70,6 @@ export const rustigeContentValidator = v.object({
   // veiligheid, reviews, betaalblok, extra, faq). Ontbrekende sleutels worden
   // achteraan in standaardvolgorde aangevuld.
   sectionOrder: v.optional(v.array(v.string())),
+  // Secties die uit staan (aan/uit-vinkje). Betaalblok kan niet uit.
+  hiddenSections: v.optional(v.array(v.string())),
 });

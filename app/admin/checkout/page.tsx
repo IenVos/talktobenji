@@ -66,6 +66,7 @@ type CheckoutProduct = {
     veiligheid?: { bullets?: string[]; buttonText?: string; buttonEnabled?: boolean; buttonColor?: string };
     faq?: { vraag: string; antwoord: string }[];
     sectionOrder?: string[];
+    hiddenSections?: string[];
   } | null;
   createdAt: number;
   updatedAt: number;
@@ -121,6 +122,7 @@ type RustigForm = {
   veiligButtonEnabled: boolean; veiligButtonColor: string;
   faq: string;
   sectionOrder: string[];
+  hiddenSections: string[];
 };
 
 // Maak een volledige, geldige sectievolgorde: bewaarde volgorde eerst (alleen geldige
@@ -146,6 +148,7 @@ const EMPTY_RUSTIG: RustigForm = {
   veiligButtonEnabled: true, veiligButtonColor: "",
   faq: "",
   sectionOrder: normaliseerVolgorde(),
+  hiddenSections: [],
 };
 
 // Regel-helpers voor de rustige velden
@@ -175,6 +178,7 @@ function rustigFromProduct(product: CheckoutProduct): RustigForm {
     veiligButtonEnabled: rc?.veiligheid?.buttonEnabled !== false, veiligButtonColor: rc?.veiligheid?.buttonColor ?? "",
     faq: (rc?.faq ?? []).map((f) => `${f.vraag} | ${f.antwoord}`).join("\n"),
     sectionOrder: normaliseerVolgorde(rc?.sectionOrder),
+    hiddenSections: rc?.hiddenSections ?? [],
   };
 }
 
@@ -321,6 +325,16 @@ export default function AdminCheckoutPage() {
       if (j < 0 || j >= arr.length) return r;
       [arr[index], arr[j]] = [arr[j], arr[index]];
       return { ...r, sectionOrder: arr };
+    });
+  };
+
+  // Zet een sectie aan of uit (betaalblok kan niet uit).
+  const toggleSectie = (key: string, aan: boolean) => {
+    setRustig((r) => {
+      const set = new Set(r.hiddenSections);
+      if (aan) set.delete(key);
+      else set.add(key);
+      return { ...r, hiddenSections: [...set] };
     });
   };
 
@@ -523,6 +537,7 @@ export default function AdminCheckoutPage() {
           veiligheid: { bullets: regelsNaarArr(rustig.veiligBullets), buttonText: opt(rustig.veiligButton), buttonEnabled: rustig.veiligButtonEnabled, buttonColor: opt(rustig.veiligButtonColor) },
           faq: regelsNaarArr(rustig.faq).map((r) => { const [vraag, antwoord] = splitPipe(r); return { vraag, antwoord }; }).filter((f) => f.vraag),
           sectionOrder: normaliseerVolgorde(rustig.sectionOrder),
+          hiddenSections: rustig.hiddenSections,
         };
       }
 
@@ -1422,18 +1437,33 @@ export default function AdminCheckoutPage() {
 
                   {/* Volgorde van de blokken */}
                   <div className="border border-stone-200 rounded-lg bg-white p-3 space-y-2">
-                    <p className="text-sm font-semibold text-primary-800">Volgorde van de blokken</p>
-                    <p className="text-xs text-gray-400">Zet met de pijltjes een blok hoger of lager op de pagina (bijv. het betaalblok naar boven, of een quote eronder). Lege blokken tonen niets.</p>
+                    <p className="text-sm font-semibold text-primary-800">Volgorde &amp; zichtbaarheid van de blokken</p>
+                    <p className="text-xs text-gray-400">Vink een blok uit om het te verbergen, of zet het met de pijltjes hoger/lager (bijv. het betaalblok naar boven). Het betaalblok kan niet uit. Lege blokken tonen sowieso niets.</p>
                     <ul className="space-y-1">
-                      {rustig.sectionOrder.map((key, i) => (
-                        <li key={key} className="flex items-center justify-between gap-2 rounded-md border border-stone-100 bg-stone-50 px-3 py-1.5">
-                          <span className="text-sm text-gray-700">{i + 1}. {RUSTIGE_SECTIE_LABELS[key] ?? key}</span>
-                          <span className="flex items-center gap-1">
-                            <button type="button" disabled={i === 0} onClick={() => moveSectie(i, -1)} className="w-7 h-7 flex items-center justify-center rounded border border-stone-200 text-gray-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed" title="Omhoog">↑</button>
-                            <button type="button" disabled={i === rustig.sectionOrder.length - 1} onClick={() => moveSectie(i, 1)} className="w-7 h-7 flex items-center justify-center rounded border border-stone-200 text-gray-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed" title="Omlaag">↓</button>
-                          </span>
-                        </li>
-                      ))}
+                      {rustig.sectionOrder.map((key, i) => {
+                        const aan = !rustig.hiddenSections.includes(key);
+                        const vast = key === "betaalblok"; // altijd zichtbaar
+                        return (
+                          <li key={key} className="flex items-center justify-between gap-2 rounded-md border border-stone-100 bg-stone-50 px-3 py-1.5">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={aan}
+                                disabled={vast}
+                                onChange={(e) => toggleSectie(key, e.target.checked)}
+                                className="rounded border-primary-300 text-primary-600 disabled:opacity-40"
+                              />
+                              <span className={`text-sm ${aan ? "text-gray-700" : "text-gray-400 line-through"}`}>
+                                {i + 1}. {RUSTIGE_SECTIE_LABELS[key] ?? key}
+                              </span>
+                            </label>
+                            <span className="flex items-center gap-1">
+                              <button type="button" disabled={i === 0} onClick={() => moveSectie(i, -1)} className="w-7 h-7 flex items-center justify-center rounded border border-stone-200 text-gray-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed" title="Omhoog">↑</button>
+                              <button type="button" disabled={i === rustig.sectionOrder.length - 1} onClick={() => moveSectie(i, 1)} className="w-7 h-7 flex items-center justify-center rounded border border-stone-200 text-gray-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed" title="Omlaag">↓</button>
+                            </span>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </div>
 
