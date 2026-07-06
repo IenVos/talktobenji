@@ -1,11 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import crypto from "crypto";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
 import { calculateVat, EU_COUNTRY_CODES } from "@/lib/vat";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+// Ingelogde admins herkennen aan de admin_session-cookie (zelfde HMAC als
+// /api/admin/check). Admins testen vaak en mogen niet tegen de rate-limit lopen.
+function isAdminRequest(req: NextRequest): boolean {
+  const token = req.cookies.get("admin_session")?.value;
+  if (!token) return false;
+  const secret = process.env.AUTH_SECRET || "";
+  const dot = token.indexOf(".");
+  if (dot === -1) return false;
+  const sessionId = token.slice(0, dot);
+  const signature = token.slice(dot + 1);
+  if (!sessionId || !signature) return false;
+  const expected = crypto.createHmac("sha256", secret).update(sessionId).digest("hex");
+  if (signature.length !== expected.length) return false;
+  try {
+    return crypto.timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(expected, "hex"));
+  } catch {
+    return false;
+  }
+}
 
 function generateInvoiceNumber(): string {
   const year = new Date().getFullYear();
@@ -90,7 +111,10 @@ export async function POST(req: NextRequest) {
   // metadata-updates hierboven). Een gewone bezoeker die de pagina een paar keer
   // herlaadt zit zo niet meteen op slot; het blokkeert wel bulk-misbruik.
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const { allowed, retryAfterMs } = rateLimit(`stripe:${ip}`, { maxAttempts: 30, windowMs: 60 * 60 * 1000 });
+  // Ingelogde admins slaan de rate-limit over (testen/preview op eigen IP).
+  const { allowed, retryAfterMs } = isAdminRequest(req)
+    ? { allowed: true, retryAfterMs: 0 }
+    : rateLimit(`stripe:${ip}`, { maxAttempts: 30, windowMs: 60 * 60 * 1000 });
   if (!allowed) {
     return NextResponse.json(
       { error: `Te veel verzoeken. ${retryAfterMessage(retryAfterMs)}` },
