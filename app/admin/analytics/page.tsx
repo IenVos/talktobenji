@@ -1566,7 +1566,7 @@ export default function AdminAnalytics() {
                       {/* Puur numerieke ad = Meta advertentie-ID → klikbaar naar Ads Manager (gefilterd op die ad). */}
                       {r.ad && /^\d{6,}$/.test(r.ad) ? (
                         <a
-                          href={`https://www.facebook.com/adsmanager/manage/ads?selected_ad_ids=${r.ad}`}
+                          href={`https://www.facebook.com/adsmanager/manage/ads?act=902799219226299&selected_ad_ids=${r.ad}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="font-medium text-primary-600 hover:underline"
