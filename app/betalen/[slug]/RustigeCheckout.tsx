@@ -160,7 +160,7 @@ export function RustigeCheckout({
   // de standaardvolgorde en aanvulling van ontbrekende sleutels.
   const secties: Record<string, ReactNode> = {
     hero: !uit("hero") ? (
-        <section className="space-y-6">
+        <section className={`space-y-6 ${hero.buttonEnabled === false ? "-mb-8" : ""}`}>
           <div className="flex justify-center">
             <Image src="/images/benji-logo-2.png" alt="" width={36} height={36} className="opacity-60" style={{ width: "auto", height: "auto" }} />
           </div>
@@ -243,7 +243,7 @@ export function RustigeCheckout({
           </section>
     ) : null,
     veiligheid: heeftVeilig ? (
-        <section className="space-y-5">
+        <section className={`space-y-5 ${veilig.buttonEnabled === false || !veilig.buttonText?.trim() ? "-mb-8" : ""}`}>
           <div className={FRAME}><Vinkjes items={veilig.bullets} /></div>
           {veilig.buttonEnabled !== false && veilig.buttonText?.trim() && (
             <button
