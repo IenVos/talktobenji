@@ -48,7 +48,7 @@ function KpiKaart({
   kleur: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+    <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
       <div className="flex items-center gap-2 mb-2 text-gray-500">
         <Icon size={16} style={{ color: kleur }} />
         <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
