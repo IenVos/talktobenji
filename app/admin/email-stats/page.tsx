@@ -112,44 +112,50 @@ export default function EmailStatsPage() {
         </div>
       ) : (
         <>
-          {/* KPI's */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-            <KpiKaart icon={Send} label="Verzonden" waarde={String(t!.verzonden)} kleur="#6d84a8" />
-            <KpiKaart
-              icon={CheckCircle2}
-              label="Afgeleverd"
-              waarde={String(t!.afgeleverd)}
-              sub={`${pct(t!.afgeleverd, t!.verzonden)} van verzonden`}
-              kleur="#16a34a"
-            />
-            <KpiKaart
-              icon={Eye}
-              label="Open-rate"
-              waarde={pct(t!.geopend, noemer)}
-              sub={`${t!.geopend} geopend`}
-              kleur="#0ea5e9"
-            />
-            <KpiKaart
-              icon={MousePointerClick}
-              label="Klik-ratio"
-              waarde={pct(t!.geklikt, noemer)}
-              sub={`${t!.geklikt} geklikt`}
-              kleur="#8b5cf6"
-            />
-            <KpiKaart
-              icon={AlertTriangle}
-              label="Bounces"
-              waarde={String(t!.bounced)}
-              sub={pct(t!.bounced, t!.verzonden)}
-              kleur="#f59e0b"
-            />
-            <KpiKaart
-              icon={AlertTriangle}
-              label="Klachten"
-              waarde={String(t!.klachten)}
-              sub="spam-meldingen"
-              kleur="#ef4444"
-            />
+          {/* KPI's — per thema gegroepeerd, twee onder elkaar per kolom */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="flex flex-col gap-3">
+              <KpiKaart icon={Send} label="Verzonden" waarde={String(t!.verzonden)} kleur="#6d84a8" />
+              <KpiKaart
+                icon={CheckCircle2}
+                label="Afgeleverd"
+                waarde={String(t!.afgeleverd)}
+                sub={`${pct(t!.afgeleverd, t!.verzonden)} van verzonden`}
+                kleur="#16a34a"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <KpiKaart
+                icon={Eye}
+                label="Open-rate"
+                waarde={pct(t!.geopend, noemer)}
+                sub={`${t!.geopend} geopend`}
+                kleur="#0ea5e9"
+              />
+              <KpiKaart
+                icon={MousePointerClick}
+                label="Klik-ratio"
+                waarde={pct(t!.geklikt, noemer)}
+                sub={`${t!.geklikt} geklikt`}
+                kleur="#8b5cf6"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <KpiKaart
+                icon={AlertTriangle}
+                label="Bounces"
+                waarde={String(t!.bounced)}
+                sub={pct(t!.bounced, t!.verzonden)}
+                kleur="#f59e0b"
+              />
+              <KpiKaart
+                icon={AlertTriangle}
+                label="Spam"
+                waarde={String(t!.klachten)}
+                sub="spam-meldingen"
+                kleur="#ef4444"
+              />
+            </div>
           </div>
 
           {/* Per mailstroom */}
