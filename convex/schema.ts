@@ -909,6 +909,23 @@ export default defineSchema({
     processedAt: v.number(),
   }).index("by_eventId", ["eventId"]),
 
+  // Resend e-mail-events (via webhook). Elke gebeurtenis per verstuurde mail:
+  // sent → delivered → opened → clicked (en bounced/complained/delivery_delayed).
+  // Alle events van dezelfde mail delen hetzelfde emailId, zodat we per mail de
+  // reis kunnen reconstrueren en open-rate/klik-ratio kunnen berekenen in de admin.
+  resendEmailEvents: defineTable({
+    emailId: v.string(),              // data.email_id (deelt over alle events van één mail)
+    type: v.string(),                 // "email.sent" | "email.delivered" | "email.opened" | ...
+    subject: v.optional(v.string()),  // onderwerp (voor groepering per mailstroom)
+    to: v.optional(v.string()),       // eerste ontvanger (lowercase)
+    clickLink: v.optional(v.string()),// aangeklikte link (bij email.clicked)
+    createdAt: v.number(),            // tijdstip van de gebeurtenis (ms)
+    svixId: v.string(),               // svix-id header → ontdubbelen van herafleveringen
+  })
+    .index("by_svixId", ["svixId"])
+    .index("by_emailId", ["emailId"])
+    .index("by_createdAt", ["createdAt"]),
+
   // Checkout producten (beheerbaar via admin, publiek via /betalen/[slug])
   checkoutProducts: defineTable({
     slug: v.string(),

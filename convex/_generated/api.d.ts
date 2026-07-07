@@ -26,6 +26,7 @@ import type * as ctaBlocks from "../ctaBlocks.js";
 import type * as dataExport from "../dataExport.js";
 import type * as deleteAccount from "../deleteAccount.js";
 import type * as ehMailFooter from "../ehMailFooter.js";
+import type * as emailStats from "../emailStats.js";
 import type * as emailTemplates from "../emailTemplates.js";
 import type * as emailTemplatesDefaults from "../emailTemplatesDefaults.js";
 import type * as emails from "../emails.js";
@@ -103,6 +104,7 @@ declare const fullApi: ApiFromModules<{
   dataExport: typeof dataExport;
   deleteAccount: typeof deleteAccount;
   ehMailFooter: typeof ehMailFooter;
+  emailStats: typeof emailStats;
   emailTemplates: typeof emailTemplates;
   emailTemplatesDefaults: typeof emailTemplatesDefaults;
   emails: typeof emails;
