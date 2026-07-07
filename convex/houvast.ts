@@ -378,6 +378,25 @@ const VERLIES_CONTEXT: Record<string, string> = {
   kinderloos: "ongewenste kinderloosheid, rouw om een kind dat er nooit kwam",
 };
 
+/**
+ * Vangnet voor markdown in de AI-brief. De tekst gaat rechtstreeks in mail-HTML,
+ * dus markdown wordt niet vanzelf omgezet. Zonder dit blijven sterretjes letterlijk
+ * staan (zoals "*ik begrijp jou*"). We zetten nadruk om naar echte HTML en halen
+ * losse sterretjes/onderstrepingen weg, zodat er nooit rauwe opmaak-tekens in de
+ * mail komen te staan.
+ */
+function schoonMarkdown(tekst: string): string {
+  return tekst
+    // **vet** en __vet__ → <strong>
+    .replace(/\*\*([^*]+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/__([^_]+?)__/g, "<strong>$1</strong>")
+    // *cursief* en _cursief_ → <em>
+    .replace(/\*([^*\n]+?)\*/g, "<em>$1</em>")
+    .replace(/(^|[\s(])_([^_\n]+?)_(?=[\s).,!?]|$)/g, "$1<em>$2</em>")
+    // eventuele losse opmaak-tekens die zijn blijven staan → weg
+    .replace(/\*+/g, "");
+}
+
 /** Genereert de brieftekst (Benji-toon, via Claude) en zet die om in HTML-alinea's. */
 async function genereerBriefHtml(opts: {
   apiKey: string;
@@ -396,6 +415,11 @@ async function genereerBriefHtml(opts: {
     typeInstructie ||
     (typeof saved?.briefInstructie === "string" ? saved.briefInstructie.trim() : "") ||
     BRIEF_INSTRUCTIE_DEFAULT;
+
+  // Altijd afdwingen (ook bij admin-override): geen opmaak-tekens in de brief.
+  // De brieftekst gaat rechtstreeks in een mail-HTML; markdown-sterretjes worden
+  // niet omgezet en zouden anders letterlijk als "*...*" in de mail staan.
+  const systemPrompt = `${briefInstructie}\n\nSchrijf platte tekst zonder opmaak-tekens. Gebruik geen sterretjes (* of **), geen onderstrepingen (_) en geen markdown. Nadruk leg je met woorden, niet met opmaak.`;
 
   const verliesContext = verliesType ? VERLIES_CONTEXT[verliesType] : "";
   const userContent = [
@@ -417,7 +441,7 @@ async function genereerBriefHtml(opts: {
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
       max_tokens: 800,
-      system: briefInstructie,
+      system: systemPrompt,
       messages: [{ role: "user", content: userContent }],
     }),
   });
@@ -433,7 +457,7 @@ async function genereerBriefHtml(opts: {
     .split(/\n\s*\n/)
     .map(
       (p) =>
-        `<p style="font-size:15px;line-height:1.9;color:#3d3530;margin:0 0 16px 0;">${p.replace(/\n/g, "<br>")}</p>`
+        `<p style="font-size:15px;line-height:1.9;color:#3d3530;margin:0 0 16px 0;">${schoonMarkdown(p).replace(/\n/g, "<br>")}</p>`
     )
     .join("");
   return { aanhef, briefHtml };
