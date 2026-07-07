@@ -196,9 +196,6 @@ export default function EvenHouvastEmailsPage() {
   const overzicht = useAdminQuery(api.evenHouvastOpvolg.funnelOverzicht, {}) as
     | { email: string; naam: string | null; dagenGeleden: number; laatsteMail: number; afgemeld: boolean; gekocht: boolean }[]
     | undefined;
-  const afmeldingen = useAdminQuery(api.evenHouvastOpvolg.afmeldingenOverzicht, {}) as
-    | { email: string; naam: string | null; type: string; afgemeldOp: number; bron: string }[]
-    | undefined;
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
   const stuurTestEnkel = useAdminAction(api.evenHouvastOpvolg.stuurTestOpvolgEnkel);
   const stuurTestBrief = useAdminAction(api.houvast.stuurTestBrief);
@@ -213,7 +210,6 @@ export default function EvenHouvastEmailsPage() {
   const [briefType, setBriefType] = useState("huisdier");
   const [briefState, setBriefState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [toonLijst, setToonLijst] = useState(false);
-  const [toonAfmeld, setToonAfmeld] = useState(false);
   const [testMailNr, setTestMailNr] = useState<number>(EH_META[0].n);
   const [opvolgState, setOpvolgState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [opvolgError, setOpvolgError] = useState("");
@@ -346,41 +342,6 @@ export default function EvenHouvastEmailsPage() {
                       ) : (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-600">{r.laatsteMail > 0 ? `mail ${r.laatsteMail}` : "wacht"}</span>
                       )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Afmeldingen: bewaard voor de data, deze mensen mailen we niet meer */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">Afmeldingen</h2>
-            <p className="text-xs text-gray-400">Uitgeschreven uit de reeks. We mailen ze niet meer, maar bewaren de herkomst.</p>
-          </div>
-          <span className="text-2xl font-bold text-gray-400">{afmeldingen?.length ?? 0}</span>
-        </div>
-        {(afmeldingen?.length ?? 0) > 0 && (
-          <div className="pt-1 border-t border-gray-100">
-            <button onClick={() => setToonAfmeld((v) => !v)} className="text-xs font-medium text-primary-700 hover:text-primary-900">
-              {toonAfmeld ? "Verberg lijst" : `Toon ${afmeldingen!.length} afmeldingen`}
-            </button>
-            {toonAfmeld && (
-              <div className="mt-2 space-y-0">
-                {afmeldingen!.map((a, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50 last:border-0 gap-2">
-                    <div className="min-w-0 flex-1 truncate">
-                      {a.naam && <span className="font-medium text-gray-800 mr-1.5">{a.naam}</span>}
-                      <span className="text-gray-500">{a.email}</span>
-                      <span className="text-gray-300 ml-1.5">· {a.bron}</span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500">{a.type}</span>
-                      <span className="text-gray-400 w-20 text-right">{new Date(a.afgemeldOp).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}</span>
                     </div>
                   </div>
                 ))}
