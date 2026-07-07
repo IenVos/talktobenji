@@ -2,7 +2,7 @@
  * Even Houvast — opvolgmailreeks (5 mails) richting Niet Alleen.
  *
  * Trigger: zodra iemand de Even Houvast-brief kreeg (houvastBrieven), met verliestype.
- * Planning: dag 0/1, 3, 5, 8, 11 na de brief.
+ * Planning: dag 2, 4, 5, 7, 10, 13 na de brief (nooit op de dag van de brief zelf).
  * Veiligheden:
  *   - Alleen actief als env EH_OPVOLG_ACTIEF === "true" (zet aan zodra de ads draaien).
  *   - Alleen leads ná EH_OPVOLG_START en met het juiste verliestype.
@@ -25,9 +25,11 @@ const DAG_MS = 24 * 60 * 60 * 1000;
 const EH_OPVOLG_START = Date.UTC(2026, 5, 25); // 25 juni 2026
 
 // Welke mail op welke dag na de brief. Sleutel = mailnummer, waarde = dagoffset.
-// Mail 6 ("Wie ik ben") valt chronologisch op dag 2, tussen mail 1 en 2. De
-// verzendvolgorde wordt op dagoffset bepaald, niet op mailnummer.
-const SCHEMA: Record<number, number> = { 1: 0, 6: 2, 2: 3, 3: 5, 4: 8, 5: 11 };
+// De eerste opvolgmail start bewust op dag 2, zodat de brief en de eerste mail
+// nooit op dezelfde dag binnenkomen (dat gaf afmeldingen). Mail 6 ("Wie ik ben")
+// valt chronologisch op dag 4, tussen mail 1 en 2. De verzendvolgorde wordt op
+// dagoffset bepaald, niet op mailnummer.
+const SCHEMA: Record<number, number> = { 1: 2, 6: 4, 2: 5, 3: 7, 4: 10, 5: 13 };
 const MAIL_NUMMERS = Object.keys(SCHEMA).map(Number);
 
 // Verliestypes met een eigen reeks. Leads zonder (geldig) type krijgen "algemeen".
