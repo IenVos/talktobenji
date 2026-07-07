@@ -215,7 +215,7 @@ function LeadCard({ lead, onVerwijder }: { lead: Lead; onVerwijder: (email: stri
 export default function EvenHouvastLeadsPage() {
   const leads = useAdminQuery(api.houvast.leadsVoortgang, {}) as Lead[] | undefined;
   const verwijderLead = useAdminMutation(api.houvast.verwijderLead);
-  const [filter, setFilter] = useState<"alle" | "voltooid" | "onvoltooid" | "gekocht">("alle");
+  const [filter, setFilter] = useState<"alle" | "voltooid" | "onvoltooid" | "gekocht" | "afgemeld">("alle");
 
   const onVerwijder = async (email: string) => {
     await verwijderLead({ email });
@@ -230,6 +230,7 @@ export default function EvenHouvastLeadsPage() {
     if (filter === "voltooid") return !!l.briefAt;
     if (filter === "onvoltooid") return !l.briefAt;
     if (filter === "gekocht") return l.gekocht;
+    if (filter === "afgemeld") return l.afgemeld && !l.gekocht;
     return true;
   });
 
@@ -281,6 +282,7 @@ export default function EvenHouvastLeadsPage() {
         {filterKnop("voltooid", `Brief verstuurd (${metBrief})`)}
         {filterKnop("onvoltooid", `Nog niet voltooid (${totaal - metBrief})`)}
         {filterKnop("gekocht", `Kocht Niet Alleen (${gekocht})`)}
+        {filterKnop("afgemeld", `Afgemeld (${afgemeld})`)}
       </div>
 
       {/* Lijst */}
