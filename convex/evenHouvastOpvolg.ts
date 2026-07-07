@@ -534,6 +534,36 @@ export const advertentieOverzicht = query({
   },
 });
 
+// ── Afmeldingen-overzicht voor de admin ─────────────────────────────────────────
+// Wie zich afmeldde, wanneer, van welk verliestype en via welke advertentie/bron.
+// We mailen deze mensen niet meer (dat blijft zo), maar de data blijft zichtbaar
+// om patronen te zien (bijv. een ad die veel koud verkeer levert dat meteen afhaakt).
+export const afmeldingenOverzicht = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const afmeldingen = await ctx.db.query("ehAfmeldingen").collect();
+    const rijen = [];
+    for (const a of afmeldingen) {
+      const lc = a.email.toLowerCase();
+      const brief = await ctx.db
+        .query("houvastBrieven")
+        .withIndex("by_email", (q) => q.eq("email", lc))
+        .first();
+      const { campagne, ad } = parseAdVanUrl(brief?.bronUrl, brief?.bron);
+      rijen.push({
+        email: a.email,
+        naam: brief?.naam ?? null,
+        type: normType(brief?.verliesType),
+        afgemeldOp: a.createdAt,
+        bron: ad ? `${campagne} · ${ad}` : campagne,
+      });
+    }
+    rijen.sort((x, y) => y.afgemeldOp - x.afgemeldOp);
+    return rijen;
+  },
+});
+
 // ── Afmelding registreren (aangeroepen door /api/afmelden na token-check) ────────
 
 export const registreerAfmelding = mutation({
