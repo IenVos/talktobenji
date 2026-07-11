@@ -38,7 +38,16 @@
       "Bash(echo \"project: $?\")",
       "Skill(update-config)",
       "Edit",
-      "Write"
+      "Write",
+      "Bash(npx tsc *)",
+      "Bash(awk '/eh_algemeen_1:/{f=1} f{print NR\": \"$0} /^\\\\s*},\\\\s*$/{if\\(f\\)c++; if\\(c>=1 && f\\) exit}' convex/emailTemplatesDefaults.ts)",
+      "Bash(echo \"APP EXIT: $?\")",
+      "Bash(awk '/export const activateNietAlleenDirect/{f=1} f{print NR\": \"$0} f&&/^\\\\}\\\\\\);/{exit}' convex/nietAlleen.ts)",
+      "Bash(perl -0pi -e 's/= mutation\\\\\\(\\\\{/= internalMutation\\({/g' convex/seedTypeVarianten.ts)",
+      "Bash(perl -0pi -e 's/api\\\\.ai\\\\.analyzeSessionAdmin/internal.ai.analyzeSessionAdmin/g' convex/chat.ts convex/admin.ts)",
+      "WebSearch",
+      "WebFetch(domain:resend.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }
