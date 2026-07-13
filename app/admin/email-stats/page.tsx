@@ -5,7 +5,7 @@ import { Mail, Eye, MousePointerClick, AlertTriangle, Send, CheckCircle2, Chevro
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery } from "../AdminAuthContext";
 
-type Stroom = {
+type Cijfers = {
   onderwerp: string;
   verzonden: number;
   afgeleverd: number;
@@ -15,17 +15,22 @@ type Stroom = {
   klachten: number;
 };
 
+// Een variant is dezelfde mail onder een eerdere onderwerpregel.
+type Variant = Cijfers & { huidig: boolean };
+
+type Stroom = Cijfers & { varianten: Variant[] };
+
 type Groep = {
   groep: "evenHouvast" | "nietAlleen" | "overig";
   titel: string;
-  totaal: Stroom;
+  totaal: Cijfers;
   stromen: Stroom[];
 };
 
 type Stats = {
   dagen: number;
   heeftData: boolean;
-  totaal: Stroom;
+  totaal: Cijfers;
   stromen: Stroom[];
   groepen: Groep[];
 };
@@ -64,6 +69,78 @@ function KpiKaart({
       <p className="text-2xl font-bold text-gray-900">{waarde}</p>
       {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
     </div>
+  );
+}
+
+// Eén mail. Is de onderwerpregel ooit gewijzigd, dan tellen de oude en nieuwe
+// titel samen op deze regel, en klap je uit om te zien hoe elke titel het deed.
+function StroomRij({ stroom }: { stroom: Stroom }) {
+  const [open, setOpen] = useState(false);
+  const heeftVarianten = stroom.varianten.length > 1;
+  const n = stroom.afgeleverd || stroom.verzonden;
+
+  return (
+    <>
+      <tr
+        className={`border-b border-gray-50 hover:bg-gray-50 ${heeftVarianten ? "cursor-pointer" : ""}`}
+        onClick={heeftVarianten ? () => setOpen((o) => !o) : undefined}
+      >
+        <td className="px-5 py-2.5 text-gray-700 max-w-xs" title={stroom.onderwerp}>
+          <div className="flex items-center gap-1.5">
+            {heeftVarianten && (
+              <ChevronDown
+                size={14}
+                className={`text-gray-400 shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
+              />
+            )}
+            <span className="truncate">{stroom.onderwerp}</span>
+            {heeftVarianten && (
+              <span className="shrink-0 text-[11px] text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5">
+                {stroom.varianten.length} titels
+              </span>
+            )}
+          </div>
+        </td>
+        <td className="px-3 py-2.5 text-right text-gray-500">{stroom.verzonden}</td>
+        <td className="px-3 py-2.5 text-right text-gray-500">{stroom.afgeleverd}</td>
+        <td className="px-3 py-2.5 text-right">
+          <span className="text-gray-900 font-medium">{pct(stroom.geopend, n)}</span>
+          <span className="text-gray-300 text-xs ml-1">({stroom.geopend})</span>
+        </td>
+        <td className="px-3 py-2.5 text-right">
+          <span className="text-gray-900 font-medium">{pct(stroom.geklikt, n)}</span>
+          <span className="text-gray-300 text-xs ml-1">({stroom.geklikt})</span>
+        </td>
+        <td className="px-5 py-2.5 text-right text-gray-500">{stroom.bounced}</td>
+      </tr>
+
+      {heeftVarianten &&
+        open &&
+        stroom.varianten.map((v) => {
+          const vn = v.afgeleverd || v.verzonden;
+          return (
+            <tr key={v.onderwerp} className="border-b border-gray-50 bg-gray-50/60 text-xs">
+              <td className="px-5 py-2 pl-11 text-gray-500 max-w-xs" title={v.onderwerp}>
+                <span className="block truncate">{v.onderwerp}</span>
+                <span className="text-[11px] text-gray-400">
+                  {v.huidig ? "huidige titel" : "eerdere titel"}
+                </span>
+              </td>
+              <td className="px-3 py-2 text-right text-gray-500">{v.verzonden}</td>
+              <td className="px-3 py-2 text-right text-gray-500">{v.afgeleverd}</td>
+              <td className="px-3 py-2 text-right">
+                <span className="text-gray-700 font-medium">{pct(v.geopend, vn)}</span>
+                <span className="text-gray-300 ml-1">({v.geopend})</span>
+              </td>
+              <td className="px-3 py-2 text-right">
+                <span className="text-gray-700 font-medium">{pct(v.geklikt, vn)}</span>
+                <span className="text-gray-300 ml-1">({v.geklikt})</span>
+              </td>
+              <td className="px-5 py-2 text-right text-gray-500">{v.bounced}</td>
+            </tr>
+          );
+        })}
+    </>
   );
 }
 
@@ -120,27 +197,9 @@ function GroepBlok({ groep, standaardOpen }: { groep: Groep; standaardOpen: bool
               </tr>
             </thead>
             <tbody>
-              {groep.stromen.map((s) => {
-                const sn = s.afgeleverd || s.verzonden;
-                return (
-                  <tr key={s.onderwerp} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
-                    <td className="px-5 py-2.5 text-gray-700 max-w-xs truncate" title={s.onderwerp}>
-                      {s.onderwerp}
-                    </td>
-                    <td className="px-3 py-2.5 text-right text-gray-500">{s.verzonden}</td>
-                    <td className="px-3 py-2.5 text-right text-gray-500">{s.afgeleverd}</td>
-                    <td className="px-3 py-2.5 text-right">
-                      <span className="text-gray-900 font-medium">{pct(s.geopend, sn)}</span>
-                      <span className="text-gray-300 text-xs ml-1">({s.geopend})</span>
-                    </td>
-                    <td className="px-3 py-2.5 text-right">
-                      <span className="text-gray-900 font-medium">{pct(s.geklikt, sn)}</span>
-                      <span className="text-gray-300 text-xs ml-1">({s.geklikt})</span>
-                    </td>
-                    <td className="px-5 py-2.5 text-right text-gray-500">{s.bounced}</td>
-                  </tr>
-                );
-              })}
+              {groep.stromen.map((s) => (
+                <StroomRij key={s.onderwerp} stroom={s} />
+              ))}
             </tbody>
           </table>
         </div>
@@ -256,6 +315,9 @@ export default function EmailStatsPage() {
           </div>
 
           <p className="text-xs text-gray-400 leading-relaxed">
+            Heb je een onderwerpregel gewijzigd, dan staat de mail onder zijn huidige titel
+            met het totaal van alle titels samen. Klap de regel uit om per titel de open-rate
+            en klik-ratio te vergelijken.{" "}
             Open-rate en klik-ratio zijn berekend t.o.v. het aantal afgeleverde mails.
             Open-rate is een indicatie: sommige mailprogramma's laden de meet-pixel niet,
             waardoor het werkelijke aantal hoger kan liggen. Periode:{" "}

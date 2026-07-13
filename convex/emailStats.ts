@@ -69,22 +69,34 @@ type Groep = "evenHouvast" | "nietAlleen" | "overig";
 
 // Onderwerpen die in houvast.ts hardcoded staan (brief-mail en de mail die de
 // brief aankondigt); de opvolgmails komen uit de templates hieronder.
-// De laatste is een oud onderwerp van opvolgmail 4: dat is in de admin gewijzigd
-// vóórdat we onderwerp-geschiedenis bijhielden, dus die staat hier vast.
 const EH_VASTE_ONDERWERPEN = [
   "Jouw woorden die je hebt gedeeld in Even Houvast",
   "Houvast staat klaar voor je",
-  "Ik wil je iets vertellen over een hond die Zorro heette. Mijn hondje.",
 ];
 
-// Bouwt een index van genormaliseerd onderwerp → programma, zodat de tabel per
-// mailstroom kan groeperen. Onderwerpen kunnen in de admin aangepast zijn, dus
-// we lezen zowel de defaults als de opgeslagen templates.
-async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Groep>> {
-  const index = new Map<string, Groep>();
-  const zet = (subject: string | undefined, groep: Groep) => {
+// Onderwerpen die in de admin zijn gewijzigd vóórdat we die geschiedenis
+// bijhielden: oude onderwerpregel → onderwerp zoals het nu heet. Nieuwe
+// wijzigingen komen vanzelf mee via `vorigeOnderwerpen` op de template.
+const HISTORISCHE_HERNOEMINGEN: Record<string, string> = {
+  "Ik wil je iets vertellen over een hond die Zorro heette. Mijn hondje.":
+    "Verlies, liefde en veerkracht in één verhaal.",
+};
+
+// Waar een verstuurde mail bij hoort: het programma, en onder welke titel we hem
+// nu tonen (`huidig`). Een mail die is hernoemd, telt zo mee onder zijn nieuwe
+// titel, terwijl de oude titel als aparte variant zichtbaar blijft.
+type Herkomst = { groep: Groep; huidig: string };
+
+// Bouwt een index van genormaliseerd onderwerp → herkomst. Onderwerpen kunnen in
+// de admin aangepast zijn, dus we lezen zowel de defaults als de opgeslagen
+// templates, inclusief hun eerdere onderwerpregels.
+async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Herkomst>> {
+  const index = new Map<string, Herkomst>();
+  // `huidig` leeg = de mail heet nog steeds zo.
+  const zet = (subject: string | undefined, groep: Groep, huidigSubject?: string) => {
     if (!subject || !subject.trim()) return;
-    index.set(normaliseerOnderwerp(subject), groep);
+    const label = normaliseerOnderwerp(subject);
+    index.set(label, { groep, huidig: normaliseerOnderwerp(huidigSubject ?? subject) });
   };
 
   for (const onderwerp of EH_VASTE_ONDERWERPEN) zet(onderwerp, "evenHouvast");
@@ -103,8 +115,9 @@ async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Groep>> {
         : undefined;
     if (!groep) continue;
     zet(tpl.subject, groep);
-    // Al verstuurde mails dragen het onderwerp van tóén; die tellen we mee.
-    for (const oud of tpl.vorigeOnderwerpen ?? []) zet(oud, groep);
+    // Al verstuurde mails dragen het onderwerp van tóén; die schuiven we onder
+    // de huidige titel, zodat je ziet of een nieuwe titel beter werkt.
+    for (const oud of tpl.vorigeOnderwerpen ?? []) zet(oud, groep, tpl.subject);
   }
 
   for (const dag of [...NIET_ALLEEN_CONTENT, ...EENZAAMHEID_CONTENT, ...KINDERLOOS_CONTENT]) {
@@ -112,7 +125,12 @@ async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Groep>> {
   }
   for (const dag of await ctx.db.query("nietAlleenDagTemplates").collect()) {
     zet(dag.subject, "nietAlleen");
-    for (const oud of dag.vorigeOnderwerpen ?? []) zet(oud, "nietAlleen");
+    for (const oud of dag.vorigeOnderwerpen ?? []) zet(oud, "nietAlleen", dag.subject);
+  }
+
+  for (const [oud, nu] of Object.entries(HISTORISCHE_HERNOEMINGEN)) {
+    const herkomst = index.get(normaliseerOnderwerp(nu));
+    zet(oud, herkomst?.groep ?? "evenHouvast", nu);
   }
 
   return index;
@@ -166,16 +184,27 @@ export const stats = query({
       nietAlleen: leegAgg("Niet Alleen", "nietAlleen"),
       overig: leegAgg("Overige mails", "overig"),
     };
-    const perStroom = new Map<string, StroomAgg>();
+    // Eén regel per mail (op de titel zoals hij nu heet), met daarbinnen een
+    // telling per onderwerpregel die daadwerkelijk verstuurd is.
+    const perStroom = new Map<string, StroomAgg & { varianten: Map<string, StroomAgg> }>();
 
     for (const m of perMail.values()) {
       const label = normaliseerOnderwerp(m.subject);
-      const groep = groepIndex.get(label) ?? "overig";
-      let s = perStroom.get(label);
+      const herkomst = groepIndex.get(label);
+      const groep: Groep = herkomst?.groep ?? "overig";
+      const huidig = herkomst?.huidig ?? label;
+
+      let s = perStroom.get(huidig);
       if (!s) {
-        s = leegAgg(label, groep);
-        perStroom.set(label, s);
+        s = { ...leegAgg(huidig, groep), varianten: new Map() };
+        perStroom.set(huidig, s);
       }
+      let variant = s.varianten.get(label);
+      if (!variant) {
+        variant = leegAgg(label, groep);
+        s.varianten.set(label, variant);
+      }
+
       // "Verzonden" = we hebben minstens één event voor deze mail. Bij afgeleverd
       // tellen we ook een sent-event mee als de sent-webhook uitstaat.
       const isVerzonden = m.types.size > 0;
@@ -185,7 +214,7 @@ export const stats = query({
       const isBounced = heeft(m, "email.bounced");
       const isKlacht = heeft(m, "email.complained");
 
-      for (const agg of [s, perGroep[groep], totaal]) {
+      for (const agg of [variant, s, perGroep[groep], totaal]) {
         if (isVerzonden) agg.verzonden++;
         if (isAfgeleverd) agg.afgeleverd++;
         if (isGeopend) agg.geopend++;
@@ -195,7 +224,19 @@ export const stats = query({
       }
     }
 
-    const stromen = Array.from(perStroom.values()).sort((a, b) => b.verzonden - a.verzonden);
+    // Varianten alleen meesturen als de titel ooit veranderd is; anders zou elke
+    // mail een uitklap krijgen met exact dezelfde cijfers.
+    const stromen = Array.from(perStroom.values())
+      .map(({ varianten, ...stroom }) => ({
+        ...stroom,
+        varianten:
+          varianten.size > 1
+            ? Array.from(varianten.values())
+                .map((va) => ({ ...va, huidig: va.onderwerp === stroom.onderwerp }))
+                .sort((a, b) => Number(b.huidig) - Number(a.huidig) || b.verzonden - a.verzonden)
+            : [],
+      }))
+      .sort((a, b) => b.verzonden - a.verzonden);
 
     // Vaste volgorde: Even Houvast bovenaan, dan Niet Alleen, dan de rest.
     const volgorde: Groep[] = ["evenHouvast", "nietAlleen", "overig"];
