@@ -12,11 +12,21 @@ import { internal as internalApi } from "./_generated/api";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
 
+// Resend accepteert in tags alleen letters, cijfers, koppelteken en underscore.
+// Verliestypen zijn beheerbaar en dus vrije tekst, dus schonen we ze op.
+function normaliseerTagWaarde(waarde: string): string {
+  const schoon = waarde.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "_").replace(/^_|_$/g, "");
+  return schoon || "onbekend";
+}
+
 async function verstuurEmail(args: {
   to: string;
   subject: string;
   html: string;
   apiKey: string;
+  // Labels komen terug in de Resend-webhook; de e-mail-statistieken splitsen
+  // daarop uit per dag en verliestype.
+  tags?: { name: string; value: string }[];
 }) {
   // Tot 4 pogingen met oplopende wachttijd — vooral voor rate-limit (429),
   // omdat meerdere crons om 08:00 tegelijk via Resend mailen.
@@ -28,7 +38,13 @@ async function verstuurEmail(args: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${args.apiKey}`,
       },
-      body: JSON.stringify({ from: FROM, to: [args.to], subject: args.subject, html: args.html }),
+      body: JSON.stringify({
+        from: FROM,
+        to: [args.to],
+        subject: args.subject,
+        html: args.html,
+        ...(args.tags && args.tags.length > 0 ? { tags: args.tags } : {}),
+      }),
     });
     if (response.ok) return;
 
@@ -234,7 +250,17 @@ export const sendDagMail = internalAction({
       ${gemistRegel()}
     `);
 
-    await verstuurEmail({ to: args.email, subject, html, apiKey: RESEND_API_KEY });
+    await verstuurEmail({
+      to: args.email,
+      subject,
+      html,
+      apiKey: RESEND_API_KEY,
+      tags: [
+        { name: "programma", value: "na" },
+        { name: "mail", value: `dag${args.dagNummer}` },
+        { name: "verliestype", value: normaliseerTagWaarde(args.verliesType) },
+      ],
+    });
   },
 });
 

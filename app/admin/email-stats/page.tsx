@@ -15,10 +15,12 @@ type Cijfers = {
   klachten: number;
 };
 
-// Een variant is dezelfde mail onder een eerdere onderwerpregel.
-type Variant = Cijfers & { huidig: boolean };
+// Een variant is dezelfde mail voor een ander verliestype, of onder een eerdere
+// onderwerpregel. Het verliestype is alleen bekend bij mails die verstuurd zijn
+// nadat we dat label meesturen.
+type Variant = Cijfers & { verliestype?: string };
 
-type Stroom = Cijfers & { varianten: Variant[] };
+type Stroom = Cijfers & { stroomId: string; varianten: Variant[] };
 
 type Groep = {
   groep: "evenHouvast" | "nietAlleen" | "overig";
@@ -72,12 +74,13 @@ function KpiKaart({
   );
 }
 
-// Eén mail. Is de onderwerpregel ooit gewijzigd, dan tellen de oude en nieuwe
-// titel samen op deze regel, en klap je uit om te zien hoe elke titel het deed.
+// Eén mail (bijv. opvolgmail 3). De uitklap toont per verliestype en per
+// onderwerpregel hoe die het deed, zodat je titels en types kunt vergelijken.
 function StroomRij({ stroom }: { stroom: Stroom }) {
   const [open, setOpen] = useState(false);
   const heeftVarianten = stroom.varianten.length > 1;
   const n = stroom.afgeleverd || stroom.verzonden;
+  const aantalTitels = new Set(stroom.varianten.map((v) => v.onderwerp)).size;
 
   return (
     <>
@@ -85,7 +88,7 @@ function StroomRij({ stroom }: { stroom: Stroom }) {
         className={`border-b border-gray-50 hover:bg-gray-50 ${heeftVarianten ? "cursor-pointer" : ""}`}
         onClick={heeftVarianten ? () => setOpen((o) => !o) : undefined}
       >
-        <td className="px-5 py-2.5 text-gray-700 max-w-xs" title={stroom.onderwerp}>
+        <td className="px-5 py-2.5 text-gray-700 max-w-sm" title={stroom.onderwerp}>
           <div className="flex items-center gap-1.5">
             {heeftVarianten && (
               <ChevronDown
@@ -94,9 +97,9 @@ function StroomRij({ stroom }: { stroom: Stroom }) {
               />
             )}
             <span className="truncate">{stroom.onderwerp}</span>
-            {heeftVarianten && (
+            {aantalTitels > 1 && (
               <span className="shrink-0 text-[11px] text-amber-600 bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5">
-                {stroom.varianten.length} titels
+                {aantalTitels} titels
               </span>
             )}
           </div>
@@ -119,11 +122,14 @@ function StroomRij({ stroom }: { stroom: Stroom }) {
         stroom.varianten.map((v) => {
           const vn = v.afgeleverd || v.verzonden;
           return (
-            <tr key={v.onderwerp} className="border-b border-gray-50 bg-gray-50/60 text-xs">
-              <td className="px-5 py-2 pl-11 text-gray-500 max-w-xs" title={v.onderwerp}>
+            <tr
+              key={`${v.verliestype ?? ""}|${v.onderwerp}`}
+              className="border-b border-gray-50 bg-gray-50/60 text-xs"
+            >
+              <td className="px-5 py-2 pl-11 text-gray-500 max-w-sm" title={v.onderwerp}>
                 <span className="block truncate">{v.onderwerp}</span>
                 <span className="text-[11px] text-gray-400">
-                  {v.huidig ? "huidige titel" : "eerdere titel"}
+                  {v.verliestype ? v.verliestype.replace(/_/g, " ") : "verliestype onbekend"}
                 </span>
               </td>
               <td className="px-3 py-2 text-right text-gray-500">{v.verzonden}</td>
@@ -315,9 +321,10 @@ export default function EmailStatsPage() {
           </div>
 
           <p className="text-xs text-gray-400 leading-relaxed">
-            Heb je een onderwerpregel gewijzigd, dan staat de mail onder zijn huidige titel
-            met het totaal van alle titels samen. Klap de regel uit om per titel de open-rate
-            en klik-ratio te vergelijken.{" "}
+            Elke opvolgmail staat één keer in de lijst, met het totaal over alle verliestypen.
+            Klap een regel uit om per verliestype en per onderwerpregel de open-rate en
+            klik-ratio te vergelijken. Het verliestype is alleen bekend van mails die vanaf
+            13 juli 2026 zijn verstuurd; oudere mails staan als "verliestype onbekend".{" "}
             Open-rate en klik-ratio zijn berekend t.o.v. het aantal afgeleverde mails.
             Open-rate is een indicatie: sommige mailprogramma's laden de meet-pixel niet,
             waardoor het werkelijke aantal hoger kan liggen. Periode:{" "}

@@ -28,6 +28,7 @@ export const recordEvent = internalMutation({
     subject: v.optional(v.string()),
     to: v.optional(v.string()),
     clickLink: v.optional(v.string()),
+    tags: v.optional(v.record(v.string(), v.string())),
     createdAt: v.number(),
     svixId: v.string(),
   },
@@ -67,70 +68,101 @@ type StroomAgg = {
 
 type Groep = "evenHouvast" | "nietAlleen" | "overig";
 
-// Onderwerpen die in houvast.ts hardcoded staan (brief-mail en de mail die de
-// brief aankondigt); de opvolgmails komen uit de templates hieronder.
-const EH_VASTE_ONDERWERPEN = [
-  "Jouw woorden die je hebt gedeeld in Even Houvast",
-  "Houvast staat klaar voor je",
-];
-
-// Onderwerpen die in de admin zijn gewijzigd vóórdat we die geschiedenis
-// bijhielden: oude onderwerpregel → onderwerp zoals het nu heet. Nieuwe
-// wijzigingen komen vanzelf mee via `vorigeOnderwerpen` op de template.
-const HISTORISCHE_HERNOEMINGEN: Record<string, string> = {
-  "Ik wil je iets vertellen over een hond die Zorro heette. Mijn hondje.":
-    "Verlies, liefde en veerkracht in één verhaal.",
+// Onderwerpen die in houvast.ts hardcoded staan: de brief-mail zelf en de mail
+// die de brief aankondigt. De opvolgmails komen uit de templates.
+const EH_LOSSE_MAILS: Record<string, string> = {
+  "Jouw woorden die je hebt gedeeld in Even Houvast": "De brief zelf",
+  "Houvast staat klaar voor je": "Aankondiging van de brief",
 };
 
-// Waar een verstuurde mail bij hoort: het programma, en onder welke titel we hem
-// nu tonen (`huidig`). Een mail die is hernoemd, telt zo mee onder zijn nieuwe
-// titel, terwijl de oude titel als aparte variant zichtbaar blijft.
-type Herkomst = { groep: Groep; huidig: string };
+// Onderwerpen die in de admin zijn gewijzigd vóórdat we die geschiedenis
+// bijhielden: oude onderwerpregel → template-key waar hij bij hoorde. Nieuwe
+// wijzigingen komen vanzelf mee via `vorigeOnderwerpen` op de template.
+const HISTORISCHE_ONDERWERPEN: Record<string, string> = {
+  "Ik wil je iets vertellen over een hond die Zorro heette. Mijn hondje.": "eh_huisdier_6",
+};
+
+// Waar een verstuurde mail bij hoort. Elke opvolgmail bestaat in zes varianten
+// (één per verliestype) met soms verschillende onderwerpregels, en een onderwerp
+// kan in de admin hernoemd zijn. We tellen daarom op de mail zélf (`stroomId`,
+// bijv. opvolgmail 3) en houden de losse onderwerpregels eronder zichtbaar.
+type Herkomst = { groep: Groep; stroomId: string; titel: string };
+
+// Vertaalt een template-key (eh_huisdier_3) naar de mail waar hij bij hoort.
+function ehHerkomst(key: string): Herkomst | undefined {
+  const match = /^eh_[a-z]+_(\d+)$/.exec(key);
+  if (!match) return undefined;
+  return { groep: "evenHouvast", stroomId: `eh_${match[1]}`, titel: `Opvolgmail ${match[1]}` };
+}
+
+// Labels die we sinds 13 juli 2026 bij elke verzending meesturen. Mails van
+// daarvóór hebben ze niet; die vallen terug op de onderwerp-index.
+function herkomstVanTags(
+  tags: Record<string, string> | undefined,
+  label: string
+): Herkomst | undefined {
+  const mail = tags?.mail;
+  if (!tags || !mail) return undefined;
+  if (tags.programma === "eh") {
+    return { groep: "evenHouvast", stroomId: `eh_${mail}`, titel: `Opvolgmail ${mail}` };
+  }
+  if (tags.programma === "na") {
+    return { groep: "nietAlleen", stroomId: `na_${mail}`, titel: label };
+  }
+  return undefined;
+}
 
 // Bouwt een index van genormaliseerd onderwerp → herkomst. Onderwerpen kunnen in
 // de admin aangepast zijn, dus we lezen zowel de defaults als de opgeslagen
 // templates, inclusief hun eerdere onderwerpregels.
 async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Herkomst>> {
   const index = new Map<string, Herkomst>();
-  // `huidig` leeg = de mail heet nog steeds zo.
-  const zet = (subject: string | undefined, groep: Groep, huidigSubject?: string) => {
+  const zet = (subject: string | undefined, herkomst: Herkomst) => {
     if (!subject || !subject.trim()) return;
-    const label = normaliseerOnderwerp(subject);
-    index.set(label, { groep, huidig: normaliseerOnderwerp(huidigSubject ?? subject) });
+    index.set(normaliseerOnderwerp(subject), herkomst);
   };
+  // Niet Alleen en losse mails staan op zichzelf: één onderwerp = één mail.
+  const opZichzelf = (subject: string, groep: Groep, titel?: string): Herkomst => ({
+    groep,
+    stroomId: normaliseerOnderwerp(subject),
+    titel: titel ?? normaliseerOnderwerp(subject),
+  });
 
-  for (const onderwerp of EH_VASTE_ONDERWERPEN) zet(onderwerp, "evenHouvast");
+  for (const [onderwerp, uitleg] of Object.entries(EH_LOSSE_MAILS)) {
+    zet(onderwerp, { ...opZichzelf(onderwerp, "evenHouvast"), titel: uitleg });
+  }
 
   for (const [key, tpl] of Object.entries(DEFAULT_TEMPLATES)) {
     const subject = (tpl as { subject?: string }).subject;
-    if (key.startsWith("eh_")) zet(subject, "evenHouvast");
-    else if (key.startsWith("niet_alleen")) zet(subject, "nietAlleen");
+    if (!subject) continue;
+    const eh = ehHerkomst(key);
+    if (eh) zet(subject, eh);
+    else if (key.startsWith("niet_alleen")) zet(subject, opZichzelf(subject, "nietAlleen"));
   }
 
   for (const tpl of await ctx.db.query("emailTemplates").collect()) {
-    const groep: Groep | undefined = tpl.key.startsWith("eh_")
-      ? "evenHouvast"
-      : tpl.key.startsWith("niet_alleen")
-        ? "nietAlleen"
-        : undefined;
-    if (!groep) continue;
-    zet(tpl.subject, groep);
-    // Al verstuurde mails dragen het onderwerp van tóén; die schuiven we onder
-    // de huidige titel, zodat je ziet of een nieuwe titel beter werkt.
-    for (const oud of tpl.vorigeOnderwerpen ?? []) zet(oud, groep, tpl.subject);
+    const herkomst =
+      ehHerkomst(tpl.key) ??
+      (tpl.key.startsWith("niet_alleen") ? opZichzelf(tpl.subject, "nietAlleen") : undefined);
+    if (!herkomst) continue;
+    zet(tpl.subject, herkomst);
+    // Al verstuurde mails dragen het onderwerp van tóén; die tellen mee op
+    // dezelfde mail, zodat je ziet of een nieuwe titel beter werkt.
+    for (const oud of tpl.vorigeOnderwerpen ?? []) zet(oud, herkomst);
   }
 
   for (const dag of [...NIET_ALLEEN_CONTENT, ...EENZAAMHEID_CONTENT, ...KINDERLOOS_CONTENT]) {
-    zet(dag.subject, "nietAlleen");
+    zet(dag.subject, opZichzelf(dag.subject, "nietAlleen"));
   }
   for (const dag of await ctx.db.query("nietAlleenDagTemplates").collect()) {
-    zet(dag.subject, "nietAlleen");
-    for (const oud of dag.vorigeOnderwerpen ?? []) zet(oud, "nietAlleen", dag.subject);
+    const herkomst = opZichzelf(dag.subject, "nietAlleen");
+    zet(dag.subject, herkomst);
+    for (const oud of dag.vorigeOnderwerpen ?? []) zet(oud, herkomst);
   }
 
-  for (const [oud, nu] of Object.entries(HISTORISCHE_HERNOEMINGEN)) {
-    const herkomst = index.get(normaliseerOnderwerp(nu));
-    zet(oud, herkomst?.groep ?? "evenHouvast", nu);
+  for (const [oud, key] of Object.entries(HISTORISCHE_ONDERWERPEN)) {
+    const herkomst = ehHerkomst(key);
+    if (herkomst) zet(oud, herkomst);
   }
 
   return index;
@@ -150,17 +182,18 @@ export const stats = query({
       .collect();
 
     // Reconstrueer per mail (emailId) welke gebeurtenissen zijn voorgekomen.
-    type MailInfo = { subject?: string; types: Set<string> };
+    type MailInfo = { subject?: string; tags?: Record<string, string>; types: Set<string> };
     const perMail = new Map<string, MailInfo>();
     for (const e of events) {
       let m = perMail.get(e.emailId);
       if (!m) {
-        m = { subject: e.subject, types: new Set() };
+        m = { subject: e.subject, tags: e.tags, types: new Set() };
         perMail.set(e.emailId, m);
       }
       m.types.add(e.type);
-      // Onderwerp komt bij sent/delivered mee; bewaar het eerste dat we zien.
+      // Onderwerp en labels komen bij sent/delivered mee; bewaar de eerste die we zien.
       if (!m.subject && e.subject) m.subject = e.subject;
+      if (!m.tags && e.tags) m.tags = e.tags;
     }
 
     // Tel per gebeurtenistype "of het is voorgekomen voor deze mail" (uniek per mail).
@@ -184,26 +217,36 @@ export const stats = query({
       nietAlleen: leegAgg("Niet Alleen", "nietAlleen"),
       overig: leegAgg("Overige mails", "overig"),
     };
-    // Eén regel per mail (op de titel zoals hij nu heet), met daarbinnen een
-    // telling per onderwerpregel die daadwerkelijk verstuurd is.
-    const perStroom = new Map<string, StroomAgg & { varianten: Map<string, StroomAgg> }>();
+    // Eén regel per mail, met daarbinnen een telling per verliestype én per
+    // onderwerpregel: zo zie je of een andere titel of een ander type beter loopt.
+    type VariantAgg = StroomAgg & { verliestype?: string };
+    type StroomOpbouw = StroomAgg & { stroomId: string; varianten: Map<string, VariantAgg> };
+    const perStroom = new Map<string, StroomOpbouw>();
 
     for (const m of perMail.values()) {
       const label = normaliseerOnderwerp(m.subject);
-      const herkomst = groepIndex.get(label);
-      const groep: Groep = herkomst?.groep ?? "overig";
-      const huidig = herkomst?.huidig ?? label;
+      // Labels (meegestuurd bij verzending) zijn leidend; oudere mails hebben ze
+      // niet, dan leiden we de mail af uit de onderwerpregel.
+      const herkomst: Herkomst = herkomstVanTags(m.tags, label) ??
+        groepIndex.get(label) ?? { groep: "overig", stroomId: label, titel: label };
+      const verliestype = m.tags?.verliestype;
 
-      let s = perStroom.get(huidig);
+      let s = perStroom.get(herkomst.stroomId);
       if (!s) {
-        s = { ...leegAgg(huidig, groep), varianten: new Map() };
-        perStroom.set(huidig, s);
+        s = {
+          ...leegAgg(herkomst.titel, herkomst.groep),
+          stroomId: herkomst.stroomId,
+          varianten: new Map(),
+        };
+        perStroom.set(herkomst.stroomId, s);
       }
-      let variant = s.varianten.get(label);
+      const variantSleutel = `${verliestype ?? ""}|${label}`;
+      let variant = s.varianten.get(variantSleutel);
       if (!variant) {
-        variant = leegAgg(label, groep);
-        s.varianten.set(label, variant);
+        variant = { ...leegAgg(label, herkomst.groep), verliestype };
+        s.varianten.set(variantSleutel, variant);
       }
+      const groep = herkomst.groep;
 
       // "Verzonden" = we hebben minstens één event voor deze mail. Bij afgeleverd
       // tellen we ook een sent-event mee als de sent-webhook uitstaat.
@@ -224,28 +267,35 @@ export const stats = query({
       }
     }
 
-    // Varianten alleen meesturen als de titel ooit veranderd is; anders zou elke
-    // mail een uitklap krijgen met exact dezelfde cijfers.
+    // Varianten alleen meesturen als er iets te vergelijken valt (meer dan één
+    // verliestype of titel); anders zou elke mail een uitklap krijgen met
+    // exact dezelfde cijfers als de regel erboven.
     const stromen = Array.from(perStroom.values())
       .map(({ varianten, ...stroom }) => ({
         ...stroom,
         varianten:
           varianten.size > 1
-            ? Array.from(varianten.values())
-                .map((va) => ({ ...va, huidig: va.onderwerp === stroom.onderwerp }))
-                .sort((a, b) => Number(b.huidig) - Number(a.huidig) || b.verzonden - a.verzonden)
+            ? Array.from(varianten.values()).sort((a, b) => b.verzonden - a.verzonden)
             : [],
       }))
       .sort((a, b) => b.verzonden - a.verzonden);
 
-    // Vaste volgorde: Even Houvast bovenaan, dan Niet Alleen, dan de rest.
+    // Vaste volgorde: Even Houvast bovenaan, dan Niet Alleen, dan de rest. Binnen
+    // Even Houvast op mailnummer, want dat is de volgorde waarin ze aankomen.
     const volgorde: Groep[] = ["evenHouvast", "nietAlleen", "overig"];
     const groepen = volgorde
       .map((g) => ({
         groep: g,
         titel: perGroep[g].onderwerp,
         totaal: perGroep[g],
-        stromen: stromen.filter((s) => s.groep === g),
+        stromen: stromen
+          .filter((s) => s.groep === g)
+          .sort((a, b) => {
+            if (g !== "evenHouvast") return b.verzonden - a.verzonden;
+            const nr = (s: { stroomId: string }) =>
+              Number(/^eh_(\d+)$/.exec(s.stroomId)?.[1] ?? 99);
+            return nr(a) - nr(b) || b.verzonden - a.verzonden;
+          }),
       }))
       .filter((g) => g.totaal.verzonden > 0);
 

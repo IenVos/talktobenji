@@ -109,12 +109,27 @@ http.route({
     const clickLink =
       data.click && typeof data.click.link === "string" ? data.click.link : undefined;
 
+    // Resend geeft onze labels terug als lijst van {name, value} of als object;
+    // beide vormen platslaan naar een simpele map.
+    const tagsRaw = data.tags;
+    const tags: Record<string, string> = {};
+    if (Array.isArray(tagsRaw)) {
+      for (const t of tagsRaw) {
+        if (t && typeof t.name === "string" && typeof t.value === "string") tags[t.name] = t.value;
+      }
+    } else if (tagsRaw && typeof tagsRaw === "object") {
+      for (const [naam, waarde] of Object.entries(tagsRaw)) {
+        if (typeof waarde === "string") tags[naam] = waarde;
+      }
+    }
+
     await ctx.runMutation(internal.emailStats.recordEvent, {
       emailId,
       type,
       subject: typeof data.subject === "string" ? data.subject : undefined,
       to: typeof toRaw === "string" ? toRaw.toLowerCase() : undefined,
       clickLink,
+      tags: Object.keys(tags).length > 0 ? tags : undefined,
       createdAt: Number.isFinite(tijd) ? tijd : Date.now(),
       svixId: request.headers.get("svix-id") ?? "",
     });

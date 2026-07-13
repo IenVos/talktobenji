@@ -169,13 +169,27 @@ async function afmeldToken(email: string): Promise<string> {
 }
 
 
-async function verstuurEmail(args: { to: string; subject: string; html: string; apiKey: string }) {
+async function verstuurEmail(args: {
+  to: string;
+  subject: string;
+  html: string;
+  apiKey: string;
+  // Labels komen terug in de Resend-webhook; de e-mail-statistieken splitsen
+  // daarop uit per mailnummer en verliestype.
+  tags?: { name: string; value: string }[];
+}) {
   const maxPogingen = 4;
   for (let poging = 1; poging <= maxPogingen; poging++) {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${args.apiKey}` },
-      body: JSON.stringify({ from: FROM, to: [args.to], subject: args.subject, html: args.html }),
+      body: JSON.stringify({
+        from: FROM,
+        to: [args.to],
+        subject: args.subject,
+        html: args.html,
+        ...(args.tags && args.tags.length > 0 ? { tags: args.tags } : {}),
+      }),
     });
     if (response.ok) return;
     const error = await response.text();
@@ -252,7 +266,17 @@ async function verstuurOpvolgMail(
     ${ehFooter(nietAlleenUrlVoorType(type), afmeldUrl)}
   `);
 
-  await verstuurEmail({ to: args.email, subject, html, apiKey: args.apiKey });
+  await verstuurEmail({
+    to: args.email,
+    subject,
+    html,
+    apiKey: args.apiKey,
+    tags: [
+      { name: "programma", value: "eh" },
+      { name: "mail", value: String(args.mailNummer) },
+      { name: "verliestype", value: type },
+    ],
+  });
 }
 
 // ── Interne data-helpers ──────────────────────────────────────────────────────

@@ -924,6 +924,10 @@ export default defineSchema({
     subject: v.optional(v.string()),  // onderwerp (voor groepering per mailstroom)
     to: v.optional(v.string()),       // eerste ontvanger (lowercase)
     clickLink: v.optional(v.string()),// aangeklikte link (bij email.clicked)
+    // Labels die we bij het versturen meegeven (programma, mailnummer/dag,
+    // verliestype). Het verliestype staat niet in de onderwerpregel, dus zonder
+    // deze labels kan de admin niet per verliestype uitsplitsen.
+    tags: v.optional(v.record(v.string(), v.string())),
     createdAt: v.number(),            // tijdstip van de gebeurtenis (ms)
     svixId: v.string(),               // svix-id header → ontdubbelen van herafleveringen
   })
