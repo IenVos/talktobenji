@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Eye, MousePointerClick, AlertTriangle, Send, CheckCircle2 } from "lucide-react";
+import { Mail, Eye, MousePointerClick, AlertTriangle, Send, CheckCircle2, ChevronDown } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery } from "../AdminAuthContext";
 
@@ -15,11 +15,19 @@ type Stroom = {
   klachten: number;
 };
 
+type Groep = {
+  groep: "evenHouvast" | "nietAlleen" | "overig";
+  titel: string;
+  totaal: Stroom;
+  stromen: Stroom[];
+};
+
 type Stats = {
   dagen: number;
   heeftData: boolean;
   totaal: Stroom;
   stromen: Stroom[];
+  groepen: Groep[];
 };
 
 const PERIODES = [
@@ -55,6 +63,88 @@ function KpiKaart({
       </div>
       <p className="text-2xl font-bold text-gray-900">{waarde}</p>
       {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+// Eén programma (Even Houvast / Niet Alleen / Overig): kopregel met de cijfers
+// van de hele stroom, uitklapbaar naar de losse onderwerpen.
+function GroepBlok({ groep, standaardOpen }: { groep: Groep; standaardOpen: boolean }) {
+  const [open, setOpen] = useState(standaardOpen);
+  const g = groep.totaal;
+  const n = g.afgeleverd || g.verzonden;
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-3 px-5 py-3.5 text-left hover:bg-gray-50 transition-colors"
+      >
+        <ChevronDown
+          size={16}
+          className={`text-gray-400 shrink-0 transition-transform ${open ? "" : "-rotate-90"}`}
+        />
+        <div className="flex-1 min-w-0">
+          <h2 className="font-semibold text-gray-900">{groep.titel}</h2>
+          <p className="text-xs text-gray-400">
+            {groep.stromen.length} {groep.stromen.length === 1 ? "onderwerp" : "onderwerpen"}
+          </p>
+        </div>
+        <div className="flex items-center gap-5 text-sm shrink-0">
+          <div className="text-right">
+            <p className="font-semibold text-gray-900">{g.verzonden}</p>
+            <p className="text-xs text-gray-400">verzonden</p>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold text-gray-900">{pct(g.geopend, n)}</p>
+            <p className="text-xs text-gray-400">open</p>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold text-gray-900">{pct(g.geklikt, n)}</p>
+            <p className="text-xs text-gray-400">klik</p>
+          </div>
+        </div>
+      </button>
+
+      {open && (
+        <div className="overflow-x-auto border-t border-gray-100">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs text-gray-400 uppercase tracking-wide border-b border-gray-100">
+                <th className="px-5 py-2.5 font-medium">Onderwerp</th>
+                <th className="px-3 py-2.5 font-medium text-right">Verz.</th>
+                <th className="px-3 py-2.5 font-medium text-right">Afgel.</th>
+                <th className="px-3 py-2.5 font-medium text-right">Open</th>
+                <th className="px-3 py-2.5 font-medium text-right">Klik</th>
+                <th className="px-5 py-2.5 font-medium text-right">Bounce</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groep.stromen.map((s) => {
+                const sn = s.afgeleverd || s.verzonden;
+                return (
+                  <tr key={s.onderwerp} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
+                    <td className="px-5 py-2.5 text-gray-700 max-w-xs truncate" title={s.onderwerp}>
+                      {s.onderwerp}
+                    </td>
+                    <td className="px-3 py-2.5 text-right text-gray-500">{s.verzonden}</td>
+                    <td className="px-3 py-2.5 text-right text-gray-500">{s.afgeleverd}</td>
+                    <td className="px-3 py-2.5 text-right">
+                      <span className="text-gray-900 font-medium">{pct(s.geopend, sn)}</span>
+                      <span className="text-gray-300 text-xs ml-1">({s.geopend})</span>
+                    </td>
+                    <td className="px-3 py-2.5 text-right">
+                      <span className="text-gray-900 font-medium">{pct(s.geklikt, sn)}</span>
+                      <span className="text-gray-300 text-xs ml-1">({s.geklikt})</span>
+                    </td>
+                    <td className="px-5 py-2.5 text-right text-gray-500">{s.bounced}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
@@ -158,49 +248,11 @@ export default function EmailStatsPage() {
             </div>
           </div>
 
-          {/* Per mailstroom */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-100">
-              <h2 className="font-semibold text-gray-900">Per mailstroom</h2>
-              <p className="text-xs text-gray-400">Gegroepeerd op onderwerp</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-xs text-gray-400 uppercase tracking-wide border-b border-gray-100">
-                    <th className="px-5 py-2.5 font-medium">Onderwerp</th>
-                    <th className="px-3 py-2.5 font-medium text-right">Verz.</th>
-                    <th className="px-3 py-2.5 font-medium text-right">Afgel.</th>
-                    <th className="px-3 py-2.5 font-medium text-right">Open</th>
-                    <th className="px-3 py-2.5 font-medium text-right">Klik</th>
-                    <th className="px-5 py-2.5 font-medium text-right">Bounce</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.stromen.map((s) => {
-                    const n = s.afgeleverd || s.verzonden;
-                    return (
-                      <tr key={s.onderwerp} className="border-b border-gray-50 last:border-0 hover:bg-gray-50">
-                        <td className="px-5 py-2.5 text-gray-700 max-w-xs truncate" title={s.onderwerp}>
-                          {s.onderwerp}
-                        </td>
-                        <td className="px-3 py-2.5 text-right text-gray-500">{s.verzonden}</td>
-                        <td className="px-3 py-2.5 text-right text-gray-500">{s.afgeleverd}</td>
-                        <td className="px-3 py-2.5 text-right">
-                          <span className="text-gray-900 font-medium">{pct(s.geopend, n)}</span>
-                          <span className="text-gray-300 text-xs ml-1">({s.geopend})</span>
-                        </td>
-                        <td className="px-3 py-2.5 text-right">
-                          <span className="text-gray-900 font-medium">{pct(s.geklikt, n)}</span>
-                          <span className="text-gray-300 text-xs ml-1">({s.geklikt})</span>
-                        </td>
-                        <td className="px-5 py-2.5 text-right text-gray-500">{s.bounced}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+          {/* Per programma, met de onderwerpen erin */}
+          <div className="space-y-3">
+            {stats.groepen.map((g) => (
+              <GroepBlok key={g.groep} groep={g} standaardOpen={g.groep === "evenHouvast"} />
+            ))}
           </div>
 
           <p className="text-xs text-gray-400 leading-relaxed">

@@ -12,8 +12,12 @@
  * aangeklikt is → open-rate en klik-ratio.
  */
 import { v } from "convex/values";
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, query, type QueryCtx } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
+import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
+import { NIET_ALLEEN_CONTENT } from "./nietAlleenContent";
+import { EENZAAMHEID_CONTENT } from "./nietAlleenEenzaamheidContent";
+import { KINDERLOOS_CONTENT } from "./nietAlleenKinderloosContent";
 
 // Slaat één binnengekomen webhook-event op. Ontdubbelt op de svix-id, want
 // Resend/svix kan hetzelfde event meer dan eens afleveren.
@@ -52,6 +56,7 @@ function normaliseerOnderwerp(subject: string | undefined): string {
 
 type StroomAgg = {
   onderwerp: string;
+  groep: Groep;
   verzonden: number;
   afgeleverd: number;
   geopend: number;
@@ -59,6 +64,48 @@ type StroomAgg = {
   bounced: number;
   klachten: number;
 };
+
+type Groep = "evenHouvast" | "nietAlleen" | "overig";
+
+// Onderwerpen die in houvast.ts hardcoded staan (brief-mail en de mail die de
+// brief aankondigt); de opvolgmails komen uit de templates hieronder.
+const EH_VASTE_ONDERWERPEN = [
+  "Jouw woorden die je hebt gedeeld in Even Houvast",
+  "Houvast staat klaar voor je",
+];
+
+// Bouwt een index van genormaliseerd onderwerp → programma, zodat de tabel per
+// mailstroom kan groeperen. Onderwerpen kunnen in de admin aangepast zijn, dus
+// we lezen zowel de defaults als de opgeslagen templates.
+async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Groep>> {
+  const index = new Map<string, Groep>();
+  const zet = (subject: string | undefined, groep: Groep) => {
+    if (!subject || !subject.trim()) return;
+    index.set(normaliseerOnderwerp(subject), groep);
+  };
+
+  for (const onderwerp of EH_VASTE_ONDERWERPEN) zet(onderwerp, "evenHouvast");
+
+  for (const [key, tpl] of Object.entries(DEFAULT_TEMPLATES)) {
+    const subject = (tpl as { subject?: string }).subject;
+    if (key.startsWith("eh_")) zet(subject, "evenHouvast");
+    else if (key.startsWith("niet_alleen")) zet(subject, "nietAlleen");
+  }
+
+  for (const tpl of await ctx.db.query("emailTemplates").collect()) {
+    if (tpl.key.startsWith("eh_")) zet(tpl.subject, "evenHouvast");
+    else if (tpl.key.startsWith("niet_alleen")) zet(tpl.subject, "nietAlleen");
+  }
+
+  for (const dag of [...NIET_ALLEEN_CONTENT, ...EENZAAMHEID_CONTENT, ...KINDERLOOS_CONTENT]) {
+    zet(dag.subject, "nietAlleen");
+  }
+  for (const dag of await ctx.db.query("nietAlleenDagTemplates").collect()) {
+    zet(dag.subject, "nietAlleen");
+  }
+
+  return index;
+}
 
 export const stats = query({
   args: { adminToken: v.string(), sinceDays: v.optional(v.number()) },
@@ -90,22 +137,32 @@ export const stats = query({
     // Tel per gebeurtenistype "of het is voorgekomen voor deze mail" (uniek per mail).
     const heeft = (m: MailInfo, ...types: string[]) => types.some((t) => m.types.has(t));
 
-    const totaal: StroomAgg = {
-      onderwerp: "Totaal",
+    const groepIndex = await bouwGroepIndex(ctx);
+    const leegAgg = (onderwerp: string, groep: Groep): StroomAgg => ({
+      onderwerp,
+      groep,
       verzonden: 0,
       afgeleverd: 0,
       geopend: 0,
       geklikt: 0,
       bounced: 0,
       klachten: 0,
+    });
+
+    const totaal = leegAgg("Totaal", "overig");
+    const perGroep: Record<Groep, StroomAgg> = {
+      evenHouvast: leegAgg("Even Houvast", "evenHouvast"),
+      nietAlleen: leegAgg("Niet Alleen", "nietAlleen"),
+      overig: leegAgg("Overige mails", "overig"),
     };
     const perStroom = new Map<string, StroomAgg>();
 
     for (const m of perMail.values()) {
       const label = normaliseerOnderwerp(m.subject);
+      const groep = groepIndex.get(label) ?? "overig";
       let s = perStroom.get(label);
       if (!s) {
-        s = { onderwerp: label, verzonden: 0, afgeleverd: 0, geopend: 0, geklikt: 0, bounced: 0, klachten: 0 };
+        s = leegAgg(label, groep);
         perStroom.set(label, s);
       }
       // "Verzonden" = we hebben minstens één event voor deze mail. Bij afgeleverd
@@ -117,7 +174,7 @@ export const stats = query({
       const isBounced = heeft(m, "email.bounced");
       const isKlacht = heeft(m, "email.complained");
 
-      for (const agg of [s, totaal]) {
+      for (const agg of [s, perGroep[groep], totaal]) {
         if (isVerzonden) agg.verzonden++;
         if (isAfgeleverd) agg.afgeleverd++;
         if (isGeopend) agg.geopend++;
@@ -129,11 +186,23 @@ export const stats = query({
 
     const stromen = Array.from(perStroom.values()).sort((a, b) => b.verzonden - a.verzonden);
 
+    // Vaste volgorde: Even Houvast bovenaan, dan Niet Alleen, dan de rest.
+    const volgorde: Groep[] = ["evenHouvast", "nietAlleen", "overig"];
+    const groepen = volgorde
+      .map((g) => ({
+        groep: g,
+        titel: perGroep[g].onderwerp,
+        totaal: perGroep[g],
+        stromen: stromen.filter((s) => s.groep === g),
+      }))
+      .filter((g) => g.totaal.verzonden > 0);
+
     return {
       dagen,
       heeftData: perMail.size > 0,
       totaal,
       stromen,
+      groepen,
     };
   },
 });
