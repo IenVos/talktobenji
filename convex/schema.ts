@@ -497,6 +497,10 @@ export default defineSchema({
     upsellText: v.optional(v.string()),
     upsellUrl: v.optional(v.string()),
     dagOffset: v.optional(v.number()), // voor de Even Houvast-opvolgmails: dagen na de brief
+    // Eerdere onderwerpregels van deze mail. Nodig voor de e-mail-statistieken:
+    // mails die al verstuurd zijn houden hun oude onderwerp, en zonder deze
+    // geschiedenis vallen ze na een titelwijziging buiten hun eigen mailstroom.
+    vorigeOnderwerpen: v.optional(v.array(v.string())),
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 
@@ -711,6 +715,7 @@ export default defineSchema({
     verliesType: v.string(),              // "persoon" | "huisdier" | "scheiding"
     subject: v.string(),
     mailTekst: v.string(),
+    vorigeOnderwerpen: v.optional(v.array(v.string())), // zie emailTemplates
     updatedAt: v.number(),
   }).index("by_dag_type", ["dag", "verliesType"]),
 

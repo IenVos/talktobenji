@@ -7,6 +7,21 @@ import { internalQuery, mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 export { DEFAULT_TEMPLATES, type TemplateKey } from "./emailTemplatesDefaults";
 
+// Houdt de oude onderwerpregel bij zodra iemand het onderwerp wijzigt. Al
+// verstuurde mails dragen hun oude onderwerp mee in Resend; de statistieken
+// herkennen ze daardoor nog steeds als dezelfde mailstroom.
+function metOnderwerpGeschiedenis(
+  vorige: string[] | undefined,
+  oudSubject: string,
+  nieuwSubject: string
+): string[] | undefined {
+  if (oudSubject === nieuwSubject) return vorige;
+  const lijst = [...(vorige ?? []), oudSubject].filter(
+    (s, i, arr) => s.trim() && s !== nieuwSubject && arr.indexOf(s) === i
+  );
+  return lijst.slice(-10);
+}
+
 /** Publiek opvragen (gebruikt in webhook/server-side) */
 export const getTemplatePublic = query({
   args: { key: v.string() },
@@ -77,7 +92,16 @@ export const upsertDagTemplate = mutation({
       .withIndex("by_dag_type", (q) => q.eq("dag", args.dag).eq("verliesType", args.verliesType))
       .unique();
     if (existing) {
-      await ctx.db.patch(existing._id, { subject: args.subject, mailTekst: args.mailTekst, updatedAt: Date.now() });
+      await ctx.db.patch(existing._id, {
+        subject: args.subject,
+        mailTekst: args.mailTekst,
+        vorigeOnderwerpen: metOnderwerpGeschiedenis(
+          existing.vorigeOnderwerpen,
+          existing.subject,
+          args.subject
+        ),
+        updatedAt: Date.now(),
+      });
       return existing._id;
     }
     return await ctx.db.insert("nietAlleenDagTemplates", {
@@ -140,7 +164,14 @@ export const upsertTemplate = mutation({
     };
 
     if (existing) {
-      await ctx.db.patch(existing._id, fields);
+      await ctx.db.patch(existing._id, {
+        ...fields,
+        vorigeOnderwerpen: metOnderwerpGeschiedenis(
+          existing.vorigeOnderwerpen,
+          existing.subject,
+          args.subject
+        ),
+      });
       return existing._id;
     }
 

@@ -69,9 +69,12 @@ type Groep = "evenHouvast" | "nietAlleen" | "overig";
 
 // Onderwerpen die in houvast.ts hardcoded staan (brief-mail en de mail die de
 // brief aankondigt); de opvolgmails komen uit de templates hieronder.
+// De laatste is een oud onderwerp van opvolgmail 4: dat is in de admin gewijzigd
+// vóórdat we onderwerp-geschiedenis bijhielden, dus die staat hier vast.
 const EH_VASTE_ONDERWERPEN = [
   "Jouw woorden die je hebt gedeeld in Even Houvast",
   "Houvast staat klaar voor je",
+  "Ik wil je iets vertellen over een hond die Zorro heette. Mijn hondje.",
 ];
 
 // Bouwt een index van genormaliseerd onderwerp → programma, zodat de tabel per
@@ -93,8 +96,15 @@ async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Groep>> {
   }
 
   for (const tpl of await ctx.db.query("emailTemplates").collect()) {
-    if (tpl.key.startsWith("eh_")) zet(tpl.subject, "evenHouvast");
-    else if (tpl.key.startsWith("niet_alleen")) zet(tpl.subject, "nietAlleen");
+    const groep: Groep | undefined = tpl.key.startsWith("eh_")
+      ? "evenHouvast"
+      : tpl.key.startsWith("niet_alleen")
+        ? "nietAlleen"
+        : undefined;
+    if (!groep) continue;
+    zet(tpl.subject, groep);
+    // Al verstuurde mails dragen het onderwerp van tóén; die tellen we mee.
+    for (const oud of tpl.vorigeOnderwerpen ?? []) zet(oud, groep);
   }
 
   for (const dag of [...NIET_ALLEEN_CONTENT, ...EENZAAMHEID_CONTENT, ...KINDERLOOS_CONTENT]) {
@@ -102,6 +112,7 @@ async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Groep>> {
   }
   for (const dag of await ctx.db.query("nietAlleenDagTemplates").collect()) {
     zet(dag.subject, "nietAlleen");
+    for (const oud of dag.vorigeOnderwerpen ?? []) zet(oud, "nietAlleen");
   }
 
   return index;
