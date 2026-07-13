@@ -141,4 +141,13 @@ crons.daily(
   {}
 );
 
+// Herinner mensen die op de checkout hun gegevens invulden maar niet betaalden.
+// Staat standaard uit; de cron kijkt zelf of de admin hem heeft aangezet.
+crons.interval(
+  "checkout herstel herinneringen",
+  { hours: 1 },
+  internal.checkoutHerstel.processHerinneringen,
+  {}
+);
+
 export default crons;

@@ -173,6 +173,18 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "payment_intent.succeeded") {
     const pi = event.data.object as Stripe.PaymentIntent;
+
+    // Betaling geslaagd: de checkout-poging afsluiten, anders zou er alsnog een
+    // "je bestelling is niet afgerond"-herinnering uitgaan.
+    try {
+      await convex.mutation(api.checkoutHerstel.markeerBetaald, {
+        webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
+        paymentIntentId: pi.id,
+      });
+    } catch (err: any) {
+      console.error("[Stripe webhook] checkout-poging afsluiten mislukt:", err?.message);
+    }
+
     const {
       email, name, subscriptionType, slug, productName, optIn,
       isGift, recipientEmail, recipientName, personalMessage, deliveryMethod, scheduledSendDate,

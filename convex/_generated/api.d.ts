@@ -17,6 +17,7 @@ import type * as authSchema from "../authSchema.js";
 import type * as benjiTeasers from "../benjiTeasers.js";
 import type * as blogPosts from "../blogPosts.js";
 import type * as chat from "../chat.js";
+import type * as checkoutHerstel from "../checkoutHerstel.js";
 import type * as checkoutProducts from "../checkoutProducts.js";
 import type * as checkoutValidators from "../checkoutValidators.js";
 import type * as comingSoonFeatures from "../comingSoonFeatures.js";
@@ -95,6 +96,7 @@ declare const fullApi: ApiFromModules<{
   benjiTeasers: typeof benjiTeasers;
   blogPosts: typeof blogPosts;
   chat: typeof chat;
+  checkoutHerstel: typeof checkoutHerstel;
   checkoutProducts: typeof checkoutProducts;
   checkoutValidators: typeof checkoutValidators;
   comingSoonFeatures: typeof comingSoonFeatures;

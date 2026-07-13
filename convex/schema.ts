@@ -1141,4 +1141,32 @@ export default defineSchema({
     zichtbaar: v.boolean(),
     imageStorageId: v.optional(v.id("_storage")),
   }),
+
+  // Afgehaakte checkouts: iemand vult op de checkout naam + e-mail in (dan pas
+  // kennen we hem), maar rondt de betaling niet af. Stripe laat zo'n poging staan
+  // als "onvolledig". Hier houden we hem bij zodat we kunnen herinneren.
+  checkoutPogingen: defineTable({
+    email: v.string(),
+    naam: v.optional(v.string()),
+    slug: v.string(),                      // welk product/checkout
+    productNaam: v.optional(v.string()),
+    bedragCenten: v.optional(v.number()),
+    paymentIntentId: v.string(),           // koppeling met Stripe
+    createdAt: v.number(),                 // moment van invullen
+    betaaldAt: v.optional(v.number()),     // gezet zodra de betaling slaagt
+    herinneringAt: v.optional(v.number()), // laatste herinneringsmail
+    herinneringen: v.number(),             // hoeveel herinneringen verstuurd
+    afgemeld: v.optional(v.boolean()),     // afgemeld via de link in de mail
+  })
+    .index("by_paymentIntent", ["paymentIntentId"])
+    .index("by_createdAt", ["createdAt"])
+    .index("by_email", ["email"]),
+
+  // Instellingen voor de herinneringsmail bij een afgehaakte checkout (één rij).
+  checkoutHerstelConfig: defineTable({
+    actief: v.boolean(),          // mails aan/uit; staat standaard uit
+    urenWachten: v.number(),      // hoe lang na het afhaken we mailen
+    maxHerinneringen: v.number(), // 1 of 2
+    updatedAt: v.number(),
+  }),
 });

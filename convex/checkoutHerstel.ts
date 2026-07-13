@@ -1,0 +1,394 @@
+/**
+ * Afgehaakte checkouts terughalen.
+ *
+ * Op de checkout vult iemand eerst naam + e-mail in (dan pas kennen we hem) en
+ * gaat daarna naar de bank. Haakt hij daar af, dan blijft de betaling in Stripe
+ * staan als "onvolledig" en horen wij niets meer. We leggen die poging hier vast
+ * en sturen na een tijdje één (of twee) herinneringsmail(s). Zodra de betaling
+ * alsnog slaagt, markeert de Stripe-webhook de poging als betaald.
+ *
+ * De mails staan standaard UIT: aanzetten kan in de admin.
+ */
+import { v } from "convex/values";
+import {
+  action,
+  internalAction,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
+import { internal } from "./_generated/api";
+import { checkAdmin } from "./adminAuth";
+import { appBase } from "./ehMailFooter";
+
+const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
+
+const STANDAARD_UREN = 3;
+const STANDAARD_MAX = 1;
+
+// HMAC-token voor de afmeldlink (gelijk berekend in /api/afmelden, Node-kant).
+async function afmeldToken(email: string): Promise<string> {
+  const secret = process.env.ADMIN_SESSION_SECRET || "";
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(email.toLowerCase()));
+  return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 24);
+}
+
+async function afmeldUrl(email: string): Promise<string> {
+  const token = await afmeldToken(email);
+  return `${appBase()}/api/afmelden?e=${encodeURIComponent(email.toLowerCase())}&t=${token}&bron=checkout`;
+}
+
+function secretOk(secret: string): boolean {
+  return secret === (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET);
+}
+
+// ── Vastleggen (vanuit de checkout) ───────────────────────────────────────────
+
+/**
+ * Vastleggen dat iemand zijn gegevens heeft ingevuld en naar de betaalstap gaat.
+ * Wordt aangeroepen door /api/stripe/create-payment-intent op het moment dat we
+ * e-mail en naam aan de PaymentIntent hangen. Dezelfde poging (paymentIntentId)
+ * kan meerdere keren binnenkomen; die werken we bij in plaats van te dubbelen.
+ */
+export const registreerPoging = mutation({
+  args: {
+    webhookSecret: v.string(),
+    paymentIntentId: v.string(),
+    email: v.string(),
+    naam: v.optional(v.string()),
+    slug: v.string(),
+    productNaam: v.optional(v.string()),
+    bedragCenten: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    if (!secretOk(args.webhookSecret)) throw new Error("Geen toegang");
+    const email = args.email.trim().toLowerCase();
+    if (!email) return;
+
+    const bestaand = await ctx.db
+      .query("checkoutPogingen")
+      .withIndex("by_paymentIntent", (q) => q.eq("paymentIntentId", args.paymentIntentId))
+      .unique();
+
+    if (bestaand) {
+      await ctx.db.patch(bestaand._id, {
+        email,
+        naam: args.naam ?? bestaand.naam,
+        productNaam: args.productNaam ?? bestaand.productNaam,
+        bedragCenten: args.bedragCenten ?? bestaand.bedragCenten,
+      });
+      return;
+    }
+
+    await ctx.db.insert("checkoutPogingen", {
+      email,
+      naam: args.naam,
+      slug: args.slug,
+      productNaam: args.productNaam,
+      bedragCenten: args.bedragCenten,
+      paymentIntentId: args.paymentIntentId,
+      createdAt: Date.now(),
+      herinneringen: 0,
+    });
+  },
+});
+
+/** Betaling geslaagd: poging afsluiten zodat er geen herinnering meer uitgaat. */
+export const markeerBetaald = mutation({
+  args: { webhookSecret: v.string(), paymentIntentId: v.string() },
+  handler: async (ctx, args) => {
+    if (!secretOk(args.webhookSecret)) throw new Error("Geen toegang");
+    const poging = await ctx.db
+      .query("checkoutPogingen")
+      .withIndex("by_paymentIntent", (q) => q.eq("paymentIntentId", args.paymentIntentId))
+      .unique();
+    if (poging && !poging.betaaldAt) {
+      await ctx.db.patch(poging._id, { betaaldAt: Date.now() });
+    }
+  },
+});
+
+/** Afmelden via de link in de herinneringsmail (aangeroepen door /api/afmelden). */
+export const afmelden = mutation({
+  args: { email: v.string(), secret: v.string() },
+  handler: async (ctx, args) => {
+    if (!process.env.ADMIN_SESSION_SECRET || args.secret !== process.env.ADMIN_SESSION_SECRET) {
+      throw new Error("Niet geautoriseerd");
+    }
+    const email = args.email.trim().toLowerCase();
+    const pogingen = await ctx.db
+      .query("checkoutPogingen")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    for (const p of pogingen) {
+      if (!p.afgemeld) await ctx.db.patch(p._id, { afgemeld: true });
+    }
+  },
+});
+
+// ── Instellingen ──────────────────────────────────────────────────────────────
+
+async function leesConfig(ctx: { db: any }) {
+  const rij = await ctx.db.query("checkoutHerstelConfig").first();
+  return {
+    actief: rij?.actief ?? false,
+    urenWachten: rij?.urenWachten ?? STANDAARD_UREN,
+    maxHerinneringen: rij?.maxHerinneringen ?? STANDAARD_MAX,
+  };
+}
+
+export const config = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return await leesConfig(ctx);
+  },
+});
+
+export const setConfig = mutation({
+  args: {
+    adminToken: v.string(),
+    actief: v.boolean(),
+    urenWachten: v.number(),
+    maxHerinneringen: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const uren = Math.min(72, Math.max(1, Math.round(args.urenWachten)));
+    const max = Math.min(2, Math.max(1, Math.round(args.maxHerinneringen)));
+    const rij = await ctx.db.query("checkoutHerstelConfig").first();
+    const velden = {
+      actief: args.actief,
+      urenWachten: uren,
+      maxHerinneringen: max,
+      updatedAt: Date.now(),
+    };
+    if (rij) await ctx.db.patch(rij._id, velden);
+    else await ctx.db.insert("checkoutHerstelConfig", velden);
+  },
+});
+
+// ── Overzicht voor de admin ───────────────────────────────────────────────────
+
+export const overzicht = query({
+  args: { adminToken: v.string(), sinceDays: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const dagen = args.sinceDays && args.sinceDays > 0 ? args.sinceDays : 30;
+    const cutoff = Date.now() - dagen * 24 * 60 * 60 * 1000;
+
+    const pogingen = await ctx.db
+      .query("checkoutPogingen")
+      .withIndex("by_createdAt", (q) => q.gte("createdAt", cutoff))
+      .collect();
+
+    const betaald = pogingen.filter((p) => p.betaaldAt).length;
+    const open = pogingen.filter((p) => !p.betaaldAt);
+
+    return {
+      dagen,
+      totaal: pogingen.length,
+      betaald,
+      afgehaakt: open.length,
+      // Nieuwste eerst; dit is de lijst waar de herinneringen naartoe gaan.
+      pogingen: open
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 200)
+        .map((p) => ({
+          id: p._id,
+          email: p.email,
+          naam: p.naam,
+          slug: p.slug,
+          productNaam: p.productNaam,
+          bedragCenten: p.bedragCenten,
+          createdAt: p.createdAt,
+          herinneringen: p.herinneringen,
+          herinneringAt: p.herinneringAt,
+          afgemeld: p.afgemeld ?? false,
+        })),
+      config: await leesConfig(ctx),
+    };
+  },
+});
+
+// ── Herinneringsmail ──────────────────────────────────────────────────────────
+
+export const _teHerinneren = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const cfg = await leesConfig(ctx);
+    if (!cfg.actief) return { cfg, pogingen: [] };
+
+    const nu = Date.now();
+    const wachtMs = cfg.urenWachten * 60 * 60 * 1000;
+    // Kijk maximaal een week terug: ouder dan dat is een herinnering niet meer zinvol.
+    const cutoff = nu - 7 * 24 * 60 * 60 * 1000;
+
+    const pogingen = await ctx.db
+      .query("checkoutPogingen")
+      .withIndex("by_createdAt", (q) => q.gte("createdAt", cutoff))
+      .collect();
+
+    const rijp = pogingen.filter((p) => {
+      if (p.betaaldAt || p.afgemeld) return false;
+      if (p.herinneringen >= cfg.maxHerinneringen) return false;
+      // Eerste herinnering: urenWachten na het afhaken. Tweede: 48 uur na de eerste.
+      const basis = p.herinneringen === 0 ? p.createdAt + wachtMs : (p.herinneringAt ?? 0) + 48 * 60 * 60 * 1000;
+      return nu >= basis;
+    });
+
+    return {
+      cfg,
+      pogingen: rijp.map((p) => ({
+        id: p._id,
+        email: p.email,
+        naam: p.naam,
+        slug: p.slug,
+        productNaam: p.productNaam,
+        herinneringen: p.herinneringen,
+      })),
+    };
+  },
+});
+
+export const _logHerinnering = internalMutation({
+  args: { id: v.id("checkoutPogingen") },
+  handler: async (ctx, args) => {
+    const p = await ctx.db.get(args.id);
+    if (!p) return;
+    await ctx.db.patch(args.id, {
+      herinneringen: p.herinneringen + 1,
+      herinneringAt: Date.now(),
+    });
+  },
+});
+
+function herinneringHtml(args: {
+  naam?: string;
+  productNaam?: string;
+  checkoutUrl: string;
+  afmeldUrl: string;
+  tweede: boolean;
+}): string {
+  const voornaam = (args.naam || "").trim().split(" ")[0];
+  const aanhef = voornaam ? `Hi ${voornaam},` : "Hi,";
+  const product = args.productNaam || "Niet Alleen";
+  const opening = args.tweede
+    ? `Ik wilde je nog één keer laten weten dat je plek in ${product} klaarstaat. Daarna laat ik je met rust.`
+    : `Je was bezig met ${product}, maar de betaling is niet afgerond. Misschien ging er iets mis, of twijfelde je nog.`;
+
+  return `
+  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #2d3748; line-height: 1.7;">
+    <p style="font-size: 16px; margin-bottom: 16px;">${aanhef}</p>
+    <p style="font-size: 16px; margin-bottom: 16px;">${opening}</p>
+    <p style="font-size: 16px; margin-bottom: 24px;">
+      Allebei helemaal goed. Wil je het alsnog afronden, dan kan dat hier:
+    </p>
+    <p style="text-align: center; margin: 28px 0;">
+      <a href="${args.checkoutUrl}" style="display: inline-block; background: #6d84a8; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-size: 15px;">
+        Mijn bestelling afronden
+      </a>
+    </p>
+    <p style="font-size: 16px; margin-bottom: 8px;">
+      Loop je ergens tegenaan, of werkte de betaling niet? Stuur me gerust een berichtje, dan kijk ik met je mee.
+    </p>
+    <p style="font-size: 16px; margin-top: 24px;">Lieve groet,<br>Ien</p>
+    <p style="font-size: 12px; color: #a0aec0; margin-top: 28px; text-align: center;">
+      Liever geen herinnering meer? <a href="${args.afmeldUrl}" style="color: #a0aec0;">Afmelden</a>
+    </p>
+  </div>`;
+}
+
+async function verstuurMail(args: { to: string; subject: string; html: string; apiKey: string }) {
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${args.apiKey}` },
+    body: JSON.stringify({
+      from: FROM,
+      to: [args.to],
+      subject: args.subject,
+      html: args.html,
+      tags: [
+        { name: "programma", value: "checkout" },
+        { name: "mail", value: "herinnering" },
+      ],
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`E-mail verzenden mislukt (${response.status}): ${await response.text()}`);
+  }
+}
+
+/** Draait elk uur: stuurt herinneringen voor checkouts die zijn blijven liggen. */
+export const processHerinneringen = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) return;
+
+    const { pogingen } = await ctx.runQuery(internal.checkoutHerstel._teHerinneren, {});
+    for (const p of pogingen) {
+      const tweede = p.herinneringen >= 1;
+      const html = herinneringHtml({
+        naam: p.naam,
+        productNaam: p.productNaam,
+        checkoutUrl: `${appBase()}/betalen/${p.slug}`,
+        afmeldUrl: await afmeldUrl(p.email),
+        tweede,
+      });
+      try {
+        await verstuurMail({
+          to: p.email,
+          subject: tweede ? "Je plek staat nog voor je klaar" : "Je bestelling is niet afgerond",
+          html,
+          apiKey,
+        });
+        await ctx.runMutation(internal.checkoutHerstel._logHerinnering, { id: p.id });
+      } catch (err) {
+        console.error("[checkout-herstel] mail mislukt:", (err as Error).message);
+      }
+    }
+  },
+});
+
+/** Testmail naar jezelf, om de tekst te bekijken zonder te wachten. */
+export const stuurTestHerinnering = action({
+  args: { adminToken: v.string(), email: v.string() },
+  handler: async (ctx, args): Promise<{ ok: boolean }> => {
+    await ctx.runQuery(internal.checkoutHerstel._checkAdminVoorTest, {
+      adminToken: args.adminToken,
+    });
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
+
+    await verstuurMail({
+      to: args.email,
+      subject: "[TEST] Je bestelling is niet afgerond",
+      html: herinneringHtml({
+        naam: "Ien",
+        productNaam: "Niet Alleen",
+        checkoutUrl: `${appBase()}/betalen/niet-alleen-huisdier`,
+        afmeldUrl: await afmeldUrl(args.email),
+        tweede: false,
+      }),
+      apiKey,
+    });
+    return { ok: true };
+  },
+});
+
+export const _checkAdminVoorTest = internalQuery({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return true;
+  },
+});

@@ -38,7 +38,18 @@ export async function GET(request: NextRequest) {
     return bevestigingsPagina("Er ging iets mis", "Deze afmeldlink is ongeldig of verlopen. Mail ons gerust via contactmetien@talktobenji.com.");
   }
 
+  // bron=checkout komt uit de herinneringsmail voor een niet-afgeronde bestelling.
+  // Dan willen we alleen díe herinneringen stoppen, niet de Even Houvast-mails.
+  const bron = request.nextUrl.searchParams.get("bron")?.trim() || "";
+
   try {
+    if (bron === "checkout") {
+      await fetchMutation(api.checkoutHerstel.afmelden, { email, secret }, { url: convexUrl });
+      return bevestigingsPagina(
+        "Je bent afgemeld",
+        "We herinneren je niet meer aan je bestelling. Wil je later toch verder, dan ben je van harte welkom."
+      );
+    }
     await fetchMutation(api.evenHouvastOpvolg.registreerAfmelding, { email, secret }, { url: convexUrl });
   } catch {
     return bevestigingsPagina("Er ging iets mis", "We konden je afmelding niet verwerken. Probeer het later opnieuw of mail contactmetien@talktobenji.com.");

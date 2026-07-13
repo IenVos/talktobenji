@@ -104,6 +104,27 @@ export async function POST(req: NextRequest) {
       updateParams.amount = variant.priceInCents;
     }
     await stripe.paymentIntents.update(paymentIntentId, updateParams);
+
+    // Leg vast dat deze persoon naar de betaalstap gaat. Rondt hij niet af, dan
+    // blijft de betaling in Stripe "onvolledig" staan en horen wij niets meer;
+    // met deze poging kan de admin hem tonen en (optioneel) herinneren.
+    // Fire-and-forget: mag de betaalflow nooit ophouden.
+    const intern = process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET;
+    if (intern) {
+      const product = await convex.query(api.checkoutProducts.getBySlug, { slug }).catch(() => null);
+      convex
+        .mutation(api.checkoutHerstel.registreerPoging, {
+          webhookSecret: intern,
+          paymentIntentId,
+          email,
+          naam: name || undefined,
+          slug,
+          productNaam: product?.name,
+          bedragCenten: product?.priceInCents,
+        })
+        .catch(() => {});
+    }
+
     return NextResponse.json({ success: true });
   }
 
