@@ -1442,7 +1442,11 @@ export default function AdminAnalytics() {
                   <p className="text-sm text-primary-400 py-2">Nog geen checkout-bezoeken in deze periode.</p>
                 ) : (
                   <div className="space-y-6">
-                    {funnelStats.checkout.map((c: { slug: string; reached: number; details: number; termsClick: number; payClick: number; purchased: number }) => {
+                    {funnelStats.checkout.map((c: {
+                      slug: string; reached: number; details: number; termsClick: number; payClick: number; purchased: number;
+                      warm?: { reached: number; details: number; payClick: number; purchased: number };
+                      koud?: { reached: number; details: number; payClick: number; purchased: number };
+                    }) => {
                       const base = c.reached || 1;
                       const steps = [
                         { label: "Checkout bereikt", value: c.reached },
@@ -1479,6 +1483,27 @@ export default function AdminAnalytics() {
                             Voorwaarden/privacy geopend: <span className="font-semibold text-primary-700">{c.termsClick}×</span>
                             <span className="text-primary-400"> · {Math.round((c.termsClick / base) * 100)}% van bezoekers</span>
                           </div>
+
+                          {/* Warm (uit de Even Houvast-mails) tegenover koud verkeer: die
+                              gedragen zich totaal anders, dus apart tellen. */}
+                          {(c.warm?.reached ?? 0) > 0 && (
+                            <div className="mt-1.5 ml-[9.75rem] text-[11px] text-primary-500 space-y-0.5">
+                              {[
+                                { label: "Uit de EH-mails", d: c.warm! },
+                                { label: "Koud verkeer", d: c.koud! },
+                              ].map(({ label, d }) => (
+                                <div key={label}>
+                                  <span className="font-semibold text-primary-700">{label}:</span>{" "}
+                                  {d.reached} bereikt · {d.details} ingevuld · {d.purchased} betaald
+                                  {d.reached > 0 && (
+                                    <span className="text-primary-400">
+                                      {" "}({Math.round((d.purchased / d.reached) * 100)}% koopt)
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       );
                     })}

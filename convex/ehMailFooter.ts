@@ -27,6 +27,48 @@ export function nietAlleenUrlVoorType(type: string): string {
   return `${appBase()}${NIET_ALLEEN_LP[type] ?? NIET_ALLEEN_LP.algemeen}`;
 }
 
+// ── Opmaak van de mails van Ien ───────────────────────────────────────────────
+// Dezelfde romp, knop en handtekening voor élke mail die van Ien komt, zodat ze
+// er allemaal hetzelfde uitzien. (De opvolgreeks gebruikt dit ook.)
+
+export function mailAlinea(p: string): string {
+  return `<p style="font-size: 15px; line-height: 1.8; color: #4a5568;">${p.trim().replace(/\n/g, "<br/>")}</p>`;
+}
+
+export function mailKnop(tekst: string, url: string): string {
+  return `
+    <div style="margin: 28px 0;">
+      <a href="${url}" style="background-color: #6d84a8; color: white; padding: 13px 26px;
+         border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
+        ${tekst}
+      </a>
+    </div>`;
+}
+
+export function mailHandtekeningIen(): string {
+  return `
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 24px;">
+      <tr>
+        <td style="padding-right: 14px; vertical-align: middle;">
+          <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="52" height="52"
+            style="border-radius: 50%; display: block; width: 52px; height: 52px; object-fit: cover;" />
+        </td>
+        <td style="vertical-align: middle;">
+          <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0;">Ien</p>
+          <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0;">Founder van Talk To Benji</p>
+        </td>
+      </tr>
+    </table>`;
+}
+
+export function mailWrapper(inhoud: string): string {
+  return `
+    <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                max-width: 560px; margin: 0 auto; color: #2d3748; background: #fdf9f4; padding: 32px 24px;">
+      ${inhoud}
+    </div>`;
+}
+
 // HMAC-token voor de afmeldlink (gelijk berekend in /api/afmelden, Node-kant).
 export async function ehAfmeldToken(email: string): Promise<string> {
   const secret = process.env.ADMIN_SESSION_SECRET || "";

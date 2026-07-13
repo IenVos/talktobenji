@@ -31,6 +31,23 @@ const EU_REST = Object.entries(EU_COUNTRY_NAMES_NL)
   .filter(([code]) => code !== "NL" && code !== "BE")
   .sort(([, a], [, b]) => a.localeCompare(b, "nl"));
 
+// Wie hier zijn gegevens invult (of uit een maillink komt), hoeft ze de volgende
+// keer niet opnieuw in te typen: we bewaren ze op zijn eigen apparaat.
+const KLANT_SLEUTEL = "ttb_klant";
+
+function onthoudKlant(email: string, naam?: string) {
+  if (typeof window === "undefined") return;
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return;
+  try {
+    localStorage.setItem(
+      KLANT_SLEUTEL,
+      JSON.stringify({ email: email.trim(), naam: (naam || "").trim() })
+    );
+  } catch {
+    // opslag kan geblokkeerd zijn (privémodus); dan slaan we het gewoon over
+  }
+}
+
 function Checkbox({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <div
@@ -330,6 +347,47 @@ export default function BetalenPage() {
   // Naam + email — hier zodat ze zichtbaar zijn voor landkeuze
   const [naam, setNaam] = useState("");
   const [email, setEmail] = useState("");
+  // Ingevuld vanuit een maillink of eerder bezoek: dat is geen eigen invulactie,
+  // dus die mag de funnelstap "gegevens ingevuld" niet afvuren.
+  const voorgevuldRef = useRef(false);
+
+  // Kennen we deze bezoeker al, dan vullen we naam en e-mail vast in. Uit de
+  // maillink (?e=..&n=..) of uit wat hij eerder zelf invulde op deze site.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const uitUrl = { email: params.get("e")?.trim() || "", naam: params.get("n")?.trim() || "" };
+
+    let bekend = uitUrl;
+    if (!bekend.email) {
+      try {
+        const opgeslagen = localStorage.getItem(KLANT_SLEUTEL);
+        if (opgeslagen) bekend = JSON.parse(opgeslagen);
+      } catch {
+        // kapotte opslag negeren
+      }
+    }
+
+    if (bekend.email) {
+      voorgevuldRef.current = true;
+      setEmail(bekend.email);
+      if (bekend.naam) setNaam(bekend.naam);
+      onthoudKlant(bekend.email, bekend.naam);
+    }
+  }, []);
+
+  // Typt de bezoeker zelf, dan is het geen voorgevulde waarde meer (funnelstap
+  // "gegevens ingevuld" mag dan wél tellen) en onthouden we hem voor later.
+  const wijzigNaam = (waarde: string) => {
+    voorgevuldRef.current = false;
+    setNaam(waarde);
+    onthoudKlant(email, waarde);
+  };
+  const wijzigEmail = (waarde: string) => {
+    voorgevuldRef.current = false;
+    setEmail(waarde);
+    onthoudKlant(waarde, naam);
+  };
 
   // Afhaak-funnel: stappen door de checkout (path = product-slug)
   const fireFunnel = useFunnelTracker("checkout", slug);
@@ -337,8 +395,11 @@ export default function BetalenPage() {
   useEffect(() => {
     if (slug && !isPreview) fireFunnel("reached");
   }, [slug, fireFunnel, isPreview]);
-  // Stap 2: bezoeker heeft een geldig e-mailadres ingevuld (echt begonnen met afrekenen)
+  // Stap 2: bezoeker heeft zelf een geldig e-mailadres ingevuld (echt begonnen met
+  // afrekenen). Een voorgevuld adres telt niet mee, anders zou iedereen die uit de
+  // mail komt meteen als "gegevens ingevuld" tellen.
   useEffect(() => {
+    if (voorgevuldRef.current) return;
     if (!isPreview && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) fireFunnel("details");
   }, [email, fireFunnel, isPreview]);
 
@@ -637,7 +698,7 @@ export default function BetalenPage() {
           type="text"
           placeholder="Voor- en achternaam"
           value={naam}
-          onChange={(e) => setNaam(e.target.value)}
+          onChange={(e) => wijzigNaam(e.target.value)}
           className={inputClass}
           required
         />
@@ -648,7 +709,7 @@ export default function BetalenPage() {
           type="email"
           placeholder="jouw@email.nl"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => wijzigEmail(e.target.value)}
           className={inputClass}
           required
         />
@@ -766,7 +827,7 @@ export default function BetalenPage() {
                 type="text"
                 placeholder="Voor- en achternaam"
                 value={naam}
-                onChange={(e) => setNaam(e.target.value)}
+                onChange={(e) => wijzigNaam(e.target.value)}
                 className={inputClass}
                 required
               />
@@ -779,7 +840,7 @@ export default function BetalenPage() {
                 type="email"
                 placeholder="jouw@email.nl"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => wijzigEmail(e.target.value)}
                 className={inputClass}
                 required
               />

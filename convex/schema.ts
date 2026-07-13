@@ -611,6 +611,9 @@ export default defineSchema({
     sessionId: v.string(),
     timestamp: v.number(),
     ip: v.optional(v.string()),
+    // Herkomst van de bezoeker, bv. "eh-mail" (uit de opvolgreeks). Zonder bron =
+    // koud verkeer. Hiermee kan de funnel warm en koud verkeer scheiden.
+    bron: v.optional(v.string()),
   })
     .index("by_timestamp", ["timestamp"])
     .index("by_session", ["sessionId"]),

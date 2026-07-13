@@ -20,7 +20,14 @@ import {
 } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
-import { appBase } from "./ehMailFooter";
+import {
+  appBase,
+  ehFooter,
+  mailAlinea,
+  mailHandtekeningIen,
+  mailWrapper,
+  nietAlleenUrlVoorType,
+} from "./ehMailFooter";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 
@@ -44,6 +51,14 @@ async function afmeldToken(email: string): Promise<string> {
 async function afmeldUrl(email: string): Promise<string> {
   const token = await afmeldToken(email);
   return `${appBase()}/api/afmelden?e=${encodeURIComponent(email.toLowerCase())}&t=${token}&bron=checkout`;
+}
+
+// Terug naar de checkout, met naam en e-mail erin zodat ze die niet opnieuw
+// hoeven te typen, plus de herkomst voor de analytics.
+function checkoutUrl(slug: string, email: string, naam?: string): string {
+  const params = new URLSearchParams({ bron: "checkout-mail", e: email });
+  if (naam && naam.trim()) params.set("n", naam.trim());
+  return `${appBase()}/betalen/${slug}?${params.toString()}`;
 }
 
 function secretOk(secret: string): boolean {
@@ -271,9 +286,12 @@ export const _logHerinnering = internalMutation({
   },
 });
 
+// Zelfde opmaak als de andere mails van Ien: dezelfde romp, knop, handtekening
+// en footer (uit ehMailFooter), zodat deze mail er niet uit springt.
 function herinneringHtml(args: {
   naam?: string;
   productNaam?: string;
+  verliestype?: string;
   checkoutUrl: string;
   afmeldUrl: string;
   tweede: boolean;
@@ -281,30 +299,29 @@ function herinneringHtml(args: {
   const voornaam = (args.naam || "").trim().split(" ")[0];
   const aanhef = voornaam ? `Hi ${voornaam},` : "Hi,";
   const product = args.productNaam || "Niet Alleen";
-  const opening = args.tweede
-    ? `Ik wilde je nog één keer laten weten dat je plek in ${product} klaarstaat. Daarna laat ik je met rust.`
-    : `Je was bezig met ${product}, maar de betaling is niet afgerond. Misschien ging er iets mis, of twijfelde je nog.`;
+  // De link staat in de tekst, niet als losse knop: dat leest als een berichtje
+  // van Ien in plaats van als een verkoopmail.
+  const link = `<a href="${args.checkoutUrl}" style="color: #6d84a8; font-weight: 600;">👉 Ik wil starten met Niet Alleen</a>`;
 
-  return `
-  <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #2d3748; line-height: 1.7;">
-    <p style="font-size: 16px; margin-bottom: 16px;">${aanhef}</p>
-    <p style="font-size: 16px; margin-bottom: 16px;">${opening}</p>
-    <p style="font-size: 16px; margin-bottom: 24px;">
-      Allebei helemaal goed. Wil je het alsnog afronden, dan kan dat hier:
-    </p>
-    <p style="text-align: center; margin: 28px 0;">
-      <a href="${args.checkoutUrl}" style="display: inline-block; background: #6d84a8; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-size: 15px;">
-        Mijn bestelling afronden
-      </a>
-    </p>
-    <p style="font-size: 16px; margin-bottom: 8px;">
-      Loop je ergens tegenaan, of werkte de betaling niet? Stuur me gerust een berichtje, dan kijk ik met je mee.
-    </p>
-    <p style="font-size: 16px; margin-top: 24px;">Lieve groet,<br>Ien</p>
-    <p style="font-size: 12px; color: #a0aec0; margin-top: 28px; text-align: center;">
-      Liever geen herinnering meer? <a href="${args.afmeldUrl}" style="color: #a0aec0;">Afmelden</a>
-    </p>
-  </div>`;
+  const alineas = args.tweede
+    ? [
+        `Ik wilde je nog één keer laten weten dat je plek in ${product} voor je klaarstaat. Daarna laat ik je met rust.`,
+        `Wil je het alsnog afronden, dan kan dat hier: ${link}`,
+        "En als er iets niet klopte met de betaling, of als je een vraag hebt, stuur me dan gerust een berichtje. Ik help je er graag bij!",
+      ]
+    : [
+        `Ik zag dat je bezig was met ${product}, maar dat de bestelling nog niet helemaal is afgerond. Misschien liep je ergens tegenaan, of wilde je er nog even over nadenken, dat snap ik helemaal.`,
+        "Mocht je het alsnog willen afronden, dan kun je dat eenvoudig doen via de link hieronder:",
+        link,
+        "En als er iets niet klopte met de betaling, of als je een vraag hebt, stuur me dan gerust een berichtje. Ik help je er graag bij!",
+      ];
+
+  return mailWrapper(`
+    ${mailAlinea(aanhef)}
+    ${alineas.map(mailAlinea).join("\n")}
+    ${mailHandtekeningIen()}
+    ${ehFooter(nietAlleenUrlVoorType(args.verliestype ?? "algemeen"), args.afmeldUrl)}
+  `);
 }
 
 async function verstuurMail(args: { to: string; subject: string; html: string; apiKey: string }) {
@@ -340,7 +357,7 @@ export const processHerinneringen = internalAction({
       const html = herinneringHtml({
         naam: p.naam,
         productNaam: p.productNaam,
-        checkoutUrl: `${appBase()}/betalen/${p.slug}`,
+        checkoutUrl: checkoutUrl(p.slug, p.email, p.naam),
         afmeldUrl: await afmeldUrl(p.email),
         tweede,
       });
@@ -375,7 +392,7 @@ export const stuurTestHerinnering = action({
       html: herinneringHtml({
         naam: "Ien",
         productNaam: "Niet Alleen",
-        checkoutUrl: `${appBase()}/betalen/niet-alleen-huisdier`,
+        checkoutUrl: checkoutUrl("niet-alleen-huisdier", args.email, "Ien"),
         afmeldUrl: await afmeldUrl(args.email),
         tweede: false,
       }),

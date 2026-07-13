@@ -16,7 +16,15 @@ import { internal, api } from "./_generated/api";
 import { v } from "convex/values";
 import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
 import { checkAdmin } from "./adminAuth";
-import { ehFooter, nietAlleenUrlVoorType, appBase } from "./ehMailFooter";
+import {
+  ehFooter,
+  nietAlleenUrlVoorType,
+  appBase,
+  mailAlinea,
+  mailKnop,
+  mailHandtekeningIen,
+  mailWrapper,
+} from "./ehMailFooter";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 const DAG_MS = 24 * 60 * 60 * 1000;
@@ -51,9 +59,7 @@ const VERLIES_KEUZES: { type: string; label: string }[] = [
 
 // ── HTML-helpers (zelfde stijl als de Niet Alleen-mails) ──────────────────────
 
-function alineaPHtml(p: string): string {
-  return `<p style="font-size: 15px; line-height: 1.8; color: #4a5568;">${p.trim().replace(/\n/g, "<br/>")}</p>`;
-}
+const alineaPHtml = mailAlinea;
 
 // Afsluitgroeten die net boven Ien's naam horen te staan (onder de knop), niet
 // midden in de mail. Herkend als de hele laatste alinea, los van leestekens.
@@ -80,15 +86,7 @@ function inlineAfbeelding(imageUrl: string, caption?: string): string {
   return `<div style="margin:24px 0;">${img}${cap}</div>`;
 }
 
-function knop(tekst: string, url: string): string {
-  return `
-    <div style="margin: 28px 0;">
-      <a href="${url}" style="background-color: #6d84a8; color: white; padding: 13px 26px;
-         border-radius: 10px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
-        ${tekst}
-      </a>
-    </div>`;
-}
+const knop = mailKnop;
 
 // Ingetogen knop, gecentreerd: zelfde achtergrond als de mail, blauwe tekst, dun
 // blauw randje. Gebruikt onder een afbeelding (bijv. de boekje-cover).
@@ -130,28 +128,31 @@ function coverBlok(imageUrl: string, linkUrl?: string, caption?: string): string
   return `<div style="margin:26px 0;text-align:center;">${inner}${cap}</div>`;
 }
 
-function handtekeningIen(): string {
-  return `
-    <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 24px;">
-      <tr>
-        <td style="padding-right: 14px; vertical-align: middle;">
-          <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="52" height="52"
-            style="border-radius: 50%; display: block; width: 52px; height: 52px; object-fit: cover;" />
-        </td>
-        <td style="vertical-align: middle;">
-          <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0;">Ien</p>
-          <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0;">Founder van Talk To Benji</p>
-        </td>
-      </tr>
-    </table>`;
-}
+const handtekeningIen = mailHandtekeningIen;
 
-function wrapper(inhoud: string): string {
-  return `
-    <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                max-width: 560px; margin: 0 auto; color: #2d3748; background: #fdf9f4; padding: 32px 24px;">
-      ${inhoud}
-    </div>`;
+const wrapper = mailWrapper;
+
+// Hangt de herkomst aan een link in een opvolgmail: bron=eh-mail plus welke mail
+// en welk verliestype. De site onthoudt die bron, zodat we in de analytics warm
+// (uit deze mails) en koud (advertentie) verkeer uit elkaar kunnen houden.
+// Naam en e-mail gaan mee zodat de checkout ze alvast invult; die kennen we van
+// deze lead al. mailto: en externe links laten we met rust.
+function metBron(
+  url: string,
+  type: string,
+  mailNummer: number,
+  email?: string,
+  naam?: string
+): string {
+  if (!url || !url.startsWith(appBase())) return url;
+  const params = new URLSearchParams({
+    bron: "eh-mail",
+    ehmail: String(mailNummer),
+    ehtype: type,
+  });
+  if (email) params.set("e", email);
+  if (naam && naam.trim()) params.set("n", naam.trim());
+  return `${url}${url.includes("?") ? "&" : "?"}${params.toString()}`;
 }
 
 // HMAC-token voor de afmeldlink (gelijk berekend in /api/afmelden, Node-kant).
@@ -216,7 +217,13 @@ async function verstuurOpvolgMail(
   // Knop alleen tonen als ér echt een tekst én link is (na trimmen). Leeg of
   // alleen spaties = geen knop, ook geen lege gekleurde pil.
   const knopTekst: string = (saved?.buttonText ?? def?.buttonText ?? "").trim();
-  const knopUrl: string = (saved?.buttonUrl ?? def?.buttonUrl ?? "").trim();
+  const knopUrl: string = metBron(
+    (saved?.buttonUrl ?? def?.buttonUrl ?? "").trim(),
+    type,
+    args.mailNummer,
+    args.email,
+    args.naam
+  );
   const toonKnop = !!knopTekst && !!knopUrl;
   const imageUrl: string | undefined = saved?.imageUrl ?? def?.imageUrl;
   const imageCaption: string | undefined = saved?.imageCaption ?? def?.imageCaption;

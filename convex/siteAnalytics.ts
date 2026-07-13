@@ -226,6 +226,9 @@ export const trackFunnelStep = mutation({
     path: v.string(),
     sessionId: v.string(),
     ip: v.optional(v.string()),
+    // Waar de bezoeker vandaan komt, bv. "eh-mail" (link uit de opvolgreeks).
+    // Ontbreekt = koud verkeer (advertentie, zoekmachine, direct).
+    bron: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Skip uitgesloten IP-adressen
@@ -257,6 +260,7 @@ export const trackFunnelStep = mutation({
       sessionId: args.sessionId,
       timestamp: Date.now(),
       ip: args.ip,
+      bron: args.bron,
     });
   },
 });
@@ -339,6 +343,27 @@ export const getFunnelStats = query({
     const count = (category: string, path: string, step: string) =>
       sessionsByKey[`${category}|${path}|${step}`]?.size ?? 0;
 
+    // Warm of koud: kwam deze sessie binnen via een link uit de opvolgmails
+    // (bron=eh-mail), of via een advertentie/zoekmachine (geen bron)? Dat scheelt
+    // enorm in de cijfers, dus tellen we de checkout-funnel ook apart per groep.
+    const warmeSessies = new Set<string>();
+    for (const e of events) {
+      if (e.bron && e.bron.startsWith("eh")) warmeSessies.add(e.sessionId);
+    }
+    const countPerBron = (path: string, step: string, warm: boolean) => {
+      const sessies = sessionsByKey[`checkout|${path}|${step}`];
+      if (!sessies) return 0;
+      let n = 0;
+      for (const s of sessies) if (warmeSessies.has(s) === warm) n++;
+      return n;
+    };
+    const funnelVoorBron = (slug: string, warm: boolean) => ({
+      reached: countPerBron(slug, "reached", warm),
+      details: countPerBron(slug, "details", warm),
+      payClick: countPerBron(slug, "pay_click", warm),
+      purchased: countPerBron(slug, "purchased", warm),
+    });
+
     // Verzamel unieke paden per categorie
     const checkoutPaths = new Set<string>();
     const lpPaths = new Set<string>();
@@ -360,6 +385,9 @@ export const getFunnelStats = query({
         scroll50: count("checkout", slug, "scroll_50"),
         scroll75: count("checkout", slug, "scroll_75"),
         scroll100: count("checkout", slug, "scroll_100"),
+        // Zelfde funnel, maar gesplitst naar herkomst.
+        warm: funnelVoorBron(slug, true),
+        koud: funnelVoorBron(slug, false),
       }))
       .sort((a, b) => b.reached - a.reached);
 
