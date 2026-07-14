@@ -66,6 +66,22 @@ type StroomAgg = {
   klachten: number;
 };
 
+// Waar een aangeklikte link naartoe gaat, in gewone taal. Zo zie je of mensen op
+// het boekje klikken of op de link naar Niet Alleen.
+function linkLabel(url: string): string {
+  const zonderVragen = url.split("?")[0];
+  if (zonderVragen.startsWith("mailto:")) return "Mailtje naar Ien";
+  const pad = zonderVragen.replace(/^https?:\/\/[^/]+/, "");
+  if (pad.startsWith("/betalen/")) return `Checkout (${pad.replace("/betalen/", "")})`;
+  if (pad.startsWith("/lp/")) return `Landingspagina (${pad.replace("/lp/", "")})`;
+  if (pad.startsWith("/blog")) return `Blog${pad === "/blog" ? "" : ` (${pad.replace("/blog/", "")})`}`;
+  if (pad.startsWith("/boekje") || pad.includes("boekje")) return "Het boekje";
+  if (pad.startsWith("/api/afmelden")) return "Afmeldlink";
+  if (pad.startsWith("/api/houvast/verlies")) return "Keuze verliestype";
+  if (pad.startsWith("/niet-alleen") || pad.startsWith("/even-houvast")) return `Pagina ${pad}`;
+  return pad || url;
+}
+
 type Groep = "evenHouvast" | "nietAlleen" | "overig";
 
 // Onderwerpen die in houvast.ts hardcoded staan: de brief-mail zelf en de mail
@@ -182,18 +198,24 @@ export const stats = query({
       .collect();
 
     // Reconstrueer per mail (emailId) welke gebeurtenissen zijn voorgekomen.
-    type MailInfo = { subject?: string; tags?: Record<string, string>; types: Set<string> };
+    type MailInfo = {
+      subject?: string;
+      tags?: Record<string, string>;
+      types: Set<string>;
+      links: Set<string>; // welke links deze ontvanger aanklikte
+    };
     const perMail = new Map<string, MailInfo>();
     for (const e of events) {
       let m = perMail.get(e.emailId);
       if (!m) {
-        m = { subject: e.subject, tags: e.tags, types: new Set() };
+        m = { subject: e.subject, tags: e.tags, types: new Set(), links: new Set() };
         perMail.set(e.emailId, m);
       }
       m.types.add(e.type);
       // Onderwerp en labels komen bij sent/delivered mee; bewaar de eerste die we zien.
       if (!m.subject && e.subject) m.subject = e.subject;
       if (!m.tags && e.tags) m.tags = e.tags;
+      if (e.clickLink) m.links.add(e.clickLink);
     }
 
     // Tel per gebeurtenistype "of het is voorgekomen voor deze mail" (uniek per mail).
@@ -220,7 +242,11 @@ export const stats = query({
     // Eén regel per mail, met daarbinnen een telling per verliestype én per
     // onderwerpregel: zo zie je of een andere titel of een ander type beter loopt.
     type VariantAgg = StroomAgg & { verliestype?: string };
-    type StroomOpbouw = StroomAgg & { stroomId: string; varianten: Map<string, VariantAgg> };
+    type StroomOpbouw = StroomAgg & {
+      stroomId: string;
+      varianten: Map<string, VariantAgg>;
+      links: Map<string, number>; // waar klikten ze op, en hoe vaak
+    };
     const perStroom = new Map<string, StroomOpbouw>();
 
     for (const m of perMail.values()) {
@@ -237,8 +263,14 @@ export const stats = query({
           ...leegAgg(herkomst.titel, herkomst.groep),
           stroomId: herkomst.stroomId,
           varianten: new Map(),
+          links: new Map(),
         };
         perStroom.set(herkomst.stroomId, s);
+      }
+      // Tel per link hoeveel ontvangers erop klikten (één keer per ontvanger).
+      for (const url of m.links) {
+        const label = linkLabel(url);
+        s.links.set(label, (s.links.get(label) ?? 0) + 1);
       }
       const variantSleutel = `${verliestype ?? ""}|${label}`;
       let variant = s.varianten.get(variantSleutel);
@@ -271,12 +303,15 @@ export const stats = query({
     // verliestype of titel); anders zou elke mail een uitklap krijgen met
     // exact dezelfde cijfers als de regel erboven.
     const stromen = Array.from(perStroom.values())
-      .map(({ varianten, ...stroom }) => ({
+      .map(({ varianten, links, ...stroom }) => ({
         ...stroom,
         varianten:
           varianten.size > 1
             ? Array.from(varianten.values()).sort((a, b) => b.verzonden - a.verzonden)
             : [],
+        links: Array.from(links.entries())
+          .map(([label, aantal]) => ({ label, aantal }))
+          .sort((a, b) => b.aantal - a.aantal),
       }))
       .sort((a, b) => b.verzonden - a.verzonden);
 

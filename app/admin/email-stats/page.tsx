@@ -20,7 +20,12 @@ type Cijfers = {
 // nadat we dat label meesturen.
 type Variant = Cijfers & { verliestype?: string };
 
-type Stroom = Cijfers & { stroomId: string; varianten: Variant[] };
+type Stroom = Cijfers & {
+  stroomId: string;
+  varianten: Variant[];
+  // Waar de ontvangers op klikten (bv. "Het boekje", "Checkout (niet-alleen)").
+  links: { label: string; aantal: number }[];
+};
 
 type Groep = {
   groep: "evenHouvast" | "nietAlleen" | "overig";
@@ -78,7 +83,7 @@ function KpiKaart({
 // onderwerpregel hoe die het deed, zodat je titels en types kunt vergelijken.
 function StroomRij({ stroom }: { stroom: Stroom }) {
   const [open, setOpen] = useState(false);
-  const heeftVarianten = stroom.varianten.length > 1;
+  const heeftVarianten = stroom.varianten.length > 1 || stroom.links.length > 0;
   const n = stroom.afgeleverd || stroom.verzonden;
   const aantalTitels = new Set(stroom.varianten.map((v) => v.onderwerp)).size;
 
@@ -117,8 +122,25 @@ function StroomRij({ stroom }: { stroom: Stroom }) {
         <td className="px-5 py-2.5 text-right text-gray-500">{stroom.bounced}</td>
       </tr>
 
-      {heeftVarianten &&
-        open &&
+      {/* Waar klikten ze op? Zo zie je of de link naar Niet Alleen leeft. */}
+      {open && stroom.links.length > 0 && (
+        <tr className="border-b border-gray-50 bg-gray-50/60 text-xs">
+          <td colSpan={6} className="px-5 py-2 pl-11">
+            <span className="text-[11px] text-gray-400 mr-2">Geklikt op:</span>
+            {stroom.links.map((l) => (
+              <span
+                key={l.label}
+                className="inline-block mr-1.5 mb-1 px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-600"
+              >
+                {l.label} <span className="font-semibold text-gray-800">{l.aantal}×</span>
+              </span>
+            ))}
+          </td>
+        </tr>
+      )}
+
+      {open &&
+        stroom.varianten.length > 1 &&
         stroom.varianten.map((v) => {
           const vn = v.afgeleverd || v.verzonden;
           return (

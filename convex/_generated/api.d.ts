@@ -26,6 +26,7 @@ import type * as crons from "../crons.js";
 import type * as ctaBlocks from "../ctaBlocks.js";
 import type * as dataExport from "../dataExport.js";
 import type * as deleteAccount from "../deleteAccount.js";
+import type * as ehConcepten from "../ehConcepten.js";
 import type * as ehMailFooter from "../ehMailFooter.js";
 import type * as emailStats from "../emailStats.js";
 import type * as emailTemplates from "../emailTemplates.js";
@@ -105,6 +106,7 @@ declare const fullApi: ApiFromModules<{
   ctaBlocks: typeof ctaBlocks;
   dataExport: typeof dataExport;
   deleteAccount: typeof deleteAccount;
+  ehConcepten: typeof ehConcepten;
   ehMailFooter: typeof ehMailFooter;
   emailStats: typeof emailStats;
   emailTemplates: typeof emailTemplates;
