@@ -31,8 +31,11 @@ import {
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 
-const STANDAARD_UREN = 3;
+const STANDAARD_UREN = 3;    // mail 1: uren na het afhaken
+const STANDAARD_TWEEDE = 48; // mail 2: uren na mail 1
 const STANDAARD_MAX = 1;
+const STANDAARD_VENSTER_VAN = 8;  // niet mailen vóór 08:00 (Nederlandse tijd)
+const STANDAARD_VENSTER_TOT = 21; // en niet meer ná 21:00
 
 // HMAC-token voor de afmeldlink (gelijk berekend in /api/afmelden, Node-kant).
 async function afmeldToken(email: string): Promise<string> {
@@ -156,8 +159,21 @@ async function leesConfig(ctx: { db: any }) {
   return {
     actief: rij?.actief ?? false,
     urenWachten: rij?.urenWachten ?? STANDAARD_UREN,
+    urenTweede: rij?.urenTweede ?? STANDAARD_TWEEDE,
     maxHerinneringen: rij?.maxHerinneringen ?? STANDAARD_MAX,
+    vensterVan: rij?.vensterVan ?? STANDAARD_VENSTER_VAN,
+    vensterTot: rij?.vensterTot ?? STANDAARD_VENSTER_TOT,
   };
+}
+
+// Het huidige uur in Nederland (Convex draait op UTC, dus zelf omrekenen).
+function uurInNederland(nu: number): number {
+  const tekst = new Intl.DateTimeFormat("nl-NL", {
+    timeZone: "Europe/Amsterdam",
+    hour: "numeric",
+    hour12: false,
+  }).format(new Date(nu));
+  return Number(tekst);
 }
 
 export const config = query({
@@ -173,17 +189,24 @@ export const setConfig = mutation({
     adminToken: v.string(),
     actief: v.boolean(),
     urenWachten: v.number(),
+    urenTweede: v.optional(v.number()),
     maxHerinneringen: v.number(),
+    vensterVan: v.optional(v.number()),
+    vensterTot: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const uren = Math.min(72, Math.max(1, Math.round(args.urenWachten)));
-    const max = Math.min(2, Math.max(1, Math.round(args.maxHerinneringen)));
+    const uur = (waarde: number | undefined, standaard: number) =>
+      Math.min(23, Math.max(0, Math.round(waarde ?? standaard)));
+
     const rij = await ctx.db.query("checkoutHerstelConfig").first();
     const velden = {
       actief: args.actief,
-      urenWachten: uren,
-      maxHerinneringen: max,
+      urenWachten: Math.min(72, Math.max(1, Math.round(args.urenWachten))),
+      urenTweede: Math.min(336, Math.max(1, Math.round(args.urenTweede ?? STANDAARD_TWEEDE))),
+      maxHerinneringen: Math.min(2, Math.max(1, Math.round(args.maxHerinneringen))),
+      vensterVan: uur(args.vensterVan, STANDAARD_VENSTER_VAN),
+      vensterTot: uur(args.vensterTot, STANDAARD_VENSTER_TOT),
       updatedAt: Date.now(),
     };
     if (rij) await ctx.db.patch(rij._id, velden);
@@ -243,7 +266,12 @@ export const _teHerinneren = internalQuery({
     if (!cfg.actief) return { cfg, pogingen: [] };
 
     const nu = Date.now();
-    const wachtMs = cfg.urenWachten * 60 * 60 * 1000;
+    // Buiten het verzendvenster wachten we: een mail die om 3 uur 's nachts rijp
+    // wordt, gaat gewoon 's ochtends alsnog uit (de cron draait elk uur).
+    const uur = uurInNederland(nu);
+    if (uur < cfg.vensterVan || uur >= cfg.vensterTot) return { cfg, pogingen: [] };
+
+    const uurMs = 60 * 60 * 1000;
     // Kijk maximaal een week terug: ouder dan dat is een herinnering niet meer zinvol.
     const cutoff = nu - 7 * 24 * 60 * 60 * 1000;
 
@@ -255,8 +283,11 @@ export const _teHerinneren = internalQuery({
     const rijp = pogingen.filter((p) => {
       if (p.betaaldAt || p.afgemeld) return false;
       if (p.herinneringen >= cfg.maxHerinneringen) return false;
-      // Eerste herinnering: urenWachten na het afhaken. Tweede: 48 uur na de eerste.
-      const basis = p.herinneringen === 0 ? p.createdAt + wachtMs : (p.herinneringAt ?? 0) + 48 * 60 * 60 * 1000;
+      // Mail 1: urenWachten ná het afhaken. Mail 2: urenTweede ná mail 1.
+      const basis =
+        p.herinneringen === 0
+          ? p.createdAt + cfg.urenWachten * uurMs
+          : (p.herinneringAt ?? 0) + cfg.urenTweede * uurMs;
       return nu >= basis;
     });
 

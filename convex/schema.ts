@@ -1168,8 +1168,13 @@ export default defineSchema({
   // Instellingen voor de herinneringsmail bij een afgehaakte checkout (één rij).
   checkoutHerstelConfig: defineTable({
     actief: v.boolean(),          // mails aan/uit; staat standaard uit
-    urenWachten: v.number(),      // hoe lang na het afhaken we mailen
+    urenWachten: v.number(),      // hoe lang na het afhaken mail 1 gaat
+    urenTweede: v.optional(v.number()), // hoe lang ná mail 1 mail 2 gaat
     maxHerinneringen: v.number(), // 1 of 2
+    // Verzendvenster in Nederlandse tijd: mails die 's nachts "rijp" worden,
+    // wachten tot de ochtend. Niemand wil om 3 uur 's nachts deze mail krijgen.
+    vensterVan: v.optional(v.number()),  // uur, bv. 8
+    vensterTot: v.optional(v.number()),  // uur, bv. 21
     updatedAt: v.number(),
   }),
 });

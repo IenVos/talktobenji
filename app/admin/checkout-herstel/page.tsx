@@ -24,7 +24,14 @@ type Overzicht = {
   betaald: number;
   afgehaakt: number;
   pogingen: Poging[];
-  config: { actief: boolean; urenWachten: number; maxHerinneringen: number };
+  config: {
+    actief: boolean;
+    urenWachten: number;
+    urenTweede: number;
+    maxHerinneringen: number;
+    vensterVan: number;
+    vensterTot: number;
+  };
 };
 
 const PERIODES = [
@@ -57,7 +64,10 @@ export default function CheckoutHerstelPage() {
 
   const [actief, setActief] = useState(false);
   const [uren, setUren] = useState(3);
+  const [urenTweede, setUrenTweede] = useState(48);
   const [maxHerinneringen, setMaxHerinneringen] = useState(1);
+  const [vensterVan, setVensterVan] = useState(8);
+  const [vensterTot, setVensterTot] = useState(21);
   const [bewaard, setBewaard] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [testStatus, setTestStatus] = useState("");
@@ -67,11 +77,21 @@ export default function CheckoutHerstelPage() {
     if (!data) return;
     setActief(data.config.actief);
     setUren(data.config.urenWachten);
+    setUrenTweede(data.config.urenTweede);
     setMaxHerinneringen(data.config.maxHerinneringen);
-  }, [data?.config.actief, data?.config.urenWachten, data?.config.maxHerinneringen]);
+    setVensterVan(data.config.vensterVan);
+    setVensterTot(data.config.vensterTot);
+  }, [data?.config]);
 
   const opslaan = async () => {
-    await setConfig({ actief, urenWachten: uren, maxHerinneringen });
+    await setConfig({
+      actief,
+      urenWachten: uren,
+      urenTweede,
+      maxHerinneringen,
+      vensterVan,
+      vensterTot,
+    });
     setBewaard(true);
     setTimeout(() => setBewaard(false), 2000);
   };
@@ -154,7 +174,11 @@ export default function CheckoutHerstelPage() {
               </p>
               <p className="text-xs text-gray-400 mt-1">
                 {data.config.actief
-                  ? `na ${data.config.urenWachten} uur, max ${data.config.maxHerinneringen}`
+                  ? `mail 1 na ${data.config.urenWachten} uur${
+                      data.config.maxHerinneringen === 2
+                        ? `, mail 2 na nog ${data.config.urenTweede} uur`
+                        : ""
+                    } · ${data.config.vensterVan}:00–${data.config.vensterTot}:00`
                   : "er gaat nu niets uit"}
               </p>
             </div>
@@ -181,18 +205,18 @@ export default function CheckoutHerstelPage() {
 
             <div className="flex flex-wrap gap-4">
               <label className="text-sm text-gray-600">
-                <span className="block mb-1 text-xs text-gray-400">Wachten (uren)</span>
+                <span className="block mb-1 text-xs text-gray-400">Mail 1: uren ná afhaken</span>
                 <input
                   type="number"
                   min={1}
                   max={72}
                   value={uren}
                   onChange={(e) => setUren(Number(e.target.value))}
-                  className="w-24 px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
+                  className="w-32 px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
                 />
               </label>
               <label className="text-sm text-gray-600">
-                <span className="block mb-1 text-xs text-gray-400">Max. herinneringen</span>
+                <span className="block mb-1 text-xs text-gray-400">Aantal mails</span>
                 <select
                   value={maxHerinneringen}
                   onChange={(e) => setMaxHerinneringen(Number(e.target.value))}
@@ -202,7 +226,54 @@ export default function CheckoutHerstelPage() {
                   <option value={2}>2 mails</option>
                 </select>
               </label>
+              {maxHerinneringen === 2 && (
+                <label className="text-sm text-gray-600">
+                  <span className="block mb-1 text-xs text-gray-400">Mail 2: uren ná mail 1</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={336}
+                    value={urenTweede}
+                    onChange={(e) => setUrenTweede(Number(e.target.value))}
+                    className="w-32 px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
+                  />
+                </label>
+              )}
+              <label className="text-sm text-gray-600">
+                <span className="block mb-1 text-xs text-gray-400">Alleen mailen tussen</span>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    min={0}
+                    max={23}
+                    value={vensterVan}
+                    onChange={(e) => setVensterVan(Number(e.target.value))}
+                    className="w-16 px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
+                  />
+                  <span className="text-xs text-gray-400">en</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={23}
+                    value={vensterTot}
+                    onChange={(e) => setVensterTot(Number(e.target.value))}
+                    className="w-16 px-3 py-1.5 border border-gray-200 rounded-lg text-sm"
+                  />
+                  <span className="text-xs text-gray-400">uur</span>
+                </div>
+              </label>
             </div>
+
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Voorbeeld: staat mail 1 op {uren} uur
+              {maxHerinneringen === 2 ? ` en mail 2 op ${urenTweede} uur` : ""}, dan krijgt iemand die
+              om 10:00 afhaakt zijn eerste mail rond {(10 + uren) % 24}:00
+              {maxHerinneringen === 2
+                ? `, en de tweede ${Math.round(urenTweede / 24) >= 1 ? `${Math.round(urenTweede / 24)} dag(en)` : `${urenTweede} uur`} daarna`
+                : ""}
+              . Wordt een mail buiten {vensterVan}:00 tot {vensterTot}:00 rijp, dan wacht hij tot het
+              venster weer open is.
+            </p>
 
             <div className="flex flex-wrap items-center gap-3">
               <button
