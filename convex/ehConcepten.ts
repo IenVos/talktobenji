@@ -54,6 +54,37 @@ De vraag van dag 1 kun je nu al lezen. Als die je niets doet, dan weet je meteen
 En als je het gewoon hierbij wilt laten, ook goed. De brief blijft van jou.`,
   },
   {
+    key: "concept_dag1_echt",
+    titel: "Dag 1 van Niet Alleen, precies zoals hij is",
+    waarom:
+      "Dit is niet een mail óver Niet Alleen, dit is Niet Alleen. Letterlijk de mail van dag 1 die deelnemers krijgen, met de uitleg erbij hoe het werkt. Wie dit leest weet precies wat hij koopt, en dat is in deze niche de eerlijkste manier om iemand over de streep te helpen.",
+    plek: "Als vervanging van opvolgmail 3 (dag 7), of als extra mail",
+    subject: "Dit is dag 1. Lees maar even mee.",
+    bodyText: `Hi {voornaam},
+
+Ik kan je van alles vertellen over Niet Alleen, maar het is eerlijker om het je gewoon te laten zien.
+
+Hieronder staat dag 1. Precies zoals mensen hem 's ochtends in hun mail krijgen. Lees maar even mee.
+
+Jij bent er. Op dag één. Dat vraagt moed, ook al voelt het misschien niet zo.
+
+Het gemis is echt, ook als anderen dat niet altijd begrijpen. Je hoeft het niet uit te leggen. Het is gewoon zo.
+
+De vraag voor vandaag is simpel: hoe voel je je nu, op dit moment? Niet zoals je denkt te moeten voelen. Maar wat er echt is.
+
+Schrijf het op. Een zin, een woord, een paar regels. Meer hoeft niet.
+
+Tot zover dag 1.
+
+Zo gaat het dertig ochtenden lang. Elke dag één vraag, en een plek waar je je antwoord kwijt kunt. Je hoeft niets te delen met anderen, en er is geen huiswerk. Sla je een dag over, dan blijft hij gewoon staan.
+
+En als je wilt, kun je erover praten met Benji. Die vraagt door, oordeelt niet, en is er ook om drie uur 's nachts.
+
+Wil je zien wat de andere negenentwintig dagen brengen? ${NIET_ALLEEN_MARKER}
+
+Lieve groet,`,
+  },
+  {
     key: "concept_dag_ervaren",
     titel: "Laat een dag van Niet Alleen ervaren",
     waarom:
