@@ -527,7 +527,7 @@ export const genereerEnVerstuurBrief = action({
       fotoUrls,
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
-      afmeldUrl: await ehAfmeldUrl(emailLc),
+      afmeldUrl: await ehAfmeldUrl(emailLc, "brief", type),
     });
 
     await verstuurEmail({
@@ -601,7 +601,7 @@ export const stuurTestBrief = action({
       fotoUrls,
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
-      afmeldUrl: await ehAfmeldUrl(emailLc),
+      afmeldUrl: await ehAfmeldUrl(emailLc, "brief", type),
     });
 
     await verstuurEmail({

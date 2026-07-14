@@ -235,7 +235,11 @@ async function verstuurOpvolgMail(
     .replace(/(Hi|Hoi)\s+,/g, "$1,");
 
   const token = await afmeldToken(args.email);
-  const afmeldUrl = `${appBase()}/api/afmelden?e=${encodeURIComponent(args.email)}&t=${token}`;
+  // Mailnummer en verliestype mee in de afmeldlink: zo zien we in de admin bij
+  // wélke mail iemand afhaakt, en kun je die mail bijsturen.
+  const afmeldUrl =
+    `${appBase()}/api/afmelden?e=${encodeURIComponent(args.email)}&t=${token}` +
+    `&m=${args.mailNummer}&type=${type}`;
 
   // Algemene reeks: vraag alleen in de eerste mail uit welk verlies het is, zodat
   // we de lead naar de juiste landingspagina en reeks kunnen sturen.
@@ -568,15 +572,102 @@ export const advertentieOverzicht = query({
 // ── Afmelding registreren (aangeroepen door /api/afmelden na token-check) ────────
 
 export const registreerAfmelding = mutation({
-  args: { email: v.string(), secret: v.string() },
+  args: {
+    email: v.string(),
+    secret: v.string(),
+    // Uit welke mail werd de afmeldlink geklikt: "brief" of het mailnummer van de
+    // opvolgreeks ("1" t/m "6"). Plus het verliestype van die reeks.
+    mail: v.optional(v.string()),
+    verliestype: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     if (!process.env.ADMIN_SESSION_SECRET || args.secret !== process.env.ADMIN_SESSION_SECRET) {
       throw new Error("Niet geautoriseerd");
     }
     const lc = args.email.toLowerCase();
     const bestaand = await ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", lc)).first();
-    if (!bestaand) await ctx.db.insert("ehAfmeldingen", { email: lc, createdAt: Date.now() });
+    if (!bestaand) {
+      await ctx.db.insert("ehAfmeldingen", {
+        email: lc,
+        createdAt: Date.now(),
+        mail: args.mail,
+        verliestype: args.verliestype,
+      });
+    } else if (!bestaand.mail && args.mail) {
+      // Oude afmelding zonder herkomst: alsnog aanvullen.
+      await ctx.db.patch(bestaand._id, { mail: args.mail, verliestype: args.verliestype });
+    }
     return { ok: true };
+  },
+});
+
+/**
+ * Waar haken mensen af? Per mail: hoeveel verstuurd, hoeveel afmeldingen, en het
+ * percentage daarvan. Plus de laatste afmeldingen met datum en mail, zodat je in
+ * één oogopslag ziet welke mail bijsturing nodig heeft.
+ */
+export const afmeldOverzicht = query({
+  args: { adminToken: v.string(), sinceDays: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const dagen = args.sinceDays && args.sinceDays > 0 ? args.sinceDays : 90;
+    const cutoff = Date.now() - dagen * DAG_MS;
+
+    const [alleAfmeldingen, alleVerzonden, alleBrieven] = await Promise.all([
+      ctx.db.query("ehAfmeldingen").collect(),
+      ctx.db.query("ehOpvolgVerzonden").collect(),
+      ctx.db.query("houvastBrieven").collect(),
+    ]);
+
+    const afmeldingen = alleAfmeldingen.filter((a) => a.createdAt >= cutoff);
+
+    // Verstuurd per mail in dezelfde periode (de brief telt als eigen "mail").
+    const verzondenPerMail = new Map<string, number>();
+    for (const v of alleVerzonden) {
+      if (v.sentAt < cutoff) continue;
+      const sleutel = String(v.mailNummer);
+      verzondenPerMail.set(sleutel, (verzondenPerMail.get(sleutel) ?? 0) + 1);
+    }
+    const brievenInPeriode = alleBrieven.filter((b) => b._creationTime >= cutoff).length;
+    verzondenPerMail.set("brief", brievenInPeriode);
+
+    const afmeldingenPerMail = new Map<string, number>();
+    for (const a of afmeldingen) {
+      const sleutel = a.mail ?? "onbekend";
+      afmeldingenPerMail.set(sleutel, (afmeldingenPerMail.get(sleutel) ?? 0) + 1);
+    }
+
+    // Vaste volgorde: eerst de brief, dan de mails in de volgorde waarin ze aankomen.
+    const volgorde = ["brief", ...MAIL_NUMMERS.sort((a, b) => SCHEMA[a] - SCHEMA[b]).map(String)];
+    const perMail = volgorde.map((sleutel) => {
+      const verzonden = verzondenPerMail.get(sleutel) ?? 0;
+      const afgemeld = afmeldingenPerMail.get(sleutel) ?? 0;
+      return {
+        mail: sleutel,
+        label: sleutel === "brief" ? "De brief" : `Opvolgmail ${sleutel}`,
+        dag: sleutel === "brief" ? 0 : SCHEMA[Number(sleutel)],
+        verzonden,
+        afgemeld,
+        ratio: verzonden > 0 ? Math.round((afgemeld / verzonden) * 1000) / 10 : 0,
+      };
+    });
+
+    return {
+      dagen,
+      totaalAfgemeld: afmeldingen.length,
+      // Afmeldingen van vóór 14 juli 2026 weten we niet bij welke mail ze hoorden.
+      onbekend: afmeldingenPerMail.get("onbekend") ?? 0,
+      perMail,
+      recent: afmeldingen
+        .sort((a, b) => b.createdAt - a.createdAt)
+        .slice(0, 50)
+        .map((a) => ({
+          email: a.email,
+          createdAt: a.createdAt,
+          mail: a.mail,
+          verliestype: a.verliestype,
+        })),
+    };
   },
 });
 

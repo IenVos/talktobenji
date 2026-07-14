@@ -204,6 +204,17 @@ export default function EvenHouvastEmailsPage() {
   const verliestypen = useAdminQuery(api.verliesTypen.list, {}) as
     | { code: string; naam: string }[]
     | undefined;
+  // Afmeldingen per mail: waar in de reeks haken mensen af?
+  const afmeldingen = useAdminQuery(api.evenHouvastOpvolg.afmeldOverzicht, { sinceDays: 90 }) as
+    | {
+        dagen: number;
+        totaalAfgemeld: number;
+        onbekend: number;
+        perMail: { mail: string; label: string; dag: number; verzonden: number; afgemeld: number; ratio: number }[];
+        recent: { email: string; createdAt: number; mail?: string; verliestype?: string }[];
+      }
+    | undefined;
+  const [toonAfmeldingen, setToonAfmeldingen] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [testNaam, setTestNaam] = useState("");
   const [bewerkType, setBewerkType] = useState("huisdier");
@@ -350,6 +361,84 @@ export default function EvenHouvastEmailsPage() {
           </div>
         )}
       </div>
+
+      {/* Waar haken mensen af: afmeldingen per mail, met de afmeldratio erbij */}
+      {afmeldingen && afmeldingen.totaalAfgemeld > 0 && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-gray-900">Waar haken ze af?</h2>
+            <span className="text-xs text-gray-400">
+              {afmeldingen.totaalAfgemeld} afmeldingen · laatste {afmeldingen.dagen} dagen
+            </span>
+          </div>
+
+          <div className="space-y-1.5">
+            {afmeldingen.perMail.map((m) => {
+              // Balk t.o.v. de hoogste afmeldratio, zodat de uitschieter opvalt.
+              const hoogste = Math.max(...afmeldingen.perMail.map((x) => x.ratio), 1);
+              return (
+                <div key={m.mail} className="flex items-center gap-3 text-xs">
+                  <span className="w-28 flex-shrink-0 text-gray-600">{m.label}</span>
+                  <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${m.ratio >= 5 ? "bg-red-400" : "bg-primary-400"}`}
+                      style={{ width: `${Math.round((m.ratio / hoogste) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="w-32 text-right text-gray-500">
+                    <span className="font-semibold text-gray-800">{m.afgemeld}</span> van {m.verzonden}
+                    {m.verzonden > 0 && <span className="text-gray-400"> · {m.ratio}%</span>}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {afmeldingen.onbekend > 0 && (
+            <p className="text-xs text-gray-400">
+              {afmeldingen.onbekend} afmeldingen zijn van vóór 14 juli 2026; daarvan weten we niet
+              bij welke mail ze klikten.
+            </p>
+          )}
+
+          <div className="pt-1 border-t border-gray-100">
+            <button
+              onClick={() => setToonAfmeldingen((v) => !v)}
+              className="text-xs font-medium text-primary-700 hover:text-primary-900"
+            >
+              {toonAfmeldingen ? "Verberg afmeldingen" : "Toon laatste afmeldingen"}
+            </button>
+            {toonAfmeldingen && (
+              <div className="mt-2">
+                {afmeldingen.recent.map((a, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50 last:border-0"
+                  >
+                    <span className="text-gray-500 truncate">{a.email}</span>
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                      <span className="text-gray-400">
+                        {new Date(a.createdAt).toLocaleString("nl-NL", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+                        {a.mail === "brief" ? "de brief" : a.mail ? `mail ${a.mail}` : "onbekend"}
+                      </span>
+                      {a.verliestype && (
+                        <span className="text-[10px] text-gray-400">{a.verliestype}</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

@@ -908,6 +908,11 @@ export default defineSchema({
   ehAfmeldingen: defineTable({
     email: v.string(),
     createdAt: v.number(),
+    // Bij welke mail iemand afhaakte: "brief" of het mailnummer uit de opvolgreeks
+    // ("1" t/m "6"), plus het verliestype van die reeks. Ontbreekt bij afmeldingen
+    // van vóór 14 juli 2026, toen we dit nog niet meestuurden in de afmeldlink.
+    mail: v.optional(v.string()),
+    verliestype: v.optional(v.string()),
   }).index("by_email", ["email"]),
 
   // Verwerkte Stripe-webhookgebeurtenissen. Stripe kan eenzelfde event meer dan

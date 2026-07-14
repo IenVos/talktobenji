@@ -83,9 +83,12 @@ export async function ehAfmeldToken(email: string): Promise<string> {
   return Array.from(new Uint8Array(sig)).map((b) => b.toString(16).padStart(2, "0")).join("").slice(0, 24);
 }
 
-export async function ehAfmeldUrl(email: string): Promise<string> {
+// `mail` is het label van de mail waarin deze link staat (bv. "brief" of "3").
+// Daarmee zien we in de admin bij welke mail iemand zich afmeldt.
+export async function ehAfmeldUrl(email: string, mail?: string, type?: string): Promise<string> {
   const token = await ehAfmeldToken(email);
-  return `${appBase()}/api/afmelden?e=${encodeURIComponent(email)}&t=${token}`;
+  const extra = `${mail ? `&m=${encodeURIComponent(mail)}` : ""}${type ? `&type=${encodeURIComponent(type)}` : ""}`;
+  return `${appBase()}/api/afmelden?e=${encodeURIComponent(email)}&t=${token}${extra}`;
 }
 
 // De vaste footer onder elke EH-mail. nietAlleenUrl = per type; afmeldUrl = met token.

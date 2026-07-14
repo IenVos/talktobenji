@@ -50,7 +50,15 @@ export async function GET(request: NextRequest) {
         "We herinneren je niet meer aan je bestelling. Wil je later toch verder, dan ben je van harte welkom."
       );
     }
-    await fetchMutation(api.evenHouvastOpvolg.registreerAfmelding, { email, secret }, { url: convexUrl });
+    // m = uit welke mail de link kwam ("brief" of mailnummer), type = verliestype.
+    // Daarmee zie je in de admin bij welke mail mensen afhaken.
+    const mail = request.nextUrl.searchParams.get("m")?.trim() || undefined;
+    const verliestype = request.nextUrl.searchParams.get("type")?.trim() || undefined;
+    await fetchMutation(
+      api.evenHouvastOpvolg.registreerAfmelding,
+      { email, secret, mail, verliestype },
+      { url: convexUrl }
+    );
   } catch {
     return bevestigingsPagina("Er ging iets mis", "We konden je afmelding niet verwerken. Probeer het later opnieuw of mail contactmetien@talktobenji.com.");
   }
