@@ -1484,20 +1484,21 @@ export default function AdminAnalytics() {
                             <span className="text-primary-400"> · {Math.round((c.termsClick / base) * 100)}% van bezoekers</span>
                           </div>
 
-                          {/* Warm (uit de Even Houvast-mails) tegenover koud verkeer: die
-                              gedragen zich totaal anders, dus apart tellen. */}
-                          {(c.warm?.reached ?? 0) > 0 && (
+                          {/* Warm tegenover koud: mensen die ons al kenden (terug uit een
+                              mail of een eerder bezoek) gedragen zich anders dan mensen die
+                              in hun eerste bezoek meteen doorklikken. */}
+                          {((c.warm?.reached ?? 0) > 0 || (c.koud?.reached ?? 0) > 0) && (
                             <div className="mt-1.5 ml-[9.75rem] text-[11px] text-primary-500 space-y-0.5">
                               {[
-                                { label: "Uit de EH-mails", d: c.warm! },
-                                { label: "Koud verkeer", d: c.koud! },
+                                { label: "Warm (uit mail of eerder bezoek)", d: c.warm! },
+                                { label: "Koud (eerste bezoek, meteen door)", d: c.koud! },
                               ].map(({ label, d }) => (
                                 <div key={label}>
                                   <span className="font-semibold text-primary-700">{label}:</span>{" "}
                                   {d.reached} bereikt · {d.details} ingevuld · {d.purchased} betaald
                                   {d.reached > 0 && (
                                     <span className="text-primary-400">
-                                      {" "}({Math.round((d.purchased / d.reached) * 100)}% koopt)
+                                      {" "}({Math.round((d.details / d.reached) * 100)}% vult in)
                                     </span>
                                   )}
                                 </div>

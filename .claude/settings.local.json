@@ -47,7 +47,9 @@
       "Bash(perl -0pi -e 's/api\\\\.ai\\\\.analyzeSessionAdmin/internal.ai.analyzeSessionAdmin/g' convex/chat.ts convex/admin.ts)",
       "WebSearch",
       "WebFetch(domain:resend.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npm init *)",
+      "Bash(npm i *)"
     ]
   }
 }

@@ -343,12 +343,34 @@ export const getFunnelStats = query({
     const count = (category: string, path: string, step: string) =>
       sessionsByKey[`${category}|${path}|${step}`]?.size ?? 0;
 
-    // Warm of koud: kwam deze sessie binnen via een link uit de opvolgmails
-    // (bron=eh-mail), of via een advertentie/zoekmachine (geen bron)? Dat scheelt
-    // enorm in de cijfers, dus tellen we de checkout-funnel ook apart per groep.
+    // Warm of koud, want die twee groepen gedragen zich totaal anders.
+    //   koud = kent ons pas net: kwam vandaag binnen (bv. via Meta naar Even
+    //          Houvast) en klikte in datzelfde bezoek door naar de checkout.
+    //   warm = kende ons al: komt terug uit een mail (bron=eh-mail), of was hier
+    //          eerder al eens (eerste bezoek meer dan 2 uur geleden).
+    // De terugkeer-check kijkt naar het eerste pageview van die sessie, dus hij
+    // werkt ook voor bezoekers van vóór we het bron-label meestuurden.
+    const checkoutSessies = new Set<string>();
+    for (const e of events) {
+      if (e.category === "checkout" && e.step === "reached") checkoutSessies.add(e.sessionId);
+    }
+
     const warmeSessies = new Set<string>();
     for (const e of events) {
       if (e.bron && e.bron.startsWith("eh")) warmeSessies.add(e.sessionId);
+    }
+    for (const sessionId of checkoutSessies) {
+      if (warmeSessies.has(sessionId)) continue;
+      const eersteBezoek = await ctx.db
+        .query("pageViews")
+        .withIndex("by_session_timestamp", (q) => q.eq("sessionId", sessionId))
+        .first();
+      const checkoutMoment = events.find(
+        (e) => e.sessionId === sessionId && e.category === "checkout" && e.step === "reached"
+      )!.timestamp;
+      if (eersteBezoek && checkoutMoment - eersteBezoek.timestamp > 2 * 60 * 60 * 1000) {
+        warmeSessies.add(sessionId);
+      }
     }
     const countPerBron = (path: string, step: string, warm: boolean) => {
       const sessies = sessionsByKey[`checkout|${path}|${step}`];
