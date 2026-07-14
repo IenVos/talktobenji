@@ -100,12 +100,18 @@ function EHMailEditor({
             <label className="text-xs font-semibold text-gray-600">Verstuur op dag</label>
             <input
               type="number"
-              min={0}
+              min={2}
               value={dag}
               onChange={(e) => setDag(Math.max(0, parseInt(e.target.value || "0", 10)))}
               className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
             />
             <span className="text-xs text-gray-400">dagen na de brief</span>
+            {dag < 2 && (
+              <span className="text-xs text-amber-700">
+                Te vroeg: de reeks schuift automatisch op, zodat niemand een opvolgmail
+                krijgt op de dag van de brief zelf.
+              </span>
+            )}
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Onderwerp</label>
@@ -211,6 +217,7 @@ export default function EvenHouvastEmailsPage() {
         totaalAfgemeld: number;
         onbekend: number;
         perMail: { mail: string; label: string; dag: number; verzonden: number; afgemeld: number; ratio: number }[];
+        perType: { type: string; aantal: number }[];
         recent: { email: string; createdAt: number; mail?: string; verliestype?: string }[];
       }
     | undefined;
@@ -394,10 +401,24 @@ export default function EvenHouvastEmailsPage() {
             })}
           </div>
 
+          {/* Per verliestype: welke reeks verliest de meeste mensen? */}
+          {afmeldingen.perType.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {afmeldingen.perType.map((t) => (
+                <span
+                  key={t.type}
+                  className="px-2 py-0.5 rounded-full text-[11px] bg-gray-100 text-gray-600"
+                >
+                  {t.type}: <span className="font-semibold text-gray-800">{t.aantal}</span>
+                </span>
+              ))}
+            </div>
+          )}
+
           {afmeldingen.onbekend > 0 && (
             <p className="text-xs text-gray-400">
               {afmeldingen.onbekend} afmeldingen zijn van vóór 14 juli 2026; daarvan weten we niet
-              bij welke mail ze klikten.
+              bij welke mail ze klikten (het verliestype halen we wel uit de lead zelf).
             </p>
           )}
 

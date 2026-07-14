@@ -40,6 +40,11 @@ const EH_OPVOLG_START = Date.UTC(2026, 5, 25); // 25 juni 2026
 const SCHEMA: Record<number, number> = { 1: 2, 6: 4, 2: 5, 3: 7, 4: 10, 5: 13 };
 const MAIL_NUMMERS = Object.keys(SCHEMA).map(Number);
 
+// Ondergrens: nooit een opvolgmail binnen twee dagen na de brief. De cron kijkt
+// naar hele dagen sinds de brief, dus dag 0 betekent "vanavond nog", en dat
+// leverde meteen afmeldingen op. Deze grens geldt boven elke admin-instelling.
+const MIN_DAG_OFFSET = 2;
+
 // Verliestypes met een eigen reeks. Leads zonder (geldig) type krijgen "algemeen".
 const EH_TYPES = ["persoon", "huisdier", "scheiding", "eenzaamheid", "kinderloos"] as const;
 const ALGEMEEN = "algemeen";
@@ -320,7 +325,9 @@ export const _statusVoorLead = internalQuery({
 });
 
 // Effectieve dag-offsets per mail voor één type: opgeslagen dagOffset uit de admin,
-// anders de default.
+// anders de default. Nooit eerder dan MIN_DAG_OFFSET: een opvolgmail op dezelfde
+// avond als de brief voelt als overvallen worden en leverde afmeldingen op. Die
+// ondergrens geldt ook als er per ongeluk dag 0 of 1 in de admin staat.
 export const _dagSchema = internalQuery({
   args: { type: v.string() },
   handler: async (ctx, args) => {
@@ -332,6 +339,14 @@ export const _dagSchema = internalQuery({
         .withIndex("by_key", (q) => q.eq("key", TEMPLATE_KEY(type, n)))
         .unique();
       if (t && typeof (t as any).dagOffset === "number") result[n] = (t as any).dagOffset;
+    }
+
+    // Begint de reeks te vroeg (bv. dag 0), dan schuiven we hem in zijn geheel op.
+    // Zo blijven de onderlinge afstanden tussen de mails precies zoals ingesteld.
+    const vroegste = Math.min(...MAIL_NUMMERS.map((n) => result[n]));
+    const verschuiving = Math.max(0, MIN_DAG_OFFSET - vroegste);
+    if (verschuiving > 0) {
+      for (const n of MAIL_NUMMERS) result[n] += verschuiving;
     }
     return result;
   },
@@ -637,6 +652,19 @@ export const afmeldOverzicht = query({
       afmeldingenPerMail.set(sleutel, (afmeldingenPerMail.get(sleutel) ?? 0) + 1);
     }
 
+    // Verliestype van de lead zelf. Zo weten we het type óók bij afmeldingen van
+    // vóór 14 juli 2026, toen de afmeldlink dat nog niet meestuurde.
+    const typePerEmail = new Map<string, string>();
+    for (const b of alleBrieven) {
+      if (b.verliesType) typePerEmail.set(b.email.toLowerCase(), b.verliesType);
+    }
+
+    const perType = new Map<string, number>();
+    for (const a of afmeldingen) {
+      const type = a.verliestype ?? typePerEmail.get(a.email) ?? "onbekend";
+      perType.set(type, (perType.get(type) ?? 0) + 1);
+    }
+
     // Vaste volgorde: eerst de brief, dan de mails in de volgorde waarin ze aankomen.
     const volgorde = ["brief", ...MAIL_NUMMERS.sort((a, b) => SCHEMA[a] - SCHEMA[b]).map(String)];
     const perMail = volgorde.map((sleutel) => {
@@ -658,6 +686,9 @@ export const afmeldOverzicht = query({
       // Afmeldingen van vóór 14 juli 2026 weten we niet bij welke mail ze hoorden.
       onbekend: afmeldingenPerMail.get("onbekend") ?? 0,
       perMail,
+      perType: Array.from(perType.entries())
+        .map(([type, aantal]) => ({ type, aantal }))
+        .sort((a, b) => b.aantal - a.aantal),
       recent: afmeldingen
         .sort((a, b) => b.createdAt - a.createdAt)
         .slice(0, 50)
@@ -665,7 +696,8 @@ export const afmeldOverzicht = query({
           email: a.email,
           createdAt: a.createdAt,
           mail: a.mail,
-          verliestype: a.verliestype,
+          // Uit de afmeldlink, of anders het type van de lead zelf.
+          verliestype: a.verliestype ?? typePerEmail.get(a.email),
         })),
     };
   },
