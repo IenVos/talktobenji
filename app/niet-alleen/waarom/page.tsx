@@ -61,9 +61,11 @@ function WaaromInner() {
   const params = useSearchParams();
   const type = normVerlies(params?.get("type"));
   const naam = (params?.get("n") || "").trim();
+  const email = (params?.get("e") || "").trim();
+  const voornaam = naam.split(" ")[0];
   const c = BRUG[type];
 
-  const titel = naam ? `${naam}, ${c.titel}` : hoofdletter(c.titel);
+  const titel = voornaam ? `${voornaam}, ${c.titel}` : hoofdletter(c.titel);
 
   const waarde = [
     c.eersteWaarde,
@@ -108,7 +110,13 @@ function WaaromInner() {
             Geen abonnement, geen automatische verlenging. Je koopt het één keer. En je begint wanneer jij er klaar voor bent, vandaag of over een maand.
           </p>
           <Link
-            href={`${checkoutPad(type)}${naam ? `?n=${encodeURIComponent(naam)}` : ""}`}
+            href={(() => {
+              const qs = new URLSearchParams();
+              if (naam) qs.set("n", naam);
+              if (email) qs.set("e", email);
+              const s = qs.toString();
+              return `${checkoutPad(type)}${s ? `?${s}` : ""}`;
+            })()}
             className="inline-block font-semibold text-white px-8 py-3.5 rounded-xl"
             style={{ background: "#6d84a8", fontSize: 15 }}
           >

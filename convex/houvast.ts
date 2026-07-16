@@ -555,11 +555,15 @@ export const genereerEnVerstuurBrief = action({
     }
 
     // Naschrift met een zachte uitnodiging om dag 1 van Niet Alleen te ervaren.
-    const voornaam = (args.naam || "").trim().split(" ")[0] || "";
+    const naamVol = (args.naam || "").trim();
+    const voornaam = naamVol.split(" ")[0] || "";
     const proefType = args.verliesType || "algemeen";
+    // Naam én e-mail mee door de keten, zodat de kale betaalpagina beide alvast
+    // invult (bezoeker hoeft dan alleen voorwaarden aan te vinken en te betalen).
     const proefUrl =
       `${appBase()}/niet-alleen/proef?type=${encodeURIComponent(proefType)}` +
-      (voornaam ? `&n=${encodeURIComponent(voornaam)}` : "");
+      (naamVol ? `&n=${encodeURIComponent(naamVol)}` : "") +
+      `&e=${encodeURIComponent(emailLc)}`;
 
     const html = bouwBriefHtml({
       aanhef,
@@ -636,11 +640,15 @@ export const stuurTestBrief = action({
       "https://www.talktobenji.com/images/benji-app-homescreen.png",
     ];
 
-    const voornaam = (args.naam || "").trim().split(" ")[0] || "";
+    const naamVol = (args.naam || "").trim();
+    const voornaam = naamVol.split(" ")[0] || "";
     const proefType = args.verliesType || "algemeen";
+    // Naam én e-mail mee door de keten, zodat de kale betaalpagina beide alvast
+    // invult (bezoeker hoeft dan alleen voorwaarden aan te vinken en te betalen).
     const proefUrl =
       `${appBase()}/niet-alleen/proef?type=${encodeURIComponent(proefType)}` +
-      (voornaam ? `&n=${encodeURIComponent(voornaam)}` : "");
+      (naamVol ? `&n=${encodeURIComponent(naamVol)}` : "") +
+      `&e=${encodeURIComponent(emailLc)}`;
 
     const html = bouwBriefHtml({
       aanhef,

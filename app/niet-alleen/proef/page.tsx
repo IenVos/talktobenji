@@ -38,6 +38,7 @@ function ProefInner() {
   const params = useSearchParams();
   const type = normVerlies(params?.get("type"));
   const naam = (params?.get("n") || "").trim();
+  const email = (params?.get("e") || "").trim();
   const contentType = contentTypeVoor(type);
 
   const [dag, setDag] = useState(1);
@@ -48,7 +49,10 @@ function ProefInner() {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const brugUrl = `/niet-alleen/waarom?type=${type}${naam ? `&n=${encodeURIComponent(naam)}` : ""}`;
+  const brugUrl =
+    `/niet-alleen/waarom?type=${type}` +
+    (naam ? `&n=${encodeURIComponent(naam)}` : "") +
+    (email ? `&e=${encodeURIComponent(email)}` : "");
 
   return (
     <div className="min-h-screen" style={{ background: "#fdf9f4" }}>
