@@ -1000,10 +1000,15 @@ export default defineSchema({
       content: v.string(),
       imageStorageId: v.optional(v.id("_storage")),
     }))),
-    // Layout van de checkout: "standaard" (default) of "rustig" (variant voor verdriet/rouw)
+    // Layout van de checkout: "standaard" (default), "rustig" (verdriet/rouw) of
+    // "kaal" (alleen kop + betaalveld, voor de Even Houvast-ervaren-funnel).
     checkoutLayout: v.optional(v.string()),
     // Inhoud voor de rustige layout (alleen gebruikt als checkoutLayout === "rustig")
     rustigeContent: v.optional(rustigeContentValidator),
+    // Kop-teksten voor de kale layout ({naam} wordt vervangen door de voornaam,
+    // of weggelaten als die er niet is). Leeg = nette defaults.
+    kaalKop: v.optional(v.string()),
+    kaalSub: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_live", ["isLive"]),

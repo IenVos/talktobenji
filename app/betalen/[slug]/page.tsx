@@ -724,6 +724,32 @@ export default function BetalenPage() {
     </div>
   ) : null;
 
+  // Kale layout (Even Houvast-ervaren-funnel) — alleen een warme kop + het betaalveld.
+  // Het verhaal stond al op de brugpagina; hier is het puur afrekenen. Zelfde
+  // betaal-plumbing (paymentNode/gegevensNode), dus dezelfde geteste Stripe-flow.
+  if ((product as any).checkoutLayout === "kaal") {
+    const voornaam = naam.trim().split(" ")[0] || "";
+    const vulNaam = (t: string) => t.replace(/\{naam\}/g, voornaam).replace(/[,\s]+$/g, "").trim();
+    const kop = vulNaam((product as any).kaalKop || "Fijn dat je er bent, {naam}") || "Fijn dat je er bent";
+    const sub = vulNaam((product as any).kaalSub || "Hieronder rond je het rustig af. Je begint wanneer jij er klaar voor bent.");
+    return (
+      <>
+        {conceptBanner}
+        {!isPreview && <ScrollDepthTracker category="checkout" path={slug} />}
+        <div className="min-h-screen flex flex-col items-center px-4 py-10" style={{ background: "#fdf9f4" }}>
+          <div className="w-full max-w-md">
+            <h1 className="text-2xl font-semibold mb-2" style={{ color: "#3d3530", textWrap: "balance" } as React.CSSProperties}>{kop}</h1>
+            {sub && <p className="leading-relaxed mb-6" style={{ color: "#8a8078" }}>{sub}</p>}
+            <div className="rounded-2xl p-5 sm:p-6 space-y-5" style={{ background: "white", border: "1px solid #efe7dc", boxShadow: "0 2px 24px rgba(60,48,40,0.08)" }}>
+              {gegevensNode}
+              {paymentNode}
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   // Rustige layout (variant voor verdriet/rouw) — zelfde betaal-plumbing, andere opbouw.
   if ((product as any).checkoutLayout === "rustig") {
     return (

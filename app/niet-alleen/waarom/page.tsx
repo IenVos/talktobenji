@@ -108,7 +108,7 @@ function WaaromInner() {
             Geen abonnement, geen automatische verlenging. Je koopt het één keer. En je begint wanneer jij er klaar voor bent, vandaag of over een maand.
           </p>
           <Link
-            href={checkoutPad(type)}
+            href={`${checkoutPad(type)}${naam ? `?n=${encodeURIComponent(naam)}` : ""}`}
             className="inline-block font-semibold text-white px-8 py-3.5 rounded-xl"
             style={{ background: "#6d84a8", fontSize: 15 }}
           >

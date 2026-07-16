@@ -34,14 +34,15 @@ export function contentTypeVoor(t: Verliestype): string {
   return t === "algemeen" ? "persoon" : t;
 }
 
-// Bestaande, werkende checkout-pagina per type (de "kale" betaalstap).
+// Kale betaalpagina per type (Even Houvast-ervaren-funnel). Aangemaakt via de
+// admin-knop (kloon van de bestaande type-checkouts, layout "kaal").
 export const CHECKOUT_SLUG: Record<Verliestype, string> = {
-  persoon: "niet-alleen-verlies-persoon",
-  huisdier: "niet-alleen-huisdier",
-  scheiding: "niet-alleen-relatie",
-  eenzaamheid: "niet-alleen-eenzaamheid",
-  kinderloos: "niet-alleen-kinderloos",
-  algemeen: "je-hoeft-het-niet-alleen-te-dragen",
+  persoon: "even-houvast-persoon-betalen",
+  huisdier: "even-houvast-huisdier-betalen",
+  scheiding: "even-houvast-scheiding-betalen",
+  eenzaamheid: "even-houvast-eenzaamheid-betalen",
+  kinderloos: "even-houvast-kinderloos-betalen",
+  algemeen: "even-houvast-algemeen-betalen",
 };
 
 export function checkoutPad(t: Verliestype): string {

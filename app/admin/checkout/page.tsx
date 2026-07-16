@@ -308,6 +308,9 @@ export default function AdminCheckoutPage() {
   const removeProduct = useAdminMutation(api.checkoutProducts.remove);
   const generateUploadUrl = useAdminMutation(api.checkoutProducts.generateUploadUrl);
   const getImageUrl = useAdminMutation(api.landingPages.getImageUrl);
+  const maakKaalPaginas = useAdminMutation(api.kaalBetaalpaginas.maakEvenHouvastBetaalpaginas);
+  const [kaalBezig, setKaalBezig] = useState(false);
+  const [kaalMelding, setKaalMelding] = useState("");
 
   // Concept-preview: bewaar de admin-token kort in localStorage en open de
   // betaalpagina met ?preview=1. Zo is de pagina zichtbaar ook als hij niet live is.
@@ -649,6 +652,31 @@ export default function AdminCheckoutPage() {
         <p className="text-sm text-primary-700 mt-1">
           Beheer betaalpagina's bereikbaar via /betalen/[slug].
         </p>
+        {/* Even Houvast-ervaren-funnel: maak in één klik de kale betaalpagina's per
+            verliestype aan (kloon van de type-checkouts, layout "kaal"). */}
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            disabled={kaalBezig}
+            onClick={async () => {
+              setKaalBezig(true);
+              setKaalMelding("");
+              try {
+                const r: any = await maakKaalPaginas({});
+                const regels = (r?.resultaat ?? []).map((x: any) => `${x.type}: ${x.status}`).join(" · ");
+                setKaalMelding(`Klaar. ${regels}`);
+              } catch (e: any) {
+                setKaalMelding(`Mislukt: ${e?.message ?? "onbekende fout"}`);
+              } finally {
+                setKaalBezig(false);
+              }
+            }}
+            className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-medium hover:bg-amber-200 disabled:opacity-60"
+          >
+            {kaalBezig ? "Bezig..." : "Even Houvast betaalpagina's aanmaken/verversen"}
+          </button>
+          {kaalMelding && <span className="text-xs text-primary-700">{kaalMelding}</span>}
+        </div>
       </div>
 
       {/* Formulier */}
