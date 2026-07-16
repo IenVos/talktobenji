@@ -41,7 +41,10 @@ function ProefInner() {
   const email = (params?.get("e") || "").trim();
   const contentType = contentTypeVoor(type);
 
-  const [dag, setDag] = useState(1);
+  // Startdag uit de link (?dag=), bijv. mail 3 opent op dag 13. Standaard dag 1.
+  const dagParam = parseInt(params?.get("dag") || "", 10);
+  const startDag = Number.isFinite(dagParam) && dagParam >= 1 && dagParam <= 30 ? dagParam : 1;
+  const [dag, setDag] = useState(startDag);
   const inhoud = getDagInhoud(dag, contentType);
 
   const naar = (d: number) => {

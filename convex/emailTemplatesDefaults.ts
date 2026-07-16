@@ -26,7 +26,7 @@ function ehMailSet(
     [`eh_${type}_1`]: { subject: c.m1s, bodyText: c.m1, buttonText: "Schrijf Ien een bericht", buttonUrl: "mailto:contactmetien@talktobenji.com" },
     [`eh_${type}_6`]: { subject: "Even voorstellen, dit ben ik", bodyText: EH_IEN_VERHAAL },
     [`eh_${type}_2`]: { subject: c.m2s, bodyText: c.m2 },
-    [`eh_${type}_3`]: { subject: c.m3s, bodyText: c.m3, buttonText: "Lees meer over Niet Alleen", buttonUrl: `${TTB}${c.lp}` },
+    [`eh_${type}_3`]: { subject: c.m3s, bodyText: c.m3, buttonText: "Lees de vraag van dag 13", buttonUrl: `${TTB}/niet-alleen/proef?type=${type}&dag=13` },
     [`eh_${type}_4`]: { subject: c.m4s, bodyText: c.m4, buttonText: "Lees meer ervaringen", buttonUrl: `${TTB}${c.lp}` },
     [`eh_${type}_5`]: { subject: c.m5s, bodyText: c.m5, buttonText: "Start Niet Alleen — eenmalig €37", buttonUrl: `${TTB}${c.checkout}` },
   };
@@ -282,8 +282,8 @@ Ik heb een klein boekje voor je gemaakt. Woorden die je omarmen: spreuken en ged
   eh_huisdier_3: {
     subject: "Wat als je er elke dag even bij stil mocht staan?",
     bodyText: `Hi {voornaam},\n\nRouwen is niet iets wat je in een weekend doet. Of in een gesprek. Of in één goede huilbui.\n\nHet gaat in golven. Soms verwacht. Soms midden in de supermarkt.\n\nWat helpt, is niet proberen het sneller te laten gaan. Maar er een beetje ruimte voor maken. Elke dag. Een paar minuten.\n\nDaarom bestaat Niet Alleen.\n\nHet is een programma van 30 dagen. Elke dag krijg je een korte mail in je inbox. Geen zware opdrachten, geen therapie. Gewoon een rustig moment voor jou, en voor het verlies dat je draagt.\n\nJe leest het wanneer jij er klaar voor bent. Soms op de ochtend. Soms laat op de avond. Sommige mensen lezen het op de dag zelf. Anderen bewaren de mails voor een moment dat ze er iets meer voor openstaan.\n\nEr is geen goed of fout.\n\nIk schreef Niet Alleen vanuit mijn eigen verlies. Niet als therapeut, maar als iemand die weet hoe het is om iets te missen dat er altijd was.\n\nVolgende week vertel ik je meer over wat het mensen geeft. Maar voor nu: weet dat het er is, als je er behoefte aan hebt.`,
-    buttonText: "Lees meer over Niet Alleen",
-    buttonUrl: "https://www.talktobenji.com/lp/niet-alleen-voor-hulp-bij-verlies-van-huisdier",
+    buttonText: "Lees de vraag van dag 13",
+    buttonUrl: "https://www.talktobenji.com/niet-alleen/proef?type=huisdier&dag=13",
   },
   eh_huisdier_4: {
     subject: `"Ik wist niet dat ik dit nodig had"`,
