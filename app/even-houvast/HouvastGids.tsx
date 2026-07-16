@@ -66,9 +66,19 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
   const gids = resolveHouvast(content, actiefType);
   const MOMENTEN = gids.momenten;
 
+  // Optioneel naamveld, alleen zinvol bij een huisdier of een overleden dierbare.
+  const verliesNaamVeld: { titel: string; hint?: string; placeholder: string } | null =
+    actiefType === "huisdier"
+      ? { titel: "Hoe heette je huisdier?", hint: "Optioneel. We gebruiken de naam alleen zacht in je brief.", placeholder: "De naam van je huisdier" }
+      : actiefType === "persoon"
+      ? { titel: "Wie mis je?", hint: "Je mag hier de naam delen. Optioneel, en alleen zacht gebruikt in je brief.", placeholder: "De naam van wie je mist" }
+      : null;
+
   // Brief per mail
   const [email, setEmail] = useState("");
   const [naam, setNaam] = useState("");
+  // Optionele naam van wie/wat gemist wordt (alleen bij huisdier en persoon).
+  const [verliesNaam, setVerliesNaam] = useState("");
   const [honeypot, setHoneypot] = useState(""); // onzichtbaar veld tegen bots
   const [briefStatus, setBriefStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [briefFout, setBriefFout] = useState("Er ging iets mis. Probeer het opnieuw.");
@@ -97,6 +107,8 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
     if (opgeslagenFotos) {
       try { setFotos(JSON.parse(opgeslagenFotos)); } catch {}
     }
+    const opgeslagenVerliesNaam = localStorage.getItem(`houvast-${storageKey}-verliesnaam`);
+    if (opgeslagenVerliesNaam) setVerliesNaam(opgeslagenVerliesNaam);
   }, [storageKey]);
 
   // Sla automatisch op bij elke wijziging.
@@ -107,6 +119,10 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
   useEffect(() => {
     localStorage.setItem(`houvast-${storageKey}-fotos`, JSON.stringify(fotos));
   }, [fotos, storageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(`houvast-${storageKey}-verliesnaam`, verliesNaam);
+  }, [verliesNaam, storageKey]);
 
   const setAntwoord = (id: string, waarde: string) => {
     setAntwoorden((prev) => ({ ...prev, [id]: waarde }));
@@ -180,6 +196,7 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
         body: JSON.stringify({
           email: email.trim(),
           name: naam.trim() || profiel?.name || undefined,
+          verliesNaam: (actiefType === "huisdier" || actiefType === "persoon") && verliesNaam.trim() ? verliesNaam.trim() : undefined,
           verliesType: actiefType || undefined,
           antwoorden: MOMENTEN.map((m) => ({ vraag: m.vraag, antwoord: antwoorden[m.id] || "" })),
           fotos: Object.values(fotos).filter(Boolean),
@@ -416,6 +433,27 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
                     </p>
                   );
                 })}
+                {/* Optionele naam van het huisdier of de dierbare, aan het begin. */}
+                {verliesNaamVeld && (
+                  <div className="space-y-1.5 pt-2">
+                    <label htmlFor="verliesNaam" className="text-sm font-medium block" style={{ color: "#3d3530" }}>
+                      {verliesNaamVeld.titel}
+                    </label>
+                    {verliesNaamVeld.hint && (
+                      <p className="text-xs" style={{ color: "#8a8078" }}>{verliesNaamVeld.hint}</p>
+                    )}
+                    <input
+                      id="verliesNaam"
+                      type="text"
+                      value={verliesNaam}
+                      onChange={(e) => setVerliesNaam(e.target.value)}
+                      placeholder={verliesNaamVeld.placeholder}
+                      className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                      style={{ background: "rgba(255,255,255,0.90)", border: "1px solid rgba(0,0,0,0.09)", color: "#3d3530" }}
+                    />
+                  </div>
+                )}
+
                 {/* Eenmalig het verliestype kunnen wijzigen na de keuze. */}
                 {heeftKiesStap && actiefType && !typeGewijzigd && (
                   <button

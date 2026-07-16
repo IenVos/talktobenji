@@ -131,7 +131,7 @@ export const briefAlVerzonden = internalQuery({
 });
 
 export const markBriefVerzonden = internalMutation({
-  args: { email: v.string(), verliesType: v.optional(v.string()), naam: v.optional(v.string()), bron: v.optional(v.string()), bronUrl: v.optional(v.string()) },
+  args: { email: v.string(), verliesType: v.optional(v.string()), naam: v.optional(v.string()), verliesNaam: v.optional(v.string()), bron: v.optional(v.string()), bronUrl: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const bestaand = await ctx.db
       .query("houvastBrieven")
@@ -143,12 +143,17 @@ export const markBriefVerzonden = internalMutation({
         sentAt: Date.now(),
         verliesType: args.verliesType,
         naam: args.naam,
+        verliesNaam: args.verliesNaam,
         bron: args.bron,
         bronUrl: args.bronUrl,
       });
     } else if (!bestaand.verliesType && args.verliesType) {
       // Vul type/naam aan als die er nog niet was (oude records).
-      await ctx.db.patch(bestaand._id, { verliesType: args.verliesType, naam: args.naam ?? bestaand.naam });
+      await ctx.db.patch(bestaand._id, {
+        verliesType: args.verliesType,
+        naam: args.naam ?? bestaand.naam,
+        verliesNaam: args.verliesNaam ?? bestaand.verliesNaam,
+      });
     }
   },
 });
@@ -402,10 +407,11 @@ async function genereerBriefHtml(opts: {
   apiKey: string;
   saved: Record<string, any> | null;
   naam?: string;
+  verliesNaam?: string;
   verliesType?: string;
   ingevuld: Array<{ vraag: string; antwoord: string }>;
 }): Promise<{ aanhef: string; briefHtml: string }> {
-  const { apiKey, saved, naam, verliesType, ingevuld } = opts;
+  const { apiKey, saved, naam, verliesNaam, verliesType, ingevuld } = opts;
   // Brief-instructie: per verliestype als die is ingevuld, anders de basis.
   const typeInstructie =
     typeof saved?.perType?.[verliesType ?? ""]?.briefInstructie === "string"
@@ -422,9 +428,13 @@ async function genereerBriefHtml(opts: {
   const systemPrompt = `${briefInstructie}\n\nSchrijf platte tekst zonder opmaak-tekens. Gebruik geen sterretjes (* of **), geen onderstrepingen (_) en geen markdown. Nadruk leg je met woorden, niet met opmaak.`;
 
   const verliesContext = verliesType ? VERLIES_CONTEXT[verliesType] : "";
+  const naamSchoon = (verliesNaam ?? "").trim();
   const userContent = [
     naam ? `Naam: ${naam}` : null,
     verliesContext ? `Het verdriet gaat over: ${verliesContext}.` : null,
+    naamSchoon
+      ? `Wie of wat gemist wordt heet: ${naamSchoon}. Gebruik die naam op een natuurlijke, warme manier als dat past, maar forceer het niet.`
+      : null,
     "De persoon heeft bij Even Houvast het volgende opgeschreven:",
     ...ingevuld.map((a, i) => `${i + 1}. Vraag: ${a.vraag}\n   Antwoord: ${a.antwoord.trim()}`),
   ]
@@ -471,6 +481,7 @@ export const genereerEnVerstuurBrief = action({
   args: {
     email: v.string(),
     naam: v.optional(v.string()),
+    verliesNaam: v.optional(v.string()),
     verliesType: v.optional(v.string()),
     antwoorden: v.array(v.object({ vraag: v.string(), antwoord: v.string() })),
     fotos: v.optional(v.array(v.string())), // base64 data-URL's
@@ -501,6 +512,7 @@ export const genereerEnVerstuurBrief = action({
       apiKey: ANTHROPIC_API_KEY,
       saved,
       naam: args.naam,
+      verliesNaam: args.verliesNaam,
       verliesType: args.verliesType,
       ingevuld,
     });
@@ -536,7 +548,7 @@ export const genereerEnVerstuurBrief = action({
       html,
       apiKey: RESEND_API_KEY,
     });
-    await ctx.runMutation(internal.houvast.markBriefVerzonden, { email: emailLc, verliesType: args.verliesType, naam: args.naam, bron: args.bron, bronUrl: args.bronUrl });
+    await ctx.runMutation(internal.houvast.markBriefVerzonden, { email: emailLc, verliesType: args.verliesType, naam: args.naam, verliesNaam: args.verliesNaam, bron: args.bron, bronUrl: args.bronUrl });
     return { success: true };
   },
 });

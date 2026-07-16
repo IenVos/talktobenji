@@ -893,6 +893,7 @@ export default defineSchema({
     sentAt: v.number(),
     verliesType: v.optional(v.string()), // voor de opvolgreeks per type (bijv. "huisdier")
     naam: v.optional(v.string()),
+    verliesNaam: v.optional(v.string()), // naam van wie/wat gemist wordt (huisdier/persoon), optioneel gedeeld
     bron: v.optional(v.string()),    // compacte bron-regel (kanaal · pad)
     bronUrl: v.optional(v.string()), // volledige landings-URL
   }).index("by_email", ["email"]),

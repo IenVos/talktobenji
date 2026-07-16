@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { email, name, verliesType, antwoorden, fotos, honeypot, bron, bronUrl } = body ?? {};
+  const { email, name, verliesNaam, verliesType, antwoorden, fotos, honeypot, bron, bronUrl } = body ?? {};
 
   // Honeypot: alleen bots vullen dit verborgen veld in → doe alsof het lukte.
   if (typeof honeypot === "string" && honeypot.trim() !== "") {
@@ -47,6 +47,10 @@ export async function POST(req: NextRequest) {
     await convex.action(api.houvast.genereerEnVerstuurBrief, {
       email,
       naam: name && typeof name === "string" ? name.trim() : undefined,
+      verliesNaam:
+        verliesNaam && typeof verliesNaam === "string" && verliesNaam.trim()
+          ? verliesNaam.trim().slice(0, 80)
+          : undefined,
       verliesType: verliesType && typeof verliesType === "string" ? verliesType : undefined,
       antwoorden: schoon,
       fotos: schoneFotos.length > 0 ? schoneFotos : undefined,
