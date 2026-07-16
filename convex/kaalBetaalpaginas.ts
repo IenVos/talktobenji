@@ -23,6 +23,9 @@ const TYPES = [
 
 const KOP_DEFAULT = "Fijn dat je er bent, {naam}";
 const SUB_DEFAULT = "Hieronder rond je het rustig af. Je begint wanneer jij er klaar voor bent.";
+// Knoptekst = vervolg op "Ja, dit gun ik mezelf" van de brugpagina. Quote kort.
+const BUTTON_DEFAULT = "Ja, ik begin";
+const QUOTE_DEFAULT = "Je hoeft het niet alleen te dragen.";
 
 export const maakEvenHouvastBetaalpaginas = mutation({
   args: { adminToken: v.string() },
@@ -41,29 +44,34 @@ export const maakEvenHouvastBetaalpaginas = mutation({
         continue;
       }
 
-      // Alleen de velden die de betaling/enrollment bepalen overnemen; de rest kaal.
-      const velden = {
-        name: bron.name,
-        kortNaam: bron.kortNaam,
+      // Velden die de betaling/enrollment bepalen: bij elke run verversen.
+      const enrollment = {
         verliesType: bron.verliesType ?? t.type,
         priceInCents: bron.priceInCents,
         stripePriceId: bron.stripePriceId,
         subscriptionType: bron.subscriptionType,
         accessDays: bron.accessDays,
+        isLive: true,
+        checkoutLayout: "kaal",
+        updatedAt: now,
+      };
+      // Tekst/inhoud: alleen bij het aanmaken zetten, zodat een latere handmatige
+      // aanpassing in de admin niet wordt overschreven als je de knop opnieuw draait.
+      const tekst = {
+        name: bron.name,
+        kortNaam: bron.kortNaam,
         trustText: bron.trustText,
         herroepingTitle: bron.herroepingTitle,
         herroepingText: bron.herroepingText,
         followUpEmailSubject: bron.followUpEmailSubject,
         followUpEmailBody: bron.followUpEmailBody,
-        buttonText: "Betaal €37",
-        isLive: true,
-        checkoutLayout: "kaal",
+        buttonText: BUTTON_DEFAULT,
+        quoteText: QUOTE_DEFAULT,
         kaalKop: KOP_DEFAULT,
         kaalSub: SUB_DEFAULT,
         giftEnabled: false,
         b2bEnabled: false,
         addOnEnabled: false,
-        updatedAt: now,
       };
 
       const bestaand = await ctx.db
@@ -71,13 +79,10 @@ export const maakEvenHouvastBetaalpaginas = mutation({
         .withIndex("by_slug", (q) => q.eq("slug", t.nieuw))
         .first();
       if (bestaand) {
-        // Bestaat al: alleen de enrollment-velden verversen, kop-teksten met rust
-        // laten (die kan Ien inmiddels handmatig hebben aangepast).
-        const { kaalKop, kaalSub, ...zonderKop } = velden;
-        await ctx.db.patch(bestaand._id, zonderKop as any);
-        resultaat.push({ type: t.type, slug: t.nieuw, status: "bijgewerkt" });
+        await ctx.db.patch(bestaand._id, enrollment as any);
+        resultaat.push({ type: t.type, slug: t.nieuw, status: "bijgewerkt (enrollment)" });
       } else {
-        await ctx.db.insert("checkoutProducts", { slug: t.nieuw, ...velden, createdAt: now } as any);
+        await ctx.db.insert("checkoutProducts", { slug: t.nieuw, ...tekst, ...enrollment, createdAt: now } as any);
         resultaat.push({ type: t.type, slug: t.nieuw, status: "aangemaakt" });
       }
     }

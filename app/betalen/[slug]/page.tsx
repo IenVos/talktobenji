@@ -739,7 +739,7 @@ export default function BetalenPage() {
         <div className="min-h-screen flex flex-col items-center px-4 py-10" style={{ background: "#fdf9f4" }}>
           <div className="w-full max-w-md">
             <h1 className="text-2xl font-semibold mb-2" style={{ color: "#3d3530", textWrap: "balance" } as React.CSSProperties}>{kop}</h1>
-            {sub && <p className="leading-relaxed mb-6" style={{ color: "#8a8078" }}>{sub}</p>}
+            {sub && <p className="leading-relaxed mb-6" style={{ color: "#8a8078", textWrap: "pretty" } as React.CSSProperties}>{sub}</p>}
             <div className="rounded-2xl p-5 sm:p-6 space-y-5" style={{ background: "white", border: "1px solid #efe7dc", boxShadow: "0 2px 24px rgba(60,48,40,0.08)" }}>
               {gegevensNode}
               {paymentNode}
