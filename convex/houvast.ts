@@ -6,7 +6,7 @@ import { action, internalAction, internalMutation, internalQuery, mutation, quer
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { checkAdmin, logAdminAction } from "./adminAuth";
-import { ehFooter, ehAfmeldUrl } from "./ehMailFooter";
+import { ehFooter, ehAfmeldUrl, appBase } from "./ehMailFooter";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 
@@ -252,14 +252,33 @@ function dataUrlToBlob(dataUrl: string): Blob | null {
 // Brief-mail: zelfde sans-serif look als de overige mails, ondertekend door Benji.
 const BRIEF_FONT = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-function wrapperBrief(inhoud: string, nietAlleenUrl: string, afmeldUrl: string): string {
+function wrapperBrief(inhoud: string, nietAlleenUrl: string, afmeldUrl: string, naschrift: string = ""): string {
   return `
     <div style="font-family: ${BRIEF_FONT}; max-width: 560px; margin: 0 auto;
                 color: #2d3748; background: #fdf9f4; padding: 36px 28px;">
       <p style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#9a9088;margin:0 0 20px 0;">Even Houvast</p>
       ${inhoud}
       <p style="font-size:15px;margin-top:28px;color:#4a5568;">Met warme groet,<br>Benji</p>
+      ${naschrift}
       ${ehFooter(nietAlleenUrl, afmeldUrl)}
+    </div>`;
+}
+
+// Zacht naschrift onder de brief: nodigt uit om dag 1 van Niet Alleen te ervaren.
+// Geen prijs, geen harde knop, wel een account-stijl linkje naar de taster-pagina.
+// voornaam = van de ontvanger (leeg = geen naam, dan geen komma).
+function bouwBriefNaschrift(voornaam: string, proefUrl: string): string {
+  const label = voornaam ? `Nog even dit, ${voornaam}` : "Nog even dit";
+  return `
+    <div style="margin:28px 0 4px;padding:20px 22px;background:#f6efe6;border:1px solid #e4d8c8;border-radius:14px;">
+      <p style="font-size:13px;color:#b0977a;font-style:italic;font-weight:600;margin:0 0 11px;">${label}</p>
+      <p style="font-size:14.5px;line-height:1.8;color:#5a5148;margin:0 0 12px;">Nog één ding, en dan laat ik je met je woorden alleen.</p>
+      <p style="font-size:14.5px;line-height:1.8;color:#5a5148;margin:0 0 12px;">Veel mensen zeggen me hetzelfde na deze brief: het luchtte even op, en daarna werd het weer stil. Dat is precies waarom Niet Alleen bestaat. Dertig dagen lang één kleine vraag, zodat je er niet elke dag in je eentje mee zit.</p>
+      <p style="font-size:14.5px;line-height:1.8;color:#5a5148;margin:0 0 4px;">De vraag van dag 1 kun je nu al lezen. Als die je niets doet, dan weet je meteen dat het niets voor jou is.</p>
+      <div style="margin:14px 0 12px;">
+        <a href="${proefUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:10px 20px;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;">Lees de vraag van dag 1 &rarr;</a>
+      </div>
+      <p style="font-size:14.5px;line-height:1.8;color:#5a5148;margin:0;">En als je het gewoon hierbij wilt laten, ook goed. De brief blijft van jou.</p>
     </div>`;
 }
 
@@ -274,8 +293,9 @@ function bouwBriefHtml(opts: {
   gedichtTekst: string;
   nietAlleenUrl: string;
   afmeldUrl: string;
+  naschrift?: string;
 }): string {
-  const { aanhef, briefHtml, fotoUrls, gedichtTekst, nietAlleenUrl, afmeldUrl } = opts;
+  const { aanhef, briefHtml, fotoUrls, gedichtTekst, nietAlleenUrl, afmeldUrl, naschrift = "" } = opts;
 
   let fotoHtml = "";
   if (fotoUrls.length > 0) {
@@ -338,7 +358,8 @@ function bouwBriefHtml(opts: {
     ${gedichtHtml}
   `,
     nietAlleenUrl,
-    afmeldUrl
+    afmeldUrl,
+    naschrift
   );
 }
 
@@ -533,6 +554,13 @@ export const genereerEnVerstuurBrief = action({
       }
     }
 
+    // Naschrift met een zachte uitnodiging om dag 1 van Niet Alleen te ervaren.
+    const voornaam = (args.naam || "").trim().split(" ")[0] || "";
+    const proefType = args.verliesType || "algemeen";
+    const proefUrl =
+      `${appBase()}/niet-alleen/proef?type=${encodeURIComponent(proefType)}` +
+      (voornaam ? `&n=${encodeURIComponent(voornaam)}` : "");
+
     const html = bouwBriefHtml({
       aanhef,
       briefHtml,
@@ -540,6 +568,7 @@ export const genereerEnVerstuurBrief = action({
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
       afmeldUrl: await ehAfmeldUrl(emailLc, "brief", type),
+      naschrift: bouwBriefNaschrift(voornaam, proefUrl),
     });
 
     await verstuurEmail({
@@ -607,6 +636,12 @@ export const stuurTestBrief = action({
       "https://www.talktobenji.com/images/benji-app-homescreen.png",
     ];
 
+    const voornaam = (args.naam || "").trim().split(" ")[0] || "";
+    const proefType = args.verliesType || "algemeen";
+    const proefUrl =
+      `${appBase()}/niet-alleen/proef?type=${encodeURIComponent(proefType)}` +
+      (voornaam ? `&n=${encodeURIComponent(voornaam)}` : "");
+
     const html = bouwBriefHtml({
       aanhef,
       briefHtml,
@@ -614,6 +649,7 @@ export const stuurTestBrief = action({
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
       afmeldUrl: await ehAfmeldUrl(emailLc, "brief", type),
+      naschrift: bouwBriefNaschrift(voornaam, proefUrl),
     });
 
     await verstuurEmail({
