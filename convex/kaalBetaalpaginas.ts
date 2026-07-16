@@ -79,8 +79,11 @@ export const maakEvenHouvastBetaalpaginas = mutation({
         .withIndex("by_slug", (q) => q.eq("slug", t.nieuw))
         .first();
       if (bestaand) {
-        await ctx.db.patch(bestaand._id, enrollment as any);
-        resultaat.push({ type: t.type, slug: t.nieuw, status: "bijgewerkt (enrollment)" });
+        // Ververs naar de Even Houvast-standaard (incl. knoptekst + quote + kop).
+        // Let op: dit reset de teksten, dus als je ze later in de admin aanpast,
+        // draai de seed dan niet nog eens, of pas ze daarna opnieuw aan.
+        await ctx.db.patch(bestaand._id, { ...tekst, ...enrollment } as any);
+        resultaat.push({ type: t.type, slug: t.nieuw, status: "bijgewerkt" });
       } else {
         await ctx.db.insert("checkoutProducts", { slug: t.nieuw, ...tekst, ...enrollment, createdAt: now } as any);
         resultaat.push({ type: t.type, slug: t.nieuw, status: "aangemaakt" });
