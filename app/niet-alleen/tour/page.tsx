@@ -66,7 +66,7 @@ function TourInner() {
         .shot{ flex:0 1 auto; max-height:88%; display:flex; }
         .shot img{ max-height:100%; max-width:100%; width:auto; height:auto; border-radius:20px; box-shadow:0 16px 50px rgba(50,40,32,.28); display:block; }
         .oefwrap{ position:relative; display:flex; max-height:100%; }
-        .oefcover{ position:absolute; left:49%; top:90%; width:44%; aspect-ratio:1; transform:translate(-50%,-50%); background:radial-gradient(circle,#f0ebe4 60%,rgba(240,235,228,0) 100%); }
+        .oefcover{ position:absolute; left:49%; top:90%; width:42%; aspect-ratio:1; transform:translate(-50%,-50%); background:#efeae4; border-radius:50%; }
         .oefcirkel{ position:absolute; left:49%; top:90%; width:19%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.55); border-radius:50%; background:rgba(109,132,168,.45); box-shadow:0 0 20px 6px rgba(109,132,168,.18); animation:adem 12s ease-in-out infinite; }
         @keyframes adem{ 0%{transform:translate(-50%,-50%) scale(.55);opacity:.65} 45%{transform:translate(-50%,-50%) scale(1);opacity:.9} 55%{transform:translate(-50%,-50%) scale(1);opacity:.9} 100%{transform:translate(-50%,-50%) scale(.55);opacity:.65} }
         .cap{ font-size:16px; line-height:1.45; color:#6b6460; text-align:center; text-wrap:balance; max-width:30ch; }
