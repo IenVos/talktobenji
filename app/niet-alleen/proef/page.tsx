@@ -7,7 +7,7 @@
  * Onward naar de brugpagina: /niet-alleen/waarom.
  */
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getDagInhoud } from "@/convex/nietAlleenContent";
@@ -46,6 +46,11 @@ function ProefInner() {
   const startDag = Number.isFinite(dagParam) && dagParam >= 1 && dagParam <= 30 ? dagParam : 1;
   const [dag, setDag] = useState(startDag);
   const inhoud = getDagInhoud(dag, contentType);
+
+  // Invulbaar om te proeven; niets wordt bewaard (alles in de browser).
+  const [tekst, setTekst] = useState("");
+  const [foto, setFoto] = useState<string | null>(null);
+  const fotoRef = useRef<HTMLInputElement>(null);
 
   const naar = (d: number) => {
     setDag(d);
@@ -108,21 +113,61 @@ function ProefInner() {
           </div>
         )}
 
-        {/* Schrijfveld met microfoon (in de proef nog niet actief) */}
+        {/* Schrijfveld met microfoon — echt invulbaar (niets wordt bewaard) */}
         <div className="relative">
-          <div className="w-full rounded-2xl p-4 text-base leading-relaxed border" style={{ background: "white", borderColor: "#e8e0d8", color: "#b0a8a0", minHeight: 132 }}>
-            Schrijf hier wat er in je opkomt, er is geen goed of fout.
-          </div>
+          <textarea
+            value={tekst}
+            onChange={(e) => setTekst(e.target.value)}
+            placeholder="Schrijf hier wat er in je opkomt, er is geen goed of fout."
+            rows={5}
+            className="w-full rounded-2xl p-4 pb-12 text-base leading-relaxed border resize-none focus:outline-none"
+            style={{ background: "white", borderColor: "#e8e0d8", color: "#3d3530" }}
+          />
           <div className="absolute bottom-3 right-3 p-2.5 rounded-full" style={{ background: "#f0ebe4", color: "#8a8078" }}>
             {MIC}
           </div>
         </div>
 
-        {/* Foto toevoegen */}
+        {/* Foto toevoegen — echt (alleen in de browser, niets wordt bewaard) */}
         <div>
-          <span className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-xl border" style={{ borderColor: "#e8e0d8", color: "#8a8078", background: "white" }}>
-            {IMG} Voeg een foto toe
-          </span>
+          <input
+            ref={fotoRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              const r = new FileReader();
+              r.onload = (ev) => setFoto(ev.target?.result as string);
+              r.readAsDataURL(f);
+            }}
+          />
+          {foto ? (
+            <div className="relative rounded-xl overflow-hidden border" style={{ borderColor: "#e8e0d8" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={foto} alt="" className="w-full object-cover max-h-64" />
+              <button
+                onClick={() => { setFoto(null); if (fotoRef.current) fotoRef.current.value = ""; }}
+                className="absolute top-2 right-2 rounded-full w-7 h-7 text-white text-sm"
+                style={{ background: "rgba(0,0,0,0.45)" }}
+                aria-label="Foto verwijderen"
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => fotoRef.current?.click()}
+              className="inline-flex items-center gap-2 text-sm px-4 py-2 rounded-xl border"
+              style={{ borderColor: "#e8e0d8", color: "#8a8078", background: "white" }}
+            >
+              {IMG} Voeg een foto toe
+            </button>
+          )}
+          <p className="text-xs mt-2" style={{ color: "#b0a8a0" }}>
+            Wat je hier schrijft of toevoegt wordt niet bewaard. Dit is alleen om te proeven.
+          </p>
         </div>
 
         {/* Uitnodiging */}
