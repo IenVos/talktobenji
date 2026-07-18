@@ -63,11 +63,11 @@ function TourInner() {
         .track{ display:flex; height:100%; transition:transform .4s cubic-bezier(.4,0,.2,1); }
         .slide{ min-width:100%; height:100%; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 12px 46px; gap:13px; }
         .slide.lucht{ background:${SKY}; }
-        .shot{ flex:0 1 auto; max-height:88%; display:flex; }
+        .shot{ flex:0 1 auto; max-height:88%; display:flex; justify-content:center; align-items:center; }
         .shot img{ max-height:100%; max-width:100%; width:auto; height:auto; border-radius:20px; box-shadow:0 16px 50px rgba(50,40,32,.28); display:block; }
         .oefwrap{ position:relative; display:flex; max-height:100%; overflow:hidden; }
-        .oefcover{ position:absolute; left:49%; top:86%; width:28%; aspect-ratio:1; transform:translate(-50%,-50%); background:#efeae4; border-radius:50%; }
-        .oefcirkel{ position:absolute; left:49%; top:86%; width:15%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.55); border-radius:50%; background:rgba(109,132,168,.45); box-shadow:0 0 14px 4px rgba(109,132,168,.16); animation:adem 12s ease-in-out infinite; }
+        .oefcover{ position:absolute; left:50%; top:86%; width:28%; aspect-ratio:1; transform:translate(-50%,-50%); background:#efeae4; border-radius:50%; }
+        .oefcirkel{ position:absolute; left:50%; top:86%; width:15%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.55); border-radius:50%; background:rgba(109,132,168,.45); box-shadow:0 0 14px 4px rgba(109,132,168,.16); animation:adem 12s ease-in-out infinite; }
         @keyframes adem{ 0%{transform:translate(-50%,-50%) scale(.55);opacity:.65} 45%{transform:translate(-50%,-50%) scale(1);opacity:.9} 55%{transform:translate(-50%,-50%) scale(1);opacity:.9} 100%{transform:translate(-50%,-50%) scale(.55);opacity:.65} }
         .cap{ font-size:16px; line-height:1.45; color:#6b6460; text-align:center; text-wrap:balance; max-width:30ch; }
         .kaart{ background:#fff; border-radius:26px; padding:40px 30px; box-shadow:0 18px 54px rgba(50,52,60,.20); max-width:340px; display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; }
