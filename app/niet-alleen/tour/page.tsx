@@ -79,11 +79,11 @@ function TourInner() {
         .tour-stage .track{ display:flex; height:100%; transition:transform .4s cubic-bezier(.4,0,.2,1); }
         .tour-stage .slide{ min-width:100%; height:100%; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px 12px 40px; gap:12px; }
         .tour-stage .slide.lucht{ background:${SKY}; }
-        .tour-stage .shot{ flex:0 1 auto; max-height:90%; display:flex; }
+        .tour-stage .shot{ flex:0 1 auto; max-height:90%; display:flex; justify-content:center; align-items:center; }
         .tour-stage .shot img{ max-height:100%; max-width:100%; width:auto; height:auto; border-radius:18px; box-shadow:0 14px 44px rgba(50,40,32,.26); display:block; }
         .tour-stage .oefwrap{ position:relative; display:flex; max-height:100%; overflow:hidden; }
-        .tour-stage .oefcover{ position:absolute; left:49%; top:86%; width:28%; aspect-ratio:1; transform:translate(-50%,-50%); background:#efeae4; border-radius:50%; }
-        .tour-stage .oefcirkel{ position:absolute; left:49%; top:86%; width:15%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.55); border-radius:50%; background:rgba(109,132,168,.45); box-shadow:0 0 14px 4px rgba(109,132,168,.16); animation:tour-adem 12s ease-in-out infinite; }
+        .tour-stage .oefcover{ position:absolute; left:50%; top:86%; width:28%; aspect-ratio:1; transform:translate(-50%,-50%); background:#efeae4; border-radius:50%; }
+        .tour-stage .oefcirkel{ position:absolute; left:50%; top:86%; width:15%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.55); border-radius:50%; background:rgba(109,132,168,.45); box-shadow:0 0 14px 4px rgba(109,132,168,.16); animation:tour-adem 12s ease-in-out infinite; }
         @keyframes tour-adem{ 0%{transform:translate(-50%,-50%) scale(.55);opacity:.65} 45%{transform:translate(-50%,-50%) scale(1);opacity:.9} 55%{transform:translate(-50%,-50%) scale(1);opacity:.9} 100%{transform:translate(-50%,-50%) scale(.55);opacity:.65} }
         .tour-stage .cap{ font-size:16px; line-height:1.45; color:#6b6460; text-align:center; text-wrap:balance; max-width:30ch; padding:0 8px; }
         .tour-stage .kaart{ background:#fff; border-radius:26px; padding:40px 30px; box-shadow:0 18px 54px rgba(50,52,60,.20); max-width:340px; display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; }
