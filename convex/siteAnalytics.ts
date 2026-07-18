@@ -659,12 +659,20 @@ export const getStats = query({
     };
 
     // -- Dagelijkse conversies (userSubscriptions + nietAlleenProfiles) --
-    const [allSubs, excludedEmails, allNAProfiles] = await Promise.all([
+    const [allSubs, excludedEmails, allNAProfiles, giftCodes] = await Promise.all([
       ctx.db.query("userSubscriptions").collect(),
       ctx.db.query("analyticsExcludedEmails").collect(),
       ctx.db.query("nietAlleenProfiles").collect(),
+      ctx.db.query("giftCodes").collect(),
     ]);
     const excludedEmailSet = new Set(excludedEmails.map((e) => e.email.toLowerCase()));
+    // Een verzilverde cadeaubon is geen nieuwe conversie: het profiel van de ontvanger
+    // hoort niet als verkoop te tellen (de omzet zit al bij de aanschaf van de bon).
+    const verzilverdeGiftEmails = new Set(
+      giftCodes
+        .filter((g) => g.status === "redeemed" && g.redeemedByEmail)
+        .map((g) => g.redeemedByEmail!.toLowerCase())
+    );
     const subsInRange = allSubs.filter(
       (s) =>
         s.startedAt >= args.from &&
@@ -676,7 +684,8 @@ export const getStats = query({
       (p) =>
         p.createdAt >= args.from &&
         p.createdAt <= args.to &&
-        !excludedEmailSet.has(p.email.toLowerCase())
+        !excludedEmailSet.has(p.email.toLowerCase()) &&
+        !verzilverdeGiftEmails.has(p.email.toLowerCase())
     );
     // Dedupliceer: emails die al via naInRange geteld worden, niet nogmaals als paid tellen
     const naEmails = new Set(naInRange.map((p) => p.email.toLowerCase()));
@@ -805,6 +814,14 @@ export const getStats = query({
         );
         if (sub) omzet += (sub as any).pricePaid;
       }
+    }
+    // Cadeaubonnen: omzet bij aanschaf (pricePaid > 0), binnen de periode. Verzilveren
+    // telt niet mee (dat profiel is hierboven al uit naInRange gehouden).
+    for (const g of giftCodes) {
+      if ((g.pricePaid ?? 0) <= 0) continue;
+      if (g.createdAt < args.from || g.createdAt > args.to) continue;
+      if (g.giverEmail && excludedEmailSet.has(g.giverEmail.toLowerCase())) continue;
+      omzet += g.pricePaid!;
     }
     omzet = Math.round(omzet * 100) / 100;
 
@@ -1187,21 +1204,33 @@ export const getRevenueOverview = query({
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
 
-    const [products, allSubs, excludedEmails, naProfiles] = await Promise.all([
+    const [products, allSubs, excludedEmails, naProfiles, giftCodes] = await Promise.all([
       ctx.db.query("checkoutProducts").collect(),
       ctx.db.query("userSubscriptions").collect(),
       ctx.db.query("analyticsExcludedEmails").collect(),
       ctx.db.query("nietAlleenProfiles").collect(),
+      ctx.db.query("giftCodes").collect(),
     ]);
 
     const excludedSet = new Set(excludedEmails.map((e) => e.email.toLowerCase()));
+
+    // Een cadeaubon telt als omzet op het moment van AANSCHAF, niet bij verzilveren.
+    // Bij verzilveren wordt voor de ontvanger een Niet Alleen-profiel (en soms een
+    // gift-subscription met pricePaid 0) aangemaakt; dat is geen nieuwe verkoop, het
+    // geld kwam al binnen toen de bon gekocht werd. We sluiten die verzilver-profielen
+    // dus uit en tellen in plaats daarvan de aankoop van de bon zelf.
+    const verzilverdeGiftEmails = new Set(
+      giftCodes
+        .filter((g) => g.status === "redeemed" && g.redeemedByEmail)
+        .map((g) => g.redeemedByEmail!.toLowerCase())
+    );
 
     // Alleen echte Stripe-betalingen (pricePaid > 0), geen handmatig ingestelde
     const echteAankopen = allSubs.filter(
       (s) => (s.pricePaid ?? 0) > 0 && (!s.email || !excludedSet.has(s.email.toLowerCase()))
     );
     const echteNA = naProfiles.filter(
-      (p) => !excludedSet.has(p.email.toLowerCase())
+      (p) => !excludedSet.has(p.email.toLowerCase()) && !verzilverdeGiftEmails.has(p.email.toLowerCase())
     );
 
     // Bouw per product een lookup: subscriptionType → { prijs, verkopen[] }
@@ -1241,6 +1270,15 @@ export const getRevenueOverview = query({
           });
         }
       }
+    }
+
+    // Cadeaubonnen tellen op moment van aanschaf (pricePaid > 0 = echte betaling;
+    // handmatig aangemaakte toegangs-/testcodes hebben pricePaid 0). Zo verschijnt de
+    // omzet bij aankoop en niet nogmaals bij verzilveren.
+    for (const g of giftCodes) {
+      if ((g.pricePaid ?? 0) <= 0) continue;
+      if (g.giverEmail && excludedSet.has(g.giverEmail.toLowerCase())) continue;
+      alleVerkopen.push({ timestamp: g.createdAt, prijs: g.pricePaid!, productSlug: g.slug });
     }
 
     // Maand-aggregatie: vast startpunt maart 2026 t/m huidige maand
