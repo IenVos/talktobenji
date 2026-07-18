@@ -58,6 +58,7 @@ function TourInner() {
     (email ? `&e=${encodeURIComponent(email)}` : "");
 
   return (
+    <div className="tour-backdrop">
     <div
       className="tour-stage"
       onTouchStart={(e) => (x0.current = e.touches[0].clientX)}
@@ -70,18 +71,19 @@ function TourInner() {
       }}
     >
       <style>{`
-        .tour-stage{ position:fixed; inset:0; z-index:1000; width:100vw; height:100dvh; overflow:hidden; overscroll-behavior:none;
-          touch-action:none; background:#e7ded1; font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-          color:#3d3530; user-select:none; }
+        .tour-backdrop{ position:fixed; inset:0; z-index:1000; display:flex; justify-content:center; overflow:hidden; overscroll-behavior:none; background:#cfc7b8; }
+        .tour-stage{ position:relative; width:100%; max-width:440px; height:100dvh; overflow:hidden; touch-action:none;
+          background:#e7ded1; box-shadow:0 0 50px rgba(60,54,44,.28);
+          font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#3d3530; user-select:none; }
         .tour-stage .dots{ position:absolute; top:14px; left:16px; right:16px; z-index:6; display:flex; gap:6px; }
         .tour-stage .dots i{ flex:1; height:3px; border-radius:3px; background:rgba(70,60,50,.22); }
         .tour-stage .dots i.on{ background:rgba(60,50,40,.8); }
         .tour-stage .track{ display:flex; height:100%; transition:transform .4s cubic-bezier(.4,0,.2,1); }
         .tour-stage .slide{ min-width:100%; height:100%; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px 12px 40px; gap:12px; }
         .tour-stage .slide.lucht{ background:${SKY}; }
-        .tour-stage .shot{ flex:0 1 auto; max-height:90%; display:flex; justify-content:center; align-items:center; }
-        .tour-stage .shot img{ max-height:100%; max-width:100%; width:auto; height:auto; border-radius:18px; box-shadow:0 14px 44px rgba(50,40,32,.26); display:block; }
-        .tour-stage .oefwrap{ position:relative; display:flex; max-height:100%; overflow:hidden; }
+        .tour-stage .shot{ flex:0 1 auto; width:min(92vw,400px); max-height:88%; overflow:hidden; border-radius:18px; box-shadow:0 14px 44px rgba(50,40,32,.26); }
+        .tour-stage .shot img{ width:100%; height:auto; display:block; }
+        .tour-stage .oefwrap{ position:relative; width:100%; }
         .tour-stage .oefcover{ position:absolute; left:50%; top:86%; width:28%; aspect-ratio:1; transform:translate(-50%,-50%); background:#efeae4; border-radius:50%; }
         .tour-stage .oefcirkel{ position:absolute; left:50%; top:86%; width:15%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.55); border-radius:50%; background:rgba(109,132,168,.45); box-shadow:0 0 14px 4px rgba(109,132,168,.16); animation:tour-adem 12s ease-in-out infinite; }
         @keyframes tour-adem{ 0%{transform:translate(-50%,-50%) scale(.55);opacity:.65} 45%{transform:translate(-50%,-50%) scale(1);opacity:.9} 55%{transform:translate(-50%,-50%) scale(1);opacity:.9} 100%{transform:translate(-50%,-50%) scale(.55);opacity:.65} }
@@ -153,6 +155,7 @@ function TourInner() {
       )}
       <button className="pijl p" onClick={() => toon(i - 1)} disabled={i === 0} aria-label="Vorige">‹</button>
       <button className="pijl n" onClick={() => toon(i + 1)} disabled={i === totaal - 1} aria-label="Volgende">›</button>
+    </div>
     </div>
   );
 }
