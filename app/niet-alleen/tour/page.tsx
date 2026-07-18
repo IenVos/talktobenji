@@ -144,8 +144,13 @@ function TourInner() {
         </div>
       </div>
 
-      <div className="zone l" onClick={() => toon(i - 1)} />
-      <div className="zone r" onClick={() => toon(i + 1)} />
+      {/* Tik-zones uit op het slotscherm, anders liggen ze over de "meer lezen"-link */}
+      {i < totaal - 1 && (
+        <>
+          <div className="zone l" onClick={() => toon(i - 1)} />
+          <div className="zone r" onClick={() => toon(i + 1)} />
+        </>
+      )}
       <button className="pijl p" onClick={() => toon(i - 1)} disabled={i === 0} aria-label="Vorige">‹</button>
       <button className="pijl n" onClick={() => toon(i + 1)} disabled={i === totaal - 1} aria-label="Volgende">›</button>
     </div>
