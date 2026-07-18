@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import Image from "next/image";
 import { HeaderBar } from "@/components/chat/HeaderBar";
-import { mergeHouvast, resolveHouvast, alineas, naarLpUrl, type HouvastContent } from "@/lib/houvastContent";
+import { mergeHouvast, resolveHouvast, alineas, type HouvastContent } from "@/lib/houvastContent";
 import { bepaalBron } from "@/lib/leadBron";
 
 // Warme labels voor de type-keuze; valt terug op de naam uit de verliestypen-tabel.
@@ -264,11 +264,13 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
   const topRowIds = ALLE_STAPPEN.filter((id) => id === "kies" || id === "welkom");
   const momentRowIds = MOMENTEN.map((m) => m.id);
 
-  const nietAlleenUrl = naarLpUrl(
-    (actiefType && content.nietAlleenLinks[actiefType]) ||
-      content.nietAlleenLinks.persoon ||
-      "/lp/je-hoeft-het-niet-alleen-te-doen"
-  );
+  // "En nu?" leidt naar de kennismaking-tour (rustige swipe langs Niet Alleen),
+  // met verliestype, naam en e-mail mee (voorgevuld t/m de brugpagina). Geen
+  // verkoop direct na Even Houvast; de tour eindigt zacht.
+  const nietAlleenUrl =
+    `/niet-alleen/tour?type=${encodeURIComponent(actiefType || "algemeen")}` +
+    (naam.trim() ? `&n=${encodeURIComponent(naam.trim())}` : "") +
+    (email.trim() ? `&e=${encodeURIComponent(email.trim())}` : "");
 
   // ─── Token aanwezig maar nog aan het laden ───────────────────────────────────
   if (heeftToken && profiel === undefined) {
