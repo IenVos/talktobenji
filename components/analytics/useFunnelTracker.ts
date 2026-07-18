@@ -36,7 +36,7 @@ function leesBron(): string | undefined {
   }
 }
 
-export function useFunnelTracker(category: "lp" | "checkout", path: string) {
+export function useFunnelTracker(category: "lp" | "checkout" | "tour" | "taster" | "brug", path: string) {
   const trackFunnelStep = useMutation(api.siteAnalytics.trackFunnelStep);
 
   const sessionIdRef = useRef<string | null>(null);

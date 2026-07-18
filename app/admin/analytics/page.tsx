@@ -5,6 +5,8 @@ import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import {
   BarChart3,
+  Mail,
+  Images,
   Users,
   Eye,
   TrendingUp,
@@ -561,6 +563,7 @@ export default function AdminAnalytics() {
   const verliesTypeStats = useAdminQuery(api.siteAnalytics.getVerliesTypeStats, { from, to });
   const featureStats = useAdminQuery(api.siteAnalytics.getFeatureStats, { from, to });
   const funnelStats = useAdminQuery(api.siteAnalytics.getFunnelStats, { from, to });
+  const ehStats = useAdminQuery(api.siteAnalytics.getEhFunnelStats, { from, to });
   const adsStats = useAdminQuery(api.evenHouvastOpvolg.advertentieOverzicht, { from, to });
   const allGoals = useAdminQuery(api.siteAnalytics.listGoalsWithOwner, {});
   const liveVisitors = useAdminQuery(api.siteAnalytics.getLiveVisitors, {});
@@ -599,13 +602,13 @@ export default function AdminAnalytics() {
       return next;
     });
 
-  // Welke tab actief is (Overzicht / Funnel / Advertenties), bewaard tussen bezoeken.
-  const [tab, setTab] = useState<"overzicht" | "funnel" | "ads">("overzicht");
+  // Welke tab actief is (Overzicht / Funnel / Advertenties / Even Houvast), bewaard tussen bezoeken.
+  const [tab, setTab] = useState<"overzicht" | "funnel" | "ads" | "eh">("overzicht");
   useEffect(() => {
     const s = localStorage.getItem("ttb_analytics_tab");
-    if (s === "funnel" || s === "overzicht" || s === "ads") setTab(s);
+    if (s === "funnel" || s === "overzicht" || s === "ads" || s === "eh") setTab(s);
   }, []);
-  const kiesTab = (t: "overzicht" | "funnel" | "ads") => {
+  const kiesTab = (t: "overzicht" | "funnel" | "ads" | "eh") => {
     setTab(t);
     try { localStorage.setItem("ttb_analytics_tab", t); } catch {}
   };
@@ -803,7 +806,7 @@ export default function AdminAnalytics() {
 
       {/* Tabs: Overzicht vs Funnel & pagina's */}
       <div className="flex items-center gap-1 border-b border-primary-200">
-        {([["overzicht", "Overzicht"], ["funnel", "Funnel & pagina's"], ["ads", "Advertenties"]] as const).map(([key, label]) => (
+        {([["overzicht", "Overzicht"], ["funnel", "Funnel & pagina's"], ["ads", "Advertenties"], ["eh", "Even Houvast"]] as const).map(([key, label]) => (
           <button
             key={key}
             onClick={() => kiesTab(key)}
@@ -1438,11 +1441,11 @@ export default function AdminAnalytics() {
                   <ShoppingCart size={14} className="text-primary-500" /> Checkout
                 </h3>
                 <p className="text-xs text-primary-500 mb-4">Stap voor stap naar de betaling. Het percentage is t.o.v. iedereen die de checkout bereikte.</p>
-                {funnelStats.checkout.length === 0 ? (
+                {funnelStats.checkout.filter((c: { slug: string }) => !c.slug.startsWith("even-houvast")).length === 0 ? (
                   <p className="text-sm text-primary-400 py-2">Nog geen checkout-bezoeken in deze periode.</p>
                 ) : (
                   <div className="space-y-6">
-                    {funnelStats.checkout.map((c: {
+                    {funnelStats.checkout.filter((c: { slug: string }) => !c.slug.startsWith("even-houvast")).map((c: {
                       slug: string; reached: number; details: number; termsClick: number; payClick: number; purchased: number;
                       warm?: { reached: number; details: number; payClick: number; purchased: number };
                       koud?: { reached: number; details: number; payClick: number; purchased: number };
@@ -1653,6 +1656,156 @@ export default function AdminAnalytics() {
         )}
       </div>
 
+      </>)}
+
+      {tab === "eh" && (<>
+        {!ehStats ? (
+          <div className="bg-white rounded-xl border border-primary-200 px-6 py-8 text-sm text-primary-400">Laden…</div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-xs text-primary-500 px-1 leading-relaxed">
+              De warme Even Houvast-reis: vanuit de brief of een opvolgmail naar de kennismaking-carrousel, de brugpagina en de betaalpagina.
+              &quot;Uit de mail&quot; = bezoekers die met herkomst <code className="text-primary-500">eh-mail</code> binnenkwamen. Eigen IP&apos;s zijn uitgesloten, elke bezoeker telt één keer per stap.
+            </p>
+
+            {/* Vanuit de mail aangeklikt */}
+            <div className="bg-white rounded-xl border border-primary-200 px-6 py-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Mail size={16} className="text-primary-500" />
+                <span className="text-base font-semibold text-primary-900">Vanuit de mail aangeklikt</span>
+                <span className="text-xs text-primary-400 font-normal">geselecteerde periode</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: "Taster geopend", value: ehStats.taster.reachedFromMail, sub: `van ${ehStats.taster.reached} totaal` },
+                  { label: "Via de brief (dag 1)", value: ehStats.taster.dag1, sub: "vraag 1 aangeklikt" },
+                  { label: "Via mail 3 (dag 13)", value: ehStats.taster.dag13, sub: "" },
+                  { label: "Checkout uit mail", value: ehStats.ehCheckout.reduce((s: number, c: { reachedFromMail: number }) => s + c.reachedFromMail, 0), sub: "" },
+                ].map((k) => (
+                  <div key={k.label} className="rounded-lg border border-primary-100 bg-primary-50/40 px-3 py-3">
+                    <div className="text-2xl font-bold text-primary-900 tabular-nums">{k.value}</div>
+                    <div className="text-xs font-medium text-primary-700 mt-0.5">{k.label}</div>
+                    {k.sub && <div className="text-[11px] text-primary-400">{k.sub}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Carrousel (kennismaking-tour) */}
+            <div className="bg-white rounded-xl border border-primary-200 px-6 py-5">
+              <div className="flex items-center gap-2 mb-1">
+                <Images size={16} className="text-primary-500" />
+                <span className="text-base font-semibold text-primary-900">Carrousel</span>
+                <span className="text-xs text-primary-400 font-normal">tot welk scherm mensen komen</span>
+              </div>
+              <p className="text-xs text-primary-500 mb-4">Percentage t.o.v. iedereen die de carrousel opende (scherm 1).</p>
+              {(() => {
+                const stappen: { i: number; count: number }[] = ehStats.tour.stappen;
+                const base = stappen[0]?.count || 0;
+                const labels = ["Openingsscherm", "Ochtendmail", "Je eigen plek", "Elke dag een vraag", "Ademoefening", "Herinneringen", "Dagboek (eind)", "Slotscherm"];
+                if (base === 0) return <p className="text-sm text-primary-400 py-2">Nog geen carrousel-bezoeken in deze periode.</p>;
+                return (
+                  <div className="space-y-1.5">
+                    {stappen.map((s, idx) => {
+                      const prev = idx > 0 ? stappen[idx - 1].count : null;
+                      const dropped = prev != null && prev > 0 ? prev - s.count : 0;
+                      const dropPct = prev != null && prev > 0 ? Math.round((dropped / prev) * 100) : 0;
+                      return (
+                        <div key={s.i} className="flex items-center gap-3">
+                          <div className="w-40 flex-shrink-0 text-xs text-primary-700 truncate">{idx + 1}. {labels[s.i] ?? `Scherm ${s.i}`}</div>
+                          <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
+                            <div className={`h-full rounded-full transition-all ${idx === stappen.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((s.count / base) * 100)}%` }} />
+                          </div>
+                          <div className="w-24 flex-shrink-0 text-right text-xs">
+                            <span className="font-semibold text-primary-900 tabular-nums">{s.count}</span>
+                            <span className="text-primary-400"> · {Math.round((s.count / base) * 100)}%</span>
+                          </div>
+                          <div className="w-20 flex-shrink-0 text-right text-[11px]">
+                            {dropped > 0 ? <span className="text-red-500">−{dropped} ({dropPct}%)</span> : <span className="text-primary-300">–</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+              <div className="mt-3 pt-3 border-t border-primary-100 text-[11px] text-primary-500">
+                Doorgeklikt naar de brugpagina: <span className="font-semibold text-primary-700 tabular-nums">{ehStats.tour.brugClick}×</span>
+              </div>
+            </div>
+
+            {/* Brugpagina */}
+            <div className="bg-white rounded-xl border border-primary-200 px-6 py-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Leaf size={16} className="text-primary-500" />
+                <span className="text-base font-semibold text-primary-900">Brugpagina</span>
+                <span className="text-xs text-primary-400 font-normal">/niet-alleen/waarom</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  { label: "Bereikt", value: ehStats.brug.reached, sub: `${ehStats.brug.reachedFromMail} uit de mail` },
+                  { label: "Naar checkout geklikt", value: ehStats.brug.checkoutClick, sub: ehStats.brug.reached > 0 ? `${Math.round((ehStats.brug.checkoutClick / ehStats.brug.reached) * 100)}%` : "" },
+                ].map((k) => (
+                  <div key={k.label} className="rounded-lg border border-primary-100 bg-primary-50/40 px-3 py-3">
+                    <div className="text-2xl font-bold text-primary-900 tabular-nums">{k.value}</div>
+                    <div className="text-xs font-medium text-primary-700 mt-0.5">{k.label}</div>
+                    {k.sub && <div className="text-[11px] text-primary-400">{k.sub}</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* EH-checkout */}
+            <div className="bg-white rounded-xl border border-primary-200 px-6 py-5">
+              <div className="flex items-center gap-2 mb-4">
+                <ShoppingCart size={16} className="text-primary-500" />
+                <span className="text-base font-semibold text-primary-900">Even Houvast betaalpagina&apos;s</span>
+              </div>
+              {ehStats.ehCheckout.length === 0 ? (
+                <p className="text-sm text-primary-400 py-2">Nog geen betaalpagina-bezoeken in deze periode.</p>
+              ) : (
+                <div className="space-y-6">
+                  {ehStats.ehCheckout.map((c: { slug: string; reached: number; details: number; payClick: number; purchased: number; reachedFromMail: number }) => {
+                    const base = c.reached || 1;
+                    const steps = [
+                      { label: "Checkout bereikt", value: c.reached },
+                      { label: "Gegevens ingevuld", value: c.details },
+                      { label: "Op betalen geklikt", value: c.payClick },
+                      { label: "Betaald", value: c.purchased },
+                    ];
+                    return (
+                      <div key={c.slug}>
+                        <div className="text-xs font-medium text-primary-700 mb-2 truncate">{c.slug} <span className="text-primary-400 font-normal">· {c.reachedFromMail} uit de mail</span></div>
+                        <div className="space-y-1.5">
+                          {steps.map((s, i) => {
+                            const prev = i > 0 ? steps[i - 1].value : null;
+                            const dropped = prev != null && prev > 0 ? prev - s.value : 0;
+                            const dropPct = prev != null && prev > 0 ? Math.round((dropped / prev) * 100) : 0;
+                            return (
+                              <div key={s.label} className="flex items-center gap-3">
+                                <div className="w-36 flex-shrink-0 text-xs text-primary-700">{s.label}</div>
+                                <div className="flex-1 bg-primary-50 rounded-full h-5 overflow-hidden">
+                                  <div className={`h-full rounded-full transition-all ${i === steps.length - 1 ? "bg-green-500" : "bg-primary-500"}`} style={{ width: `${Math.round((s.value / base) * 100)}%` }} />
+                                </div>
+                                <div className="w-24 flex-shrink-0 text-right text-xs">
+                                  <span className="font-semibold text-primary-900 tabular-nums">{s.value}</span>
+                                  <span className="text-primary-400"> · {Math.round((s.value / base) * 100)}%</span>
+                                </div>
+                                <div className="w-20 flex-shrink-0 text-right text-[11px]">
+                                  {dropped > 0 ? <span className="text-red-500">−{dropped} ({dropPct}%)</span> : <span className="text-primary-300">–</span>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </>)}
 
       {tab === "overzicht" && (<>

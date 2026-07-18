@@ -7,10 +7,11 @@
  * /niet-alleen/waarom?type=huisdier&n=Anna → knop naar de bestaande checkout.
  */
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { normVerlies, checkoutPad, type Verliestype } from "@/lib/nietAlleenTypes";
+import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
 
 // Per type: het label in de eyebrow, de titel die de pijn benoemt, en de eerste
 // (type-specifieke) waarde-regel. De rest is gedeeld. Later admin-bewerkbaar.
@@ -65,6 +66,12 @@ function WaaromInner() {
   const voornaam = naam.split(" ")[0];
   const c = BRUG[type];
 
+  // Meet de brugpagina: "reached" (met herkomst) en de klik door naar de checkout.
+  const fireFunnel = useFunnelTracker("brug", "/niet-alleen/waarom");
+  useEffect(() => {
+    fireFunnel("reached");
+  }, [fireFunnel]);
+
   const titel = voornaam ? `${voornaam}, ${c.titel}` : hoofdletter(c.titel);
 
   const waarde = [
@@ -117,6 +124,7 @@ function WaaromInner() {
               const s = qs.toString();
               return `${checkoutPad(type)}${s ? `?${s}` : ""}`;
             })()}
+            onClick={() => fireFunnel("checkout_click")}
             className="inline-block font-semibold text-white px-8 py-3.5 rounded-xl"
             style={{ background: "#6d84a8", fontSize: 15 }}
           >

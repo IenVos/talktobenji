@@ -437,6 +437,108 @@ export const getFunnelStats = query({
   },
 });
 
+/**
+ * De warme Even Houvast-reis, los van het koude verkeer: brief/mail -> carrousel
+ * (tour) -> brugpagina -> EH-checkout. Telt unieke sessies per stap, en laat per
+ * pagina zien hoeveel bezoekers uit een mail kwamen (bron begint met "eh").
+ */
+export const getEhFunnelStats = query({
+  args: {
+    adminToken: v.string(),
+    from: v.number(),
+    to: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const [rawEvents, excludedIps] = await Promise.all([
+      ctx.db
+        .query("funnelEvents")
+        .withIndex("by_timestamp", (q) =>
+          q.gte("timestamp", args.from).lte("timestamp", args.to)
+        )
+        .collect(),
+      ctx.db.query("analyticsExcludedIps").collect(),
+    ]);
+    const excludedSet = new Set(excludedIps.map((e) => e.ip));
+    const events = rawEvents.filter((e) => !e.ip || !excludedSet.has(e.ip));
+
+    // Unieke sessies per (category|path|step), plus de sessies die uit een mail
+    // kwamen (bron begint met "eh"): dat is het warme verkeer.
+    const sessionsByKey: Record<string, Set<string>> = {};
+    const mailSessies = new Set<string>();
+    for (const e of events) {
+      const key = `${e.category}|${e.path}|${e.step}`;
+      (sessionsByKey[key] ??= new Set()).add(e.sessionId);
+      if (e.bron && e.bron.startsWith("eh")) mailSessies.add(e.sessionId);
+    }
+    const setOf = (category: string, path: string, step: string) =>
+      sessionsByKey[`${category}|${path}|${step}`] ?? new Set<string>();
+    const count = (category: string, path: string, step: string) =>
+      setOf(category, path, step).size;
+    // Hoeveel van de sessies die deze stap haalden, kwamen uit een mail.
+    const uitMail = (category: string, path: string, step: string) => {
+      let n = 0;
+      for (const s of setOf(category, path, step)) if (mailSessies.has(s)) n++;
+      return n;
+    };
+
+    // Carrousel: verzamel alle "stap_<n>"-schermen en tel per scherm.
+    const tourPath = "/niet-alleen/tour";
+    const tourPrefix = `tour|${tourPath}|stap_`;
+    let maxStap = 0;
+    for (const key of Object.keys(sessionsByKey)) {
+      if (!key.startsWith(tourPrefix)) continue;
+      const n = parseInt(key.slice(tourPrefix.length), 10);
+      if (Number.isFinite(n)) maxStap = Math.max(maxStap, n);
+    }
+    const tourStappen = Array.from({ length: maxStap + 1 }, (_, i) => ({
+      i,
+      count: count("tour", tourPath, `stap_${i}`),
+    }));
+
+    // EH-checkout: alleen de even-houvast-betaalpagina's.
+    const proefPath = "/niet-alleen/proef";
+    const brugPath = "/niet-alleen/waarom";
+    const checkoutSlugs = new Set<string>();
+    for (const e of events) {
+      if (e.category === "checkout" && e.path.startsWith("even-houvast")) checkoutSlugs.add(e.path);
+    }
+    const ehCheckout = [...checkoutSlugs]
+      .map((slug) => ({
+        slug,
+        reached: count("checkout", slug, "reached"),
+        details: count("checkout", slug, "details"),
+        payClick: count("checkout", slug, "pay_click"),
+        purchased: count("checkout", slug, "purchased"),
+        reachedFromMail: uitMail("checkout", slug, "reached"),
+      }))
+      .sort((a, b) => b.reached - a.reached);
+
+    return {
+      taster: {
+        reached: count("taster", proefPath, "reached"),
+        reachedFromMail: uitMail("taster", proefPath, "reached"),
+        dag1: count("taster", proefPath, "dag_1"),
+        dag12: count("taster", proefPath, "dag_12"),
+        dag13: count("taster", proefPath, "dag_13"),
+        brugClick: count("taster", proefPath, "brug_click"),
+      },
+      tour: {
+        stappen: tourStappen,
+        slot: count("tour", tourPath, "slot"),
+        brugClick: count("tour", tourPath, "brug_click"),
+      },
+      brug: {
+        reached: count("brug", brugPath, "reached"),
+        reachedFromMail: uitMail("brug", brugPath, "reached"),
+        checkoutClick: count("brug", brugPath, "checkout_click"),
+      },
+      ehCheckout,
+    };
+  },
+});
+
 /** Haal statistieken op voor het opgegeven tijdsbereik (admin only). */
 export const getStats = query({
   args: {

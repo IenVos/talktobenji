@@ -7,11 +7,12 @@
  * Onward naar de brugpagina: /niet-alleen/waarom.
  */
 
-import { Suspense, useState, useRef } from "react";
+import { Suspense, useState, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getDagInhoud } from "@/convex/nietAlleenContent";
 import { normVerlies, contentTypeVoor } from "@/lib/nietAlleenTypes";
+import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
 
 // De ademoefening van dag 12 (zelfde tekst als in het echte programma).
 const OEFENING_DAG12 =
@@ -51,6 +52,14 @@ function ProefInner() {
   const [tekst, setTekst] = useState("");
   const [foto, setFoto] = useState<string | null>(null);
   const fotoRef = useRef<HTMLInputElement>(null);
+
+  // Meet de taster: "reached" (met herkomst, bv. eh-mail uit de brief/opvolgmail)
+  // plus welke dag geopend werd. De brug-klik telt de doorstroom naar de brugpagina.
+  const fireFunnel = useFunnelTracker("taster", "/niet-alleen/proef");
+  useEffect(() => {
+    fireFunnel("reached");
+    fireFunnel(`dag_${startDag}`);
+  }, [startDag, fireFunnel]);
 
   const naar = (d: number) => {
     setDag(d);
@@ -195,6 +204,7 @@ function ProefInner() {
               </p>
               <Link
                 href={brugUrl}
+                onClick={() => fireFunnel("brug_click")}
                 className="inline-block text-sm font-semibold px-5 py-3 rounded-xl"
                 style={{ background: "#fdf9f4", color: "#9a8168", border: "1.5px solid #9a8168" }}
               >

@@ -8,10 +8,11 @@
  * Zacht slot linkt naar de brugpagina, met naam en e-mail mee.
  */
 
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { normVerlies } from "@/lib/nietAlleenTypes";
+import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
 
 const B = "/images/na-tour";
 const SLIDES: { img: string; cap: string; oef?: boolean }[] = [
@@ -36,6 +37,14 @@ function TourInner() {
   const [i, setI] = useState(0);
   const x0 = useRef<number | null>(null);
   const toon = (n: number) => setI(Math.max(0, Math.min(totaal - 1, n)));
+
+  // Meet hoe ver iemand door de carrousel komt: elk bereikt scherm vuurt "stap_<i>"
+  // (ontdubbeld per sessie), zodat de EH-analytics de afhaak per scherm laat zien.
+  const fireFunnel = useFunnelTracker("tour", "/niet-alleen/tour");
+  useEffect(() => {
+    fireFunnel(`stap_${i}`);
+    if (i === totaal - 1) fireFunnel("slot");
+  }, [i, totaal, fireFunnel]);
 
   const brugUrl =
     `/niet-alleen/waarom?type=${type}` +
@@ -119,7 +128,7 @@ function TourInner() {
           <div className="kaart">
             <p className="titel">Dit is Niet Alleen.</p>
             <p className="sub">Er is geen haast. Je brief komt zo in je mailbox, en Niet Alleen is er wanneer jij er klaar voor bent.</p>
-            <Link className="zacht" href={brugUrl}>Rustig meer lezen →</Link>
+            <Link className="zacht" href={brugUrl} onClick={() => fireFunnel("brug_click")}>Rustig meer lezen →</Link>
           </div>
         </div>
       </div>

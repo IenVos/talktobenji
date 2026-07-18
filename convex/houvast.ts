@@ -563,7 +563,10 @@ export const genereerEnVerstuurBrief = action({
     const proefUrl =
       `${appBase()}/niet-alleen/proef?type=${encodeURIComponent(proefType)}` +
       (naamVol ? `&n=${encodeURIComponent(naamVol)}` : "") +
-      `&e=${encodeURIComponent(emailLc)}`;
+      `&e=${encodeURIComponent(emailLc)}` +
+      // Herkomst: uit de brief (mail 0). Zo tellen brief-klikken mee als "vanuit
+      // de mail" in de Even Houvast-analytics, gescheiden van koud verkeer.
+      `&bron=eh-mail&ehmail=0`;
 
     const html = bouwBriefHtml({
       aanhef,
@@ -648,7 +651,10 @@ export const stuurTestBrief = action({
     const proefUrl =
       `${appBase()}/niet-alleen/proef?type=${encodeURIComponent(proefType)}` +
       (naamVol ? `&n=${encodeURIComponent(naamVol)}` : "") +
-      `&e=${encodeURIComponent(emailLc)}`;
+      `&e=${encodeURIComponent(emailLc)}` +
+      // Herkomst: uit de brief (mail 0). Zo tellen brief-klikken mee als "vanuit
+      // de mail" in de Even Houvast-analytics, gescheiden van koud verkeer.
+      `&bron=eh-mail&ehmail=0`;
 
     const html = bouwBriefHtml({
       aanhef,
