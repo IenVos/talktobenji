@@ -2,13 +2,13 @@
 
 /**
  * Kennismaking-tour met Niet Alleen, direct na Even Houvast ("En nu?"). Een rustige
- * fullscreen swipe langs de echte schermen, geen verkoop. Begin/slot op lucht-
+ * swipe langs de echte schermen, geen verkoop. Begin- en slotscherm op een lucht-
  * achtergrond (naadloos na "En nu?"). Op het ademoefening-scherm beweegt de cirkel.
  * Bereikbaar via de "En nu?"-knop: /niet-alleen/tour?type=huisdier&n=Anna&e=..
  * Zacht slot linkt naar de brugpagina, met naam en e-mail mee.
  */
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { normVerlies } from "@/lib/nietAlleenTypes";
@@ -37,30 +37,14 @@ function TourInner() {
   const x0 = useRef<number | null>(null);
   const toon = (n: number) => setI(Math.max(0, Math.min(totaal - 1, n)));
 
-  // Fullscreen-overname: geen paginascroll of overscroll (voorkomt de "blauwe pagina").
-  useEffect(() => {
-    const b = document.body.style;
-    const h = document.documentElement.style;
-    const prev = { bo: b.overflow, ho: h.overflow, ov: (h as any).overscrollBehavior };
-    b.overflow = "hidden";
-    h.overflow = "hidden";
-    (h as any).overscrollBehavior = "none";
-    return () => {
-      b.overflow = prev.bo;
-      h.overflow = prev.ho;
-      (h as any).overscrollBehavior = prev.ov;
-    };
-  }, []);
-
   const brugUrl =
     `/niet-alleen/waarom?type=${type}` +
     (naam ? `&n=${encodeURIComponent(naam)}` : "") +
     (email ? `&e=${encodeURIComponent(email)}` : "");
 
   return (
-    <div className="tour-backdrop">
     <div
-      className="tour-stage"
+      className="stage"
       onTouchStart={(e) => (x0.current = e.touches[0].clientX)}
       onTouchEnd={(e) => {
         if (x0.current === null) return;
@@ -71,32 +55,30 @@ function TourInner() {
       }}
     >
       <style>{`
-        .tour-backdrop{ position:fixed; inset:0; z-index:1000; display:flex; justify-content:center; overflow:hidden; overscroll-behavior:none; background:#cfc7b8; }
-        .tour-stage{ position:relative; width:100%; max-width:440px; height:100dvh; overflow:hidden; touch-action:none;
-          background:#e7ded1; box-shadow:0 0 50px rgba(60,54,44,.28);
-          font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#3d3530; user-select:none; }
-        .tour-stage .dots{ position:absolute; top:14px; left:16px; right:16px; z-index:6; display:flex; gap:6px; }
-        .tour-stage .dots i{ flex:1; height:3px; border-radius:3px; background:rgba(70,60,50,.22); }
-        .tour-stage .dots i.on{ background:rgba(60,50,40,.8); }
-        .tour-stage .track{ display:flex; height:100%; transition:transform .4s cubic-bezier(.4,0,.2,1); }
-        .tour-stage .slide{ min-width:100%; height:100%; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px 12px 40px; gap:12px; }
-        .tour-stage .slide.lucht{ background:${SKY}; }
-        .tour-stage .shot{ flex:0 1 auto; width:min(92vw,400px); max-height:88%; overflow:hidden; border-radius:18px; box-shadow:0 14px 44px rgba(50,40,32,.26); }
-        .tour-stage .shot img{ width:100%; height:auto; display:block; }
-        .tour-stage .oefwrap{ position:relative; width:100%; }
-        .tour-stage .oefcover{ position:absolute; left:50%; top:86%; width:28%; aspect-ratio:1; transform:translate(-50%,-50%); background:#efeae4; border-radius:50%; }
-        .tour-stage .oefcirkel{ position:absolute; left:50%; top:86%; width:15%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.55); border-radius:50%; background:rgba(109,132,168,.45); box-shadow:0 0 14px 4px rgba(109,132,168,.16); animation:tour-adem 12s ease-in-out infinite; }
-        @keyframes tour-adem{ 0%{transform:translate(-50%,-50%) scale(.55);opacity:.65} 45%{transform:translate(-50%,-50%) scale(1);opacity:.9} 55%{transform:translate(-50%,-50%) scale(1);opacity:.9} 100%{transform:translate(-50%,-50%) scale(.55);opacity:.65} }
-        .tour-stage .cap{ font-size:16px; line-height:1.45; color:#6b6460; text-align:center; text-wrap:balance; max-width:30ch; padding:0 8px; }
-        .tour-stage .kaart{ background:#fff; border-radius:26px; padding:40px 30px; box-shadow:0 18px 54px rgba(50,52,60,.20); max-width:340px; display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; }
-        .tour-stage .titel{ font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif; font-size:27px; line-height:1.2; color:#3d3530; }
-        .tour-stage .sub{ font-size:16px; line-height:1.55; color:#6b6460; text-wrap:pretty; max-width:26ch; }
-        .tour-stage .zacht{ margin-top:22px; display:inline-block; color:#9a8168; font-weight:600; font-size:15px; text-decoration:none; border-bottom:1.5px solid rgba(154,129,104,.4); padding-bottom:2px; }
-        .tour-stage .zone{ position:absolute; top:40px; bottom:60px; z-index:4; width:32%; cursor:pointer; }
-        .tour-stage .zone.l{ left:0; } .tour-stage .zone.r{ right:0; width:68%; }
-        .tour-stage .pijl{ position:absolute; bottom:14px; z-index:6; background:none; border:none; cursor:pointer; color:rgba(70,60,50,.45); font-size:30px; line-height:1; padding:6px 12px; }
-        .tour-stage .pijl.p{ left:6px; } .tour-stage .pijl.n{ right:6px; }
-        .tour-stage .pijl:disabled{ opacity:0; pointer-events:none; }
+        .stage{ position:relative; width:100%; max-width:520px; margin:0 auto; height:100dvh; overflow:hidden; background:#e7ded1;
+          font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color:#3d3530; user-select:none; touch-action:pan-y; }
+        .dots{ position:absolute; top:14px; left:16px; right:16px; z-index:6; display:flex; gap:6px; }
+        .dots i{ flex:1; height:3px; border-radius:3px; background:rgba(70,60,50,.22); }
+        .dots i.on{ background:rgba(60,50,40,.8); }
+        .track{ display:flex; height:100%; transition:transform .4s cubic-bezier(.4,0,.2,1); }
+        .slide{ min-width:100%; height:100%; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:34px 12px 46px; gap:13px; }
+        .slide.lucht{ background:${SKY}; }
+        .shot{ flex:0 1 auto; max-height:88%; display:flex; }
+        .shot img{ max-height:100%; max-width:100%; width:auto; height:auto; border-radius:20px; box-shadow:0 16px 50px rgba(50,40,32,.28); display:block; }
+        .oefwrap{ position:relative; display:flex; max-height:100%; overflow:hidden; }
+        .oefcover{ position:absolute; left:49%; top:86%; width:28%; aspect-ratio:1; transform:translate(-50%,-50%); background:#efeae4; border-radius:50%; }
+        .oefcirkel{ position:absolute; left:49%; top:86%; width:15%; aspect-ratio:1; transform:translate(-50%,-50%) scale(.55); border-radius:50%; background:rgba(109,132,168,.45); box-shadow:0 0 14px 4px rgba(109,132,168,.16); animation:adem 12s ease-in-out infinite; }
+        @keyframes adem{ 0%{transform:translate(-50%,-50%) scale(.55);opacity:.65} 45%{transform:translate(-50%,-50%) scale(1);opacity:.9} 55%{transform:translate(-50%,-50%) scale(1);opacity:.9} 100%{transform:translate(-50%,-50%) scale(.55);opacity:.65} }
+        .cap{ font-size:16px; line-height:1.45; color:#6b6460; text-align:center; text-wrap:balance; max-width:30ch; }
+        .kaart{ background:#fff; border-radius:26px; padding:40px 30px; box-shadow:0 18px 54px rgba(50,52,60,.20); max-width:340px; display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; }
+        .titel{ font-family:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif; font-size:27px; line-height:1.2; color:#3d3530; }
+        .sub{ font-size:16px; line-height:1.55; color:#6b6460; text-wrap:pretty; max-width:26ch; }
+        .zacht{ margin-top:22px; display:inline-block; color:#9a8168; font-weight:600; font-size:15px; text-decoration:none; border-bottom:1.5px solid rgba(154,129,104,.4); padding-bottom:2px; }
+        .zone{ position:absolute; top:40px; bottom:0; z-index:4; width:30%; cursor:pointer; }
+        .zone.l{ left:0; } .zone.r{ right:0; width:70%; }
+        .pijl{ position:absolute; bottom:14px; z-index:6; background:none; border:none; cursor:pointer; color:rgba(70,60,50,.4); font-size:26px; line-height:1; padding:6px 12px; }
+        .pijl.p{ left:6px; } .pijl.n{ right:6px; }
+        .pijl:disabled{ opacity:0; pointer-events:none; }
       `}</style>
 
       <div className="dots">
@@ -146,7 +128,6 @@ function TourInner() {
         </div>
       </div>
 
-      {/* Tik-zones uit op het slotscherm, anders liggen ze over de "meer lezen"-link */}
       {i < totaal - 1 && (
         <>
           <div className="zone l" onClick={() => toon(i - 1)} />
@@ -156,13 +137,12 @@ function TourInner() {
       <button className="pijl p" onClick={() => toon(i - 1)} disabled={i === 0} aria-label="Vorige">‹</button>
       <button className="pijl n" onClick={() => toon(i + 1)} disabled={i === totaal - 1} aria-label="Volgende">›</button>
     </div>
-    </div>
   );
 }
 
 export default function TourPage() {
   return (
-    <Suspense fallback={<div style={{ position: "fixed", inset: 0, background: "#e7ded1" }} />}>
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#e7ded1" }} />}>
       <TourInner />
     </Suspense>
   );
