@@ -255,7 +255,7 @@ export default defineSchema({
     pricePaid: v.optional(v.number()), // Werkelijk betaald bedrag in euro's
     paymentProvider: v.optional(v.string()), // "mollie", "stripe", etc.
     externalSubscriptionId: v.optional(v.string()),
-    // Herkomst van dit abonnement, bijv. "eh" (Even Houvast-trial via één-klik-link).
+    // Herkomst van deze toegang, bijv. "eh" (Even Houvast-trial via één-klik-link).
     // Gebruikt om gerichte trial-reminders/popup te onderdrukken en gebruik te meten.
     bron: v.optional(v.string()),
     reminderDay5Sent: v.optional(v.boolean()),
@@ -279,7 +279,7 @@ export default defineSchema({
     email: v.string(),
     naam: v.optional(v.string()),
     createdAt: v.number(),
-    expiresAt: v.number(),        // token vervalt (standaard 14 dagen)
+    expiresAt: v.number(),        // token vervalt (7 dagen)
     usedAt: v.optional(v.number()), // eerste keer ingewisseld (account + trial aangemaakt)
   })
     .index("by_token", ["token"])

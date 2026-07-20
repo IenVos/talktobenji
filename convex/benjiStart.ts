@@ -5,9 +5,10 @@
  * inwisselen wordt (indien nodig) een WACHTWOORDLOOS account aangemaakt en een
  * 7-daagse trial gestart, waarna de NextAuth "benji-token"-provider inlogt.
  *
- * - Token: per lead, standaard 14 dagen geldig, herbruikbaar binnen dat venster
- *   (zodat ze via de mail kunnen terugkomen). De sleutel is hun mailbox, net als
- *   bij "wachtwoord vergeten".
+ * - Token: per lead, 7 dagen geldig, herbruikbaar binnen dat venster (zodat ze via
+ *   de mail kunnen terugkomen, en een e-mailscanner die de link vooraf opent hem
+ *   niet "opeet"). De sleutel is hun mailbox, net als bij "wachtwoord vergeten".
+ *   Ze worden in-app naar een eigen wachtwoord genudged voor veilige terugkeer.
  * - De trial start op de KLIK (eerste inwisseling), niet bij verzenden.
  * - Alleen aanroepbaar met CONVEX_AUTH_ADAPTER_SECRET vanaf de Next.js-server,
  *   hetzelfde patroon als convex/credentials.ts.
@@ -15,7 +16,7 @@
 import { v } from "convex/values";
 import { mutation, internalMutation } from "./_generated/server";
 
-const TOKEN_GELDIGHEID_MS = 14 * 24 * 60 * 60 * 1000; // 14 dagen
+const TOKEN_GELDIGHEID_MS = 7 * 24 * 60 * 60 * 1000; // 7 dagen
 const TRIAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dagen
 
 /** Zelfde secret-check als credentials.ts (whitespace-genormaliseerd). */
@@ -70,7 +71,7 @@ export const genereerTokenInternal = internalMutation({
  * null als het token ongeldig/verlopen is.
  *
  * Idempotent: bij een tweede klik wordt geen dubbel account of dubbele trial
- * gemaakt, en een bestaand (betaald) abonnement wordt nooit overschreven.
+ * gemaakt, en bestaande (betaalde) toegang wordt nooit overschreven.
  */
 export const consumeToken = mutation({
   args: { secret: v.string(), token: v.string() },
@@ -101,7 +102,7 @@ export const consumeToken = mutation({
     }
     if (!user) return null;
 
-    // Start de 7-daagse trial alleen als er nog géén abonnement is. Zo raakt een
+    // Start de 7-daagse trial alleen als er nog géén toegang is. Zo raakt een
     // bestaande klant (of lopende trial) niet overschreven.
     const bestaandeSub = await ctx.db
       .query("userSubscriptions")
