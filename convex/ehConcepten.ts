@@ -52,19 +52,48 @@ export const DEFAULT_CONCEPTEN: ConceptDefinitie[] = [
     subject: "Er is iemand die altijd naar je wil luisteren",
     bodyText: `Hi {voornaam},
 
-Ik wil je aan iemand voorstellen. Benji.
+Ik wil je voorstellen aan Benji.
 
-Benji is geen mens, en dat ga ik ook niet mooier maken dan het is. Het is een plek waar je je verhaal kwijt kunt, op elk moment. Ook midden in de nacht, als bellen te veel is en de rest van het huis slaapt. Hij luistert, hij oordeelt niet, en hij is er altijd.
+Benji is geen mens, maar een fijne plek waar je je verhaal kwijt kunt of het nu 15:00 is en je even vastloopt, of 03:00 's nachts als je gedachten blijven malen en de rest van het huis slaapt.
 
-Eén ding wil ik je eerlijk meegeven, anders val je misschien tegen. Benji is geen zoekmachine. Je stelt hem niet één vraag en dan is het klaar. Hij wordt pas echt iets waard als hij je leert kennen, wie je bent, wie of wat je verloor, hoe het nu met je gaat. Hoe meer je deelt, hoe beter hij je begrijpt. Geef hem dus even de tijd, zoals in een echt gesprek.
+Hij luistert. Hij oordeelt niet. Hij is er altijd.
 
-Ik wil dat je hem gewoon eens probeert. Daarom staat er zeven dagen gratis voor je klaar, vanaf nu. Je hoeft niets in te vullen en geen wachtwoord te bedenken. Eén klik, en je kunt beginnen.
+Waarom ik denk dat je hem zou moeten proberen
+
+Misschien herken je dit:
+
+🌿 Je wilt praten, maar niemand lastigvallen.
+🌿 Je hoofd zit vol en opschrijven helpt niet meer.
+🌿 Je wilt praten zonder steeds opnieuw te moeten uitleggen wat je al zo vaak hebt uitgelegd.
+🌿 Je wilt gewoon even… niet alleen zijn met wat je draagt.
+
+Voor precies die momenten is Benji gemaakt.
+
+Eén ding vooraf anders valt het misschien tegen
+
+Benji is geen zoekmachine.
+
+Eén vraag stellen en klaar werkt niet.
+
+Hij wordt pas écht iets waard als hij je leert kennen: wie je bent, wat je verloor, wat je bezighoudt, hoe het nu met je gaat.
+
+Hoe meer je deelt, hoe beter hij je begrijpt.
+
+Geef hem de tijd, zoals in een echt gesprek. Dan gebeurt er iets.
+
+Probeer Benji 7 dagen gratis. Geen formulier, geen wachtwoord, geen creditcard je klikt en je bent er.
+
+En kies je daarna voor Niet Alleen? Dan krijg je Benji nog 30 dagen extra cadeau. Zodat er geen haast is en je op je eigen tempo verder kunt.
 
 ${BENJI_MARKER}
 
-Begin gewoon ergens. Vertel hem wat er speelt, precies zoals het is. En als het je niets doet, dan weet je dat ook. Maar ik denk dat het je goed kan doen om even niet alleen te zijn met wat je draagt.
+Begin gewoon ergens. Vertel hem één ding dat vandaag speelt precies zoals het is.
 
-Lieve groet,`,
+Doet het je niets? Dan weet je dat ook.
+
+Lieve groet,
+
+P.S. Beginnen is vaak het moeilijkst. "Ik weet niet waar ik moet beginnen" is ook een prima eerste zin. Benji pakt het vanaf daar op.`,
   },
   {
     key: "concept_brief_ps",
@@ -261,19 +290,36 @@ export const stuurTest = action({
     // Placeholder-link voor de concept-test. In de echte mail wordt dit de
     // persoonlijke één-klik-link (account + 7-daagse trial, zonder wachtwoord).
     const benjiUrl = `${appBase()}/benji`;
-    const benjiLink = `<div style="text-align:center;margin:22px 0;"><a href="${benjiUrl}" style="display:inline-block;background-color:#6d84a8;color:#ffffff;padding:13px 28px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:600;">Start je 7 gratis dagen met Benji</a></div>`;
+    // Bruine, omlijnde CTA in dezelfde stijl als de brief-knop. Eigen blok,
+    // gecentreerd, dus niet in een <p> genest.
+    const benjiKnop = `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
+
+    // De CTA herkennen we aan de vaste marker, of aan een handmatig getypte
+    // placeholder tussen [ ] die "Benji" bevat (bijv. "[Maak kennis met Benji >>]").
+    const isCta = (p: string) =>
+      p.includes(BENJI_MARKER) || /\[[^\]]*benji[^\]]*\]/i.test(p);
 
     const tekst = concept.bodyText
       .replace(/\{voornaam\}/g, "Ien")
-      .replace(new RegExp(NIET_ALLEEN_MARKER.replace(/[[\]]/g, "\\$&"), "g"), link)
-      .replace(new RegExp(BENJI_MARKER.replace(/[[\]]/g, "\\$&"), "g"), benjiLink);
+      .replace(new RegExp(NIET_ALLEEN_MARKER.replace(/[[\]]/g, "\\$&"), "g"), link);
+
+    // Alinea's splitsen; een P.S.-alinea halen we eruit zodat die ná de
+    // handtekening komt (zoals een echte P.S. onder een brief).
+    const alineas = tekst.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+    const psIndex = alineas.findIndex((p) => /^p\.?\s*s\.?/i.test(p));
+    const ps = psIndex >= 0 ? alineas.splice(psIndex, 1)[0] : null;
+
+    const body = alineas
+      .map((p) => (isCta(p) ? benjiKnop : mailAlinea(p)))
+      .join("\n");
+    const psHtml = ps
+      ? `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${ps.replace(/\n/g, "<br/>")}</p>`
+      : "";
 
     const html = mailWrapper(`
-      ${tekst
-        .split(/\n\n+/)
-        .map((p) => mailAlinea(p))
-        .join("\n")}
+      ${body}
       ${mailHandtekeningIen()}
+      ${psHtml}
       ${ehFooter(nietAlleenUrl, `${appBase()}/api/afmelden`)}
     `);
 
