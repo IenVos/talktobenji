@@ -255,6 +255,9 @@ export default defineSchema({
     pricePaid: v.optional(v.number()), // Werkelijk betaald bedrag in euro's
     paymentProvider: v.optional(v.string()), // "mollie", "stripe", etc.
     externalSubscriptionId: v.optional(v.string()),
+    // Herkomst van dit abonnement, bijv. "eh" (Even Houvast-trial via één-klik-link).
+    // Gebruikt om gerichte trial-reminders/popup te onderdrukken en gebruik te meten.
+    bron: v.optional(v.string()),
     reminderDay5Sent: v.optional(v.boolean()),
     reminderDay7Sent: v.optional(v.boolean()),
     renewalEmail1SentAt: v.optional(v.number()), // 30 dagen voor einde jaar-toegang
@@ -266,6 +269,20 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
+    .index("by_email", ["email"]),
+
+  // Één-klik login-tokens voor de Even Houvast Benji-proef. De mail bevat een
+  // persoonlijke link met dit token; inwisselen maakt (indien nodig) een
+  // wachtwoordloos account + 7-daagse trial en logt in. Zie convex/benjiStart.ts.
+  benjiStartTokens: defineTable({
+    token: v.string(),
+    email: v.string(),
+    naam: v.optional(v.string()),
+    createdAt: v.number(),
+    expiresAt: v.number(),        // token vervalt (standaard 14 dagen)
+    usedAt: v.optional(v.number()), // eerste keer ingewisseld (account + trial aangemaakt)
+  })
+    .index("by_token", ["token"])
     .index("by_email", ["email"]),
 
   // Gesprekken teller (voor free tier limiet)
