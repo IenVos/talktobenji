@@ -37,7 +37,35 @@ export type ConceptDefinitie = {
 // niche jaagt een verkoopknop mensen weg; een uitnodiging in jouw eigen stem niet.
 export const NIET_ALLEEN_MARKER = "[niet-alleen-link]";
 
+// De link waarmee iemand de 7 gratis dagen met Benji start. In de echte mail wordt
+// dit straks de persoonlijke één-klik-link (account + trial in één, zonder wachtwoord).
+// Voor de concept-testmail rendert hij nu al als nette knop-link naar Benji.
+export const BENJI_MARKER = "[benji-start-link]";
+
 export const DEFAULT_CONCEPTEN: ConceptDefinitie[] = [
+  {
+    key: "concept_benji_intro",
+    titel: "Benji-intro: 7 dagen gratis (vervangt de 'Wie ik ben'-mail)",
+    waarom:
+      "De kern van de nieuwe aanpak: eerst laten ervaren, dan pas vragen. In plaats van óver Benji te vertellen, geef je hem 7 dagen gratis weg met één klik (geen wachtwoord, geen gedoe). De mail zet meteen de verwachting goed, Benji is geen zoekmachine maar leert je kennen, zodat mensen niet na één vraag afhaken. Deze mail neemt de plek in van de 'Wie ik ben'-mail (die weinig klikken kreeg); jouw eigen verhaal verhuist naar een linkje richting /waarom-benji in de eerste mail.",
+    plek: "Vervangt de 'Wie ik ben'-mail, rond dag 6. Hier start de 7-daagse Benji-toegang, zodat die afloopt precies wanneer het Niet Alleen-aanbod komt.",
+    subject: "Er is iemand die altijd naar je wil luisteren",
+    bodyText: `Hi {voornaam},
+
+Ik wil je aan iemand voorstellen. Benji.
+
+Benji is geen mens, en dat ga ik ook niet mooier maken dan het is. Het is een plek waar je je verhaal kwijt kunt, op elk moment. Ook midden in de nacht, als bellen te veel is en de rest van het huis slaapt. Hij luistert, hij oordeelt niet, en hij is er altijd.
+
+Eén ding wil ik je eerlijk meegeven, anders val je misschien tegen. Benji is geen zoekmachine. Je stelt hem niet één vraag en dan is het klaar. Hij wordt pas echt iets waard als hij je leert kennen, wie je bent, wie of wat je verloor, hoe het nu met je gaat. Hoe meer je deelt, hoe beter hij je begrijpt. Geef hem dus even de tijd, zoals in een echt gesprek.
+
+Ik wil dat je hem gewoon eens probeert. Daarom staat er zeven dagen gratis voor je klaar, vanaf nu. Je hoeft niets in te vullen en geen wachtwoord te bedenken. Eén klik, en je kunt beginnen.
+
+${BENJI_MARKER}
+
+Begin gewoon ergens. Vertel hem wat er speelt, precies zoals het is. En als het je niets doet, dan weet je dat ook. Maar ik denk dat het je goed kan doen om even niet alleen te zijn met wat je draagt.
+
+Lieve groet,`,
+  },
   {
     key: "concept_brief_ps",
     titel: "Alinea onderaan de brief",
@@ -230,10 +258,15 @@ export const stuurTest = action({
     const type = args.verliestype ?? "huisdier";
     const nietAlleenUrl = nietAlleenUrlVoorType(type);
     const link = `<a href="${nietAlleenUrl}" style="color: #6d84a8; font-weight: 600;">lees hier over Niet Alleen</a>`;
+    // Placeholder-link voor de concept-test. In de echte mail wordt dit de
+    // persoonlijke één-klik-link (account + 7-daagse trial, zonder wachtwoord).
+    const benjiUrl = `${appBase()}/benji`;
+    const benjiLink = `<div style="text-align:center;margin:22px 0;"><a href="${benjiUrl}" style="display:inline-block;background-color:#6d84a8;color:#ffffff;padding:13px 28px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:600;">Start je 7 gratis dagen met Benji</a></div>`;
 
     const tekst = concept.bodyText
       .replace(/\{voornaam\}/g, "Ien")
-      .replace(new RegExp(NIET_ALLEEN_MARKER.replace(/[[\]]/g, "\\$&"), "g"), link);
+      .replace(new RegExp(NIET_ALLEEN_MARKER.replace(/[[\]]/g, "\\$&"), "g"), link)
+      .replace(new RegExp(BENJI_MARKER.replace(/[[\]]/g, "\\$&"), "g"), benjiLink);
 
     const html = mailWrapper(`
       ${tekst
