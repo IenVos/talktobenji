@@ -104,11 +104,21 @@ const HISTORISCHE_ONDERWERPEN: Record<string, string> = {
 // bijv. opvolgmail 3) en houden de losse onderwerpregels eronder zichtbaar.
 type Herkomst = { groep: Groep; stroomId: string; titel: string };
 
+// Leesvolgorde (verzendvolgorde op dag) van de EH-opvolgmails. Het INTERNE mail-
+// nummer is NIET de volgorde: mail 6 ("Wie ik ben") is later toegevoegd en komt
+// als 2e binnen. De stroomId blijft eh_<internnummer> (grouping/telling), alleen
+// het label en de sortering volgen de leesvolgorde 1..6. Zie evenHouvastOpvolg.ts.
+const EH_LEESVOLGORDE = [1, 6, 2, 3, 4, 5];
+const ehPositie = (n: number) => {
+  const i = EH_LEESVOLGORDE.indexOf(n);
+  return i === -1 ? n : i + 1;
+};
+
 // Vertaalt een template-key (eh_huisdier_3) naar de mail waar hij bij hoort.
 function ehHerkomst(key: string): Herkomst | undefined {
   const match = /^eh_[a-z]+_(\d+)$/.exec(key);
   if (!match) return undefined;
-  return { groep: "evenHouvast", stroomId: `eh_${match[1]}`, titel: `Opvolgmail ${match[1]}` };
+  return { groep: "evenHouvast", stroomId: `eh_${match[1]}`, titel: `Opvolgmail ${ehPositie(Number(match[1]))}` };
 }
 
 // Labels die we sinds 13 juli 2026 bij elke verzending meesturen. Mails van
@@ -120,7 +130,7 @@ function herkomstVanTags(
   const mail = tags?.mail;
   if (!tags || !mail) return undefined;
   if (tags.programma === "eh") {
-    return { groep: "evenHouvast", stroomId: `eh_${mail}`, titel: `Opvolgmail ${mail}` };
+    return { groep: "evenHouvast", stroomId: `eh_${mail}`, titel: `Opvolgmail ${ehPositie(Number(mail))}` };
   }
   if (tags.programma === "na") {
     return { groep: "nietAlleen", stroomId: `na_${mail}`, titel: label };
@@ -316,7 +326,9 @@ export const stats = query({
       .sort((a, b) => b.verzonden - a.verzonden);
 
     // Vaste volgorde: Even Houvast bovenaan, dan Niet Alleen, dan de rest. Binnen
-    // Even Houvast op mailnummer, want dat is de volgorde waarin ze aankomen.
+    // Even Houvast op leesvolgorde (verzendvolgorde op dag), NIET op het interne
+    // mailnummer: mail 6 komt als 2e binnen. Losse mails (brief) matchen niet op
+    // eh_<nr> en zakken naar onderen.
     const volgorde: Groep[] = ["evenHouvast", "nietAlleen", "overig"];
     const groepen = volgorde
       .map((g) => ({
@@ -327,9 +339,11 @@ export const stats = query({
           .filter((s) => s.groep === g)
           .sort((a, b) => {
             if (g !== "evenHouvast") return b.verzonden - a.verzonden;
-            const nr = (s: { stroomId: string }) =>
-              Number(/^eh_(\d+)$/.exec(s.stroomId)?.[1] ?? 99);
-            return nr(a) - nr(b) || b.verzonden - a.verzonden;
+            const pos = (s: { stroomId: string }) => {
+              const m = /^eh_(\d+)$/.exec(s.stroomId);
+              return m ? ehPositie(Number(m[1])) : 99;
+            };
+            return pos(a) - pos(b) || b.verzonden - a.verzonden;
           }),
       }))
       .filter((g) => g.totaal.verzonden > 0);
