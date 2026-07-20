@@ -30,7 +30,10 @@ export function TrialBanner({ userId, email }: TrialBannerProps) {
       "expiresAt" in subscription &&
       subscription.expiresAt &&
       subscription.expiresAt < Date.now() &&
-      subscription.expiresAt > Date.now() - SEVEN_DAYS_MS
+      subscription.expiresAt > Date.now() - SEVEN_DAYS_MS &&
+      // Even Houvast-trials (bron "eh") krijgen deze popup NIET: hun vervolg
+      // ("Niet Alleen, houd Benji 30 dagen") komt uit de funnelmails.
+      !("bron" in subscription && subscription.bron === "eh")
     ) {
       try {
         const seen = localStorage.getItem(TRIAL_ENDED_KEY);

@@ -47,8 +47,13 @@ export const checkAndProcessTrials = mutation({
         continue;
       }
 
+      // Even Houvast-trials (bron "eh") krijgen deze generieke reminders NIET.
+      // Hun "je-week-loopt-af → Niet Alleen"-boodschap komt uit de funnelmails zelf.
+      // Het verloop naar free hierboven geldt wél gewoon voor hen.
+      const stuurReminders = sub.bron !== "eh";
+
       // Dag 5 reminder: nog ~2 dagen over
-      if (daysLeft <= 2 && daysLeft > 1 && !sub.reminderDay5Sent) {
+      if (stuurReminders && daysLeft <= 2 && daysLeft > 1 && !sub.reminderDay5Sent) {
         const user = await ctx.db
           .query("users")
           .withIndex("email", (q) => q.eq("email", sub.email))
@@ -63,7 +68,7 @@ export const checkAndProcessTrials = mutation({
       }
 
       // Dag 7 reminder: laatste dag
-      if (daysLeft <= 1 && daysLeft > 0 && !sub.reminderDay7Sent) {
+      if (stuurReminders && daysLeft <= 1 && daysLeft > 0 && !sub.reminderDay7Sent) {
         const user = await ctx.db
           .query("users")
           .withIndex("email", (q) => q.eq("email", sub.email))
