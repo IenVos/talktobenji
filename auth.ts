@@ -59,6 +59,30 @@ export const authOptions: AuthOptions = {
         };
       },
     }),
+    CredentialsProvider({
+      id: "benji-token",
+      name: "Benji-startlink",
+      credentials: {
+        token: { label: "Token", type: "text" },
+      },
+      // Wachtwoordloze login via de één-klik-link uit de Even Houvast Benji-mail.
+      // Wisselt het token in bij Convex (maakt indien nodig account + 7-daagse trial)
+      // en logt in. Staat volledig los van de e-mail/wachtwoord- en Google-login.
+      async authorize(credentials): Promise<User | null> {
+        if (!credentials?.token || !adapterSecret) return null;
+        const cleanSecret = String(adapterSecret || "").trim();
+        try {
+          const result = await fetchMutation(api.benjiStart.consumeToken, {
+            secret: cleanSecret,
+            token: credentials.token.trim(),
+          });
+          if (!result) return null;
+          return { id: result.userId, email: result.email, name: result.name ?? null };
+        } catch {
+          return null;
+        }
+      },
+    }),
   ],
   session: {
     strategy: "jwt",
