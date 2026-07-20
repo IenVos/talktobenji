@@ -103,7 +103,7 @@ export function ehFooter(nietAlleenUrl: string, afmeldUrl: string): string {
         Heb je vragen? Beantwoord gewoon deze mail.
       </p>
       <p style="font-size:13px;color:#718096;margin:12px 0 0 0;">
-        <a href="${appBase()}/waarom-benji" style="color:#6d84a8;text-decoration:underline;">Meer weten over Ien en waarom ik Talk To Benji ben gestart</a>
+        <a href="${appBase()}/waarom-benji" style="color:#6d84a8;text-decoration:none;">Meer weten over Ien en waarom ik Talk To Benji ben gestart &rarr;</a>
       </p>
       <p style="font-size:12px;line-height:1.6;color:#a0aec0;margin:30px 0 0 0;border-top:1px solid #ece5dc;padding-top:16px;">
         <a href="${afmeldUrl}" style="color:#a0aec0;text-decoration:underline;">Geen opvolgmails meer ontvangen</a>
