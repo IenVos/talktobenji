@@ -666,13 +666,16 @@ export const afmeldOverzicht = query({
     }
 
     // Vaste volgorde: eerst de brief, dan de mails in de volgorde waarin ze aankomen.
+    // Label op leesvolgorde (1e, 2e opvolgmail...), niet op het interne mailnummer:
+    // mail 6 ("Wie ik ben") is later toegevoegd maar valt chronologisch als 2e mail.
     const volgorde = ["brief", ...MAIL_NUMMERS.sort((a, b) => SCHEMA[a] - SCHEMA[b]).map(String)];
-    const perMail = volgorde.map((sleutel) => {
+    const perMail = volgorde.map((sleutel, idx) => {
       const verzonden = verzondenPerMail.get(sleutel) ?? 0;
       const afgemeld = afmeldingenPerMail.get(sleutel) ?? 0;
       return {
         mail: sleutel,
-        label: sleutel === "brief" ? "De brief" : `Opvolgmail ${sleutel}`,
+        // idx 0 = brief, idx 1 = 1e opvolgmail, enz. → nummer volgt de verzendvolgorde.
+        label: sleutel === "brief" ? "De brief" : `Opvolgmail ${idx}`,
         dag: sleutel === "brief" ? 0 : SCHEMA[Number(sleutel)],
         verzonden,
         afgemeld,

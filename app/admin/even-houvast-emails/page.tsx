@@ -6,7 +6,12 @@ import { api } from "@/convex/_generated/api";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
 import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthContext";
 
-// Volgorde = chronologisch (op dag). Mail 6 valt op dag 2, tussen mail 1 en 2.
+// Volgorde = chronologisch (op dag). Deze lijst staat al in verzendvolgorde.
+// Let op: het interne mailnummer (n) is NIET de leesvolgorde. Mail 6 ("Wie ik ben")
+// is later toegevoegd, valt chronologisch als 2e mail. Daarom tonen we overal de
+// leesvolgorde (positie 1..6), niet het interne nummer. Het interne nummer blijft
+// alleen de sleutel achter de schermen (templates + verzendlogboek), niks daaraan
+// verandert. Zie ook convex/evenHouvastOpvolg.ts (SCHEMA).
 const EH_META: { n: number; titel: string; subtitel: string; defaultDag: number }[] = [
   { n: 1, titel: "Erkenning", subtitel: "Direct na de brief. Geen verkoop, alleen erkenning.", defaultDag: 0 },
   { n: 6, titel: "Wie ik ben", subtitel: "Persoonlijk: Ien stelt zich voor (verhaal Zoro). Geen verkoop.", defaultDag: 2 },
@@ -15,6 +20,10 @@ const EH_META: { n: number; titel: string; subtitel: string; defaultDag: number 
   { n: 4, titel: "Verhaal / ervaring", subtitel: "Een echt verhaal. Knop naar de verkoop-LP.", defaultDag: 8 },
   { n: 5, titel: "Uitnodiging met prijs", subtitel: "De uitnodiging. Knop direct naar de checkout.", defaultDag: 11 },
 ];
+
+// Leesvolgorde (1..6) op basis van de chronologische EH_META-volgorde. Vertaalt een
+// intern mailnummer naar de plek waarop de lezer de mail krijgt.
+const positieVanMail = (n: number) => EH_META.findIndex((m) => m.n === n) + 1;
 
 // Verliestypes met een eigen reeks. "algemeen" = leads die geen type kozen.
 const EH_TYPE_TABS: { code: string; naam: string }[] = [
@@ -85,7 +94,7 @@ function EHMailEditor({
     <div className={`border rounded-xl overflow-hidden ${isEdited ? "border-primary-300 bg-primary-50/30" : "border-gray-200 bg-white"}`}>
       <button type="button" onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors">
         {open ? <ChevronDown size={15} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-gray-400 flex-shrink-0" />}
-        <span className="text-xs font-bold text-gray-500 w-12 flex-shrink-0">Mail {n}</span>
+        <span className="text-xs font-bold text-gray-500 w-12 flex-shrink-0">Mail {positieVanMail(n)}</span>
         <span className="text-sm font-medium text-gray-700 flex-1 truncate">{titel}</span>
         <span className="text-[11px] font-medium text-gray-400 flex-shrink-0">dag {dag}</span>
         <span className="text-xs text-gray-400 truncate hidden md:block max-w-[180px]">{subject}</span>
@@ -316,12 +325,13 @@ export default function EvenHouvastEmailsPage() {
         </div>
         {/* Verdeling per mail (alleen lopende leads) */}
         <div className="space-y-1.5">
-          {EH_META.map((m) => m.n).map((n) => {
+          {EH_META.map((m, idx) => {
+            const n = m.n;
             const aantal = overzicht?.filter((r) => !r.gekocht && !r.afgemeld && r.laatsteMail === n).length ?? 0;
             const pct = lopend > 0 ? Math.round((aantal / lopend) * 100) : 0;
             return (
               <div key={n} className="flex items-center gap-3 text-xs">
-                <span className="w-28 flex-shrink-0 text-gray-600">Laatst: mail {n}</span>
+                <span className="w-28 flex-shrink-0 text-gray-600">Laatst: mail {idx + 1}</span>
                 <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden"><div className="h-full bg-primary-400 rounded-full" style={{ width: `${pct}%` }} /></div>
                 <span className="w-10 text-right font-semibold text-gray-700">{aantal}</span>
               </div>
@@ -358,7 +368,7 @@ export default function EvenHouvastEmailsPage() {
                       ) : r.afgemeld ? (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500">afgemeld</span>
                       ) : (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-600">{r.laatsteMail > 0 ? `mail ${r.laatsteMail}` : "wacht"}</span>
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary-50 text-primary-600">{r.laatsteMail > 0 ? `mail ${positieVanMail(r.laatsteMail)}` : "wacht"}</span>
                       )}
                     </div>
                   </div>
@@ -470,8 +480,8 @@ export default function EvenHouvastEmailsPage() {
         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200">
           <span className="text-xs font-semibold text-amber-800 w-full sm:w-auto">Stuur een opvolgmail als test:</span>
           <select value={testMailNr} onChange={(e) => setTestMailNr(Number(e.target.value))} className="px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white">
-            {EH_META.map((m) => (
-              <option key={m.n} value={m.n}>Mail {m.n} — {m.titel} (dag {m.defaultDag})</option>
+            {EH_META.map((m, idx) => (
+              <option key={m.n} value={m.n}>Mail {idx + 1} — {m.titel} (dag {m.defaultDag})</option>
             ))}
           </select>
           <button

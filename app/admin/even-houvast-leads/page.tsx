@@ -33,11 +33,17 @@ const TYPE_LABEL: Record<string, string> = {
 // Titels van de opvolgmails (zelfde reeks als op de e-mailpagina).
 const OPVOLG_TITEL: Record<number, string> = {
   1: "Erkenning",
+  6: "Wie ik ben",
   2: "Normaliseren",
   3: "Niet Alleen introduceren",
   4: "Verhaal / ervaring",
   5: "Uitnodiging met prijs",
 };
+
+// Chronologische verzendvolgorde (op dag), NIET het interne mailnummer. Mail 6
+// ("Wie ik ben") is later toegevoegd en valt als 2e mail. We tonen de leesvolgorde
+// (1e..6e) met dit interne nummer als sleutel eronder. Zie convex/evenHouvastOpvolg.ts.
+const OPVOLG_VOLGORDE = [1, 6, 2, 3, 4, 5];
 
 function datum(ms: number | null): string {
   if (!ms) return "";
@@ -159,14 +165,14 @@ function LeadCard({ lead, onVerwijder }: { lead: Lead; onVerwijder: (email: stri
               }
             />
 
-            {/* Opvolgmails 1..5 */}
-            {[1, 2, 3, 4, 5].map((n) => {
+            {/* Opvolgmails in verzendvolgorde (leesvolgorde 1e..6e, intern nummer varieert) */}
+            {OPVOLG_VOLGORDE.map((n, idx) => {
               const m = lead.opvolgmails.find((o) => o.mailNummer === n);
               return (
                 <Stap
                   key={n}
                   klaar={!!m}
-                  titel={`Opvolgmail ${n} — ${OPVOLG_TITEL[n]}`}
+                  titel={`Opvolgmail ${idx + 1} — ${OPVOLG_TITEL[n]}`}
                   detail={m ? `Verstuurd op ${datumTijd(m.sentAt)}` : undefined}
                 />
               );
