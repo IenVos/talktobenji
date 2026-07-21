@@ -25,6 +25,7 @@ import {
   mailHandtekeningIen,
   mailWrapper,
 } from "./ehMailFooter";
+import { BENJI_MARKER, BENJI_BLOK_MARKER } from "./ehConcepten";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 const DAG_MS = 24 * 60 * 60 * 1000;
@@ -255,18 +256,48 @@ async function verstuurOpvolgMail(
   // Splits de tekst: afsluitgroet (laatste alinea) hoort onder de knop, vlak
   // boven Ien's naam. De rest is de romp, met optioneel een inline-afbeelding
   // op de plek van de [afbeelding]-marker.
-  const alineas = body.trim().split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+  // Benji één-klik: bevat deze mail een Benji-CTA (bijv. "[Maak kennis met Benji >>]")
+  // of het [benji-blok], maak dan per lead een persoonlijk 7-daags token en bouw de
+  // /benji-start-link. Mails zonder Benji-marker raken hier niet door: geen token,
+  // geen knop, geen blok, alles blijft precies als voorheen.
+  const heeftBenjiMarker = /\[[^\]]*benji[^\]]*\]/i.test(body);
+  let benjiKnopHtml = "";
+  let benjiBlokHtml = "";
+  if (heeftBenjiMarker) {
+    const benjiToken = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
+      email: args.email,
+      naam: args.naam,
+    });
+    const benjiUrl = `${appBase()}/benji-start?token=${benjiToken}`;
+    benjiKnopHtml = `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
+    benjiBlokHtml = `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;text-align:center;"><p style="font-size:16px;font-weight:700;color:#3d3530;margin:0 0 8px;">7 dagen gratis met Benji</p><p style="font-size:14px;line-height:1.6;color:#6b6460;margin:0 0 18px;">Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.</p><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a><p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord.</p></div>`;
+  }
+  const isBenjiCta = (p: string) =>
+    p.includes(BENJI_MARKER) || /\[[^\]]*benji[^\]]*\]/i.test(p);
+
+  const alineas0 = body.trim().split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+  // Het Benji-blok komt onderaan (na de P.S.); haal die alinea uit de stroom.
+  const heeftBlok = alineas0.some((p) => p.includes(BENJI_BLOK_MARKER));
+  const alineas = alineas0.filter((p) => !p.includes(BENJI_BLOK_MARKER));
+  // Een P.S.-alinea komt ná de handtekening (zoals een echte P.S. onder een brief).
+  const psIndex = alineas.findIndex((p) => /^p\.?\s*s\.?/i.test(p));
+  const ps = psIndex >= 0 ? alineas.splice(psIndex, 1)[0] : "";
   const afsluiting = alineas.length > 1 && isAfsluiting(alineas[alineas.length - 1])
     ? alineas.pop()!
     : "";
   const heeftInline = alineas.some((p) => AFBEELDING_MARKER.test(p));
   const rompHtml = alineas
     .map((p) =>
-      AFBEELDING_MARKER.test(p)
+      isBenjiCta(p)
+        ? benjiKnopHtml
+        : AFBEELDING_MARKER.test(p)
         ? imageUrl ? inlineAfbeelding(imageUrl, imageCaption) : ""
         : alineaPHtml(p)
     )
     .join("\n");
+  const psHtml = ps
+    ? `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${ps.replace(/\n/g, "<br/>")}</p>`
+    : "";
 
   // De cover-afbeelding (boven de knop) alleen tonen als de afbeelding niet al
   // inline in de tekst staat, anders zou hij dubbel verschijnen.
@@ -279,6 +310,8 @@ async function verstuurOpvolgMail(
     ${toonKnop ? (toonCover ? zachteKnop(knopTekst, knopUrl) : knop(knopTekst, knopUrl)) : ""}
     ${afsluiting ? alineaPHtml(afsluiting) : ""}
     ${handtekeningIen()}
+    ${psHtml}
+    ${heeftBlok ? benjiBlokHtml : ""}
     ${ehFooter(nietAlleenUrlVoorType(type), afmeldUrl)}
   `);
 
