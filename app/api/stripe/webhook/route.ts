@@ -402,6 +402,18 @@ export async function POST(req: NextRequest) {
           } catch (err: any) {
             console.error("[Convex] Niet Alleen profiel aanmaken mislukt:", err?.message);
           }
+
+          // 30 dagen Benji cadeau bij Niet Alleen: los venster dat vanzelf verloopt.
+          // Zoekt op e-mail, dus vindt ook het wachtwoordloze EH-trial-account.
+          try {
+            await convex.mutation(api.subscriptions.grantBenjiVenster, {
+              webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
+              email,
+              days: 30,
+            });
+          } catch (err: any) {
+            console.error("[Convex] Benji-venster bij NA-aankoop mislukt:", err?.message);
+          }
         }
 
         // Addon: chat-toegang verlenen (benji_access of legacy benji_30)

@@ -258,6 +258,10 @@ export default defineSchema({
     // Herkomst van deze toegang, bijv. "eh" (Even Houvast-trial via één-klik-link).
     // Gebruikt om gerichte trial-reminders/popup te onderdrukken en gebruik te meten.
     bron: v.optional(v.string()),
+    // Los Benji-toegangsvenster, los van het abonnementstype. Bijv. 30 dagen Benji
+    // cadeau na aankoop van Niet Alleen. Zolang deze datum in de toekomst ligt, krijgt
+    // de gebruiker het volledige Benji-pakket; daarna vervalt het vanzelf (datumcheck).
+    benjiExpiresAt: v.optional(v.number()),
     reminderDay5Sent: v.optional(v.boolean()),
     reminderDay7Sent: v.optional(v.boolean()),
     renewalEmail1SentAt: v.optional(v.number()), // 30 dagen voor einde jaar-toegang

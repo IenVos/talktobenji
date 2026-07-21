@@ -130,6 +130,14 @@ export const hasFeatureAccess = query({
       ],
     };
 
+    // Los Benji-venster (bijv. 30 dagen cadeau na aankoop Niet Alleen): geeft het
+    // volledige Benji-pakket zolang benjiExpiresAt in de toekomst ligt, ongeacht het
+    // abonnementstype. Verloopt vanzelf op de datum. Records zonder dit veld
+    // (alle bestaande klanten) raken hier niet door.
+    if (subscription?.benjiExpiresAt && subscription.benjiExpiresAt > Date.now()) {
+      return features.alles_in_1.includes(args.feature);
+    }
+
     return features[subType]?.includes(args.feature) ?? false;
   },
 });
@@ -180,7 +188,10 @@ export const getConversationCount = query({
       subscription?.expiresAt != null &&
       subscription.expiresAt > Date.now();
 
-    if (subType === "uitgebreid" || subType === "alles_in_1" || isActiveTrial || isCancelledButValid) {
+    // Los Benji-venster (30 dagen na aankoop Niet Alleen): onbeperkt zolang geldig.
+    const benjiVenster = !!(subscription?.benjiExpiresAt && subscription.benjiExpiresAt > Date.now());
+
+    if (subType === "uitgebreid" || subType === "alles_in_1" || isActiveTrial || isCancelledButValid || benjiVenster) {
       return {
         count,
         limit: null,
@@ -342,6 +353,49 @@ export const activateSubscriptionByEmail = mutation({
       startedAt: now,
     });
     return { success: true, action: "created", userId };
+  },
+});
+
+/**
+ * Geef een los Benji-toegangsvenster (bijv. 30 dagen cadeau na aankoop Niet Alleen).
+ * Zoekt op e-mail in de abonnementen, dus vindt óók wachtwoordloze EH-accounts (die
+ * geen credentials-record hebben). Verloopt vanzelf op benjiExpiresAt; geen cron nodig.
+ * Downgradet nooit een betaald type; een trial/free wordt wel als niet_alleen gemarkeerd.
+ */
+export const grantBenjiVenster = mutation({
+  args: {
+    webhookSecret: v.string(),
+    email: v.string(),
+    days: v.number(),
+  },
+  handler: async (ctx, args) => {
+    if (args.webhookSecret !== (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)) {
+      throw new Error("Ongeldig webhook secret");
+    }
+    const email = args.email.toLowerCase().trim();
+    const now = Date.now();
+    const benjiExpiresAt = now + args.days * 24 * 60 * 60 * 1000;
+
+    const sub = await ctx.db
+      .query("userSubscriptions")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    // Geen account/abonnement (bijv. NA-koper zonder Benji-account): Benji is dan
+    // toch pas bruikbaar na accountaanmaak. Voor nu overslaan (geen breuk).
+    if (!sub) return { applied: false as const, reason: "no-subscription" };
+
+    if (sub.subscriptionType === "trial" || sub.subscriptionType === "free") {
+      await ctx.db.patch(sub._id, {
+        subscriptionType: "niet_alleen",
+        status: "active",
+        benjiExpiresAt,
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.patch(sub._id, { benjiExpiresAt, status: "active", updatedAt: now });
+    }
+    return { applied: true as const };
   },
 });
 
