@@ -42,6 +42,10 @@ export const NIET_ALLEEN_MARKER = "[niet-alleen-link]";
 // Voor de concept-testmail rendert hij nu al als nette knop-link naar Benji.
 export const BENJI_MARKER = "[benji-start-link]";
 
+// Het "eye-catcher"-blok voor onderaan de opvolgmails: een klein kaartje met de
+// 7-dagen-gratis-uitnodiging. Rendert altijd onderaan, ná de handtekening en P.S.
+export const BENJI_BLOK_MARKER = "[benji-blok]";
+
 export const DEFAULT_CONCEPTEN: ConceptDefinitie[] = [
   {
     key: "concept_benji_intro",
@@ -94,6 +98,23 @@ Doet het je niets? Dan weet je dat ook.
 Lieve groet,
 
 P.S. Beginnen is vaak het moeilijkst. "Ik weet niet waar ik moet beginnen" is ook een prima eerste zin. Benji pakt het vanaf daar op.`,
+  },
+  {
+    key: "concept_benji_blok",
+    titel: "Benji-blok + P.S. (voor onderaan de opvolgmails)",
+    waarom:
+      "Het herbruikbare blokje dat onderaan de opvolgmails komt, zodat ook mensen die de Benji-intro-mail al voorbij zijn Benji nog leren kennen. De achteloze P.S. ('mocht je het nog niet geprobeerd hebben') werkt zowel voor wie het al deed als voor wie nog niet. Zet de P.S.-zin + de marker [benji-blok] onderaan de gekozen opvolgmails.",
+    plek: "Onderaan de opvolgmails (bijv. Normaliseren dag 5 en Niet Alleen introduceren dag 7).",
+    subject: "Voorbeeld: het Benji-blok onderaan een opvolgmail",
+    bodyText: `Hi {voornaam},
+
+(Dit is een voorbeeld-opvolgmail, zodat je ziet hoe het Benji-blok onderaan valt. In de echte mails blijft de bestaande tekst hierboven gewoon staan.)
+
+Lieve groet,
+
+P.S. Bijna vergeten te zeggen, mocht je het nog niet geprobeerd hebben: er staat iets voor je klaar waar je meteen zelf iets aan kunt hebben.
+
+[benji-blok]`,
   },
   {
     key: "concept_brief_ps",
@@ -293,6 +314,14 @@ export const stuurTest = action({
     // Bruine, omlijnde CTA in dezelfde stijl als de brief-knop. Eigen blok,
     // gecentreerd, dus niet in een <p> genest.
     const benjiKnop = `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
+    // Het eye-catcher-blok (marker [benji-blok]): een wit kaartje dat op de crème
+    // mailachtergrond opvalt, met de 7-dagen-gratis-uitnodiging en dezelfde bruine knop.
+    const benjiBlok = `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;text-align:center;">
+      <p style="font-size:16px;font-weight:700;color:#3d3530;margin:0 0 8px;">7 dagen gratis met Benji</p>
+      <p style="font-size:14px;line-height:1.6;color:#6b6460;margin:0 0 18px;">Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.</p>
+      <a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a>
+      <p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord, geen creditcard.</p>
+    </div>`;
 
     // De CTA herkennen we aan de vaste marker, of aan een handmatig getypte
     // placeholder tussen [ ] die "Benji" bevat (bijv. "[Maak kennis met Benji >>]").
@@ -303,23 +332,27 @@ export const stuurTest = action({
       .replace(/\{voornaam\}/g, "Ien")
       .replace(new RegExp(NIET_ALLEEN_MARKER.replace(/[[\]]/g, "\\$&"), "g"), link);
 
-    // Alinea's splitsen; een P.S.-alinea halen we eruit zodat die ná de
-    // handtekening komt (zoals een echte P.S. onder een brief).
+    // Alinea's splitsen. Volgorde onderaan: handtekening → P.S. → Benji-blok.
+    // Het Benji-blok (marker) en de P.S. halen we uit de gewone body-stroom.
     const alineas = tekst.split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
-    const psIndex = alineas.findIndex((p) => /^p\.?\s*s\.?/i.test(p));
-    const ps = psIndex >= 0 ? alineas.splice(psIndex, 1)[0] : null;
+    const heeftBlok = alineas.some((p) => p.includes(BENJI_BLOK_MARKER));
+    const zonderBlok = alineas.filter((p) => !p.includes(BENJI_BLOK_MARKER));
+    const psIndex = zonderBlok.findIndex((p) => /^p\.?\s*s\.?/i.test(p));
+    const ps = psIndex >= 0 ? zonderBlok.splice(psIndex, 1)[0] : null;
 
-    const body = alineas
+    const body = zonderBlok
       .map((p) => (isCta(p) ? benjiKnop : mailAlinea(p)))
       .join("\n");
     const psHtml = ps
       ? `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${ps.replace(/\n/g, "<br/>")}</p>`
       : "";
+    const blokHtml = heeftBlok ? benjiBlok : "";
 
     const html = mailWrapper(`
       ${body}
       ${mailHandtekeningIen()}
       ${psHtml}
+      ${blokHtml}
       ${ehFooter(nietAlleenUrl, `${appBase()}/api/afmelden`)}
     `);
 
