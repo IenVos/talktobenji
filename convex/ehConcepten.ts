@@ -85,7 +85,7 @@ Hoe meer je deelt, hoe beter hij je begrijpt.
 
 Geef hem de tijd, zoals in een echt gesprek. Dan gebeurt er iets.
 
-Probeer Benji 7 dagen gratis. Geen formulier, geen wachtwoord, geen creditcard je klikt en je bent er.
+Probeer Benji 7 dagen gratis. Geen formulier, geen wachtwoord, je klikt en je bent er.
 
 En kies je daarna voor Niet Alleen? Dan krijg je Benji nog 30 dagen extra cadeau. Zodat er geen haast is en je op je eigen tempo verder kunt.
 
@@ -320,7 +320,7 @@ export const stuurTest = action({
       <p style="font-size:16px;font-weight:700;color:#3d3530;margin:0 0 8px;">7 dagen gratis met Benji</p>
       <p style="font-size:14px;line-height:1.6;color:#6b6460;margin:0 0 18px;">Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.</p>
       <a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a>
-      <p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord, geen creditcard.</p>
+      <p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord.</p>
     </div>`;
 
     // De CTA herkennen we aan de vaste marker, of aan een handmatig getypte
