@@ -230,6 +230,15 @@ export default function EvenHouvastEmailsPage() {
         recent: { email: string; createdAt: number; mail?: string; verliestype?: string }[];
       }
     | undefined;
+  // De warme EH-reis: carrousel -> brug -> checkout (compacte samenvatting hier,
+  // de volledige analyse staat in Analytics).
+  const ehReis = useAdminQuery(api.siteAnalytics.getEhFunnelStats, { from: 0, to: 9999999999999 }) as
+    | {
+        tour: { stappen: { i: number; count: number }[]; slot: number; brugClick: number };
+        brug: { reached: number; checkoutClick: number };
+        ehCheckout: { slug: string; reached: number; purchased: number }[];
+      }
+    | undefined;
   // Benji-proef: één-klik-activaties, gebruik en doorverkoop naar Niet Alleen.
   const benjiProef = useAdminQuery(api.siteAnalytics.getBenjiProefStats, { from: 0, to: 9999999999999 }) as
     | {
@@ -412,6 +421,23 @@ export default function EvenHouvastEmailsPage() {
               <> · gemiddeld <span className="font-semibold text-gray-700">{benjiProef.gemGesprekken}</span> gesprekken per proef</>
             )}
           </p>
+        </div>
+      )}
+
+      {/* De warme reis: compacte samenvatting carrousel -> brug -> checkout */}
+      {ehReis && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-gray-900">De warme reis</h2>
+            <a href="/admin/analytics" className="text-xs font-medium text-primary-700 hover:text-primary-900">Volledige analyse →</a>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{ehReis.tour.stappen[0]?.count ?? 0}</p><p className="text-xs text-gray-500">carrousel gestart</p></div>
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{ehReis.tour.slot}</p><p className="text-xs text-gray-500">uitgelopen</p></div>
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{ehReis.brug.reached}</p><p className="text-xs text-gray-500">brug bereikt</p></div>
+            <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{ehReis.ehCheckout.reduce((s, c) => s + c.purchased, 0)}</p><p className="text-xs text-gray-500">gekocht via checkout</p></div>
+          </div>
+          <p className="text-xs text-gray-400">Carrousel → brugpagina → betaalpagina. De volledige analyse (per scherm, per verliestype) staat in Analytics.</p>
         </div>
       )}
 
