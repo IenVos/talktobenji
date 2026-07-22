@@ -230,6 +230,20 @@ export default function EvenHouvastEmailsPage() {
         recent: { email: string; createdAt: number; mail?: string; verliestype?: string }[];
       }
     | undefined;
+  // Benji-proef: één-klik-activaties, gebruik en doorverkoop naar Niet Alleen.
+  const benjiProef = useAdminQuery(api.siteAnalytics.getBenjiProefStats, { from: 0, to: 9999999999999 }) as
+    | {
+        verstuurd: number;
+        geactiveerd: number;
+        activatieRatio: number;
+        ehProeven: number;
+        actieveProef: number;
+        metGesprek: number;
+        totaalGesprekken: number;
+        gemGesprekken: number;
+        kochtNA: number;
+      }
+    | undefined;
   const [toonAfmeldingen, setToonAfmeldingen] = useState(false);
   const [testEmail, setTestEmail] = useState("");
   const [testNaam, setTestNaam] = useState("");
@@ -378,6 +392,28 @@ export default function EvenHouvastEmailsPage() {
           </div>
         )}
       </div>
+
+      {/* Benji-proef: één-klik-activaties, gebruik en doorverkoop naar Niet Alleen */}
+      {benjiProef && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-gray-900">Benji-proef</h2>
+            <span className="text-xs text-gray-400">7 dagen gratis via de mail</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.verstuurd}</p><p className="text-xs text-gray-500">links verstuurd</p></div>
+            <div className="rounded-lg bg-primary-50 p-3"><p className="text-2xl font-bold text-primary-700">{benjiProef.geactiveerd}</p><p className="text-xs text-gray-500">geactiveerd · {benjiProef.activatieRatio}%</p></div>
+            <div className="rounded-lg bg-amber-50 p-3"><p className="text-2xl font-bold text-amber-700">{benjiProef.actieveProef}</p><p className="text-xs text-gray-500">proef nu actief</p></div>
+            <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{benjiProef.kochtNA}</p><p className="text-xs text-gray-500">kocht Niet Alleen</p></div>
+          </div>
+          <p className="text-xs text-gray-500">
+            <span className="font-semibold text-gray-700">{benjiProef.metGesprek}</span> van {benjiProef.ehProeven} proeven praten met Benji
+            {benjiProef.ehProeven > 0 && (
+              <> · gemiddeld <span className="font-semibold text-gray-700">{benjiProef.gemGesprekken}</span> gesprekken per proef</>
+            )}
+          </p>
+        </div>
+      )}
 
       {/* Waar haken mensen af: afmeldingen per mail, met de afmeldratio erbij */}
       {afmeldingen && afmeldingen.totaalAfgemeld > 0 && (

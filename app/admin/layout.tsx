@@ -202,10 +202,21 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
           { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
           { href: "/admin/trial-emails", label: "E-mails", icon: Mail },
           { href: "/admin/niet-alleen-emails", label: "Niet Alleen emails", icon: Mail },
-          { href: "/admin/even-houvast-emails", label: "Even Houvast emails", icon: Mail },
-          { href: "/admin/eh-concepten", label: "Concept-mails", icon: Mail },
           { href: "/admin/cadeaucodes", label: "Cadeaucodes", icon: GiftCodeIcon },
           { href: "/admin/onderweg", label: "Voor Jou (Onderweg)", icon: ShoppingBag },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
+        id: "even-houvast",
+        label: "Even Houvast",
+        icon: FileHeart,
+        items: [
+          { href: "/admin/even-houvast-emails", label: "Funnel & mails", icon: Mail },
+          { href: "/admin/eh-concepten", label: "Concept-mails", icon: Mail },
+          { href: "/admin/even-houvast-leads", label: "Leads", icon: FileHeart },
         ],
       },
     },
@@ -217,7 +228,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         icon: Users,
         items: [
           { href: "/admin/klantbeheer", label: "Klantbeheer", icon: Users },
-          { href: "/admin/even-houvast-leads", label: "Even Houvast leads", icon: FileHeart },
           { href: "/admin/support-faq", label: "Support FAQ", icon: HelpCircle },
         ],
       },

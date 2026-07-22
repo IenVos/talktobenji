@@ -539,6 +539,60 @@ export const getEhFunnelStats = query({
   },
 });
 
+/**
+ * Benji-proef (Even Houvast): hoeveel één-klik-links zijn verstuurd, hoeveel mensen
+ * hebben geklikt (proef geactiveerd), hoeveel gebruiken Benji, en hoeveel kochten
+ * daarna Niet Alleen (met 30 dagen Benji). Bron: benjiStartTokens + userSubscriptions
+ * (bron "eh") + chatSessions.
+ */
+export const getBenjiProefStats = query({
+  args: { adminToken: v.string(), from: v.number(), to: v.number() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const nu = Date.now();
+
+    // Tokens = Benji-mails met een persoonlijke link. usedAt = geklikt/geactiveerd.
+    const tokens = await ctx.db.query("benjiStartTokens").collect();
+    const inPeriode = tokens.filter((t) => t.createdAt >= args.from && t.createdAt <= args.to);
+    const verstuurd = inPeriode.length;
+    const geactiveerd = inPeriode.filter((t) => t.usedAt).length;
+
+    // EH-proeven = toegang met bron "eh".
+    const alleSubs = await ctx.db.query("userSubscriptions").collect();
+    const ehSubs = alleSubs.filter((s) => s.bron === "eh");
+    const kochtNA = ehSubs.filter(
+      (s) => s.subscriptionType === "niet_alleen" || !!s.benjiExpiresAt
+    ).length;
+    const actieveProef = ehSubs.filter(
+      (s) => s.subscriptionType === "trial" && s.expiresAt && s.expiresAt > nu
+    ).length;
+
+    // Gebruik: gesprekken van de geactiveerde leads.
+    let totaalGesprekken = 0;
+    let metGesprek = 0;
+    for (const s of ehSubs) {
+      const sessies = await ctx.db
+        .query("chatSessions")
+        .withIndex("by_user", (q) => q.eq("userId", s.userId))
+        .collect();
+      if (sessies.length > 0) metGesprek++;
+      totaalGesprekken += sessies.length;
+    }
+
+    return {
+      verstuurd,
+      geactiveerd,
+      activatieRatio: verstuurd > 0 ? Math.round((geactiveerd / verstuurd) * 1000) / 10 : 0,
+      ehProeven: ehSubs.length,
+      actieveProef,
+      metGesprek,
+      totaalGesprekken,
+      gemGesprekken: ehSubs.length > 0 ? Math.round((totaalGesprekken / ehSubs.length) * 10) / 10 : 0,
+      kochtNA,
+    };
+  },
+});
+
 /** Haal statistieken op voor het opgegeven tijdsbereik (admin only). */
 export const getStats = query({
   args: {
