@@ -167,6 +167,12 @@ export default function ChatPageClient({
     }
   });
   const sessionId = sessionIdState;
+  // Heeft deze bezoeker al eerder met Benji gepraat? Dan hoeft het uitlegkaartje
+  // op het welkomstscherm niet meer. Lazy uit localStorage zodat er geen flits is.
+  const [heeftGechat] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return !!localStorage.getItem(HAS_CHATTED_KEY); } catch { return false; }
+  });
   const setSessionId = (id: Id<"chatSessions"> | null) => {
     setSessionIdState(id);
     if (typeof window !== "undefined") {
@@ -708,7 +714,8 @@ export default function ChatPageClient({
                 question={nachtConfig?.question}
                 subText={nachtConfig?.subText}
                 buttons={nachtConfig?.buttons}
-                showWaaromButton={nachtConfig?.showWaaromButton ?? !isNacht}
+                showWaaromButton={nachtConfig?.showWaaromButton ?? false}
+                toonIntroKader={!heeftGechat}
               />
               <div className="w-full max-w-sm mx-auto mt-4">
                 <form onSubmit={handleSubmit} className="w-full rounded-xl bg-primary-900 px-3 py-2.5 sm:py-3">
@@ -745,16 +752,6 @@ export default function ChatPageClient({
                   {isRecording && <p className="text-xs text-red-300 mt-1.5 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
                 </form>
               </div>
-              {!isNacht && (
-                <div className="flex justify-center mt-3">
-                  <Link
-                    href="/even-houvast"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs text-gray-500 hover:text-gray-700 hover:bg-white/60 transition-colors"
-                  >
-                    👋 Even Houvast
-                  </Link>
-                </div>
-              )}
             </>
           )}
 
