@@ -84,26 +84,47 @@ Iedereen die deze mail kreeg, wordt ingeschreven in de evergreen funnel op dag 1
 
 Elke lead heeft zijn eigen dag 1, namelijk de dag dat hij instroomt. Wie op 1 maart binnenkomt en wie op 20 mei binnenkomt, krijgen allebei dezelfde mail 1 op hun eigen eerste dag. Dat is wat evergreen betekent: de reeks staat stil, de mensen bewegen erdoorheen.
 
-### De blokken
+### Fases en blokken
 
-De reeks is opgedeeld in blokken van ongeveer 90 dagen, dus grofweg een kwartaal per blok.
+De reeks heeft twee niveaus, precies zoals in het masterplan. Een **fase** bepaalt het ritme, een **blok** bepaalt het thema. Een blok is twee of drie mails over hetzelfde onderwerp.
 
-```
-BLOK 1  (dag 1 tot 90)      "Kennismaken"
-   dag 1    Welkom, fijn dat je er bent
-   dag 6    Een verhaal
-   dag 14   ...
+**24 mails in totaal, verspreid over bijna een jaar.**
 
-BLOK 2  (dag 91 tot 180)    "Verdieping"
-   dag 95   ...
-   dag 110  ...
+**Intensieve fase, 12 mails, elke 7 dagen (dag 1 tot 78)**
 
-BLOK 3  (dag 181 tot 270)   "..."
-```
+| Blok | Thema | Mails | Dagen |
+|---|---|---|---|
+| 1 | De nachten | 3 | 1, 8, 15 |
+| 2 | Waarom het na lange tijd opeens weer rauw kan voelen | 2 | 22, 29 |
+| 3 | Je omgeving die het niet snapt | 2 | 36, 43 |
+| 4 | Schuldgevoel en "had ik maar" | 3 | 50, 57, 64 |
+| 5 | Goede dagen, en het schuldgevoel daarover | 2 | 71, 78 |
 
-In de admin klap je één blok open en zie je alleen de mails van dat blok. Loopt er iets mis, dan hoef je niet door veertig mails te zoeken. Je ziet per blok hoeveel mensen erin zitten, hoeveel er doorheen kwamen, hoeveel er afmeldden en wat de open- en klikcijfers zijn. Een blok kun je in zijn geheel op pauze zetten zonder de rest te raken.
+**Verdiepingsfase, 6 mails, elke 14 dagen (dag 92 tot 162)**
 
-Een blok is dus twee dingen tegelijk: een indeling in de admin, en een meetpunt. Technisch is het niets meer dan een groepje mails met een naam, dus het kan nooit iets breken.
+| Blok | Thema | Mails | Dagen |
+|---|---|---|---|
+| 6 | Er Zijn, de omgekeerde invalshoek | 1 | 92 |
+| 7 | Iedereen lijkt verder te gaan behalve jij | 1 | 106 |
+| 8 | Herinneringen bewaren | 1 | 120 |
+| 9 | Wat rouw met je lijf doet | 1 | 134 |
+| 10 | Verder leven zonder te vergeten | 2 | 148, 162 |
+
+**Aanwezigheidsfase, 6 mails, één per maand (dag 195 tot 345)**
+
+| Blok | Thema | Mails | Dagen |
+|---|---|---|---|
+| 11 | Terugkijken zonder schuld | 2 | 195, 225 |
+| 12 | Ruimte voor iets nieuws | 3 | 255, 285, 315 |
+| 13 | De late brug naar Niet Alleen | 1 | 345 |
+
+De dagnummers zijn een voorstel, geen wet. Je zet ze zelf in de admin en kunt ze altijd verschuiven. Ze zijn zo gekozen dat er tussen de fases even lucht zit, zodat de overgang naar een rustiger ritme voelbaar is.
+
+In de admin klap je één blok open en zie je alleen die twee of drie mails. Per blok zie je hoeveel mensen erin zitten, hoeveel er doorheen kwamen, hoeveel er afmeldden, en wat de open-, klik- en verkoopcijfers zijn. Zo zie je welk thema verkoopt en welk niet. Dat stuurt wat je later uitbreidt: een winnend blok krijgt een tweede reeks.
+
+Een blok kun je in zijn geheel op pauze zetten zonder de rest te raken. Technisch is een blok niets meer dan een groepje mails met een naam en een volgnummer, dus het kan nooit iets breken.
+
+**Je hoeft niet alles vooraf te schrijven.** Met blok 1 erin kan het systeem aan: niemand komt bij dag 22 voordat dag 15 voorbij is. Daarna heb je telkens een week voor het volgende blok. Als een mail nog niet klaar is, staat hij op uit en wordt hij overgeslagen zonder dat de rest verschuift.
 
 ### Instroom
 
@@ -117,7 +138,26 @@ Er zijn drie manieren om in de funnel te komen, en je zet ze afzonderlijk aan of
 
 - Bij afmelden. Direct en definitief.
 - Bij een aankoop van Niet Alleen. Dan hoort iemand in het klanttraject, niet in de verkoopfunnel.
+- Bij het kiezen van de rustoptie, zie hieronder.
 - Als de reeks op is. Dan blijft de lead gewoon geregistreerd en kan hij nog wel losse mails krijgen, maar de automatische reeks stopt.
+
+### De rustoptie
+
+Onder elke mail staat naast de afmeldlink een tweede zinnetje: *"Liever even minder mail? Klik hier en je hoort ons alleen nog maandelijks."*
+
+Bij een klik gaat de automatische reeks voor die persoon uit, maar blijft hij wel op de lijst voor de maandmail. Dat is de zachte tussenweg tussen alles ontvangen en helemaal weg zijn, en het scheelt afmeldingen: iemand die het even te veel vindt hoeft niet de deur dicht te doen.
+
+Technisch is dit een status op de lead (`alleen-maandmail`), met dezelfde beveiligde link als de afmeldlink. Wil iemand later weer de hele reeks, dan kun jij dat in de admin terugzetten. De reeks pakt dan gewoon op waar hij was, want het logboek weet welke mails hij al had.
+
+Statussen die een lead kan hebben:
+
+| Status | Betekent |
+|---|---|
+| `in-funnel` | zit nog in de Even Houvast-reeks, nog niet in de evergreen |
+| `in-backend` | loopt de evergreen reeks door |
+| `alleen-maandmail` | rustoptie gekozen, of de reeks helemaal uitgelopen |
+| `koper` | heeft Niet Alleen gekocht, zit in de koperflow |
+| `afgemeld` | krijgt niets meer |
 
 ### Hoe het versturen werkt
 
@@ -225,10 +265,11 @@ Na stap 2 heb je al waarde in handen. Na stap 4 kun je zelf funnels bouwen. Stap
 
 Niet meteen, maar wel voor stap 3 en 4 echt af zijn:
 
-1. **Hoeveel mails wil je in blok 1?** Mijn voorstel is acht tot tien over 90 dagen, dus ongeveer één per anderhalve week. Rustig genoeg om niet te veel te zijn, vaak genoeg om niet vergeten te worden.
-2. **De namen van de blokken.** Wat is het thema van de eerste drie maanden, van de tweede, enzovoort.
-3. **De tekst van de reactivatiemail.** Ik schrijf een eerste versie in jouw toon, jij past hem aan in de admin.
-4. **Op welk moment mag de reactivatiemail eruit.** Liefst een ochtend doordeweeks, en niet op een dag dat er ook Even Houvast-mails uitgaan.
+1. **De drie mails van blok 1, de nachtreeks.** Meer heb je niet nodig om te starten. De rest schrijf je terwijl de eerste leads al lopen.
+2. **De tekst van de reactivatiemail.** Ik schrijf een eerste versie in jouw toon, jij past hem aan in de admin.
+3. **Op welk moment mag de reactivatiemail eruit.** Liefst een ochtend doordeweeks, en niet op een dag dat er ook Even Houvast-mails uitgaan.
+
+De blokindeling en de dagnummers staan al in hoofdstuk 4, uit jouw masterplan. Die hoef je alleen na te kijken.
 
 ---
 
