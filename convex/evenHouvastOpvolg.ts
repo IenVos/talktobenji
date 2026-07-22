@@ -428,6 +428,8 @@ export const processEvenHouvastOpvolg = internalAction({
     const nu = Date.now();
     const schemaCache: Record<string, Record<number, number>> = {};
 
+    // Verzamel eerst alle te versturen mails van deze run.
+    const teVerzenden: { email: string; naam?: string; type: string; mailNummer: number }[] = [];
     for (const lead of leads) {
       const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: lead.email });
       if (status.afgemeld || status.heeftGekocht) continue;
@@ -451,23 +453,55 @@ export const processEvenHouvastOpvolg = internalAction({
         }
       }
       if (teVersturen === null) continue;
+      teVerzenden.push({ email: lead.email, naam: lead.naam ?? undefined, type, mailNummer: teVersturen });
+    }
 
-      try {
-        await verstuurOpvolgMail(ctx, {
-          email: lead.email,
-          naam: lead.naam ?? undefined,
-          type,
-          mailNummer: teVersturen,
-          apiKey,
-        });
-        await ctx.runMutation(internal.evenHouvastOpvolg._logVerzonden, {
-          email: lead.email,
-          mailNummer: teVersturen,
-        });
-      } catch (e) {
-        // Niet fataal: volgende run probeert opnieuw (nog niet gelogd).
-        console.error(`EH opvolgmail ${teVersturen} mislukt voor ${lead.email}:`, e);
-      }
+    // Gespreid versturen: elke mail als losse geplande taak, standaard 90s uit elkaar
+    // (instelbaar via env EH_SPREID_SECONDEN). Zo raken we Microsoft (Hotmail/Outlook)
+    // niet in één burst, wat 'server busy'-throttling en bounces gaf.
+    const intervalMs = Math.max(0, Number(process.env.EH_SPREID_SECONDEN ?? "90")) * 1000;
+    for (let i = 0; i < teVerzenden.length; i++) {
+      await ctx.scheduler.runAfter(
+        i * intervalMs,
+        internal.evenHouvastOpvolg._verstuurEnLog,
+        teVerzenden[i]
+      );
+    }
+  },
+});
+
+// Verstuur één opvolgmail (vanuit de gespreide planning). Her-controleert of de lead
+// intussen niet is afgemeld/heeft gekocht/de mail al kreeg, zodat vertraging veilig is.
+export const _verstuurEnLog = internalAction({
+  args: {
+    email: v.string(),
+    naam: v.optional(v.string()),
+    type: v.string(),
+    mailNummer: v.number(),
+  },
+  handler: async (ctx, args) => {
+    if (process.env.EH_OPVOLG_ACTIEF !== "true") return;
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) return;
+
+    const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: args.email });
+    if (status.afgemeld || status.heeftGekocht || status.gestuurd.includes(args.mailNummer)) return;
+
+    try {
+      await verstuurOpvolgMail(ctx, {
+        email: args.email,
+        naam: args.naam,
+        type: args.type,
+        mailNummer: args.mailNummer,
+        apiKey,
+      });
+      await ctx.runMutation(internal.evenHouvastOpvolg._logVerzonden, {
+        email: args.email,
+        mailNummer: args.mailNummer,
+      });
+    } catch (e) {
+      // Niet fataal: volgende dag-run probeert opnieuw (nog niet gelogd).
+      console.error(`EH opvolgmail ${args.mailNummer} mislukt voor ${args.email}:`, e);
     }
   },
 });
