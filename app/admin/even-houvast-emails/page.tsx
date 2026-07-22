@@ -14,7 +14,7 @@ import { useAdminQuery, useAdminMutation, useAdminAction } from "../AdminAuthCon
 // verandert. Zie ook convex/evenHouvastOpvolg.ts (SCHEMA).
 const EH_META: { n: number; titel: string; subtitel: string; defaultDag: number }[] = [
   { n: 1, titel: "Erkenning", subtitel: "Direct na de brief. Geen verkoop, alleen erkenning.", defaultDag: 0 },
-  { n: 6, titel: "Wie ik ben", subtitel: "Persoonlijk: Ien stelt zich voor (verhaal Zoro). Geen verkoop.", defaultDag: 2 },
+  { n: 6, titel: "Benji voorstellen", subtitel: "Maak kennis met Benji: 7 dagen gratis, één klik. Geen verkoop.", defaultDag: 2 },
   { n: 2, titel: "Normaliseren", subtitel: "Rouw om een huisdier mag er zijn.", defaultDag: 3 },
   { n: 3, titel: "Niet Alleen introduceren", subtitel: "Zacht introduceren. Knop naar de verkoop-LP.", defaultDag: 5 },
   { n: 4, titel: "Verhaal / ervaring", subtitel: "Een echt verhaal. Knop naar de verkoop-LP.", defaultDag: 8 },

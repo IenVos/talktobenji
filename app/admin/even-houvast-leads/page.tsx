@@ -33,7 +33,7 @@ const TYPE_LABEL: Record<string, string> = {
 // Titels van de opvolgmails (zelfde reeks als op de e-mailpagina).
 const OPVOLG_TITEL: Record<number, string> = {
   1: "Erkenning",
-  6: "Wie ik ben",
+  6: "Benji voorstellen",
   2: "Normaliseren",
   3: "Niet Alleen introduceren",
   4: "Verhaal / ervaring",
