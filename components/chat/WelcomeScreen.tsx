@@ -65,7 +65,7 @@ export function WelcomeScreen({
       <div className="w-full max-w-sm mx-auto mb-4 flex justify-center">
         <p className={`text-xs sm:text-sm break-words leading-relaxed text-center text-pretty max-w-xs sm:max-w-sm whitespace-pre-line ${introClass}`}>
           {introText?.trim() ||
-            "Een warme plek waar je je verhaal kwijt kunt, ook om 03:00 's nachts.\nZonder oordeel, altijd."}
+            "Een warme plek waar je je verhaal kwijt kunt,\nook om 03:00 's nachts.\nZonder oordeel, altijd."}
         </p>
       </div>
 
@@ -74,15 +74,18 @@ export function WelcomeScreen({
           met Benji heeft gepraat; terugkerende mensen kennen het al. */}
       {toonIntroKader && showTopicButtons && (
         <div className="w-full max-w-sm mx-auto mb-4 sm:mb-5">
-          <div className={`rounded-xl px-4 py-3 text-left backdrop-blur-sm ${isDark ? "bg-white/10 border border-white/25" : "bg-white/55 border border-white/70 shadow-sm"}`}>
+          <div className={`rounded-xl px-4 py-3 text-left backdrop-blur-sm border-2 ${isDark ? "bg-white/10 border-amber-300/60" : "bg-white/55 border-amber-300 shadow-sm"}`}>
             <div className="flex items-center gap-1.5 mb-1.5">
-              <MessageCircle size={15} strokeWidth={2} className={`flex-shrink-0 ${isDark ? "text-primary-200" : "text-primary-600"}`} />
+              <MessageCircle size={15} strokeWidth={2} className={`flex-shrink-0 ${isDark ? "text-amber-200" : "text-amber-500"}`} />
               <span className={`text-xs sm:text-[13px] font-semibold leading-snug ${isDark ? "text-white" : "text-primary-900"}`}>
                 Benji is geen zoekmachine, zie hem als een buddy
               </span>
             </div>
             <p className={`text-xs sm:text-[13px] leading-relaxed ${isDark ? "text-white/80" : "text-gray-600"}`}>
-              Begin gewoon met je verhaal: wie je bent en wat er speelt. Hoe meer je deelt, hoe beter Benji je begrijpt. Geef hem de tijd, zoals in een echt gesprek.
+              Begin gewoon met je verhaal: wie je bent en wat er speelt. Hoe meer je deelt, hoe beter Benji je begrijpt.
+            </p>
+            <p className={`text-xs sm:text-[13px] leading-relaxed mt-2 ${isDark ? "text-white/80" : "text-gray-600"}`}>
+              Geef hem even de tijd, zoals in een echt gesprek. &ldquo;Ik weet niet waar ik moet beginnen&rdquo; is ook een prima eerste zin.
             </p>
           </div>
         </div>
