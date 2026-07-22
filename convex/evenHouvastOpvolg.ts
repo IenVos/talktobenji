@@ -275,7 +275,22 @@ async function verstuurOpvolgMail(
   const isBenjiCta = (p: string) =>
     p.includes(BENJI_MARKER) || /\[[^\]]*benji[^\]]*\]/i.test(p);
 
-  const alineas0 = body.trim().split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+  // Opdracht-kadertje: alles tussen [opdracht] en [/opdracht] wordt een zacht blok,
+  // zodat een klein doe-momentje in de mail opvalt. Zonder de marker: geen effect.
+  let opdrachtCard = "";
+  let bodyVoorSplit = body;
+  const opdrachtMatch = body.match(/\[opdracht\]([\s\S]*?)\[\/opdracht\]/i);
+  if (opdrachtMatch) {
+    const innerHtml = opdrachtMatch[1]
+      .trim()
+      .split(/\n\n+/)
+      .map((p) => `<p style="font-size:15px;line-height:1.7;color:#4a5568;margin:0 0 12px;">${p.trim().replace(/\n/g, "<br/>")}</p>`)
+      .join("");
+    opdrachtCard = `<div style="background:#fdf9f4;border:1px solid #e7ded1;border-radius:14px;padding:18px 22px 6px;margin:22px 0;">${innerHtml}</div>`;
+    bodyVoorSplit = body.replace(opdrachtMatch[0], "\n\n[[OPDRACHT]]\n\n");
+  }
+
+  const alineas0 = bodyVoorSplit.trim().split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
   // Het Benji-blok komt onderaan (na de P.S.); haal die alinea uit de stroom.
   const heeftBlok = alineas0.some((p) => p.includes(BENJI_BLOK_MARKER));
   const alineas = alineas0.filter((p) => !p.includes(BENJI_BLOK_MARKER));
@@ -288,7 +303,9 @@ async function verstuurOpvolgMail(
   const heeftInline = alineas.some((p) => AFBEELDING_MARKER.test(p));
   const rompHtml = alineas
     .map((p) =>
-      isBenjiCta(p)
+      p === "[[OPDRACHT]]"
+        ? opdrachtCard
+        : isBenjiCta(p)
         ? benjiKnopHtml
         : AFBEELDING_MARKER.test(p)
         ? imageUrl ? inlineAfbeelding(imageUrl, imageCaption) : ""
