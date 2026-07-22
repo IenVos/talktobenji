@@ -38,6 +38,7 @@ type NavItem = {
   label: string;
   icon: React.ElementType;
   badge?: number;
+  children?: NavItem[];
 };
 
 type NavGroup = {
@@ -150,12 +151,65 @@ function CollapsibleGroup({
         <ul className="mt-0.5 ml-3 space-y-0.5 border-l pl-3" style={{ borderColor: dark ? "rgba(255,255,255,0.1)" : "#e5e7eb" }}>
           {group.items.map((item) => (
             <li key={item.href}>
-              <NavLink
-                item={item}
-                isActive={pathname === item.href}
-                dark={dark}
-                onClick={onItemClick}
-              />
+              {item.children && item.children.length > 0 ? (
+                <NavItemWithChildren item={item} pathname={pathname} dark={dark} onItemClick={onItemClick} />
+              ) : (
+                <NavLink
+                  item={item}
+                  isActive={pathname === item.href}
+                  dark={dark}
+                  onClick={onItemClick}
+                />
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+// Een nav-item met een uitklapbaar sub-lijstje (bijv. Concept-mails onder Funnel).
+function NavItemWithChildren({
+  item,
+  pathname,
+  dark,
+  onItemClick,
+}: {
+  item: NavItem;
+  pathname: string;
+  dark?: boolean;
+  onItemClick?: () => void;
+}) {
+  const kids = item.children ?? [];
+  const childActive = kids.some((c) => pathname === c.href);
+  const [open, setOpen] = useState(pathname === item.href || childActive);
+  useEffect(() => {
+    if (pathname === item.href || childActive) setOpen(true);
+  }, [pathname, childActive]);
+
+  return (
+    <div>
+      <div className="flex items-center gap-0.5">
+        <div className="flex-1 min-w-0">
+          <NavLink item={item} isActive={pathname === item.href} dark={dark} onClick={onItemClick} />
+        </div>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? "Inklappen" : "Uitklappen"}
+          className={`flex-shrink-0 p-1.5 rounded transition-colors ${
+            dark ? "text-gray-400 hover:text-white" : "text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </button>
+      </div>
+      {open && (
+        <ul className="mt-0.5 ml-4 space-y-0.5 border-l pl-3" style={{ borderColor: dark ? "rgba(255,255,255,0.1)" : "#e5e7eb" }}>
+          {kids.map((c) => (
+            <li key={c.href}>
+              <NavLink item={c} isActive={pathname === c.href} dark={dark} onClick={onItemClick} />
             </li>
           ))}
         </ul>
@@ -214,8 +268,15 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         label: "Even Houvast",
         icon: FileHeart,
         items: [
-          { href: "/admin/even-houvast-emails", label: "Funnel & mails", icon: Mail },
-          { href: "/admin/eh-concepten", label: "Concept-mails", icon: Mail },
+          {
+            href: "/admin/even-houvast-funnel",
+            label: "Funnel",
+            icon: BarChart3,
+            children: [
+              { href: "/admin/eh-concepten", label: "Concept-mails", icon: Mail },
+            ],
+          },
+          { href: "/admin/even-houvast-emails", label: "Mails", icon: Mail },
           { href: "/admin/even-houvast-leads", label: "Leads", icon: FileHeart },
         ],
       },
