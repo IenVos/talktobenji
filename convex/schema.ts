@@ -1011,6 +1011,8 @@ export default defineSchema({
     bodyText: v.string(),
     buttonText: v.optional(v.string()),
     buttonUrl: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),      // afbeelding (cover boven de knop of inline via [afbeelding])
+    imageCaption: v.optional(v.string()),  // zacht bijschrift onder de afbeelding
     doelgroep: v.string(),          // bijv. "reactivatie" | "backend-alle" | "type:huisdier"
     status: v.string(),             // "concept" | "bezig" | "verzonden"
     // Gespreid versturen: kleine groepjes met een pauze ertussen, instelbaar.

@@ -158,16 +158,29 @@ export default function ReactivatiePage() {
 
 function ReactivatieOpsteller() {
   const opgeslagen = useAdminQuery(api.mailFunnel.getReactivatieMail, {}) as
-    | { subject: string; bodyText: string; buttonText: string; buttonUrl: string; opgeslagen: boolean }
+    | {
+        subject: string;
+        bodyText: string;
+        buttonText: string;
+        buttonUrl: string;
+        imageUrl: string;
+        imageCaption: string;
+        opgeslagen: boolean;
+      }
     | undefined;
   const save = useAdminMutation(api.mailFunnel.saveReactivatieMail);
   const stuurTest = useAdminAction(api.mailFunnel.stuurTestReactivatie);
+  const generateUploadUrl = useAdminMutation(api.pageContent.generateUploadUrl);
+  const getImageUrl = useAdminMutation(api.pageContent.getImageUrl);
 
   const [subject, setSubject] = useState("");
   const [bodyText, setBodyText] = useState("");
   const [buttonText, setButtonText] = useState("");
   const [buttonUrl, setButtonUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageCaption, setImageCaption] = useState("");
   const [geladen, setGeladen] = useState(false);
+  const [uploaden, setUploaden] = useState(false);
 
   const [testEmail, setTestEmail] = useState("");
   const [testNaam, setTestNaam] = useState("");
@@ -182,15 +195,33 @@ function ReactivatieOpsteller() {
       setBodyText(opgeslagen.bodyText);
       setButtonText(opgeslagen.buttonText ?? "");
       setButtonUrl(opgeslagen.buttonUrl ?? "");
+      setImageUrl(opgeslagen.imageUrl ?? "");
+      setImageCaption(opgeslagen.imageCaption ?? "");
       setGeladen(true);
     }
   }, [opgeslagen, geladen]);
+
+  const uploadAfbeelding = async (file: File) => {
+    setUploaden(true);
+    setMelding("");
+    try {
+      const url = await generateUploadUrl();
+      const res = await fetch(url, { method: "POST", headers: { "Content-Type": file.type }, body: file });
+      const { storageId } = await res.json();
+      const publiek = await getImageUrl({ storageId });
+      if (publiek) setImageUrl(publiek);
+    } catch (e: any) {
+      setMelding(e?.message ?? "Uploaden mislukt.");
+    } finally {
+      setUploaden(false);
+    }
+  };
 
   const opslaan = async () => {
     setBezig("opslaan");
     setMelding("");
     try {
-      await save({ subject, bodyText, buttonText, buttonUrl });
+      await save({ subject, bodyText, buttonText, buttonUrl, imageUrl, imageCaption });
       setMelding("Opgeslagen.");
     } catch (e: any) {
       setMelding(e?.message ?? "Opslaan mislukt.");
@@ -208,7 +239,7 @@ function ReactivatieOpsteller() {
     setMelding("");
     try {
       // Eerst opslaan, zodat de test exact de huidige tekst gebruikt.
-      await save({ subject, bodyText, buttonText, buttonUrl });
+      await save({ subject, bodyText, buttonText, buttonUrl, imageUrl, imageCaption });
       await stuurTest({ email: testEmail.trim(), naam: testNaam.trim() || undefined, type: testType });
       setMelding(`Testmail verstuurd naar ${testEmail.trim()}.`);
     } catch (e: any) {
@@ -223,11 +254,27 @@ function ReactivatieOpsteller() {
       <div>
         <h2 className="text-base font-semibold text-gray-900">De reactivatiemail opstellen</h2>
         <p className="text-xs text-gray-500 mt-1">
-          Kleine testtekst om mee te beginnen. Pas hem gerust aan. Zet <code>[benji-blok]</code> op een
-          eigen regel voor het Benji-kaartje met de gratis-proef-knop. <code>{"{voornaam}"}</code> wordt
-          per persoon ingevuld. Versturen naar de hele doelgroep komt in de volgende stap: hier test je
-          alleen naar jezelf.
+          Kleine testtekst om mee te beginnen. Pas hem gerust aan. Enkele handigheidjes:
         </p>
+        <ul className="text-xs text-gray-500 mt-2 space-y-1 list-disc pl-5">
+          <li>
+            <code>[benji-blok]</code> op een eigen regel toont het Benji-kaartje met de gratis-proef-knop.
+          </li>
+          <li>
+            <code>{"{voornaam}"}</code> wordt per persoon ingevuld.
+          </li>
+          <li>
+            Een afsluitgroet als <em>Lieve groet,</em> op de laatste regel komt automatisch vlak boven je
+            foto-handtekening. Je naam hoef je er niet bij te zetten, die staat al in de handtekening.
+          </li>
+          <li>
+            Een regel die met <strong>P.S.</strong> begint, komt netjes ónder je handtekening.
+          </li>
+          <li>
+            Een afbeelding (hieronder) verschijnt boven de knop. Zet je <code>[afbeelding]</code> op een
+            eigen regel in de tekst, dan staat hij juist daar, midden in de mail.
+          </li>
+        </ul>
       </div>
 
       <label className="block">
@@ -271,6 +318,59 @@ function ReactivatieOpsteller() {
             className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
         </label>
+      </div>
+
+      {/* Afbeelding (optioneel) */}
+      <div className="rounded-lg border border-gray-200 p-3 space-y-2">
+        <span className="text-sm font-medium text-gray-700">Afbeelding (optioneel)</span>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="https://… of upload hiernaast"
+            className="flex-1 min-w-[180px] rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+          <label
+            className={`cursor-pointer rounded-lg border px-3 py-2 text-sm ${
+              uploaden
+                ? "opacity-50 border-gray-200"
+                : "border-primary-200 text-primary-700 hover:bg-primary-50"
+            }`}
+          >
+            {uploaden ? "Uploaden…" : "Upload"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={uploaden}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) uploadAfbeelding(file);
+              }}
+            />
+          </label>
+          {imageUrl && (
+            <button
+              type="button"
+              onClick={() => setImageUrl("")}
+              className="text-xs text-gray-400 hover:text-red-500"
+            >
+              Verwijderen
+            </button>
+          )}
+        </div>
+        {imageUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={imageUrl} alt="" className="max-w-[180px] rounded-lg border border-gray-200" />
+        )}
+        <input
+          type="text"
+          value={imageCaption}
+          onChange={(e) => setImageCaption(e.target.value)}
+          placeholder="Bijschrift onder de afbeelding (optioneel)"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+        />
       </div>
 
       <div className="flex items-center gap-3">

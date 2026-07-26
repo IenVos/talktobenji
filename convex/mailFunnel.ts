@@ -24,6 +24,7 @@ import {
   mailAlinea,
   mailKnop,
   mailWrapper,
+  mailHandtekeningIen,
   ehFooter,
   ehAfmeldUrl,
   nietAlleenUrlVoorType,
@@ -282,10 +283,45 @@ const REACTIVATIE_DEFAULT = {
     "Hoi {voornaam},\n\n" +
     "Dit is een korte testtekst. Sinds jij destijds je verhaal met me deelde, heb ik iets nieuws gemaakt: Benji. Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.\n\n" +
     "[benji-blok]\n\n" +
-    "Lieve groet,\nIen",
+    "Lieve groet,\n\n" +
+    "P.S. Dit is een voorbeeld van een P.S. Zet een regel die met P.S. begint onderaan je tekst, dan komt hij netjes onder mijn handtekening.",
   buttonText: "",
   buttonUrl: "",
+  imageUrl: "",
+  imageCaption: "",
 };
+
+// Afsluitgroeten die vlak boven de handtekening horen (net als in de EH-mails).
+const AFSLUITINGEN = [
+  "lieve groet", "lieve groetjes", "veel liefs", "liefs", "met liefs",
+  "warme groet", "een warme groet", "met warme groet", "groetjes",
+  "warme groetjes", "veel sterkte", "sterkte",
+];
+function isAfsluiting(par: string): boolean {
+  const g = par.toLowerCase().replace(/[.,!\s]+$/g, "").trim();
+  return AFSLUITINGEN.includes(g);
+}
+
+// Marker om de geüploade afbeelding midden in de tekst te tonen: losse regel [afbeelding].
+const AFBEELDING_MARKER = /^\[afbeelding\]$/i;
+
+function inlineAfbeelding(imageUrl: string, caption?: string): string {
+  const img = `<img src="${imageUrl}" alt="" style="width:100%;max-width:480px;height:auto;border-radius:12px;display:block;margin:0 auto;" />`;
+  const cap = caption
+    ? `<p style="font-size:13px;color:#6b6460;text-align:center;margin:10px 0 0 0;">${caption}</p>`
+    : "";
+  return `<div style="margin:24px 0;">${img}${cap}</div>`;
+}
+
+// Klikbare cover-afbeelding boven de knop (linkt naar de knop-URL indien aanwezig).
+function coverBlok(imageUrl: string, linkUrl?: string, caption?: string): string {
+  const img = `<img src="${imageUrl}" alt="" style="max-width:240px;width:100%;height:auto;border-radius:10px;display:block;margin:0 auto;box-shadow:0 4px 18px rgba(0,0,0,0.12);" />`;
+  const inner = linkUrl ? `<a href="${linkUrl}" style="text-decoration:none;display:inline-block;">${img}</a>` : img;
+  const cap = caption
+    ? `<p style="font-size:13px;color:#6b6460;margin:12px 0 0 0;">${caption}</p>`
+    : "";
+  return `<div style="margin:26px 0;text-align:center;">${inner}${cap}</div>`;
+}
 
 // Het Benji-kaartje met persoonlijke één-klik-link (zelfde stijl als in de EH-mails).
 function benjiBlokHtml(benjiUrl: string): string {
@@ -338,6 +374,8 @@ async function bouwReactivatieHtml(
     bodyText: string;
     buttonText?: string;
     buttonUrl?: string;
+    imageUrl?: string;
+    imageCaption?: string;
     type?: string;
   }
 ): Promise<string> {
@@ -345,6 +383,9 @@ async function bouwReactivatieHtml(
   const body = args.bodyText
     .replace(/\{voornaam\}/g, voornaam)
     .replace(/(Hi|Hoi)\s+,/g, "$1,");
+
+  const imageUrl = (args.imageUrl || "").trim() || undefined;
+  const imageCaption = (args.imageCaption || "").trim() || undefined;
 
   // Benji-kaartje: alleen als de marker aanwezig is, dan een persoonlijk token.
   const heeftBlok = body.includes(BENJI_BLOK_MARKER);
@@ -357,17 +398,43 @@ async function bouwReactivatieHtml(
     blokHtml = benjiBlokHtml(`${appBase()}/benji-start?token=${token}`);
   }
 
+  // Splits in alinea's. Het Benji-blok halen we uit de stroom (komt onderaan).
   const alineas = body
     .split(/\n\n+/)
     .map((p: string) => p.trim())
-    .filter(Boolean);
+    .filter((p: string) => p && !p.includes(BENJI_BLOK_MARKER));
+
+  // Een P.S.-alinea komt ná de handtekening (zoals een echte P.S. onder een brief).
+  const psIndex = alineas.findIndex((p: string) => /^p\.?\s*s\.?/i.test(p));
+  const ps = psIndex >= 0 ? alineas.splice(psIndex, 1)[0] : "";
+
+  // De afsluitgroet (laatste alinea, bv. "Lieve groet,") komt vlak boven de foto-
+  // handtekening. De handtekening levert zelf de naam Ien, dus die hoeft niet in de tekst.
+  const afsluiting =
+    alineas.length > 0 && isAfsluiting(alineas[alineas.length - 1]) ? alineas.pop()! : "";
+
+  const heeftInline = alineas.some((p: string) => AFBEELDING_MARKER.test(p));
   const rompHtml = alineas
-    .map((p: string) => (p.includes(BENJI_BLOK_MARKER) ? "" : mailAlinea(p)))
+    .map((p: string) =>
+      AFBEELDING_MARKER.test(p)
+        ? imageUrl
+          ? inlineAfbeelding(imageUrl, imageCaption)
+          : ""
+        : mailAlinea(p)
+    )
     .join("\n");
 
   const knopTekst = (args.buttonText || "").trim();
   const knopUrl = (args.buttonUrl || "").trim();
   const toonKnop = !!knopTekst && !!knopUrl;
+
+  // Cover-afbeelding boven de knop, maar alleen als hij niet al inline (via de marker)
+  // in de tekst staat, anders zou hij dubbel verschijnen.
+  const toonCover = !!imageUrl && !heeftInline;
+
+  const psHtml = ps
+    ? `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${ps.replace(/\n/g, "<br/>")}</p>`
+    : "";
 
   const type = args.type || "algemeen";
   const afmeldUrl = await ehAfmeldUrl(args.email, "reactivatie", type);
@@ -375,7 +442,11 @@ async function bouwReactivatieHtml(
   return mailWrapper(`
     ${rompHtml}
     ${heeftBlok ? blokHtml : ""}
+    ${toonCover ? coverBlok(imageUrl!, knopUrl || undefined, imageCaption) : ""}
     ${toonKnop ? mailKnop(knopTekst, knopUrl) : ""}
+    ${afsluiting ? mailAlinea(afsluiting) : ""}
+    ${mailHandtekeningIen()}
+    ${psHtml}
     ${ehFooter(nietAlleenUrlVoorType(type), afmeldUrl)}
   `);
 }
@@ -394,6 +465,8 @@ export const getReactivatieMail = query({
       bodyText: rij?.bodyText ?? REACTIVATIE_DEFAULT.bodyText,
       buttonText: rij?.buttonText ?? REACTIVATIE_DEFAULT.buttonText,
       buttonUrl: rij?.buttonUrl ?? REACTIVATIE_DEFAULT.buttonUrl,
+      imageUrl: rij?.imageUrl ?? REACTIVATIE_DEFAULT.imageUrl,
+      imageCaption: rij?.imageCaption ?? REACTIVATIE_DEFAULT.imageCaption,
       opgeslagen: !!rij,
     };
   },
@@ -407,6 +480,8 @@ export const saveReactivatieMail = mutation({
     bodyText: v.string(),
     buttonText: v.optional(v.string()),
     buttonUrl: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    imageCaption: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -419,6 +494,8 @@ export const saveReactivatieMail = mutation({
       bodyText: args.bodyText,
       buttonText: args.buttonText?.trim() || undefined,
       buttonUrl: args.buttonUrl?.trim() || undefined,
+      imageUrl: args.imageUrl?.trim() || undefined,
+      imageCaption: args.imageCaption?.trim() || undefined,
       updatedAt: Date.now(),
     };
     if (bestaand) {
@@ -460,6 +537,8 @@ export const stuurTestReactivatie = action({
       bodyText: mail.bodyText,
       buttonText: mail.buttonText,
       buttonUrl: mail.buttonUrl,
+      imageUrl: mail.imageUrl,
+      imageCaption: mail.imageCaption,
       type: args.type,
     });
     await verstuurReactivatieEmail({ to: args.email, subject: mail.subject, html, apiKey });
@@ -495,6 +574,8 @@ export const _reactivatieConfig = internalQuery({
       bodyText: rij.bodyText,
       buttonText: rij.buttonText,
       buttonUrl: rij.buttonUrl,
+      imageUrl: rij.imageUrl,
+      imageCaption: rij.imageCaption,
       status: rij.status,
       gestopt: !!rij.gestopt,
       batchGrootte: rij.batchGrootte ?? DEFAULT_BATCH,
@@ -627,6 +708,8 @@ export const _reactivatieRonde = internalAction({
           bodyText: cfg.bodyText,
           buttonText: cfg.buttonText,
           buttonUrl: cfg.buttonUrl,
+          imageUrl: cfg.imageUrl,
+          imageCaption: cfg.imageCaption,
           type: lead.type,
         });
         await verstuurReactivatieEmail({ to: lead.email, subject: cfg.subject, html, apiKey });
