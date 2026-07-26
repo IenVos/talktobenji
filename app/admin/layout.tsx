@@ -284,6 +284,17 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
     {
       type: "group",
       group: {
+        id: "mailsysteem",
+        label: "Mailsysteem",
+        icon: Mail,
+        items: [
+          { href: "/admin/mailsysteem/reactivatie", label: "Reactivatie", icon: Mail },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
         id: "klanten",
         label: "Klanten",
         icon: Users,

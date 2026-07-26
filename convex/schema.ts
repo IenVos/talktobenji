@@ -948,6 +948,76 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_email", ["email"]),
 
+  // ── Eigen e-mailsysteem (evergreen funnel) ─────────────────────────────────
+  // Staat volledig los van de Even Houvast-reeks (die blijft op zijn eigen code).
+  // Zie PLAN_EVERGREEN_FUNNEL.md. In deze eerste stap worden de tabellen alleen
+  // gedefinieerd; er verstuurt nog niets.
+
+  // Een blok: een groepje mails over hetzelfde thema, met een volgnummer en de
+  // dag-range waarin het valt. Ook een meetpunt (per blok cijfers) en een
+  // pauzeschakelaar.
+  funnelBlokken: defineTable({
+    naam: v.string(),
+    fase: v.optional(v.string()),   // "intensief" | "verdieping" | "aanwezigheid"
+    volgorde: v.number(),           // volgorde tussen blokken
+    vanDag: v.number(),             // eerste dag van dit blok (t.o.v. instroom = dag 1)
+    totDag: v.number(),             // laatste dag van dit blok
+    actief: v.boolean(),            // blok aan/uit zonder de rest te raken
+    updatedAt: v.number(),
+  }).index("by_volgorde", ["volgorde"]),
+
+  // Eén mail in de reeks. Hoort bij een blok, valt op een dagoffset (dag na
+  // instroom). Optioneel een variant per verliestype: is er een variant voor het
+  // type van de lead, dan die, anders de algemene versie (verliesType leeg).
+  funnelMails: defineTable({
+    blokId: v.id("funnelBlokken"),
+    dagOffset: v.number(),          // dag na instroom (dag 1 = instroomdag)
+    subject: v.string(),
+    bodyText: v.string(),
+    buttonText: v.optional(v.string()),
+    buttonUrl: v.optional(v.string()),
+    verliesType: v.optional(v.string()), // leeg = algemene versie; anders variant
+    actief: v.boolean(),            // uit = wordt overgeslagen zonder de reeks te verschuiven
+    updatedAt: v.number(),
+  })
+    .index("by_blok", ["blokId"])
+    .index("by_dagOffset", ["dagOffset"]),
+
+  // Wie zit in de funnel. Eigen dag 1 per lead (ingestroomdOp). Status bepaalt of
+  // de reeks loopt, gepauzeerd is (alleen-maandmail), of gestopt (koper/afgemeld).
+  funnelLeads: defineTable({
+    email: v.string(),              // lowercase
+    naam: v.optional(v.string()),
+    verliesType: v.optional(v.string()),
+    ingestroomdOp: v.number(),      // moment van instroom = basis voor de dagteller
+    bron: v.string(),               // "reactivatie" | "eh" | "handmatig"
+    status: v.string(),             // "in-backend" | "alleen-maandmail" | "koper" | "afgemeld"
+    updatedAt: v.number(),
+  })
+    .index("by_email", ["email"])
+    .index("by_status", ["status"]),
+
+  // Logboek: welke funnelmail is wanneer naar wie gegaan. Voorkomt dubbele mails.
+  funnelVerzonden: defineTable({
+    email: v.string(),              // lowercase
+    mailId: v.id("funnelMails"),
+    sentAt: v.number(),
+  }).index("by_email", ["email"]),
+
+  // Losse tussendoor-mails (o.a. de eenmalige reactivatiemail en de maandmail):
+  // opstellen, doelgroep kiezen, testen, gespreid versturen.
+  funnelLosseMails: defineTable({
+    subject: v.string(),
+    bodyText: v.string(),
+    buttonText: v.optional(v.string()),
+    buttonUrl: v.optional(v.string()),
+    doelgroep: v.string(),          // bijv. "reactivatie" | "backend-alle" | "type:huisdier"
+    status: v.string(),             // "concept" | "verzonden"
+    aantalGepland: v.optional(v.number()),
+    verstuurdOp: v.optional(v.number()),
+    updatedAt: v.number(),
+  }),
+
   // Verwerkte Stripe-webhookgebeurtenissen. Stripe kan eenzelfde event meer dan
   // eens afleveren; dit logboek voorkomt dubbele verwerking (dubbele mail/cadeaucode).
   processedStripeEvents: defineTable({

@@ -52,6 +52,7 @@ import type * as kaalBetaalpaginas from "../kaalBetaalpaginas.js";
 import type * as klantbeheer from "../klantbeheer.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
 import type * as landingPages from "../landingPages.js";
+import type * as mailFunnel from "../mailFunnel.js";
 import type * as memories from "../memories.js";
 import type * as mensenOmJeHeen from "../mensenOmJeHeen.js";
 import type * as nietAlleen from "../nietAlleen.js";
@@ -135,6 +136,7 @@ declare const fullApi: ApiFromModules<{
   klantbeheer: typeof klantbeheer;
   knowledgeBase: typeof knowledgeBase;
   landingPages: typeof landingPages;
+  mailFunnel: typeof mailFunnel;
   memories: typeof memories;
   mensenOmJeHeen: typeof mensenOmJeHeen;
   nietAlleen: typeof nietAlleen;
