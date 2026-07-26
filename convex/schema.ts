@@ -1012,7 +1012,13 @@ export default defineSchema({
     buttonText: v.optional(v.string()),
     buttonUrl: v.optional(v.string()),
     doelgroep: v.string(),          // bijv. "reactivatie" | "backend-alle" | "type:huisdier"
-    status: v.string(),             // "concept" | "verzonden"
+    status: v.string(),             // "concept" | "bezig" | "verzonden"
+    // Gespreid versturen: kleine groepjes met een pauze ertussen, instelbaar.
+    batchGrootte: v.optional(v.number()),  // hoeveel mails per ronde (default 25)
+    intervalSec: v.optional(v.number()),   // pauze tussen rondes in seconden (default 60)
+    gestopt: v.optional(v.boolean()),      // noodrem: volgende ronde stopt
+    aantalVerzonden: v.optional(v.number()),
+    gestartOp: v.optional(v.number()),
     aantalGepland: v.optional(v.number()),
     verstuurdOp: v.optional(v.number()),
     updatedAt: v.number(),

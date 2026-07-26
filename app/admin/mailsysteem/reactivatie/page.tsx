@@ -150,6 +150,7 @@ export default function ReactivatiePage() {
       </div>
 
       <ReactivatieOpsteller />
+      <ReactivatieVerzenden />
     </div>
     </>
   );
@@ -320,6 +321,173 @@ function ReactivatieOpsteller() {
           {bezig === "test" ? "Versturen…" : "Stuur testmail"}
         </button>
       </div>
+
+      {melding && <p className="text-sm text-gray-600">{melding}</p>}
+    </div>
+  );
+}
+
+function ReactivatieVerzenden() {
+  const status = useAdminQuery(api.mailFunnel.reactivatieVerzendStatus, {}) as
+    | {
+        status: string;
+        gestopt: boolean;
+        batchGrootte: number;
+        intervalSec: number;
+        aantalVerzonden: number;
+        totaalDoelgroep: number;
+        resterend: number;
+      }
+    | undefined;
+  const start = useAdminMutation(api.mailFunnel.startReactivatieVerzending);
+  const stop = useAdminMutation(api.mailFunnel.stopReactivatieVerzending);
+
+  const [batch, setBatch] = useState(25);
+  const [intervalSec, setIntervalSec] = useState(60);
+  const [ingesteld, setIngesteld] = useState(false);
+  const [bevestig, setBevestig] = useState(false);
+  const [bezig, setBezig] = useState(false);
+  const [melding, setMelding] = useState("");
+
+  // Eenmalig de opgeslagen instellingen overnemen.
+  useEffect(() => {
+    if (status && !ingesteld) {
+      setBatch(status.batchGrootte);
+      setIntervalSec(status.intervalSec);
+      setIngesteld(true);
+    }
+  }, [status, ingesteld]);
+
+  const loopt = status?.status === "bezig";
+
+  const starten = async () => {
+    setBezig(true);
+    setMelding("");
+    try {
+      await start({ bevestig: true, batchGrootte: batch, intervalSec: intervalSec });
+      setMelding("Verzending gestart.");
+      setBevestig(false);
+    } catch (e: any) {
+      setMelding(e?.message ?? "Starten mislukt.");
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const stoppen = async () => {
+    setBezig(true);
+    try {
+      await stop({});
+      setMelding("Noodrem ingedrukt. De volgende ronde stopt.");
+    } catch (e: any) {
+      setMelding(e?.message ?? "Stoppen mislukt.");
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  // Geschatte duur: aantal rondes maal de pauze.
+  const rondes = batch > 0 ? Math.ceil((status?.resterend ?? 0) / batch) : 0;
+  const duurMin = Math.round((rondes * intervalSec) / 60);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+      <div>
+        <h2 className="text-base font-semibold text-gray-900">Versturen naar de doelgroep</h2>
+        <p className="text-xs text-gray-500 mt-1">
+          Gespreid in kleine groepjes, zodat Outlook en Hotmail niet gaan knijpen. Vlak voor elke mail
+          wordt nog gecontroleerd of iemand zich niet net heeft afgemeld of heeft gekocht. Iedereen die
+          de mail krijgt, stroomt meteen de evergreen funnel in.
+        </p>
+      </div>
+
+      {/* Voortgang */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+        <div className="rounded-lg bg-gray-50 p-3">
+          <p className="text-2xl font-bold text-gray-900">{status?.totaalDoelgroep ?? "…"}</p>
+          <p className="text-xs text-gray-500">in de doelgroep</p>
+        </div>
+        <div className="rounded-lg bg-green-50 p-3">
+          <p className="text-2xl font-bold text-green-700">{status?.aantalVerzonden ?? "…"}</p>
+          <p className="text-xs text-gray-500">verstuurd</p>
+        </div>
+        <div className="rounded-lg bg-gray-50 p-3">
+          <p className="text-2xl font-bold text-gray-900">{status?.resterend ?? "…"}</p>
+          <p className="text-xs text-gray-500">nog te gaan</p>
+        </div>
+        <div className="rounded-lg bg-gray-50 p-3">
+          <p className="text-2xl font-bold text-gray-900">
+            {loopt ? "bezig" : status?.status === "verzonden" ? "klaar" : "klaar om te starten"}
+          </p>
+          <p className="text-xs text-gray-500">status</p>
+        </div>
+      </div>
+
+      {/* Instellingen */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label className="block">
+          <span className="text-sm font-medium text-gray-700">Aantal per ronde</span>
+          <input
+            type="number"
+            min={1}
+            max={100}
+            value={batch}
+            onChange={(e) => setBatch(Number(e.target.value))}
+            disabled={loopt}
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50"
+          />
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium text-gray-700">Pauze tussen rondes (seconden)</span>
+          <input
+            type="number"
+            min={5}
+            value={intervalSec}
+            onChange={(e) => setIntervalSec(Number(e.target.value))}
+            disabled={loopt}
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm disabled:bg-gray-50"
+          />
+        </label>
+      </div>
+      {!loopt && (status?.resterend ?? 0) > 0 && (
+        <p className="text-xs text-gray-500">
+          Standaard 25 per 60 seconden. Met deze instelling duurt het ongeveer{" "}
+          {duurMin <= 1 ? "een paar minuten" : `${duurMin} minuten`}.
+        </p>
+      )}
+
+      {/* Start / stop */}
+      {loopt ? (
+        <button
+          onClick={stoppen}
+          disabled={bezig}
+          className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          Noodrem: stop de verzending
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <label className="flex items-start gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={bevestig}
+              onChange={(e) => setBevestig(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              Ik heb een testmail bekeken en de tekst klopt. Verstuur naar{" "}
+              <strong>{status?.resterend ?? 0}</strong> mensen.
+            </span>
+          </label>
+          <button
+            onClick={starten}
+            disabled={!bevestig || bezig || (status?.resterend ?? 0) === 0}
+            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {bezig ? "Starten…" : "Start de verzending"}
+          </button>
+        </div>
+      )}
 
       {melding && <p className="text-sm text-gray-600">{melding}</p>}
     </div>
