@@ -4,7 +4,6 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { Resend } from "resend";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { addToMailerLite } from "@/lib/mailerlite";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -482,15 +481,16 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // MailerLite — alleen toevoegen als koper opt-in heeft gegeven
-      const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
-      if (mailerLiteGroep && optIn === "true") {
-        await addToMailerLite({
-          email,
-          name: name ?? "",
-          groups: [mailerLiteGroep],
-          context: "stripe-webhook",
-        });
+      // Nieuwsbrief-opt-in bewaren in het eigen systeem (niet meer MailerLite),
+      // alleen als de koper in de checkout opt-in heeft gegeven.
+      if (optIn === "true") {
+        await convex
+          .mutation(api.nieuwsbrief.registreerOptin, {
+            email,
+            naam: name || undefined,
+            bron: "checkout",
+          })
+          .catch((err: any) => console.error("[webhook] opt-in opslaan mislukt:", err?.message));
       }
 
       // Bevestigingsmail + factuur

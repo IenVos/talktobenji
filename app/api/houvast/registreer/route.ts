@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
-import { addToMailerLite } from "@/lib/mailerlite";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -30,19 +29,6 @@ export async function POST(req: NextRequest) {
       bron: typeof bron === "string" && bron ? bron : undefined,
       bronUrl: typeof bronUrl === "string" && bronUrl ? bronUrl : undefined,
     });
-
-    // MailerLite — voeg toe aan de aparte groep "Even Houvast" (NIET de Gratis-groep,
-    // want die triggert de automation). Deze leads krijgen al de eigen Even Houvast-
-    // opvolgreeks, dus ze gaan in een groep zonder automation.
-    const mailerLiteGroep = process.env.MAILERLITE_GROUP_EVEN_HOUVAST;
-    if (mailerLiteGroep) {
-      await addToMailerLite({
-        email,
-        name: name ?? "",
-        groups: [mailerLiteGroep],
-        context: "houvast-registratie",
-      });
-    }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

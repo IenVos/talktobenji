@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { addToMailerLite } from "@/lib/mailerlite";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
 import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 /**
  * Nieuwsbrief-opt-in vanaf de bedankt-pagina (na de betaling).
  * Het e-mailadres halen we uit de PaymentIntent-metadata (server-side), zodat we
- * geen door de browser opgegeven adres hoeven te vertrouwen.
+ * geen door de browser opgegeven adres hoeven te vertrouwen. De opt-in bewaren we
+ * in het eigen systeem (Convex), niet meer in MailerLite.
  */
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -20,10 +24,6 @@ export async function POST(req: NextRequest) {
 
   if (!process.env.STRIPE_SECRET_KEY) {
     return NextResponse.json({ error: "Stripe niet geconfigureerd" }, { status: 500 });
-  }
-  const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
-  if (!mailerLiteGroep) {
-    return NextResponse.json({ error: "Nieuwsbrief niet geconfigureerd" }, { status: 500 });
   }
 
   const { paymentIntentId } = await req.json().catch(() => ({}));
@@ -51,14 +51,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Geen e-mailadres bij deze betaling" }, { status: 400 });
   }
 
-  const ok = await addToMailerLite({
-    email,
-    name,
-    groups: [mailerLiteGroep],
-    context: "bedankt-optin",
-  });
-
-  if (!ok) {
+  try {
+    await convex.mutation(api.nieuwsbrief.registreerOptin, {
+      email,
+      naam: name || undefined,
+      bron: "bedankt-pagina",
+    });
+  } catch (err: any) {
+    console.error("[newsletter] opt-in opslaan mislukt:", err?.message);
     return NextResponse.json({ error: "Aanmelden mislukt, probeer het later opnieuw." }, { status: 502 });
   }
   return NextResponse.json({ success: true });

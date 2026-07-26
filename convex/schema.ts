@@ -937,6 +937,17 @@ export default defineSchema({
     verliestype: v.optional(v.string()),
   }).index("by_email", ["email"]),
 
+  // Nieuwsbrief-opt-ins. Mensen die na een aankoop op de bedankt-pagina (of in de
+  // checkout) aangaven op de hoogte te willen blijven. Vroeger ging dit naar
+  // MailerLite; sinds we dat loslaten bewaren we de toestemming zelf, zodat de
+  // maandmail uit het eigen e-mailsysteem deze mensen later kan bereiken.
+  nieuwsbriefOptins: defineTable({
+    email: v.string(),                 // lowercase
+    naam: v.optional(v.string()),
+    bron: v.optional(v.string()),      // waar de opt-in vandaan komt (bijv. "bedankt-pagina", "checkout")
+    createdAt: v.number(),
+  }).index("by_email", ["email"]),
+
   // Verwerkte Stripe-webhookgebeurtenissen. Stripe kan eenzelfde event meer dan
   // eens afleveren; dit logboek voorkomt dubbele verwerking (dubbele mail/cadeaucode).
   processedStripeEvents: defineTable({

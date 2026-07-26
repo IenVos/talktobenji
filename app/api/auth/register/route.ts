@@ -3,7 +3,6 @@ import { hash } from "bcryptjs";
 import { fetchMutation } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
-import { addToMailerLite } from "@/lib/mailerlite";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -71,17 +70,6 @@ export async function POST(request: NextRequest) {
       },
       { url: convexUrl }
     );
-
-    // MailerLite — voeg toe aan groep Gratis-gebruikers (triggert MailerLite-automation)
-    const mailerLiteGroep = process.env.MAILERLITE_GROUP_GRATIS;
-    if (mailerLiteGroep) {
-      await addToMailerLite({
-        email: email.trim().toLowerCase(),
-        name: (name || "").trim() || email.trim().split("@")[0],
-        groups: [mailerLiteGroep],
-        context: "registratie",
-      });
-    }
 
     return NextResponse.json({
       success: true,
