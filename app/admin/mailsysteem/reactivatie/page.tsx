@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "@/convex/_generated/api";
-import { useAdminQuery } from "../../AdminAuthContext";
+import { useAdminQuery, useAdminMutation, useAdminAction } from "../../AdminAuthContext";
 
 const TYPE_LABEL: Record<string, string> = {
   persoon: "Verlies van een persoon",
@@ -33,6 +33,7 @@ export default function ReactivatiePage() {
   const [toonLijst, setToonLijst] = useState(false);
 
   return (
+    <>
     <div className="max-w-3xl space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Reactivatie: eenmalige Benji-mail</h1>
@@ -147,6 +148,180 @@ export default function ReactivatiePage() {
           </div>
         )}
       </div>
+
+      <ReactivatieOpsteller />
+    </div>
+    </>
+  );
+}
+
+function ReactivatieOpsteller() {
+  const opgeslagen = useAdminQuery(api.mailFunnel.getReactivatieMail, {}) as
+    | { subject: string; bodyText: string; buttonText: string; buttonUrl: string; opgeslagen: boolean }
+    | undefined;
+  const save = useAdminMutation(api.mailFunnel.saveReactivatieMail);
+  const stuurTest = useAdminAction(api.mailFunnel.stuurTestReactivatie);
+
+  const [subject, setSubject] = useState("");
+  const [bodyText, setBodyText] = useState("");
+  const [buttonText, setButtonText] = useState("");
+  const [buttonUrl, setButtonUrl] = useState("");
+  const [geladen, setGeladen] = useState(false);
+
+  const [testEmail, setTestEmail] = useState("");
+  const [testNaam, setTestNaam] = useState("");
+  const [testType, setTestType] = useState("huisdier");
+  const [bezig, setBezig] = useState<"idle" | "opslaan" | "test">("idle");
+  const [melding, setMelding] = useState("");
+
+  // Eenmalig de opgeslagen tekst (of default) in de velden zetten.
+  useEffect(() => {
+    if (opgeslagen && !geladen) {
+      setSubject(opgeslagen.subject);
+      setBodyText(opgeslagen.bodyText);
+      setButtonText(opgeslagen.buttonText ?? "");
+      setButtonUrl(opgeslagen.buttonUrl ?? "");
+      setGeladen(true);
+    }
+  }, [opgeslagen, geladen]);
+
+  const opslaan = async () => {
+    setBezig("opslaan");
+    setMelding("");
+    try {
+      await save({ subject, bodyText, buttonText, buttonUrl });
+      setMelding("Opgeslagen.");
+    } catch (e: any) {
+      setMelding(e?.message ?? "Opslaan mislukt.");
+    } finally {
+      setBezig("idle");
+    }
+  };
+
+  const testen = async () => {
+    if (!testEmail.includes("@")) {
+      setMelding("Vul een geldig testadres in.");
+      return;
+    }
+    setBezig("test");
+    setMelding("");
+    try {
+      // Eerst opslaan, zodat de test exact de huidige tekst gebruikt.
+      await save({ subject, bodyText, buttonText, buttonUrl });
+      await stuurTest({ email: testEmail.trim(), naam: testNaam.trim() || undefined, type: testType });
+      setMelding(`Testmail verstuurd naar ${testEmail.trim()}.`);
+    } catch (e: any) {
+      setMelding(e?.message ?? "Testmail versturen mislukt.");
+    } finally {
+      setBezig("idle");
+    }
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
+      <div>
+        <h2 className="text-base font-semibold text-gray-900">De reactivatiemail opstellen</h2>
+        <p className="text-xs text-gray-500 mt-1">
+          Kleine testtekst om mee te beginnen. Pas hem gerust aan. Zet <code>[benji-blok]</code> op een
+          eigen regel voor het Benji-kaartje met de gratis-proef-knop. <code>{"{voornaam}"}</code> wordt
+          per persoon ingevuld. Versturen naar de hele doelgroep komt in de volgende stap: hier test je
+          alleen naar jezelf.
+        </p>
+      </div>
+
+      <label className="block">
+        <span className="text-sm font-medium text-gray-700">Onderwerp</span>
+        <input
+          type="text"
+          value={subject}
+          onChange={(e) => setSubject(e.target.value)}
+          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+        />
+      </label>
+
+      <label className="block">
+        <span className="text-sm font-medium text-gray-700">Tekst</span>
+        <textarea
+          value={bodyText}
+          onChange={(e) => setBodyText(e.target.value)}
+          rows={10}
+          className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono"
+        />
+      </label>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <label className="block">
+          <span className="text-sm font-medium text-gray-700">Knoptekst (optioneel)</span>
+          <input
+            type="text"
+            value={buttonText}
+            onChange={(e) => setButtonText(e.target.value)}
+            placeholder="Laat leeg voor geen knop"
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium text-gray-700">Knop-link (optioneel)</span>
+          <input
+            type="text"
+            value={buttonUrl}
+            onChange={(e) => setButtonUrl(e.target.value)}
+            placeholder="https://www.talktobenji.com/..."
+            className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+        </label>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={opslaan}
+          disabled={bezig !== "idle"}
+          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          {bezig === "opslaan" ? "Opslaan…" : "Opslaan"}
+        </button>
+      </div>
+
+      {/* Testmail */}
+      <div className="border-t border-gray-100 pt-4 space-y-3">
+        <h3 className="text-sm font-semibold text-gray-900">Testmail naar jezelf</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <input
+            type="email"
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+            placeholder="jouw@e-mail.nl"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+          <input
+            type="text"
+            value={testNaam}
+            onChange={(e) => setTestNaam(e.target.value)}
+            placeholder="Naam (voor {voornaam})"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+          <select
+            value={testType}
+            onChange={(e) => setTestType(e.target.value)}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          >
+            {Object.entries(TYPE_LABEL).map(([k, label]) => (
+              <option key={k} value={k}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={testen}
+          disabled={bezig !== "idle"}
+          className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          {bezig === "test" ? "Versturen…" : "Stuur testmail"}
+        </button>
+      </div>
+
+      {melding && <p className="text-sm text-gray-600">{melding}</p>}
     </div>
   );
 }

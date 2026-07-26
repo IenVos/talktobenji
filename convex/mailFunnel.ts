@@ -8,9 +8,20 @@
  * reactivatie-doelgroep, met exacte aantallen, uitsplitsing per verliestype, de
  * redenen waarom leads afvallen, en een bounce-waarschuwing. Er verstuurt niets.
  */
-import { query } from "./_generated/server";
+import { query, mutation, action } from "./_generated/server";
 import { v } from "convex/values";
+import { internal, api } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
+import {
+  appBase,
+  mailAlinea,
+  mailKnop,
+  mailWrapper,
+  ehFooter,
+  ehAfmeldUrl,
+  nietAlleenUrlVoorType,
+} from "./ehMailFooter";
+import { BENJI_BLOK_MARKER } from "./ehConcepten";
 
 const DAG_MS = 24 * 60 * 60 * 1000;
 
@@ -238,5 +249,204 @@ export const reactivatieBounceCheck = query({
 
     const geraakt = [...doelSet].filter((e) => bouncedSet.has(e));
     return { aantal: geraakt.length, adressen: geraakt.slice(0, 50) };
+  },
+});
+
+// ── Reactivatiemail: opstellen + testen ──────────────────────────────────────
+// De eenmalige mail voor de doelgroep hierboven. Kleine plaatshoudertekst; Ien
+// past de echte tekst zelf aan in de admin. [benji-blok] rendert het Benji-kaartje
+// met een persoonlijke één-klik-link. Er verstuurt hier nog niets naar de doelgroep:
+// alleen een testmail naar een zelf ingevuld adres.
+
+const DOELGROEP_REACTIVATIE = "reactivatie";
+
+const REACTIVATIE_DEFAULT = {
+  subject: "Ik heb iets nieuws voor je gemaakt",
+  bodyText:
+    "Hoi {voornaam},\n\n" +
+    "Dit is een korte testtekst. Sinds jij destijds je verhaal met me deelde, heb ik iets nieuws gemaakt: Benji. Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.\n\n" +
+    "[benji-blok]\n\n" +
+    "Lieve groet,\nIen",
+  buttonText: "",
+  buttonUrl: "",
+};
+
+// Het Benji-kaartje met persoonlijke één-klik-link (zelfde stijl als in de EH-mails).
+function benjiBlokHtml(benjiUrl: string): string {
+  return `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;text-align:center;"><p style="font-size:16px;font-weight:700;color:#3d3530;margin:0 0 8px;">7 dagen gratis met Benji</p><p style="font-size:14px;line-height:1.6;color:#6b6460;margin:0 0 18px;">Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.</p><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a><p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord.</p></div>`;
+}
+
+// Verstuur één mail via Resend, met retry bij tijdelijke fouten (zelfde patroon als
+// de EH-opvolgmails). Tags zijn "reactivatie" zodat de statistieken deze stroom
+// apart kunnen tellen en niet als EH-opvolgmail lezen.
+async function verstuurReactivatieEmail(args: {
+  to: string;
+  subject: string;
+  html: string;
+  apiKey: string;
+}) {
+  const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
+  for (let poging = 1; poging <= 4; poging++) {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${args.apiKey}` },
+      body: JSON.stringify({
+        from: FROM,
+        to: [args.to],
+        subject: args.subject,
+        html: args.html,
+        tags: [
+          { name: "programma", value: "reactivatie" },
+          { name: "mail", value: "reactivatie" },
+        ],
+      }),
+    });
+    if (res.ok) return;
+    const detail = await res.text();
+    const tijdelijk = res.status === 429 || res.status >= 500;
+    if (!tijdelijk || poging === 4) {
+      throw new Error(`Reactivatiemail mislukt (status ${res.status}): ${detail}`);
+    }
+    await new Promise((r) => setTimeout(r, poging * 1500));
+  }
+}
+
+// Bouw de HTML van de reactivatiemail voor één ontvanger. Maakt (indien nodig) een
+// persoonlijk Benji-token aan als de tekst [benji-blok] bevat.
+async function bouwReactivatieHtml(
+  ctx: any,
+  args: {
+    email: string;
+    naam?: string;
+    subject: string;
+    bodyText: string;
+    buttonText?: string;
+    buttonUrl?: string;
+    type?: string;
+  }
+): Promise<string> {
+  const voornaam = (args.naam || "").trim().split(" ")[0];
+  const body = args.bodyText
+    .replace(/\{voornaam\}/g, voornaam)
+    .replace(/(Hi|Hoi)\s+,/g, "$1,");
+
+  // Benji-kaartje: alleen als de marker aanwezig is, dan een persoonlijk token.
+  const heeftBlok = body.includes(BENJI_BLOK_MARKER);
+  let blokHtml = "";
+  if (heeftBlok) {
+    const token = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
+      email: args.email,
+      naam: args.naam,
+    });
+    blokHtml = benjiBlokHtml(`${appBase()}/benji-start?token=${token}`);
+  }
+
+  const alineas = body
+    .split(/\n\n+/)
+    .map((p: string) => p.trim())
+    .filter(Boolean);
+  const rompHtml = alineas
+    .map((p: string) => (p.includes(BENJI_BLOK_MARKER) ? "" : mailAlinea(p)))
+    .join("\n");
+
+  const knopTekst = (args.buttonText || "").trim();
+  const knopUrl = (args.buttonUrl || "").trim();
+  const toonKnop = !!knopTekst && !!knopUrl;
+
+  const type = args.type || "algemeen";
+  const afmeldUrl = await ehAfmeldUrl(args.email, "reactivatie", type);
+
+  return mailWrapper(`
+    ${rompHtml}
+    ${heeftBlok ? blokHtml : ""}
+    ${toonKnop ? mailKnop(knopTekst, knopUrl) : ""}
+    ${ehFooter(nietAlleenUrlVoorType(type), afmeldUrl)}
+  `);
+}
+
+/** De opgeslagen reactivatiemail (of de default als er nog niets is opgeslagen). */
+export const getReactivatieMail = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const rij = await ctx.db
+      .query("funnelLosseMails")
+      .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE))
+      .first();
+    return {
+      subject: rij?.subject ?? REACTIVATIE_DEFAULT.subject,
+      bodyText: rij?.bodyText ?? REACTIVATIE_DEFAULT.bodyText,
+      buttonText: rij?.buttonText ?? REACTIVATIE_DEFAULT.buttonText,
+      buttonUrl: rij?.buttonUrl ?? REACTIVATIE_DEFAULT.buttonUrl,
+      opgeslagen: !!rij,
+    };
+  },
+});
+
+/** Sla de reactivatiemail op (één rij; upsert). */
+export const saveReactivatieMail = mutation({
+  args: {
+    adminToken: v.string(),
+    subject: v.string(),
+    bodyText: v.string(),
+    buttonText: v.optional(v.string()),
+    buttonUrl: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const bestaand = await ctx.db
+      .query("funnelLosseMails")
+      .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE))
+      .first();
+    const velden = {
+      subject: args.subject,
+      bodyText: args.bodyText,
+      buttonText: args.buttonText?.trim() || undefined,
+      buttonUrl: args.buttonUrl?.trim() || undefined,
+      updatedAt: Date.now(),
+    };
+    if (bestaand) {
+      await ctx.db.patch(bestaand._id, velden);
+    } else {
+      await ctx.db.insert("funnelLosseMails", {
+        ...velden,
+        doelgroep: DOELGROEP_REACTIVATIE,
+        status: "concept",
+      });
+    }
+    return { ok: true };
+  },
+});
+
+/**
+ * Stuur een testmail naar één zelf gekozen adres. Gebruikt de opgeslagen tekst als
+ * die er is, anders de default. Verstuurt NIET naar de doelgroep.
+ */
+export const stuurTestReactivatie = action({
+  args: {
+    adminToken: v.string(),
+    email: v.string(),
+    naam: v.optional(v.string()),
+    type: v.optional(v.string()),
+  },
+  handler: async (ctx, args): Promise<{ ok: boolean }> => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
+
+    const mail = await ctx.runQuery(api.mailFunnel.getReactivatieMail, {
+      adminToken: args.adminToken,
+    });
+    const html = await bouwReactivatieHtml(ctx, {
+      email: args.email,
+      naam: args.naam,
+      subject: mail.subject,
+      bodyText: mail.bodyText,
+      buttonText: mail.buttonText,
+      buttonUrl: mail.buttonUrl,
+      type: args.type,
+    });
+    await verstuurReactivatieEmail({ to: args.email, subject: mail.subject, html, apiKey });
+    return { ok: true };
   },
 });
