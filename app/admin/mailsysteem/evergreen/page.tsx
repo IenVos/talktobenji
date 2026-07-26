@@ -323,7 +323,35 @@ function BlokKaart({ blok, isEerste, isLaatste }: { blok: Blok; isEerste: boolea
 function MailRij({ mail }: { mail: Mail }) {
   const mailBijwerken = useAdminMutation(api.evergreen.mailBijwerken);
   const mailVerwijderen = useAdminMutation(api.evergreen.mailVerwijderen);
+  const stuurTest = useAdminAction(api.evergreen.stuurTestEvergreen);
   const [bewerk, setBewerk] = useState(false);
+  const [testOpen, setTestOpen] = useState(false);
+  const [testEmail, setTestEmail] = useState("");
+  const [testNaam, setTestNaam] = useState("");
+  const [testBezig, setTestBezig] = useState(false);
+  const [testMelding, setTestMelding] = useState("");
+
+  const testen = async () => {
+    if (!testEmail.includes("@")) {
+      setTestMelding("Vul een geldig testadres in.");
+      return;
+    }
+    setTestBezig(true);
+    setTestMelding("");
+    try {
+      await stuurTest({
+        mailId: mail._id,
+        email: testEmail.trim(),
+        naam: testNaam.trim() || undefined,
+        type: mail.verliesType || undefined,
+      });
+      setTestMelding(`Testmail verstuurd naar ${testEmail.trim()}.`);
+    } catch (e: any) {
+      setTestMelding(e?.message ?? "Testmail versturen mislukt.");
+    } finally {
+      setTestBezig(false);
+    }
+  };
 
   if (bewerk) {
     return (
@@ -339,26 +367,48 @@ function MailRij({ mail }: { mail: Mail }) {
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-lg bg-gray-50 border border-gray-100 px-3 py-2">
-      <span className="w-14 flex-shrink-0 text-sm font-semibold text-gray-900">Dag {mail.dagOffset}</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-800 truncate">{mail.subject || "(geen onderwerp)"}</p>
-        <p className="text-xs text-gray-400">
-          {typeLabel(mail.verliesType)}
-          {!mail.actief ? " · op pauze" : ""}
-        </p>
+    <div className="rounded-lg bg-gray-50 border border-gray-100">
+      <div className="flex items-center gap-3 px-3 py-2">
+        <span className="w-14 flex-shrink-0 text-sm font-semibold text-gray-900">Dag {mail.dagOffset}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-gray-800 truncate">{mail.subject || "(geen onderwerp)"}</p>
+          <p className="text-xs text-gray-400">
+            {typeLabel(mail.verliesType)}
+            {!mail.actief ? " · op pauze" : ""}
+          </p>
+        </div>
+        <button onClick={() => setTestOpen((v) => !v)} className="text-xs px-2 py-1 rounded hover:bg-gray-200 text-gray-600">
+          Test
+        </button>
+        <button onClick={() => setBewerk(true)} className="text-xs px-2 py-1 rounded hover:bg-gray-200 text-primary-700">
+          Bewerk
+        </button>
+        <button
+          onClick={() => {
+            if (confirm("Deze mail verwijderen?")) mailVerwijderen({ id: mail._id });
+          }}
+          className="text-xs px-2 py-1 rounded hover:bg-red-50 text-red-500"
+        >
+          Verwijder
+        </button>
       </div>
-      <button onClick={() => setBewerk(true)} className="text-xs px-2 py-1 rounded hover:bg-gray-200 text-primary-700">
-        Bewerk
-      </button>
-      <button
-        onClick={() => {
-          if (confirm("Deze mail verwijderen?")) mailVerwijderen({ id: mail._id });
-        }}
-        className="text-xs px-2 py-1 rounded hover:bg-red-50 text-red-500"
-      >
-        Verwijder
-      </button>
+
+      {testOpen && (
+        <div className="border-t border-gray-100 px-3 py-2 space-y-2">
+          <p className="text-xs text-gray-500">
+            Stuur deze mail nu als test naar jezelf (de opgeslagen versie). De echte leads krijgen hem op
+            dag {mail.dagOffset}.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <input value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="jouw@e-mail.nl" className="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-1.5 text-sm" />
+            <input value={testNaam} onChange={(e) => setTestNaam(e.target.value)} placeholder="Naam" className="w-24 rounded-lg border border-gray-300 px-3 py-1.5 text-sm" />
+            <button onClick={testen} disabled={testBezig} className="rounded-lg bg-primary-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50">
+              {testBezig ? "Versturen…" : "Stuur test"}
+            </button>
+          </div>
+          {testMelding && <p className="text-xs text-gray-500">{testMelding}</p>}
+        </div>
+      )}
     </div>
   );
 }
@@ -386,12 +436,6 @@ function MailForm({
 }) {
   const generateUploadUrl = useAdminMutation(api.pageContent.generateUploadUrl);
   const getImageUrl = useAdminMutation(api.pageContent.getImageUrl);
-  const stuurTest = useAdminAction(api.evergreen.stuurTestEvergreen);
-
-  const [testEmail, setTestEmail] = useState("");
-  const [testNaam, setTestNaam] = useState("");
-  const [testBezig, setTestBezig] = useState(false);
-  const [testMelding, setTestMelding] = useState("");
 
   const [dagOffset, setDagOffset] = useState(mail?.dagOffset ?? standaardDag ?? 1);
   const [subject, setSubject] = useState(mail?.subject ?? "");
@@ -434,29 +478,6 @@ function MailForm({
       });
     } finally {
       setBezig(false);
-    }
-  };
-
-  const testen = async () => {
-    if (!mail?._id) return;
-    if (!testEmail.includes("@")) {
-      setTestMelding("Vul een geldig testadres in.");
-      return;
-    }
-    setTestBezig(true);
-    setTestMelding("");
-    try {
-      await stuurTest({
-        mailId: mail._id,
-        email: testEmail.trim(),
-        naam: testNaam.trim() || undefined,
-        type: verliesType || undefined,
-      });
-      setTestMelding(`Testmail verstuurd naar ${testEmail.trim()}. Let op: dit is de opgeslagen versie.`);
-    } catch (e: any) {
-      setTestMelding(e?.message ?? "Testmail versturen mislukt.");
-    } finally {
-      setTestBezig(false);
     }
   };
 
@@ -539,21 +560,6 @@ function MailForm({
           Annuleren
         </button>
       </div>
-
-      {/* Testmail (alleen voor een al opgeslagen mail) */}
-      {mail?._id && (
-        <div className="border-t border-gray-100 pt-3 space-y-2">
-          <span className="text-xs font-semibold text-gray-600">Testmail naar jezelf</span>
-          <div className="flex flex-wrap items-center gap-2">
-            <input value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="jouw@e-mail.nl" className="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-            <input value={testNaam} onChange={(e) => setTestNaam(e.target.value)} placeholder="Naam" className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
-            <button onClick={testen} disabled={testBezig} className="rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
-              {testBezig ? "Versturen…" : "Stuur test"}
-            </button>
-          </div>
-          {testMelding && <p className="text-xs text-gray-500">{testMelding}</p>}
-        </div>
-      )}
     </div>
   );
 }
