@@ -976,6 +976,8 @@ export default defineSchema({
     bodyText: v.string(),
     buttonText: v.optional(v.string()),
     buttonUrl: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    imageCaption: v.optional(v.string()),
     verliesType: v.optional(v.string()), // leeg = algemene versie; anders variant
     actief: v.boolean(),            // uit = wordt overgeslagen zonder de reeks te verschuiven
     updatedAt: v.number(),

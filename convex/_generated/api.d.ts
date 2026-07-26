@@ -35,6 +35,7 @@ import type * as emailTemplatesDefaults from "../emailTemplatesDefaults.js";
 import type * as emails from "../emails.js";
 import type * as embeddings from "../embeddings.js";
 import type * as evenHouvastOpvolg from "../evenHouvastOpvolg.js";
+import type * as evergreen from "../evergreen.js";
 import type * as exampleData from "../exampleData.js";
 import type * as featureVotes from "../featureVotes.js";
 import type * as feedback from "../feedback.js";
@@ -119,6 +120,7 @@ declare const fullApi: ApiFromModules<{
   emails: typeof emails;
   embeddings: typeof embeddings;
   evenHouvastOpvolg: typeof evenHouvastOpvolg;
+  evergreen: typeof evergreen;
   exampleData: typeof exampleData;
   featureVotes: typeof featureVotes;
   feedback: typeof feedback;
