@@ -82,6 +82,15 @@ crons.daily(
   {}
 );
 
+// Evergreen funnel — één keer per dag. Elke lead krijgt hoogstens één mail per dag,
+// op basis van zijn eigen instroomdag. Doet niets tot env EVERGREEN_ACTIEF === "true".
+crons.daily(
+  "evergreen funnel",
+  { hourUTC: 16, minuteUTC: 30 },
+  internal.evergreen.processEvergreen,
+  {}
+);
+
 crons.daily(
   "jaar renewal emails avond",
   { hourUTC: 18, minuteUTC: 0 },

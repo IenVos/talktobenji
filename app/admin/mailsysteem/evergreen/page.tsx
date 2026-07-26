@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
-import { useAdminQuery, useAdminMutation } from "../../AdminAuthContext";
+import { useAdminQuery, useAdminMutation, useAdminAction } from "../../AdminAuthContext";
 
 const FASES = [
   { code: "", label: "Geen fase" },
@@ -386,6 +386,12 @@ function MailForm({
 }) {
   const generateUploadUrl = useAdminMutation(api.pageContent.generateUploadUrl);
   const getImageUrl = useAdminMutation(api.pageContent.getImageUrl);
+  const stuurTest = useAdminAction(api.evergreen.stuurTestEvergreen);
+
+  const [testEmail, setTestEmail] = useState("");
+  const [testNaam, setTestNaam] = useState("");
+  const [testBezig, setTestBezig] = useState(false);
+  const [testMelding, setTestMelding] = useState("");
 
   const [dagOffset, setDagOffset] = useState(mail?.dagOffset ?? standaardDag ?? 1);
   const [subject, setSubject] = useState(mail?.subject ?? "");
@@ -428,6 +434,29 @@ function MailForm({
       });
     } finally {
       setBezig(false);
+    }
+  };
+
+  const testen = async () => {
+    if (!mail?._id) return;
+    if (!testEmail.includes("@")) {
+      setTestMelding("Vul een geldig testadres in.");
+      return;
+    }
+    setTestBezig(true);
+    setTestMelding("");
+    try {
+      await stuurTest({
+        mailId: mail._id,
+        email: testEmail.trim(),
+        naam: testNaam.trim() || undefined,
+        type: verliesType || undefined,
+      });
+      setTestMelding(`Testmail verstuurd naar ${testEmail.trim()}. Let op: dit is de opgeslagen versie.`);
+    } catch (e: any) {
+      setTestMelding(e?.message ?? "Testmail versturen mislukt.");
+    } finally {
+      setTestBezig(false);
     }
   };
 
@@ -510,6 +539,21 @@ function MailForm({
           Annuleren
         </button>
       </div>
+
+      {/* Testmail (alleen voor een al opgeslagen mail) */}
+      {mail?._id && (
+        <div className="border-t border-gray-100 pt-3 space-y-2">
+          <span className="text-xs font-semibold text-gray-600">Testmail naar jezelf</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <input value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="jouw@e-mail.nl" className="flex-1 min-w-[160px] rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <input value={testNaam} onChange={(e) => setTestNaam(e.target.value)} placeholder="Naam" className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <button onClick={testen} disabled={testBezig} className="rounded-lg bg-primary-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+              {testBezig ? "Versturen…" : "Stuur test"}
+            </button>
+          </div>
+          {testMelding && <p className="text-xs text-gray-500">{testMelding}</p>}
+        </div>
+      )}
     </div>
   );
 }

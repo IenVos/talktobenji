@@ -493,6 +493,15 @@ export async function POST(req: NextRequest) {
           .catch((err: any) => console.error("[webhook] opt-in opslaan mislukt:", err?.message));
       }
 
+      // Koopt iemand die in de evergreen funnel zit? Dan meteen uit de funnel halen
+      // (status "koper"), zodat er geen verkoopmails meer gaan. De cron controleert
+      // dit ook nog eens vlak voor verzending, dit is de directe uitstroom.
+      if (email) {
+        await convex
+          .mutation(api.evergreen.markeerKoper, { email })
+          .catch((err: any) => console.error("[webhook] markeerKoper mislukt:", err?.message));
+      }
+
       // Bevestigingsmail + factuur
       if (process.env.RESEND_API_KEY) {
         try {
