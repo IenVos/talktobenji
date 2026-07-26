@@ -398,55 +398,69 @@ async function bouwReactivatieHtml(
     blokHtml = benjiBlokHtml(`${appBase()}/benji-start?token=${token}`);
   }
 
-  // Splits in alinea's. Het Benji-blok halen we uit de stroom (komt onderaan).
-  const alineas = body
-    .split(/\n\n+/)
-    .map((p: string) => p.trim())
-    .filter((p: string) => p && !p.includes(BENJI_BLOK_MARKER));
-
-  // Een P.S.-alinea komt ná de handtekening (zoals een echte P.S. onder een brief).
-  const psIndex = alineas.findIndex((p: string) => /^p\.?\s*s\.?/i.test(p));
-  const ps = psIndex >= 0 ? alineas.splice(psIndex, 1)[0] : "";
-
-  // De afsluitgroet (laatste alinea, bv. "Lieve groet,") komt vlak boven de foto-
-  // handtekening. De handtekening levert zelf de naam Ien, dus die hoeft niet in de tekst.
-  const afsluiting =
-    alineas.length > 0 && isAfsluiting(alineas[alineas.length - 1]) ? alineas.pop()! : "";
-
-  const heeftInline = alineas.some((p: string) => AFBEELDING_MARKER.test(p));
-  const rompHtml = alineas
-    .map((p: string) =>
-      AFBEELDING_MARKER.test(p)
-        ? imageUrl
-          ? inlineAfbeelding(imageUrl, imageCaption)
-          : ""
-        : mailAlinea(p)
-    )
-    .join("\n");
-
   const knopTekst = (args.buttonText || "").trim();
   const knopUrl = (args.buttonUrl || "").trim();
   const toonKnop = !!knopTekst && !!knopUrl;
 
-  // Cover-afbeelding boven de knop, maar alleen als hij niet al inline (via de marker)
-  // in de tekst staat, anders zou hij dubbel verschijnen.
-  const toonCover = !!imageUrl && !heeftInline;
+  const psStijl = (p: string) =>
+    `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${p.replace(/\n/g, "<br/>")}</p>`;
 
-  const psHtml = ps
-    ? `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${ps.replace(/\n/g, "<br/>")}</p>`
-    : "";
+  // Alles verschijnt in de volgorde van de tekst. Markers ([benji-blok], [afbeelding],
+  // [knop]) worden op hun eigen plek getoond, zodat je ze vrij kunt verschuiven. De
+  // foto-handtekening hangt automatisch onder de afsluitgroet ("Lieve groet,").
+  const KNOP_MARKER = /^\[knop\]$/i;
+  const isBenji = (p: string) => p.includes(BENJI_BLOK_MARKER);
+
+  const alineas = body
+    .split(/\n\n+/)
+    .map((p: string) => p.trim())
+    .filter(Boolean);
+
+  const gebruiktAfbeelding = alineas.some((p: string) => AFBEELDING_MARKER.test(p));
+  const gebruiktKnop = alineas.some((p: string) => KNOP_MARKER.test(p));
+  // Laatste afsluitgroet bepaalt waar de foto-handtekening komt.
+  let groetIndex = -1;
+  alineas.forEach((p: string, i: number) => {
+    if (isAfsluiting(p)) groetIndex = i;
+  });
+
+  const coverHtml = imageUrl ? coverBlok(imageUrl, knopUrl || undefined, imageCaption) : "";
+  const knopHtml = toonKnop ? mailKnop(knopTekst, knopUrl) : "";
+  // Afbeelding/knop zonder eigen marker vallen terug op een vaste plek: vlak vóór de
+  // afsluitgroet (of, zonder groet, onderaan de tekst).
+  const autoVoorGroet =
+    `${!gebruiktAfbeelding ? coverHtml : ""}${!gebruiktKnop ? knopHtml : ""}`;
+
+  const stukken: string[] = [];
+  alineas.forEach((p: string, i: number) => {
+    if (isBenji(p)) {
+      stukken.push(blokHtml);
+    } else if (AFBEELDING_MARKER.test(p)) {
+      if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption));
+    } else if (KNOP_MARKER.test(p)) {
+      if (toonKnop) stukken.push(knopHtml);
+    } else if (i === groetIndex) {
+      stukken.push(autoVoorGroet);
+      stukken.push(mailAlinea(p));
+      stukken.push(mailHandtekeningIen());
+    } else if (/^p\.?\s*s\.?/i.test(p)) {
+      stukken.push(psStijl(p));
+    } else {
+      stukken.push(mailAlinea(p));
+    }
+  });
+
+  // Geen afsluitgroet gevonden: zet afbeelding/knop en de handtekening onderaan.
+  if (groetIndex === -1) {
+    stukken.push(autoVoorGroet);
+    stukken.push(mailHandtekeningIen());
+  }
 
   const type = args.type || "algemeen";
   const afmeldUrl = await ehAfmeldUrl(args.email, "reactivatie", type);
 
   return mailWrapper(`
-    ${rompHtml}
-    ${heeftBlok ? blokHtml : ""}
-    ${toonCover ? coverBlok(imageUrl!, knopUrl || undefined, imageCaption) : ""}
-    ${toonKnop ? mailKnop(knopTekst, knopUrl) : ""}
-    ${afsluiting ? mailAlinea(afsluiting) : ""}
-    ${mailHandtekeningIen()}
-    ${psHtml}
+    ${stukken.join("\n")}
     ${ehFooter(nietAlleenUrlVoorType(type), afmeldUrl)}
   `);
 }

@@ -254,25 +254,33 @@ function ReactivatieOpsteller() {
       <div>
         <h2 className="text-base font-semibold text-gray-900">De reactivatiemail opstellen</h2>
         <p className="text-xs text-gray-500 mt-1">
-          Kleine testtekst om mee te beginnen. Pas hem gerust aan. Enkele handigheidjes:
+          Kleine testtekst om mee te beginnen. Pas hem gerust aan. Alles verschijnt in de volgorde van je
+          tekst, dus met deze markers bepaal je zelf de plek:
         </p>
         <ul className="text-xs text-gray-500 mt-2 space-y-1 list-disc pl-5">
           <li>
-            <code>[benji-blok]</code> op een eigen regel toont het Benji-kaartje met de gratis-proef-knop.
+            <code>[benji-blok]</code> op een eigen regel: het Benji-kaartje met de gratis-proef-knop, op
+            precies die plek.
+          </li>
+          <li>
+            <code>[afbeelding]</code> op een eigen regel: de afbeelding hieronder, op die plek in de tekst.
+          </li>
+          <li>
+            <code>[knop]</code> op een eigen regel: de knop (hieronder ingesteld), op die plek.
           </li>
           <li>
             <code>{"{voornaam}"}</code> wordt per persoon ingevuld.
           </li>
           <li>
-            Een afsluitgroet als <em>Lieve groet,</em> op de laatste regel komt automatisch vlak boven je
-            foto-handtekening. Je naam hoef je er niet bij te zetten, die staat al in de handtekening.
+            Een afsluitgroet als <em>Lieve groet,</em> krijgt automatisch je foto-handtekening eronder. Je
+            naam hoef je er niet bij te zetten.
           </li>
           <li>
-            Een regel die met <strong>P.S.</strong> begint, komt netjes ónder je handtekening.
+            Een regel die met <strong>P.S.</strong> begint, wordt als P.S. opgemaakt op die plek.
           </li>
           <li>
-            Een afbeelding (hieronder) verschijnt boven de knop. Zet je <code>[afbeelding]</code> op een
-            eigen regel in de tekst, dan staat hij juist daar, midden in de mail.
+            Gebruik je geen <code>[afbeelding]</code>- of <code>[knop]</code>-marker, dan komen die
+            automatisch vlak boven je afsluitgroet.
           </li>
         </ul>
       </div>
