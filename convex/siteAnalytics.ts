@@ -551,15 +551,23 @@ export const getBenjiProefStats = query({
     await checkAdmin(ctx, args.adminToken);
     const nu = Date.now();
 
+    // Testadressen (bijv. eigen testmails/klikken) tellen we niet mee, anders
+    // blazen ze de proef-cijfers op.
+    const excluded = await ctx.db.query("analyticsExcludedEmails").collect();
+    const testSet = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    const isTest = (email?: string | null) => !!email && testSet.has(email.toLowerCase());
+
     // Tokens = Benji-mails met een persoonlijke link. usedAt = geklikt/geactiveerd.
     const tokens = await ctx.db.query("benjiStartTokens").collect();
-    const inPeriode = tokens.filter((t) => t.createdAt >= args.from && t.createdAt <= args.to);
+    const inPeriode = tokens.filter(
+      (t) => t.createdAt >= args.from && t.createdAt <= args.to && !isTest(t.email)
+    );
     const verstuurd = inPeriode.length;
     const geactiveerd = inPeriode.filter((t) => t.usedAt).length;
 
-    // EH-proeven = toegang met bron "eh".
+    // EH-proeven = toegang met bron "eh" (zonder testadressen).
     const alleSubs = await ctx.db.query("userSubscriptions").collect();
-    const ehSubs = alleSubs.filter((s) => s.bron === "eh");
+    const ehSubs = alleSubs.filter((s) => s.bron === "eh" && !isTest(s.email));
     const kochtNA = ehSubs.filter(
       (s) => s.subscriptionType === "niet_alleen" || !!s.benjiExpiresAt
     ).length;
@@ -570,12 +578,14 @@ export const getBenjiProefStats = query({
     // Gebruik: gesprekken van de geactiveerde leads.
     let totaalGesprekken = 0;
     let metGesprek = 0;
+    let kwamenTerug = 0; // proeven met 2 of meer gesprekken
     for (const s of ehSubs) {
       const sessies = await ctx.db
         .query("chatSessions")
         .withIndex("by_user", (q) => q.eq("userId", s.userId))
         .collect();
       if (sessies.length > 0) metGesprek++;
+      if (sessies.length >= 2) kwamenTerug++;
       totaalGesprekken += sessies.length;
     }
 
@@ -586,6 +596,7 @@ export const getBenjiProefStats = query({
       ehProeven: ehSubs.length,
       actieveProef,
       metGesprek,
+      kwamenTerug,
       totaalGesprekken,
       gemGesprekken: ehSubs.length > 0 ? Math.round((totaalGesprekken / ehSubs.length) * 10) / 10 : 0,
       kochtNA,

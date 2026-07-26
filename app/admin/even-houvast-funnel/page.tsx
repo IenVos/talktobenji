@@ -38,6 +38,7 @@ export default function EvenHouvastFunnelPage() {
         ehProeven: number;
         actieveProef: number;
         metGesprek: number;
+        kwamenTerug: number;
         totaalGesprekken: number;
         gemGesprekken: number;
         kochtNA: number;
@@ -141,10 +142,11 @@ export default function EvenHouvastFunnelPage() {
             <div className="rounded-lg bg-amber-50 p-3"><p className="text-2xl font-bold text-amber-700">{benjiProef.actieveProef}</p><p className="text-xs text-gray-500">proef nu actief</p></div>
             <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{benjiProef.kochtNA}</p><p className="text-xs text-gray-500">kocht Niet Alleen</p></div>
           </div>
-          {/* Gebruik: het aantal gesprekken met Benji */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1 border-t border-gray-100">
+          {/* Gebruik: het aantal gesprekken met Benji (testadressen niet meegeteld) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 border-t border-gray-100">
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.totaalGesprekken}</p><p className="text-xs text-gray-500">gesprekken totaal</p></div>
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.metGesprek}</p><p className="text-xs text-gray-500">proeven die praten</p></div>
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.kwamenTerug}</p><p className="text-xs text-gray-500">kwamen terug (2+ keer)</p></div>
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.gemGesprekken}</p><p className="text-xs text-gray-500">gem. per proef</p></div>
           </div>
         </div>
