@@ -10,6 +10,7 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "target": "ES2021",
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -25,8 +26,7 @@
       "@/*": [
         "./*"
       ]
-    },
-    "downlevelIteration": true
+    }
   },
   "include": [
     "next-env.d.ts",
