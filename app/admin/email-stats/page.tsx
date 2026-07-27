@@ -110,17 +110,17 @@ function StroomRij({ stroom }: { stroom: Stroom }) {
             )}
           </div>
         </td>
-        <td className="px-3 py-2.5 text-right text-gray-500">{stroom.verzonden}</td>
-        <td className="px-3 py-2.5 text-right text-gray-500">{stroom.afgeleverd}</td>
-        <td className="px-3 py-2.5 text-right">
+        <td className="px-3 py-2.5 text-right text-gray-500 tabular-nums">{stroom.verzonden}</td>
+        <td className="px-3 py-2.5 text-right text-gray-500 tabular-nums">{stroom.afgeleverd}</td>
+        <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums">
           <span className="text-gray-900 font-medium">{pct(stroom.geopend, n)}</span>
-          <span className="text-gray-300 text-xs ml-1">({stroom.geopend})</span>
+          <span className="inline-block w-12 text-right text-gray-300 text-xs">({stroom.geopend})</span>
         </td>
-        <td className="px-3 py-2.5 text-right">
+        <td className="px-3 py-2.5 text-right whitespace-nowrap tabular-nums">
           <span className="text-gray-900 font-medium">{pct(stroom.geklikt, n)}</span>
-          <span className="text-gray-300 text-xs ml-1">({stroom.geklikt})</span>
+          <span className="inline-block w-11 text-right text-gray-300 text-xs">({stroom.geklikt})</span>
         </td>
-        <td className="px-5 py-2.5 text-right text-gray-500">{stroom.bounced}</td>
+        <td className="px-5 py-2.5 text-right text-gray-500 tabular-nums">{stroom.bounced}</td>
       </tr>
 
       {/* Waar klikten ze op? Zo zie je of de link naar Niet Alleen leeft. */}
@@ -155,17 +155,17 @@ function StroomRij({ stroom }: { stroom: Stroom }) {
                   {v.verliestype ? v.verliestype.replace(/_/g, " ") : "verliestype onbekend"}
                 </span>
               </td>
-              <td className="px-3 py-2 text-right text-gray-500">{v.verzonden}</td>
-              <td className="px-3 py-2 text-right text-gray-500">{v.afgeleverd}</td>
-              <td className="px-3 py-2 text-right">
+              <td className="px-3 py-2 text-right text-gray-500 tabular-nums">{v.verzonden}</td>
+              <td className="px-3 py-2 text-right text-gray-500 tabular-nums">{v.afgeleverd}</td>
+              <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">
                 <span className="text-gray-700 font-medium">{pct(v.geopend, vn)}</span>
-                <span className="text-gray-300 ml-1">({v.geopend})</span>
+                <span className="inline-block w-12 text-right text-gray-300">({v.geopend})</span>
               </td>
-              <td className="px-3 py-2 text-right">
+              <td className="px-3 py-2 text-right whitespace-nowrap tabular-nums">
                 <span className="text-gray-700 font-medium">{pct(v.geklikt, vn)}</span>
-                <span className="text-gray-300 ml-1">({v.geklikt})</span>
+                <span className="inline-block w-11 text-right text-gray-300">({v.geklikt})</span>
               </td>
-              <td className="px-5 py-2 text-right text-gray-500">{v.bounced}</td>
+              <td className="px-5 py-2 text-right text-gray-500 tabular-nums">{v.bounced}</td>
             </tr>
           );
         })}
