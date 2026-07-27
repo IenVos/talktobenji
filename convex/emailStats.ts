@@ -411,29 +411,33 @@ export const sluimerendeContacten = query({
       }
     }
 
+    type C = { email: string; naam: string | null; sent: number; laatsteOpen: number | null };
     let totaalGemaild = 0;
-    let nooitGeopend = 0;
-    const sluimerend: { email: string; naam: string | null; sent: number; opened: number; laatsteOpen: number | null }[] = [];
+    // Twee aparte groepen, want het zijn verschillende problemen:
+    //  - nooit: kreeg 2+ mails en opende nog NOOIT iets (mogelijk deliverability/wrong-fit)
+    //  - gestopt: opende eerder wél, maar al lang niet meer (natuurlijk verloop)
+    const nooit: C[] = [];
+    const gestopt: C[] = [];
     for (const [email, r] of per.entries()) {
       if (afgemeldSet.has(email) || testSet.has(email)) continue;
       const sent = r.sent.size;
       if (sent < 2) continue; // minstens 2 mails gehad = eerlijke kans
       totaalGemaild++;
-      const opened = r.opened.size;
-      const langNietGeopend = r.laatsteOpen === 0 || r.laatsteOpen < nu - drempel;
-      if (opened === 0) nooitGeopend++;
-      if (langNietGeopend) {
-        sluimerend.push({ email, naam: naam.get(email) ?? null, sent, opened, laatsteOpen: r.laatsteOpen || null });
+      const c: C = { email, naam: naam.get(email) ?? null, sent, laatsteOpen: r.laatsteOpen || null };
+      if (r.opened.size === 0) {
+        nooit.push(c);
+      } else if (r.laatsteOpen < nu - drempel) {
+        gestopt.push(c);
       }
     }
-    sluimerend.sort((a, b) => (a.laatsteOpen ?? 0) - (b.laatsteOpen ?? 0));
+    nooit.sort((a, b) => b.sent - a.sent);
+    gestopt.sort((a, b) => (a.laatsteOpen ?? 0) - (b.laatsteOpen ?? 0));
 
     return {
       drempelDagen: drempel / 86_400_000,
       totaalGemaild,
-      nooitGeopend,
-      aantalSluimerend: sluimerend.length,
-      lijst: sluimerend.slice(0, 300),
+      nooit: { aantal: nooit.length, lijst: nooit.slice(0, 300) },
+      gestopt: { aantal: gestopt.length, lijst: gestopt.slice(0, 300) },
     };
   },
 });

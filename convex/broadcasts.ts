@@ -52,9 +52,11 @@ async function resolveDoelgroep(
   ctx: any,
   doelgroep: string
 ): Promise<{ email: string; naam: string | null; type: string }[]> {
-  // Dynamische doelgroep: sluimerende contacten (opent al lang niets). Zelfde
-  // definitie als het overzicht op de statistiekenpagina.
-  if (doelgroep === "sluimerend") {
+  // Dynamische doelgroepen op openingsgedrag:
+  //  - "sluimerend": opende eerder wél, maar al 120+ dagen niet meer.
+  //  - "nooit-geopend": kreeg 2+ mails en opende nog nooit iets.
+  if (doelgroep === "sluimerend" || doelgroep === "nooit-geopend") {
+    const alleenNooit = doelgroep === "nooit-geopend";
     const DREMPEL = 120 * 86_400_000;
     const nu = Date.now();
     const [events, afmeldingen, excluded, brieven, funnelLeads, naProfielen] = await Promise.all([
@@ -87,7 +89,13 @@ async function resolveDoelgroep(
     for (const [email, r] of per.entries()) {
       if (afgemeldSet.has(email) || testSet.has(email)) continue;
       if (r.sent.size < 2) continue;
-      if (r.laatsteOpen !== 0 && r.laatsteOpen >= nu - DREMPEL) continue;
+      const nooitGeopend = r.laatsteOpen === 0;
+      if (alleenNooit) {
+        if (!nooitGeopend) continue;               // alleen wie nog nooit opende
+      } else {
+        if (nooitGeopend) continue;                // alleen wie eerder wél opende...
+        if (r.laatsteOpen >= nu - DREMPEL) continue; // ...maar nu al lang niet meer
+      }
       out.push({ email, naam: naamMap.get(email) ?? null, type: normType(typeMap.get(email)) });
     }
     return out;
@@ -302,7 +310,8 @@ async function verstuurLosseEmail(args: { to: string; subject: string; html: str
 const DOELGROEP_LABELS: Record<string, string> = {
   "lijst-incl-rust": "Hele lijst (incl. rustgroep)",
   lijst: "Hele lijst (zonder rustgroep)",
-  sluimerend: "Sluimerende contacten (openen al lang niets)",
+  sluimerend: "Sluimerend (opende eerder, nu lang niet)",
+  "nooit-geopend": "Nooit-openers (opende nog nooit iets)",
   "type:persoon": "Verlies van een persoon",
   "type:huisdier": "Verlies van een huisdier",
   "type:scheiding": "Relatie voorbij",

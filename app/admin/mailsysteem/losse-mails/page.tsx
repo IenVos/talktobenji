@@ -7,7 +7,8 @@ import { useAdminQuery, useAdminMutation, useAdminAction } from "../../AdminAuth
 const DOELGROEPEN = [
   { code: "lijst", label: "Hele lijst (zonder rustgroep)" },
   { code: "lijst-incl-rust", label: "Hele lijst (incl. rustgroep, voor de maandmail)" },
-  { code: "sluimerend", label: "Sluimerende contacten (openen al lang niets)" },
+  { code: "sluimerend", label: "Sluimerend (opende eerder, nu lang niet)" },
+  { code: "nooit-geopend", label: "Nooit-openers (opende nog nooit iets)" },
   { code: "type:persoon", label: "Alleen: verlies van een persoon" },
   { code: "type:huisdier", label: "Alleen: verlies van een huisdier" },
   { code: "type:scheiding", label: "Alleen: relatie voorbij" },
@@ -539,7 +540,7 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
         <span className="text-xs text-gray-400">{aantal ? `${aantal.aantal} mensen` : "…"} in deze doelgroep.</span>
       </label>
 
-      {doelgroep === "sluimerend" && (
+      {(doelgroep === "sluimerend" || doelgroep === "nooit-geopend") && (
         <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">
           Dit is de her-activatiemail. Stuur hem één keer. Wie hem opent of klikt, blijft. Wie na de
           wachttijd niets deed, schrijf je uit met de knop bij deze mail in de lijst hieronder.

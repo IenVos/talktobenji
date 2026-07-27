@@ -361,78 +361,93 @@ export default function EmailStatsPage() {
   );
 }
 
+type Contact = { email: string; naam: string | null; sent: number; laatsteOpen: number | null };
 type SluimerData = {
   drempelDagen: number;
   totaalGemaild: number;
-  nooitGeopend: number;
-  aantalSluimerend: number;
-  lijst: { email: string; naam: string | null; sent: number; opened: number; laatsteOpen: number | null }[];
+  nooit: { aantal: number; lijst: Contact[] };
+  gestopt: { aantal: number; lijst: Contact[] };
 };
+
+function ContactLijst({ lijst }: { lijst: Contact[] }) {
+  const laatsteOpenLabel = (ms: number | null) =>
+    ms ? new Date(ms).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" }) : "nooit";
+  if (lijst.length === 0) return <p className="text-sm text-gray-400 p-3">Niemand in deze lijst. Mooi.</p>;
+  return (
+    <div className="max-h-[320px] overflow-y-auto rounded-lg border border-gray-100">
+      <table className="w-full text-sm">
+        <thead className="sticky top-0 bg-gray-50">
+          <tr className="text-left text-gray-500">
+            <th className="py-2 px-3 font-medium">Naam / e-mail</th>
+            <th className="py-2 px-3 font-medium">Gemaild</th>
+            <th className="py-2 px-3 font-medium">Laatst geopend</th>
+          </tr>
+        </thead>
+        <tbody>
+          {lijst.map((c) => (
+            <tr key={c.email} className="border-t border-gray-50">
+              <td className="py-2 px-3">
+                <p className="text-gray-900">{c.naam || "—"}</p>
+                <p className="text-xs text-gray-400">{c.email}</p>
+              </td>
+              <td className="py-2 px-3 text-gray-600">{c.sent}x</td>
+              <td className="py-2 px-3 text-gray-600">{laatsteOpenLabel(c.laatsteOpen)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 function Sluimerend() {
   const data = useAdminQuery(api.emailStats.sluimerendeContacten, {}) as SluimerData | undefined;
   const [open, setOpen] = useState(false);
-  const [melding] = useState("");
+  const [tab, setTab] = useState<"nooit" | "gestopt">("nooit");
 
-  const laatsteOpenLabel = (ms: number | null) =>
-    ms ? new Date(ms).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" }) : "nooit";
+  const totaalNietOpen = data ? data.nooit.aantal + data.gestopt.aantal : 0;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200">
       <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-gray-800">
-        <span>Sluimerende contacten {data ? `(${data.aantalSluimerend})` : ""}</span>
+        <span>Contacten die niet openen {data ? `(${totaalNietOpen})` : ""}</span>
         <span className="text-gray-400">{open ? "▾" : "▸"}</span>
       </button>
       {open && data && (
         <div className="border-t border-gray-100 p-5 space-y-3">
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{data.totaalGemaild}</p><p className="text-xs text-gray-500">actief gemaild</p></div>
-            <div className="rounded-lg bg-amber-50 p-3"><p className="text-2xl font-bold text-amber-700">{data.aantalSluimerend}</p><p className="text-xs text-gray-500">opent al {data.drempelDagen}+ dagen niets</p></div>
-            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{data.nooitGeopend}</p><p className="text-xs text-gray-500">nog nooit geopend</p></div>
+            <div className="rounded-lg bg-red-50 p-3"><p className="text-2xl font-bold text-red-700">{data.nooit.aantal}</p><p className="text-xs text-gray-500">nog nooit geopend</p></div>
+            <div className="rounded-lg bg-amber-50 p-3"><p className="text-2xl font-bold text-amber-700">{data.gestopt.aantal}</p><p className="text-xs text-gray-500">opende eerder, nu {data.drempelDagen}+ dagen niet</p></div>
           </div>
 
           <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-sm text-blue-900">
-            <p className="font-medium">Wat je hiermee doet, in het kort</p>
-            <ol className="text-blue-800 mt-1 list-decimal pl-5 space-y-0.5">
-              <li>Ga naar <strong>Losse mails</strong> en kies bij Doelgroep <strong>&ldquo;Sluimerende contacten&rdquo;</strong>. Er staat een voorbeeldtekst klaar (knop &ldquo;Voorbeeldtekst invullen&rdquo;).</li>
-              <li>Test naar jezelf en verstuur die ene &ldquo;mag ik je blijven schrijven?&rdquo;-mail.</li>
-              <li>Na een dag of veertien zie je bij die mail onder <strong>Reacties</strong> wie hem opende. Eén klik en je schrijft de rest uit.</li>
-            </ol>
+            <p className="font-medium">Twee verschillende groepen, twee aanpakken</p>
+            <ul className="text-blue-800 mt-1 list-disc pl-5 space-y-1">
+              <li><strong>Nog nooit geopend:</strong> kregen wel mails maar openden er nooit één. Kan wijzen op de spammap of adressen die nooit echt pasten. Stuur ze de her-activatiemail; reageert er niets, dan mag deze groep vrij snel eraf.</li>
+              <li><strong>Opende eerder, nu lang niet:</strong> natuurlijk verloop. Hiervoor doe je rustig <strong>2x per jaar</strong> een check: één her-activatiemail, en wie niet reageert schrijf je uit.</li>
+            </ul>
             <p className="text-blue-700 text-xs mt-2">
-              Let op: open-meting is niet waterdicht (sommige mailclients melden opens niet). Zie dit als
-              signaal, niet als bewijs. Daarom eerst vragen, dan pas verwijderen.
+              Beide doe je via Losse mails: kies de bijpassende doelgroep, er staat een voorbeeldtekst klaar.
+              Na versturen zie je bij die mail onder Reacties wie reageerde, met één knop om de rest uit te
+              schrijven. Let op: open-meting is niet waterdicht; zie het als signaal, niet als bewijs.
             </p>
           </div>
 
           <Link href="/admin/mailsysteem/losse-mails" className="inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white">
             Naar Losse mails →
           </Link>
-          {melding && <p className="text-sm text-gray-600">{melding}</p>}
 
-          <div className="max-h-[360px] overflow-y-auto rounded-lg border border-gray-100">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-gray-50">
-                <tr className="text-left text-gray-500">
-                  <th className="py-2 px-3 font-medium">Naam / e-mail</th>
-                  <th className="py-2 px-3 font-medium">Gemaild</th>
-                  <th className="py-2 px-3 font-medium">Laatst geopend</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.lijst.map((c) => (
-                  <tr key={c.email} className="border-t border-gray-50">
-                    <td className="py-2 px-3">
-                      <p className="text-gray-900">{c.naam || "—"}</p>
-                      <p className="text-xs text-gray-400">{c.email}</p>
-                    </td>
-                    <td className="py-2 px-3 text-gray-600">{c.sent}x</td>
-                    <td className="py-2 px-3 text-gray-600">{laatsteOpenLabel(c.laatsteOpen)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {data.lijst.length === 0 && <p className="text-sm text-gray-400 p-3">Geen sluimerende contacten. Mooi.</p>}
+          {/* Twee lijsten */}
+          <div className="flex gap-2 pt-1">
+            <button onClick={() => setTab("nooit")} className={`px-3 py-1.5 rounded-lg text-sm ${tab === "nooit" ? "bg-red-600 text-white" : "bg-gray-100 text-gray-600"}`}>
+              Nog nooit geopend ({data.nooit.aantal})
+            </button>
+            <button onClick={() => setTab("gestopt")} className={`px-3 py-1.5 rounded-lg text-sm ${tab === "gestopt" ? "bg-amber-600 text-white" : "bg-gray-100 text-gray-600"}`}>
+              Opende eerder, nu lang niet ({data.gestopt.aantal})
+            </button>
           </div>
+          <ContactLijst lijst={tab === "nooit" ? data.nooit.lijst : data.gestopt.lijst} />
         </div>
       )}
     </div>
