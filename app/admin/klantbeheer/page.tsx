@@ -439,6 +439,15 @@ export default function KlantbeheerPage() {
         </button>
       </form>
 
+      {/* Alle contacten: overzicht + export (backup) */}
+      <AlleContacten
+        onSelect={(email) => {
+          setSearchInput(email);
+          setActiveEmail(email);
+          setSubState(null);
+        }}
+      />
+
       {/* Niet gevonden */}
       {activeEmail && customer === null && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800">
@@ -778,6 +787,140 @@ export default function KlantbeheerPage() {
             />
           </div>}
         </>
+      )}
+    </div>
+  );
+}
+
+type Contact = {
+  email: string;
+  naam: string;
+  account: boolean;
+  klant: boolean;
+  trial: boolean;
+  ehLead: boolean;
+  nieuwsbrief: boolean;
+  afgemeld: boolean;
+  evergreen: string | null;
+  groepen: string[];
+  gekocht: string[];
+};
+
+const EVERGREEN_LABEL: Record<string, string> = {
+  "in-backend": "Evergreen",
+  "alleen-maandmail": "Alleen maandmail",
+  koper: "Koper",
+  afgemeld: "Afgemeld",
+};
+
+function AlleContacten({ onSelect }: { onSelect: (email: string) => void }) {
+  const contacten = useAdminQuery(api.klantbeheer.alleContacten, {}) as Contact[] | undefined;
+  const [open, setOpen] = useState(false);
+  const [zoek, setZoek] = useState("");
+  const [filter, setFilter] = useState<"alle" | "klant" | "afgemeld">("alle");
+
+  const gefilterd = (contacten ?? []).filter((c) => {
+    if (filter === "klant" && !c.klant) return false;
+    if (filter === "afgemeld" && !c.afgemeld) return false;
+    if (zoek.trim()) {
+      const q = zoek.trim().toLowerCase();
+      if (!c.email.includes(q) && !c.naam.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  const totaal = contacten?.length ?? 0;
+  const klanten = contacten?.filter((c) => c.klant).length ?? 0;
+  const afgemeld = contacten?.filter((c) => c.afgemeld).length ?? 0;
+
+  const exporteer = () => {
+    if (!contacten) return;
+    const kop = ["email", "naam", "klant", "trial", "eh_lead", "nieuwsbrief", "afgemeld", "evergreen", "groepen", "gekocht"];
+    const escape = (s: string) => `"${String(s).replace(/"/g, '""')}"`;
+    const regels = contacten.map((c) =>
+      [
+        c.email, c.naam, c.klant ? "ja" : "", c.trial ? "ja" : "", c.ehLead ? "ja" : "",
+        c.nieuwsbrief ? "ja" : "", c.afgemeld ? "ja" : "", c.evergreen ?? "",
+        c.groepen.join(" | "), c.gekocht.join(" | "),
+      ].map(escape).join(",")
+    );
+    const csv = [kop.join(","), ...regels].join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `talktobenji-contacten-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-gray-700">
+        <span>Alle contacten {contacten ? `(${totaal})` : ""}</span>
+        <span className="text-gray-400">{open ? "▾" : "▸"}</span>
+      </button>
+      {open && (
+        <div className="border-t border-gray-100 p-5 space-y-3">
+          {/* Samenvatting + conclusie */}
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{totaal}</p><p className="text-xs text-gray-500">contacten totaal</p></div>
+            <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{klanten}</p><p className="text-xs text-gray-500">klanten</p></div>
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{afgemeld}</p><p className="text-xs text-gray-500">afgemeld</p></div>
+          </div>
+          <p className="text-xs text-gray-500">
+            Dit is je hele bestand op één plek. Met <strong>Exporteer naar CSV</strong> heb je altijd een
+            eigen kopie van alle adressen als vangnet. Klik op iemand om het volledige detail te openen.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <input value={zoek} onChange={(e) => setZoek(e.target.value)} placeholder="Zoek op naam of e-mail" className="flex-1 min-w-[180px] rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <select value={filter} onChange={(e) => setFilter(e.target.value as any)} className="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+              <option value="alle">Iedereen</option>
+              <option value="klant">Alleen klanten</option>
+              <option value="afgemeld">Alleen afgemeld</option>
+            </select>
+            <button onClick={exporteer} className="rounded-lg bg-gray-900 px-3 py-2 text-sm text-white">Exporteer naar CSV</button>
+          </div>
+
+          <div className="max-h-[420px] overflow-y-auto rounded-lg border border-gray-100">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-gray-50">
+                <tr className="text-left text-gray-500">
+                  <th className="py-2 px-3 font-medium">Naam / e-mail</th>
+                  <th className="py-2 px-3 font-medium">Wat</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gefilterd.slice(0, 500).map((c) => (
+                  <tr key={c.email} className="border-t border-gray-50 hover:bg-primary-50 cursor-pointer" onClick={() => onSelect(c.email)}>
+                    <td className="py-2 px-3">
+                      <p className="text-gray-900">{c.naam || "—"}</p>
+                      <p className="text-xs text-gray-400">{c.email}</p>
+                    </td>
+                    <td className="py-2 px-3">
+                      <div className="flex flex-wrap gap-1">
+                        {c.klant && <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-50 text-green-700">Klant</span>}
+                        {c.trial && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">Trial</span>}
+                        {c.evergreen && <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">{EVERGREEN_LABEL[c.evergreen] ?? c.evergreen}</span>}
+                        {c.ehLead && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">EH-lead</span>}
+                        {c.nieuwsbrief && <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600">Nieuwsbrief</span>}
+                        {c.afgemeld && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600">Afgemeld</span>}
+                        {c.groepen.map((g) => (
+                          <span key={g} className="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-700">{g}</span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {gefilterd.length > 500 && (
+              <p className="text-xs text-gray-400 p-3">Eerste 500 getoond. Verfijn met zoeken, of exporteer alles naar CSV.</p>
+            )}
+            {gefilterd.length === 0 && <p className="text-sm text-gray-400 p-3">Niets gevonden.</p>}
+          </div>
+        </div>
       )}
     </div>
   );

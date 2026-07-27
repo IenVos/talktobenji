@@ -32,6 +32,114 @@ export const listCustomerEmails = query({
   },
 });
 
+/**
+ * Volledig contactoverzicht: iedereen die we kennen, met wie het is, in welke
+ * groep/status en wat gekocht is. Bron voor het overzicht in Klantbeheer én voor
+ * de CSV-export (backup + zicht op alle adressen). Uniek per e-mailadres.
+ */
+export const alleContacten = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx) => {
+    const [creds, users, naProfielen, subs, brieven, optins, funnelLeads, afmeldingen, groepen, groepLeden] =
+      await Promise.all([
+        ctx.db.query("credentials").collect(),
+        ctx.db.query("users").collect(),
+        ctx.db.query("nietAlleenProfiles").collect(),
+        ctx.db.query("userSubscriptions").collect(),
+        ctx.db.query("houvastBrieven").collect(),
+        ctx.db.query("nieuwsbriefOptins").collect(),
+        ctx.db.query("funnelLeads").collect(),
+        ctx.db.query("ehAfmeldingen").collect(),
+        ctx.db.query("mailGroepen").collect(),
+        ctx.db.query("mailGroepLeden").collect(),
+      ]);
+
+    const groepNaam = new Map(groepen.map((g: any) => [g._id, g.naam]));
+    const usersByEmail = new Map<string, any>();
+    for (const u of users) if (u.email) usersByEmail.set(u.email.toLowerCase(), u);
+
+    type Rec = {
+      email: string;
+      naam: string;
+      account: boolean;
+      klant: boolean;
+      trial: boolean;
+      ehLead: boolean;
+      nieuwsbrief: boolean;
+      afgemeld: boolean;
+      evergreen: string | null;
+      groepen: string[];
+      gekocht: string[];
+    };
+    const map = new Map<string, Rec>();
+    const rec = (email: string): Rec => {
+      const e = email.toLowerCase().trim();
+      let r = map.get(e);
+      if (!r) {
+        r = {
+          email: e, naam: "", account: false, klant: false, trial: false, ehLead: false,
+          nieuwsbrief: false, afgemeld: false, evergreen: null, groepen: [], gekocht: [],
+        };
+        map.set(e, r);
+      }
+      return r;
+    };
+    const zetNaam = (r: Rec, naam?: string | null) => {
+      if (!r.naam && naam && naam.trim()) r.naam = naam.trim();
+    };
+
+    for (const c of creds) if (c.email) rec(c.email).account = true;
+    for (const p of naProfielen) {
+      if (!p.email) continue;
+      const r = rec(p.email);
+      r.klant = true;
+      zetNaam(r, p.naam);
+      if (!r.gekocht.includes("Niet Alleen")) r.gekocht.push("Niet Alleen");
+    }
+    for (const s of subs) {
+      if (!s.email) continue;
+      const r = rec(s.email);
+      if (s.subscriptionType === "trial" && s.expiresAt && s.expiresAt > Date.now()) r.trial = true;
+      if ((s.pricePaid ?? 0) > 0) {
+        r.klant = true;
+        const label = s.subscriptionType === "niet_alleen" ? "Niet Alleen" : (s.subscriptionType ?? "aankoop");
+        if (!r.gekocht.includes(label)) r.gekocht.push(label);
+      }
+    }
+    for (const b of brieven) {
+      if (!b.email) continue;
+      const r = rec(b.email);
+      r.ehLead = true;
+      zetNaam(r, b.naam);
+    }
+    for (const o of optins) {
+      if (!o.email) continue;
+      const r = rec(o.email);
+      r.nieuwsbrief = true;
+      zetNaam(r, o.naam);
+    }
+    for (const l of funnelLeads) {
+      if (!l.email) continue;
+      const r = rec(l.email);
+      r.evergreen = l.status;
+      zetNaam(r, l.naam);
+    }
+    for (const a of afmeldingen) if (a.email) rec(a.email).afgemeld = true;
+    for (const gl of groepLeden) {
+      if (!gl.email) continue;
+      const r = rec(gl.email);
+      const naam = groepNaam.get(gl.groepId);
+      if (naam && !r.groepen.includes(naam)) r.groepen.push(naam);
+    }
+    // Namen aanvullen uit accounts waar nog geen naam bekend is.
+    for (const r of map.values()) {
+      if (!r.naam) zetNaam(r, usersByEmail.get(r.email)?.name);
+    }
+
+    return Array.from(map.values()).sort((a, b) => a.email.localeCompare(b.email));
+  },
+});
+
 /** Zoek klantinfo op basis van e-mailadres */
 export const getCustomerByEmail = query({
   args: {
