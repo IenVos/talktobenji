@@ -24,6 +24,7 @@ import {
   mailKnop,
   mailHandtekeningIen,
   mailWrapper,
+  persoonlijkOnderwerp,
 } from "./ehMailFooter";
 import { BENJI_MARKER, BENJI_BLOK_MARKER } from "./ehConcepten";
 
@@ -334,7 +335,7 @@ async function verstuurOpvolgMail(
 
   await verstuurEmail({
     to: args.email,
-    subject,
+    subject: persoonlijkOnderwerp(subject, args.naam),
     html,
     apiKey: args.apiKey,
     tags: [

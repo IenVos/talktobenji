@@ -26,6 +26,7 @@ import {
   ehAfmeldUrl,
   ehAfmeldToken,
   nietAlleenUrlVoorType,
+  persoonlijkOnderwerp,
 } from "./ehMailFooter";
 import { BENJI_BLOK_MARKER } from "./ehConcepten";
 
@@ -632,7 +633,7 @@ export const _verstuurEvergreen = internalAction({
       });
       await verstuurEvergreenEmail({
         to: args.email,
-        subject: mail.subject,
+        subject: persoonlijkOnderwerp(mail.subject, args.naam ?? undefined),
         html,
         apiKey,
         mailId: String(args.mailId),
@@ -731,7 +732,7 @@ export const stuurTestEvergreen = action({
     });
     await verstuurEvergreenEmail({
       to: args.email,
-      subject: mail.subject,
+      subject: persoonlijkOnderwerp(mail.subject, args.naam),
       html,
       apiKey,
       mailId: String(args.mailId),

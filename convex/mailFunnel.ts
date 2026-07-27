@@ -28,6 +28,7 @@ import {
   ehFooter,
   ehAfmeldUrl,
   nietAlleenUrlVoorType,
+  persoonlijkOnderwerp,
 } from "./ehMailFooter";
 import { BENJI_BLOK_MARKER } from "./ehConcepten";
 
@@ -555,7 +556,7 @@ export const stuurTestReactivatie = action({
       imageCaption: mail.imageCaption,
       type: args.type,
     });
-    await verstuurReactivatieEmail({ to: args.email, subject: mail.subject, html, apiKey });
+    await verstuurReactivatieEmail({ to: args.email, subject: persoonlijkOnderwerp(mail.subject, args.naam), html, apiKey });
     return { ok: true };
   },
 });
@@ -726,7 +727,7 @@ export const _reactivatieRonde = internalAction({
           imageCaption: cfg.imageCaption,
           type: lead.type,
         });
-        await verstuurReactivatieEmail({ to: lead.email, subject: cfg.subject, html, apiKey });
+        await verstuurReactivatieEmail({ to: lead.email, subject: persoonlijkOnderwerp(cfg.subject, lead.naam), html, apiKey });
         await ctx.runMutation(internal.mailFunnel._logReactivatieVerzonden, {
           email: lead.email,
           naam: lead.naam ?? undefined,

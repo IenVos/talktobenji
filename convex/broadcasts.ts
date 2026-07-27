@@ -28,6 +28,7 @@ import {
   mailHandtekeningIen,
   ehAfmeldUrl,
   ehAfmeldToken,
+  persoonlijkOnderwerp,
 } from "./ehMailFooter";
 import { BENJI_BLOK_MARKER } from "./ehConcepten";
 
@@ -39,6 +40,7 @@ const ALGEMEEN = "algemeen";
 function normType(t?: string | null): string {
   return t && EH_TYPES.includes(t) ? t : ALGEMEEN;
 }
+
 
 // ── Doelgroep bepalen ────────────────────────────────────────────────────────
 
@@ -440,7 +442,7 @@ export const stuurTestLosseMail = action({
       imageUrl: mail.imageUrl,
       imageCaption: mail.imageCaption,
     });
-    await verstuurLosseEmail({ to: args.email, subject: mail.subject, html, apiKey, mailId: String(args.id) });
+    await verstuurLosseEmail({ to: args.email, subject: persoonlijkOnderwerp(mail.subject, args.naam), html, apiKey, mailId: String(args.id) });
     return { ok: true };
   },
 });
@@ -617,7 +619,7 @@ export const _ronde = internalAction({
           imageUrl: cfg.imageUrl,
           imageCaption: cfg.imageCaption,
         });
-        await verstuurLosseEmail({ to: lead.email, subject: cfg.subject, html, apiKey, mailId: String(args.id) });
+        await verstuurLosseEmail({ to: lead.email, subject: persoonlijkOnderwerp(cfg.subject, lead.naam), html, apiKey, mailId: String(args.id) });
         await ctx.runMutation(internal.broadcasts._logVerzonden, { id: args.id, email: lead.email });
         verstuurd++;
       } catch (e) {

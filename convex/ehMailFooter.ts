@@ -31,6 +31,19 @@ export function nietAlleenUrlVoorType(type: string): string {
 // Dezelfde romp, knop en handtekening voor élke mail die van Ien komt, zodat ze
 // er allemaal hetzelfde uitzien. (De opvolgreeks gebruikt dit ook.)
 
+// Vult {voornaam} in de onderwerpregel. Zonder naam schonen we netjes op: een
+// "{voornaam}, " vooraan valt weg en de eerste letter wordt weer een hoofdletter,
+// zodat er geen kale komma of kleine letter blijft staan. Veilig voor onderwerpen
+// zonder {voornaam}: die blijven dan ongewijzigd.
+export function persoonlijkOnderwerp(subject: string, naam?: string | null): string {
+  const voornaam = (naam || "").trim().split(" ")[0];
+  let s = (subject || "").replace(/\{voornaam\}/g, voornaam);
+  if (!voornaam) {
+    s = s.replace(/^\s*,\s*/, "").replace(/^([a-zà-ÿ])/, (m) => m.toUpperCase());
+  }
+  return s.trim();
+}
+
 export function mailAlinea(p: string): string {
   return `<p style="font-size: 15px; line-height: 1.8; color: #4a5568;">${p.trim().replace(/\n/g, "<br/>")}</p>`;
 }
