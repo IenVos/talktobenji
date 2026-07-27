@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Mail, Eye, MousePointerClick, AlertTriangle, Send, CheckCircle2, ChevronDown } from "lucide-react";
 import { api } from "@/convex/_generated/api";
-import { useAdminQuery } from "../AdminAuthContext";
+import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 
 type Cijfers = {
   onderwerp: string;
@@ -353,6 +353,113 @@ export default function EmailStatsPage() {
             laatste {stats.dagen} dagen.
           </p>
         </>
+      )}
+
+      <Sluimerend />
+    </div>
+  );
+}
+
+type SluimerData = {
+  drempelDagen: number;
+  totaalGemaild: number;
+  nooitGeopend: number;
+  aantalSluimerend: number;
+  lijst: { email: string; naam: string | null; sent: number; opened: number; laatsteOpen: number | null }[];
+};
+
+function Sluimerend() {
+  const data = useAdminQuery(api.emailStats.sluimerendeContacten, {}) as SluimerData | undefined;
+  const maakGroep = useAdminMutation(api.mailGroepen.maak);
+  const ledenToevoegen = useAdminMutation(api.mailGroepen.ledenToevoegen);
+  const [open, setOpen] = useState(false);
+  const [bezig, setBezig] = useState(false);
+  const [melding, setMelding] = useState("");
+
+  const maakHeractivatie = async () => {
+    if (!data || data.lijst.length === 0) return;
+    setBezig(true);
+    setMelding("");
+    try {
+      const res = await maakGroep({ naam: `Sluimerend (${new Date().toLocaleDateString("nl-NL")})` });
+      const r = await ledenToevoegen({
+        id: res.id as any,
+        leden: data.lijst.map((c) => ({ email: c.email, naam: c.naam ?? undefined })),
+        alleenNieuwe: false,
+      });
+      setMelding(`Groep gemaakt met ${r.toegevoegd} mensen. Stuur ze een mail via Losse mails. Wie daarna nog niets doet, kun je afmelden.`);
+    } catch (e: any) {
+      setMelding(e?.message ?? "Groep maken mislukt.");
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const laatsteOpenLabel = (ms: number | null) =>
+    ms ? new Date(ms).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" }) : "nooit";
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold text-gray-800">
+        <span>Sluimerende contacten {data ? `(${data.aantalSluimerend})` : ""}</span>
+        <span className="text-gray-400">{open ? "▾" : "▸"}</span>
+      </button>
+      {open && data && (
+        <div className="border-t border-gray-100 p-5 space-y-3">
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{data.totaalGemaild}</p><p className="text-xs text-gray-500">actief gemaild</p></div>
+            <div className="rounded-lg bg-amber-50 p-3"><p className="text-2xl font-bold text-amber-700">{data.aantalSluimerend}</p><p className="text-xs text-gray-500">opent al {data.drempelDagen}+ dagen niets</p></div>
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{data.nooitGeopend}</p><p className="text-xs text-gray-500">nog nooit geopend</p></div>
+          </div>
+
+          <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-sm text-blue-900">
+            <p className="font-medium">Wat je hiermee doet</p>
+            <p className="text-blue-800 mt-1">
+              Stuur deze groep één zachte "mag ik je blijven schrijven?"-mail. Wie hem opent of klikt,
+              blijft. Wie daarna nog niets doet, meld je af. Dat houdt je open-rate gezond en je kosten
+              laag, en is netter dan blijven mailen naar mensen die niet meer kijken. Meer sturen helpt
+              niet; een sterke onderwerpregel wel.
+            </p>
+            <p className="text-blue-700 text-xs mt-2">
+              Let op: open-meting is niet waterdicht (sommige mailclients melden opens niet). Zie dit als
+              signaal, niet als bewijs. Daarom eerst vragen, dan pas verwijderen.
+            </p>
+          </div>
+
+          <button
+            onClick={maakHeractivatie}
+            disabled={bezig || data.lijst.length === 0}
+            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {bezig ? "Bezig…" : "Maak een her-activatiegroep van deze mensen"}
+          </button>
+          {melding && <p className="text-sm text-gray-600">{melding}</p>}
+
+          <div className="max-h-[360px] overflow-y-auto rounded-lg border border-gray-100">
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-gray-50">
+                <tr className="text-left text-gray-500">
+                  <th className="py-2 px-3 font-medium">Naam / e-mail</th>
+                  <th className="py-2 px-3 font-medium">Gemaild</th>
+                  <th className="py-2 px-3 font-medium">Laatst geopend</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.lijst.map((c) => (
+                  <tr key={c.email} className="border-t border-gray-50">
+                    <td className="py-2 px-3">
+                      <p className="text-gray-900">{c.naam || "—"}</p>
+                      <p className="text-xs text-gray-400">{c.email}</p>
+                    </td>
+                    <td className="py-2 px-3 text-gray-600">{c.sent}x</td>
+                    <td className="py-2 px-3 text-gray-600">{laatsteOpenLabel(c.laatsteOpen)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {data.lijst.length === 0 && <p className="text-sm text-gray-400 p-3">Geen sluimerende contacten. Mooi.</p>}
+          </div>
+        </div>
       )}
     </div>
   );

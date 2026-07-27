@@ -357,3 +357,83 @@ export const stats = query({
     };
   },
 });
+
+/**
+ * Sluimerende contacten: mensen die we wél mailen, maar die (bijna) nooit openen.
+ * Bron voor de lijsthygiëne: één her-activatiemail, en wie dan nog niets doet, eraf.
+ *
+ * Let op: open-tracking is niet perfect (sommige mailclients, o.a. Apple Mail met
+ * privacybescherming, melden opens niet of juist te vaak). "Niet geopend" is dus een
+ * signaal, geen bewijs. Daarom een zachte aanpak: eerst vragen, dan pas verwijderen.
+ */
+export const sluimerendeContacten = query({
+  args: { adminToken: v.string(), drempelDagen: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const drempel = (args.drempelDagen && args.drempelDagen > 0 ? args.drempelDagen : 120) * 86_400_000;
+    const nu = Date.now();
+
+    const [events, afmeldingen, excluded, brieven, funnelLeads, naProfielen] = await Promise.all([
+      ctx.db.query("resendEmailEvents").collect(),
+      ctx.db.query("ehAfmeldingen").collect(),
+      ctx.db.query("analyticsExcludedEmails").collect(),
+      ctx.db.query("houvastBrieven").collect(),
+      ctx.db.query("funnelLeads").collect(),
+      ctx.db.query("nietAlleenProfiles").collect(),
+    ]);
+
+    const afgemeldSet = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+    const testSet = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    const naam = new Map<string, string>();
+    for (const b of brieven) if (b.email && b.naam) naam.set(b.email.toLowerCase(), b.naam);
+    for (const l of funnelLeads) if (l.email && l.naam && !naam.has(l.email.toLowerCase())) naam.set(l.email.toLowerCase(), l.naam);
+    for (const p of naProfielen) if (p.email && p.naam && !naam.has(p.email.toLowerCase())) naam.set(p.email.toLowerCase(), p.naam);
+
+    type R = { sent: Set<string>; opened: Set<string>; laatsteOpen: number; laatsteSent: number };
+    const per = new Map<string, R>();
+    const rec = (to: string): R => {
+      const e = to.toLowerCase();
+      let r = per.get(e);
+      if (!r) { r = { sent: new Set(), opened: new Set(), laatsteOpen: 0, laatsteSent: 0 }; per.set(e, r); }
+      return r;
+    };
+    for (const ev of events) {
+      if (!ev.to) continue;
+      const t = (ev.type || "").toLowerCase();
+      const r = rec(ev.to);
+      if (t.includes("sent") || t.includes("delivered")) {
+        r.sent.add(ev.emailId);
+        if (ev.createdAt > r.laatsteSent) r.laatsteSent = ev.createdAt;
+      }
+      if (t.includes("opened")) {
+        r.opened.add(ev.emailId);
+        if (ev.createdAt > r.laatsteOpen) r.laatsteOpen = ev.createdAt;
+      }
+    }
+
+    let totaalGemaild = 0;
+    let nooitGeopend = 0;
+    const sluimerend: { email: string; naam: string | null; sent: number; opened: number; laatsteOpen: number | null }[] = [];
+    for (const [email, r] of per.entries()) {
+      if (afgemeldSet.has(email) || testSet.has(email)) continue;
+      const sent = r.sent.size;
+      if (sent < 2) continue; // minstens 2 mails gehad = eerlijke kans
+      totaalGemaild++;
+      const opened = r.opened.size;
+      const langNietGeopend = r.laatsteOpen === 0 || r.laatsteOpen < nu - drempel;
+      if (opened === 0) nooitGeopend++;
+      if (langNietGeopend) {
+        sluimerend.push({ email, naam: naam.get(email) ?? null, sent, opened, laatsteOpen: r.laatsteOpen || null });
+      }
+    }
+    sluimerend.sort((a, b) => (a.laatsteOpen ?? 0) - (b.laatsteOpen ?? 0));
+
+    return {
+      drempelDagen: drempel / 86_400_000,
+      totaalGemaild,
+      nooitGeopend,
+      aantalSluimerend: sluimerend.length,
+      lijst: sluimerend.slice(0, 300),
+    };
+  },
+});
