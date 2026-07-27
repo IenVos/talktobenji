@@ -52,6 +52,28 @@ async function resolveDoelgroep(
   ctx: any,
   doelgroep: string
 ): Promise<{ email: string; naam: string | null; type: string }[]> {
+  // Eigen doelgroep (mailGroepen): "groep:<id>". Adressen komen uit de groep zelf;
+  // afgemelde en testadressen vallen ook hier af.
+  if (doelgroep.startsWith("groep:")) {
+    const groepId = doelgroep.slice(6);
+    const [leden, afmeldingen, excluded] = await Promise.all([
+      ctx.db.query("mailGroepLeden").withIndex("by_groep", (q: any) => q.eq("groepId", groepId)).collect(),
+      ctx.db.query("ehAfmeldingen").collect(),
+      ctx.db.query("analyticsExcludedEmails").collect(),
+    ]);
+    const afgemeldSet = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+    const testSet = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    const gezien = new Set<string>();
+    const out: { email: string; naam: string | null; type: string }[] = [];
+    for (const l of leden) {
+      const email = l.email.toLowerCase();
+      if (afgemeldSet.has(email) || testSet.has(email) || gezien.has(email)) continue;
+      gezien.add(email);
+      out.push({ email, naam: l.naam ?? null, type: normType(l.verliesType) });
+    }
+    return out;
+  }
+
   const [funnelLeads, brieven, optins, afmeldingen, excluded] = await Promise.all([
     ctx.db.query("funnelLeads").collect(),
     ctx.db.query("houvastBrieven").collect(),

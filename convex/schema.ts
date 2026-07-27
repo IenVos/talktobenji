@@ -1058,6 +1058,20 @@ export default defineSchema({
     sentAt: v.number(),
   }).index("by_mail", ["losseMailId"]),
 
+  // Eigen doelgroepen: een naam + een lijst adressen die Ien zelf beheert (o.a. een
+  // geïmporteerde groep uit MailerLite). Kiesbaar als doelgroep bij de losse mails.
+  mailGroepen: defineTable({
+    naam: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }),
+  mailGroepLeden: defineTable({
+    groepId: v.id("mailGroepen"),
+    email: v.string(),            // lowercase
+    naam: v.optional(v.string()),
+    verliesType: v.optional(v.string()),
+  }).index("by_groep", ["groepId"]).index("by_groep_email", ["groepId", "email"]),
+
   // Verwerkte Stripe-webhookgebeurtenissen. Stripe kan eenzelfde event meer dan
   // eens afleveren; dit logboek voorkomt dubbele verwerking (dubbele mail/cadeaucode).
   processedStripeEvents: defineTable({

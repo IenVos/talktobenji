@@ -40,6 +40,7 @@ type Rij = {
 
 export default function LosseMailsPage() {
   const rijen = useAdminQuery(api.broadcasts.lijst, {}) as Rij[] | undefined;
+  const stopVerzending = useAdminMutation(api.broadcasts.stopVerzending);
   const [bewerkId, setBewerkId] = useState<string | null>(null);
   const [nieuw, setNieuw] = useState(false);
 
@@ -70,6 +71,8 @@ export default function LosseMailsPage() {
         </button>
       )}
 
+      <GroepenBeheer />
+
       {/* Lijst met mails */}
       <div className="space-y-2">
         {rijen?.length === 0 && <p className="text-sm text-gray-400">Nog geen losse mails.</p>}
@@ -99,7 +102,23 @@ export default function LosseMailsPage() {
               <span className="text-xs px-2 py-1 rounded bg-green-50 text-green-700">Klaar</span>
             )}
             {r.status === "bezig" && (
-              <span className="text-xs px-2 py-1 rounded bg-amber-50 text-amber-700">Bezig</span>
+              <>
+                <span className="text-xs px-2 py-1 rounded bg-amber-50 text-amber-700">Bezig</span>
+                <button
+                  onClick={() => { if (confirm("Verzending nu stoppen? Wat al verstuurd is, is verstuurd.")) stopVerzending({ id: r._id as any }); }}
+                  className="text-xs px-2 py-1 rounded bg-red-600 text-white"
+                >
+                  Noodrem
+                </button>
+              </>
+            )}
+            {r.status === "gepland" && (
+              <button
+                onClick={() => { if (confirm("Ingeplande verzending annuleren?")) stopVerzending({ id: r._id as any }); }}
+                className="text-xs px-2 py-1 rounded hover:bg-gray-100 text-gray-600"
+              >
+                Annuleren
+              </button>
             )}
           </div>
         ))}
@@ -108,8 +127,158 @@ export default function LosseMailsPage() {
   );
 }
 
+// Haalt e-mailadressen (en waar mogelijk namen) uit geplakte tekst of een CSV.
+// Neemt per regel het eerste adres dat op een e-mail lijkt; een niet-numerieke,
+// niet-datum tekst ernaast geldt als naam (zoals bij "adres,naam").
+function parseLeden(text: string): { email: string; naam?: string }[] {
+  const uit: { email: string; naam?: string }[] = [];
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line) continue;
+    const delen = line.split(/[,;\t]/).map((s) => s.trim().replace(/^"|"$/g, ""));
+    const email = delen.find((d) => emailRe.test(d));
+    if (!email) continue;
+    const naam = delen.find(
+      (d) => d && d !== email && !emailRe.test(d) && !/^\d+$/.test(d) && !/^\d{4}-\d{2}-\d{2}/.test(d)
+    );
+    uit.push({ email, naam });
+  }
+  return uit;
+}
+
+function GroepenBeheer() {
+  const groepen = useAdminQuery(api.mailGroepen.lijst, {}) as { _id: string; naam: string; aantal: number }[] | undefined;
+  const maak = useAdminMutation(api.mailGroepen.maak);
+  const hernoem = useAdminMutation(api.mailGroepen.hernoem);
+  const verwijder = useAdminMutation(api.mailGroepen.verwijder);
+  const ledenToevoegen = useAdminMutation(api.mailGroepen.ledenToevoegen);
+
+  const [open, setOpen] = useState(false);
+  const [nieuweNaam, setNieuweNaam] = useState("");
+  const [actieveGroep, setActieveGroep] = useState<string | null>(null);
+  const [plak, setPlak] = useState("");
+  const [alleenNieuwe, setAlleenNieuwe] = useState(true);
+  const [bezig, setBezig] = useState(false);
+  const [melding, setMelding] = useState("");
+
+  const nieuweGroep = async () => {
+    if (!nieuweNaam.trim()) return;
+    const res = await maak({ naam: nieuweNaam.trim() });
+    setNieuweNaam("");
+    setActieveGroep(String(res.id));
+  };
+
+  const toevoegen = async (viaTekst: string) => {
+    if (!actieveGroep) {
+      setMelding("Kies of maak eerst een groep.");
+      return;
+    }
+    const leden = parseLeden(viaTekst);
+    if (leden.length === 0) {
+      setMelding("Geen geldige e-mailadressen gevonden.");
+      return;
+    }
+    setBezig(true);
+    setMelding("");
+    try {
+      const r = await ledenToevoegen({ id: actieveGroep as any, leden, alleenNieuwe });
+      setMelding(
+        `${r.toegevoegd} toegevoegd. Overgeslagen: ${r.alInSysteem} al in ons systeem, ${r.dubbel} dubbel, ${r.afgemeld} afgemeld/test, ${r.ongeldig} ongeldig.`
+      );
+      setPlak("");
+    } catch (e: any) {
+      setMelding(e?.message ?? "Toevoegen mislukt.");
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  const csvUpload = async (file: File) => {
+    const tekst = await file.text();
+    await toevoegen(tekst);
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl">
+      <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-gray-700">
+        <span>Eigen doelgroepen {groepen ? `(${groepen.length})` : ""}</span>
+        <span className="text-gray-400">{open ? "▾" : "▸"}</span>
+      </button>
+      {open && (
+        <div className="border-t border-gray-100 p-5 space-y-4">
+          <p className="text-xs text-gray-500">
+            Maak een eigen groep en plak adressen of upload een CSV (bijv. een export uit MailerLite). We
+            schonen automatisch op: dubbelen, afgemelde en testadressen vallen af, en met het vinkje
+            hieronder ook adressen die je al in je eigen systeem hebt. Groepen kies je bovenin bij Doelgroep.
+          </p>
+
+          {/* Bestaande groepen */}
+          <div className="space-y-1">
+            {groepen?.map((g) => (
+              <div key={g._id} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${actieveGroep === g._id ? "bg-primary-50 border border-primary-200" : "bg-gray-50 border border-gray-100"}`}>
+                <button onClick={() => setActieveGroep(g._id)} className="flex-1 text-left">
+                  <span className="font-medium text-gray-900">{g.naam}</span>
+                  <span className="text-gray-400"> · {g.aantal} adressen</span>
+                </button>
+                <button
+                  onClick={() => {
+                    const nw = prompt("Nieuwe naam voor de groep", g.naam);
+                    if (nw) hernoem({ id: g._id as any, naam: nw });
+                  }}
+                  className="text-xs text-gray-500 hover:underline"
+                >
+                  Hernoem
+                </button>
+                <button
+                  onClick={() => { if (confirm(`Groep "${g.naam}" verwijderen?`)) verwijder({ id: g._id as any }); }}
+                  className="text-xs text-red-500 hover:underline"
+                >
+                  Verwijder
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Nieuwe groep */}
+          <div className="flex gap-2">
+            <input value={nieuweNaam} onChange={(e) => setNieuweNaam(e.target.value)} placeholder="Naam nieuwe groep (bijv. MailerLite-migratie)" className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm" />
+            <button onClick={nieuweGroep} className="rounded-lg bg-gray-900 px-3 py-2 text-sm text-white">Maak groep</button>
+          </div>
+
+          {/* Adressen toevoegen aan de actieve groep */}
+          {actieveGroep && (
+            <div className="rounded-lg border border-gray-200 p-3 space-y-2">
+              <p className="text-xs font-semibold text-gray-600">
+                Adressen toevoegen aan: {groepen?.find((g) => g._id === actieveGroep)?.naam}
+              </p>
+              <textarea value={plak} onChange={(e) => setPlak(e.target.value)} rows={5} placeholder={"Plak hier adressen, één per regel.\nMag ook 'adres,naam'."} className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm font-mono" />
+              <label className="flex items-center gap-2 text-xs text-gray-600">
+                <input type="checkbox" checked={alleenNieuwe} onChange={(e) => setAlleenNieuwe(e.target.checked)} />
+                Alleen adressen toevoegen die nog niet in mijn systeem zitten
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                <button onClick={() => toevoegen(plak)} disabled={bezig} className="rounded-lg bg-primary-600 px-3 py-2 text-sm text-white disabled:opacity-50">
+                  {bezig ? "Bezig…" : "Plakte adressen toevoegen"}
+                </button>
+                <label className={`cursor-pointer rounded-lg border px-3 py-2 text-sm ${bezig ? "opacity-50 border-gray-200" : "border-primary-200 text-primary-700 hover:bg-primary-50"}`}>
+                  CSV uploaden
+                  <input type="file" accept=".csv,text/csv,text/plain" className="hidden" disabled={bezig} onChange={(e) => { const f = e.target.files?.[0]; if (f) csvUpload(f); }} />
+                </label>
+              </div>
+            </div>
+          )}
+
+          {melding && <p className="text-sm text-gray-600">{melding}</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
   const bestaand = useAdminQuery(api.broadcasts.get, id ? { id } : "skip") as any;
+  const groepen = useAdminQuery(api.mailGroepen.lijst, {}) as { _id: string; naam: string; aantal: number }[] | undefined;
   const opslaan = useAdminMutation(api.broadcasts.opslaan);
   const verwijderen = useAdminMutation(api.broadcasts.verwijderen);
   const stuurTest = useAdminAction(api.broadcasts.stuurTestLosseMail);
@@ -295,6 +464,13 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
           {DOELGROEPEN.map((d) => (
             <option key={d.code} value={d.code}>{d.label}</option>
           ))}
+          {groepen && groepen.length > 0 && (
+            <optgroup label="Eigen doelgroepen">
+              {groepen.map((g) => (
+                <option key={g._id} value={`groep:${g._id}`}>{g.naam} ({g.aantal})</option>
+              ))}
+            </optgroup>
+          )}
         </select>
         <span className="text-xs text-gray-400">{aantal ? `${aantal.aantal} mensen` : "…"} in deze doelgroep.</span>
       </label>
