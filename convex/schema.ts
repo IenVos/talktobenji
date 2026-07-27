@@ -1028,6 +1028,36 @@ export default defineSchema({
     updatedAt: v.number(),
   }),
 
+  // Losse tussendoor-mails / maandmail: één mail die Ien zelf opstelt en naar een
+  // gekozen doelgroep stuurt, nu of ingepland op datum/tijd. Elke mail is een eigen
+  // rij (i.t.t. de reactivatie, die één vaste rij in funnelLosseMails heeft).
+  losseMails: defineTable({
+    subject: v.string(),
+    bodyText: v.string(),
+    buttonText: v.optional(v.string()),
+    buttonUrl: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    imageCaption: v.optional(v.string()),
+    doelgroep: v.string(),          // "lijst-incl-rust" | "lijst" | "type:huisdier" | ...
+    status: v.string(),             // "concept" | "gepland" | "bezig" | "verzonden"
+    geplandOp: v.optional(v.number()),   // gepland verzendmoment (ms)
+    batchGrootte: v.optional(v.number()),
+    intervalSec: v.optional(v.number()),
+    gestopt: v.optional(v.boolean()),
+    aantalVerzonden: v.optional(v.number()),
+    gestartOp: v.optional(v.number()),
+    verstuurdOp: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_status", ["status"]),
+
+  // Logboek per losse mail: wie kreeg hem. Voorkomt dubbel binnen dezelfde mail.
+  losseMailVerzonden: defineTable({
+    losseMailId: v.id("losseMails"),
+    email: v.string(),
+    sentAt: v.number(),
+  }).index("by_mail", ["losseMailId"]),
+
   // Verwerkte Stripe-webhookgebeurtenissen. Stripe kan eenzelfde event meer dan
   // eens afleveren; dit logboek voorkomt dubbele verwerking (dubbele mail/cadeaucode).
   processedStripeEvents: defineTable({
