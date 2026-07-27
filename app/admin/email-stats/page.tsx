@@ -482,30 +482,45 @@ function bestemming(links: { label: string; aantal: number }[]): { doel: string;
   return { doel: "link", checkout: false };
 }
 
-function oordeel(m: WWMail, avgOpen: number, avgKlik: number): { sev: "good" | "warn" | "bad"; reason: string; weinig: boolean } {
+type Sev = "good" | "ok" | "warn" | "bad";
+// Oordeel t.o.v. de doorsnee (mediaan) van de stroom, met dezelfde grens als de
+// pijltjes (±3). Zo spreken pijltjes en oordeel elkaar nooit tegen: twee pijltjes
+// omlaag geeft nooit "Sterk". Vier niveaus: Sterk, Prima, Let op, Aandacht.
+function oordeel(m: WWMail, refOpen: number, refKlik: number): { sev: Sev; reason: string; weinig: boolean } {
   const weinig = m.volume < 25;
-  const openWeak = m.open < Math.max(40, avgOpen - 8);
-  const openStrong = m.open >= avgOpen - 2;
-  const klikWeak = m.klik < Math.max(1, avgKlik - 6);
-  const klikStrong = m.klik >= avgKlik - 2;
-  let sev: "good" | "warn" | "bad", reason: string;
-  if (openStrong && klikStrong) { sev = "good"; reason = "Sterk. Onderwerp én knop werken."; }
-  else if (openWeak && klikWeak) {
+  const D = 3;
+  const openOnder = m.open <= refOpen - D;
+  const openBoven = m.open >= refOpen + D;
+  const klikOnder = m.klik <= refKlik - D;
+  const klikBoven = m.klik >= refKlik + D;
+  const onder = (openOnder ? 1 : 0) + (klikOnder ? 1 : 0);
+  const boven = (openBoven ? 1 : 0) + (klikBoven ? 1 : 0);
+  let sev: Sev, reason: string;
+  if (onder >= 2) {
     sev = "bad";
     reason = m.checkout
       ? "Zwakke open én klik. Onderwerpregel herschrijven en de doorklik naar de checkout aanpakken."
       : "Zwakke open én klik. Onderwerpregel herschrijven en knop aanscherpen.";
-  }
-  else if (openWeak) { sev = "warn"; reason = "Wordt te weinig geopend. Je grootste winst zit in de onderwerpregel."; }
-  else if (klikWeak) {
+  } else if (onder === 1) {
     sev = "warn";
-    reason = m.checkout
-      ? "Goede open, maar weinig doorklik naar de checkout. Geef een zachtere stap of scherp het aanbod aan."
-      : `Goede open, maar weinig doorklik${m.doel !== "link" ? ` naar ${m.doel}` : ""}. Knop of inhoud aanscherpen.`;
+    reason = openOnder
+      ? "Wordt te weinig geopend. Je grootste winst zit in de onderwerpregel."
+      : m.checkout
+        ? "Goede open, maar weinig doorklik naar de checkout. Geef een zachtere stap of scherp het aanbod aan."
+        : `Goede open, maar weinig doorklik${m.doel !== "link" ? ` naar ${m.doel}` : ""}. Knop of inhoud aanscherpen.`;
+  } else if (boven >= 1) {
+    sev = "good";
+    reason = openBoven && klikBoven
+      ? "Sterk. Onderwerp én knop werken."
+      : openBoven
+        ? "Sterk. Wordt goed geopend."
+        : `Sterk. Mensen klikken goed door${m.doel !== "link" ? ` naar ${m.doel}` : ""}.`;
+  } else {
+    sev = "ok";
+    reason = "Rond je doorsnee. Prima, maar hier valt nog winst te halen.";
   }
-  else { sev = "good"; reason = m.checkout ? "Doet wat hij moet: goede open en doorklik." : `Doet wat hij moet${m.doel !== "link" ? `: mensen gaan door naar ${m.doel}` : ""}.`; }
   if (m.afmeld != null && m.afmeld >= 3) reason += " Relatief veel afmeldingen.";
-  if (weinig) { reason += " (Nog weinig data, dus met een korrel zout.)"; if (sev === "good") sev = "warn"; }
+  if (weinig) { reason += " (Nog weinig data, dus met een korrel zout.)"; if (sev === "good") sev = "ok"; }
   return { sev, reason, weinig };
 }
 
@@ -521,10 +536,14 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
     const afm = afmeld?.perMail?.find((p) =>
       t.includes("brief") ? p.mail === "brief" : p.label.toLowerCase() === t
     );
+    // Klikken op de afmeldlink tellen we NIET als doorklik: dat is geen interesse
+    // in de inhoud maar een uitschrijving. Zo is "klik" echt doorklik naar de mail.
+    const afmeldKlik = (s.links ?? []).filter((l) => l.label.toLowerCase().includes("afmeld")).reduce((sum, l) => sum + l.aantal, 0);
+    const doorklik = Math.max(0, s.geklikt - afmeldKlik);
     return {
       naam: s.onderwerp,
       open: Math.round((s.geopend / noemer) * 100),
-      klik: Math.round((s.geklikt / noemer) * 100),
+      klik: Math.round((doorklik / noemer) * 100),
       afmeld: afm ? afm.ratio : null,
       volume: noemer,
       doel: b.doel,
@@ -538,12 +557,17 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
     { naam: "Losse mails", count: "0 mails", mails: [], leeg: "Nog geen losse mails verstuurd. Elke mail die je stuurt, komt hier te staan." },
   ];
 
-  const sevRank = { bad: 0, warn: 1, good: 2 } as const;
-  const badgeLabel = { good: "Sterk", warn: "Let op", bad: "Aandacht" } as const;
-  const badgeCls = { good: "bg-green-50 text-green-700", warn: "bg-amber-50 text-amber-700", bad: "bg-red-50 text-red-600" } as const;
-  const stripe = { good: "border-l-green-500", warn: "border-l-amber-500", bad: "border-l-red-500" } as const;
-  const arrow = (v: number, a: number) => (v >= a + 4 ? <span className="text-green-600 text-[11px] font-bold">▲</span> : v <= a - 4 ? <span className="text-red-500 text-[11px] font-bold">▼</span> : null);
-  const mean = (a: number[]) => (a.length ? Math.round(a.reduce((s, x) => s + x, 0) / a.length) : 0);
+  const sevRank = { bad: 0, warn: 1, ok: 2, good: 3 } as const;
+  const badgeLabel = { good: "Sterk", ok: "Prima", warn: "Let op", bad: "Aandacht" } as const;
+  const badgeCls = { good: "bg-green-50 text-green-700", ok: "bg-gray-100 text-gray-600", warn: "bg-amber-50 text-amber-700", bad: "bg-red-50 text-red-600" } as const;
+  const stripe = { good: "border-l-green-500", ok: "border-l-gray-300", warn: "border-l-amber-500", bad: "border-l-red-500" } as const;
+  const arrow = (v: number, a: number) => (v >= a + 3 ? <span className="text-green-600 text-[11px] font-bold">▲</span> : v <= a - 3 ? <span className="text-red-500 text-[11px] font-bold">▼</span> : null);
+  const median = (a: number[]) => {
+    if (!a.length) return 0;
+    const s = [...a].sort((x, y) => x - y);
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
+  };
 
   return (
     <div className="space-y-4">
@@ -559,9 +583,9 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
       </div>
 
       {secties.map((sec) => {
-        const avgOpen = mean(sec.mails.map((m) => m.open));
-        const avgKlik = mean(sec.mails.map((m) => m.klik));
-        const rows = sec.mails.map((m) => ({ m, o: oordeel(m, avgOpen, avgKlik) }));
+        const refOpen = median(sec.mails.map((m) => m.open));
+        const refKlik = median(sec.mails.map((m) => m.klik));
+        const rows = sec.mails.map((m) => ({ m, o: oordeel(m, refOpen, refKlik) }));
         const score = (m: WWMail) => m.open + m.klik * 1.5;
         rows.sort((a, b) => (mode === "best" ? score(b.m) - score(a.m) : sevRank[a.o.sev] - sevRank[b.o.sev] || score(a.m) - score(b.m)));
         const isOpen = open[sec.naam] ?? false;
@@ -570,7 +594,7 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
             <button onClick={() => setOpen((o) => ({ ...o, [sec.naam]: !isOpen }))} className="w-full flex items-center gap-3 px-4 py-3 text-left">
               <span className="text-gray-400 text-xs">{isOpen ? "▾" : "▸"}</span>
               <span className="flex-1 font-semibold text-gray-900">{sec.naam} <span className="text-xs text-gray-400 font-normal">· {sec.count}</span></span>
-              {sec.mails.length > 0 && <span className="text-xs text-gray-500 tabular-nums">gem. <b className="text-gray-800">{avgOpen}%</b> open · <b className="text-gray-800">{avgKlik}%</b> klik</span>}
+              {sec.mails.length > 0 && <span className="text-xs text-gray-500 tabular-nums">doorsnee <b className="text-gray-800">{refOpen}%</b> open · <b className="text-gray-800">{refKlik}%</b> klik</span>}
             </button>
             {isOpen && (
               <div className="border-t border-gray-100 p-3 space-y-2">
@@ -581,8 +605,8 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
                       <span className="font-semibold text-gray-900 text-sm">{m.naam}</span>
                       <span className="ml-2 text-[10.5px] text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 align-middle">knop → {m.doel}</span>
                       <div className="grid grid-cols-[70px_86px_78px_70px] gap-x-4 gap-y-1 mt-2 tabular-nums">
-                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Open</div><div className="text-[15px] font-semibold">{m.open}% {arrow(m.open, avgOpen)}</div></div>
-                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Klik</div><div className="text-[15px] font-semibold">{m.klik}% {arrow(m.klik, avgKlik)}</div></div>
+                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Open</div><div className="text-[15px] font-semibold">{m.open}% {arrow(m.open, refOpen)}</div></div>
+                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Klik</div><div className="text-[15px] font-semibold">{m.klik}% {arrow(m.klik, refKlik)}</div></div>
                         <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Verkocht</div><div className="text-[15px] font-semibold text-gray-400">{m.checkout ? "—" : "—"}</div></div>
                         <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Afmeld</div><div className="text-[15px] font-semibold">{m.afmeld != null ? `${m.afmeld}%` : "—"}</div></div>
                       </div>
@@ -601,10 +625,12 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
         );
       })}
 
-      <p className="text-xs text-gray-400">
-        Open = pakt je onderwerpregel. Klik = overtuigen inhoud en knop. Afmeld = frequentie en toon. De kolom Verkocht
-        (verkopen per mail) vullen we bij de verkoopanalyse. Het gemiddelde per stroom is jouw eigen gemiddelde en schuift
-        mee met nieuwe cijfers.
+      <p className="text-xs text-gray-400 leading-relaxed">
+        <strong>Zo lees je het.</strong> Open = geopend gedeeld door afgeleverd. Klik = doorklik gedeeld door afgeleverd,
+        waarbij klikken op de afmeldlink níét meetellen (dat is geen interesse). De pijltjes en het oordeel vergelijken met
+        je <strong>doorsnee</strong> mail (de mediaan), niet met het gemiddelde: zo trekken een paar toppers de lat niet
+        omhoog. Twee pijltjes omlaag geeft daarom nooit "Sterk". De doorsnee schuift mee met nieuwe cijfers. De kolom
+        Verkocht (verkopen per mail) vullen we bij de verkoopanalyse.
       </p>
     </div>
   );
