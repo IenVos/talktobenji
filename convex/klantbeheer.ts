@@ -3,7 +3,7 @@
  * Alleen bruikbaar vanuit het admin panel (adminToken check via context).
  */
 import { v } from "convex/values";
-import { action, internalQuery, mutation, query } from "./_generated/server";
+import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { berekenLevering, berekenDagNummer } from "./nietAlleenLevering";
 
@@ -558,6 +558,57 @@ export const stuurDagNuAdmin = action({
       verliesNaam: profiel.verliesNaam,
     });
     return { verstuurd: true };
+  },
+});
+
+/**
+ * Intern: zet het verliestype en start het programma vandaag opnieuw (dag 1 = vandaag).
+ * StartDatum op het begin van vandaag (UTC), zodat het dagnummer meteen 1 is en er
+ * geen "gemiste" dagen vóór vandaag meer staan.
+ */
+export const _zetVerliesEnStartVandaag = internalMutation({
+  args: { profileId: v.id("nietAlleenProfiles"), verliesType: v.string() },
+  handler: async (ctx, args) => {
+    const d = new Date();
+    const startVandaag = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), 0, 0, 0);
+    await ctx.db.patch(args.profileId, {
+      verliesType: args.verliesType,
+      startDatum: startVandaag,
+      verzondenDagen: [],
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Zet een vastgelopen klant (verliestype nog niet gekozen) in één keer aan de gang:
+ * verliestype instellen, dag 1 = vandaag, dag 1 nu versturen en loggen. Door dag 1 te
+ * loggen slaat de cron hem daarna over, dus geen dubbele mail. Alleen voor een
+ * programma dat nog niet gestart is (nog geen dagmail verstuurd).
+ */
+export const startNietAlleenMetDag1 = action({
+  args: { adminToken: v.optional(v.string()), email: v.string(), verliesType: v.string() },
+  handler: async (ctx, args): Promise<{ ok: boolean }> => {
+    const profiel = await ctx.runQuery(internal.klantbeheer.getNietAlleenProfielIntern, {
+      email: args.email.toLowerCase().trim(),
+    });
+    if (!profiel) throw new Error("Geen Niet Alleen profiel gevonden voor dit e-mailadres");
+    if ((profiel.verzondenDagen?.length ?? 0) > 0) {
+      throw new Error("Dit programma is al gestart. Gebruik 'Hervat vanaf dag' of 'Stuur dag nu'.");
+    }
+    await ctx.runMutation(internal.klantbeheer._zetVerliesEnStartVandaag, {
+      profileId: profiel._id,
+      verliesType: args.verliesType,
+    });
+    await ctx.runAction(internal.nietAlleenEmails.sendDagMail, {
+      email: profiel.email,
+      naam: profiel.naam,
+      dagNummer: 1,
+      verliesType: args.verliesType,
+      verliesNaam: profiel.verliesNaam,
+    });
+    await ctx.runMutation(internal.nietAlleen.recordDagMailVerzonden, { profileId: profiel._id, dag: 1 });
+    return { ok: true };
   },
 });
 

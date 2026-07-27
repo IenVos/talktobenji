@@ -325,6 +325,8 @@ export default function KlantbeheerPage() {
   const [hervatDag, setHervatDag] = useState(1);
   const [stuurDag, setStuurDag] = useState(1);
   const [naActie, setNaActie] = useState<string | null>(null);
+  const startMetDag1 = useAdminAction(api.klantbeheer.startNietAlleenMetDag1);
+  const [startVerliesType, setStartVerliesType] = useState("huisdier");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -585,6 +587,48 @@ export default function KlantbeheerPage() {
                   </p>
                 </div>
               </div>
+
+              {(() => {
+                const na = customer.nietAlleen;
+                const vt = String(na.verliesType ?? "").trim().toLowerCase();
+                const nogNietGestart =
+                  (!vt || vt === "onbekend") && ((na.levering?.verzonden?.length ?? 0) === 0);
+                if (!nogNietGestart) return null;
+                return (
+                  <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 space-y-2">
+                    <p className="text-xs text-amber-900 leading-relaxed">
+                      Deze klant koos haar verlies nog niet, dus het programma staat in de wacht. De
+                      &ldquo;gemiste&rdquo; dagen zijn niet echt verstuurd. Zet het hier voor haar aan: dat
+                      kiest het verlies, zet dag 1 op vandaag en stuurt dag 1 meteen (zonder dubbele mail).
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        value={startVerliesType}
+                        onChange={(e) => setStartVerliesType(e.target.value)}
+                        className="px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
+                      >
+                        <option value="persoon">Verlies van een persoon</option>
+                        <option value="huisdier">Verlies van een huisdier</option>
+                        <option value="scheiding">Relatie voorbij</option>
+                        <option value="eenzaamheid">Eenzaamheid</option>
+                        <option value="kinderloos">Kinderwens</option>
+                      </select>
+                      <ActionRow
+                        label=""
+                        description=""
+                        icon={Send}
+                        buttonLabel="Start en stuur dag 1 nu"
+                        confirmText={`${activeEmail} starten als '${startVerliesType}', dag 1 op vandaag zetten en dag 1 nu versturen?`}
+                        onAction={async () => {
+                          await startMetDag1({ email: activeEmail, verliesType: startVerliesType });
+                          setNaActie(`Programma gestart als ${startVerliesType} — dag 1 verstuurd naar ${activeEmail}.`);
+                          setTimeout(() => setNaActie(null), 6000);
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })()}
 
               {customer.nietAlleen.levering && (
                 <MailLeveringPanel
