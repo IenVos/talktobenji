@@ -240,6 +240,9 @@ function GroepBlok({ groep, standaardOpen }: { groep: Groep; standaardOpen: bool
 export default function EmailStatsPage() {
   const [dagen, setDagen] = useState(30);
   const stats = useAdminQuery(api.emailStats.stats, { sinceDays: dagen }) as Stats | undefined;
+  const afmeld = useAdminQuery(api.evenHouvastOpvolg.afmeldOverzicht, { sinceDays: 90 }) as
+    | { perMail: { mail: string; label: string; ratio: number }[] }
+    | undefined;
 
   const t = stats?.totaal;
   // Open-rate en klik-ratio berekenen we t.o.v. het aantal afgeleverde mails
@@ -336,12 +339,20 @@ export default function EmailStatsPage() {
             </div>
           </div>
 
-          {/* Per programma, met de onderwerpen erin */}
-          <div className="space-y-3">
-            {stats.groepen.map((g) => (
-              <GroepBlok key={g.groep} groep={g} standaardOpen={g.groep === "evenHouvast"} />
-            ))}
-          </div>
+          {/* Wat werkt, en wat niet — het oordeel per mail, bovenaan */}
+          <WatWerkt stats={stats} afmeld={afmeld} />
+
+          {/* Details per mail (de tabellen), ingeklapt eronder */}
+          <details className="group">
+            <summary className="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-900 select-none">
+              Details per mail (open, klik en bounce per onderwerpregel)
+            </summary>
+            <div className="space-y-3 mt-3">
+              {stats.groepen.map((g) => (
+                <GroepBlok key={g.groep} groep={g} standaardOpen={g.groep === "evenHouvast"} />
+              ))}
+            </div>
+          </details>
 
           <p className="text-xs text-gray-400 leading-relaxed">
             Elke opvolgmail staat één keer in de lijst, met het totaal over alle verliestypen.
@@ -450,6 +461,151 @@ function Sluimerend() {
           <ContactLijst lijst={tab === "nooit" ? data.nooit.lijst : data.gestopt.lijst} />
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Wat werkt, en wat niet ───────────────────────────────────────────────────
+// Vertaalt de open/klik-cijfers per mail naar een oordeel, afgestemd op waar de
+// knop heen gaat. Nu voor Even Houvast (met echte cijfers); Evergreen en Losse
+// mails vullen zich zodra je daar mails stuurt.
+type WWMail = { naam: string; open: number; klik: number; afmeld: number | null; volume: number; doel: string; checkout: boolean };
+
+function bestemming(links: { label: string; aantal: number }[]): { doel: string; checkout: boolean } {
+  const labels = links.map((l) => l.label.toLowerCase()).filter((l) => !l.includes("afmeld"));
+  const has = (kw: string) => labels.some((l) => l.includes(kw));
+  if (has("checkout") || has("betaal")) return { doel: "checkout", checkout: true };
+  if (has("taster") || has("proef")) return { doel: "proefdag", checkout: false };
+  if (has("benji")) return { doel: "Benji", checkout: false };
+  if (has("landing") || has("review") || has("ervaring")) return { doel: "reviews", checkout: false };
+  if (has("boekje") || has("gids")) return { doel: "het boekje", checkout: false };
+  return { doel: "link", checkout: false };
+}
+
+function oordeel(m: WWMail, avgOpen: number, avgKlik: number): { sev: "good" | "warn" | "bad"; reason: string; weinig: boolean } {
+  const weinig = m.volume < 25;
+  const openWeak = m.open < Math.max(40, avgOpen - 8);
+  const openStrong = m.open >= avgOpen - 2;
+  const klikWeak = m.klik < Math.max(1, avgKlik - 6);
+  const klikStrong = m.klik >= avgKlik - 2;
+  let sev: "good" | "warn" | "bad", reason: string;
+  if (openStrong && klikStrong) { sev = "good"; reason = "Sterk. Onderwerp én knop werken."; }
+  else if (openWeak && klikWeak) {
+    sev = "bad";
+    reason = m.checkout
+      ? "Zwakke open én klik. Onderwerpregel herschrijven en de doorklik naar de checkout aanpakken."
+      : "Zwakke open én klik. Onderwerpregel herschrijven en knop aanscherpen.";
+  }
+  else if (openWeak) { sev = "warn"; reason = "Wordt te weinig geopend. Je grootste winst zit in de onderwerpregel."; }
+  else if (klikWeak) {
+    sev = "warn";
+    reason = m.checkout
+      ? "Goede open, maar weinig doorklik naar de checkout. Geef een zachtere stap of scherp het aanbod aan."
+      : `Goede open, maar weinig doorklik${m.doel !== "link" ? ` naar ${m.doel}` : ""}. Knop of inhoud aanscherpen.`;
+  }
+  else { sev = "good"; reason = m.checkout ? "Doet wat hij moet: goede open en doorklik." : `Doet wat hij moet${m.doel !== "link" ? `: mensen gaan door naar ${m.doel}` : ""}.`; }
+  if (m.afmeld != null && m.afmeld >= 3) reason += " Relatief veel afmeldingen.";
+  if (weinig) { reason += " (Nog weinig data, dus met een korrel zout.)"; if (sev === "good") sev = "warn"; }
+  return { sev, reason, weinig };
+}
+
+function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail: string; label: string; ratio: number }[] } }) {
+  const [mode, setMode] = useState<"attn" | "best">("attn");
+  const [open, setOpen] = useState<Record<string, boolean>>({ "Even Houvast": true });
+
+  const ehGroep = stats.groepen.find((g) => g.groep === "evenHouvast");
+  const ehMails: WWMail[] = (ehGroep?.stromen ?? []).map((s) => {
+    const noemer = s.afgeleverd || s.verzonden || 1;
+    const b = bestemming(s.links ?? []);
+    const t = s.onderwerp.toLowerCase();
+    const afm = afmeld?.perMail?.find((p) =>
+      t.includes("brief") ? p.mail === "brief" : p.label.toLowerCase() === t
+    );
+    return {
+      naam: s.onderwerp,
+      open: Math.round((s.geopend / noemer) * 100),
+      klik: Math.round((s.geklikt / noemer) * 100),
+      afmeld: afm ? afm.ratio : null,
+      volume: noemer,
+      doel: b.doel,
+      checkout: b.checkout,
+    };
+  });
+
+  const secties: { naam: string; count: string; mails: WWMail[]; leeg?: string }[] = [
+    { naam: "Even Houvast", count: `${ehMails.length} mails`, mails: ehMails },
+    { naam: "Evergreen funnel", count: "0 mails", mails: [], leeg: "Nog geen verstuurde mails. Zodra de reeks loopt, verschijnen de mails hier met hun oordeel." },
+    { naam: "Losse mails", count: "0 mails", mails: [], leeg: "Nog geen losse mails verstuurd. Elke mail die je stuurt, komt hier te staan." },
+  ];
+
+  const sevRank = { bad: 0, warn: 1, good: 2 } as const;
+  const badgeLabel = { good: "Sterk", warn: "Let op", bad: "Aandacht" } as const;
+  const badgeCls = { good: "bg-green-50 text-green-700", warn: "bg-amber-50 text-amber-700", bad: "bg-red-50 text-red-600" } as const;
+  const stripe = { good: "border-l-green-500", warn: "border-l-amber-500", bad: "border-l-red-500" } as const;
+  const arrow = (v: number, a: number) => (v >= a + 4 ? <span className="text-green-600 text-[11px] font-bold">▲</span> : v <= a - 4 ? <span className="text-red-500 text-[11px] font-bold">▼</span> : null);
+  const mean = (a: number[]) => (a.length ? Math.round(a.reduce((s, x) => s + x, 0) / a.length) : 0);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">Wat werkt, en wat niet</h2>
+          <p className="text-sm text-gray-500">Elke mail met een oordeel. Aandacht nodig staat bovenaan. Het oordeel houdt rekening met waar de knop heen gaat.</p>
+        </div>
+        <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+          <button onClick={() => setMode("attn")} className={`px-3 py-1.5 ${mode === "attn" ? "bg-primary-600 text-white" : "text-gray-600"}`}>Aandacht eerst</button>
+          <button onClick={() => setMode("best")} className={`px-3 py-1.5 ${mode === "best" ? "bg-primary-600 text-white" : "text-gray-600"}`}>Beste eerst</button>
+        </div>
+      </div>
+
+      {secties.map((sec) => {
+        const avgOpen = mean(sec.mails.map((m) => m.open));
+        const avgKlik = mean(sec.mails.map((m) => m.klik));
+        const rows = sec.mails.map((m) => ({ m, o: oordeel(m, avgOpen, avgKlik) }));
+        const score = (m: WWMail) => m.open + m.klik * 1.5;
+        rows.sort((a, b) => (mode === "best" ? score(b.m) - score(a.m) : sevRank[a.o.sev] - sevRank[b.o.sev] || score(a.m) - score(b.m)));
+        const isOpen = open[sec.naam] ?? false;
+        return (
+          <div key={sec.naam} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <button onClick={() => setOpen((o) => ({ ...o, [sec.naam]: !isOpen }))} className="w-full flex items-center gap-3 px-4 py-3 text-left">
+              <span className="text-gray-400 text-xs">{isOpen ? "▾" : "▸"}</span>
+              <span className="flex-1 font-semibold text-gray-900">{sec.naam} <span className="text-xs text-gray-400 font-normal">· {sec.count}</span></span>
+              {sec.mails.length > 0 && <span className="text-xs text-gray-500 tabular-nums">gem. <b className="text-gray-800">{avgOpen}%</b> open · <b className="text-gray-800">{avgKlik}%</b> klik</span>}
+            </button>
+            {isOpen && (
+              <div className="border-t border-gray-100 p-3 space-y-2">
+                {sec.mails.length === 0 && <p className="text-sm text-gray-400 px-1 py-2">{sec.leeg}</p>}
+                {rows.map(({ m, o }) => (
+                  <div key={m.naam} className={`grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center rounded-lg bg-gray-50 border border-gray-100 border-l-4 ${stripe[o.sev]} px-4 py-3`}>
+                    <div>
+                      <span className="font-semibold text-gray-900 text-sm">{m.naam}</span>
+                      <span className="ml-2 text-[10.5px] text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 align-middle">knop → {m.doel}</span>
+                      <div className="grid grid-cols-[70px_86px_78px_70px] gap-x-4 gap-y-1 mt-2 tabular-nums">
+                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Open</div><div className="text-[15px] font-semibold">{m.open}% {arrow(m.open, avgOpen)}</div></div>
+                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Klik</div><div className="text-[15px] font-semibold">{m.klik}% {arrow(m.klik, avgKlik)}</div></div>
+                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Verkocht</div><div className="text-[15px] font-semibold text-gray-400">{m.checkout ? "—" : "—"}</div></div>
+                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Afmeld</div><div className="text-[15px] font-semibold">{m.afmeld != null ? `${m.afmeld}%` : "—"}</div></div>
+                      </div>
+                    </div>
+                    <div className="sm:text-right sm:max-w-[250px]">
+                      <span className={`inline-flex items-center gap-1.5 text-[12.5px] font-semibold rounded-full px-2.5 py-1 ${badgeCls[o.sev]}`}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-current" />{badgeLabel[o.sev]}
+                      </span>
+                      <p className="text-[12.5px] text-gray-500 mt-1.5">{o.reason}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <p className="text-xs text-gray-400">
+        Open = pakt je onderwerpregel. Klik = overtuigen inhoud en knop. Afmeld = frequentie en toon. De kolom Verkocht
+        (verkopen per mail) vullen we bij de verkoopanalyse. Het gemiddelde per stroom is jouw eigen gemiddelde en schuift
+        mee met nieuwe cijfers.
+      </p>
     </div>
   );
 }
