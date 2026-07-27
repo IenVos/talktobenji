@@ -164,6 +164,7 @@ export const getCustomerByEmail = query({
       if (!naProfile) return null;
 
       const dagNummer = Math.min(berekenDagNummer(naProfile.startDatum, Date.now()), 30);
+      const vt = (naProfile.verliesType ?? "").trim().toLowerCase();
       return {
         userId: null,
         name: naProfile.naam,
@@ -179,6 +180,7 @@ export const getCustomerByEmail = query({
           actief: !naProfile.accountGesloten,
           dag28Verzonden: !!naProfile.dag28MailVerzonden,
           dag30Verzonden: !!naProfile.dag30MailVerzonden,
+          nogNietGestart: (!vt || vt === "onbekend") && ((naProfile.verzondenDagen?.length ?? 0) === 0),
           levering: berekenLevering(naProfile, Date.now()),
         },
         producten: [
@@ -251,10 +253,12 @@ export const getCustomerByEmail = query({
       actief: boolean;
       dag28Verzonden: boolean;
       dag30Verzonden: boolean;
+      nogNietGestart: boolean;
       levering: ReturnType<typeof berekenLevering>;
     } | null = null;
     if (nietAlleenProfile) {
       const dagNummer = Math.min(berekenDagNummer(nietAlleenProfile.startDatum, Date.now()), 30);
+      const vt = (nietAlleenProfile.verliesType ?? "").trim().toLowerCase();
       nietAlleen = {
         profileId: nietAlleenProfile._id.toString(),
         naam: nietAlleenProfile.naam,
@@ -265,6 +269,7 @@ export const getCustomerByEmail = query({
         actief: !nietAlleenProfile.accountGesloten,
         dag28Verzonden: !!nietAlleenProfile.dag28MailVerzonden,
         dag30Verzonden: !!nietAlleenProfile.dag30MailVerzonden,
+        nogNietGestart: (!vt || vt === "onbekend") && ((nietAlleenProfile.verzondenDagen?.length ?? 0) === 0),
         levering: berekenLevering(nietAlleenProfile, Date.now()),
       };
     }

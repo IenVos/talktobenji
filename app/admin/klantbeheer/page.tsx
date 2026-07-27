@@ -560,7 +560,9 @@ export default function KlantbeheerPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-4 text-sm">
                 <div>
                   <p className="text-xs text-gray-500 mb-0.5">Huidige dag</p>
-                  <p className="font-semibold text-gray-900">Dag {customer.nietAlleen.dagNummer} van 30</p>
+                  <p className="font-semibold text-gray-900">
+                    {customer.nietAlleen.nogNietGestart ? "Nog niet gestart" : `Dag ${customer.nietAlleen.dagNummer} van 30`}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-0.5">Verliestype</p>
@@ -630,7 +632,7 @@ export default function KlantbeheerPage() {
                 );
               })()}
 
-              {customer.nietAlleen.levering && (
+              {customer.nietAlleen.levering && !customer.nietAlleen.nogNietGestart && (
                 <MailLeveringPanel
                   profileId={customer.nietAlleen.profileId}
                   email={activeEmail}
