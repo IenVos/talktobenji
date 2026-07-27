@@ -7,6 +7,7 @@ import { useAdminQuery, useAdminMutation, useAdminAction } from "../../AdminAuth
 const DOELGROEPEN = [
   { code: "lijst", label: "Hele lijst (zonder rustgroep)" },
   { code: "lijst-incl-rust", label: "Hele lijst (incl. rustgroep, voor de maandmail)" },
+  { code: "sluimerend", label: "Sluimerende contacten (openen al lang niets)" },
   { code: "type:persoon", label: "Alleen: verlies van een persoon" },
   { code: "type:huisdier", label: "Alleen: verlies van een huisdier" },
   { code: "type:scheiding", label: "Alleen: relatie voorbij" },
@@ -43,6 +44,7 @@ export default function LosseMailsPage() {
   const stopVerzending = useAdminMutation(api.broadcasts.stopVerzending);
   const [bewerkId, setBewerkId] = useState<string | null>(null);
   const [nieuw, setNieuw] = useState(false);
+  const [reactiesId, setReactiesId] = useState<string | null>(null);
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -77,7 +79,8 @@ export default function LosseMailsPage() {
       <div className="space-y-2">
         {rijen?.length === 0 && <p className="text-sm text-gray-400">Nog geen losse mails.</p>}
         {rijen?.map((r) => (
-          <div key={r._id} className="flex items-center gap-3 rounded-lg bg-white border border-gray-200 px-4 py-3">
+          <div key={r._id}>
+          <div className="flex items-center gap-3 rounded-lg bg-white border border-gray-200 px-4 py-3">
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{r.subject || "(geen onderwerp)"}</p>
               <p className="text-xs text-gray-400">
@@ -99,7 +102,12 @@ export default function LosseMailsPage() {
               </button>
             )}
             {r.status === "verzonden" && (
-              <span className="text-xs px-2 py-1 rounded bg-green-50 text-green-700">Klaar</span>
+              <>
+                <span className="text-xs px-2 py-1 rounded bg-green-50 text-green-700">Klaar</span>
+                <button onClick={() => setReactiesId(reactiesId === r._id ? null : r._id)} className="text-xs px-2 py-1 rounded hover:bg-gray-100 text-primary-700">
+                  Reacties
+                </button>
+              </>
             )}
             {r.status === "bezig" && (
               <>
@@ -121,8 +129,64 @@ export default function LosseMailsPage() {
               </button>
             )}
           </div>
+          {reactiesId === r._id && <ReactiesPanel id={r._id} />}
+          </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function ReactiesPanel({ id }: { id: string }) {
+  const data = useAdminQuery(api.broadcasts.reacties, { id }) as
+    | { verstuurd: number; gereageerd: number; nietGereageerd: number; verstuurdOp: number | null; dagenGeleden: number | null }
+    | undefined;
+  const uitschrijven = useAdminMutation(api.broadcasts.schrijfNietReageerdersUit);
+  const [bezig, setBezig] = useState(false);
+  const [melding, setMelding] = useState("");
+
+  const teVroeg = (data?.dagenGeleden ?? 99) < 7;
+
+  const doeUitschrijven = async () => {
+    if (!confirm(`${data?.nietGereageerd ?? 0} mensen uitschrijven die niet reageerden op deze mail?`)) return;
+    setBezig(true);
+    try {
+      const r = await uitschrijven({ id: id as any });
+      setMelding(`${r.uitgeschreven} mensen uitgeschreven.`);
+    } catch (e: any) {
+      setMelding(e?.message ?? "Uitschrijven mislukt.");
+    } finally {
+      setBezig(false);
+    }
+  };
+
+  return (
+    <div className="mt-1 rounded-lg bg-gray-50 border border-gray-200 p-4 space-y-3">
+      {!data ? (
+        <p className="text-sm text-gray-400">Laden…</p>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-lg bg-white border border-gray-100 p-2"><p className="text-xl font-bold text-gray-900">{data.verstuurd}</p><p className="text-[11px] text-gray-500">verstuurd</p></div>
+            <div className="rounded-lg bg-green-50 border border-green-100 p-2"><p className="text-xl font-bold text-green-700">{data.gereageerd}</p><p className="text-[11px] text-gray-500">reageerde (open/klik)</p></div>
+            <div className="rounded-lg bg-amber-50 border border-amber-100 p-2"><p className="text-xl font-bold text-amber-700">{data.nietGereageerd}</p><p className="text-[11px] text-gray-500">geen reactie</p></div>
+          </div>
+          <p className="text-xs text-gray-500">
+            {data.dagenGeleden !== null ? `Verstuurd ${data.dagenGeleden} dagen geleden. ` : ""}
+            Wie hem opende of klikte, blijft. De rest kun je uitschrijven, het beste na een dag of veertien
+            zodat iedereen de kans had. Open-meting is niet waterdicht, dus wees niet te streng.
+          </p>
+          <button
+            onClick={doeUitschrijven}
+            disabled={bezig || (data.nietGereageerd ?? 0) === 0}
+            className={`rounded-lg px-3 py-2 text-sm font-medium text-white disabled:opacity-50 ${teVroeg ? "bg-gray-400" : "bg-red-600"}`}
+          >
+            {bezig ? "Bezig…" : `Schrijf de ${data.nietGereageerd} niet-reageerders uit`}
+          </button>
+          {teVroeg && <span className="ml-2 text-xs text-amber-600">Nog vroeg. Geef mensen liefst ~14 dagen.</span>}
+          {melding && <p className="text-sm text-gray-600">{melding}</p>}
+        </>
+      )}
     </div>
   );
 }
@@ -474,6 +538,31 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
         </select>
         <span className="text-xs text-gray-400">{aantal ? `${aantal.aantal} mensen` : "…"} in deze doelgroep.</span>
       </label>
+
+      {doelgroep === "sluimerend" && (
+        <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-900">
+          Dit is de her-activatiemail. Stuur hem één keer. Wie hem opent of klikt, blijft. Wie na de
+          wachttijd niets deed, schrijf je uit met de knop bij deze mail in de lijst hieronder.
+          <button
+            type="button"
+            onClick={() => {
+              setSubject("Mag ik je nog schrijven?");
+              setBodyText(
+                "Hoi {voornaam},\n\n" +
+                  "Ik merk dat je mijn mails al een tijdje niet opent, en dat is helemaal oké. Ik wil je alleen niet blijven mailen als je er geen behoefte meer aan hebt.\n\n" +
+                  "Wil je mijn berichten blijven ontvangen? Open dan gewoon deze mail, of klik hieronder. Dan weet ik dat je erbij wilt blijven.\n\n" +
+                  "Hoor ik niets, dan haal ik je rustig van de lijst. Geen harde gevoelens, en je bent altijd welkom terug.\n\n" +
+                  "Lieve groet,"
+              );
+              setButtonText("Ja, blijf me schrijven");
+              setButtonUrl("https://www.talktobenji.com");
+            }}
+            className="mt-2 block rounded-lg bg-white border border-blue-200 px-3 py-1.5 text-blue-800 hover:bg-blue-100"
+          >
+            Voorbeeldtekst invullen
+          </button>
+        </div>
+      )}
 
       <label className="block">
         <span className="text-sm font-medium text-gray-700">Onderwerp</span>

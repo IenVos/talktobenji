@@ -52,6 +52,47 @@ async function resolveDoelgroep(
   ctx: any,
   doelgroep: string
 ): Promise<{ email: string; naam: string | null; type: string }[]> {
+  // Dynamische doelgroep: sluimerende contacten (opent al lang niets). Zelfde
+  // definitie als het overzicht op de statistiekenpagina.
+  if (doelgroep === "sluimerend") {
+    const DREMPEL = 120 * 86_400_000;
+    const nu = Date.now();
+    const [events, afmeldingen, excluded, brieven, funnelLeads, naProfielen] = await Promise.all([
+      ctx.db.query("resendEmailEvents").collect(),
+      ctx.db.query("ehAfmeldingen").collect(),
+      ctx.db.query("analyticsExcludedEmails").collect(),
+      ctx.db.query("houvastBrieven").collect(),
+      ctx.db.query("funnelLeads").collect(),
+      ctx.db.query("nietAlleenProfiles").collect(),
+    ]);
+    const afgemeldSet = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+    const testSet = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    const naamMap = new Map<string, string>();
+    const typeMap = new Map<string, string>();
+    for (const b of brieven) if (b.email) { const e = b.email.toLowerCase(); if (b.naam) naamMap.set(e, b.naam); if (b.verliesType) typeMap.set(e, b.verliesType); }
+    for (const l of funnelLeads) if (l.email) { const e = l.email.toLowerCase(); if (l.naam && !naamMap.has(e)) naamMap.set(e, l.naam); if (l.verliesType && !typeMap.has(e)) typeMap.set(e, l.verliesType); }
+    for (const p of naProfielen) if (p.email && p.naam) { const e = p.email.toLowerCase(); if (!naamMap.has(e)) naamMap.set(e, p.naam); }
+
+    const per = new Map<string, { sent: Set<string>; laatsteOpen: number }>();
+    for (const ev of events) {
+      if (!ev.to) continue;
+      const e = ev.to.toLowerCase();
+      const t = (ev.type || "").toLowerCase();
+      let r = per.get(e);
+      if (!r) { r = { sent: new Set(), laatsteOpen: 0 }; per.set(e, r); }
+      if (t.includes("sent") || t.includes("delivered")) r.sent.add(ev.emailId);
+      if (t.includes("opened") && ev.createdAt > r.laatsteOpen) r.laatsteOpen = ev.createdAt;
+    }
+    const out: { email: string; naam: string | null; type: string }[] = [];
+    for (const [email, r] of per.entries()) {
+      if (afgemeldSet.has(email) || testSet.has(email)) continue;
+      if (r.sent.size < 2) continue;
+      if (r.laatsteOpen !== 0 && r.laatsteOpen >= nu - DREMPEL) continue;
+      out.push({ email, naam: naamMap.get(email) ?? null, type: normType(typeMap.get(email)) });
+    }
+    return out;
+  }
+
   // Eigen doelgroep (mailGroepen): "groep:<id>". Adressen komen uit de groep zelf;
   // afgemelde en testadressen vallen ook hier af.
   if (doelgroep.startsWith("groep:")) {
@@ -261,6 +302,7 @@ async function verstuurLosseEmail(args: { to: string; subject: string; html: str
 const DOELGROEP_LABELS: Record<string, string> = {
   "lijst-incl-rust": "Hele lijst (incl. rustgroep)",
   lijst: "Hele lijst (zonder rustgroep)",
+  sluimerend: "Sluimerende contacten (openen al lang niets)",
   "type:persoon": "Verlies van een persoon",
   "type:huisdier": "Verlies van een huisdier",
   "type:scheiding": "Relatie voorbij",
@@ -586,5 +628,90 @@ export const _ronde = internalAction({
         verstuurdOp: Date.now(),
       });
     }
+  },
+});
+
+// ── Reacties + uitschrijven van niet-reageerders (lijsthygiëne) ──────────────
+
+/**
+ * Reacties op een verstuurde losse mail: hoeveel ontvangers hem openden of
+ * klikten. Basis voor de her-activatie: wie na de wachttijd niets deed, kun je
+ * uitschrijven.
+ */
+export const reacties = query({
+  args: { adminToken: v.string(), id: v.id("losseMails") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const rij = await ctx.db.get(args.id);
+    const verzonden = await ctx.db
+      .query("losseMailVerzonden")
+      .withIndex("by_mail", (q) => q.eq("losseMailId", args.id))
+      .collect();
+    const ontvangers = new Set(verzonden.map((v: any) => v.email.toLowerCase()));
+
+    const mailTag = String(args.id);
+    const events = await ctx.db.query("resendEmailEvents").collect();
+    const gereageerd = new Set<string>();
+    for (const ev of events) {
+      if (!ev.to) continue;
+      const t = (ev.type || "").toLowerCase();
+      if (!(t.includes("opened") || t.includes("clicked"))) continue;
+      if (ev.tags?.mail !== mailTag) continue;
+      const e = ev.to.toLowerCase();
+      if (ontvangers.has(e)) gereageerd.add(e);
+    }
+    const verstuurdOp = rij?.verstuurdOp ?? null;
+    const dagenGeleden = verstuurdOp ? Math.floor((Date.now() - verstuurdOp) / 86_400_000) : null;
+    return {
+      verstuurd: ontvangers.size,
+      gereageerd: gereageerd.size,
+      nietGereageerd: ontvangers.size - gereageerd.size,
+      verstuurdOp,
+      dagenGeleden,
+    };
+  },
+});
+
+/**
+ * Schrijf de ontvangers van deze mail uit die niet openden/klikten. Registreert
+ * een afmelding (ehAfmeldingen), zodat ze nergens meer gemaild worden. Bedoeld na
+ * de wachttijd van een her-activatiemail.
+ */
+export const schrijfNietReageerdersUit = mutation({
+  args: { adminToken: v.string(), id: v.id("losseMails") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const verzonden = await ctx.db
+      .query("losseMailVerzonden")
+      .withIndex("by_mail", (q) => q.eq("losseMailId", args.id))
+      .collect();
+    const ontvangers = new Set(verzonden.map((v: any) => v.email.toLowerCase()));
+
+    const mailTag = String(args.id);
+    const events = await ctx.db.query("resendEmailEvents").collect();
+    const gereageerd = new Set<string>();
+    for (const ev of events) {
+      if (!ev.to) continue;
+      const t = (ev.type || "").toLowerCase();
+      if (!(t.includes("opened") || t.includes("clicked"))) continue;
+      if (ev.tags?.mail !== mailTag) continue;
+      gereageerd.add(ev.to.toLowerCase());
+    }
+
+    const bestaand = new Set(
+      (await ctx.db.query("ehAfmeldingen").collect()).map((a: any) => a.email.toLowerCase())
+    );
+
+    let uitgeschreven = 0;
+    for (const email of ontvangers) {
+      if (gereageerd.has(email) || bestaand.has(email)) continue;
+      await ctx.db.insert("ehAfmeldingen", {
+        email,
+        createdAt: Date.now(),
+        mail: "heractivatie",
+      });
+      uitgeschreven++;
+    }
+    return { uitgeschreven };
   },
 });

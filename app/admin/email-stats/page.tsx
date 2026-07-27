@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Mail, Eye, MousePointerClick, AlertTriangle, Send, CheckCircle2, ChevronDown } from "lucide-react";
+import Link from "next/link";
 import { api } from "@/convex/_generated/api";
-import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
+import { useAdminQuery } from "../AdminAuthContext";
 
 type Cijfers = {
   onderwerp: string;
@@ -370,30 +371,8 @@ type SluimerData = {
 
 function Sluimerend() {
   const data = useAdminQuery(api.emailStats.sluimerendeContacten, {}) as SluimerData | undefined;
-  const maakGroep = useAdminMutation(api.mailGroepen.maak);
-  const ledenToevoegen = useAdminMutation(api.mailGroepen.ledenToevoegen);
   const [open, setOpen] = useState(false);
-  const [bezig, setBezig] = useState(false);
-  const [melding, setMelding] = useState("");
-
-  const maakHeractivatie = async () => {
-    if (!data || data.lijst.length === 0) return;
-    setBezig(true);
-    setMelding("");
-    try {
-      const res = await maakGroep({ naam: `Sluimerend (${new Date().toLocaleDateString("nl-NL")})` });
-      const r = await ledenToevoegen({
-        id: res.id as any,
-        leden: data.lijst.map((c) => ({ email: c.email, naam: c.naam ?? undefined })),
-        alleenNieuwe: false,
-      });
-      setMelding(`Groep gemaakt met ${r.toegevoegd} mensen. Stuur ze een mail via Losse mails. Wie daarna nog niets doet, kun je afmelden.`);
-    } catch (e: any) {
-      setMelding(e?.message ?? "Groep maken mislukt.");
-    } finally {
-      setBezig(false);
-    }
-  };
+  const [melding] = useState("");
 
   const laatsteOpenLabel = (ms: number | null) =>
     ms ? new Date(ms).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" }) : "nooit";
@@ -413,26 +392,21 @@ function Sluimerend() {
           </div>
 
           <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-sm text-blue-900">
-            <p className="font-medium">Wat je hiermee doet</p>
-            <p className="text-blue-800 mt-1">
-              Stuur deze groep één zachte "mag ik je blijven schrijven?"-mail. Wie hem opent of klikt,
-              blijft. Wie daarna nog niets doet, meld je af. Dat houdt je open-rate gezond en je kosten
-              laag, en is netter dan blijven mailen naar mensen die niet meer kijken. Meer sturen helpt
-              niet; een sterke onderwerpregel wel.
-            </p>
+            <p className="font-medium">Wat je hiermee doet, in het kort</p>
+            <ol className="text-blue-800 mt-1 list-decimal pl-5 space-y-0.5">
+              <li>Ga naar <strong>Losse mails</strong> en kies bij Doelgroep <strong>&ldquo;Sluimerende contacten&rdquo;</strong>. Er staat een voorbeeldtekst klaar (knop &ldquo;Voorbeeldtekst invullen&rdquo;).</li>
+              <li>Test naar jezelf en verstuur die ene &ldquo;mag ik je blijven schrijven?&rdquo;-mail.</li>
+              <li>Na een dag of veertien zie je bij die mail onder <strong>Reacties</strong> wie hem opende. Eén klik en je schrijft de rest uit.</li>
+            </ol>
             <p className="text-blue-700 text-xs mt-2">
               Let op: open-meting is niet waterdicht (sommige mailclients melden opens niet). Zie dit als
               signaal, niet als bewijs. Daarom eerst vragen, dan pas verwijderen.
             </p>
           </div>
 
-          <button
-            onClick={maakHeractivatie}
-            disabled={bezig || data.lijst.length === 0}
-            className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            {bezig ? "Bezig…" : "Maak een her-activatiegroep van deze mensen"}
-          </button>
+          <Link href="/admin/mailsysteem/losse-mails" className="inline-block rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white">
+            Naar Losse mails →
+          </Link>
           {melding && <p className="text-sm text-gray-600">{melding}</p>}
 
           <div className="max-h-[360px] overflow-y-auto rounded-lg border border-gray-100">
