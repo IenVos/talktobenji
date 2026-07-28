@@ -30,7 +30,6 @@ import {
   nietAlleenUrlVoorType,
   persoonlijkOnderwerp,
 } from "./ehMailFooter";
-import { BENJI_BLOK_MARKER } from "./ehConcepten";
 
 const DAG_MS = 24 * 60 * 60 * 1000;
 
@@ -341,6 +340,12 @@ function coverBlok(imageUrl: string, linkUrl?: string, caption?: string): string
   return `<div style="margin:26px 0;text-align:center;">${inner}${cap}</div>`;
 }
 
+// Alleen een nette knop "Maak kennis met Benji" (zonder kaartje), net als in de
+// EH-funnel bij de marker [benji-start-link] of [Maak kennis met Benji].
+function benjiKnopInline(benjiUrl: string): string {
+  return `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
+}
+
 // Het Benji-kaartje met persoonlijke één-klik-link (zelfde stijl als in de EH-mails).
 function benjiBlokHtml(benjiUrl: string): string {
   return `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;text-align:center;"><p style="font-size:16px;font-weight:700;color:#3d3530;margin:0 0 8px;">7 dagen gratis met Benji</p><p style="font-size:14px;line-height:1.6;color:#6b6460;margin:0 0 18px;">Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.</p><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a><p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord.</p></div>`;
@@ -407,15 +412,24 @@ async function bouwReactivatieHtml(
   const imageUrl = (args.imageUrl || "").trim() || undefined;
   const imageCaption = (args.imageCaption || "").trim() || undefined;
 
-  // Benji-kaartje: alleen als de marker aanwezig is, dan een persoonlijk token.
-  const heeftBlok = body.includes(BENJI_BLOK_MARKER);
+  // Benji-markers: [benji-blok] toont het witte kaartje, elke andere marker met
+  // "benji" (bijv. [benji-start-link] of [Maak kennis met Benji]) toont alleen de
+  // knop, precies zoals in de EH-funnel. Alleen als er een Benji-marker in staat,
+  // maken we een persoonlijk token aan.
+  const BENJI_MARKER_RE = /\[[^\]]*benji[^\]]*\]/i;
+  const isBenjiBlok = (p: string) => /^\[benji-blok\]$/i.test(p.trim());
+  const isBenjiCta = (p: string) => BENJI_MARKER_RE.test(p) && !isBenjiBlok(p);
+  const heeftBenjiMarker = BENJI_MARKER_RE.test(body);
   let blokHtml = "";
-  if (heeftBlok) {
+  let benjiKnopHtml = "";
+  if (heeftBenjiMarker) {
     const token = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
       email: args.email,
       naam: args.naam,
     });
-    blokHtml = benjiBlokHtml(`${appBase()}/benji-start?token=${token}`);
+    const benjiUrl = `${appBase()}/benji-start?token=${token}`;
+    blokHtml = benjiBlokHtml(benjiUrl);
+    benjiKnopHtml = benjiKnopInline(benjiUrl);
   }
 
   const knopTekst = (args.buttonText || "").trim();
@@ -429,7 +443,6 @@ async function bouwReactivatieHtml(
   // [knop]) worden op hun eigen plek getoond, zodat je ze vrij kunt verschuiven. De
   // foto-handtekening hangt automatisch onder de afsluitgroet ("Lieve groet,").
   const KNOP_MARKER = /^\[knop\]$/i;
-  const isBenji = (p: string) => p.includes(BENJI_BLOK_MARKER);
 
   const alineas = body
     .split(/\n\n+/)
@@ -456,8 +469,10 @@ async function bouwReactivatieHtml(
   const psStukken: string[] = [];
   const stukken: string[] = [];
   alineas.forEach((p: string, i: number) => {
-    if (isBenji(p)) {
+    if (isBenjiBlok(p)) {
       stukken.push(blokHtml);
+    } else if (isBenjiCta(p)) {
+      stukken.push(benjiKnopHtml);
     } else if (AFBEELDING_MARKER.test(p)) {
       if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption));
     } else if (KNOP_MARKER.test(p)) {
