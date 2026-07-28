@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 function benjiKaart(benjiUrl: string): string {
   return `<div style="margin:36px 0 8px; background:#ffffff; border:1px solid #e7ded1; border-radius:16px; padding:26px 22px;">
       <p style="font-size:16px; font-weight:700; color:#3d3530; margin:0 0 8px;">Benji blijft er wél voor je</p>
-      <p style="font-size:14px; line-height:1.65; color:#6b6460; margin:0 0 18px;">Geen mails meer, dat is goed. Maar je bent altijd welkom om je verhaal kwijt te kunnen bij Benji, wanneer jij wilt. Ook midden in de nacht. De eerste 7 dagen zijn gratis.</p>
+      <p style="font-size:14px; line-height:1.65; color:#6b6460; margin:0 0 18px;">Je bent altijd welkom om je verhaal kwijt te kunnen bij Benji, wanneer jij wilt. Ook midden in de nacht. De eerste 7 dagen zijn gratis.</p>
       <a href="${benjiUrl}" style="display:inline-block; background:#fdf9f4; color:#9a8168; border:1.5px solid #9a8168; padding:11px 24px; border-radius:12px; font-weight:600; font-size:15px; text-decoration:none;">Maak kennis met Benji &rarr;</a>
       <p style="font-size:12px; line-height:1.5; color:#9a938c; margin:14px 0 0;">Geen formulier, geen wachtwoord.</p>
     </div>`;
@@ -35,13 +35,29 @@ function bevestigingsPagina(titel: string, tekst: string, benjiUrl?: string): Ne
   return new NextResponse(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
+// Maakt de persoonlijke Benji-één-klik-link voor een zojuist afgemelde persoon.
+// Faalt dit, dan geven we undefined terug (de afmelding zelf is al gelukt en de
+// bevestiging tonen we dan zonder kaart).
+async function maakBenjiUrl(email: string, secret: string, convexUrl: string): Promise<string | undefined> {
+  try {
+    const benjiToken = await fetchMutation(
+      api.benjiStart.genereerTokenNaAfmelding,
+      { email, secret },
+      { url: convexUrl }
+    );
+    return benjiToken ? `https://www.talktobenji.com/benji-start?token=${benjiToken}` : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function GET(request: NextRequest) {
   // Voorbeeldweergave om het scherm te bekijken zonder echte afmelding of toegang.
   // Toont de bevestiging met de Benji-kaart en een niet-werkende voorbeeldknop.
   if (request.nextUrl.searchParams.get("preview") === "1") {
     return bevestigingsPagina(
       "Je bent afgemeld",
-      "Je ontvangt geen opvolgmails meer van Even Houvast. Wat je eerder bewaarde, blijft van jou. Het ga je goed.",
+      "Je ontvangt geen opvolgmails meer van ons. Wat je eerder bewaarde, blijft van jou. Het ga je goed.",
       "https://www.talktobenji.com/benji-start?token=voorbeeld"
     );
   }
@@ -69,7 +85,8 @@ export async function GET(request: NextRequest) {
       await fetchMutation(api.checkoutHerstel.afmelden, { email, secret }, { url: convexUrl });
       return bevestigingsPagina(
         "Je bent afgemeld",
-        "We herinneren je niet meer aan je bestelling. Wil je later toch verder, dan ben je van harte welkom."
+        "We herinneren je niet meer aan je bestelling. Wil je later toch verder, dan ben je van harte welkom.",
+        await maakBenjiUrl(email, secret, convexUrl)
       );
     }
     // m = uit welke mail de link kwam ("brief" of mailnummer), type = verliestype.
@@ -86,23 +103,10 @@ export async function GET(request: NextRequest) {
   }
 
   // Zachte landing: de mails stoppen, maar we bieden Benji nog aan met een
-  // persoonlijke één-klik-link. Lukt het token maken niet, dan tonen we gewoon de
-  // bevestiging zonder kaart (de afmelding zelf is al gelukt).
-  let benjiUrl: string | undefined;
-  try {
-    const benjiToken = await fetchMutation(
-      api.benjiStart.genereerTokenNaAfmelding,
-      { email, secret },
-      { url: convexUrl }
-    );
-    if (benjiToken) benjiUrl = `https://www.talktobenji.com/benji-start?token=${benjiToken}`;
-  } catch {
-    // stil: afmelding is gelukt, alleen het aanbod tonen we dan niet
-  }
-
+  // persoonlijke één-klik-link (zie maakBenjiUrl).
   return bevestigingsPagina(
     "Je bent afgemeld",
-    "Je ontvangt geen opvolgmails meer van Even Houvast. Wat je eerder bewaarde, blijft van jou. Het ga je goed.",
-    benjiUrl
+    "Je ontvangt geen opvolgmails meer van ons. Wat je eerder bewaarde, blijft van jou. Het ga je goed.",
+    await maakBenjiUrl(email, secret, convexUrl)
   );
 }
