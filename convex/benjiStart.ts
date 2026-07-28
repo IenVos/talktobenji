@@ -66,6 +66,38 @@ export const genereerTokenInternal = internalMutation({
 });
 
 /**
+ * Genereer (of hergebruik) een token vanaf de Next.js-server met het
+ * ADMIN_SESSION_SECRET (hetzelfde secret als de afmeldroute). Zo kan het
+ * afmeld-bevestigingsscherm de zojuist afgemelde lead alsnog gratis toegang tot
+ * Benji aanbieden. Maakt géén account of trial aan; dat gebeurt pas bij de klik.
+ */
+export const genereerTokenNaAfmelding = mutation({
+  args: { email: v.string(), naam: v.optional(v.string()), secret: v.string() },
+  handler: async (ctx, args) => {
+    if (!process.env.ADMIN_SESSION_SECRET || args.secret !== process.env.ADMIN_SESSION_SECRET) {
+      throw new Error("Ongeldige aanroep");
+    }
+    const email = args.email.toLowerCase().trim();
+    const now = Date.now();
+    const bestaand = await ctx.db
+      .query("benjiStartTokens")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    const geldig = bestaand.find((t) => t.expiresAt > now);
+    if (geldig) return geldig.token;
+    const token = nieuwToken();
+    await ctx.db.insert("benjiStartTokens", {
+      token,
+      email,
+      naam: args.naam?.trim() || undefined,
+      createdAt: now,
+      expiresAt: now + TOKEN_GELDIGHEID_MS,
+    });
+    return token;
+  },
+});
+
+/**
  * Wissel een token in: log in en (indien nodig) maak een wachtwoordloos account +
  * start de 7-daagse trial. Geeft de gebruiker terug voor de NextAuth-sessie, of
  * null als het token ongeldig/verlopen is.
