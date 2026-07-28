@@ -432,6 +432,9 @@ async function bouwReactivatieHtml(
   const autoVoorGroet =
     `${!gebruiktAfbeelding ? coverHtml : ""}${!gebruiktKnop ? knopHtml : ""}`;
 
+  // P.S.-regels horen altijd onderaan, ná de handtekening. Apart verzamelen en als
+  // laatste zetten, zodat ze ook goed staan zonder herkende afsluitgroet.
+  const psStukken: string[] = [];
   const stukken: string[] = [];
   alineas.forEach((p: string, i: number) => {
     if (isBenji(p)) {
@@ -440,12 +443,12 @@ async function bouwReactivatieHtml(
       if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption));
     } else if (KNOP_MARKER.test(p)) {
       if (toonKnop) stukken.push(knopHtml);
+    } else if (/^p\.?\s*s\.?/i.test(p)) {
+      psStukken.push(psStijl(p));
     } else if (i === groetIndex) {
       stukken.push(autoVoorGroet);
       stukken.push(mailAlinea(p));
       stukken.push(mailHandtekeningIen());
-    } else if (/^p\.?\s*s\.?/i.test(p)) {
-      stukken.push(psStijl(p));
     } else {
       stukken.push(mailAlinea(p));
     }
@@ -456,6 +459,7 @@ async function bouwReactivatieHtml(
     stukken.push(autoVoorGroet);
     stukken.push(mailHandtekeningIen());
   }
+  stukken.push(...psStukken);
 
   const type = args.type || "algemeen";
   const afmeldUrl = await ehAfmeldUrl(args.email, "reactivatie", type);

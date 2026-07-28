@@ -360,28 +360,34 @@ async function bouwEvergreenHtml(
   const alineas = body.split(/\n\n+/).map((p: string) => p.trim()).filter(Boolean);
   const gebruiktAfbeelding = alineas.some((p: string) => AFBEELDING_MARKER.test(p));
   const gebruiktKnop = alineas.some((p: string) => KNOP_MARKER.test(p));
+  const isPS = (p: string) => /^p\.?\s*s\.?/i.test(p);
   let groetIndex = -1;
   alineas.forEach((p: string, i: number) => {
     if (isAfsluiting(p)) groetIndex = i;
   });
   const autoVoorGroet = `${!gebruiktAfbeelding ? coverHtml : ""}${!gebruiktKnop ? knopHtml : ""}`;
 
+  // P.S.-regels horen altijd onderaan, ná de handtekening. We renderen ze dus niet
+  // op hun plek in de tekst, maar verzamelen ze en zetten ze als laatste. Zo staan
+  // ze goed, óók als de mail geen herkende afsluitgroet heeft.
+  const psStukken: string[] = [];
   const stukken: string[] = [];
   alineas.forEach((p: string, i: number) => {
     if (p.includes(BENJI_BLOK_MARKER)) stukken.push(blokHtml);
     else if (AFBEELDING_MARKER.test(p)) { if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption)); }
     else if (KNOP_MARKER.test(p)) { if (toonKnop) stukken.push(knopHtml); }
+    else if (isPS(p)) psStukken.push(psStijl(p));
     else if (i === groetIndex) {
       stukken.push(autoVoorGroet);
       stukken.push(mailAlinea(p));
       stukken.push(mailHandtekeningIen());
-    } else if (/^p\.?\s*s\.?/i.test(p)) stukken.push(psStijl(p));
-    else stukken.push(mailAlinea(p));
+    } else stukken.push(mailAlinea(p));
   });
   if (groetIndex === -1) {
     stukken.push(autoVoorGroet);
     stukken.push(mailHandtekeningIen());
   }
+  stukken.push(...psStukken);
 
   const naUrl = args.isLaatsteVanBlok ? nietAlleenUrlVoorType(args.type) : null;
   const [rustUrl, afmeldUrl] = await Promise.all([

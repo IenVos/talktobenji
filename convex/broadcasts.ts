@@ -249,28 +249,33 @@ async function bouwLosseHtml(
   const alineas = body.split(/\n\n+/).map((p: string) => p.trim()).filter(Boolean);
   const gebruiktAfbeelding = alineas.some((p: string) => AFBEELDING_MARKER.test(p));
   const gebruiktKnop = alineas.some((p: string) => KNOP_MARKER.test(p));
+  const isPS = (p: string) => /^p\.?\s*s\.?/i.test(p);
   let groetIndex = -1;
   alineas.forEach((p: string, i: number) => {
     if (isAfsluiting(p)) groetIndex = i;
   });
   const autoVoorGroet = `${!gebruiktAfbeelding ? coverHtml : ""}${!gebruiktKnop ? knopHtml : ""}`;
 
+  // P.S.-regels horen altijd onderaan, ná de handtekening. Apart verzamelen en als
+  // laatste zetten, zodat ze ook goed staan zonder herkende afsluitgroet.
+  const psStukken: string[] = [];
   const stukken: string[] = [];
   alineas.forEach((p: string, i: number) => {
     if (p.includes(BENJI_BLOK_MARKER)) stukken.push(blokHtml);
     else if (AFBEELDING_MARKER.test(p)) { if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption)); }
     else if (KNOP_MARKER.test(p)) { if (toonKnop) stukken.push(knopHtml); }
+    else if (isPS(p)) psStukken.push(psStijl(p));
     else if (i === groetIndex) {
       stukken.push(autoVoorGroet);
       stukken.push(mailAlinea(p));
       stukken.push(mailHandtekeningIen());
-    } else if (/^p\.?\s*s\.?/i.test(p)) stukken.push(psStijl(p));
-    else stukken.push(mailAlinea(p));
+    } else stukken.push(mailAlinea(p));
   });
   if (groetIndex === -1) {
     stukken.push(autoVoorGroet);
     stukken.push(mailHandtekeningIen());
   }
+  stukken.push(...psStukken);
 
   const token = await ehAfmeldToken(args.email);
   const rustUrl = `${appBase()}/api/rust?e=${encodeURIComponent(args.email)}&t=${token}`;
