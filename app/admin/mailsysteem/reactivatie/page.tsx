@@ -149,15 +149,35 @@ export default function ReactivatiePage() {
         )}
       </div>
 
-      <ReactivatieOpsteller />
-      <ReactivatieVerzenden />
+      {/* Mail 1 */}
+      <div className="pt-2">
+        <h2 className="text-lg font-bold text-gray-900">Mail 1: de hoofdmail</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Gaat naar de hele groep hierboven. Ze stromen nog niet de evergreen funnel in: dat gebeurt pas
+          na mail 2, zodat iedereen eerst de volledige reactivatie doorloopt.
+        </p>
+      </div>
+      <ReactivatieOpsteller stap={1} />
+      <ReactivatieVerzenden stap={1} />
+
+      {/* Mail 2 */}
+      <div className="pt-4 border-t border-gray-200">
+        <h2 className="text-lg font-bold text-gray-900 mt-4">Mail 2: zachte herinnering</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Verstuur je een paar dagen na mail 1. Gaat <strong>alleen</strong> naar wie mail 1 niet opende of
+          aanklikte (wie al reageerde krijgt hem niet). Zodra deze ronde klaar is, stroomt iedereen uit de
+          reactivatiegroep de evergreen funnel in. Verstuur je geen mail 2, dan blijft de instroom uit.
+        </p>
+      </div>
+      <ReactivatieOpsteller stap={2} />
+      <ReactivatieVerzenden stap={2} />
     </div>
     </>
   );
 }
 
-function ReactivatieOpsteller() {
-  const opgeslagen = useAdminQuery(api.mailFunnel.getReactivatieMail, {}) as
+function ReactivatieOpsteller({ stap }: { stap: 1 | 2 }) {
+  const opgeslagen = useAdminQuery(api.mailFunnel.getReactivatieMail, stap === 2 ? { stap: 2 } : {}) as
     | {
         subject: string;
         bodyText: string;
@@ -221,7 +241,7 @@ function ReactivatieOpsteller() {
     setBezig("opslaan");
     setMelding("");
     try {
-      await save({ subject, bodyText, buttonText, buttonUrl, imageUrl, imageCaption });
+      await save({ stap, subject, bodyText, buttonText, buttonUrl, imageUrl, imageCaption });
       setMelding("Opgeslagen.");
     } catch (e: any) {
       setMelding(e?.message ?? "Opslaan mislukt.");
@@ -239,8 +259,8 @@ function ReactivatieOpsteller() {
     setMelding("");
     try {
       // Eerst opslaan, zodat de test exact de huidige tekst gebruikt.
-      await save({ subject, bodyText, buttonText, buttonUrl, imageUrl, imageCaption });
-      await stuurTest({ email: testEmail.trim(), naam: testNaam.trim() || undefined, type: testType });
+      await save({ stap, subject, bodyText, buttonText, buttonUrl, imageUrl, imageCaption });
+      await stuurTest({ stap, email: testEmail.trim(), naam: testNaam.trim() || undefined, type: testType });
       setMelding(`Testmail verstuurd naar ${testEmail.trim()}.`);
     } catch (e: any) {
       setMelding(e?.message ?? "Testmail versturen mislukt.");
@@ -252,7 +272,7 @@ function ReactivatieOpsteller() {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
       <div>
-        <h2 className="text-base font-semibold text-gray-900">De reactivatiemail opstellen</h2>
+        <h2 className="text-base font-semibold text-gray-900">De tekst opstellen</h2>
         <p className="text-xs text-gray-500 mt-1">
           Kleine testtekst om mee te beginnen. Pas hem gerust aan. Alles verschijnt in de volgorde van je
           tekst, dus met deze markers bepaal je zelf de plek:
@@ -435,8 +455,11 @@ function ReactivatieOpsteller() {
   );
 }
 
-function ReactivatieVerzenden() {
-  const status = useAdminQuery(api.mailFunnel.reactivatieVerzendStatus, {}) as
+function ReactivatieVerzenden({ stap }: { stap: 1 | 2 }) {
+  const status = useAdminQuery(
+    stap === 2 ? api.mailFunnel.reactivatie2VerzendStatus : api.mailFunnel.reactivatieVerzendStatus,
+    {}
+  ) as
     | {
         status: string;
         gestopt: boolean;
@@ -447,8 +470,12 @@ function ReactivatieVerzenden() {
         resterend: number;
       }
     | undefined;
-  const start = useAdminMutation(api.mailFunnel.startReactivatieVerzending);
-  const stop = useAdminMutation(api.mailFunnel.stopReactivatieVerzending);
+  const start = useAdminMutation(
+    stap === 2 ? api.mailFunnel.startReactivatie2Verzending : api.mailFunnel.startReactivatieVerzending
+  );
+  const stop = useAdminMutation(
+    stap === 2 ? api.mailFunnel.stopReactivatie2Verzending : api.mailFunnel.stopReactivatieVerzending
+  );
 
   const [batch, setBatch] = useState(25);
   const [intervalSec, setIntervalSec] = useState(60);
@@ -504,8 +531,10 @@ function ReactivatieVerzenden() {
         <h2 className="text-base font-semibold text-gray-900">Versturen naar de doelgroep</h2>
         <p className="text-xs text-gray-500 mt-1">
           Gespreid in kleine groepjes, zodat Outlook en Hotmail niet gaan knijpen. Vlak voor elke mail
-          wordt nog gecontroleerd of iemand zich niet net heeft afgemeld of heeft gekocht. Iedereen die
-          de mail krijgt, stroomt meteen de evergreen funnel in.
+          wordt nog gecontroleerd of iemand zich niet net heeft afgemeld of heeft gekocht.{" "}
+          {stap === 2
+            ? "Gaat alleen naar wie mail 1 niet opende of aanklikte. Zodra deze ronde klaar is, stroomt de hele reactivatiegroep de evergreen funnel in."
+            : "Ze stromen nog niet de evergreen funnel in: dat gebeurt na de mail 2-ronde."}
         </p>
       </div>
 

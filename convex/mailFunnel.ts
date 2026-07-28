@@ -277,6 +277,23 @@ export const reactivatieBounceCheck = query({
 // alleen een testmail naar een zelf ingevuld adres.
 
 const DOELGROEP_REACTIVATIE = "reactivatie";
+const DOELGROEP_REACTIVATIE2 = "reactivatie-2";
+
+// Zachte tweede mail, alleen voor wie mail 1 niet opende of aanklikte. Ien past de
+// tekst zelf aan in de admin.
+const REACTIVATIE2_DEFAULT = {
+  subject: "Nog één keer, dan laat ik je met rust",
+  bodyText:
+    "Hoi {voornaam},\n\n" +
+    "Een paar dagen geleden stuurde ik je een berichtje over Benji. Misschien ging het langs je heen, druk is het altijd.\n\n" +
+    "Ik wilde het je nog één keer laten weten, want ik denk echt dat het je goed kan doen: een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.\n\n" +
+    "[benji-blok]\n\n" +
+    "Lieve groet,",
+  buttonText: "",
+  buttonUrl: "",
+  imageUrl: "",
+  imageCaption: "",
+};
 
 const REACTIVATIE_DEFAULT = {
   subject: "Ik heb iets nieuws voor je gemaakt",
@@ -337,8 +354,10 @@ async function verstuurReactivatieEmail(args: {
   subject: string;
   html: string;
   apiKey: string;
+  mailTag?: string; // "reactivatie" (mail 1) of "reactivatie-2" (mail 2), voor reactie-meting
 }) {
   const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
+  const mailTag = args.mailTag || "reactivatie";
   for (let poging = 1; poging <= 4; poging++) {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -350,7 +369,7 @@ async function verstuurReactivatieEmail(args: {
         html: args.html,
         tags: [
           { name: "programma", value: "reactivatie" },
-          { name: "mail", value: "reactivatie" },
+          { name: "mail", value: mailTag },
         ],
       }),
     });
@@ -470,31 +489,40 @@ async function bouwReactivatieHtml(
   `);
 }
 
+// Stap 1 (default) of stap 2 → bijbehorende doelgroep-sleutel en standaardtekst.
+function reactivatieDoelDef(stap?: number) {
+  return stap === 2
+    ? { doelgroep: DOELGROEP_REACTIVATIE2, def: REACTIVATIE2_DEFAULT }
+    : { doelgroep: DOELGROEP_REACTIVATIE, def: REACTIVATIE_DEFAULT };
+}
+
 /** De opgeslagen reactivatiemail (of de default als er nog niets is opgeslagen). */
 export const getReactivatieMail = query({
-  args: { adminToken: v.string() },
+  args: { adminToken: v.string(), stap: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
+    const { doelgroep, def } = reactivatieDoelDef(args.stap);
     const rij = await ctx.db
       .query("funnelLosseMails")
-      .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE))
+      .filter((q) => q.eq(q.field("doelgroep"), doelgroep))
       .first();
     return {
-      subject: rij?.subject ?? REACTIVATIE_DEFAULT.subject,
-      bodyText: rij?.bodyText ?? REACTIVATIE_DEFAULT.bodyText,
-      buttonText: rij?.buttonText ?? REACTIVATIE_DEFAULT.buttonText,
-      buttonUrl: rij?.buttonUrl ?? REACTIVATIE_DEFAULT.buttonUrl,
-      imageUrl: rij?.imageUrl ?? REACTIVATIE_DEFAULT.imageUrl,
-      imageCaption: rij?.imageCaption ?? REACTIVATIE_DEFAULT.imageCaption,
+      subject: rij?.subject ?? def.subject,
+      bodyText: rij?.bodyText ?? def.bodyText,
+      buttonText: rij?.buttonText ?? def.buttonText,
+      buttonUrl: rij?.buttonUrl ?? def.buttonUrl,
+      imageUrl: rij?.imageUrl ?? def.imageUrl,
+      imageCaption: rij?.imageCaption ?? def.imageCaption,
       opgeslagen: !!rij,
     };
   },
 });
 
-/** Sla de reactivatiemail op (één rij; upsert). */
+/** Sla de reactivatiemail op (één rij per stap; upsert). */
 export const saveReactivatieMail = mutation({
   args: {
     adminToken: v.string(),
+    stap: v.optional(v.number()),
     subject: v.string(),
     bodyText: v.string(),
     buttonText: v.optional(v.string()),
@@ -504,9 +532,10 @@ export const saveReactivatieMail = mutation({
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
+    const { doelgroep } = reactivatieDoelDef(args.stap);
     const bestaand = await ctx.db
       .query("funnelLosseMails")
-      .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE))
+      .filter((q) => q.eq(q.field("doelgroep"), doelgroep))
       .first();
     const velden = {
       subject: args.subject,
@@ -522,7 +551,7 @@ export const saveReactivatieMail = mutation({
     } else {
       await ctx.db.insert("funnelLosseMails", {
         ...velden,
-        doelgroep: DOELGROEP_REACTIVATIE,
+        doelgroep,
         status: "concept",
       });
     }
@@ -537,6 +566,7 @@ export const saveReactivatieMail = mutation({
 export const stuurTestReactivatie = action({
   args: {
     adminToken: v.string(),
+    stap: v.optional(v.number()),
     email: v.string(),
     naam: v.optional(v.string()),
     type: v.optional(v.string()),
@@ -548,6 +578,7 @@ export const stuurTestReactivatie = action({
 
     const mail = await ctx.runQuery(api.mailFunnel.getReactivatieMail, {
       adminToken: args.adminToken,
+      stap: args.stap,
     });
     const html = await bouwReactivatieHtml(ctx, {
       email: args.email,
@@ -578,6 +609,8 @@ const DEFAULT_INTERVAL_SEC = 60;
 // Valt buiten de EH-reeks (1..6), dus de EH-cron en -overzichten negeren het; het
 // geeft ons gratis dedup: nooit tweemaal dezelfde reactivatiemail.
 const REACTIVATIE_MAILNR = 100;
+// Idem voor de tweede reactivatiemail (zachte herinnering aan niet-reageerders).
+const REACTIVATIE2_MAILNR = 101;
 
 /** Config + voortgang van de reactivatie-verzending (interne rij). */
 export const _reactivatieConfig = internalQuery({
@@ -623,7 +656,11 @@ export const _reactivatieResterend = internalQuery({
   },
 });
 
-/** Log de reactivatiemail als verzonden én zet de lead in de evergreen funnel. */
+/**
+ * Log mail 1 als verzonden (mailnummer 100). De lead stroomt hier NOG NIET de
+ * evergreen in: dat gebeurt pas na de mail 2-ronde (zie _reactivatie2Sweep), zodat
+ * iedereen eerst de volledige reactivatiefase (maximaal 2 mails) doorloopt.
+ */
 export const _logReactivatieVerzonden = internalMutation({
   args: {
     email: v.string(),
@@ -632,8 +669,6 @@ export const _logReactivatieVerzonden = internalMutation({
   },
   handler: async (ctx, args) => {
     const email = args.email.toLowerCase();
-
-    // Dedup-log in ehOpvolgVerzonden (mailnummer 100).
     const bestaand = await ctx.db
       .query("ehOpvolgVerzonden")
       .withIndex("by_email", (q) => q.eq("email", email))
@@ -643,24 +678,6 @@ export const _logReactivatieVerzonden = internalMutation({
         email,
         mailNummer: REACTIVATIE_MAILNR,
         sentAt: Date.now(),
-      });
-    }
-
-    // Doorstroom naar de evergreen funnel: eigen dag 1 vanaf nu. Bestaat de lead al,
-    // dan niet opnieuw inschrijven.
-    const lead = await ctx.db
-      .query("funnelLeads")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .first();
-    if (!lead) {
-      await ctx.db.insert("funnelLeads", {
-        email,
-        naam: args.naam?.trim() || undefined,
-        verliesType: args.type || undefined,
-        ingestroomdOp: Date.now(),
-        bron: "reactivatie",
-        status: "in-backend",
-        updatedAt: Date.now(),
       });
     }
   },
@@ -842,6 +859,330 @@ export const stopReactivatieVerzending = mutation({
     const rij = await ctx.db
       .query("funnelLosseMails")
       .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE))
+      .first();
+    if (rij) await ctx.db.patch(rij._id, { gestopt: true, updatedAt: Date.now() });
+    return { ok: true };
+  },
+});
+
+// ── Mail 2: zachte herinnering aan niet-reageerders ──────────────────────────
+// Alleen naar wie mail 1 kreeg maar niet opende of aanklikte (en niet kocht/afmeldde).
+// Na deze ronde stroomt de HELE reactivatiegroep (ook wie op mail 1 reageerde) de
+// evergreen funnel in: de reactivatiefase (max 2 mails) is dan afgerond.
+
+/** Naam + verliestype per e-mailadres (laatste brief, anders funnelLead). */
+async function naamTypeMap(ctx: any): Promise<Map<string, { naam: string | null; type: string }>> {
+  const [brieven, funnelLeads] = await Promise.all([
+    ctx.db.query("houvastBrieven").collect(),
+    ctx.db.query("funnelLeads").collect(),
+  ]);
+  const laatste = new Map<string, number>();
+  const out = new Map<string, { naam: string | null; type: string }>();
+  for (const b of brieven) {
+    if (!b.email) continue;
+    const e = b.email.toLowerCase();
+    if ((laatste.get(e) ?? 0) <= b.sentAt) {
+      laatste.set(e, b.sentAt);
+      out.set(e, { naam: b.naam ?? null, type: normType(b.verliesType) });
+    }
+  }
+  for (const l of funnelLeads) {
+    if (!l.email) continue;
+    const e = l.email.toLowerCase();
+    if (!out.has(e)) out.set(e, { naam: l.naam ?? null, type: normType(l.verliesType) });
+  }
+  return out;
+}
+
+/** De niet-reageerders van mail 1 (doelgroep voor mail 2). */
+async function mail2Doelgroep(
+  ctx: any
+): Promise<{ email: string; naam: string | null; type: string }[]> {
+  const [verzonden, afmeldingen, naProfielen, subs, events] = await Promise.all([
+    ctx.db.query("ehOpvolgVerzonden").collect(),
+    ctx.db.query("ehAfmeldingen").collect(),
+    ctx.db.query("nietAlleenProfiles").collect(),
+    ctx.db.query("userSubscriptions").collect(),
+    ctx.db.query("resendEmailEvents").collect(),
+  ]);
+
+  const gotMail1 = new Set<string>();
+  const gotMail2 = new Set<string>();
+  for (const v of verzonden) {
+    const e = v.email.toLowerCase();
+    if (v.mailNummer === REACTIVATIE_MAILNR) gotMail1.add(e);
+    if (v.mailNummer === REACTIVATIE2_MAILNR) gotMail2.add(e);
+  }
+  const afgemeld = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+  const na = new Set(naProfielen.map((p: any) => p.email.toLowerCase()));
+  const kocht = new Set<string>();
+  for (const s of subs) if (s.email && (s.pricePaid ?? 0) > 0) kocht.add(s.email.toLowerCase());
+
+  // Wie opende of klikte mail 1 (tag mail === "reactivatie") = reageerde.
+  const reageerde = new Set<string>();
+  for (const ev of events) {
+    if (!ev.to) continue;
+    const t = (ev.type || "").toLowerCase();
+    if (!(t.includes("opened") || t.includes("clicked"))) continue;
+    if (ev.tags?.mail !== "reactivatie") continue;
+    reageerde.add(ev.to.toLowerCase());
+  }
+
+  const namen = await naamTypeMap(ctx);
+  const out: { email: string; naam: string | null; type: string }[] = [];
+  for (const e of gotMail1) {
+    if (gotMail2.has(e)) continue;
+    if (afgemeld.has(e) || na.has(e) || kocht.has(e)) continue;
+    if (reageerde.has(e)) continue;
+    const info = namen.get(e) ?? { naam: null, type: ALGEMEEN };
+    out.push({ email: e, naam: info.naam, type: info.type });
+  }
+  return out;
+}
+
+export const _reactivatie2Config = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const rij = await ctx.db
+      .query("funnelLosseMails")
+      .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE2))
+      .first();
+    if (!rij) return null;
+    return {
+      subject: rij.subject,
+      bodyText: rij.bodyText,
+      buttonText: rij.buttonText,
+      buttonUrl: rij.buttonUrl,
+      imageUrl: rij.imageUrl,
+      imageCaption: rij.imageCaption,
+      status: rij.status,
+      gestopt: !!rij.gestopt,
+      batchGrootte: rij.batchGrootte ?? DEFAULT_BATCH,
+      intervalSec: rij.intervalSec ?? DEFAULT_INTERVAL_SEC,
+    };
+  },
+});
+
+export const _reactivatie2Resterend = internalQuery({
+  args: { limit: v.number() },
+  handler: async (ctx, args) => {
+    const doel = await mail2Doelgroep(ctx);
+    return { totaalResterend: doel.length, batch: doel.slice(0, args.limit) };
+  },
+});
+
+/** Log mail 2 als verzonden (mailnummer 101). Instroom volgt in de sweep. */
+export const _logReactivatie2Verzonden = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase();
+    const bestaand = await ctx.db
+      .query("ehOpvolgVerzonden")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    if (!bestaand.some((e: any) => e.mailNummer === REACTIVATIE2_MAILNR)) {
+      await ctx.db.insert("ehOpvolgVerzonden", {
+        email,
+        mailNummer: REACTIVATIE2_MAILNR,
+        sentAt: Date.now(),
+      });
+    }
+  },
+});
+
+export const _reactivatie2StatusZet = internalMutation({
+  args: {
+    status: v.optional(v.string()),
+    aantalErbij: v.optional(v.number()),
+    verstuurdOp: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const rij = await ctx.db
+      .query("funnelLosseMails")
+      .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE2))
+      .first();
+    if (!rij) return;
+    const patch: any = { updatedAt: Date.now() };
+    if (args.status) patch.status = args.status;
+    if (args.aantalErbij) patch.aantalVerzonden = (rij.aantalVerzonden ?? 0) + args.aantalErbij;
+    if (args.verstuurdOp) patch.verstuurdOp = args.verstuurdOp;
+    await ctx.db.patch(rij._id, patch);
+  },
+});
+
+/**
+ * Na de mail 2-ronde: laat de HELE reactivatiegroep (iedereen die mail 1 kreeg) de
+ * evergreen funnel in stromen, óók wie al op mail 1 reageerde. Idempotent: wie er al
+ * in zit of zich afmeldde/kocht wordt overgeslagen.
+ */
+export const _reactivatie2Sweep = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const [verzonden, afmeldingen, naProfielen, subs, leads] = await Promise.all([
+      ctx.db.query("ehOpvolgVerzonden").collect(),
+      ctx.db.query("ehAfmeldingen").collect(),
+      ctx.db.query("nietAlleenProfiles").collect(),
+      ctx.db.query("userSubscriptions").collect(),
+      ctx.db.query("funnelLeads").collect(),
+    ]);
+    const gotMail1 = new Set<string>();
+    for (const v of verzonden) if (v.mailNummer === REACTIVATIE_MAILNR) gotMail1.add(v.email.toLowerCase());
+    const afgemeld = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+    const na = new Set(naProfielen.map((p: any) => p.email.toLowerCase()));
+    const kocht = new Set<string>();
+    for (const s of subs) if (s.email && (s.pricePaid ?? 0) > 0) kocht.add(s.email.toLowerCase());
+    const bestaand = new Set(leads.map((l: any) => l.email.toLowerCase()));
+    const namen = await naamTypeMap(ctx);
+
+    for (const email of gotMail1) {
+      if (afgemeld.has(email) || na.has(email) || kocht.has(email) || bestaand.has(email)) continue;
+      const info = namen.get(email);
+      await ctx.db.insert("funnelLeads", {
+        email,
+        naam: info?.naam?.trim() || undefined,
+        verliesType: info && info.type !== ALGEMEEN ? info.type : undefined,
+        ingestroomdOp: Date.now(),
+        bron: "reactivatie",
+        status: "in-backend",
+        updatedAt: Date.now(),
+      });
+    }
+  },
+});
+
+export const _reactivatie2Ronde = internalAction({
+  args: {},
+  handler: async (ctx): Promise<void> => {
+    const cfg = await ctx.runQuery(internal.mailFunnel._reactivatie2Config, {});
+    if (!cfg || cfg.status !== "bezig") return;
+    if (cfg.gestopt) {
+      await ctx.runMutation(internal.mailFunnel._reactivatie2StatusZet, { status: "concept" });
+      return;
+    }
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) return;
+
+    const { batch, totaalResterend } = await ctx.runQuery(
+      internal.mailFunnel._reactivatie2Resterend,
+      { limit: cfg.batchGrootte }
+    );
+
+    if (batch.length === 0) {
+      await ctx.runMutation(internal.mailFunnel._reactivatie2Sweep, {});
+      await ctx.runMutation(internal.mailFunnel._reactivatie2StatusZet, {
+        status: "verzonden",
+        verstuurdOp: Date.now(),
+      });
+      return;
+    }
+
+    let verstuurd = 0;
+    for (const lead of batch) {
+      try {
+        const html = await bouwReactivatieHtml(ctx, {
+          email: lead.email,
+          naam: lead.naam ?? undefined,
+          subject: cfg.subject,
+          bodyText: cfg.bodyText,
+          buttonText: cfg.buttonText,
+          buttonUrl: cfg.buttonUrl,
+          imageUrl: cfg.imageUrl,
+          imageCaption: cfg.imageCaption,
+          type: lead.type,
+        });
+        await verstuurReactivatieEmail({
+          to: lead.email,
+          subject: persoonlijkOnderwerp(cfg.subject, lead.naam),
+          html,
+          apiKey,
+          mailTag: "reactivatie-2",
+        });
+        await ctx.runMutation(internal.mailFunnel._logReactivatie2Verzonden, { email: lead.email });
+        verstuurd++;
+      } catch (e) {
+        console.error(`Reactivatiemail 2 mislukt voor ${lead.email}:`, e);
+      }
+    }
+
+    if (verstuurd > 0) {
+      await ctx.runMutation(internal.mailFunnel._reactivatie2StatusZet, { aantalErbij: verstuurd });
+    }
+
+    if (totaalResterend - verstuurd > 0) {
+      await ctx.scheduler.runAfter(cfg.intervalSec * 1000, internal.mailFunnel._reactivatie2Ronde, {});
+    } else {
+      await ctx.runMutation(internal.mailFunnel._reactivatie2Sweep, {});
+      await ctx.runMutation(internal.mailFunnel._reactivatie2StatusZet, {
+        status: "verzonden",
+        verstuurdOp: Date.now(),
+      });
+    }
+  },
+});
+
+/** Status + voortgang van mail 2 voor de admin. */
+export const reactivatie2VerzendStatus = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const doel = await mail2Doelgroep(ctx);
+    const rij = await ctx.db
+      .query("funnelLosseMails")
+      .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE2))
+      .first();
+    return {
+      status: rij?.status ?? "concept",
+      gestopt: !!rij?.gestopt,
+      batchGrootte: rij?.batchGrootte ?? DEFAULT_BATCH,
+      intervalSec: rij?.intervalSec ?? DEFAULT_INTERVAL_SEC,
+      aantalVerzonden: rij?.aantalVerzonden ?? 0,
+      totaalDoelgroep: doel.length,
+      resterend: doel.length,
+    };
+  },
+});
+
+/** Start de verzending van mail 2 naar de niet-reageerders. Vereist bevestiging. */
+export const startReactivatie2Verzending = mutation({
+  args: {
+    adminToken: v.string(),
+    bevestig: v.boolean(),
+    batchGrootte: v.optional(v.number()),
+    intervalSec: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    if (!args.bevestig) throw new Error("Bevestiging ontbreekt");
+    const rij = await ctx.db
+      .query("funnelLosseMails")
+      .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE2))
+      .first();
+    if (!rij) throw new Error("Stel eerst de tweede reactivatiemail op en sla hem op.");
+    if (rij.status === "bezig") throw new Error("De verzending loopt al.");
+
+    const batchGrootte = Math.max(1, Math.min(100, args.batchGrootte ?? DEFAULT_BATCH));
+    const intervalSec = Math.max(5, args.intervalSec ?? DEFAULT_INTERVAL_SEC);
+    await ctx.db.patch(rij._id, {
+      status: "bezig",
+      gestopt: false,
+      batchGrootte,
+      intervalSec,
+      gestartOp: Date.now(),
+      updatedAt: Date.now(),
+    });
+    await ctx.scheduler.runAfter(0, internal.mailFunnel._reactivatie2Ronde, {});
+    return { ok: true };
+  },
+});
+
+/** Noodrem voor mail 2. */
+export const stopReactivatie2Verzending = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const rij = await ctx.db
+      .query("funnelLosseMails")
+      .filter((q) => q.eq(q.field("doelgroep"), DOELGROEP_REACTIVATIE2))
       .first();
     if (rij) await ctx.db.patch(rij._id, { gestopt: true, updatedAt: Date.now() });
     return { ok: true };
