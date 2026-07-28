@@ -333,6 +333,7 @@ export const lijst = query({
       doelgroep: r.doelgroep,
       doelgroepLabel: DOELGROEP_LABELS[r.doelgroep] ?? r.doelgroep,
       status: r.status,
+      naEvergreen: !!r.naEvergreen,
       geplandOp: r.geplandOp ?? null,
       aantalVerzonden: r.aantalVerzonden ?? 0,
       verstuurdOp: r.verstuurdOp ?? null,
@@ -369,6 +370,7 @@ export const opslaan = mutation({
     imageUrl: v.optional(v.string()),
     imageCaption: v.optional(v.string()),
     doelgroep: v.string(),
+    naEvergreen: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -380,6 +382,7 @@ export const opslaan = mutation({
       imageUrl: args.imageUrl?.trim() || undefined,
       imageCaption: args.imageCaption?.trim() || undefined,
       doelgroep: args.doelgroep,
+      naEvergreen: args.naEvergreen ?? false,
       updatedAt: Date.now(),
     };
     if (args.id) {
@@ -523,9 +526,36 @@ export const _config = internalQuery({
       doelgroep: r.doelgroep,
       status: r.status,
       gestopt: !!r.gestopt,
+      naEvergreen: !!r.naEvergreen,
       batchGrootte: r.batchGrootte ?? DEFAULT_BATCH,
       intervalSec: r.intervalSec ?? DEFAULT_INTERVAL_SEC,
     };
+  },
+});
+
+/**
+ * Zet een ontvanger in de evergreen funnel (eigen dag 1 vanaf nu). Alleen als de
+ * mail dat vraagt (naEvergreen) en de lead er nog niet in zit. Zelfde patroon als
+ * de reactivatie: wie de mail echt kreeg, stroomt de reeks in.
+ */
+export const _naarEvergreen = internalMutation({
+  args: { email: v.string(), naam: v.optional(v.string()), type: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase();
+    const bestaand = await ctx.db
+      .query("funnelLeads")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (bestaand) return;
+    await ctx.db.insert("funnelLeads", {
+      email,
+      naam: args.naam?.trim() || undefined,
+      verliesType: args.type && args.type !== ALGEMEEN ? args.type : undefined,
+      ingestroomdOp: Date.now(),
+      bron: "losse-mail",
+      status: "in-backend",
+      updatedAt: Date.now(),
+    });
   },
 });
 
@@ -621,6 +651,13 @@ export const _ronde = internalAction({
         });
         await verstuurLosseEmail({ to: lead.email, subject: persoonlijkOnderwerp(cfg.subject, lead.naam), html, apiKey, mailId: String(args.id) });
         await ctx.runMutation(internal.broadcasts._logVerzonden, { id: args.id, email: lead.email });
+        if (cfg.naEvergreen) {
+          await ctx.runMutation(internal.broadcasts._naarEvergreen, {
+            email: lead.email,
+            naam: lead.naam ?? undefined,
+            type: lead.type,
+          });
+        }
         verstuurd++;
       } catch (e) {
         console.error(`Losse mail mislukt voor ${lead.email}:`, e);

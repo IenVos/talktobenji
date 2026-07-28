@@ -35,6 +35,7 @@ type Rij = {
   doelgroep: string;
   doelgroepLabel: string;
   status: string;
+  naEvergreen: boolean;
   geplandOp: number | null;
   aantalVerzonden: number;
   verstuurdOp: number | null;
@@ -89,6 +90,7 @@ export default function LosseMailsPage() {
                 {r.status === "gepland" && r.geplandOp ? ` op ${datumNL(r.geplandOp)}` : ""}
                 {r.status === "verzonden" ? ` · ${r.aantalVerzonden} verstuurd` : ""}
                 {r.status === "bezig" ? ` · ${r.aantalVerzonden} tot nu toe` : ""}
+                {r.naEvergreen ? " · → evergreen" : ""}
               </p>
             </div>
             {(r.status === "concept" || r.status === "gepland") && (
@@ -360,6 +362,7 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
   const [imageUrl, setImageUrl] = useState("");
   const [imageCaption, setImageCaption] = useState("");
   const [doelgroep, setDoelgroep] = useState("lijst");
+  const [naEvergreen, setNaEvergreen] = useState(false);
   const [geladen, setGeladen] = useState(false);
   const [uploaden, setUploaden] = useState(false);
 
@@ -387,6 +390,7 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
       setImageUrl(bestaand.imageUrl ?? "");
       setImageCaption(bestaand.imageCaption ?? "");
       setDoelgroep(bestaand.doelgroep ?? "lijst");
+      setNaEvergreen(!!bestaand.naEvergreen);
       setBatch(bestaand.batchGrootte ?? 25);
       setIntervalSec(bestaand.intervalSec ?? 60);
       setGeladen(true);
@@ -403,6 +407,7 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
       imageUrl,
       imageCaption,
       doelgroep,
+      naEvergreen,
     });
     const nieuweId = String(res.id);
     setMailId(nieuweId);
@@ -538,6 +543,15 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
           )}
         </select>
         <span className="text-xs text-gray-400">{aantal ? `${aantal.aantal} mensen` : "…"} in deze doelgroep.</span>
+      </label>
+
+      <label className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${naEvergreen ? "border-primary-200 bg-primary-50" : "border-gray-200 bg-gray-50"} ${loopt ? "opacity-60" : ""}`}>
+        <input type="checkbox" checked={naEvergreen} disabled={loopt} onChange={(e) => setNaEvergreen(e.target.checked)} className="mt-0.5" />
+        <span className="text-gray-700">
+          <strong>Na versturen in de evergreen funnel zetten.</strong> Iedereen die deze mail krijgt, stroomt daarna
+          op zijn eigen dag 1 de evergreen reeks in. Handig voor een intro of migratie: eerst deze mail, daarna
+          de reeks. Wie er al in zit, blijft ongemoeid.
+        </span>
       </label>
 
       {(doelgroep === "sluimerend" || doelgroep === "nooit-geopend") && (

@@ -1040,6 +1040,7 @@ export default defineSchema({
     imageCaption: v.optional(v.string()),
     doelgroep: v.string(),          // "lijst-incl-rust" | "lijst" | "type:huisdier" | ...
     status: v.string(),             // "concept" | "gepland" | "bezig" | "verzonden"
+    naEvergreen: v.optional(v.boolean()), // ontvangers na verzending in de evergreen funnel zetten
     geplandOp: v.optional(v.number()),   // gepland verzendmoment (ms)
     batchGrootte: v.optional(v.number()),
     intervalSec: v.optional(v.number()),
