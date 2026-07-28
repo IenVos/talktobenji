@@ -14,7 +14,7 @@ export const runtime = "nodejs";
 function benjiKaart(benjiUrl: string): string {
   return `<div style="margin:36px 0 8px; background:#ffffff; border:1px solid #e7ded1; border-radius:16px; padding:26px 22px;">
       <p style="font-size:16px; font-weight:700; color:#3d3530; margin:0 0 8px;">Benji blijft er wél voor je</p>
-      <p style="font-size:14px; line-height:1.65; color:#6b6460; margin:0 0 18px;">Je bent altijd welkom om je verhaal kwijt te kunnen bij Benji, wanneer jij wilt. Ook midden in de nacht. De eerste 7 dagen zijn gratis.</p>
+      <p style="font-size:14px; line-height:1.65; color:#6b6460; margin:0 0 18px; text-wrap:balance;">Je bent altijd welkom om je verhaal kwijt te kunnen bij Benji, wanneer jij wilt. Ook midden in de nacht. De eerste 7 dagen zijn gratis.</p>
       <a href="${benjiUrl}" style="display:inline-block; background:#fdf9f4; color:#9a8168; border:1.5px solid #9a8168; padding:11px 24px; border-radius:12px; font-weight:600; font-size:15px; text-decoration:none;">Maak kennis met Benji &rarr;</a>
       <p style="font-size:12px; line-height:1.5; color:#9a938c; margin:14px 0 0;">Geen formulier, geen wachtwoord.</p>
     </div>`;
@@ -27,7 +27,7 @@ function bevestigingsPagina(titel: string, tekst: string, benjiUrl?: string): Ne
   <body style="font-family: system-ui, -apple-system, sans-serif; background:#fdf9f4; color:#3d3530; margin:0;">
     <div style="max-width:480px; margin:0 auto; padding:64px 24px; text-align:center;">
       <h1 style="font-size:20px; font-weight:600;">${titel}</h1>
-      <p style="font-size:15px; line-height:1.7; color:#6b6460;">${tekst}</p>
+      <p style="font-size:15px; line-height:1.7; color:#6b6460; text-wrap:balance;">${tekst}</p>
       ${benjiUrl ? benjiKaart(benjiUrl) : ""}
       <p style="margin-top:32px;"><a href="https://www.talktobenji.com" style="color:#6d84a8;">Terug naar Talk To Benji</a></p>
     </div>
