@@ -343,7 +343,7 @@ function coverBlok(imageUrl: string, linkUrl?: string, caption?: string): string
 // Alleen een nette knop "Maak kennis met Benji" (zonder kaartje), net als in de
 // EH-funnel bij de marker [benji-start-link] of [Maak kennis met Benji].
 function benjiKnopInline(benjiUrl: string): string {
-  return `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
+  return `<div style="text-align:left;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
 }
 
 // Het Benji-kaartje met persoonlijke één-klik-link (zelfde stijl als in de EH-mails).
