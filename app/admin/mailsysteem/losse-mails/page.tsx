@@ -60,6 +60,7 @@ export default function LosseMailsPage() {
 
       {nieuw || bewerkId ? (
         <Composer
+          key={bewerkId ?? "nieuw"}
           id={bewerkId}
           onKlaar={() => {
             setNieuw(false);
@@ -347,12 +348,10 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
   const bestaand = useAdminQuery(api.broadcasts.get, id ? { id } : "skip") as any;
   const groepen = useAdminQuery(api.mailGroepen.lijst, {}) as { _id: string; naam: string; aantal: number }[] | undefined;
   const alleMails = useAdminQuery(api.broadcasts.lijst, {}) as Rij[] | undefined;
-  // Mail 1 kan als bron voor "niet-reageerders" gekozen worden zodra hij minstens
-  // ingepland is (gepland/bezig/verzonden). De doelgroep vult zich pas als mail 1
-  // echt verstuurd is; plan mail 2 dus ná mail 1.
-  const verzondenMails = alleMails?.filter(
-    (m) => m._id !== id && (m.status === "verzonden" || m.status === "bezig" || m.status === "gepland")
-  );
+  // Elke andere opgeslagen mail kan als bron voor "niet-reageerders" dienen (ook een
+  // concept). De doelgroep vult zich pas als die bronmail echt verstuurd is; verstuur
+  // mail 2 dus ná mail 1.
+  const verzondenMails = alleMails?.filter((m) => m._id !== id);
   const opslaan = useAdminMutation(api.broadcasts.opslaan);
   const verwijderen = useAdminMutation(api.broadcasts.verwijderen);
   const stuurTest = useAdminAction(api.broadcasts.stuurTestLosseMail);
