@@ -347,7 +347,12 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
   const bestaand = useAdminQuery(api.broadcasts.get, id ? { id } : "skip") as any;
   const groepen = useAdminQuery(api.mailGroepen.lijst, {}) as { _id: string; naam: string; aantal: number }[] | undefined;
   const alleMails = useAdminQuery(api.broadcasts.lijst, {}) as Rij[] | undefined;
-  const verzondenMails = alleMails?.filter((m) => m.status === "verzonden" && m._id !== id);
+  // Mail 1 kan als bron voor "niet-reageerders" gekozen worden zodra hij minstens
+  // ingepland is (gepland/bezig/verzonden). De doelgroep vult zich pas als mail 1
+  // echt verstuurd is; plan mail 2 dus ná mail 1.
+  const verzondenMails = alleMails?.filter(
+    (m) => m._id !== id && (m.status === "verzonden" || m.status === "bezig" || m.status === "gepland")
+  );
   const opslaan = useAdminMutation(api.broadcasts.opslaan);
   const verwijderen = useAdminMutation(api.broadcasts.verwijderen);
   const stuurTest = useAdminAction(api.broadcasts.stuurTestLosseMail);
@@ -546,12 +551,20 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
           {verzondenMails && verzondenMails.length > 0 && (
             <optgroup label="Niet-reageerders van een eerdere mail">
               {verzondenMails.map((m) => (
-                <option key={m._id} value={`niet-open:${m._id}`}>Niet-reageerders van: {m.subject}</option>
+                <option key={m._id} value={`niet-open:${m._id}`}>
+                  Niet-reageerders van: {m.subject || "(geen onderwerp)"}{m.status === "verzonden" ? "" : " · nog niet verstuurd"}
+                </option>
               ))}
             </optgroup>
           )}
         </select>
         <span className="text-xs text-gray-400">{aantal ? `${aantal.aantal} mensen` : "…"} in deze doelgroep.</span>
+        {doelgroep.startsWith("niet-open:") && (
+          <span className="mt-1 block text-xs text-blue-700">
+            Deze lijst vult zich pas als mail 1 echt verstuurd is (en mensen tijd hadden om te openen/klikken).
+            Plan mail 2 dus ná mail 1; tot die tijd kan het aantal 0 tonen.
+          </span>
+        )}
       </label>
 
       <label className={`flex items-start gap-2 rounded-lg border p-3 text-sm ${naEvergreen ? "border-primary-200 bg-primary-50" : "border-gray-200 bg-gray-50"} ${loopt ? "opacity-60" : ""}`}>
