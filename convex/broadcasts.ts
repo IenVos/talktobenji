@@ -30,7 +30,7 @@ import {
   ehAfmeldToken,
   persoonlijkOnderwerp,
 } from "./ehMailFooter";
-import { BENJI_BLOK_MARKER } from "./ehConcepten";
+import { BENJI_BLOK_MARKER, BENJI_MARKER } from "./ehConcepten";
 
 const DEFAULT_BATCH = 25;
 const DEFAULT_INTERVAL_SEC = 60;
@@ -244,6 +244,10 @@ function coverBlok(url: string, linkUrl?: string, caption?: string): string {
   const cap = caption ? `<p style="font-size:13px;color:#6b6460;margin:12px 0 0 0;">${caption}</p>` : "";
   return `<div style="margin:26px 0;text-align:center;">${inner}${cap}</div>`;
 }
+// Losse Benji-knop (marker [benji-start-link]), links uitgelijnd zoals in de mail.
+function benjiKnopInline(benjiUrl: string): string {
+  return `<div style="text-align:left;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
+}
 function benjiBlokHtml(benjiUrl: string): string {
   return `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;text-align:center;"><p style="font-size:16px;font-weight:700;color:#3d3530;margin:0 0 8px;">7 dagen gratis met Benji</p><p style="font-size:14px;line-height:1.6;color:#6b6460;margin:0 0 18px;">Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.</p><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a><p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord.</p></div>`;
 }
@@ -282,14 +286,23 @@ async function bouwLosseHtml(
   const imageUrl = (args.imageUrl || "").trim() || undefined;
   const imageCaption = (args.imageCaption || "").trim() || undefined;
 
+  // Benji-markers: [benji-blok] (kaart) en [benji-start-link] (losse knop). Beide
+  // gebruiken dezelfde persoonlijke één-klik-link; token maar één keer genereren.
   const heeftBlok = body.includes(BENJI_BLOK_MARKER);
+  const isBenjiKnop = (p: string) =>
+    !p.includes(BENJI_BLOK_MARKER) &&
+    (p.includes(BENJI_MARKER) || /\[[^\]]*benji[^\]]*\]/i.test(p));
+  const heeftBenjiKnop = body.split(/\n\n+/).some((p: string) => isBenjiKnop(p.trim()));
   let blokHtml = "";
-  if (heeftBlok) {
+  let benjiKnopHtml = "";
+  if (heeftBlok || heeftBenjiKnop) {
     const token = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
       email: args.email,
       naam: args.naam,
     });
-    blokHtml = benjiBlokHtml(`${appBase()}/benji-start?token=${token}`);
+    const benjiUrl = `${appBase()}/benji-start?token=${token}`;
+    if (heeftBlok) blokHtml = benjiBlokHtml(benjiUrl);
+    benjiKnopHtml = benjiKnopInline(benjiUrl);
   }
 
   const knopTekst = (args.buttonText || "").trim();
@@ -317,6 +330,7 @@ async function bouwLosseHtml(
   alineas.forEach((p: string, i: number) => {
     if (p.includes(BENJI_BLOK_MARKER)) stukken.push(blokHtml);
     else if (AFBEELDING_MARKER.test(p)) { if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption)); }
+    else if (isBenjiKnop(p)) { if (benjiKnopHtml) stukken.push(benjiKnopHtml); }
     else if (KNOP_MARKER.test(p)) { if (toonKnop) stukken.push(knopHtml); }
     else if (isPS(p)) psStukken.push(psStijl(p));
     else if (i === groetIndex) {
