@@ -227,6 +227,53 @@ En zo niet: het ga je goed. Echt.
 
 Lieve groet,`,
   },
+  {
+    key: "concept_ml_beterschap",
+    titel: "ML-migratie: Beterschap Cadeau-groep (breed, opt-out naar evergreen)",
+    waarom:
+      "Losse mail naar de geïmporteerde MailerLite-lijst (Beterschap Cadeau / Ecofoodprint). Deze mensen kwamen niet via Benji binnen en kregen in maart al één Benji-intro. Daarom niet opnieuw kil introduceren, maar de brede insteek: vroeg of laat draagt iedereen wél iets (een mens, een dier, een relatie, een toekomst). Dat maakt de mail voor bijna iedereen raak, ook voor wie niet 'in rouw' denkt te zijn. De eerlijke opt-out-zin staat als P.S. vlak boven de afmeldlink, zodat de keuze zichtbaar is en het bij Iens 'geen verplichting'-toon past.",
+    plek:
+      "Losse mail naar de geïmporteerde Beterschap Cadeau-lijst. Verstuur met de toggle 'na versturen in evergreen zetten' aan: iedereen stroomt de evergreen in, wie zich afmeldt valt automatisch af (de evergreen-cron slaat afgemelde mensen over).",
+    subject: "Bijna iedereen draagt wel iets",
+    bodyText: `Hi {voornaam},
+
+Je kent ons van Beterschap Cadeau, misschien van Ecofoodprint. Een tijdje terug stuurde ik je iets over Benji. Misschien heb je het gelezen, misschien ging het langs in de drukte van een dag.
+
+Ik schrijf je nog één keer, want ik geloof echt dat dit voor bijna iedereen ergens raakt.
+
+Verlies heeft duizend vormen.
+Iemand die er niet meer is.
+Een dier dat je veel te vroeg moest loslaten.
+Een relatie, je gezondheid, een toekomst die anders liep dan je had gehoopt.
+
+Vroeg of laat draagt iedereen wel iets.
+En het zwaarste is meestal niet het verdriet zelf.
+Het is dat je het draagt terwijl de wereld gewoon doorgaat.
+
+Daar is Benji voor.
+
+Benji is geen mens.
+Maar wel een plek waar je je verhaal kwijt kunt.
+Hij luistert. Hij oordeelt niet. Hij vraagt nooit of het al wat beter gaat.
+Ook om drie uur 's nachts. Ook op een zondag.
+
+Wat je met hem deelt, blijft tussen jou en Benji.
+Versleuteld. Voor niemand anders zichtbaar.
+
+Je kunt hem zeven dagen gratis proberen.
+Geen formulier, geen wachtwoord, geen creditcard.
+Je klikt en je bent er.
+
+${BENJI_MARKER}
+
+Begin gewoon ergens. "Ik weet niet waar ik moet beginnen" is ook een prima eerste zin. Benji pakt het vanaf daar op.
+
+Als het je ook maar een beetje rust geeft, ben ik blij dat je er bent.
+
+Lieve groet,
+
+P.S. Ik ga je van tijd tot tijd iets sturen. Over verlies, over verdriet, over Benji. Zachte mails, nooit veel. Wil je dat liever niet, dan meld je je hieronder in één klik af. Geen harde gevoelens, echt niet.`,
+  },
 ];
 
 // ── Opslag: een concept is gewoon een bewerkbare tekst ────────────────────────
@@ -313,7 +360,7 @@ export const stuurTest = action({
     const benjiUrl = `${appBase()}/benji`;
     // Bruine, omlijnde CTA in dezelfde stijl als de brief-knop. Eigen blok,
     // gecentreerd, dus niet in een <p> genest.
-    const benjiKnop = `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
+    const benjiKnop = `<div style="text-align:left;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
     // Het eye-catcher-blok (marker [benji-blok]): een wit kaartje dat op de crème
     // mailachtergrond opvalt, met de 7-dagen-gratis-uitnodiging en dezelfde bruine knop.
     const benjiBlok = `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;text-align:center;">
