@@ -86,7 +86,7 @@ export default function LosseMailsPage() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{r.subject || "(geen onderwerp)"}</p>
               <p className="text-xs text-gray-400">
-                {doelLabel(r.doelgroep)} · {STATUS_LABEL[r.status] ?? r.status}
+                {r.doelgroepLabel || doelLabel(r.doelgroep)} · {STATUS_LABEL[r.status] ?? r.status}
                 {r.status === "gepland" && r.geplandOp ? ` op ${datumNL(r.geplandOp)}` : ""}
                 {r.status === "verzonden" ? ` · ${r.aantalVerzonden} verstuurd` : ""}
                 {r.status === "bezig" ? ` · ${r.aantalVerzonden} tot nu toe` : ""}
@@ -346,6 +346,8 @@ function GroepenBeheer() {
 function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
   const bestaand = useAdminQuery(api.broadcasts.get, id ? { id } : "skip") as any;
   const groepen = useAdminQuery(api.mailGroepen.lijst, {}) as { _id: string; naam: string; aantal: number }[] | undefined;
+  const alleMails = useAdminQuery(api.broadcasts.lijst, {}) as Rij[] | undefined;
+  const verzondenMails = alleMails?.filter((m) => m.status === "verzonden" && m._id !== id);
   const opslaan = useAdminMutation(api.broadcasts.opslaan);
   const verwijderen = useAdminMutation(api.broadcasts.verwijderen);
   const stuurTest = useAdminAction(api.broadcasts.stuurTestLosseMail);
@@ -538,6 +540,13 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
             <optgroup label="Eigen doelgroepen">
               {groepen.map((g) => (
                 <option key={g._id} value={`groep:${g._id}`}>{g.naam} ({g.aantal})</option>
+              ))}
+            </optgroup>
+          )}
+          {verzondenMails && verzondenMails.length > 0 && (
+            <optgroup label="Niet-reageerders van een eerdere mail">
+              {verzondenMails.map((m) => (
+                <option key={m._id} value={`niet-open:${m._id}`}>Niet-reageerders van: {m.subject}</option>
               ))}
             </optgroup>
           )}

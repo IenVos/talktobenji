@@ -103,6 +103,60 @@ async function resolveDoelgroep(
     return out;
   }
 
+  // Niet-reageerders van een eerdere losse mail: "niet-open:<losseMailId>". Iedereen
+  // die die mail kreeg maar hem niet opende én niet aanklikte (voor een herinnering).
+  // Gebruikt dezelfde mail-tag-correlatie als de reacties-teller. Afgemelde/testadressen af.
+  if (doelgroep.startsWith("niet-open:")) {
+    const bronId = doelgroep.slice(10);
+    const [verzonden, events, afmeldingen, excluded, funnelLeads, brieven, groepLeden, optins] =
+      await Promise.all([
+        ctx.db.query("losseMailVerzonden").withIndex("by_mail", (q: any) => q.eq("losseMailId", bronId)).collect(),
+        ctx.db.query("resendEmailEvents").collect(),
+        ctx.db.query("ehAfmeldingen").collect(),
+        ctx.db.query("analyticsExcludedEmails").collect(),
+        ctx.db.query("funnelLeads").collect(),
+        ctx.db.query("houvastBrieven").collect(),
+        ctx.db.query("mailGroepLeden").collect(),
+        ctx.db.query("nieuwsbriefOptins").collect(),
+      ]);
+    const afgemeldSet = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+    const testSet = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    // Wie mail 1 opende of aanklikte (die heeft dus wél gereageerd, geen herinnering).
+    const gereageerd = new Set<string>();
+    for (const ev of events) {
+      if (!ev.to) continue;
+      const t = (ev.type || "").toLowerCase();
+      if (!(t.includes("opened") || t.includes("clicked"))) continue;
+      if (ev.tags?.mail !== bronId) continue;
+      gereageerd.add(ev.to.toLowerCase());
+    }
+    // Naam + type per adres, uit alles wat we hebben (na mail 1 met evergreen-toggle
+    // staan ze als funnelLead; anders uit de groep, brieven of opt-ins).
+    const naamMap = new Map<string, string>();
+    const typeMap = new Map<string, string>();
+    const zetInfo = (email?: string | null, naam?: string | null, type?: string | null) => {
+      if (!email) return;
+      const e = email.toLowerCase();
+      if (naam && !naamMap.has(e)) naamMap.set(e, naam);
+      if (type && !typeMap.has(e)) typeMap.set(e, type);
+    };
+    for (const l of funnelLeads) zetInfo(l.email, l.naam, l.verliesType);
+    for (const b of brieven) zetInfo(b.email, b.naam, b.verliesType);
+    for (const g of groepLeden) zetInfo(g.email, g.naam, g.verliesType);
+    for (const o of optins) zetInfo(o.email, o.naam, null);
+
+    const gezien = new Set<string>();
+    const out: { email: string; naam: string | null; type: string }[] = [];
+    for (const v of verzonden) {
+      const email = v.email.toLowerCase();
+      if (gezien.has(email)) continue;
+      gezien.add(email);
+      if (afgemeldSet.has(email) || testSet.has(email) || gereageerd.has(email)) continue;
+      out.push({ email, naam: naamMap.get(email) ?? null, type: normType(typeMap.get(email)) });
+    }
+    return out;
+  }
+
   // Eigen doelgroep (mailGroepen): "groep:<id>". Adressen komen uit de groep zelf;
   // afgemelde en testadressen vallen ook hier af.
   if (doelgroep.startsWith("groep:")) {
@@ -332,11 +386,20 @@ export const lijst = query({
     await checkAdmin(ctx, args.adminToken);
     const rijen = await ctx.db.query("losseMails").collect();
     rijen.sort((a, b) => b.createdAt - a.createdAt);
+    const groepen = await ctx.db.query("mailGroepen").collect();
+    const groepNaam = new Map(groepen.map((g) => [String(g._id), g.naam]));
+    const subjectById = new Map(rijen.map((r) => [String(r._id), r.subject]));
+    const labelVoor = (d: string): string => {
+      if (DOELGROEP_LABELS[d]) return DOELGROEP_LABELS[d];
+      if (d.startsWith("groep:")) return `Groep: ${groepNaam.get(d.slice(6)) ?? "onbekend"}`;
+      if (d.startsWith("niet-open:")) return `Niet-reageerders van: ${subjectById.get(d.slice(10)) ?? "onbekende mail"}`;
+      return d;
+    };
     return rijen.map((r) => ({
       _id: r._id,
       subject: r.subject,
       doelgroep: r.doelgroep,
-      doelgroepLabel: DOELGROEP_LABELS[r.doelgroep] ?? r.doelgroep,
+      doelgroepLabel: labelVoor(r.doelgroep),
       status: r.status,
       naEvergreen: !!r.naEvergreen,
       geplandOp: r.geplandOp ?? null,
