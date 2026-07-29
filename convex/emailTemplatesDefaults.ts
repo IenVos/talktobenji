@@ -128,21 +128,21 @@ export const DEFAULT_TEMPLATES = {
     aanhef: "Hi {naam},",
     bodyText: `Het is bijna een jaar geleden dat je met Talk To Benji bent begonnen. Ik hoop dat het je heeft geholpen, op welke manier dan ook.\n\nJe toegang loopt over ongeveer een maand af op {einddatum}. Als je nog een jaar samen wil gaan, is dat van harte welkom.`,
     buttonText: "Nog een jaar samen",
-    buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    buttonUrl: "https://www.talktobenji.com/betalen/jaar",
   },
   renewal_jaar_2: {
     subject: "Nog twee weken, wil je verder?",
     aanhef: "Hi {naam},",
     bodyText: `Nog twee weken, dan loopt je toegang tot Talk To Benji af op {einddatum}.\n\nAlles wat je hebt opgebouwd, je gesprekken, reflecties en memories, blijft bewaard zolang je account bestaat. Maar Benji zal na die datum niet meer voor je beschikbaar zijn.\n\nWil je nog een jaar verder?`,
     buttonText: "Toegang verlengen",
-    buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    buttonUrl: "https://www.talktobenji.com/betalen/jaar",
   },
   renewal_jaar_3: {
     subject: "Vandaag is je laatste dag, tot ziens of tot snel",
     aanhef: "Hi {naam},",
     bodyText: `Vandaag is de laatste dag van je jaar met Talk To Benji.\n\nIk ben blij dat je er was. Ik hoop dat het jaar je iets heeft gegeven, al was het maar het gevoel dat je er niet alleen voor stond.\n\nAls je nog een jaar verder wilt, kun je dat hieronder regelen. Benji staat voor je klaar.\n\nWil je liever stoppen? Je kunt al je gegevens downloaden of je account verwijderen via Instellingen in je account.`,
     buttonText: "Nog een jaar samen",
-    buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    buttonUrl: "https://www.talktobenji.com/betalen/jaar",
   },
 
   // ── Kwartaal ──
@@ -153,7 +153,7 @@ export const DEFAULT_TEMPLATES = {
     buttonText: "Nog een kwartaal",
     buttonUrl: "https://www.talktobenji.com/betalen/kwartaal",
     upsellText: "Een heel jaar voor €90",
-    upsellUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    upsellUrl: "https://www.talktobenji.com/betalen/jaar",
   },
   renewal_kwartaal_2: {
     subject: "Nog een week, wil je verder?",
@@ -162,7 +162,7 @@ export const DEFAULT_TEMPLATES = {
     buttonText: "Toegang verlengen",
     buttonUrl: "https://www.talktobenji.com/betalen/kwartaal",
     upsellText: "Een heel jaar voor €90",
-    upsellUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    upsellUrl: "https://www.talktobenji.com/betalen/jaar",
   },
   renewal_kwartaal_3: {
     subject: "Vandaag is je laatste dag",
@@ -171,7 +171,7 @@ export const DEFAULT_TEMPLATES = {
     buttonText: "Nog een kwartaal",
     buttonUrl: "https://www.talktobenji.com/betalen/kwartaal",
     upsellText: "Een heel jaar voor €90",
-    upsellUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    upsellUrl: "https://www.talktobenji.com/betalen/jaar",
   },
 
   // ── Maand ──
@@ -209,21 +209,21 @@ export const DEFAULT_TEMPLATES = {
     aanhef: "Hi {naam},",
     bodyText: `Je toegang loopt binnenkort af. Wil je doorgaan?`,
     buttonText: "Verlengen",
-    buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    buttonUrl: "https://www.talktobenji.com/betalen/jaar",
   },
   renewal_email2: {
     subject: "Nog twee weken, wil je verder?",
     aanhef: "Hi {naam},",
     bodyText: `Je toegang loopt binnenkort af.`,
     buttonText: "Toegang verlengen",
-    buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    buttonUrl: "https://www.talktobenji.com/betalen/jaar",
   },
   renewal_email3: {
     subject: "Vandaag is je laatste dag",
     aanhef: "Hi {naam},",
     bodyText: `Vandaag loopt je toegang af.`,
     buttonText: "Verlengen",
-    buttonUrl: "https://www.talktobenji.com/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    buttonUrl: "https://www.talktobenji.com/betalen/jaar",
   },
 
   // Niet Alleen
