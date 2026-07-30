@@ -1216,11 +1216,24 @@ export const analyzeSessionAdmin = internalAction({
     const status = session?.status ?? "onbekend";
     const beoordeling = session?.rating ? `${session.rating}/5` : "geen";
 
-    // Transcript voor analyse — geanonimiseerd, enkel inhoud niet naam/email
+    // Transcript voor analyse — geanonimiseerd, enkel inhoud niet naam/email.
+    // Per bericht ruim genoeg om volledige berichten te tonen (langste bericht is
+    // ~560 tekens). Een te lage limiet liet complete berichten afgekapt lijken,
+    // waardoor de analyse onterecht "Benji's bericht werd afgekapt" rapporteerde.
+    const MAX_BERICHT_LENGTE = 1000;
     const transcript = messages
       .filter((m: any) => m.content?.trim())
-      .map((m: any) => `${m.role === "user" ? "G" : "B"}: ${m.content.slice(0, 400)}`)
+      .map((m: any) => `${m.role === "user" ? "G" : "B"}: ${m.content.slice(0, MAX_BERICHT_LENGTE)}`)
       .join("\n");
+
+    // Als het transcript te lang is, behoud het EINDE (hoe het gesprek afliep is
+    // het belangrijkst om te beoordelen). Vanaf het begin knippen liet lange
+    // gesprekken onterecht "abrupt afgebroken" lijken.
+    const MAX_TRANSCRIPT = 24000;
+    const transcriptVoorAnalyse =
+      transcript.length > MAX_TRANSCRIPT
+        ? "...(begin van het gesprek ingekort)...\n" + transcript.slice(-MAX_TRANSCRIPT)
+        : transcript;
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -1246,7 +1259,7 @@ Schrijf strak en zakelijk. Max 100 woorden totaal.`,
         messages: [
           {
             role: "user",
-            content: `Status: ${status} | Berichten: ${aantalGebruiker} van gebruiker, ${aantalBenji} van Benji | Beoordeling: ${beoordeling}\n\nGesprek:\n${transcript.slice(0, 8000)}`,
+            content: `Status: ${status} | Berichten: ${aantalGebruiker} van gebruiker, ${aantalBenji} van Benji | Beoordeling: ${beoordeling}\n\nGesprek:\n${transcriptVoorAnalyse}`,
           },
         ],
       }),
