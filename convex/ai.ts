@@ -663,8 +663,8 @@ BELANGRIJKE REGELS:
   Vraag NIET opnieuw "Wat speelt er voor jou?" wanneer iemand al om hulp heeft gevraagd.`;
 
       const accountRule = isEnglish
-        ? "ACCOUNT & REGISTRATION: When someone asks about creating an account, signing up, or registering, ALWAYS include a clickable link. Use markdown format: [click here to sign up](/registreren). If the question is clearly about account creation, give the link directly. Also mention the menu: they can click the three dots (⋮) and choose 'Sign up'."
-        : `ACCOUNT & REGISTRATIE: Wanneer iemand vraagt over een account aanmaken, aanmelden of registreren, voeg ALTIJD een klikbare link toe. Gebruik markdown: [hier klikken om je aan te melden](/registreren). Als de vraag duidelijk over account aanmaken gaat, geef de link direct. Vermeld ook het menu: ze kunnen op de drie puntjes (⋮) klikken en kiezen voor 'Aanmelden'. Bij wachtwoord vergeten: verwijs naar [deze pagina](/wachtwoord-vergeten).`;
+        ? "ACCOUNT & REGISTRATION: When someone asks about creating an account, signing up, or registering, explain they can do this via the menu: the three dots (⋮) at the top, then 'Sign up'. Do NOT put links in the conversation. For a forgotten password: tell them they can reset it on the login page."
+        : `ACCOUNT & REGISTRATIE: Wanneer iemand vraagt over een account aanmaken, aanmelden of registreren, leg uit dat dit via het menu kan: de drie puntjes (⋮) bovenaan, dan 'Aanmelden'. Zet GEEN links in het gesprek. Bij wachtwoord vergeten: zeg dat ze hun wachtwoord opnieuw kunnen instellen op de inlogpagina.`;
 
       const memoryRule = isEnglish
         ? ""
@@ -874,11 +874,11 @@ Deze gebruiker is niet ingelogd. Benji onthoudt niets tussen gesprekken door —
 
 Noem het profiel MAXIMAAL ÉÉN keer per gesprek, op een van deze momenten:
 ${messageCount >= 8 && messageCount < 20
-  ? `- Nu past het: iemand heeft al wat gedeeld (${messageCount} berichten). Als ze iets persoonlijks of zwaarweegends delen, mag je na je empathische reactie zacht toevoegen: "Wat je nu deelt wil ik goed onthouden. Als je een [gratis profiel aanmaakt](/registreren) neem ik dit mee naar een volgend gesprek — dan hoef je niet opnieuw te beginnen."`
+  ? `- Nu past het: iemand heeft al wat gedeeld (${messageCount} berichten). Als ze iets persoonlijks of zwaarweegends delen, mag je na je empathische reactie zacht toevoegen: "Wat je nu deelt wil ik goed onthouden. Als je een gratis profiel aanmaakt via het menu (de drie puntjes ⋮, dan 'Aanmelden'), neem ik dit mee naar een volgend gesprek, dan hoef je niet opnieuw te beginnen."`
   : messageCount >= 20
-  ? `- Dit is een lang gesprek. Noem het bij een samenvattend of afsluitend moment: "We hebben vandaag al veel besproken. Als je een [gratis profiel aanmaakt](/registreren) onthoud ik dit — zodat je de volgende keer verder kunt gaan waar je nu bent gebleven."`
+  ? `- Dit is een lang gesprek. Noem het bij een samenvattend of afsluitend moment: "We hebben vandaag al veel besproken. Als je een gratis profiel aanmaakt via het menu (de drie puntjes ⋮), onthoud ik dit, zodat je de volgende keer verder kunt gaan waar je nu bent gebleven."`
   : messageCount >= 6
-  ? `- Als iemand aangeeft te willen stoppen of als je afsluit, voeg toe: "Als je een [gratis profiel aanmaakt](/registreren) onthoud ik wat je hebt gedeeld — dan hoef je de volgende keer niet opnieuw te beginnen."`
+  ? `- Als iemand aangeeft te willen stoppen of als je afsluit, voeg toe: "Als je een gratis profiel aanmaakt via het menu (de drie puntjes ⋮), onthoud ik wat je hebt gedeeld, dan hoef je de volgende keer niet opnieuw te beginnen."`
   : ``}
 
 Zeg het NOOIT als verkooppraatje of als vraag. Het moet voelen als een vriendelijke tip.
