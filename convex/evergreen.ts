@@ -27,6 +27,7 @@ import {
   ehAfmeldToken,
   nietAlleenUrlVoorType,
   persoonlijkOnderwerp,
+  persoonlijkeBody,
 } from "./ehMailFooter";
 import { BENJI_BLOK_MARKER } from "./ehConcepten";
 
@@ -334,8 +335,7 @@ async function bouwEvergreenHtml(
     isLaatsteVanBlok: boolean;
   }
 ): Promise<string> {
-  const voornaam = (args.naam || "").trim().split(" ")[0];
-  const body = args.bodyText.replace(/\{voornaam\}/g, voornaam).replace(/(Hi|Hoi)\s+,/g, "$1,");
+  const body = persoonlijkeBody(args.bodyText, args.naam);
   const imageUrl = (args.imageUrl || "").trim() || undefined;
   const imageCaption = (args.imageCaption || "").trim() || undefined;
 

@@ -44,6 +44,22 @@ export function persoonlijkOnderwerp(subject: string, naam?: string | null): str
   return s.trim();
 }
 
+// Vult {voornaam} in de mailtekst. Mét naam: gewoon invullen. Zónder naam schonen we
+// netjes op, ook middenin een zin: een "{voornaam}" met een komma ervoor (bijv.
+// "...was, {voornaam}.") valt met komma en al weg, en een placeholder in de aanhef
+// ("Hi {voornaam},") laat alleen "Hi," over. Zo blijft er nooit een kale komma of
+// dubbele spatie staan. Veilig voor teksten zonder {voornaam}: die blijven ongewijzigd.
+export function persoonlijkeBody(bodyText: string, naam?: string | null): string {
+  const voornaam = (naam || "").trim().split(" ")[0];
+  if (voornaam) return (bodyText || "").replace(/\{voornaam\}/g, voornaam);
+  return (bodyText || "")
+    .replace(/,[ \t]*\{voornaam\}/g, "{voornaam}") // komma vlak vóór de naam weghalen
+    .replace(/\{voornaam\}/g, "") // de placeholder zelf weghalen
+    .replace(/[ \t]{2,}/g, " ") // dubbele spaties dichttrekken
+    .replace(/[ \t]+([.,!?;:])/g, "$1") // geen spatie vlak vóór leesteken
+    .replace(/[ \t]+\n/g, "\n"); // geen spatie aan het regeleinde
+}
+
 export function mailAlinea(p: string): string {
   return `<p style="font-size: 15px; line-height: 1.8; color: #4a5568;">${p.trim().replace(/\n/g, "<br/>")}</p>`;
 }

@@ -29,6 +29,7 @@ import {
   ehAfmeldUrl,
   ehAfmeldToken,
   persoonlijkOnderwerp,
+  persoonlijkeBody,
 } from "./ehMailFooter";
 import { BENJI_BLOK_MARKER, BENJI_MARKER } from "./ehConcepten";
 
@@ -281,8 +282,7 @@ async function bouwLosseHtml(
     imageCaption?: string;
   }
 ): Promise<string> {
-  const voornaam = (args.naam || "").trim().split(" ")[0];
-  const body = args.bodyText.replace(/\{voornaam\}/g, voornaam).replace(/(Hi|Hoi)\s+,/g, "$1,");
+  const body = persoonlijkeBody(args.bodyText, args.naam);
   const imageUrl = (args.imageUrl || "").trim() || undefined;
   const imageCaption = (args.imageCaption || "").trim() || undefined;
 
@@ -638,6 +638,51 @@ export const _naarEvergreen = internalMutation({
       status: "in-backend",
       updatedAt: Date.now(),
     });
+  },
+});
+
+/**
+ * Opschoning: MailerLite-exports hebben geen naam-kolom maar wel een Location-kolom
+ * (land). Bij een oude import belandde dat land per ongeluk in het naam-veld, waardoor
+ * mails begonnen met "Hi Belgium". Deze actie haalt land-namen uit het naam-veld van
+ * zowel groepsleden als evergreen-leads (funnelLeads), zodat de aanhef terugvalt op
+ * "Hi,". Echte voornamen zijn nooit landnamen, dus dit raakt geen legitieme namen.
+ */
+const LANDNAMEN = new Set(
+  [
+    "Netherlands", "Nederland", "Belgium", "België", "Belgie", "Germany", "Duitsland",
+    "France", "Frankrijk", "Spain", "Spanje", "Italy", "Italië", "Sweden", "Zweden",
+    "Ireland", "Ierland", "United States", "United States of America", "USA", "US",
+    "United Kingdom", "UK", "England", "Luxembourg", "Luxemburg", "Austria", "Oostenrijk",
+    "Switzerland", "Zwitserland", "Portugal", "Denmark", "Denemarken", "Norway", "Noorwegen",
+    "Finland", "Poland", "Polen", "Greece", "Griekenland", "Turkey", "Turkije", "Canada",
+    "Australia", "Australië", "Suriname", "Curaçao", "Aruba", "South Africa", "Zuid-Afrika",
+    "Indonesia", "Indonesië", "Morocco", "Marokko",
+  ].map((s) => s.toLowerCase())
+);
+
+export const _landNamenOpschonen = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const isLand = (naam?: string | null) => {
+      const n = (naam || "").trim().replace(/^"|"$/g, "").toLowerCase();
+      return !!n && LANDNAMEN.has(n);
+    };
+    let groepsleden = 0;
+    for (const l of await ctx.db.query("mailGroepLeden").collect()) {
+      if (isLand(l.naam)) {
+        await ctx.db.patch(l._id, { naam: undefined });
+        groepsleden++;
+      }
+    }
+    let evergreenLeads = 0;
+    for (const l of await ctx.db.query("funnelLeads").collect()) {
+      if (isLand(l.naam)) {
+        await ctx.db.patch(l._id, { naam: undefined });
+        evergreenLeads++;
+      }
+    }
+    return { groepsleden, evergreenLeads };
   },
 });
 

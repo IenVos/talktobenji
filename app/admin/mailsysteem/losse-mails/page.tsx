@@ -198,18 +198,75 @@ function ReactiesPanel({ id }: { id: string }) {
 // Haalt e-mailadressen (en waar mogelijk namen) uit geplakte tekst of een CSV.
 // Neemt per regel het eerste adres dat op een e-mail lijkt; een niet-numerieke,
 // niet-datum tekst ernaast geldt als naam (zoals bij "adres,naam").
+// Landnamen die MailerLite in de Location-kolom zet. Nooit als voornaam gebruiken.
+const LANDNAMEN = new Set(
+  [
+    "Netherlands", "Nederland", "Belgium", "België", "Belgie", "Germany", "Duitsland",
+    "France", "Frankrijk", "Spain", "Spanje", "Italy", "Italië", "Sweden", "Zweden",
+    "Ireland", "Ierland", "United States", "United States of America", "USA", "US",
+    "United Kingdom", "UK", "England", "Luxembourg", "Luxemburg", "Austria", "Oostenrijk",
+    "Switzerland", "Zwitserland", "Portugal", "Denmark", "Denemarken", "Norway", "Noorwegen",
+    "Finland", "Poland", "Polen", "Greece", "Griekenland", "Turkey", "Turkije", "Canada",
+    "Australia", "Australië", "Suriname", "Curaçao", "Aruba", "South Africa", "Zuid-Afrika",
+    "Indonesia", "Indonesië", "Morocco", "Marokko",
+  ].map((s) => s.toLowerCase())
+);
+
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const splitRij = (line: string) => line.split(/[,;\t]/).map((s) => s.trim().replace(/^"|"$/g, ""));
+
+/**
+ * Leest e-mailadressen (+ evt. voornaam) uit een geplakte lijst of CSV-export.
+ * Belangrijk: een MailerLite-export heeft géén naam-kolom maar wel een Location-kolom
+ * (land). Die mag nooit als naam gepakt worden. Daarom: is er een kop-regel, dan lezen
+ * we de naam alleen uit een echte naam-kolom (name/voornaam/first). Zonder kop vallen we
+ * terug op een heuristiek die land-namen, getallen en datums uitsluit.
+ */
 function parseLeden(text: string): { email: string; naam?: string }[] {
   const uit: { email: string; naam?: string }[] = [];
-  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  for (const raw of text.split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line) continue;
-    const delen = line.split(/[,;\t]/).map((s) => s.trim().replace(/^"|"$/g, ""));
-    const email = delen.find((d) => emailRe.test(d));
-    if (!email) continue;
-    const naam = delen.find(
-      (d) => d && d !== email && !emailRe.test(d) && !/^\d+$/.test(d) && !/^\d{4}-\d{2}-\d{2}/.test(d)
+  const regels = text.split(/\r?\n/).map((r) => r.trim()).filter(Boolean);
+  if (regels.length === 0) return uit;
+
+  // Kop-regel? (bevat geen e-mailadres, en wel een e-mail/subscriber-kolom)
+  const eerste = splitRij(regels[0]);
+  const heeftEmailInEerste = eerste.some((d) => emailRe.test(d));
+  const lijktKop =
+    !heeftEmailInEerste &&
+    eerste.some((d) => /e-?mail|subscriber|adres/i.test(d));
+
+  let emailIdx = -1;
+  let naamIdx = -1;
+  let start = 0;
+  if (lijktKop) {
+    start = 1;
+    emailIdx = eerste.findIndex((d) => /e-?mail|subscriber|adres/i.test(d));
+    // Een naam-kolom moet echt over een naam gaan, niet over land/plaats/bedrijf.
+    naamIdx = eerste.findIndex(
+      (d) => /naam|name|voornaam|first[\s_-]*name/i.test(d) && !/last|achter|surname|bedrijf|company/i.test(d)
     );
+  }
+
+  for (let i = start; i < regels.length; i++) {
+    const delen = splitRij(regels[i]);
+    const email = emailIdx >= 0 && emailRe.test(delen[emailIdx] || "") ? delen[emailIdx] : delen.find((d) => emailRe.test(d));
+    if (!email) continue;
+
+    let naam: string | undefined;
+    if (naamIdx >= 0) {
+      const kandidaat = (delen[naamIdx] || "").trim();
+      if (kandidaat && !emailRe.test(kandidaat) && !LANDNAMEN.has(kandidaat.toLowerCase())) naam = kandidaat;
+    } else if (!lijktKop) {
+      // Geen kop: neem eerste tekstveld dat geen e-mail, getal, datum of land is.
+      naam = delen.find(
+        (d) =>
+          d &&
+          d !== email &&
+          !emailRe.test(d) &&
+          !/^\d+$/.test(d) &&
+          !/^\d{4}-\d{2}-\d{2}/.test(d) &&
+          !LANDNAMEN.has(d.toLowerCase())
+      );
+    }
     uit.push({ email, naam });
   }
   return uit;

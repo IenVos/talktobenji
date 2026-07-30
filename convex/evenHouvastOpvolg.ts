@@ -25,6 +25,7 @@ import {
   mailHandtekeningIen,
   mailWrapper,
   persoonlijkOnderwerp,
+  persoonlijkeBody,
 } from "./ehMailFooter";
 import { BENJI_MARKER, BENJI_BLOK_MARKER } from "./ehConcepten";
 
@@ -235,11 +236,7 @@ async function verstuurOpvolgMail(
   const imageUrl: string | undefined = saved?.imageUrl ?? def?.imageUrl;
   const imageCaption: string | undefined = saved?.imageCaption ?? def?.imageCaption;
 
-  const voornaam = (args.naam || "").trim().split(" ")[0];
-  // Vul {voornaam} in; zonder naam blijft "Hi ," / "Hoi ," over → opschonen.
-  const body = bodyText
-    .replace(/\{voornaam\}/g, voornaam)
-    .replace(/(Hi|Hoi)\s+,/g, "$1,");
+  const body = persoonlijkeBody(bodyText, args.naam);
 
   const token = await afmeldToken(args.email);
   // Mailnummer en verliestype mee in de afmeldlink: zo zien we in de admin bij

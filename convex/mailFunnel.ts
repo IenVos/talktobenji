@@ -29,6 +29,7 @@ import {
   ehAfmeldUrl,
   nietAlleenUrlVoorType,
   persoonlijkOnderwerp,
+  persoonlijkeBody,
 } from "./ehMailFooter";
 
 const DAG_MS = 24 * 60 * 60 * 1000;
@@ -404,10 +405,7 @@ async function bouwReactivatieHtml(
     type?: string;
   }
 ): Promise<string> {
-  const voornaam = (args.naam || "").trim().split(" ")[0];
-  const body = args.bodyText
-    .replace(/\{voornaam\}/g, voornaam)
-    .replace(/(Hi|Hoi)\s+,/g, "$1,");
+  const body = persoonlijkeBody(args.bodyText, args.naam);
 
   const imageUrl = (args.imageUrl || "").trim() || undefined;
   const imageCaption = (args.imageCaption || "").trim() || undefined;
