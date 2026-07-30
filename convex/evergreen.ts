@@ -35,6 +35,43 @@ const DAG_MS = 24 * 60 * 60 * 1000;
 
 // ── Lezen ────────────────────────────────────────────────────────────────────
 
+/** Diagnose (CLI): actieve mails per dagOffset + leads-instroomspreiding. Read-only. */
+export const _evergreenOverzicht = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const nu = Date.now();
+    const [blokken, mails, leads] = await Promise.all([
+      ctx.db.query("funnelBlokken").collect(),
+      ctx.db.query("funnelMails").collect(),
+      ctx.db.query("funnelLeads").collect(),
+    ]);
+    const blokActief = new Map(blokken.map((b: any) => [b._id, b.actief !== false]));
+    const actieveMails = mails
+      .filter((m: any) => m.actief && blokActief.get(m.blokId))
+      .map((m: any) => ({ dagOffset: m.dagOffset, subject: m.subject, type: m.verliesType ?? "algemeen" }))
+      .sort((a: any, b: any) => a.dagOffset - b.dagOffset);
+    const laagsteDagOffset = actieveMails.length ? actieveMails[0].dagOffset : null;
+    // Leads-instroom per bron + hoe ver ze nu zijn (dag = floor(dagen)+1).
+    const perBron: Record<string, number> = {};
+    const dagVerdeling: Record<number, number> = {};
+    for (const l of leads) {
+      const bron = l.bron ?? "onbekend";
+      perBron[bron] = (perBron[bron] ?? 0) + 1;
+      const dag = Math.floor((nu - l.ingestroomdOp) / DAG_MS) + 1;
+      dagVerdeling[dag] = (dagVerdeling[dag] ?? 0) + 1;
+    }
+    return {
+      laagsteActieveDagOffset: laagsteDagOffset,
+      actieveMails,
+      aantalActieveMails: actieveMails.length,
+      blokken: blokken.map((b: any) => ({ naam: b.naam, actief: b.actief !== false })),
+      leadsPerBron: perBron,
+      leadsDagVerdeling: dagVerdeling,
+      totaalLeads: leads.length,
+    };
+  },
+});
+
 /** Alle blokken op volgorde, elk met hun mails (op dagoffset). Voor de admin. */
 export const blokkenMetMails = query({
   args: { adminToken: v.string() },
