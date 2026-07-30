@@ -618,6 +618,72 @@ export const _markeerKoperInternal = internalMutation({
   },
 });
 
+// ── Automatische instroom: EH-funnel afgerond → evergreen ────────────────────
+// Losgekoppeld van de reactivatie. Zodra iemand de hele Even Houvast-opvolgreeks
+// heeft afgerond (alle 6 mails), stroomt hij vanzelf de evergreen in, mits schoon
+// (niet gekocht, niet afgemeld, geen Niet Alleen-klant, geen testadres) en nog niet
+// in de funnel. Idempotent: draait elke dag mee vóór de verzending.
+const EH_OPVOLG_START = Date.UTC(2026, 5, 25); // 25 juni 2026, gelijk aan mailFunnel/evenHouvastOpvolg
+const EH_ALLE_MAILNUMMERS = [1, 2, 3, 4, 5, 6];
+
+export const _instroomEHAfgerond = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const [brieven, verzonden, afmeldingen, naProfielen, subs, leads, excluded] =
+      await Promise.all([
+        ctx.db.query("houvastBrieven").collect(),
+        ctx.db.query("ehOpvolgVerzonden").collect(),
+        ctx.db.query("ehAfmeldingen").collect(),
+        ctx.db.query("nietAlleenProfiles").collect(),
+        ctx.db.query("userSubscriptions").collect(),
+        ctx.db.query("funnelLeads").collect(),
+        ctx.db.query("analyticsExcludedEmails").collect(),
+      ]);
+    const afgemeldSet = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+    const naSet = new Set(naProfielen.map((p: any) => p.email.toLowerCase()));
+    const testSet = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    const inFunnel = new Set(leads.map((l: any) => l.email.toLowerCase()));
+    const kochtSet = new Set<string>();
+    for (const s of subs) if (s.email && (s.pricePaid ?? 0) > 0) kochtSet.add(s.email.toLowerCase());
+
+    const gestuurd = new Map<string, Set<number>>();
+    for (const v of verzonden) {
+      const e = v.email.toLowerCase();
+      (gestuurd.get(e) ?? gestuurd.set(e, new Set()).get(e)!).add(v.mailNummer);
+    }
+    // Nieuwste brief per adres = naam + verliestype.
+    const info = new Map<string, { naam: string | null; type: string | undefined; at: number }>();
+    for (const b of brieven) {
+      if (b.sentAt < EH_OPVOLG_START || !b.email) continue;
+      const e = b.email.toLowerCase();
+      const best = info.get(e);
+      if (!best || b.sentAt > best.at) info.set(e, { naam: b.naam ?? null, type: b.verliesType, at: b.sentAt });
+    }
+
+    let ingestroomd = 0;
+    for (const [email, meta] of info.entries()) {
+      const nums = gestuurd.get(email);
+      const compleet = !!nums && EH_ALLE_MAILNUMMERS.every((n) => nums.has(n));
+      if (!compleet) continue;
+      if (testSet.has(email) || kochtSet.has(email) || naSet.has(email) || afgemeldSet.has(email)) continue;
+      if (inFunnel.has(email)) continue;
+      const type = normType(meta.type);
+      await ctx.db.insert("funnelLeads", {
+        email,
+        naam: meta.naam?.trim() || undefined,
+        verliesType: type !== ALGEMEEN ? type : undefined,
+        ingestroomdOp: Date.now(),
+        bron: "even-houvast",
+        status: "in-backend",
+        updatedAt: Date.now(),
+      });
+      inFunnel.add(email);
+      ingestroomd++;
+    }
+    return { ingestroomd };
+  },
+});
+
 // ── De dagelijkse motor ──────────────────────────────────────────────────────
 
 export const processEvergreen = internalAction({
@@ -626,6 +692,11 @@ export const processEvergreen = internalAction({
     if (process.env.EVERGREEN_ACTIEF !== "true") return;
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) return;
+
+    // Eerst nieuwe EH-doorlopers laten instromen (losgekoppeld van de reactivatie),
+    // daarna pas de verzending plannen. Nieuw ingestroomde leads staan op dag 1, dus
+    // ze krijgen vanavond nog niets (eerste mail op dag 7).
+    await ctx.runMutation(internal.evergreen._instroomEHAfgerond, {});
 
     const { teVerzenden, teMarkerenKoper } = await ctx.runQuery(internal.evergreen._evergreenPlan, {});
 

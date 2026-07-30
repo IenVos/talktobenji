@@ -185,6 +185,71 @@ async function analyseReactivatie(ctx: any) {
 }
 
 /**
+ * Diagnose (CLI): hoeveel EH-doorlopers zouden er in een LOSGEKOPPELDE evergreen-
+ * instroom komen (dus niet via de reactivatie). = brief na startdatum, alle 6 EH-
+ * opvolgmails gehad, niet gekocht/afgemeld/test/NA-klant. Split naar of ze al in de
+ * funnel zitten en of ze Benji al zagen (puur informatief).
+ */
+export const _ehCompletersVoorEvergreen = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const [brieven, verzonden, afmeldingen, naProfielen, subs, tokens, excluded, leads] =
+      await Promise.all([
+        ctx.db.query("houvastBrieven").collect(),
+        ctx.db.query("ehOpvolgVerzonden").collect(),
+        ctx.db.query("ehAfmeldingen").collect(),
+        ctx.db.query("nietAlleenProfiles").collect(),
+        ctx.db.query("userSubscriptions").collect(),
+        ctx.db.query("benjiStartTokens").collect(),
+        ctx.db.query("analyticsExcludedEmails").collect(),
+        ctx.db.query("funnelLeads").collect(),
+      ]);
+    const afgemeldSet = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+    const naSet = new Set(naProfielen.map((p: any) => p.email.toLowerCase()));
+    const tokenSet = new Set(tokens.map((t: any) => t.email.toLowerCase()));
+    const testSet = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    const inFunnel = new Set(leads.map((l: any) => l.email.toLowerCase()));
+    const heeftSubSet = new Set<string>();
+    const kochtSet = new Set<string>();
+    for (const s of subs) {
+      if (!s.email) continue;
+      const e = s.email.toLowerCase();
+      heeftSubSet.add(e);
+      if ((s.pricePaid ?? 0) > 0) kochtSet.add(e);
+    }
+    const gestuurd = new Map<string, Set<number>>();
+    for (const v of verzonden) {
+      const e = v.email.toLowerCase();
+      (gestuurd.get(e) ?? gestuurd.set(e, new Set()).get(e)!).add(v.mailNummer);
+    }
+    const leadPerEmail = new Map<string, number>();
+    for (const b of brieven) {
+      if (b.sentAt < EH_OPVOLG_START) continue;
+      const e = b.email.toLowerCase();
+      if (!leadPerEmail.has(e) || b.sentAt > (leadPerEmail.get(e) ?? 0)) leadPerEmail.set(e, b.sentAt);
+    }
+    let compleetSchoon = 0, alInFunnel = 0, nieuwInstroom = 0, metBenji = 0, zonderBenji = 0;
+    for (const email of leadPerEmail.keys()) {
+      const nums = gestuurd.get(email);
+      const compleet = !!nums && ALLE_MAILNUMMERS.every((n) => nums.has(n));
+      if (!compleet) continue;
+      if (testSet.has(email) || kochtSet.has(email) || naSet.has(email) || afgemeldSet.has(email)) continue;
+      compleetSchoon++;
+      if (inFunnel.has(email)) { alInFunnel++; continue; }
+      nieuwInstroom++;
+      if (tokenSet.has(email) || heeftSubSet.has(email)) metBenji++; else zonderBenji++;
+    }
+    return {
+      compleetSchoon,
+      NIEUW_zou_instromen: nieuwInstroom,
+      waarvan_Benji_al_gezien: metBenji,
+      waarvan_Benji_nog_niet: zonderBenji,
+      al_in_funnel: alInFunnel,
+    };
+  },
+});
+
+/**
  * Diagnose (eenmalig, via CLI): hoeveel leads stromen de reactivatie NOG in?
  * Onderscheid dat het overzicht niet toont: leads die nog in de reeks zitten en
  * al voorbij mail 2 waren toen de Benji-intro werd toegevoegd, misten Benji (geen
@@ -1129,42 +1194,16 @@ export const _reactivatie2StatusZet = internalMutation({
 });
 
 /**
- * Na de mail 2-ronde: laat de HELE reactivatiegroep (iedereen die mail 1 kreeg) de
- * evergreen funnel in stromen, óók wie al op mail 1 reageerde. Idempotent: wie er al
- * in zit of zich afmeldde/kocht wordt overgeslagen.
+ * Losgekoppeld sinds 30 juli 2026: de evergreen-instroom loopt NIET meer via de
+ * reactivatie. Iedereen die de Even Houvast-funnel afrondt stroomt automatisch de
+ * evergreen in via `evergreen._instroomEHAfgerond` (draait dagelijks mee met de
+ * evergreen-cron). De reactivatie stuurt dus alleen nog de twee Benji-reintro-mails.
+ * Deze functie is bewust een no-op gebleven zodat de bestaande call sites blijven werken.
  */
 export const _reactivatie2Sweep = internalMutation({
   args: {},
-  handler: async (ctx) => {
-    const [verzonden, afmeldingen, naProfielen, subs, leads] = await Promise.all([
-      ctx.db.query("ehOpvolgVerzonden").collect(),
-      ctx.db.query("ehAfmeldingen").collect(),
-      ctx.db.query("nietAlleenProfiles").collect(),
-      ctx.db.query("userSubscriptions").collect(),
-      ctx.db.query("funnelLeads").collect(),
-    ]);
-    const gotMail1 = new Set<string>();
-    for (const v of verzonden) if (v.mailNummer === REACTIVATIE_MAILNR) gotMail1.add(v.email.toLowerCase());
-    const afgemeld = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
-    const na = new Set(naProfielen.map((p: any) => p.email.toLowerCase()));
-    const kocht = new Set<string>();
-    for (const s of subs) if (s.email && (s.pricePaid ?? 0) > 0) kocht.add(s.email.toLowerCase());
-    const bestaand = new Set(leads.map((l: any) => l.email.toLowerCase()));
-    const namen = await naamTypeMap(ctx);
-
-    for (const email of gotMail1) {
-      if (afgemeld.has(email) || na.has(email) || kocht.has(email) || bestaand.has(email)) continue;
-      const info = namen.get(email);
-      await ctx.db.insert("funnelLeads", {
-        email,
-        naam: info?.naam?.trim() || undefined,
-        verliesType: info && info.type !== ALGEMEEN ? info.type : undefined,
-        ingestroomdOp: Date.now(),
-        bron: "reactivatie",
-        status: "in-backend",
-        updatedAt: Date.now(),
-      });
-    }
+  handler: async () => {
+    // Bewust leeg: instroom gebeurt losgekoppeld in de evergreen-motor.
   },
 });
 
