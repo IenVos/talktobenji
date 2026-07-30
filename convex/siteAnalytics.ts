@@ -1239,7 +1239,7 @@ export const getRecentHouvasteSignups = query({
  * bronnen heen ontdubbeld, plus de afmeldingen (nu vooral relevant door de ML-import).
  * De bronnen overlappen; "mailbaar" = de unieke unie minus afgemelde en testadressen.
  */
-async function berekenLijstOverzicht(ctx: any) {
+async function berekenLijstOverzicht(ctx: any, from?: number, to?: number) {
     const [profielen, brieven, funnelLeads, naProfielen, optins, groepLeden, afmeldingen, excluded] =
       await Promise.all([
         ctx.db.query("houvasteProfielen").collect(),
@@ -1282,6 +1282,41 @@ async function berekenLijstOverzicht(ctx: any) {
     const week = Date.now() - 7 * 24 * 60 * 60 * 1000;
     const afgemeldLaatste7 = afmeldingen.filter((a: any) => (a.createdAt ?? 0) >= week).length;
 
+    // Groei in de gekozen periode: nieuwe acquisitie-leads (Even Houvast-aanvragen +
+    // nieuwsbrief), ontdubbeld op eerste keer gezien, uitgesplitst naar herkomst.
+    // Ads = Meta/Facebook/Instagram in de bron-regel; de rest met een bron = website;
+    // zonder bron = onbekend. De ML-leads hebben geen acquisitie-bron en tellen dus
+    // niet mee: de groei toont puur de echte instroom via ads/website.
+    // Ad-herkenning zit in de landings-URL (Meta stript de referrer): utm_medium=paid,
+    // utm_source=facebook/instagram, of fbclid/gclid. De bron-tekst bevat de campagne-
+    // naam, geen kanaal, dus die is als fallback minder betrouwbaar.
+    const isAds = (bron?: string, bronUrl?: string) => {
+      const u = (bronUrl || "").toLowerCase();
+      if (/fbclid|gclid/.test(u)) return true;
+      if (/utm_medium=(paid|cpc|ppc|ads|paid_social)/.test(u)) return true;
+      if (/utm_source=(facebook|instagram|meta|\bfb\b|\big\b|adwords|google)/.test(u)) return true;
+      return !!bron && /meta|facebook|instagram/i.test(bron);
+    };
+    const eersteZien = new Map<string, { at: number; bron?: string; bronUrl?: string }>();
+    const zetEerste = (email?: string | null, at?: number, bron?: string, bronUrl?: string) => {
+      const e = norm(email);
+      if (!e || typeof at !== "number") return;
+      const prev = eersteZien.get(e);
+      if (!prev || at < prev.at) eersteZien.set(e, { at, bron: bron ?? prev?.bron, bronUrl: bronUrl ?? prev?.bronUrl });
+    };
+    for (const p of profielen) zetEerste(p.email, p.createdAt, p.bron, p.bronUrl);
+    for (const b of brieven) zetEerste(b.email, b.sentAt, b.bron, b.bronUrl);
+    for (const o of optins) zetEerste(o.email, o.createdAt, o.bron, undefined);
+
+    let groeiAds = 0, groeiWebsite = 0, groeiOnbekend = 0;
+    const heeftPeriode = typeof from === "number" && typeof to === "number";
+    for (const { at, bron, bronUrl } of eersteZien.values()) {
+      if (heeftPeriode && (at < (from as number) || at > (to as number))) continue;
+      if (isAds(bron, bronUrl)) groeiAds++;
+      else if ((bron && bron.trim()) || (bronUrl && bronUrl.trim())) groeiWebsite++;
+      else groeiOnbekend++;
+    }
+
     return {
       mailbaar,
       totaalUniek: unie.size,
@@ -1295,21 +1330,28 @@ async function berekenLijstOverzicht(ctx: any) {
         { naam: "Nieuwsbrief opt-ins", aantal: nieuwsbrief.size },
       ],
       evergreenSplit: { ml: evML, ehDoorlopers: evEH, overig: evOverig },
+      groei: {
+        ads: groeiAds,
+        website: groeiWebsite,
+        onbekend: groeiOnbekend,
+        totaal: groeiAds + groeiWebsite + groeiOnbekend,
+      },
     };
 }
 
 export const lijstOverzicht = query({
-  args: { adminToken: v.string() },
+  args: { adminToken: v.string(), from: v.optional(v.number()), to: v.optional(v.number()) },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    return await berekenLijstOverzicht(ctx);
+    return await berekenLijstOverzicht(ctx, args.from, args.to);
   },
 });
 
 export const _lijstOverzichtDiagnose = internalQuery({
-  args: {},
-  handler: async (ctx) => await berekenLijstOverzicht(ctx),
+  args: { from: v.optional(v.number()), to: v.optional(v.number()) },
+  handler: async (ctx, args) => await berekenLijstOverzicht(ctx, args.from, args.to),
 });
+
 
 /** Diagnose (CLI): afmeldingen van de afgelopen X dagen, gesplitst ML vs. rest. */
 export const _afmeldersWeek = internalQuery({

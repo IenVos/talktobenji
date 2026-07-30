@@ -463,44 +463,61 @@ function TotaleLijstBanner({
 }: {
   data: {
     mailbaar: number;
-    totaalUniek: number;
-    afgemeldTotaal: number;
-    afgemeldLaatste7: number;
     segmenten: { naam: string; aantal: number }[];
     evergreenSplit: { ml: number; ehDoorlopers: number; overig: number };
+    groei: { ads: number; website: number; onbekend: number; totaal: number };
   };
 }) {
   const [open, setOpen] = useState(false);
   const nl = (n: number) => n.toLocaleString("nl-NL");
-  const afgevallen = Math.max(0, data.totaalUniek - data.mailbaar);
+  const g = data.groei;
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
       <button type="button" onClick={() => setOpen((v) => !v)} className="w-full flex items-center gap-3 text-left">
         <Mail size={18} className="text-slate-500 flex-shrink-0" />
         <span className="text-sm font-semibold text-slate-800 flex-1 min-w-0">
-          {nl(data.mailbaar)} leads in je lijst
+          {nl(data.mailbaar)} leads op je lijst
         </span>
-        <span className="text-xs text-slate-400 flex-shrink-0">
-          {nl(data.afgemeldTotaal)} afgemeld{data.afgemeldLaatste7 > 0 ? ` · ${nl(data.afgemeldLaatste7)} deze week` : ""}
-        </span>
+        {g.totaal > 0 && (
+          <span className="text-xs font-medium text-green-600 flex-shrink-0">
+            +{nl(g.totaal)} in periode
+          </span>
+        )}
         <ChevronDown size={15} className={`text-slate-400 flex-shrink-0 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="mt-2 pt-2 border-t border-slate-200 space-y-1.5">
-          {data.segmenten.map((s, i) => (
-            <div key={i} className="flex items-center justify-between gap-3 text-xs">
-              <span className="text-slate-600">{s.naam}</span>
-              <span className="text-slate-800 font-medium tabular-nums">{nl(s.aantal)}</span>
+        <div className="mt-2 pt-2 border-t border-slate-200 space-y-2">
+          {/* Groei via ads/website in de gekozen periode */}
+          <div>
+            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Groei in periode</p>
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-slate-600">Via ads</span>
+              <span className="text-slate-800 font-medium tabular-nums">+{nl(g.ads)}</span>
             </div>
-          ))}
-          <div className="text-[11px] text-slate-500 pt-1.5 border-t border-slate-100">
-            Waarvan evergreen: {nl(data.evergreenSplit.ml)} ML + {nl(data.evergreenSplit.ehDoorlopers)} EH-doorlopers
-            {data.evergreenSplit.overig ? ` + ${nl(data.evergreenSplit.overig)} overig` : ""}
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-slate-600">Via website / direct</span>
+              <span className="text-slate-800 font-medium tabular-nums">+{nl(g.website)}</span>
+            </div>
+            {g.onbekend > 0 && (
+              <div className="flex items-center justify-between gap-3 text-xs">
+                <span className="text-slate-400">Herkomst onbekend</span>
+                <span className="text-slate-500 font-medium tabular-nums">+{nl(g.onbekend)}</span>
+              </div>
+            )}
           </div>
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            {nl(data.mailbaar)} unieke mailbare adressen. De bronnen overlappen, dit is de ontdubbelde unie.
-            {afgevallen > 0 ? ` ${nl(afgevallen)} vallen af door afmelding of testadres.` : ""}
-          </p>
+          {/* Huidige samenstelling van de lijst */}
+          <div className="pt-2 border-t border-slate-100">
+            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">Op de lijst nu</p>
+            {data.segmenten.map((s, i) => (
+              <div key={i} className="flex items-center justify-between gap-3 text-xs">
+                <span className="text-slate-600">{s.naam}</span>
+                <span className="text-slate-800 font-medium tabular-nums">{nl(s.aantal)}</span>
+              </div>
+            ))}
+            <p className="text-[11px] text-slate-400 leading-relaxed mt-1">
+              Bronnen overlappen; {nl(data.mailbaar)} is de ontdubbelde unie.
+            </p>
+          </div>
         </div>
       )}
     </div>
@@ -623,7 +640,7 @@ export default function AdminAnalytics() {
   const liveVisitors = useAdminQuery(api.siteAnalytics.getLiveVisitors, {});
   const recentRegs = useAdminQuery(api.siteAnalytics.getRecentRegistrations, { from, to });
   const recentHouvast = useAdminQuery(api.siteAnalytics.getRecentHouvasteSignups, { from, to });
-  const lijstOverzicht = useAdminQuery(api.siteAnalytics.lijstOverzicht, {});
+  const lijstOverzicht = useAdminQuery(api.siteAnalytics.lijstOverzicht, { from, to });
   const excludedIps = useAdminQuery(api.siteAnalytics.listExcludedIps, {});
   const addExcludedIp = useAdminMutation(api.siteAnalytics.addExcludedIp);
   const removeExcludedIp = useAdminMutation(api.siteAnalytics.removeExcludedIp);
