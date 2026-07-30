@@ -400,6 +400,19 @@ export default function AdminChatHistory() {
     (s: any) => !s.adminRapport && s.status !== "active"
   ).length;
 
+  // Aantal gesprekken per filter, zodat je meteen ziet wanneer er iets binnenkomt.
+  const filterCounts = useMemo(() => {
+    const all = (allSessions as any[]) ?? [];
+    return {
+      all: all.filter((s) => !s.reviewedAt && s.status !== "afgesloten").length,
+      abandoned: all.filter((s) => s.status === "abandoned").length,
+      escalated: all.filter((s) => s.status === "escalated").length,
+      resolved: all.filter((s) => s.status === "resolved").length,
+      reviewed: all.filter((s) => s.status === "reviewed").length,
+      active: all.filter((s) => s.status === "active").length,
+    } as Record<string, number>;
+  }, [allSessions]);
+
   // Patroondetectie: groepeer terugkerende problemen uit rapport-suggesties
   const patronen = useMemo(() => {
     if (!sessions) return [];
@@ -475,19 +488,38 @@ export default function AdminChatHistory() {
       {/* Filter */}
       <div className="flex flex-wrap gap-2 items-center">
         <span className="text-sm text-primary-700">Filter:</span>
-        {(["all", "abandoned", "escalated", "resolved", "reviewed", "active"] as const).map((s) => (
-          <button
-            key={s}
-            onClick={() => setStatusFilter(s)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              statusFilter === s
-                ? "bg-primary-600 text-white"
-                : "bg-white border border-primary-200 text-primary-700 hover:bg-primary-50"
-            }`}
-          >
-            {s === "all" ? "Alle" : STATUS_CONFIG[s]?.label ?? s}
-          </button>
-        ))}
+        {(["all", "abandoned", "escalated", "resolved", "reviewed", "active"] as const).map((s) => {
+          const count = filterCounts[s] ?? 0;
+          const actief = statusFilter === s;
+          // Nieuw en Opvolging nodig vragen aandacht: opvallende badge als er iets in staat.
+          const aandacht = (s === "abandoned" || s === "escalated") && count > 0;
+          return (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                actief
+                  ? "bg-primary-600 text-white"
+                  : "bg-white border border-primary-200 text-primary-700 hover:bg-primary-50"
+              }`}
+            >
+              {s === "all" ? "Alle" : STATUS_CONFIG[s]?.label ?? s}
+              {count > 0 && (
+                <span
+                  className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[11px] font-semibold ${
+                    actief
+                      ? "bg-white/25 text-white"
+                      : aandacht
+                        ? "bg-blue-500 text-white"
+                        : "bg-primary-100 text-primary-700"
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* Melding nog te analyseren + knop */}

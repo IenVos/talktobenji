@@ -712,6 +712,33 @@ export const endSession = mutation({
  * Markeer een sessie als abandoned (verlaten)
  * Wordt automatisch aangeroepen voor sessies die >30 min inactief zijn
  */
+/**
+ * Herkent of het laatste bericht van de bezoeker een nette afsluiting is
+ * (groet, bedankje, afscheid). Zulke gesprekken zijn niet "verlaten" maar
+ * "afgesloten" en horen geen Nieuw-flag te krijgen. Bewust conservatief:
+ * bij twijfel liever "abandoned" laten dan onterecht als afgesloten markeren.
+ */
+function lijktNetjesAfgesloten(laatsteBezoekerBericht: string | undefined): boolean {
+  if (!laatsteBezoekerBericht) return false;
+  const t = laatsteBezoekerBericht.toLowerCase();
+  const signalen = [
+    // bedankje
+    "bedankt", "dank je", "dankje", "dankjewel", "dank u", "dank voor", "dankwel",
+    // afscheid
+    "tot ziens", "tot de volgende", "tot morgen", "tot snel", "tot later",
+    "doei", "doeg", "dag benji", "fijne avond", "fijne dag", "fijne nacht",
+    "prettige avond", "prettige dag",
+    // slapen gaan
+    "welterusten", "goedenacht", "goede nacht", "slaap lekker", "slaap zacht",
+    "ik ga slapen", "ik ga naar bed", "ga zo naar bed", "ik ga zo slapen",
+    // vertrek
+    "ik ga ervandoor", "ik ga stoppen", "ik stop ermee", "ik ga nu", "ik ga weer",
+    // positieve afronding
+    "fijn gesprek", "goed gesprek", "heeft geholpen", "voelt beter", "gaat wat beter",
+  ];
+  return signalen.some((s) => t.includes(s));
+}
+
 export const markSessionsAsAbandoned = internalMutation({
   args: {
     inactiveThresholdMinutes: v.optional(v.number()),
@@ -726,25 +753,42 @@ export const markSessionsAsAbandoned = internalMutation({
       .withIndex("by_status", (q) => q.eq("status", "active"))
       .collect();
 
-    const abandoned = activeSessions.filter(
+    const inactief = activeSessions.filter(
       (s) => s.lastActivityAt < cutoffTime
     );
 
-    // Update ze naar abandoned + trigger kwaliteitsrapport
-    for (const session of abandoned) {
+    // Update ze + trigger kwaliteitsrapport. Netjes afgesloten gesprekken
+    // (bezoeker nam gedag/bedankte) horen niet in de "Nieuw"-inbox: die zetten
+    // we direct op "reviewed" (Bekeken = afgehandeld, geen actie nodig), net als
+    // de bestaande "Verplaats oude Afgehaakt → Bekeken"-actie.
+    const beeindigd: { id: string; afgesloten: boolean }[] = [];
+    for (const session of inactief) {
+      const berichten = await ctx.db
+        .query("chatMessages")
+        .withIndex("by_session", (q) => q.eq("sessionId", session._id))
+        .collect();
+      const laatsteBezoeker = [...berichten]
+        .reverse()
+        .find((m) => m.role === "user");
+      const afgesloten = lijktNetjesAfgesloten(laatsteBezoeker?.content);
+
       await ctx.db.patch(session._id, {
-        status: "abandoned",
-        wasResolved: false,
+        status: afgesloten ? "reviewed" : "abandoned",
+        wasResolved: afgesloten,
         endedAt: Date.now(),
+        ...(afgesloten ? { reviewedAt: Date.now() } : {}),
       });
       await ctx.scheduler.runAfter(0, internal.ai.analyzeSessionAdmin, {
         sessionId: session._id,
       });
+      beeindigd.push({ id: session._id, afgesloten });
     }
 
     return {
-      count: abandoned.length,
-      sessionIds: abandoned.map((s) => s._id),
+      count: beeindigd.length,
+      afgesloten: beeindigd.filter((b) => b.afgesloten).length,
+      abandoned: beeindigd.filter((b) => !b.afgesloten).length,
+      sessionIds: beeindigd.map((b) => b.id),
     };
   },
 });
