@@ -250,6 +250,77 @@ export const _ehCompletersVoorEvergreen = internalQuery({
 });
 
 /**
+ * Diagnose (CLI): van de EH-doorlopers die de evergreen in kunnen, hoeveel dagen zijn
+ * ze al "stil" sinds hun laatste EH-opvolgmail? Bepaalt of een verse dag-1-start oké is
+ * of dat 7 dagen wachten op de eerste EGF-mail te lang voelt.
+ */
+export const _ehCompletersDagen = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const nu = Date.now();
+    const [brieven, verzonden, afmeldingen, naProfielen, subs, excluded, leads] =
+      await Promise.all([
+        ctx.db.query("houvastBrieven").collect(),
+        ctx.db.query("ehOpvolgVerzonden").collect(),
+        ctx.db.query("ehAfmeldingen").collect(),
+        ctx.db.query("nietAlleenProfiles").collect(),
+        ctx.db.query("userSubscriptions").collect(),
+        ctx.db.query("analyticsExcludedEmails").collect(),
+        ctx.db.query("funnelLeads").collect(),
+      ]);
+    const afgemeldSet = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+    const naSet = new Set(naProfielen.map((p: any) => p.email.toLowerCase()));
+    const testSet = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    const inFunnel = new Set(leads.map((l: any) => l.email.toLowerCase()));
+    const kochtSet = new Set<string>();
+    for (const s of subs) if (s.email && (s.pricePaid ?? 0) > 0) kochtSet.add(s.email.toLowerCase());
+
+    // Per adres: welke EH-mailnummers + laatste sentAt.
+    const rec = new Map<string, { nums: Set<number>; laatste: number }>();
+    for (const v of verzonden) {
+      const e = v.email.toLowerCase();
+      const r = rec.get(e) ?? { nums: new Set<number>(), laatste: 0 };
+      r.nums.add(v.mailNummer);
+      if (v.sentAt > r.laatste) r.laatste = v.sentAt;
+      rec.set(e, r);
+    }
+    const naStart = new Set<string>();
+    for (const b of brieven) if (b.sentAt >= EH_OPVOLG_START && b.email) naStart.add(b.email.toLowerCase());
+
+    const buckets: Record<string, number> = { "0-6": 0, "7-13": 0, "14-20": 0, "21-27": 0, "28+": 0 };
+    let totaal = 0;
+    let minDagen = Infinity, maxDagen = 0;
+    const alle: number[] = [];
+    for (const email of naStart) {
+      const r = rec.get(email);
+      const compleet = !!r && ALLE_MAILNUMMERS.every((n) => r.nums.has(n));
+      if (!compleet) continue;
+      if (testSet.has(email) || kochtSet.has(email) || naSet.has(email) || afgemeldSet.has(email)) continue;
+      if (inFunnel.has(email)) continue;
+      const dagen = Math.floor((nu - r!.laatste) / DAG_MS);
+      totaal++;
+      alle.push(dagen);
+      minDagen = Math.min(minDagen, dagen);
+      maxDagen = Math.max(maxDagen, dagen);
+      if (dagen <= 6) buckets["0-6"]++;
+      else if (dagen <= 13) buckets["7-13"]++;
+      else if (dagen <= 20) buckets["14-20"]++;
+      else if (dagen <= 27) buckets["21-27"]++;
+      else buckets["28+"]++;
+    }
+    alle.sort((a, b) => a - b);
+    const mediaan = alle.length ? alle[Math.floor(alle.length / 2)] : 0;
+    return {
+      totaal,
+      dagenSindsLaatsteEHmail: buckets,
+      minDagen: totaal ? minDagen : 0,
+      maxDagen,
+      mediaan,
+    };
+  },
+});
+
+/**
  * Diagnose (eenmalig, via CLI): hoeveel leads stromen de reactivatie NOG in?
  * Onderscheid dat het overzicht niet toont: leads die nog in de reeks zitten en
  * al voorbij mail 2 waren toen de Benji-intro werd toegevoegd, misten Benji (geen
