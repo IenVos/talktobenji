@@ -672,6 +672,20 @@ export default function AdminAnalytics() {
     fetch("/api/my-ip").then(r => r.json()).then(d => setMyIp(d.ip ?? null)).catch(() => {});
   }, []);
 
+  // Duurzame zelf-uitsluiting: sluit het huidige IP automatisch uit zodra de admin
+  // opent. Zo hoeft Ien nooit meer handmatig te togglen (de localStorage-schakelaar
+  // wist Safari na 7 dagen) of een nieuw IP toe te voegen bij VPN-/IP-wisselingen.
+  // De query-laag filtert op de IP-lijst, dus ook net-geregistreerde bezoeken vallen
+  // alsnog weg. Server-side dedup voorkomt dubbele rijen.
+  const autoExcludedRef = useRef(false);
+  useEffect(() => {
+    if (autoExcludedRef.current || !myIp || !excludedIps) return;
+    autoExcludedRef.current = true;
+    if (!excludedIps.some((e: any) => e.ip === myIp)) {
+      addExcludedIp({ ip: myIp, label: "auto (admin-bezoek)" }).catch(() => {});
+    }
+  }, [myIp, excludedIps, addExcludedIp]);
+
   useEffect(() => {
     setLoadTimeout(false);
     const t = setTimeout(() => setLoadTimeout(true), 20000);
