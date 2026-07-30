@@ -2,7 +2,7 @@
  * Website analytics – paginabezoeken bijhouden en statistieken ophalen.
  */
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
 /** Sla een paginabezoek op (publiek, geen auth vereist). */
@@ -1232,6 +1232,83 @@ export const getRecentHouvasteSignups = query({
       })),
     };
   },
+});
+
+/**
+ * Totale lijst in één oogopslag. Alle unieke e-mailadressen die we hebben, over alle
+ * bronnen heen ontdubbeld, plus de afmeldingen (nu vooral relevant door de ML-import).
+ * De bronnen overlappen; "mailbaar" = de unieke unie minus afgemelde en testadressen.
+ */
+async function berekenLijstOverzicht(ctx: any) {
+    const [profielen, brieven, funnelLeads, naProfielen, optins, groepLeden, afmeldingen, excluded] =
+      await Promise.all([
+        ctx.db.query("houvasteProfielen").collect(),
+        ctx.db.query("houvastBrieven").collect(),
+        ctx.db.query("funnelLeads").collect(),
+        ctx.db.query("nietAlleenProfiles").collect(),
+        ctx.db.query("nieuwsbriefOptins").collect(),
+        ctx.db.query("mailGroepLeden").collect(),
+        ctx.db.query("ehAfmeldingen").collect(),
+        ctx.db.query("analyticsExcludedEmails").collect(),
+      ]);
+    const norm = (e?: string | null) => (e || "").trim().toLowerCase();
+    const setVan = (rows: any[]) => {
+      const s = new Set<string>();
+      for (const r of rows) { const e = norm(r.email); if (e) s.add(e); }
+      return s;
+    };
+    const ehLeads = setVan(profielen);
+    for (const e of setVan(brieven)) ehLeads.add(e); // oude + nieuwe EH-flow samen
+    const evergreen = setVan(funnelLeads);
+    const na = setVan(naProfielen);
+    const nieuwsbrief = setVan(optins);
+    const groepen = setVan(groepLeden);
+    const afgemeld = setVan(afmeldingen);
+    const test = setVan(excluded);
+
+    // Evergreen-instroom uitsplitsen per bron.
+    let evML = 0, evEH = 0, evOverig = 0;
+    for (const l of funnelLeads) {
+      if (l.bron === "losse-mail") evML++;
+      else if (l.bron === "even-houvast") evEH++;
+      else evOverig++;
+    }
+
+    const unie = new Set<string>();
+    for (const s of [ehLeads, evergreen, na, nieuwsbrief, groepen]) for (const e of s) unie.add(e);
+    let mailbaar = 0;
+    for (const e of unie) if (!afgemeld.has(e) && !test.has(e)) mailbaar++;
+
+    const week = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const afgemeldLaatste7 = afmeldingen.filter((a: any) => (a.createdAt ?? 0) >= week).length;
+
+    return {
+      mailbaar,
+      totaalUniek: unie.size,
+      afgemeldTotaal: afgemeld.size,
+      afgemeldLaatste7,
+      segmenten: [
+        { naam: "Even Houvast leads", aantal: ehLeads.size },
+        { naam: "Evergreen funnel", aantal: evergreen.size },
+        { naam: "Mailgroepen (incl. ML)", aantal: groepen.size },
+        { naam: "Niet Alleen klanten", aantal: na.size },
+        { naam: "Nieuwsbrief opt-ins", aantal: nieuwsbrief.size },
+      ],
+      evergreenSplit: { ml: evML, ehDoorlopers: evEH, overig: evOverig },
+    };
+}
+
+export const lijstOverzicht = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return await berekenLijstOverzicht(ctx);
+  },
+});
+
+export const _lijstOverzichtDiagnose = internalQuery({
+  args: {},
+  handler: async (ctx) => await berekenLijstOverzicht(ctx),
 });
 
 export const getRecentRegistrations = query({
