@@ -510,7 +510,7 @@ export default function AdminChatHistory() {
                     actief
                       ? "bg-white/25 text-white"
                       : aandacht
-                        ? "bg-blue-500 text-white"
+                        ? "bg-sky-100 text-sky-700"
                         : "bg-primary-100 text-primary-700"
                   }`}
                 >
