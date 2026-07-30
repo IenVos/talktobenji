@@ -1311,6 +1311,38 @@ export const _lijstOverzichtDiagnose = internalQuery({
   handler: async (ctx) => await berekenLijstOverzicht(ctx),
 });
 
+/** Diagnose (CLI): afmeldingen van de afgelopen X dagen, gesplitst ML vs. rest. */
+export const _afmeldersWeek = internalQuery({
+  args: { dagen: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const dagen = args.dagen ?? 7;
+    const sinds = Date.now() - dagen * 24 * 60 * 60 * 1000;
+    const [afmeldingen, groepLeden, groepen] = await Promise.all([
+      ctx.db.query("ehAfmeldingen").collect(),
+      ctx.db.query("mailGroepLeden").collect(),
+      ctx.db.query("mailGroepen").collect(),
+    ]);
+    const mlSet = new Set(groepLeden.map((l: any) => (l.email || "").toLowerCase()));
+    const week = afmeldingen.filter((a: any) => (a.createdAt ?? 0) >= sinds);
+    let uitMLgroep = 0, nietML = 0;
+    const perMailContext: Record<string, number> = {};
+    for (const a of week) {
+      const e = (a.email || "").toLowerCase();
+      if (mlSet.has(e)) uitMLgroep++; else nietML++;
+      const m = a.mail ?? "onbekend";
+      perMailContext[m] = (perMailContext[m] ?? 0) + 1;
+    }
+    return {
+      dagen,
+      totaalWeek: week.length,
+      uitMLgroep,
+      nietML,
+      perMailContext,
+      mailgroepen: groepen.map((g: any) => ({ naam: g.naam, leden: groepLeden.filter((l: any) => l.groepId === g._id).length })),
+    };
+  },
+});
+
 export const getRecentRegistrations = query({
   args: { adminToken: v.string(), days: v.optional(v.number()), from: v.optional(v.number()), to: v.optional(v.number()) },
   handler: async (ctx, args) => {
