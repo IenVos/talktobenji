@@ -185,6 +185,111 @@ async function analyseReactivatie(ctx: any) {
 }
 
 /**
+ * Diagnose (eenmalig, via CLI): hoeveel leads stromen de reactivatie NOG in?
+ * Onderscheid dat het overzicht niet toont: leads die nog in de reeks zitten en
+ * al voorbij mail 2 waren toen de Benji-intro werd toegevoegd, misten Benji (geen
+ * token) en ronden de reeks straks af zonder Benji → terechte latere instroom.
+ * Leads die nog vóór mail 2 zitten krijgen Benji alsnog in de funnel en stromen NIET in.
+ */
+export const _reactivatieInstroomDiagnose = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const nu = Date.now();
+    const [brieven, verzonden, afmeldingen, naProfielen, subs, tokens, excluded] =
+      await Promise.all([
+        ctx.db.query("houvastBrieven").collect(),
+        ctx.db.query("ehOpvolgVerzonden").collect(),
+        ctx.db.query("ehAfmeldingen").collect(),
+        ctx.db.query("nietAlleenProfiles").collect(),
+        ctx.db.query("userSubscriptions").collect(),
+        ctx.db.query("benjiStartTokens").collect(),
+        ctx.db.query("analyticsExcludedEmails").collect(),
+      ]);
+    const afgemeldSet = new Set(afmeldingen.map((a: any) => a.email.toLowerCase()));
+    const naSet = new Set(naProfielen.map((p: any) => p.email.toLowerCase()));
+    const tokenSet = new Set(tokens.map((t: any) => t.email.toLowerCase()));
+    const testSet = new Set(excluded.map((e: any) => e.email.toLowerCase()));
+    const heeftSubSet = new Set<string>();
+    const kochtSet = new Set<string>();
+    for (const s of subs) {
+      if (!s.email) continue;
+      const e = s.email.toLowerCase();
+      heeftSubSet.add(e);
+      if ((s.pricePaid ?? 0) > 0) kochtSet.add(e);
+    }
+    const gestuurdPerEmail = new Map<string, { nummers: Set<number>; laatste: number }>();
+    for (const v of verzonden) {
+      const e = v.email.toLowerCase();
+      const rec = gestuurdPerEmail.get(e) ?? { nummers: new Set<number>(), laatste: 0 };
+      rec.nummers.add(v.mailNummer);
+      if (v.sentAt > rec.laatste) rec.laatste = v.sentAt;
+      gestuurdPerEmail.set(e, rec);
+    }
+    const leadPerEmail = new Map<string, { email: string; type: string; briefAt: number }>();
+    for (const b of brieven) {
+      if (b.sentAt < EH_OPVOLG_START) continue;
+      const e = b.email.toLowerCase();
+      const best = leadPerEmail.get(e);
+      if (!best || b.sentAt > best.briefAt) {
+        leadPerEmail.set(e, { email: e, type: normType(b.verliesType), briefAt: b.sentAt });
+      }
+    }
+
+    const perTypeInit = () => ({ persoon: 0, huisdier: 0, scheiding: 0, eenzaamheid: 0, kinderloos: 0, algemeen: 0 } as Record<string, number>);
+    let klaarNu = 0, teKortGeleden = 0;
+    // Nog in de reeks + schoon (geen token/aankoop/afmelding/test):
+    let nogInReeks_voorbijMail2 = 0; // misten Benji, ronden af zonder → LATERE INSTROOM
+    let nogInReeks_voorMail2 = 0;    // krijgen Benji nog in de funnel → NIET
+    const instroomPerType = perTypeInit();
+    // Nog in de reeks maar al gediskwalificeerd:
+    let inReeks_alBenji = 0, inReeks_gekocht = 0, inReeks_afgemeld = 0, inReeks_test = 0;
+
+    for (const lead of leadPerEmail.values()) {
+      const g = gestuurdPerEmail.get(lead.email);
+      const compleet = !!g && ALLE_MAILNUMMERS.every((n) => g.nummers.has(n));
+      const schoon =
+        !testSet.has(lead.email) &&
+        !kochtSet.has(lead.email) && !naSet.has(lead.email) &&
+        !afgemeldSet.has(lead.email) &&
+        !tokenSet.has(lead.email) && !heeftSubSet.has(lead.email);
+
+      if (compleet) {
+        if (!schoon) continue;
+        const dagen = Math.floor((nu - (g!.laatste || lead.briefAt)) / DAG_MS);
+        if (dagen < MIN_RUST_DAGEN) teKortGeleden++;
+        else klaarNu++;
+        continue;
+      }
+      // Nog in de reeks (niet alle 6 gehad)
+      if (!schoon) {
+        if (testSet.has(lead.email)) inReeks_test++;
+        else if (kochtSet.has(lead.email) || naSet.has(lead.email)) inReeks_gekocht++;
+        else if (afgemeldSet.has(lead.email)) inReeks_afgemeld++;
+        else if (tokenSet.has(lead.email) || heeftSubSet.has(lead.email)) inReeks_alBenji++;
+        continue;
+      }
+      // Schoon én nog in de reeks: al voorbij mail 2 (nummer 2 gehad) = miste Benji.
+      if (g && g.nummers.has(2)) {
+        nogInReeks_voorbijMail2++;
+        instroomPerType[lead.type] = (instroomPerType[lead.type] ?? 0) + 1;
+      } else {
+        nogInReeks_voorMail2++;
+      }
+    }
+
+    return {
+      klaarNu, // hoort 72 te zijn
+      teKortGeleden, // reeks af, <3 dagen: komt er binnen enkele dagen bij
+      LATERE_INSTROOM_voorbijMail2_zonderBenji: nogInReeks_voorbijMail2,
+      instroomPerType,
+      nogVoorMail2_krijgenBenjiNog: nogInReeks_voorMail2,
+      inReeks_alBenji, inReeks_gekocht, inReeks_afgemeld, inReeks_test,
+      uniekeLeadsNaStart: leadPerEmail.size,
+    };
+  },
+});
+
+/**
  * De eenmalige reactivatie-doelgroep (admin-overzicht). Dunne wrapper om
  * analyseReactivatie met een auth-check.
  */
