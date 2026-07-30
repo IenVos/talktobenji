@@ -1586,19 +1586,14 @@ async function callClaudeAPI(
     hour: "2-digit",
     minute: "2-digit",
   });
-  const hour = now.getHours();
-  const isLateNight = hour >= 23 || hour <= 5;
-  const timeContextRule = isEnglish
-    ? isLateNight
-      ? " Use the time: when someone writes late at night or very early in the morning, acknowledge it gently (e.g. that they are still up, perhaps couldn't sleep, or woke up). Show you notice and care."
-      : ""
-    : isLateNight
-      ? " Gebruik de tijd: als iemand laat in de nacht of heel vroeg in de ochtend schrijft, erken dat zacht (bijv. dat ze nog op zijn, misschien niet kunnen slapen, of wakker geworden zijn). Laat merken dat je het opvalt en dat het je kan schelen."
-      : "";
-
+  // Datum en tijd blijven als neutrale achtergrond beschikbaar (zodat Benji zelf
+  // kan uitrekenen hoeveel tijd er verstreken is als de bezoeker een datum noemt),
+  // maar Benji begint er NIET uit zichzelf over. Geen aannames over nacht of niet
+  // kunnen slapen op basis van de klok — dat botste met de tijd- en slaap-regels
+  // en leidde tot ongevraagde vragen op emotionele momenten.
   const dynamicContext = isEnglish
-    ? `## Current context (use when relevant):\nToday: ${dateStr}. Current time: ${timeStr}.${timeContextRule}`
-    : `## Huidige context (gebruik wanneer relevant):\nVandaag: ${dateStr}. Huidige tijd: ${timeStr}.${timeContextRule}`;
+    ? `## Current context (use when relevant):\nToday: ${dateStr}. Current time: ${timeStr}.`
+    : `## Huidige context (gebruik wanneer relevant):\nVandaag: ${dateStr}. Huidige tijd: ${timeStr}.`;
 
   // Limiter knowledge en rules lengte (max 10000 karakters totaal voor knowledge - verlaagd voor 503 overflow)
   const maxKnowledgeLength = 10000;
