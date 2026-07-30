@@ -684,6 +684,28 @@ export const _instroomEHAfgerond = internalMutation({
   },
 });
 
+/** Handmatig één adres in de evergreen zetten (bijv. Ien zelf, om mee te lezen). */
+export const _evergreenLeadToevoegen = internalMutation({
+  args: { email: v.string(), naam: v.optional(v.string()), bron: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const email = args.email.trim().toLowerCase();
+    const bestaand = await ctx.db
+      .query("funnelLeads")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (bestaand) return { toegevoegd: false, reden: "zat er al in" };
+    await ctx.db.insert("funnelLeads", {
+      email,
+      naam: args.naam?.trim() || undefined,
+      ingestroomdOp: Date.now(),
+      bron: args.bron?.trim() || "test-ien",
+      status: "in-backend",
+      updatedAt: Date.now(),
+    });
+    return { toegevoegd: true };
+  },
+});
+
 // ── De dagelijkse motor ──────────────────────────────────────────────────────
 
 export const processEvergreen = internalAction({
