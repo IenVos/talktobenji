@@ -50,7 +50,23 @@ export const listChatHistory = query({
     );
 
     const limit = Math.min(args.limit ?? 100, 200);
-    return sorted.slice(0, limit);
+
+    // Verberg "alleen geopend"-gesprekken: als de bezoeker nooit iets typte
+    // (0 gebruikersberichten) valt er niets te beoordelen en kan er ook geen
+    // rapport komen, dus dat is ruis in de inbox. We tellen lazy door tot we
+    // `limit` echte gesprekken hebben (niet alle berichten van alle sessies).
+    const result: any[] = [];
+    for (const s of sorted) {
+      if (result.length >= limit) break;
+      const msgs = await ctx.db
+        .query("chatMessages")
+        .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+        .collect();
+      const userMessageCount = msgs.filter((m) => m.role === "user").length;
+      if (userMessageCount === 0) continue; // alleen geopend, niets gezegd
+      result.push({ ...s, messageCount: msgs.length, userMessageCount });
+    }
+    return result;
   },
 });
 
@@ -1187,13 +1203,23 @@ export const retriggerRapporten = mutation({
       (s) => !s.adminRapport && s.status !== "active"
     );
 
+    // Sla lege/alleen-geopend gesprekken over: analyzeSessionAdmin heeft minstens
+    // 2 berichten nodig, dus retriggeren zou daar eeuwig falen (whack-a-mole met
+    // de "zonder rapport"-teller). Alleen echte gesprekken opnieuw inplannen.
+    let ingepland = 0;
     for (const session of pending) {
+      const msgs = await ctx.db
+        .query("chatMessages")
+        .withIndex("by_session", (q) => q.eq("sessionId", session._id))
+        .collect();
+      if (msgs.length < 2) continue;
       await ctx.scheduler.runAfter(0, internal.ai.analyzeSessionAdmin, {
         sessionId: session._id,
       });
+      ingepland++;
     }
 
-    return pending.length;
+    return ingepland;
   },
 });
 
