@@ -82,7 +82,7 @@ function linkLabel(url: string): string {
   return pad || url;
 }
 
-type Groep = "evenHouvast" | "nietAlleen" | "overig";
+type Groep = "evenHouvast" | "nietAlleen" | "evergreen" | "losseMail" | "overig";
 
 // Onderwerpen die in houvast.ts hardcoded staan: de brief-mail zelf en de mail
 // die de brief aankondigt. De opvolgmails komen uit de templates.
@@ -134,6 +134,14 @@ function herkomstVanTags(
   }
   if (tags.programma === "na") {
     return { groep: "nietAlleen", stroomId: `na_${mail}`, titel: label };
+  }
+  // Losse mails en evergreen groeperen we op hun mail-id (blijft stabiel als de
+  // titel verandert); de onderwerpregel is het label.
+  if (tags.programma === "losse-mail") {
+    return { groep: "losseMail", stroomId: `losse_${mail}`, titel: label };
+  }
+  if (tags.programma === "evergreen") {
+    return { groep: "evergreen", stroomId: `evergreen_${mail}`, titel: label };
   }
   return undefined;
 }
@@ -247,6 +255,8 @@ export const stats = query({
     const perGroep: Record<Groep, StroomAgg> = {
       evenHouvast: leegAgg("Even Houvast", "evenHouvast"),
       nietAlleen: leegAgg("Niet Alleen", "nietAlleen"),
+      evergreen: leegAgg("Evergreen", "evergreen"),
+      losseMail: leegAgg("Losse mails", "losseMail"),
       overig: leegAgg("Overige mails", "overig"),
     };
     // Eén regel per mail, met daarbinnen een telling per verliestype én per
@@ -329,7 +339,7 @@ export const stats = query({
     // Even Houvast op leesvolgorde (verzendvolgorde op dag), NIET op het interne
     // mailnummer: mail 6 komt als 2e binnen. Losse mails (brief) matchen niet op
     // eh_<nr> en zakken naar onderen.
-    const volgorde: Groep[] = ["evenHouvast", "nietAlleen", "overig"];
+    const volgorde: Groep[] = ["evenHouvast", "nietAlleen", "evergreen", "losseMail", "overig"];
     const groepen = volgorde
       .map((g) => ({
         groep: g,

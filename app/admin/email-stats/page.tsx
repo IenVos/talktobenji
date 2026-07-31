@@ -29,7 +29,7 @@ type Stroom = Cijfers & {
 };
 
 type Groep = {
-  groep: "evenHouvast" | "nietAlleen" | "overig";
+  groep: "evenHouvast" | "nietAlleen" | "evergreen" | "losseMail" | "overig";
   titel: string;
   totaal: Cijfers;
   stromen: Stroom[];
