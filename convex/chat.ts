@@ -363,6 +363,36 @@ export const linkSessionToUser = mutation({
   },
 });
 
+/**
+ * Openers per Even Houvast-verliestype. EH-leads die via de mail binnenkomen gaan
+ * direct de chat in met de juiste opener (i.p.v. eerst een onderwerp kiezen).
+ * Waar de naam van wie/wat gemist wordt bekend is (verliesNaam), gebruikt Benji die,
+ * zonder "hem of haar" (geslacht is niet altijd bekend). Zonder naam: de neutrale
+ * variant. algemeen = type onbekend → uitnodigende openingsvraag (optie A).
+ */
+const EH_VERLIES_OPENERS: Record<string, { metNaam?: string; zonderNaam: string }> = {
+  huisdier: {
+    metNaam: "Een huisdier is nooit 'maar een dier'. Het is liefde, gezelschap, een stukje thuis. Vertel me eens over {naam}.",
+    zonderNaam: "Dat gemis is echt, ook al begrijpt niet iedereen dat. Wil je me vertellen wie je mist?",
+  },
+  persoon: {
+    metNaam: "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is. Vertel me over {naam}, wie was die voor jou?",
+    zonderNaam: "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is. Neem de tijd, ik luister. Wil je me vertellen wie je mist?",
+  },
+  scheiding: {
+    zonderNaam: "Een band die breekt of verwatert is ook een verlies, ook al ziet niet iedereen dat zo. Vertel me wat er speelt.",
+  },
+  eenzaamheid: {
+    zonderNaam: "Alleen voelen is een van de zwaarste dingen die er zijn. Vertel eens, hoe lang draag je dit al?",
+  },
+  kinderloos: {
+    zonderNaam: "Een kinderwens die niet in vervulling gaat draag je vaak in stilte. Hier mag het er zijn. Wil je me erover vertellen?",
+  },
+  algemeen: {
+    zonderNaam: "Fijn dat je er bent. Ik weet nog niet wat je meedraagt, en dat hoeft ook niet meteen. Begin gewoon: wat speelt er op dit moment?",
+  },
+};
+
 /** Gepersonaliseerde openers voor ingelogde gebruikers (vanuit account) */
 const PERSONALIZED_OPENERS: string[] = [
   "Hoi {naam}, fijn dat je er weer bent! Waar wil je vandaag over praten?",
@@ -453,6 +483,82 @@ export const addOpenerToSession = mutation({
     });
 
     return { sessionId: args.sessionId, openerVariant: variant };
+  },
+});
+
+/**
+ * Start een chat voor een Even Houvast-lead die via de mail-link binnenkomt.
+ * Zoekt het verliestype + de naam (verliesNaam) op het e-mailadres op en opent
+ * meteen met de bijpassende opener, zodat de bezoeker niet eerst een onderwerp hoeft
+ * te kiezen (dat is precies waar mensen afhaken).
+ *
+ * Alleen de eerste keer: wie al eens echt met Benji gepraat heeft (>=1 eigen bericht)
+ * landt gewoon in zijn eigen chat, zonder opgedrongen opener. Wie geen EH-lead blijkt,
+ * krijgt het gewone welkomstscherm (fallback).
+ */
+export const startEhChat = mutation({
+  args: {
+    userId: v.string(),
+    userEmail: v.optional(v.string()),
+    userName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
+    // Al eens echt gepraat? Dan geen opener forceren.
+    const sessies = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .collect();
+    for (const s of sessies) {
+      const userMsg = await ctx.db
+        .query("chatMessages")
+        .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+        .filter((q) => q.eq(q.field("role"), "user"))
+        .first();
+      if (userMsg) return { fallback: true as const };
+    }
+
+    const email = (args.userEmail ?? "").toLowerCase().trim();
+    if (!email) return { fallback: true as const };
+
+    const brieven = await ctx.db
+      .query("houvastBrieven")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    if (brieven.length === 0) return { fallback: true as const }; // geen EH-lead
+
+    const laatste = [...brieven].sort((a, b) => (b.sentAt ?? 0) - (a.sentAt ?? 0))[0];
+    const verliesType = (laatste.verliesType ?? "algemeen").toLowerCase().trim();
+    const verliesNaam = laatste.verliesNaam?.trim() || undefined;
+
+    const opener = EH_VERLIES_OPENERS[verliesType] ?? EH_VERLIES_OPENERS.algemeen;
+    const tekst =
+      verliesNaam && opener.metNaam
+        ? opener.metNaam.replace("{naam}", verliesNaam)
+        : opener.zonderNaam;
+
+    const now = Date.now();
+    const sessionId = await ctx.db.insert("chatSessions", {
+      userId: args.userId,
+      userEmail: args.userEmail,
+      userName: args.userName,
+      topic: verliesType,
+      status: "active",
+      wasResolved: false,
+      startedAt: now,
+      lastActivityAt: now,
+    });
+    await ctx.db.insert("chatMessages", {
+      sessionId,
+      role: "bot",
+      content: tekst,
+      isAiGenerated: false,
+      createdAt: now,
+    });
+
+    return { fallback: false as const, sessionId };
   },
 });
 

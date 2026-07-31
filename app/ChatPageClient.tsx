@@ -16,7 +16,7 @@ import { hexToDarker } from "@/lib/utils";
 import { ConversationLimitGate } from "@/components/ConversationLimitGate";
 import { SiteFooter } from "@/components/SiteFooter";
 
-export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[] };
+export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[]; start?: string | string[] };
 
 /** Rendert chatbericht met klikbare markdown-links [tekst](url) */
 function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
@@ -157,6 +157,7 @@ export default function ChatPageClient({
   const { data: session, status } = useSession();
   const topicParam = Array.isArray(searchParams?.topic) ? searchParams.topic[0] : searchParams?.topic;
   const welcomeParam = Array.isArray(searchParams?.welcome) ? searchParams.welcome[0] : searchParams?.welcome;
+  const startParam = Array.isArray(searchParams?.start) ? searchParams.start[0] : searchParams?.start;
   const [sessionIdState, setSessionIdState] = useState<Id<"chatSessions"> | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -282,11 +283,57 @@ export default function ChatPageClient({
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
   const addPersonalizedOpenerToSession = useMutation(api.chat.addPersonalizedOpenerToSession);
+  const startEhChat = useMutation(api.chat.startEhChat);
   const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
   const handleUserMessage = useAction(api.ai.handleUserMessage);
   const submitMessageFeedback = useMutation(api.chat.submitMessageFeedback);
 
   const welcomeFromAccountHandled = useRef(false);
+  const ehStartHandled = useRef(false);
+
+  // Even Houvast-lead via de mail-link (?start=eh): open direct de chat met de juiste
+  // verliestype-opener, zonder het keuzescherm. Serverside wordt het verliestype + de
+  // naam opgezocht; wie al eens gepraat heeft of geen EH-lead is, krijgt gewoon het
+  // welkomstscherm (fallback).
+  useEffect(() => {
+    const uid = session?.userId;
+    if (startParam !== "eh" || !uid || ehStartHandled.current) return;
+    ehStartHandled.current = true;
+    setShowTopicButtons(false);
+    setIsAddingOpener(true);
+    (async () => {
+      try {
+        setSessionId(null);
+        if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
+        const res = await startEhChat({
+          userId: uid,
+          userEmail: session.user?.email ?? undefined,
+          userName: session.user?.name ?? undefined,
+        });
+        if (res && !res.fallback && res.sessionId) {
+          setSessionId(res.sessionId as Id<"chatSessions">);
+          if (typeof window !== "undefined") {
+            if (!sessionStorage.getItem("benji_start_chat_fired") && typeof (window as any).fbq === "function") {
+              (window as any).fbq("trackCustom", "StartChat");
+              sessionStorage.setItem("benji_start_chat_fired", "1");
+            }
+            localStorage.setItem(HAS_CHATTED_KEY, "1");
+          }
+        } else {
+          // Geen EH-lead of al eerder gepraat: gewoon het welkomstscherm tonen.
+          setShowTopicButtons(true);
+        }
+      } catch (e) {
+        console.error(e);
+        setShowTopicButtons(true);
+      } finally {
+        setIsAddingOpener(false);
+        if (typeof window !== "undefined") {
+          router.replace("/benji");
+        }
+      }
+    })();
+  }, [startParam, session?.userId, session?.user?.email, session?.user?.name, startEhChat, router]);
 
   // Vanuit account: start direct een gesprek met Benji's eerste bericht (gepersonaliseerd met naam)
   useEffect(() => {

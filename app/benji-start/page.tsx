@@ -29,8 +29,9 @@ function BenjiStartInner() {
       try {
         const res = await signIn("benji-token", { token, redirect: false });
         if (res?.ok && !res.error) {
-          // Harde navigatie zodat de nieuwe sessie meteen geladen is.
-          window.location.href = "/benji";
+          // Harde navigatie zodat de nieuwe sessie meteen geladen is. start=eh laat
+          // de chat meteen openen met de juiste verliestype-opener (geen keuzescherm).
+          window.location.href = "/benji?start=eh";
         } else {
           setStatus("fout");
         }
