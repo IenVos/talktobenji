@@ -564,6 +564,19 @@ export const getBenjiProefStats = query({
     );
     const verstuurd = inPeriode.length;
     const geactiveerd = inPeriode.filter((t) => t.usedAt).length;
+    // Ontdubbeld op e-mail: een token verloopt na 7 dagen, dus dezelfde persoon kan
+    // over meerdere golven meerdere token-rijen hebben. Voor "hoeveel mensen" en een
+    // eerlijke activatieratio tellen we per uniek adres.
+    const persUniek = new Set<string>();
+    const persGeactiveerd = new Set<string>();
+    for (const t of inPeriode) {
+      const e = (t.email || "").toLowerCase();
+      if (!e) continue;
+      persUniek.add(e);
+      if (t.usedAt) persGeactiveerd.add(e);
+    }
+    const verstuurdUniek = persUniek.size;
+    const geactiveerdUniek = persGeactiveerd.size;
 
     // EH-proeven = toegang met bron "eh" (zonder testadressen).
     const alleSubs = await ctx.db.query("userSubscriptions").collect();
@@ -591,8 +604,11 @@ export const getBenjiProefStats = query({
 
     return {
       verstuurd,
+      verstuurdUniek,
       geactiveerd,
-      activatieRatio: verstuurd > 0 ? Math.round((geactiveerd / verstuurd) * 1000) / 10 : 0,
+      geactiveerdUniek,
+      // Ratio op unieke mensen (eerlijker dan op token-rijen).
+      activatieRatio: verstuurdUniek > 0 ? Math.round((geactiveerdUniek / verstuurdUniek) * 1000) / 10 : 0,
       ehProeven: ehSubs.length,
       actieveProef,
       metGesprek,

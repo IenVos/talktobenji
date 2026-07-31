@@ -33,7 +33,9 @@ export default function EvenHouvastFunnelPage() {
   const benjiProef = useAdminQuery(api.siteAnalytics.getBenjiProefStats, { from: 0, to: 9999999999999 }) as
     | {
         verstuurd: number;
+        verstuurdUniek: number;
         geactiveerd: number;
+        geactiveerdUniek: number;
         activatieRatio: number;
         ehProeven: number;
         actieveProef: number;
@@ -137,8 +139,8 @@ export default function EvenHouvastFunnelPage() {
             <span className="text-xs text-gray-400">7 dagen gratis via de mail</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.verstuurd}</p><p className="text-xs text-gray-500">links verstuurd</p></div>
-            <div className="rounded-lg bg-primary-50 p-3"><p className="text-2xl font-bold text-primary-700">{benjiProef.geactiveerd}</p><p className="text-xs text-gray-500">geactiveerd · {benjiProef.activatieRatio}%</p></div>
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.verstuurdUniek}</p><p className="text-xs text-gray-500">mensen een link · {benjiProef.verstuurd} links</p></div>
+            <div className="rounded-lg bg-primary-50 p-3"><p className="text-2xl font-bold text-primary-700">{benjiProef.geactiveerdUniek}</p><p className="text-xs text-gray-500">klikten · {benjiProef.activatieRatio}%</p></div>
             <div className="rounded-lg bg-amber-50 p-3"><p className="text-2xl font-bold text-amber-700">{benjiProef.actieveProef}</p><p className="text-xs text-gray-500">proef nu actief</p></div>
             <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{benjiProef.kochtNA}</p><p className="text-xs text-gray-500">kocht Niet Alleen</p></div>
           </div>
