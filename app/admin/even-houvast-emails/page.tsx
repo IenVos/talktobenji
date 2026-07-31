@@ -234,10 +234,14 @@ export default function EvenHouvastEmailsPage() {
       key: `eh_${bewerkType}_${n}`,
       subject: f.subject,
       bodyText: f.bodyText,
-      buttonText: f.buttonText || undefined,
-      buttonUrl: f.buttonUrl || undefined,
-      imageUrl: f.imageUrl || undefined,
-      imageCaption: f.imageCaption || undefined,
+      // Leeg = bewust weg (bewaar als ""). NIET omzetten naar undefined, want dan valt
+      // zowel de editor als de mailrender terug op de default (saved?.X ?? def.X) en
+      // komt een weggehaalde knop, link of afbeelding weer terug. Geldt voor alle
+      // EH-mails en alle verliestypes (ze delen deze opslagfunctie).
+      buttonText: f.buttonText,
+      buttonUrl: f.buttonUrl,
+      imageUrl: f.imageUrl,
+      imageCaption: f.imageCaption,
       dagOffset: f.dagOffset,
     });
   };
