@@ -264,6 +264,9 @@ export default defineSchema({
     benjiExpiresAt: v.optional(v.number()),
     reminderDay5Sent: v.optional(v.boolean()),
     reminderDay7Sent: v.optional(v.boolean()),
+    // EH-proef: "morgen stopt je week met Benji"-mail, vastgehangen aan de eigen
+    // proefklok (dag voor afloop), één keer. Los van de generieke day5/day7-reminders.
+    proefEindMailSent: v.optional(v.boolean()),
     renewalEmail1SentAt: v.optional(v.number()), // 30 dagen voor einde jaar-toegang
     renewalEmail2SentAt: v.optional(v.number()), // 15 dagen voor einde jaar-toegang
     renewalEmail3SentAt: v.optional(v.number()), // laatste dag jaar-toegang

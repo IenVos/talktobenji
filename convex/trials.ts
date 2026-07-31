@@ -17,6 +17,10 @@ export const checkAndProcessTrials = mutation({
       .filter((q) => q.eq(q.field("subscriptionType"), "trial"))
       .collect();
 
+    // Afgemelde adressen niet mailen (de EH-proefeind-mail bevat een aanbod).
+    const afgemeldRows = await ctx.db.query("ehAfmeldingen").collect();
+    const afgemeld = new Set(afgemeldRows.map((a) => (a.email || "").toLowerCase()));
+
     for (const sub of trialSubscriptions) {
       if (!sub.expiresAt) continue;
 
@@ -80,6 +84,27 @@ export const checkAndProcessTrials = mutation({
           expiresAt: sub.expiresAt,
         });
         await ctx.db.patch(sub._id, { reminderDay7Sent: true, updatedAt: now });
+      }
+
+      // Even Houvast-proef: "morgen stopt je week met Benji", op de eigen proefklok
+      // (dag voor afloop), één keer. Lost het op dat late openers geen eerlijk seintje
+      // kregen (de funnelmails draaien op een vaste dag). Niet naar wie zich afmeldde.
+      if (
+        sub.bron === "eh" &&
+        daysLeft <= 1 &&
+        daysLeft > 0 &&
+        !sub.proefEindMailSent &&
+        !afgemeld.has((sub.email || "").toLowerCase())
+      ) {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("email", (q) => q.eq("email", sub.email))
+          .unique();
+        await ctx.scheduler.runAfter(0, internal.emails.sendEhProefEindMail, {
+          email: sub.email,
+          name: user?.name || "daar",
+        });
+        await ctx.db.patch(sub._id, { proefEindMailSent: true, updatedAt: now });
       }
     }
   },

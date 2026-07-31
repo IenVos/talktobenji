@@ -136,6 +136,59 @@ export const sendTrialDaySevenReminder = internalAction({
   },
 });
 
+/**
+ * "Morgen stopt je week met Benji" — voor Even Houvast-proeven, vastgehangen aan de
+ * eigen proefklok (de dag voordat de trial afloopt). Eerlijk en zacht: er wordt niets
+ * gewist, de gesprekken blijven bewaard. De knop leidt naar het Benji-maandaanbod, met
+ * de sluitzin ("en zo niet, dan is dat ook goed") bewust ná de knop. Ien's toon.
+ */
+export const sendEhProefEindMail = internalAction({
+  args: { email: v.string(), name: v.string() },
+  handler: async (ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY niet geconfigureerd");
+
+    const voornaam = (args.name || "daar").trim().split(/\s+/)[0] || "daar";
+    const benjiUrl = "https://www.talktobenji.com/betalen/maand";
+    const p = (t: string) =>
+      `<p style="font-size:15px;line-height:1.7;color:#4a5568;font-family:system-ui,-apple-system,sans-serif;">${t}</p>`;
+
+    const html = `
+    <div style="font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
+      <p style="font-size:16px;margin-bottom:16px;font-family:system-ui,-apple-system,sans-serif;">Hoi ${voornaam},</p>
+      ${p("Morgen loopt je week met Benji af.")}
+      ${p("Ik weet niet wat je hem verteld hebt. Dat kan ik niet zien en dat wil ik ook niet. Maar als het je iets gebracht heeft, dan is er een manier om verder te gaan.")}
+      ${p("Met Benji kun je gewoon blijven praten, wanneer je hem nodig hebt, voor een klein bedrag per maand. Je gesprekken blijven bewaard, wat je ook kiest.")}
+      <div style="margin:30px 0;">
+        <a href="${benjiUrl}" style="background-color:#6d84a8;color:#ffffff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;font-family:system-ui,-apple-system,sans-serif;">Verder met Benji &rarr;</a>
+      </div>
+      ${p("En zo niet, dan is dat ook goed. Dan weet je dat nu ook.")}
+      <p style="font-size:15px;margin-top:24px;color:#4a5568;font-family:system-ui,-apple-system,sans-serif;">Met warme groet,</p>
+      <table cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
+        <tr>
+          <td style="padding-right:14px;vertical-align:middle;">
+            <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="56" height="56" style="border-radius:50%;display:block;width:56px;height:56px;object-fit:cover;" />
+          </td>
+          <td style="vertical-align:middle;">
+            <p style="font-size:15px;font-weight:600;color:#2d3748;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;">Ien</p>
+            <p style="font-size:13px;color:#718096;margin:3px 0 0 0;padding:0;font-family:system-ui,-apple-system,sans-serif;">Founder van Talk To Benji</p>
+          </td>
+        </tr>
+      </table>
+      <p style="font-size:12px;color:#a0aec0;margin-top:28px;border-top:1px solid #e2e8f0;padding-top:16px;font-family:system-ui,-apple-system,sans-serif;">
+        Vragen? Stuur een mail naar <a href="mailto:contactmetien@talktobenji.com" style="color:#6d84a8;">contactmetien@talktobenji.com</a>
+      </p>
+    </div>`;
+
+    await sendEmail({
+      to: args.email,
+      subject: "Morgen stopt je week met Benji",
+      html,
+      apiKey: RESEND_API_KEY,
+    });
+  },
+});
+
 export const sendSupportEmail = internalAction({
   args: {
     userEmail: v.optional(v.string()),
