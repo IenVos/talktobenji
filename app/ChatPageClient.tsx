@@ -182,6 +182,12 @@ export default function ChatPageClient({
     }
   };
   const [showTopicButtons, setShowTopicButtons] = useState(true);
+  // Even Houvast-lead via ?start=eh: terwijl we serverside beslissen (directe
+  // verliestype-opener of gewoon welkomstscherm) tonen we één schone spinner, zodat
+  // er geen flikker is tussen chat- en keuzescherm.
+  const [ehResolving, setEhResolving] = useState<boolean>(
+    (Array.isArray(searchParams?.start) ? searchParams.start[0] : searchParams?.start) === "eh"
+  );
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [input, setInput] = useState("");
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
@@ -296,11 +302,23 @@ export default function ChatPageClient({
   // naam opgezocht; wie al eens gepraat heeft of geen EH-lead is, krijgt gewoon het
   // welkomstscherm (fallback).
   useEffect(() => {
+    if (startParam !== "eh" || ehStartHandled.current) return;
+    if (status === "loading") return; // wacht op auth; spinner blijft staan
+
+    const schoonUrl = () => {
+      if (typeof window !== "undefined") window.history.replaceState(null, "", "/benji");
+    };
+
     const uid = session?.userId;
-    if (startParam !== "eh" || !uid || ehStartHandled.current) return;
+    if (!uid) {
+      // Niet ingelogd: gewoon het welkomstscherm tonen, geen opener forceren.
+      ehStartHandled.current = true;
+      setEhResolving(false);
+      schoonUrl();
+      return;
+    }
+
     ehStartHandled.current = true;
-    setShowTopicButtons(false);
-    setIsAddingOpener(true);
     (async () => {
       try {
         setSessionId(null);
@@ -311,6 +329,7 @@ export default function ChatPageClient({
           userName: session.user?.name ?? undefined,
         });
         if (res && !res.fallback && res.sessionId) {
+          setShowTopicButtons(false);
           setSessionId(res.sessionId as Id<"chatSessions">);
           if (typeof window !== "undefined") {
             if (!sessionStorage.getItem("benji_start_chat_fired") && typeof (window as any).fbq === "function") {
@@ -327,13 +346,11 @@ export default function ChatPageClient({
         console.error(e);
         setShowTopicButtons(true);
       } finally {
-        setIsAddingOpener(false);
-        if (typeof window !== "undefined") {
-          router.replace("/benji");
-        }
+        setEhResolving(false);
+        schoonUrl();
       }
     })();
-  }, [startParam, session?.userId, session?.user?.email, session?.user?.name, startEhChat, router]);
+  }, [startParam, status, session?.userId, session?.user?.email, session?.user?.name, startEhChat]);
 
   // Vanuit account: start direct een gesprek met Benji's eerste bericht (gepersonaliseerd met naam)
   useEffect(() => {
@@ -751,7 +768,7 @@ export default function ChatPageClient({
         )}
         {/* Chat-inhoud */}
         <div className="relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation">
-          {!sessionId && !isAddingOpener && (
+          {!sessionId && !isAddingOpener && !ehResolving && (
             <>
               <WelcomeScreen
                 showTopicButtons={showTopicButtons}
