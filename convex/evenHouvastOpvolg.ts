@@ -770,9 +770,36 @@ export const afmeldOverzicht = query({
       };
     });
 
+    // Splitsing EH vs overige stromen: de brief + opvolgmail 1-6 zijn de EH-funnel;
+    // losse mail, evergreen en reactivatie zijn andere stromen. Zo houden we "waar
+    // haken EH-leads af" zuiver, maar blijft geen afmelding onzichtbaar (het totaal
+    // klopt: EH + overige + onbekend).
+    const EH_SLEUTELS = new Set(["brief", "1", "2", "3", "4", "5", "6"]);
+    const OVERIG_LABEL: Record<string, string> = {
+      "losse-mail": "Losse mail",
+      heractivatie: "Losse mail (heractivatie)",
+      evergreen: "Evergreen",
+      reactivatie: "Reactivatie",
+    };
+    let ehTotaal = 0;
+    const overigMap = new Map<string, number>();
+    for (const a of afmeldingen) {
+      const s = a.mail;
+      if (!s) continue; // null/leeg = onbekend, apart geteld
+      if (EH_SLEUTELS.has(s)) ehTotaal++;
+      else overigMap.set(s, (overigMap.get(s) ?? 0) + 1);
+    }
+    const overigeStromen = Array.from(overigMap.entries())
+      .map(([sleutel, aantal]) => ({ sleutel, label: OVERIG_LABEL[sleutel] ?? sleutel, aantal }))
+      .sort((a, b) => b.aantal - a.aantal);
+    const overigTotaal = overigeStromen.reduce((s, r) => s + r.aantal, 0);
+
     return {
       dagen,
       totaalAfgemeld: afmeldingen.length,
+      ehTotaal,
+      overigeStromen,
+      overigTotaal,
       // Afmeldingen van vóór 14 juli 2026 weten we niet bij welke mail ze hoorden.
       onbekend: afmeldingenPerMail.get("onbekend") ?? 0,
       perMail,

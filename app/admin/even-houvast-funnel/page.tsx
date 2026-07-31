@@ -17,6 +17,9 @@ export default function EvenHouvastFunnelPage() {
     | {
         dagen: number;
         totaalAfgemeld: number;
+        ehTotaal: number;
+        overigeStromen: { sleutel: string; label: string; aantal: number }[];
+        overigTotaal: number;
         onbekend: number;
         perMail: { mail: string; label: string; dag: number; verzonden: number; afgemeld: number; ratio: number }[];
         perType: { type: string; aantal: number }[];
@@ -227,7 +230,7 @@ export default function EvenHouvastFunnelPage() {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-gray-900">Waar haken ze af?</h2>
             <span className="text-xs text-gray-400">
-              {afmeldingen.totaalAfgemeld} afmeldingen · laatste {afmeldingen.dagen} dagen
+              {afmeldingen.ehTotaal} EH-afmeldingen · laatste {afmeldingen.dagen} dagen
             </span>
           </div>
 
@@ -262,11 +265,28 @@ export default function EvenHouvastFunnelPage() {
             </div>
           )}
 
-          {afmeldingen.onbekend > 0 && (
-            <p className="text-xs text-gray-400">
-              {afmeldingen.onbekend} afmeldingen zijn van vóór 14 juli 2026; daarvan weten we niet
-              bij welke mail ze klikten (het verliestype halen we wel uit de lead zelf).
-            </p>
+          {/* Buiten de EH-funnel: afmeldingen uit andere stromen, zodat het totaal klopt
+              (EH + overige + onbekend = alle afmeldingen) maar de EH-analyse zuiver blijft. */}
+          {(afmeldingen.overigTotaal > 0 || afmeldingen.onbekend > 0) && (
+            <div className="pt-2 border-t border-gray-100 space-y-1.5">
+              <p className="text-xs font-medium text-gray-600">Buiten de EH-funnel</p>
+              {afmeldingen.overigeStromen.map((o) => (
+                <div key={o.sleutel} className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">{o.label}</span>
+                  <span className="font-semibold text-gray-800">{o.aantal}</span>
+                </div>
+              ))}
+              {afmeldingen.onbekend > 0 && (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-400">Onbekend (van vóór 14 juli 2026)</span>
+                  <span className="font-semibold text-gray-600">{afmeldingen.onbekend}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-50">
+                <span className="text-gray-400">Alle afmeldingen samen</span>
+                <span className="font-semibold text-gray-500">{afmeldingen.totaalAfgemeld}</span>
+              </div>
+            </div>
           )}
 
           <div className="pt-1 border-t border-gray-100">
