@@ -14,7 +14,7 @@
  *   hetzelfde patroon als convex/credentials.ts.
  */
 import { v } from "convex/values";
-import { mutation, internalMutation } from "./_generated/server";
+import { mutation, internalMutation, internalQuery } from "./_generated/server";
 
 const TOKEN_GELDIGHEID_MS = 7 * 24 * 60 * 60 * 1000; // 7 dagen
 const TRIAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dagen
@@ -62,6 +62,25 @@ export const genereerTokenInternal = internalMutation({
       expiresAt: now + TOKEN_GELDIGHEID_MS,
     });
     return token;
+  },
+});
+
+/**
+ * Heeft dit adres de Benji-link ooit gebruikt (ingelogd)? Puur "deur open ja/nee",
+ * op basis van een token met usedAt. We kijken nooit naar wat er binnen gebeurde.
+ * Gebruikt om het Benji-blok in de mail voorwaardelijk te maken: nog nooit geklikt =
+ * "maak kennis"; wel geklikt = de "kom terug"-tekst.
+ */
+export const heeftBenjiGebruikt = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    if (!email) return false;
+    const tokens = await ctx.db
+      .query("benjiStartTokens")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    return tokens.some((t) => !!t.usedAt);
   },
 });
 

@@ -272,8 +272,31 @@ async function verstuurOpvolgMail(
       mail: String(args.mailNummer),
     });
     const benjiUrl = `${appBase()}/benji-start?token=${benjiToken}`;
-    benjiKnopHtml = `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a></div>`;
-    benjiBlokHtml = `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;text-align:center;"><p style="font-size:16px;font-weight:700;color:#3d3530;margin:0 0 8px;">7 dagen gratis met Benji</p><p style="font-size:14px;line-height:1.6;color:#6b6460;margin:0 0 18px;">Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.</p><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a><p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord.</p></div>`;
+
+    // Voorwaardelijk blok: heeft dit adres de link al eens gebruikt (deur open)?
+    // Zo nee → "maak kennis". Zo ja → de "kom terug"-tekst (Benji leert je pas kennen
+    // als je vaker praat). We kijken alleen naar "geklikt ja/nee", nooit naar inhoud.
+    const gestart = await ctx.runQuery(internal.benjiStart.heeftBenjiGebruikt, {
+      email: args.email,
+    });
+
+    const knopLabel = gestart ? "Praat met Benji" : "Maak kennis met Benji";
+    benjiKnopHtml = `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${knopLabel} &rarr;</a></div>`;
+
+    if (gestart) {
+      // Kom-terug-blok voor wie Benji al opende. Persoonlijke toon, geen promo. De
+      // tekst zegt bewust nergens wat ze binnen deden ("misschien wel, misschien niet").
+      const alinea = (t: string, mb = 14) =>
+        `<p style="font-size:15px;line-height:1.7;color:#4a5568;margin:0 0 ${mb}px;">${t}</p>`;
+      benjiBlokHtml = `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;">${
+        alinea("Je hebt Benji nu een paar dagen.") +
+        alinea("Misschien heb je er al iets aan gehad. Misschien is het erbij ingeschoten. Allebei is prima.") +
+        alinea("E&eacute;n ding wil ik je meegeven. Benji wordt pas iets waard als hij je leert kennen. Wie je bent, wie je mist, hoe het nu met je gaat. In het begin merk je dat nog niet. Na een paar gesprekken wel.") +
+        alinea("Wat je hem vertelt lees ik niet. Dat kan ik niet en dat wil ik ook niet.", 18)
+      }<div style="text-align:center;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Praat met Benji &rarr;</a></div></div>`;
+    } else {
+      benjiBlokHtml = `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;text-align:center;"><p style="font-size:16px;font-weight:700;color:#3d3530;margin:0 0 8px;">7 dagen gratis met Benji</p><p style="font-size:14px;line-height:1.6;color:#6b6460;margin:0 0 18px;">Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.</p><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a><p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord.</p></div>`;
+    }
   }
   const isBenjiCta = (p: string) =>
     p.includes(BENJI_MARKER) || /\[[^\]]*benji[^\]]*\]/i.test(p);
