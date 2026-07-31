@@ -66,6 +66,24 @@ export const genereerTokenInternal = internalMutation({
 });
 
 /**
+ * Log dat een Benji-link naar dit adres is verstuurd, met welke mail. Eén regel per
+ * verzending (dus ook als het token wordt hergebruikt), zodat we per klik de tik
+ * (1e/2e/3e mail) kunnen terugrekenen. Puur meten; heeft geen effect op de mail.
+ */
+export const logVerzending = internalMutation({
+  args: { email: v.string(), mail: v.string() },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    if (!email) return;
+    await ctx.db.insert("benjiLinkVerzonden", {
+      email,
+      mail: args.mail,
+      verstuurdOp: Date.now(),
+    });
+  },
+});
+
+/**
  * Genereer (of hergebruik) een token vanaf de Next.js-server met het
  * ADMIN_SESSION_SECRET (hetzelfde secret als de afmeldroute). Zo kan het
  * afmeld-bevestigingsscherm de zojuist afgemelde lead alsnog gratis toegang tot

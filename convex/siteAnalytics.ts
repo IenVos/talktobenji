@@ -569,14 +569,51 @@ export const getBenjiProefStats = query({
     // eerlijke activatieratio tellen we per uniek adres.
     const persUniek = new Set<string>();
     const persGeactiveerd = new Set<string>();
+    const klikTijd = new Map<string, number>(); // e-mail -> eerste kliktijd
     for (const t of inPeriode) {
       const e = (t.email || "").toLowerCase();
       if (!e) continue;
       persUniek.add(e);
-      if (t.usedAt) persGeactiveerd.add(e);
+      if (t.usedAt) {
+        persGeactiveerd.add(e);
+        const prev = klikTijd.get(e);
+        if (prev === undefined || t.usedAt < prev) klikTijd.set(e, t.usedAt);
+      }
     }
     const verstuurdUniek = persUniek.size;
     const geactiveerdUniek = persGeactiveerd.size;
+
+    // Klik-funnel: de hoeveelste mail lokte de klik uit? Per klikker tellen we het
+    // aantal Benji-verzendingen naar dat adres vóór de kliktijd (uit benjiLinkVerzonden,
+    // dat vanaf 31 juli 2026 loggt). Klikkers zonder gelogde verzending (van vóór die
+    // datum) vallen in "onbekend" en zeggen dus niets over de tik.
+    const verzendingen = await ctx.db.query("benjiLinkVerzonden").collect();
+    const verzendPerEmail = new Map<string, number[]>();
+    for (const v of verzendingen) {
+      const e = (v.email || "").toLowerCase();
+      if (!e || isTest(e)) continue;
+      const lijst = verzendPerEmail.get(e) ?? [];
+      lijst.push(v.verstuurdOp);
+      verzendPerEmail.set(e, lijst);
+    }
+    let klikNa1 = 0, klikNa2 = 0, klikNa3plus = 0, klikOnbekend = 0, somTikken = 0, metTik = 0;
+    for (const e of persGeactiveerd) {
+      const kt = klikTijd.get(e);
+      const tikken = (verzendPerEmail.get(e) ?? []).filter((op) => kt === undefined || op <= kt).length;
+      if (tikken <= 0) { klikOnbekend++; continue; }
+      somTikken += tikken;
+      metTik++;
+      if (tikken === 1) klikNa1++;
+      else if (tikken === 2) klikNa2++;
+      else klikNa3plus++;
+    }
+    const klikFunnel = {
+      na1: klikNa1,
+      na2: klikNa2,
+      na3plus: klikNa3plus,
+      onbekend: klikOnbekend,
+      gemMails: metTik > 0 ? Math.round((somTikken / metTik) * 10) / 10 : null,
+    };
 
     // EH-proeven = toegang met bron "eh" (zonder testadressen).
     const alleSubs = await ctx.db.query("userSubscriptions").collect();
@@ -607,6 +644,7 @@ export const getBenjiProefStats = query({
       verstuurdUniek,
       geactiveerd,
       geactiveerdUniek,
+      klikFunnel,
       // Ratio op unieke mensen (eerlijker dan op token-rijen).
       activatieRatio: verstuurdUniek > 0 ? Math.round((geactiveerdUniek / verstuurdUniek) * 1000) / 10 : 0,
       ehProeven: ehSubs.length,

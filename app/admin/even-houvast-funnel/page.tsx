@@ -37,6 +37,7 @@ export default function EvenHouvastFunnelPage() {
         geactiveerd: number;
         geactiveerdUniek: number;
         activatieRatio: number;
+        klikFunnel: { na1: number; na2: number; na3plus: number; onbekend: number; gemMails: number | null };
         ehProeven: number;
         actieveProef: number;
         metGesprek: number;
@@ -48,6 +49,7 @@ export default function EvenHouvastFunnelPage() {
     | undefined;
   const [toonAfmeldingen, setToonAfmeldingen] = useState(false);
   const [toonLijst, setToonLijst] = useState(false);
+  const [toonKlikFunnel, setToonKlikFunnel] = useState(false);
 
   const totaal = overzicht?.length ?? 0;
   const gekocht = overzicht?.filter((r) => r.gekocht).length ?? 0;
@@ -139,11 +141,59 @@ export default function EvenHouvastFunnelPage() {
             <span className="text-xs text-gray-400">7 dagen gratis via de mail</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.verstuurdUniek}</p><p className="text-xs text-gray-500">mensen een link · {benjiProef.verstuurd} links</p></div>
+            <button
+              type="button"
+              onClick={() => setToonKlikFunnel((v) => !v)}
+              className="rounded-lg bg-gray-50 p-3 text-left hover:bg-gray-100 transition-colors"
+            >
+              <p className="text-2xl font-bold text-gray-900">{benjiProef.verstuurdUniek}</p>
+              <p className="text-xs text-gray-500">mensen een link · {benjiProef.verstuurd} links</p>
+              <p className="text-[11px] text-primary-600 mt-0.5">{toonKlikFunnel ? "▾ wanneer klikken ze?" : "▸ wanneer klikken ze?"}</p>
+            </button>
             <div className="rounded-lg bg-primary-50 p-3"><p className="text-2xl font-bold text-primary-700">{benjiProef.geactiveerdUniek}</p><p className="text-xs text-gray-500">klikten · {benjiProef.activatieRatio}%</p></div>
             <div className="rounded-lg bg-amber-50 p-3"><p className="text-2xl font-bold text-amber-700">{benjiProef.actieveProef}</p><p className="text-xs text-gray-500">proef nu actief</p></div>
             <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{benjiProef.kochtNA}</p><p className="text-xs text-gray-500">kocht Niet Alleen</p></div>
           </div>
+
+          {/* Uitklap: de hoeveelste mail lokte de klik uit (logt vanaf 31 juli 2026) */}
+          {toonKlikFunnel && (() => {
+            const f = benjiProef.klikFunnel;
+            const basis = f.na1 + f.na2 + f.na3plus;
+            const rij = (label: string, aantal: number) => {
+              const pct = basis > 0 ? Math.round((aantal / basis) * 100) : 0;
+              return (
+                <div className="flex items-center gap-3 text-xs">
+                  <span className="w-28 flex-shrink-0 text-gray-600">{label}</span>
+                  <div className="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
+                    <div className="h-full bg-primary-400" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="w-20 flex-shrink-0 text-right text-gray-700 font-medium">{aantal} · {pct}%</span>
+                </div>
+              );
+            };
+            return (
+              <div className="rounded-lg bg-gray-50 border border-gray-100 p-4 space-y-2">
+                <p className="text-sm font-medium text-gray-800">Wanneer klikken ze?</p>
+                {basis > 0 ? (
+                  <>
+                    {rij("Na de 1e mail", f.na1)}
+                    {rij("Na de 2e mail", f.na2)}
+                    {rij("Na de 3e+ mail", f.na3plus)}
+                    <p className="text-xs text-gray-500 pt-1">
+                      Gemiddeld <strong>{f.gemMails}</strong> mails tot de klik.
+                      {f.onbekend > 0 && ` ${f.onbekend} klik${f.onbekend === 1 ? "" : "ken"} van vóór de meting (onbekend).`}
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    Nog geen gemeten klikken. Dit vult zich vanaf 31 juli 2026: elke verstuurde Benji-link
+                    wordt nu gelogd, zodat we per klik zien de hoeveelste mail hem uitlokte.
+                    {f.onbekend > 0 && ` (${f.onbekend} klik${f.onbekend === 1 ? "" : "ken"} van vóór de meting.)`}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
           {/* Gebruik: het aantal gesprekken met Benji (testadressen niet meegeteld) */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 border-t border-gray-100">
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.totaalGesprekken}</p><p className="text-xs text-gray-500">gesprekken totaal</p></div>

@@ -289,6 +289,15 @@ export default defineSchema({
     .index("by_token", ["token"])
     .index("by_email", ["email"]),
 
+  // Elke keer dat een Benji-link in een mail wordt gezet, loggen we hier één regel.
+  // Zo kunnen we per klik terugkijken de hoeveelste tik (1e/2e/3e mail) de klik
+  // uitlokte, iets wat het (binnen 7 dagen hergebruikte) token niet kan vertellen.
+  benjiLinkVerzonden: defineTable({
+    email: v.string(),
+    mail: v.string(),        // opvolgmailnummer "1".."6", of "na-afmelding"
+    verstuurdOp: v.number(),
+  }).index("by_email", ["email"]),
+
   // Gesprekken teller (voor free tier limiet)
   conversationUsage: defineTable({
     userId: v.string(),
