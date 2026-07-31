@@ -329,6 +329,7 @@ export default function ChatPageClient({
           userName: session.user?.name ?? undefined,
         });
         if (res && !res.fallback && res.sessionId) {
+          // Eerste keer: direct de verliestype-chat openen.
           setShowTopicButtons(false);
           setSessionId(res.sessionId as Id<"chatSessions">);
           if (typeof window !== "undefined") {
@@ -338,19 +339,22 @@ export default function ChatPageClient({
             }
             localStorage.setItem(HAS_CHATTED_KEY, "1");
           }
+          setEhResolving(false);
+          schoonUrl();
         } else {
-          // Geen EH-lead of al eerder gepraat: gewoon het welkomstscherm tonen.
-          setShowTopicButtons(true);
+          // Terugkerend / heeft al een account: nooit het keuzescherm, maar door naar
+          // het account-dashboard, waar ze een nieuw gesprek kunnen starten of hun
+          // bestaande gesprek vervolgen (en de rest van hun plek zien). ehResolving
+          // blijft aan zodat /benji leeg blijft tijdens de navigatie (geen flikker).
+          router.replace("/account");
         }
       } catch (e) {
         console.error(e);
-        setShowTopicButtons(true);
-      } finally {
-        setEhResolving(false);
-        schoonUrl();
+        // Ingelogd maar er ging iets mis: stuur ze alsnog naar hun account.
+        router.replace("/account");
       }
     })();
-  }, [startParam, status, session?.userId, session?.user?.email, session?.user?.name, startEhChat]);
+  }, [startParam, status, session?.userId, session?.user?.email, session?.user?.name, startEhChat, router]);
 
   // Vanuit account: start direct een gesprek met Benji's eerste bericht (gepersonaliseerd met naam)
   useEffect(() => {
