@@ -162,7 +162,7 @@ export const sendEhProefEindMail = internalAction({
       <div style="margin:30px 0;">
         <a href="${benjiUrl}" style="background-color:#6d84a8;color:#ffffff;padding:14px 28px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;font-family:system-ui,-apple-system,sans-serif;">Verder met Benji &rarr;</a>
       </div>
-      ${p("En zo niet, dan is dat ook goed. Dan weet je dat nu ook.")}
+      ${p("En zo niet, dan is dat ook goed.")}
       <p style="font-size:15px;margin-top:24px;color:#4a5568;font-family:system-ui,-apple-system,sans-serif;">Met warme groet,</p>
       <table cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
         <tr>
