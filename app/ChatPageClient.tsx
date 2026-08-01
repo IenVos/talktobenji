@@ -823,8 +823,18 @@ export default function ChatPageClient({
             </>
           )}
 
+          {/* Even Houvast-lead (?start=eh): terwijl we serverside beslissen (directe
+              chat of door naar /account) tonen we alleen een spinner. Zonder deze gate
+              flitst een uit localStorage geladen oud gesprek even in beeld. */}
+          {ehResolving && (
+            <div className="flex items-center justify-center py-24">
+              <div className="w-6 h-6 rounded-full border-2 border-primary-400 border-t-transparent animate-spin" />
+            </div>
+          )}
+
           <div className="space-y-3 sm:space-y-4">
             {(() => {
+              if (ehResolving) return null;
               let userMsgCount = 0;
               return messages?.map((msg: Doc<"chatMessages">, idx: number) => {
               const isUser = msg.role === "user";
