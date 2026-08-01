@@ -302,6 +302,10 @@ function CtaControls({ enabled, onEnabledChange, color, onColorChange }: {
 export default function AdminCheckoutPage() {
   const { adminToken } = useAdminAuth();
   const products = useAdminQuery(api.checkoutProducts.list, {});
+  const gebruikPerSlug = useAdminQuery(api.landingPages.gebruikPerCheckoutSlug, {}) as
+    | Record<string, string[]>
+    | undefined;
+  const [layoutTab, setLayoutTab] = useState<"standaard" | "rustig" | "kaal">("standaard");
   const verliesTypen = useAdminQuery(api.verliesTypen.list, {});
   const createProduct = useAdminMutation(api.checkoutProducts.create);
   const updateProduct = useAdminMutation(api.checkoutProducts.update);
@@ -1613,106 +1617,173 @@ export default function AdminCheckoutPage() {
             ) : products.length === 0 ? (
               <p className="text-sm text-gray-500 py-4">Nog geen checkout producten.</p>
             ) : (
-              <ul className="space-y-3">
-                {products.map((product: CheckoutProduct) => (
-                  <li
-                    key={product._id}
-                    className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50"
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                              product.isLive
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-600"
-                            }`}
-                          >
-                            {product.isLive ? "Live" : "Verborgen"}
-                          </span>
-                          <code className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                            /betalen/{product.slug}
-                          </code>
-                          <span
-                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                              product.checkoutLayout === "rustig"
-                                ? "bg-violet-100 text-violet-800"
-                                : "bg-stone-100 text-stone-600"
-                            }`}
-                          >
-                            {product.checkoutLayout === "rustig" ? "Rustige layout" : "Standaard layout"}
-                          </span>
-                          <span className="text-xs font-semibold text-primary-700">
-                            {formatPrice(product.priceInCents)}
-                          </span>
-                        </div>
-                        <h3 className="font-medium text-primary-900 truncate">{product.name}</h3>
-                        {product.description && (
-                          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{product.description}</p>
-                        )}
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          Type: {product.subscriptionType}
-                          {product.accessDays != null && ` · ${product.accessDays} dagen`}
-                          {product.giftEnabled && " · 🎁 cadeau-optie aan"}
-                          {" · "}Bijgewerkt{" "}
-                          {new Date(product.updatedAt).toLocaleDateString("nl-NL", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {product.isLive ? (
-                          <a
-                            href={`/betalen/${product.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
-                            title="Bekijk pagina"
-                          >
-                            <ExternalLink size={17} />
-                          </a>
-                        ) : (
+              (() => {
+                const normLayout = (p: CheckoutProduct): "standaard" | "rustig" | "kaal" =>
+                  p.checkoutLayout === "rustig" ? "rustig" : p.checkoutLayout === "kaal" ? "kaal" : "standaard";
+                const inGebruik = (p: CheckoutProduct) => (gebruikPerSlug?.[p.slug]?.length ?? 0) > 0;
+                const tabDefs = [
+                  { key: "standaard" as const, label: "Standaard" },
+                  { key: "rustig" as const, label: "Rustig" },
+                  { key: "kaal" as const, label: "Kaal" },
+                ];
+                const lijst = products
+                  .filter((p: CheckoutProduct) => normLayout(p) === layoutTab)
+                  .sort((a: CheckoutProduct, b: CheckoutProduct) => {
+                    const d = (inGebruik(b) ? 1 : 0) - (inGebruik(a) ? 1 : 0);
+                    return d !== 0 ? d : a.name.localeCompare(b.name);
+                  });
+                return (
+                  <>
+                    {/* Layout-tabs: kies een opmaak, zie welke checkouts die gebruiken */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {tabDefs.map((t) => {
+                        const n = products.filter((p: CheckoutProduct) => normLayout(p) === t.key).length;
+                        const actief = layoutTab === t.key;
+                        return (
                           <button
+                            key={t.key}
                             type="button"
-                            onClick={() => openPreview(product.slug)}
-                            className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg"
-                            title="Bekijk als concept (nog niet live)"
+                            onClick={() => setLayoutTab(t.key)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                              actief
+                                ? "bg-primary-900 text-white"
+                                : "bg-white border border-primary-200 text-primary-700 hover:bg-primary-50"
+                            }`}
                           >
-                            <Eye size={17} />
+                            {t.label}{" "}
+                            <span className={actief ? "opacity-80" : "text-gray-400"}>({n})</span>
                           </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => startDuplicate(product)}
-                          className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
-                          title="Dupliceren"
-                        >
-                          <Copy size={17} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => startEdit(product)}
-                          className="p-2 text-primary-600 hover:bg-primary-100 rounded-lg"
-                          title="Bewerken"
-                        >
-                          <Edit size={17} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(product._id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                          title="Verwijderen"
-                        >
-                          <Trash2 size={17} />
-                        </button>
-                      </div>
+                        );
+                      })}
                     </div>
-                  </li>
-                ))}
-              </ul>
+                    <p className="text-xs text-gray-400 mb-3">
+                      In gebruik staat bovenaan. &ldquo;Niet in gebruik&rdquo; = geen enkele landingspagina linkt ernaar, die kun je uitzetten of weggooien.
+                      {gebruikPerSlug === undefined && " · LP-koppeling laden…"}
+                    </p>
+                    {lijst.length === 0 ? (
+                      <p className="text-sm text-gray-500 py-4">Geen checkouts met deze layout.</p>
+                    ) : (
+                      <ul className="space-y-3">
+                        {lijst.map((product: CheckoutProduct) => {
+                          const lps = gebruikPerSlug?.[product.slug] ?? [];
+                          return (
+                            <li
+                              key={product._id}
+                              className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50"
+                            >
+                              <div className="flex justify-between items-start gap-4">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                                    <span
+                                      className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                        product.isLive
+                                          ? "bg-green-100 text-green-800"
+                                          : "bg-gray-100 text-gray-600"
+                                      }`}
+                                    >
+                                      {product.isLive ? "Live" : "Verborgen"}
+                                    </span>
+                                    <code className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                      /betalen/{product.slug}
+                                    </code>
+                                    <span className="text-xs font-semibold text-primary-700">
+                                      {formatPrice(product.priceInCents)}
+                                    </span>
+                                  </div>
+                                  <h3 className="font-medium text-primary-900 truncate">{product.name}</h3>
+                                  {product.description && (
+                                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{product.description}</p>
+                                  )}
+                                  <p className="text-xs text-gray-400 mt-0.5">
+                                    Type: {product.subscriptionType}
+                                    {product.accessDays != null && ` · ${product.accessDays} dagen`}
+                                    {product.giftEnabled && " · 🎁 cadeau-optie aan"}
+                                    {" · "}Bijgewerkt{" "}
+                                    {new Date(product.updatedAt).toLocaleDateString("nl-NL", {
+                                      day: "numeric",
+                                      month: "short",
+                                      year: "numeric",
+                                    })}
+                                  </p>
+                                  {/* Welke landingspagina('s) hangen aan deze checkout? */}
+                                  <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                                    {lps.length > 0 ? (
+                                      <>
+                                        <span className="text-xs text-gray-400">Gebruikt op:</span>
+                                        {lps.map((s) => (
+                                          <a
+                                            key={s}
+                                            href={`/lp/${s}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                          >
+                                            /lp/{s}
+                                          </a>
+                                        ))}
+                                      </>
+                                    ) : gebruikPerSlug === undefined ? null : (
+                                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">
+                                        Niet in gebruik · kan uit of weg
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 shrink-0">
+                                  {product.isLive ? (
+                                    <a
+                                      href={`/betalen/${product.slug}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                                      title="Bekijk pagina"
+                                    >
+                                      <ExternalLink size={17} />
+                                    </a>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => openPreview(product.slug)}
+                                      className="p-2 text-amber-600 hover:bg-amber-50 rounded-lg"
+                                      title="Bekijk als concept (nog niet live)"
+                                    >
+                                      <Eye size={17} />
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => startDuplicate(product)}
+                                    className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                                    title="Dupliceren"
+                                  >
+                                    <Copy size={17} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => startEdit(product)}
+                                    className="p-2 text-primary-600 hover:bg-primary-100 rounded-lg"
+                                    title="Bewerken"
+                                  >
+                                    <Edit size={17} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDelete(product._id)}
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                                    title="Verwijderen"
+                                  >
+                                    <Trash2 size={17} />
+                                  </button>
+                                </div>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </>
+                );
+              })()
             )}
           </>
         )}
