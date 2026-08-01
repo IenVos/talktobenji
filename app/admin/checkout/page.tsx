@@ -302,8 +302,8 @@ function CtaControls({ enabled, onEnabledChange, color, onColorChange }: {
 export default function AdminCheckoutPage() {
   const { adminToken } = useAdminAuth();
   const products = useAdminQuery(api.checkoutProducts.list, {});
-  const gebruikPerSlug = useAdminQuery(api.landingPages.gebruikPerCheckoutSlug, {}) as
-    | Record<string, string[]>
+  const gebruikPerSlug = useAdminQuery(api.checkoutGebruik.perCheckout, {}) as
+    | Record<string, { soort: "lp" | "mail" | "funnel"; label: string; url?: string }[]>
     | undefined;
   const [layoutTab, setLayoutTab] = useState<"standaard" | "rustig" | "kaal">("standaard");
   const verliesTypen = useAdminQuery(api.verliesTypen.list, {});
@@ -1657,15 +1657,15 @@ export default function AdminCheckoutPage() {
                       })}
                     </div>
                     <p className="text-xs text-gray-400 mb-3">
-                      In gebruik staat bovenaan. &ldquo;Niet in gebruik&rdquo; = geen enkele landingspagina linkt ernaar, die kun je uitzetten of weggooien.
-                      {gebruikPerSlug === undefined && " · LP-koppeling laden…"}
+                      In gebruik staat bovenaan. &ldquo;Niet in gebruik&rdquo; = geen landingspagina, mail of funnel verwijst ernaar.
+                      {gebruikPerSlug === undefined && " · koppeling laden…"}
                     </p>
                     {lijst.length === 0 ? (
                       <p className="text-sm text-gray-500 py-4">Geen checkouts met deze layout.</p>
                     ) : (
                       <ul className="space-y-3">
                         {lijst.map((product: CheckoutProduct) => {
-                          const lps = gebruikPerSlug?.[product.slug] ?? [];
+                          const usages = gebruikPerSlug?.[product.slug] ?? [];
                           return (
                             <li
                               key={product._id}
@@ -1705,26 +1705,43 @@ export default function AdminCheckoutPage() {
                                       year: "numeric",
                                     })}
                                   </p>
-                                  {/* Welke landingspagina('s) hangen aan deze checkout? */}
+                                  {/* Waar wordt deze checkout gebruikt? LP / mail / funnel */}
                                   <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
-                                    {lps.length > 0 ? (
+                                    {usages.length > 0 ? (
                                       <>
-                                        <span className="text-xs text-gray-400">Gebruikt op:</span>
-                                        {lps.map((s) => (
-                                          <a
-                                            key={s}
-                                            href={`/lp/${s}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100"
-                                          >
-                                            /lp/{s}
-                                          </a>
-                                        ))}
+                                        <span className="text-xs text-gray-400">Gebruikt in:</span>
+                                        {usages.map((u, i) => {
+                                          const kleur =
+                                            u.soort === "lp"
+                                              ? "bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                              : u.soort === "mail"
+                                              ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                              : "bg-violet-50 text-violet-700 hover:bg-violet-100";
+                                          return u.url ? (
+                                            <a
+                                              key={`${u.soort}-${i}`}
+                                              href={u.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className={`text-xs px-2 py-0.5 rounded-full ${kleur}`}
+                                              title={u.label}
+                                            >
+                                              {u.label}
+                                            </a>
+                                          ) : (
+                                            <span
+                                              key={`${u.soort}-${i}`}
+                                              className={`text-xs px-2 py-0.5 rounded-full ${kleur}`}
+                                              title={u.label}
+                                            >
+                                              {u.label}
+                                            </span>
+                                          );
+                                        })}
                                       </>
                                     ) : gebruikPerSlug === undefined ? null : (
                                       <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">
-                                        Niet in gebruik · kan uit of weg
+                                        Niet in gebruik
                                       </span>
                                     )}
                                   </div>

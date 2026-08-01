@@ -6,42 +6,6 @@ import { mutation, query, internalMutation, type QueryCtx } from "./_generated/s
 import type { Doc } from "./_generated/dataModel";
 import { checkAdmin } from "./adminAuth";
 
-/**
- * Admin: per checkout-slug welke landingspagina's eraan hangen (via ctaUrl, footer
- * of een van de per-type-CTA's). Zo zie je in de checkout-beheerpagina meteen of een
- * checkout in gebruik is of los staat. Alleen links die naar een BESTAANDE checkout
- * wijzen tellen; links naar andere LP's of externe URL's worden genegeerd.
- */
-export const gebruikPerCheckoutSlug = query({
-  args: { adminToken: v.string() },
-  handler: async (ctx, args): Promise<Record<string, string[]>> => {
-    await checkAdmin(ctx, args.adminToken);
-    const checkouts = await ctx.db.query("checkoutProducts").collect();
-    const geldig = new Set(checkouts.map((c) => c.slug));
-    const resolve = (u?: string): string | null => {
-      if (!u) return null;
-      const m = u.match(/\/betalen\/([^/?#]+)/);
-      const slug = (m ? m[1] : u.trim());
-      return geldig.has(slug) ? slug : null;
-    };
-    const map: Record<string, string[]> = {};
-    for (const c of checkouts) map[c.slug] = [];
-    const lps = await ctx.db.query("landingPages").collect();
-    for (const l of lps as any[]) {
-      const urls = [
-        l.ctaUrl, l.footerCtaUrl,
-        l.typeCtaUrlPersoon, l.typeCtaUrlHuisdier, l.typeCtaUrlRelatie,
-        l.typeCtaUrlEenzaamheid, l.typeCtaUrlKinderloos,
-      ];
-      const slugs = new Set<string>();
-      for (const u of urls) { const s = resolve(u); if (s) slugs.add(s); }
-      for (const s of slugs) { if (!map[s].includes(l.slug)) map[s].push(l.slug); }
-    }
-    for (const k of Object.keys(map)) map[k].sort();
-    return map;
-  },
-});
-
 /** Admin: lijst alle pagina's, nieuwste eerst (incl. opgeslagen productafbeelding-URL) */
 export const list = query({
   args: { adminToken: v.string() },
