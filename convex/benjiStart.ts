@@ -14,7 +14,7 @@
  *   hetzelfde patroon als convex/credentials.ts.
  */
 import { v } from "convex/values";
-import { mutation, internalMutation, internalQuery } from "./_generated/server";
+import { mutation, internalMutation, internalQuery, query } from "./_generated/server";
 
 const TOKEN_GELDIGHEID_MS = 7 * 24 * 60 * 60 * 1000; // 7 dagen
 const TRIAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dagen
@@ -193,5 +193,53 @@ export const consumeToken = mutation({
     if (!rij.usedAt) await ctx.db.patch(rij._id, { usedAt: now });
 
     return { userId: user._id.toString(), email, name: user.name ?? null };
+  },
+});
+
+/**
+ * Bepaal waar de mail-link naartoe moet, VÓÓR we /benji laden. Zo gaat een
+ * terugkerende gebruiker rechtstreeks naar /account (geen chatscherm ertussen) en
+ * een verse EH-lead direct de verliestype-chat in. Werkt op het token (dat is zelf
+ * het geheim), dus geen ingelogde sessie nodig. Dezelfde beslissing als startEhChat.
+ * Bestemming "account": al eens echt gepraat, geen EH-lead, of onbekend token.
+ * Bestemming "chat": verse EH-lead die nog nooit een bericht typte.
+ */
+export const routeNaStart = query({
+  args: { token: v.string() },
+  handler: async (ctx, args) => {
+    const rij = await ctx.db
+      .query("benjiStartTokens")
+      .withIndex("by_token", (q) => q.eq("token", args.token))
+      .unique();
+    if (!rij) return { bestemming: "account" as const };
+    const email = rij.email.toLowerCase().trim();
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", email))
+      .unique();
+    if (user) {
+      const userId = user._id.toString();
+      const sessies = await ctx.db
+        .query("chatSessions")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+      for (const s of sessies) {
+        const um = await ctx.db
+          .query("chatMessages")
+          .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+          .filter((q) => q.eq(q.field("role"), "user"))
+          .first();
+        if (um) return { bestemming: "account" as const };
+      }
+    }
+
+    const brieven = await ctx.db
+      .query("houvastBrieven")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    if (brieven.length === 0) return { bestemming: "account" as const };
+
+    return { bestemming: "chat" as const };
   },
 });

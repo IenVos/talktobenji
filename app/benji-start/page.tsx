@@ -10,10 +10,13 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { useConvex } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 
 function BenjiStartInner() {
   const params = useSearchParams();
+  const convex = useConvex();
   const token = (params?.get("token") || "").trim();
   const [status, setStatus] = useState<"bezig" | "fout">("bezig");
   const gestart = useRef(false);
@@ -29,9 +32,20 @@ function BenjiStartInner() {
       try {
         const res = await signIn("benji-token", { token, redirect: false });
         if (res?.ok && !res.error) {
-          // Harde navigatie zodat de nieuwe sessie meteen geladen is. start=eh laat
-          // de chat meteen openen met de juiste verliestype-opener (geen keuzescherm).
-          window.location.href = "/benji?start=eh";
+          // Beslis HIER waar we heen gaan, vóór /benji laadt. Een terugkerende
+          // gebruiker (heeft al gepraat / geen verse EH-lead) gaat rechtstreeks naar
+          // het account, zonder dat het chatscherm ertussendoor flitst. Een verse
+          // EH-lead gaat direct de verliestype-chat in via ?start=eh. De query werkt
+          // op het token (zelf het geheim), dus vóórdat de sessie is doorgedrongen.
+          let bestemming: "chat" | "account" = "chat";
+          try {
+            const r = await convex.query(api.benjiStart.routeNaStart, { token });
+            if (r?.bestemming === "account") bestemming = "account";
+          } catch {
+            // Bij twijfel: naar /benji?start=eh; daar wordt alsnog veilig beslist.
+          }
+          // Harde navigatie zodat de nieuwe sessie meteen geladen is.
+          window.location.href = bestemming === "account" ? "/account" : "/benji?start=eh";
         } else {
           setStatus("fout");
         }
@@ -39,7 +53,7 @@ function BenjiStartInner() {
         setStatus("fout");
       }
     })();
-  }, [token]);
+  }, [token, convex]);
 
   return (
     <main
