@@ -1346,6 +1346,19 @@ export default defineSchema({
     .index("by_email", ["email"]),
 
   // Instellingen voor de herinneringsmail bij een afgehaakte checkout (één rij).
+  // Eén centraal verzendschema voor de hele Even Houvast-opvolgfunnel: per intern
+  // mailnummer (1..6) de dag na de brief. Geldt voor ALLE verliestypes tegelijk, zodat
+  // de timing nooit per type kan afwijken. Singleton-rij (er is er hoogstens één).
+  ehVerzendSchema: defineTable({
+    mail1: v.number(),
+    mail2: v.number(),
+    mail3: v.number(),
+    mail4: v.number(),
+    mail5: v.number(),
+    mail6: v.number(),
+    updatedAt: v.number(),
+  }),
+
   checkoutHerstelConfig: defineTable({
     actief: v.boolean(),          // mails aan/uit; staat standaard uit
     urenWachten: v.number(),      // hoe lang na het afhaken mail 1 gaat

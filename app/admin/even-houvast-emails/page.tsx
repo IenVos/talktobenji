@@ -36,15 +36,15 @@ const EH_TYPE_TABS: { code: string; naam: string }[] = [
 ];
 
 function EHMailEditor({
-  n, type, titel, subtitel, defaultDag, saved, onSave, onTest, canTest, onUploadImage,
+  n, type, titel, subtitel, dag, saved, onSave, onTest, canTest, onUploadImage,
 }: {
   n: number;
   type: string;
   titel: string;
   subtitel: string;
-  defaultDag: number;
+  dag: number; // read-only: komt uit het centrale verzendschema (geldt voor alle types)
   saved: any;
-  onSave: (n: number, f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; imageUrl: string; imageCaption: string; dagOffset: number }) => Promise<void>;
+  onSave: (n: number, f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; imageUrl: string; imageCaption: string }) => Promise<void>;
   onTest: (n: number) => Promise<void>;
   canTest: boolean;
   onUploadImage: (file: File) => Promise<string | null>;
@@ -57,7 +57,6 @@ function EHMailEditor({
   const [buttonUrl, setButtonUrl] = useState<string>(saved?.buttonUrl ?? def.buttonUrl ?? "");
   const [imageUrl, setImageUrl] = useState<string>(saved?.imageUrl ?? def.imageUrl ?? "");
   const [imageCaption, setImageCaption] = useState<string>(saved?.imageCaption ?? def.imageCaption ?? "");
-  const [dag, setDag] = useState<number>(saved?.dagOffset ?? defaultDag);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [testState, setTestState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [testError, setTestError] = useState("");
@@ -70,16 +69,15 @@ function EHMailEditor({
     setButtonUrl(saved?.buttonUrl ?? def.buttonUrl ?? "");
     setImageUrl(saved?.imageUrl ?? def.imageUrl ?? "");
     setImageCaption(saved?.imageCaption ?? def.imageCaption ?? "");
-    setDag(saved?.dagOffset ?? defaultDag);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [saved?.subject, saved?.bodyText, saved?.buttonText, saved?.buttonUrl, saved?.imageUrl, saved?.imageCaption, saved?.dagOffset]);
+  }, [saved?.subject, saved?.bodyText, saved?.buttonText, saved?.buttonUrl, saved?.imageUrl, saved?.imageCaption]);
 
   const isEdited = !!saved;
   const inputCls = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
 
   const save = async () => {
     setStatus("saving");
-    await onSave(n, { subject, bodyText, buttonText, buttonUrl, imageUrl, imageCaption, dagOffset: dag });
+    await onSave(n, { subject, bodyText, buttonText, buttonUrl, imageUrl, imageCaption });
     setStatus("saved");
     setTimeout(() => setStatus("idle"), 2000);
   };
@@ -105,23 +103,10 @@ function EHMailEditor({
       {open && (
         <div className="px-4 pb-4 pt-1 space-y-3 border-t border-gray-100">
           <p className="text-xs text-gray-400 pt-2">{subtitel}</p>
-          <div className="flex items-center gap-2">
-            <label className="text-xs font-semibold text-gray-600">Verstuur op dag</label>
-            <input
-              type="number"
-              min={2}
-              value={dag}
-              onChange={(e) => setDag(Math.max(0, parseInt(e.target.value || "0", 10)))}
-              className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
-            />
-            <span className="text-xs text-gray-400">dagen na de brief</span>
-            {dag < 2 && (
-              <span className="text-xs text-amber-700">
-                Te vroeg: de reeks schuift automatisch op, zodat niemand een opvolgmail
-                krijgt op de dag van de brief zelf.
-              </span>
-            )}
-          </div>
+          <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+            Verzenddag: <strong>dag {dag}</strong> na de brief. De verzenddagen stel je centraal in
+            (bovenaan, geldt voor alle verliestypes), niet per mail.
+          </p>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Onderwerp</label>
             <input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} />
@@ -206,9 +191,82 @@ function EHMailEditor({
   );
 }
 
+// Eén centraal verzendschema voor de hele funnel (alle verliestypes tegelijk).
+function VerzendSchemaPaneel({ schema, onSave }: {
+  schema: { mail1: number; mail2: number; mail3: number; mail4: number; mail5: number; mail6: number; ondergrens: number } | undefined;
+  onSave: (w: { mail1: number; mail2: number; mail3: number; mail4: number; mail5: number; mail6: number }) => Promise<void>;
+}) {
+  const [waarden, setWaarden] = useState<Record<number, number>>({});
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  useEffect(() => {
+    if (schema) setWaarden({ 1: schema.mail1, 2: schema.mail2, 3: schema.mail3, 4: schema.mail4, 5: schema.mail5, 6: schema.mail6 });
+  }, [schema?.mail1, schema?.mail2, schema?.mail3, schema?.mail4, schema?.mail5, schema?.mail6]);
+
+  const zet = (n: number, val: string) => setWaarden((w) => ({ ...w, [n]: Math.max(0, parseInt(val || "0", 10)) }));
+  const opslaan = async () => {
+    setStatus("saving");
+    await onSave({ mail1: waarden[1], mail2: waarden[2], mail3: waarden[3], mail4: waarden[4], mail5: waarden[5], mail6: waarden[6] });
+    setStatus("saved");
+    setTimeout(() => setStatus("idle"), 2000);
+  };
+  const ondergrens = schema?.ondergrens ?? 2;
+  const teVroeg = EH_META.some((m) => (waarden[m.n] ?? 99) < ondergrens);
+  const gesorteerd = [...EH_META].sort((a, b) => (waarden[a.n] ?? a.defaultDag) - (waarden[b.n] ?? b.defaultDag));
+
+  return (
+    <div className="bg-white rounded-xl border border-primary-200 p-4 space-y-3">
+      <div>
+        <h2 className="text-sm font-bold text-gray-800">Verzendschema — geldt voor alle verliestypes</h2>
+        <p className="text-xs text-gray-500 mt-0.5">
+          Op welke dag na de brief elke mail vertrekt. Dit is de enige plek waar je de timing instelt; per mail kun je het niet meer verzetten.
+        </p>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {EH_META.map((m, idx) => (
+          <div key={m.n} className="flex items-center gap-2">
+            <span className="text-xs text-gray-600 flex-1 truncate">Mail {idx + 1} · {m.titel}</span>
+            <div className="flex items-center gap-1">
+              <span className="text-[11px] text-gray-400">dag</span>
+              <input
+                type="number"
+                min={0}
+                value={waarden[m.n] ?? ""}
+                onChange={(e) => zet(m.n, e.target.value)}
+                className="w-14 px-2 py-1.5 border border-gray-300 rounded-lg text-sm"
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      {teVroeg && (
+        <p className="text-xs text-amber-700">
+          Een dag onder {ondergrens}: de hele reeks schuift automatisch op, zodat niemand een mail krijgt op de dag van de brief zelf.
+        </p>
+      )}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={opslaan}
+          disabled={status === "saving" || !schema}
+          className="flex items-center gap-2 px-3 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-40"
+        >
+          <Save size={14} /> {status === "saving" ? "Opslaan…" : "Verzendschema opslaan"}
+        </button>
+        {status === "saved" && <span className="text-sm text-green-600">Opgeslagen ✓</span>}
+        <span className="text-xs text-gray-400">
+          Volgorde: {gesorteerd.map((m) => `dag ${waarden[m.n] ?? m.defaultDag}`).join(" · ")}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function EvenHouvastEmailsPage() {
   const templates = useAdminQuery(api.emailTemplates.listTemplates, {});
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
+  const verzendSchema = useAdminQuery(api.evenHouvastOpvolg.getVerzendSchema, {}) as
+    | { mail1: number; mail2: number; mail3: number; mail4: number; mail5: number; mail6: number; ondergrens: number }
+    | undefined;
+  const setVerzendSchema = useAdminMutation(api.evenHouvastOpvolg.setVerzendSchema);
   const stuurTestEnkel = useAdminAction(api.evenHouvastOpvolg.stuurTestOpvolgEnkel);
   const stuurTestBrief = useAdminAction(api.houvast.stuurTestBrief);
   const generateUploadUrl = useAdminMutation(api.pageContent.generateUploadUrl);
@@ -226,9 +284,12 @@ export default function EvenHouvastEmailsPage() {
   const [opvolgError, setOpvolgError] = useState("");
 
   const getT = (n: number) => templates?.find((t: any) => t.key === `eh_${bewerkType}_${n}`);
+  // Verzenddag per intern mailnummer, uit het centrale schema (val terug op de default).
+  const dagVanMail = (n: number): number =>
+    (verzendSchema as any)?.[`mail${n}`] ?? EH_META.find((m) => m.n === n)?.defaultDag ?? 0;
   const save = async (
     n: number,
-    f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; imageUrl: string; imageCaption: string; dagOffset: number }
+    f: { subject: string; bodyText: string; buttonText: string; buttonUrl: string; imageUrl: string; imageCaption: string }
   ) => {
     await upsertTemplate({
       key: `eh_${bewerkType}_${n}`,
@@ -242,7 +303,7 @@ export default function EvenHouvastEmailsPage() {
       buttonUrl: f.buttonUrl,
       imageUrl: f.imageUrl,
       imageCaption: f.imageCaption,
-      dagOffset: f.dagOffset,
+      // dagOffset niet meer meesturen: de timing komt uit het centrale verzendschema.
     });
   };
   const test = async (n: number) => {
@@ -288,9 +349,9 @@ export default function EvenHouvastEmailsPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Even Houvast e-mails</h1>
         <p className="text-sm text-gray-500 mt-1">
-          De opvolgreeks naar wie Even Houvast deed, richting Niet Alleen. Er is een reeks <strong>per verliestype</strong>
-          (kies hieronder); leads zonder gekozen type krijgen de <strong>algemene</strong> reeks. Klap een mail open om de tekst,
-          de knop en de verzenddag aan te passen, en stuur 'm los als test. Stopt automatisch als iemand koopt.
+          De opvolgreeks naar wie Even Houvast deed, richting Niet Alleen. De <strong>verzenddagen</strong> stel je één keer centraal in
+          (hieronder), gelijk voor alle types. De <strong>tekst</strong> is per verliestype (kies verderop); leads zonder gekozen type
+          krijgen de <strong>algemene</strong> reeks. Klap een mail open om de tekst en de knop aan te passen, en stuur 'm los als test.
         </p>
       </div>
 
@@ -304,7 +365,7 @@ export default function EvenHouvastEmailsPage() {
           <span className="text-xs font-semibold text-amber-800 w-full sm:w-auto">Stuur een opvolgmail als test:</span>
           <select value={testMailNr} onChange={(e) => setTestMailNr(Number(e.target.value))} className="px-3 py-2 border border-amber-200 rounded-lg text-sm bg-white">
             {EH_META.map((m, idx) => (
-              <option key={m.n} value={m.n}>Mail {idx + 1} — {m.titel} (dag {m.defaultDag})</option>
+              <option key={m.n} value={m.n}>Mail {idx + 1} — {m.titel} (dag {dagVanMail(m.n)})</option>
             ))}
           </select>
           <button
@@ -344,6 +405,12 @@ export default function EvenHouvastEmailsPage() {
         </div>
       </div>
 
+      {/* Centraal verzendschema: één set dagen voor alle verliestypes */}
+      <VerzendSchemaPaneel
+        schema={verzendSchema}
+        onSave={(w) => setVerzendSchema(w)}
+      />
+
       {/* Verliestype-keuze: per type een eigen reeks bewerken/testen */}
       <div className="bg-white rounded-xl border border-gray-200 p-3 flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium text-gray-500 w-full sm:w-auto mr-1">Reeks voor:</span>
@@ -367,7 +434,7 @@ export default function EvenHouvastEmailsPage() {
             type={bewerkType}
             titel={m.titel}
             subtitel={m.subtitel}
-            defaultDag={m.defaultDag}
+            dag={dagVanMail(m.n)}
             saved={getT(m.n)}
             onSave={save}
             onTest={test}

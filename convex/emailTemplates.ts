@@ -159,7 +159,8 @@ export const upsertTemplate = mutation({
       imageCaption: args.imageCaption,
       upsellText: args.upsellText,
       upsellUrl: args.upsellUrl,
-      dagOffset: args.dagOffset,
+      // dagOffset bewust NIET meer opgeslagen: de verzenddagen komen uit het centrale
+      // ehVerzendSchema (gelijk voor alle types). Zo kan opslaan de timing niet verzetten.
       updatedAt: Date.now(),
     };
 

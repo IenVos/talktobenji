@@ -36,11 +36,12 @@ const DAG_MS = 24 * 60 * 60 * 1000;
 const EH_OPVOLG_START = Date.UTC(2026, 5, 25); // 25 juni 2026
 
 // Welke mail op welke dag na de brief. Sleutel = mailnummer, waarde = dagoffset.
-// De eerste opvolgmail start bewust op dag 2, zodat de brief en de eerste mail
-// nooit op dezelfde dag binnenkomen (dat gaf afmeldingen). Mail 6 ("Wie ik ben")
-// valt chronologisch op dag 4, tussen mail 1 en 2. De verzendvolgorde wordt op
-// dagoffset bepaald, niet op mailnummer.
-const SCHEMA: Record<number, number> = { 1: 2, 6: 4, 2: 5, 3: 7, 4: 10, 5: 13 };
+// Dit is het CENTRALE verzendschema voor de hele funnel, gelijk voor alle types
+// (afgeleid van de geoptimaliseerde huisdier-cadans). Dit is de code-fallback; als
+// er een rij in `ehVerzendSchema` staat, wint die (één centrale plek, admin-bewerkbaar).
+// Mail 6 ("Benji voorstellen") valt chronologisch als 2e (dag 3). De verzendvolgorde
+// wordt op dagoffset bepaald, niet op mailnummer. Nooit meer per verliestype instelbaar.
+const SCHEMA: Record<number, number> = { 1: 2, 6: 3, 2: 5, 3: 8, 4: 10, 5: 12 };
 const MAIL_NUMMERS = Object.keys(SCHEMA).map(Number);
 
 // Ondergrens: nooit een opvolgmail binnen twee dagen na de brief. De cron kijkt
@@ -401,31 +402,65 @@ export const _statusVoorLead = internalQuery({
   },
 });
 
-// Effectieve dag-offsets per mail voor één type: opgeslagen dagOffset uit de admin,
-// anders de default. Nooit eerder dan MIN_DAG_OFFSET: een opvolgmail op dezelfde
-// avond als de brief voelt als overvallen worden en leverde afmeldingen op. Die
-// ondergrens geldt ook als er per ongeluk dag 0 of 1 in de admin staat.
+// Het effectieve verzendschema: één centrale rij (ehVerzendSchema) voor de HELE
+// funnel, gelijk voor alle verliestypes. Geen per-mail/per-type dagOffset meer, zodat
+// het opslaan van een mail de timing nooit kan verzetten. Zonder centrale rij: de
+// code-fallback (SCHEMA, huisdier-cadans). De ondergrens MIN_DAG_OFFSET schuift de
+// hele reeks op als de vroegste mail te vroeg staat.
+async function leesVerzendSchema(ctx: any): Promise<Record<number, number>> {
+  const doc = await ctx.db.query("ehVerzendSchema").first();
+  const result: Record<number, number> = doc
+    ? { 1: doc.mail1, 2: doc.mail2, 3: doc.mail3, 4: doc.mail4, 5: doc.mail5, 6: doc.mail6 }
+    : { ...SCHEMA };
+  const vroegste = Math.min(...MAIL_NUMMERS.map((n) => result[n]));
+  const verschuiving = Math.max(0, MIN_DAG_OFFSET - vroegste);
+  if (verschuiving > 0) for (const n of MAIL_NUMMERS) result[n] += verschuiving;
+  return result;
+}
+
 export const _dagSchema = internalQuery({
   args: { type: v.string() },
-  handler: async (ctx, args) => {
-    const type = normType(args.type);
-    const result: Record<number, number> = { ...SCHEMA };
-    for (const n of MAIL_NUMMERS) {
-      const t = await ctx.db
-        .query("emailTemplates")
-        .withIndex("by_key", (q) => q.eq("key", TEMPLATE_KEY(type, n)))
-        .unique();
-      if (t && typeof (t as any).dagOffset === "number") result[n] = (t as any).dagOffset;
-    }
+  handler: async (ctx) => leesVerzendSchema(ctx),
+});
 
-    // Begint de reeks te vroeg (bv. dag 0), dan schuiven we hem in zijn geheel op.
-    // Zo blijven de onderlinge afstanden tussen de mails precies zoals ingesteld.
-    const vroegste = Math.min(...MAIL_NUMMERS.map((n) => result[n]));
-    const verschuiving = Math.max(0, MIN_DAG_OFFSET - vroegste);
-    if (verschuiving > 0) {
-      for (const n of MAIL_NUMMERS) result[n] += verschuiving;
-    }
-    return result;
+// Admin: het centrale verzendschema lezen (voor het beheerscherm). Toont de opgeslagen
+// waarden, of de code-fallback (huisdier-cadans) als er nog niets is ingesteld.
+export const getVerzendSchema = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const doc = await ctx.db.query("ehVerzendSchema").first();
+    return {
+      mail1: doc?.mail1 ?? SCHEMA[1],
+      mail2: doc?.mail2 ?? SCHEMA[2],
+      mail3: doc?.mail3 ?? SCHEMA[3],
+      mail4: doc?.mail4 ?? SCHEMA[4],
+      mail5: doc?.mail5 ?? SCHEMA[5],
+      mail6: doc?.mail6 ?? SCHEMA[6],
+      ondergrens: MIN_DAG_OFFSET,
+    };
+  },
+});
+
+// Admin: het centrale verzendschema opslaan. Geldt meteen voor alle verliestypes.
+export const setVerzendSchema = mutation({
+  args: {
+    adminToken: v.string(),
+    mail1: v.number(), mail2: v.number(), mail3: v.number(),
+    mail4: v.number(), mail5: v.number(), mail6: v.number(),
+  },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const clamp = (n: number) => Math.max(0, Math.round(n || 0));
+    const velden = {
+      mail1: clamp(args.mail1), mail2: clamp(args.mail2), mail3: clamp(args.mail3),
+      mail4: clamp(args.mail4), mail5: clamp(args.mail5), mail6: clamp(args.mail6),
+      updatedAt: Date.now(),
+    };
+    const doc = await ctx.db.query("ehVerzendSchema").first();
+    if (doc) await ctx.db.patch(doc._id, velden);
+    else await ctx.db.insert("ehVerzendSchema", velden);
+    return { ok: true };
   },
 });
 
