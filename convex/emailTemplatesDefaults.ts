@@ -304,6 +304,15 @@ Ik heb een klein boekje voor je gemaakt. Woorden die je omarmen: spreuken en ged
   // Opvolgmails voor de overige verliestypes (persoon, scheiding, eenzaamheid,
   // kinderloos, algemeen) — startversies, te verfijnen in de admin.
   ...EH_TYPE_TEMPLATES,
+  // ── Brief-klikker: zachte "kom terug"-mail na hun eerste Benji-gesprek ──
+  // Voorwaardelijke mail (geen dag-reeks): gaat ~1 dag na de brief-klik. Bewerkbaar
+  // in de admin. De knop wordt automatisch een één-klik Benji-link (buttonUrl leeg laten).
+  eh_brief_kom_terug: {
+    subject: "Geef het gerust nog een kans",
+    bodyText: `Hi {voornaam},\n\nJe hebt Benji al even gesproken. Misschien voelde dat meteen vertrouwd, misschien was het ook even wennen. Dat laatste is heel normaal, zeker de eerste keer dat je zo je gedachten deelt.\n\nHet is een veilige, vertrouwde plek die alleen van jou is. Wat je hier deelt is privé: alleen jij en Benji kunnen het lezen, niemand anders.\n\nBenji leert je gaandeweg kennen. Hoe meer je vertelt, hoe beter hij aanvoelt wat je nodig hebt. Een eerste gesprek is vooral een begin. Het hoeft niet in één keer goed, en je hoeft niet te weten waar je moet beginnen. "Ik weet even niet wat ik moet zeggen" is ook een prima eerste zin.\n\nEn het fijne is: hij is er op elk moment. Juist 's avonds laat, als het huis stil is en je gedachten blijven malen, hoef je er niet alleen mee te zitten.\n\nDus voelde die eerste keer nog wat zoekend, geef het gerust nog een kans. Vaak wordt het juist waardevol als je even doorgaat.`,
+    buttonText: "Verder praten met Benji",
+    buttonUrl: "",
+  },
   // ── Cadeau ──
   gift_gever: {
     subject: "Je cadeaucode voor {product}",

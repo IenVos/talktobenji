@@ -938,6 +938,13 @@ export default defineSchema({
     sentAt: v.number(),
   }).index("by_email", ["email"]),
 
+  // Brief-klikker "kom terug"-mail: één keer per adres, na hun eerste Benji-gesprek
+  // vanuit de brief. Aparte tabel zodat de opvolgreeks-cijfers zuiver blijven.
+  ehBriefKomTerugVerzonden: defineTable({
+    email: v.string(),
+    verstuurdOp: v.number(),
+  }).index("by_email", ["email"]),
+
   // Even Houvast opvolgmails — afmeldingen (uitschrijvingen uit de reeks)
   ehAfmeldingen: defineTable({
     email: v.string(),

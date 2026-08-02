@@ -900,3 +900,141 @@ export const setVerliesType = mutation({
     return { ok: true, aangepast: brieven.length };
   },
 });
+
+// ── Brief-klikker "kom terug"-mail ───────────────────────────────────────────────
+// Voorwaardelijke mail (geen dag-reeks): gaat ~1 dag na de eerste Benji-klik vanuit
+// de brief, één keer per adres. Zacht bedoeld: normaliseert dat een eerste gesprek
+// even wennen is en nodigt uit om het nog een kans te geven. Aan/uit via env
+// EH_BRIEF_KOMTERUG_ACTIEF (staat UIT tot de gespreks-privacy live is, want de tekst
+// belooft "alleen jij en Benji kunnen het lezen"). Zie het geheugen: privacy-plan.
+const BRIEF_KOMTERUG_KEY = "eh_brief_kom_terug";
+
+async function verstuurBriefKomTerug(
+  ctx: any,
+  args: { email: string; naam?: string | null; type?: string | null; apiKey: string }
+) {
+  const type = normType(args.type);
+  const saved = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: BRIEF_KOMTERUG_KEY });
+  const def = (DEFAULT_TEMPLATES as any)[BRIEF_KOMTERUG_KEY];
+  const subject: string = saved?.subject ?? def?.subject ?? "";
+  const bodyText: string = saved?.bodyText ?? def?.bodyText ?? "";
+  const knopTekst: string = (saved?.buttonText ?? def?.buttonText ?? "Verder praten met Benji").trim();
+
+  // Persoonlijke één-klik Benji-link. Voor een terugkerende gebruiker leidt die naar
+  // hun eigen plek/gesprek (routeNaStart). Zelfde mechanisme als de opvolgmails.
+  const benjiToken = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
+    email: args.email,
+    naam: args.naam ?? undefined,
+  });
+  await ctx.runMutation(internal.benjiStart.logVerzending, { email: args.email, mail: "brief-komterug" });
+  const benjiUrl = `${appBase()}/benji-start?token=${benjiToken}`;
+
+  const body = persoonlijkeBody(bodyText, args.naam);
+  const rompHtml = body
+    .trim()
+    .split(/\n\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map(mailAlinea)
+    .join("\n");
+
+  const benjiKnop = knopTekst
+    ? `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${knopTekst} &rarr;</a></div>`
+    : "";
+
+  const token = await afmeldToken(args.email);
+  const afmeldUrl = `${appBase()}/api/afmelden?e=${encodeURIComponent(args.email)}&t=${token}&m=brief-komterug&type=${type}`;
+
+  const html = mailWrapper(`
+    ${rompHtml}
+    ${benjiKnop}
+    ${mailHandtekeningIen()}
+    ${ehFooter(nietAlleenUrlVoorType(type), afmeldUrl)}
+  `);
+
+  await verstuurEmail({
+    to: args.email,
+    subject: persoonlijkOnderwerp(subject, args.naam),
+    html,
+    apiKey: args.apiKey,
+    tags: [
+      { name: "programma", value: "eh" },
+      { name: "mail", value: "brief-komterug" },
+      { name: "verliestype", value: type },
+    ],
+  });
+}
+
+// Kandidaten: brief-leads die hun Benji-link ~1 dag geleden gebruikten, nog geen
+// kom-terug-mail kregen, niet afgemeld zijn en Niet Alleen niet kochten. De floor van
+// 7 dagen voorkomt dat we bij het aanzetten oude klikkers alsnog mailen.
+export const _briefKomTerugKandidaten = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const onder = now - 7 * 24 * 60 * 60 * 1000;
+    const boven = now - 20 * 60 * 60 * 1000;
+    const tokens = (await ctx.db.query("benjiStartTokens").collect()).filter(
+      (t: any) => typeof t.usedAt === "number" && t.usedAt >= onder && t.usedAt <= boven
+    );
+    const seen = new Set<string>();
+    const uit: { email: string; naam: string | null; type: string }[] = [];
+    for (const t of tokens) {
+      const email = (t.email || "").toLowerCase().trim();
+      if (!email || seen.has(email)) continue;
+      seen.add(email);
+      const [alGestuurd, afgemeld, profiel, brieven] = await Promise.all([
+        ctx.db.query("ehBriefKomTerugVerzonden").withIndex("by_email", (q) => q.eq("email", email)).first(),
+        ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", email)).first(),
+        ctx.db.query("nietAlleenProfiles").withIndex("by_email", (q) => q.eq("email", email)).first(),
+        ctx.db.query("houvastBrieven").withIndex("by_email", (q) => q.eq("email", email)).collect(),
+      ]);
+      if (alGestuurd || afgemeld || profiel) continue;
+      if (brieven.length === 0) continue; // moet een echte brief-lead zijn
+      const laatste = [...brieven].sort((a: any, b: any) => (b.sentAt ?? 0) - (a.sentAt ?? 0))[0];
+      uit.push({ email, naam: t.naam ?? laatste.naam ?? null, type: laatste.verliesType ?? "algemeen" });
+    }
+    return uit;
+  },
+});
+
+export const _logBriefKomTerug = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("ehBriefKomTerugVerzonden", {
+      email: args.email.toLowerCase().trim(),
+      verstuurdOp: Date.now(),
+    });
+  },
+});
+
+// Dagelijkse cron. Uit tot EH_BRIEF_KOMTERUG_ACTIEF === "true" (samen met privacy live).
+export const processBriefKomTerug = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    if (process.env.EH_BRIEF_KOMTERUG_ACTIEF !== "true") return;
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) return;
+    const kandidaten = await ctx.runQuery(internal.evenHouvastOpvolg._briefKomTerugKandidaten, {});
+    for (const k of kandidaten) {
+      try {
+        await verstuurBriefKomTerug(ctx, { email: k.email, naam: k.naam, type: k.type, apiKey });
+        await ctx.runMutation(internal.evenHouvastOpvolg._logBriefKomTerug, { email: k.email });
+      } catch (e) {
+        console.error("brief-komterug faalde voor", k.email, e);
+      }
+    }
+  },
+});
+
+// Admin: stuur de kom-terug-mail als test naar een inbox (geen tracking, geen gating).
+export const stuurTestBriefKomTerug = action({
+  args: { adminToken: v.string(), email: v.string(), naam: v.optional(v.string()), type: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
+    await verstuurBriefKomTerug(ctx, { email: args.email, naam: args.naam, type: args.type, apiKey });
+    return { ok: true };
+  },
+});

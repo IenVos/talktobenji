@@ -260,6 +260,71 @@ function VerzendSchemaPaneel({ schema, onSave }: {
   );
 }
 
+// Compacte editor voor de voorwaardelijke brief-klikker "kom terug"-mail. Vaste
+// template-sleutel (geen type/nummer), geen afbeelding, geen knop-URL (die wordt
+// automatisch de persoonlijke Benji-link).
+function BriefKomTerugEditor({ saved, onSave, onTest, canTest }: {
+  saved: any;
+  onSave: (f: { subject: string; bodyText: string; buttonText: string }) => Promise<void>;
+  onTest: () => Promise<void>;
+  canTest: boolean;
+}) {
+  const def = (DEFAULT_TEMPLATES as any)["eh_brief_kom_terug"] ?? {};
+  const [open, setOpen] = useState(false);
+  const [subject, setSubject] = useState<string>(saved?.subject ?? def.subject ?? "");
+  const [bodyText, setBodyText] = useState<string>(saved?.bodyText ?? def.bodyText ?? "");
+  const [buttonText, setButtonText] = useState<string>(saved?.buttonText ?? def.buttonText ?? "");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [testState, setTestState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [testError, setTestError] = useState("");
+  useEffect(() => {
+    setSubject(saved?.subject ?? def.subject ?? "");
+    setBodyText(saved?.bodyText ?? def.bodyText ?? "");
+    setButtonText(saved?.buttonText ?? def.buttonText ?? "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saved?.subject, saved?.bodyText, saved?.buttonText]);
+  const inputCls = "w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-400";
+  const isEdited = !!saved;
+  const save = async () => { setStatus("saving"); await onSave({ subject, bodyText, buttonText }); setStatus("saved"); setTimeout(() => setStatus("idle"), 2000); };
+  const test = async () => { setTestState("sending"); setTestError(""); try { await onTest(); setTestState("done"); setTimeout(() => setTestState("idle"), 2500); } catch (e: any) { setTestError(e?.message ?? "Onbekende fout"); setTestState("error"); } };
+  return (
+    <div className={`border rounded-xl overflow-hidden ${isEdited ? "border-primary-300 bg-primary-50/30" : "border-amber-300 bg-amber-50/40"}`}>
+      <button type="button" onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors">
+        {open ? <ChevronDown size={15} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-gray-400 flex-shrink-0" />}
+        <span className="text-sm font-medium text-gray-700 flex-1 truncate">Brief-opvolg: kom terug</span>
+        <span className="flex-shrink-0 text-[10px] font-semibold text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2 py-0.5">na brief-klik</span>
+        {isEdited && <span className="flex-shrink-0 text-[10px] font-semibold text-primary-600 bg-primary-100 border border-primary-200 rounded-full px-2 py-0.5">aangepast</span>}
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pt-1 space-y-3 border-t border-gray-100">
+          <p className="text-xs text-gray-500 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            Voorwaardelijke mail: gaat ~1 dag nadat iemand vanuit de brief op Benji klikte, één keer per persoon. <strong>Staat nog uit</strong> tot de gespreks-privacy live is (de tekst belooft &ldquo;alleen jij en Benji&rdquo;). De knop wordt automatisch een persoonlijke Benji-link.
+          </p>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Onderwerp</label>
+            <input value={subject} onChange={(e) => setSubject(e.target.value)} className={inputCls} />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Tekst <span className="font-normal text-gray-400">(gebruik {"{voornaam}"}; handtekening, knop en afmeldlink komen automatisch)</span></label>
+            <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} rows={12} className={`${inputCls} font-mono leading-relaxed resize-y`} />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-gray-600 mb-1">Knoptekst</label>
+            <input value={buttonText} onChange={(e) => setButtonText(e.target.value)} className={inputCls} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={save} disabled={status === "saving"} className="px-4 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">{status === "saving" ? "Opslaan…" : status === "saved" ? "Opgeslagen ✓" : "Opslaan"}</button>
+            <button onClick={test} disabled={!canTest || testState === "sending"} className="flex items-center gap-2 px-3 py-2 text-sm text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-50 disabled:opacity-40 bg-white"><Send size={13} /> {testState === "sending" ? "Versturen…" : "Stuur testmail"}</button>
+            {testState === "done" && <span className="text-sm text-green-600">Verstuurd ✓</span>}
+            {testState === "error" && <span className="text-sm text-red-600">Mislukt</span>}
+            {testState === "error" && testError && <p className="text-[11px] text-red-500 w-full break-words">{testError}</p>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function EvenHouvastEmailsPage() {
   const templates = useAdminQuery(api.emailTemplates.listTemplates, {});
   const upsertTemplate = useAdminMutation(api.emailTemplates.upsertTemplate);
@@ -269,6 +334,7 @@ export default function EvenHouvastEmailsPage() {
   const setVerzendSchema = useAdminMutation(api.evenHouvastOpvolg.setVerzendSchema);
   const stuurTestEnkel = useAdminAction(api.evenHouvastOpvolg.stuurTestOpvolgEnkel);
   const stuurTestBrief = useAdminAction(api.houvast.stuurTestBrief);
+  const stuurTestBriefKomTerug = useAdminAction(api.evenHouvastOpvolg.stuurTestBriefKomTerug);
   const generateUploadUrl = useAdminMutation(api.pageContent.generateUploadUrl);
   const getImageUrl = useAdminMutation(api.pageContent.getImageUrl);
   const verliestypen = useAdminQuery(api.verliesTypen.list, {}) as
@@ -310,6 +376,21 @@ export default function EvenHouvastEmailsPage() {
     await stuurTestEnkel({ email: testEmail.trim(), naam: testNaam.trim() || undefined, mailNummer: n, type: bewerkType });
   };
   const canTest = testEmail.includes("@");
+
+  // Brief-klikker "kom terug"-mail (voorwaardelijk, geen dag-reeks).
+  const briefKomTerugSaved = templates?.find((t: any) => t.key === "eh_brief_kom_terug");
+  const saveBriefKomTerug = async (f: { subject: string; bodyText: string; buttonText: string }) => {
+    await upsertTemplate({
+      key: "eh_brief_kom_terug",
+      subject: f.subject,
+      bodyText: f.bodyText,
+      buttonText: f.buttonText,
+      buttonUrl: "", // knop wordt automatisch de persoonlijke Benji-link
+    });
+  };
+  const testBriefKomTerug = async () => {
+    await stuurTestBriefKomTerug({ email: testEmail.trim(), naam: testNaam.trim() || undefined, type: bewerkType });
+  };
 
   // Testmail van een gekozen opvolgmail (via de dropdown), met zichtbare fout.
   const testOpvolg = async () => {
@@ -442,6 +523,17 @@ export default function EvenHouvastEmailsPage() {
             onUploadImage={uploadImage}
           />
         ))}
+      </div>
+
+      {/* Voorwaardelijke mail buiten de dag-reeks: brief-klikkers ~1 dag na hun klik. */}
+      <div className="mt-6 pt-5 border-t border-gray-200 space-y-2">
+        <h2 className="text-sm font-bold text-gray-700">Losse mail (geen dag-reeks)</h2>
+        <BriefKomTerugEditor
+          saved={briefKomTerugSaved}
+          onSave={saveBriefKomTerug}
+          onTest={testBriefKomTerug}
+          canTest={canTest}
+        />
       </div>
     </div>
   );

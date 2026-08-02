@@ -75,6 +75,16 @@ crons.daily(
   {}
 );
 
+// Brief-klikker "kom terug"-mail — één keer per adres, ~1 dag na de Benji-klik.
+// Doet niets tot env EH_BRIEF_KOMTERUG_ACTIEF === "true" (aanzetten samen met de
+// gespreks-privacy). Los tijdstip van de opvolgreeks zodat het elkaar niet raakt.
+crons.daily(
+  "even houvast brief kom-terug",
+  { hourUTC: 15, minuteUTC: 0 },
+  internal.evenHouvastOpvolg.processBriefKomTerug,
+  {}
+);
+
 crons.daily(
   "jaar renewal emails",
   { hourUTC: 9, minuteUTC: 0 },
