@@ -202,6 +202,24 @@ async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Herkomst>> {
   return index;
 }
 
+// Systeem-/transactie- en ruis-mails die NIET in de marketing-statistieken horen:
+// MailerLite-waarschuwingen, concept-previews, testmails, facturen/verkoopmeldingen,
+// wachtwoord-reset en e-mailbevestigingen. Match op de onderwerpregel (emoji-veilig).
+function isRuisMail(subject: string | undefined): boolean {
+  const s = (subject || "").toLowerCase();
+  return (
+    s.includes("mailerlite") ||
+    s.includes("lead niet in") ||
+    s.includes("[concept]") ||
+    s.includes("[test]") ||
+    s.startsWith("test:") ||
+    s.includes("factuur") ||
+    s.includes("nieuwe verkoop") ||
+    s.includes("wachtwoord resetten") ||
+    s.includes("bevestig je e-mail")
+  );
+}
+
 export const stats = query({
   args: { adminToken: v.string(), sinceDays: v.optional(v.number()) },
   handler: async (ctx, args) => {
@@ -271,6 +289,9 @@ export const stats = query({
 
     for (const m of perMail.values()) {
       const label = normaliseerOnderwerp(m.subject);
+      // Ruis eruit: systeem-/transactiemails en interne meldingen horen niet in de
+      // marketing-statistieken. Deze tellen in geen enkele groep of totaal mee.
+      if (isRuisMail(m.subject)) continue;
       // Labels (meegestuurd bij verzending) zijn leidend; oudere mails hebben ze
       // niet, dan leiden we de mail af uit de onderwerpregel.
       const herkomst: Herkomst = herkomstVanTags(m.tags, label) ??
