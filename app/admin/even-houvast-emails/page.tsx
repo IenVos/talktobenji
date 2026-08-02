@@ -274,8 +274,8 @@ export default function EvenHouvastEmailsPage() {
   const verliestypen = useAdminQuery(api.verliesTypen.list, {}) as
     | { code: string; naam: string }[]
     | undefined;
-  const [testEmail, setTestEmail] = useState("");
-  const [testNaam, setTestNaam] = useState("");
+  const [testEmail, setTestEmail] = useState("annadelapierre@icloud.com");
+  const [testNaam, setTestNaam] = useState("Ien");
   const [bewerkType, setBewerkType] = useState("huisdier");
   const [briefType, setBriefType] = useState("huisdier");
   const [briefState, setBriefState] = useState<"idle" | "sending" | "done" | "error">("idle");

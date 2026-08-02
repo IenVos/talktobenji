@@ -202,8 +202,8 @@ function ReactivatieOpsteller({ stap }: { stap: 1 | 2 }) {
   const [geladen, setGeladen] = useState(false);
   const [uploaden, setUploaden] = useState(false);
 
-  const [testEmail, setTestEmail] = useState("");
-  const [testNaam, setTestNaam] = useState("");
+  const [testEmail, setTestEmail] = useState("annadelapierre@icloud.com");
+  const [testNaam, setTestNaam] = useState("Ien");
   const [testType, setTestType] = useState("huisdier");
   const [bezig, setBezig] = useState<"idle" | "opslaan" | "test">("idle");
   const [melding, setMelding] = useState("");

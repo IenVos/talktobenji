@@ -429,8 +429,8 @@ function Composer({ id, onKlaar }: { id: string | null; onKlaar: () => void }) {
   const [geladen, setGeladen] = useState(false);
   const [uploaden, setUploaden] = useState(false);
 
-  const [testEmail, setTestEmail] = useState("");
-  const [testNaam, setTestNaam] = useState("");
+  const [testEmail, setTestEmail] = useState("annadelapierre@icloud.com");
+  const [testNaam, setTestNaam] = useState("Ien");
   const [batch, setBatch] = useState(25);
   const [intervalSec, setIntervalSec] = useState(60);
   const [wanneer, setWanneer] = useState<"nu" | "plan">("nu");

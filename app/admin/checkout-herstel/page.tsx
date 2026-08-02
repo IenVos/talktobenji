@@ -69,7 +69,7 @@ export default function CheckoutHerstelPage() {
   const [vensterVan, setVensterVan] = useState(8);
   const [vensterTot, setVensterTot] = useState(21);
   const [bewaard, setBewaard] = useState(false);
-  const [testEmail, setTestEmail] = useState("");
+  const [testEmail, setTestEmail] = useState("annadelapierre@icloud.com");
   const [testStatus, setTestStatus] = useState("");
 
   // Instellingen uit de database overnemen zodra ze binnen zijn.

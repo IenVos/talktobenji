@@ -356,7 +356,7 @@ export default function AdminCheckoutPage() {
   const [extraTextBlocks, setExtraTextBlocks] = useState<ExtraTextBlockForm[]>([]);
   const [rustig, setRustig] = useState<RustigForm>(EMPTY_RUSTIG);
   const [savedOk, setSavedOk] = useState(false);
-  const [testEmail, setTestEmail] = useState("");
+  const [testEmail, setTestEmail] = useState("annadelapierre@icloud.com");
   const [sendingTest, setSendingTest] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "sent" | "error">("idle");
   const fileInputRef = useRef<HTMLInputElement>(null);

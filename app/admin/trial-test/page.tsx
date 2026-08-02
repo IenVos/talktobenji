@@ -41,7 +41,7 @@ const STATES = [
 ] as const;
 
 export default function TrialTestPage() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("annadelapierre@icloud.com");
   const [loading, setLoading] = useState<string | null>(null);
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 

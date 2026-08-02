@@ -553,8 +553,8 @@ function LeveringsstatusBlok() {
 function TestProfielBlok() {
   const maakTestProfiel = useAdminMutation(api.nietAlleen.maakTestProfiel);
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [naam, setNaam] = useState("");
+  const [email, setEmail] = useState("annadelapierre@icloud.com");
+  const [naam, setNaam] = useState("Ien");
   const [verliesType, setVerliesType] = useState("persoon");
   const [dagOffset, setDagOffset] = useState(9);
   const [bezig, setBezig] = useState(false);
@@ -646,8 +646,8 @@ function TestEmailBlok() {
   const stuurTestEmails = useAdminAction(api.nietAlleen.stuurTestEmails);
   const stuurTestEmailEnkel = useAdminAction(api.nietAlleen.stuurTestEmailEnkel);
   const [open, setOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [naam, setNaam] = useState("");
+  const [email, setEmail] = useState("annadelapierre@icloud.com");
+  const [naam, setNaam] = useState("Ien");
   const [verliesType, setVerliesType] = useState("persoon");
   const [bezig, setBezig] = useState(false);
   const [klaar, setKlaar] = useState(false);

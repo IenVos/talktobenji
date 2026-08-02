@@ -120,7 +120,7 @@ function ConceptKaart({
 
 export default function EhConceptenPage() {
   const concepten = useAdminQuery(api.ehConcepten.list, {}) as Concept[] | undefined;
-  const [testEmail, setTestEmail] = useState("");
+  const [testEmail, setTestEmail] = useState("annadelapierre@icloud.com");
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

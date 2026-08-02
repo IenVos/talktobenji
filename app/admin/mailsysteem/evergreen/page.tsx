@@ -326,7 +326,7 @@ function MailRij({ mail }: { mail: Mail }) {
   const stuurTest = useAdminAction(api.evergreen.stuurTestEvergreen);
   const [bewerk, setBewerk] = useState(false);
   const [testOpen, setTestOpen] = useState(false);
-  const [testEmail, setTestEmail] = useState("");
+  const [testEmail, setTestEmail] = useState("annadelapierre@icloud.com");
   const [testNaam, setTestNaam] = useState("");
   const [testBezig, setTestBezig] = useState(false);
   const [testMelding, setTestMelding] = useState("");
