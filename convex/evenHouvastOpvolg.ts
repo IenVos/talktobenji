@@ -930,16 +930,15 @@ async function verstuurBriefKomTerug(
   const benjiUrl = `${appBase()}/benji-start?token=${benjiToken}`;
 
   const body = persoonlijkeBody(bodyText, args.naam);
-  const rompHtml = body
-    .trim()
-    .split(/\n\n+/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map(mailAlinea)
-    .join("\n");
+  const alineas = body.trim().split(/\n\n+/).map((p) => p.trim()).filter(Boolean);
+  // Afsluitgroet (bijv. "Liefs") hoort ONDER de knop, vlak boven Ien's naam/foto.
+  const afsluiting =
+    alineas.length > 1 && isAfsluiting(alineas[alineas.length - 1]) ? alineas.pop()! : "";
+  const rompHtml = alineas.map(mailAlinea).join("\n");
 
+  // Knop links uitgelijnd (zoals de rest van de mail).
   const benjiKnop = knopTekst
-    ? `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${knopTekst} &rarr;</a></div>`
+    ? `<div style="text-align:left;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${knopTekst} &rarr;</a></div>`
     : "";
 
   const token = await afmeldToken(args.email);
@@ -948,6 +947,7 @@ async function verstuurBriefKomTerug(
   const html = mailWrapper(`
     ${rompHtml}
     ${benjiKnop}
+    ${afsluiting ? mailAlinea(afsluiting) : ""}
     ${mailHandtekeningIen()}
     ${ehFooter(nietAlleenUrlVoorType(type), afmeldUrl)}
   `);
