@@ -532,11 +532,21 @@ export const startEhChat = mutation({
       verliesNaam = args.previewNaam?.trim() || undefined;
       leadNaamRaw = args.userName?.trim() || undefined;
     } else {
-      // Al eens echt gepraat? Dan geen opener forceren.
       const sessies = await ctx.db
         .query("chatSessions")
         .withIndex("by_user", (q) => q.eq("userId", args.userId))
         .collect();
+
+      // Dedup dubbele mail-link-opening (mail-scanner die de link vooraf opent, of
+      // een dubbele tik). Beide openingen roepen startEhChat aan; zonder dit maakt de
+      // tweede een lege tweede sessie. Heeft de gebruiker al een sessie uit de laatste
+      // 10 minuten? Dan hergebruiken we die i.p.v. een nieuwe opener-sessie te maken.
+      const recent = sessies
+        .filter((s) => (s.startedAt ?? 0) > Date.now() - 10 * 60 * 1000)
+        .sort((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0))[0];
+      if (recent) return { fallback: false as const, sessionId: recent._id };
+
+      // Al eens echt gepraat (oudere sessie)? Dan geen opener forceren.
       for (const s of sessies) {
         const userMsg = await ctx.db
           .query("chatMessages")
