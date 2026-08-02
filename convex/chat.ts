@@ -506,37 +506,54 @@ export const startEhChat = mutation({
     // naadloos voortloopt op de brief die ze net weglegden. Alle andere Benji-links
     // (opvolgmails, evergreen, funnel) laten dit leeg en houden hun bestaande opener.
     variant: v.optional(v.string()),
+    // Voorbeeldmodus (admin): toon de brief-opener o.b.v. deze URL-params in plaats
+    // van de echte lead-data, zodat de opener per type/naam bekeken kan worden vóór
+    // livegang. Verandert alleen de begroetingstekst, geen gegevenstoegang.
+    previewType: v.optional(v.string()),
+    previewNaam: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
 
-    // Al eens echt gepraat? Dan geen opener forceren.
-    const sessies = await ctx.db
-      .query("chatSessions")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .collect();
-    for (const s of sessies) {
-      const userMsg = await ctx.db
-        .query("chatMessages")
-        .withIndex("by_session", (q) => q.eq("sessionId", s._id))
-        .filter((q) => q.eq(q.field("role"), "user"))
-        .first();
-      if (userMsg) return { fallback: true as const };
+    const isPreview = args.variant === "brief" && !!args.previewType;
+
+    let verliesType: string;
+    let verliesNaam: string | undefined;
+
+    if (isPreview) {
+      // Voorbeeldmodus: sla de "al eens gepraat"- en EH-lead-checks over zodat de
+      // opener altijd verschijnt, en gebruik de meegegeven type/naam.
+      verliesType = (args.previewType ?? "algemeen").toLowerCase().trim();
+      verliesNaam = args.previewNaam?.trim() || undefined;
+    } else {
+      // Al eens echt gepraat? Dan geen opener forceren.
+      const sessies = await ctx.db
+        .query("chatSessions")
+        .withIndex("by_user", (q) => q.eq("userId", args.userId))
+        .collect();
+      for (const s of sessies) {
+        const userMsg = await ctx.db
+          .query("chatMessages")
+          .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+          .filter((q) => q.eq(q.field("role"), "user"))
+          .first();
+        if (userMsg) return { fallback: true as const };
+      }
+
+      const email = (args.userEmail ?? "").toLowerCase().trim();
+      if (!email) return { fallback: true as const };
+
+      const brieven = await ctx.db
+        .query("houvastBrieven")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .collect();
+      if (brieven.length === 0) return { fallback: true as const }; // geen EH-lead
+
+      const laatste = [...brieven].sort((a, b) => (b.sentAt ?? 0) - (a.sentAt ?? 0))[0];
+      verliesType = (laatste.verliesType ?? "algemeen").toLowerCase().trim();
+      verliesNaam = laatste.verliesNaam?.trim() || undefined;
     }
-
-    const email = (args.userEmail ?? "").toLowerCase().trim();
-    if (!email) return { fallback: true as const };
-
-    const brieven = await ctx.db
-      .query("houvastBrieven")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .collect();
-    if (brieven.length === 0) return { fallback: true as const }; // geen EH-lead
-
-    const laatste = [...brieven].sort((a, b) => (b.sentAt ?? 0) - (a.sentAt ?? 0))[0];
-    const verliesType = (laatste.verliesType ?? "algemeen").toLowerCase().trim();
-    const verliesNaam = laatste.verliesNaam?.trim() || undefined;
 
     const opener = EH_VERLIES_OPENERS[verliesType] ?? EH_VERLIES_OPENERS.algemeen;
     const openerText =

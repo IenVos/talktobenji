@@ -16,7 +16,7 @@ import { hexToDarker } from "@/lib/utils";
 import { ConversationLimitGate } from "@/components/ConversationLimitGate";
 import { SiteFooter } from "@/components/SiteFooter";
 
-export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[]; start?: string | string[] };
+export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[]; start?: string | string[]; t?: string | string[]; vn?: string | string[] };
 
 /** Rendert chatbericht met klikbare markdown-links [tekst](url) */
 function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
@@ -324,11 +324,17 @@ export default function ChatPageClient({
       try {
         setSessionId(null);
         if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
+        // Voorbeeldmodus (admin): ?start=brief&t=<type>&vn=<naam> toont de brief-opener
+        // o.b.v. deze params i.p.v. echte lead-data, zodat de opener bekeken kan worden.
+        const previewType = Array.isArray(searchParams?.t) ? searchParams.t[0] : searchParams?.t;
+        const previewNaam = Array.isArray(searchParams?.vn) ? searchParams.vn[0] : searchParams?.vn;
         const res = await startEhChat({
           userId: uid,
           userEmail: session.user?.email ?? undefined,
           userName: session.user?.name ?? undefined,
           variant: startParam === "brief" ? "brief" : undefined,
+          previewType: startParam === "brief" ? previewType || undefined : undefined,
+          previewNaam: startParam === "brief" ? previewNaam || undefined : undefined,
         });
         if (res && !res.fallback && res.sessionId) {
           // Eerste keer: direct de verliestype-chat openen.
