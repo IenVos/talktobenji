@@ -370,26 +370,29 @@ export const linkSessionToUser = mutation({
  * zonder "hem of haar" (geslacht is niet altijd bekend). Zonder naam: de neutrale
  * variant. algemeen = type onbekend → uitnodigende openingsvraag (optie A).
  */
+// Warme, type-specifieke INTRO-zinnen. De sterke aanzet-vraag ("Wat gaat er op dit
+// moment door je heen{, voornaam}?") wordt in startEhChat erachter geplakt, zodat
+// elke Benji-ingang (opvolgmail én brief) consistent aanzet tot praten.
 const EH_VERLIES_OPENERS: Record<string, { metNaam?: string; zonderNaam: string }> = {
   huisdier: {
-    metNaam: "Een huisdier is nooit 'maar een dier'. Het is liefde, gezelschap, een stukje thuis. Vertel me eens over {naam}.",
-    zonderNaam: "Dat gemis is echt, ook al begrijpt niet iedereen dat. Wil je me vertellen wie je mist?",
+    metNaam: "Een huisdier is nooit 'maar een dier'. {naam} hoort bij je leven, en dat gemis is echt.",
+    zonderNaam: "Een huisdier is nooit 'maar een dier'. Dat gemis is echt, ook al ziet niet iedereen dat.",
   },
   persoon: {
-    metNaam: "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is. Vertel me over {naam}, wie was die voor jou?",
-    zonderNaam: "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is. Neem de tijd, ik luister. Wil je me vertellen wie je mist?",
+    metNaam: "Het gemis van {naam} laat een leegte achter die moeilijk te beschrijven is.",
+    zonderNaam: "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is. Neem de tijd, ik luister.",
   },
   scheiding: {
-    zonderNaam: "Een band die breekt of verwatert is ook een verlies, ook al ziet niet iedereen dat zo. Vertel me wat er speelt.",
+    zonderNaam: "Een band die breekt of verwatert is ook een verlies, ook al ziet niet iedereen dat zo.",
   },
   eenzaamheid: {
-    zonderNaam: "Alleen voelen is een van de zwaarste dingen die er zijn. Vertel eens, hoe lang draag je dit al?",
+    zonderNaam: "Alleen voelen is een van de zwaarste dingen die er zijn.",
   },
   kinderloos: {
-    zonderNaam: "Een kinderwens die niet in vervulling gaat draag je vaak in stilte. Hier mag het er zijn. Wil je me erover vertellen?",
+    zonderNaam: "Een kinderwens die niet in vervulling gaat draag je vaak in stilte. Hier mag het er zijn.",
   },
   algemeen: {
-    zonderNaam: "Fijn dat je er bent. Ik weet nog niet wat je meedraagt, en dat hoeft ook niet meteen. Begin gewoon: wat speelt er op dit moment?",
+    zonderNaam: "Fijn dat je er bent.",
   },
 };
 
@@ -558,25 +561,28 @@ export const startEhChat = mutation({
       leadNaamRaw = laatste.naam?.trim() || undefined;
     }
 
+    // Sterke aanzet-vraag, persoonlijk met de voornaam van de lead als die er is.
+    // Gedeeld door de opvolgmail-openers (intro + vraag) én de brief-opener.
+    const leadVoornaam = (leadNaamRaw ?? "").split(" ")[0] || "";
+    const vraag = leadVoornaam
+      ? `Wat gaat er op dit moment door je heen, ${leadVoornaam}?`
+      : `Wat gaat er op dit moment door je heen?`;
+
     const opener = EH_VERLIES_OPENERS[verliesType] ?? EH_VERLIES_OPENERS.algemeen;
-    const openerText =
+    const intro =
       verliesNaam && opener.metNaam
         ? opener.metNaam.replace("{naam}", verliesNaam)
         : opener.zonderNaam;
+    const openerText = `${intro} ${vraag}`;
 
     // Brief-lead: geen herstart. Ze hebben net de vijf Even Houvast-momenten ingevuld
     // en hun brief teruggelezen, dus we borduren voort in plaats van opnieuw te vragen
-    // wie ze missen. Erkenning van wat ze deden + hoe-is-het-nu (zacht, present) + één
+    // wie ze missen. Erkenning van wat ze deden + dezelfde sterke aanzet-vraag + één
     // stap verder. Bij persoon/huisdier is er een naam om tegen te spreken; bij de
-    // andere types houden we een open deur. Andere Benji-links houden hun opener.
+    // andere types houden we een open deur. Andere Benji-links krijgen intro + vraag.
     let tekst: string;
     if (args.variant === "brief") {
       const heeftPersoon = verliesType === "persoon" || verliesType === "huisdier";
-      // Sterke slotvraag, persoonlijk gemaakt met de voornaam van de lead als die er is.
-      const leadVoornaam = (leadNaamRaw ?? "").split(" ")[0] || "";
-      const vraag = leadVoornaam
-        ? `Wat gaat er op dit moment door je heen, ${leadVoornaam}?`
-        : `Wat gaat er op dit moment door je heen?`;
       if (heeftPersoon && verliesNaam) {
         tekst = `Je hebt net stilgestaan bij ${verliesNaam}, en je woorden opgeschreven. Blijf nog even, dan praten we samen verder. ${vraag} En alles wat je ${verliesNaam} nog had willen zeggen, mag je hier gewoon tegen mij zeggen.`;
       } else if (heeftPersoon) {
