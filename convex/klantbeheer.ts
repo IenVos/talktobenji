@@ -629,6 +629,54 @@ export const getNietAlleenProfielIntern = internalQuery({
 });
 
 /**
+ * Analyse: welke chatsessies zijn er de afgelopen ~30 uur gestart, kwamen die via
+ * de brief of via een opvolgmail, en typte de bezoeker iets? Privacyveilig: leest
+ * alleen de systeem-opener (eerste bot-bericht) en TELT bezoekersberichten; geeft
+ * nooit de inhoud van wat de bezoeker schreef terug. Voor een snelle "kwam die van
+ * vandaag uit de brief?"-check.
+ */
+export const sessiesVandaag = internalQuery({
+  args: { sindsMs: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    const since = args.sindsMs ?? Date.now() - 30 * 60 * 60 * 1000;
+    const sessies = (await ctx.db.query("chatSessions").collect()).filter(
+      (s) => (s.startedAt ?? 0) >= since
+    );
+    const result: any[] = [];
+    for (const s of sessies) {
+      const berichten = await ctx.db
+        .query("chatMessages")
+        .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+        .collect();
+      const eersteBot = berichten
+        .filter((m) => m.role === "bot")
+        .sort((a, b) => a.createdAt - b.createdAt)[0];
+      const aantalUser = berichten.filter((m) => m.role === "user").length;
+      const opener = eersteBot?.content ?? "";
+      const email = (s.userEmail ?? "").toLowerCase().trim();
+      let briefLinkGelogd = false;
+      if (email) {
+        const logs = await ctx.db
+          .query("benjiLinkVerzonden")
+          .withIndex("by_email", (q) => q.eq("email", email))
+          .collect();
+        briefLinkGelogd = logs.some((l) => l.mail === "brief");
+      }
+      result.push({
+        startedAt: s.startedAt,
+        topic: s.topic,
+        email,
+        aantalUserBerichten: aantalUser,
+        openerSnippet: opener.slice(0, 80),
+        vermoedelijkBrief: opener.includes("Blijf nog even, dan praten we samen verder"),
+        briefLinkGelogd,
+      });
+    }
+    return result.sort((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0));
+  },
+});
+
+/**
  * Verwijder een compleet account op basis van e-mailadres (admin/maintenance).
  * Spiegelt convex/deleteAccount.ts (die self-serve is), maar zoekt op e-mail i.p.v.
  * de ingelogde gebruiker, en ruimt óók de Even Houvast / Benji-sporen op:
