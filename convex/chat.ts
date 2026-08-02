@@ -520,12 +520,14 @@ export const startEhChat = mutation({
 
     let verliesType: string;
     let verliesNaam: string | undefined;
+    let leadNaamRaw: string | undefined; // voornaam van de lead zelf (persoonlijk aanspreken)
 
     if (isPreview) {
       // Voorbeeldmodus: sla de "al eens gepraat"- en EH-lead-checks over zodat de
       // opener altijd verschijnt, en gebruik de meegegeven type/naam.
       verliesType = (args.previewType ?? "algemeen").toLowerCase().trim();
       verliesNaam = args.previewNaam?.trim() || undefined;
+      leadNaamRaw = args.userName?.trim() || undefined;
     } else {
       // Al eens echt gepraat? Dan geen opener forceren.
       const sessies = await ctx.db
@@ -553,6 +555,7 @@ export const startEhChat = mutation({
       const laatste = [...brieven].sort((a, b) => (b.sentAt ?? 0) - (a.sentAt ?? 0))[0];
       verliesType = (laatste.verliesType ?? "algemeen").toLowerCase().trim();
       verliesNaam = laatste.verliesNaam?.trim() || undefined;
+      leadNaamRaw = laatste.naam?.trim() || undefined;
     }
 
     const opener = EH_VERLIES_OPENERS[verliesType] ?? EH_VERLIES_OPENERS.algemeen;
@@ -569,12 +572,17 @@ export const startEhChat = mutation({
     let tekst: string;
     if (args.variant === "brief") {
       const heeftPersoon = verliesType === "persoon" || verliesType === "huisdier";
+      // Sterke slotvraag, persoonlijk gemaakt met de voornaam van de lead als die er is.
+      const leadVoornaam = (leadNaamRaw ?? "").split(" ")[0] || "";
+      const vraag = leadVoornaam
+        ? `Wat gaat er op dit moment door je heen, ${leadVoornaam}?`
+        : `Wat gaat er op dit moment door je heen?`;
       if (heeftPersoon && verliesNaam) {
-        tekst = `Je hebt net stilgestaan bij ${verliesNaam}, en je woorden opgeschreven. Blijf nog even, dan praten we samen verder. Wat gaat er op dit moment door je heen? En alles wat je ${verliesNaam} nog had willen zeggen, mag je hier gewoon tegen mij zeggen.`;
+        tekst = `Je hebt net stilgestaan bij ${verliesNaam}, en je woorden opgeschreven. Blijf nog even, dan praten we samen verder. ${vraag} En alles wat je ${verliesNaam} nog had willen zeggen, mag je hier gewoon tegen mij zeggen.`;
       } else if (heeftPersoon) {
-        tekst = `Je hebt net je woorden opgeschreven, en dat is niet niks. Blijf nog even, dan praten we samen verder. Wat gaat er op dit moment door je heen?`;
+        tekst = `Je hebt net je woorden opgeschreven, en dat is niet niks. Blijf nog even, dan praten we samen verder. ${vraag}`;
       } else {
-        tekst = `Je hebt net je woorden opgeschreven, en dat is niet niks. Blijf nog even, dan praten we samen verder. Vertel me: wat gaat er op dit moment door je heen? Begin gewoon waar je wilt, ik luister.`;
+        tekst = `Je hebt net je woorden opgeschreven, en dat is niet niks. Blijf nog even, dan praten we samen verder. ${vraag} Begin gewoon waar je wilt, ik luister.`;
       }
     } else {
       tekst = openerText;
