@@ -18,6 +18,10 @@ function BenjiStartInner() {
   const params = useSearchParams();
   const convex = useConvex();
   const token = (params?.get("token") || "").trim();
+  // "o=brief" markeert dat de klik uit de persoonlijke brief komt. We geven dit door
+  // aan de chat (?start=brief) zodat Benji opent met een brugzin die de brief erkent.
+  // Andere Benji-links (opvolgmails, evergreen, funnel) hebben deze tag niet.
+  const opener = (params?.get("o") || "").trim();
   const [status, setStatus] = useState<"bezig" | "fout">("bezig");
   const gestart = useRef(false);
 
@@ -45,7 +49,8 @@ function BenjiStartInner() {
             // Bij twijfel: naar /benji?start=eh; daar wordt alsnog veilig beslist.
           }
           // Harde navigatie zodat de nieuwe sessie meteen geladen is.
-          window.location.href = bestemming === "account" ? "/account" : "/benji?start=eh";
+          const chatUrl = opener === "brief" ? "/benji?start=brief" : "/benji?start=eh";
+          window.location.href = bestemming === "account" ? "/account" : chatUrl;
         } else {
           setStatus("fout");
         }
@@ -53,7 +58,7 @@ function BenjiStartInner() {
         setStatus("fout");
       }
     })();
-  }, [token, convex]);
+  }, [token, opener, convex]);
 
   return (
     <main

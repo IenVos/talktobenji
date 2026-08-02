@@ -185,9 +185,10 @@ export default function ChatPageClient({
   // Even Houvast-lead via ?start=eh: terwijl we serverside beslissen (directe
   // verliestype-opener of gewoon welkomstscherm) tonen we één schone spinner, zodat
   // er geen flikker is tussen chat- en keuzescherm.
-  const [ehResolving, setEhResolving] = useState<boolean>(
-    (Array.isArray(searchParams?.start) ? searchParams.start[0] : searchParams?.start) === "eh"
-  );
+  const [ehResolving, setEhResolving] = useState<boolean>(() => {
+    const s = Array.isArray(searchParams?.start) ? searchParams.start[0] : searchParams?.start;
+    return s === "eh" || s === "brief";
+  });
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [input, setInput] = useState("");
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
@@ -302,7 +303,7 @@ export default function ChatPageClient({
   // naam opgezocht; wie al eens gepraat heeft of geen EH-lead is, krijgt gewoon het
   // welkomstscherm (fallback).
   useEffect(() => {
-    if (startParam !== "eh" || ehStartHandled.current) return;
+    if ((startParam !== "eh" && startParam !== "brief") || ehStartHandled.current) return;
     if (status === "loading") return; // wacht op auth; spinner blijft staan
 
     const schoonUrl = () => {
@@ -327,6 +328,7 @@ export default function ChatPageClient({
           userId: uid,
           userEmail: session.user?.email ?? undefined,
           userName: session.user?.name ?? undefined,
+          variant: startParam === "brief" ? "brief" : undefined,
         });
         if (res && !res.fallback && res.sessionId) {
           // Eerste keer: direct de verliestype-chat openen.

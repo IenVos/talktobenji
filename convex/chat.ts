@@ -501,6 +501,11 @@ export const startEhChat = mutation({
     userId: v.string(),
     userEmail: v.optional(v.string()),
     userName: v.optional(v.string()),
+    // "brief" = de lead komt binnen via de link in de persoonlijke brief. Dan zetten
+    // we een zachte brugzin vóór de gewone verliestype-opener, zodat het gesprek
+    // naadloos voortloopt op de brief die ze net weglegden. Alle andere Benji-links
+    // (opvolgmails, evergreen, funnel) laten dit leeg en houden hun bestaande opener.
+    variant: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -534,10 +539,13 @@ export const startEhChat = mutation({
     const verliesNaam = laatste.verliesNaam?.trim() || undefined;
 
     const opener = EH_VERLIES_OPENERS[verliesType] ?? EH_VERLIES_OPENERS.algemeen;
-    const tekst =
+    const openerText =
       verliesNaam && opener.metNaam
         ? opener.metNaam.replace("{naam}", verliesNaam)
         : opener.zonderNaam;
+    // Brief-lead: zachte brugzin die de zojuist gelezen brief erkent, dán de opener.
+    const tekst =
+      args.variant === "brief" ? `Je hebt je brief net weggelegd. ${openerText}` : openerText;
 
     const now = Date.now();
     const sessionId = await ctx.db.insert("chatSessions", {

@@ -252,34 +252,31 @@ function dataUrlToBlob(dataUrl: string): Blob | null {
 // Brief-mail: zelfde sans-serif look als de overige mails, ondertekend door Benji.
 const BRIEF_FONT = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-function wrapperBrief(inhoud: string, nietAlleenUrl: string, afmeldUrl: string, naschrift: string = ""): string {
+function wrapperBrief(inhoud: string, nietAlleenUrl: string, afmeldUrl: string, slotzin: string = ""): string {
   return `
     <div style="font-family: ${BRIEF_FONT}; max-width: 560px; margin: 0 auto;
                 color: #2d3748; background: #fdf9f4; padding: 36px 28px;">
       <p style="font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#9a9088;margin:0 0 20px 0;">Even Houvast</p>
       ${inhoud}
+      ${slotzin}
       <p style="font-size:15px;margin-top:28px;color:#4a5568;">Met warme groet,<br>Benji</p>
-      ${naschrift}
       ${ehFooter(nietAlleenUrl, afmeldUrl)}
     </div>`;
 }
 
-// Zacht naschrift onder de brief: nodigt uit om dag 1 van Niet Alleen te ervaren.
-// Geen prijs, geen harde knop, wel een account-stijl linkje naar de taster-pagina.
-// voornaam = van de ontvanger (leeg = geen naam, dan geen komma).
-function bouwBriefNaschrift(voornaam: string, proefUrl: string): string {
-  const label = voornaam ? `Nog even dit, ${voornaam}` : "Nog even dit";
-  return `
-    <div style="margin:28px 0 4px;padding:20px 22px;background:#f6efe6;border:1px solid #e4d8c8;border-radius:14px;">
-      <p style="font-size:13px;color:#b0977a;font-style:italic;font-weight:600;margin:0 0 11px;">${label}</p>
-      <p style="font-size:14.5px;line-height:1.8;color:#5a5148;margin:0 0 12px;">Nog één ding, en dan laat ik je met je woorden alleen.</p>
-      <p style="font-size:14.5px;line-height:1.8;color:#5a5148;margin:0 0 12px;">Veel mensen zeggen me hetzelfde na deze brief: het luchtte even op, en daarna werd het weer stil. Dat is precies waarom Niet Alleen bestaat. Dertig dagen lang één kleine vraag, zodat je er niet elke dag in je eentje mee zit.</p>
-      <p style="font-size:14.5px;line-height:1.8;color:#5a5148;margin:0 0 4px;">De vraag van dag 1 kun je nu al lezen. Als die je niets doet, dan weet je meteen dat het niets voor jou is.</p>
-      <div style="margin:14px 0 12px;">
-        <a href="${proefUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:10px 20px;border-radius:12px;font-weight:600;font-size:14px;text-decoration:none;">Lees de vraag van dag 1 &rarr;</a>
-      </div>
-      <p style="font-size:14.5px;line-height:1.8;color:#5a5148;margin:0;">En als je het gewoon hierbij wilt laten, ook goed. De brief blijft van jou.</p>
-    </div>`;
+// Zachte slotzin onderaan de brief (vóór de ondertekening): geen apart promo-blok,
+// gewoon de laatste regel van de brief zelf, met een klikbare link naar Benji. De
+// link opent direct de chat met een brugzin-opener (zie startEhChat, variant "brief").
+// verliesNaam = van wie/wat ze missen (leeg = de algemene variant zonder naam).
+// Geen prijs, geen "gratis 7 dagen": de deur gaat zacht open, zonder aanbod-toon.
+function bouwBriefSlotzin(verliesNaam: string, benjiUrl: string): string {
+  const naam = verliesNaam.trim();
+  const link = (tekst: string) =>
+    `<a href="${benjiUrl}" style="color:#9a8168;font-weight:600;text-decoration:underline;">${tekst}</a>`;
+  const inhoud = naam
+    ? `Je woorden staan nu op papier. Maar over ${naam} valt zoveel meer te zeggen dan in één brief past. Als je wilt, ${link("vertel je me meer")}.`
+    : `Je woorden staan nu op papier. En toch stopt gemis niet bij een brief. Als je wilt, ${link("praat je gewoon met mij verder")}.`;
+  return `<p style="font-size:15px;line-height:1.9;color:#4a5568;margin:26px 0 0;">${inhoud}</p>`;
 }
 
 /**
@@ -293,9 +290,9 @@ function bouwBriefHtml(opts: {
   gedichtTekst: string;
   nietAlleenUrl: string;
   afmeldUrl: string;
-  naschrift?: string;
+  slotzin?: string;
 }): string {
-  const { aanhef, briefHtml, fotoUrls, gedichtTekst, nietAlleenUrl, afmeldUrl, naschrift = "" } = opts;
+  const { aanhef, briefHtml, fotoUrls, gedichtTekst, nietAlleenUrl, afmeldUrl, slotzin = "" } = opts;
 
   let fotoHtml = "";
   if (fotoUrls.length > 0) {
@@ -359,7 +356,7 @@ function bouwBriefHtml(opts: {
   `,
     nietAlleenUrl,
     afmeldUrl,
-    naschrift
+    slotzin
   );
 }
 
@@ -554,19 +551,16 @@ export const genereerEnVerstuurBrief = action({
       }
     }
 
-    // Naschrift met een zachte uitnodiging om dag 1 van Niet Alleen te ervaren.
-    const naamVol = (args.naam || "").trim();
-    const voornaam = naamVol.split(" ")[0] || "";
-    const proefType = args.verliesType || "algemeen";
-    // Naam én e-mail mee door de keten, zodat de kale betaalpagina beide alvast
-    // invult (bezoeker hoeft dan alleen voorwaarden aan te vinken en te betalen).
-    const proefUrl =
-      `${appBase()}/niet-alleen/proef?type=${encodeURIComponent(proefType)}` +
-      (naamVol ? `&n=${encodeURIComponent(naamVol)}` : "") +
-      `&e=${encodeURIComponent(emailLc)}` +
-      // Herkomst: uit de brief (mail 0). Zo tellen brief-klikken mee als "vanuit
-      // de mail" in de Even Houvast-analytics, gescheiden van koud verkeer.
-      `&bron=eh-mail&ehmail=0`;
+    // Zachte slotzin die uitnodigt om het gesprek met Benji voort te zetten. De link
+    // is een één-klik-login (net als de opvolgmails) mét tag o=brief, zodat Benji
+    // opent met een brugzin-opener. Account + 7-daagse proef starten pas bij de klik.
+    const benjiToken = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
+      email: emailLc,
+      naam: args.naam,
+    });
+    // Log de verzending (mail "brief") zodat we brief-klikken los kunnen meten.
+    await ctx.runMutation(internal.benjiStart.logVerzending, { email: emailLc, mail: "brief" });
+    const benjiUrl = `${appBase()}/benji-start?token=${benjiToken}&o=brief`;
 
     const html = bouwBriefHtml({
       aanhef,
@@ -575,7 +569,7 @@ export const genereerEnVerstuurBrief = action({
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
       afmeldUrl: await ehAfmeldUrl(emailLc, "brief", type),
-      naschrift: bouwBriefNaschrift(voornaam, proefUrl),
+      slotzin: bouwBriefSlotzin((args.verliesNaam || "").trim(), benjiUrl),
     });
 
     await verstuurEmail({
@@ -643,18 +637,14 @@ export const stuurTestBrief = action({
       "https://www.talktobenji.com/images/benji-app-homescreen.png",
     ];
 
-    const naamVol = (args.naam || "").trim();
-    const voornaam = naamVol.split(" ")[0] || "";
-    const proefType = args.verliesType || "algemeen";
-    // Naam én e-mail mee door de keten, zodat de kale betaalpagina beide alvast
-    // invult (bezoeker hoeft dan alleen voorwaarden aan te vinken en te betalen).
-    const proefUrl =
-      `${appBase()}/niet-alleen/proef?type=${encodeURIComponent(proefType)}` +
-      (naamVol ? `&n=${encodeURIComponent(naamVol)}` : "") +
-      `&e=${encodeURIComponent(emailLc)}` +
-      // Herkomst: uit de brief (mail 0). Zo tellen brief-klikken mee als "vanuit
-      // de mail" in de Even Houvast-analytics, gescheiden van koud verkeer.
-      `&bron=eh-mail&ehmail=0`;
+    // Werkende Benji-link (met tag o=brief), zodat de testbrief er identiek uitziet
+    // als de echte. We loggen deze verzending bewust NIET (test vervuilt anders de
+    // brief-klik-metingen). Sample-naam in de slotzin zodat de met-naam-variant zichtbaar is.
+    const benjiToken = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
+      email: emailLc,
+      naam: args.naam,
+    });
+    const benjiUrl = `${appBase()}/benji-start?token=${benjiToken}&o=brief`;
 
     const html = bouwBriefHtml({
       aanhef,
@@ -663,7 +653,7 @@ export const stuurTestBrief = action({
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
       afmeldUrl: await ehAfmeldUrl(emailLc, "brief", type),
-      naschrift: bouwBriefNaschrift(voornaam, proefUrl),
+      slotzin: bouwBriefSlotzin("Sam", benjiUrl),
     });
 
     await verstuurEmail({
