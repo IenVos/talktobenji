@@ -627,3 +627,144 @@ export const getNietAlleenProfielIntern = internalQuery({
       .first();
   },
 });
+
+/**
+ * Verwijder een compleet account op basis van e-mailadres (admin/maintenance).
+ * Spiegelt convex/deleteAccount.ts (die self-serve is), maar zoekt op e-mail i.p.v.
+ * de ingelogde gebruiker, en ruimt óók de Even Houvast / Benji-sporen op:
+ * benjiStartTokens, benjiLinkVerzonden en houvastBrieven. Internal, dus alleen
+ * aanroepbaar vanaf de server / CLI met de deploy key. Geeft terug wat er is gewist.
+ */
+export const verwijderGebruikerPerEmail = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    const gewist: Record<string, number> = {};
+    const del = async (id: any, key: string) => {
+      await ctx.db.delete(id);
+      gewist[key] = (gewist[key] ?? 0) + 1;
+    };
+
+    const userRecord = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", email))
+      .unique();
+    const userId = userRecord?._id.toString();
+
+    // Data gekoppeld aan userId (chat, voorkeuren, herinneringen, doelen, abo, enz.)
+    if (userId) {
+      const chatSessions = await ctx.db
+        .query("chatSessions")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+      for (const session of chatSessions) {
+        const messages = await ctx.db
+          .query("chatMessages")
+          .withIndex("by_session", (q) => q.eq("sessionId", session._id))
+          .collect();
+        for (const msg of messages) await del(msg._id, "chatMessages");
+        await del(session._id, "chatSessions");
+      }
+
+      const prefs = await ctx.db
+        .query("userPreferences")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .unique();
+      if (prefs) {
+        if (prefs.backgroundImageStorageId) {
+          try { await ctx.storage.delete(prefs.backgroundImageStorageId); } catch {}
+        }
+        await del(prefs._id, "userPreferences");
+      }
+
+      const memories = await ctx.db
+        .query("memories")
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+      for (const memory of memories) {
+        if (memory.imageStorageId) {
+          try { await ctx.storage.delete(memory.imageStorageId); } catch {}
+        }
+        await del(memory._id, "memories");
+      }
+
+      const [notes, goals, emotions, checkInAnswers, checkInEntries] = await Promise.all([
+        ctx.db.query("notes").withIndex("by_user", (q) => q.eq("userId", userId)).collect(),
+        ctx.db.query("goals").withIndex("by_user", (q) => q.eq("userId", userId)).collect(),
+        ctx.db.query("emotionEntries").withIndex("by_user_date", (q) => q.eq("userId", userId)).collect(),
+        ctx.db.query("checkInAnswers").withIndex("by_user_date", (q) => q.eq("userId", userId)).collect(),
+        ctx.db.query("checkInEntries").withIndex("by_user", (q) => q.eq("userId", userId)).collect(),
+      ]);
+      for (const r of notes) await del(r._id, "notes");
+      for (const r of goals) await del(r._id, "goals");
+      for (const r of emotions) await del(r._id, "emotionEntries");
+      for (const r of checkInAnswers) await del(r._id, "checkInAnswers");
+      for (const r of checkInEntries) await del(r._id, "checkInEntries");
+
+      const [subs, usage, pushSubs] = await Promise.all([
+        ctx.db.query("userSubscriptions").withIndex("by_user", (q) => q.eq("userId", userId)).collect(),
+        ctx.db.query("conversationUsage").filter((q) => q.eq(q.field("userId"), userId)).collect(),
+        ctx.db.query("pushSubscriptions").withIndex("by_user", (q) => q.eq("userId", userId)).collect(),
+      ]);
+      for (const r of subs) await del(r._id, "userSubscriptions");
+      for (const r of usage) await del(r._id, "conversationUsage");
+      for (const r of pushSubs) await del(r._id, "pushSubscriptions");
+    }
+
+    // Niet Alleen-profiel(en): match op userId én email.
+    const naProfiles = [
+      ...(userId ? await ctx.db.query("nietAlleenProfiles").withIndex("by_user", (q) => q.eq("userId", userId)).collect() : []),
+      ...(await ctx.db.query("nietAlleenProfiles").withIndex("by_email", (q) => q.eq("email", email)).collect()),
+    ];
+    const seen = new Set<string>();
+    for (const profiel of naProfiles) {
+      if (seen.has(profiel._id)) continue;
+      seen.add(profiel._id);
+      if (profiel.profielFoto) { try { await ctx.storage.delete(profiel.profielFoto); } catch {} }
+      for (const foto of profiel.dagFotos ?? []) { try { await ctx.storage.delete(foto.storageId); } catch {} }
+      await del(profiel._id, "nietAlleenProfiles");
+    }
+
+    // Credentials + reset-tokens + NextAuth-sessies + de gebruiker zelf.
+    const creds = await ctx.db
+      .query("credentials")
+      .withIndex("email", (q) => q.eq("email", email))
+      .collect();
+    for (const c of creds) await del(c._id, "credentials");
+
+    if (userRecord) {
+      const resetTokens = await ctx.db
+        .query("passwordResetTokens")
+        .filter((q) => q.eq(q.field("userId"), userRecord._id))
+        .collect();
+      for (const r of resetTokens) await del(r._id, "passwordResetTokens");
+      const authSessions = await ctx.db
+        .query("sessions")
+        .withIndex("userId", (q) => q.eq("userId", userRecord._id))
+        .collect();
+      for (const s of authSessions) await del(s._id, "sessions");
+      await del(userRecord._id, "users");
+    }
+
+    // Even Houvast / Benji-sporen.
+    const tokens = await ctx.db
+      .query("benjiStartTokens")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    for (const t of tokens) await del(t._id, "benjiStartTokens");
+
+    const linkLogs = await ctx.db
+      .query("benjiLinkVerzonden")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    for (const l of linkLogs) await del(l._id, "benjiLinkVerzonden");
+
+    const brieven = await ctx.db
+      .query("houvastBrieven")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    for (const b of brieven) await del(b._id, "houvastBrieven");
+
+    return { email, userGevonden: !!userRecord, gewist };
+  },
+});
