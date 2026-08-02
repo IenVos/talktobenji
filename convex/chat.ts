@@ -543,9 +543,25 @@ export const startEhChat = mutation({
       verliesNaam && opener.metNaam
         ? opener.metNaam.replace("{naam}", verliesNaam)
         : opener.zonderNaam;
-    // Brief-lead: zachte brugzin die de zojuist gelezen brief erkent, dán de opener.
-    const tekst =
-      args.variant === "brief" ? `Je hebt je brief net weggelegd. ${openerText}` : openerText;
+
+    // Brief-lead: geen herstart. Ze hebben net de vijf Even Houvast-momenten ingevuld
+    // en hun brief teruggelezen, dus we borduren voort in plaats van opnieuw te vragen
+    // wie ze missen. Erkenning van wat ze deden + hoe-is-het-nu (zacht, present) + één
+    // stap verder. Bij persoon/huisdier is er een naam om tegen te spreken; bij de
+    // andere types houden we een open deur. Andere Benji-links houden hun opener.
+    let tekst: string;
+    if (args.variant === "brief") {
+      const heeftPersoon = verliesType === "persoon" || verliesType === "huisdier";
+      if (heeftPersoon && verliesNaam) {
+        tekst = `Je hebt net stilgestaan bij ${verliesNaam}, en je woorden opgeschreven. Hoe is het nu, nu het op papier staat? En als je ${verliesNaam} nog iets zou willen zeggen, dan mag dat hier.`;
+      } else if (heeftPersoon) {
+        tekst = `Je hebt net je woorden opgeschreven, en dat is niet niks. Hoe is het nu, nu het op papier staat? En als er nog iets is wat je had willen zeggen, dan mag dat hier.`;
+      } else {
+        tekst = `Je hebt net je woorden opgeschreven, en dat is niet niks. Hoe is het nu, nu het op papier staat? Begin gewoon waar je wilt, ik luister.`;
+      }
+    } else {
+      tekst = openerText;
+    }
 
     const now = Date.now();
     const sessionId = await ctx.db.insert("chatSessions", {
