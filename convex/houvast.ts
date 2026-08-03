@@ -271,12 +271,19 @@ function wrapperBrief(inhoud: string, nietAlleenUrl: string, afmeldUrl: string, 
 // Geen prijs, geen "gratis 7 dagen": de deur gaat zacht open, zonder aanbod-toon.
 function bouwBriefSlotzin(verliesNaam: string, benjiUrl: string): string {
   const naam = verliesNaam.trim();
-  const link = (tekst: string) =>
-    `<a href="${benjiUrl}" style="color:#9a8168;font-weight:600;text-decoration:underline;">${tekst}</a>`;
-  const inhoud = naam
-    ? `Je woorden staan nu op papier. Maar over ${naam} valt zoveel meer te zeggen dan in één brief past. Als je wilt, ${link("vertel je me meer")}.`
-    : `Je woorden staan nu op papier. En toch stopt gemis niet bij een brief. Als je wilt, ${link("praat je gewoon met mij verder")}.`;
-  return `<p style="font-size:15px;line-height:1.9;color:#4a5568;margin:26px 0 0;">${inhoud}</p>`;
+  const P = (t: string, mt: number) =>
+    `<p style="font-size:15px;line-height:1.9;color:#4a5568;margin:${mt}px 0 0;">${t}</p>`;
+  const knop = (tekst: string) =>
+    `<div style="text-align:left;margin:20px 0 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${tekst} &rarr;</a></div>`;
+  const eersteZin = naam
+    ? `Je woorden staan nu op papier. Maar over ${naam} valt zoveel meer te zeggen dan in één brief past.`
+    : `Je woorden staan nu op papier. En toch stopt gemis niet bij een brief.`;
+  const knopTekst = naam ? `Vertel me meer over ${naam}` : `Praat verder met mij`;
+  return (
+    P(eersteZin, 26) +
+    P("Je komt dan in een gesprek met mij terecht. Geen formulier, geen wachtwoord. Je typt, ik lees mee.", 16) +
+    knop(knopTekst)
+  );
 }
 
 /**
