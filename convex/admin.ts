@@ -777,58 +777,10 @@ export const deleteChatSession = mutation({
   },
 });
 
-export const exportAllData = query({
-  args: {
-    adminToken: v.string(),
-    startDate: v.optional(v.number()),
-    endDate: v.optional(v.number()),
-  },
-  handler: async (ctx, args) => {
-    await checkAdmin(ctx, args.adminToken);
-    const start = args.startDate || 0;
-    const end = args.endDate || Date.now();
-
-    // Haal alle relevante data op
-    const sessions = await ctx.db.query("chatSessions").collect();
-    const messages = await ctx.db.query("chatMessages").collect();
-    const escalations = await ctx.db.query("escalations").collect();
-    const feedback = await ctx.db.query("userFeedback").collect();
-
-    // Filter op datum
-    const filteredSessions = sessions.filter(
-      (s) => s.startedAt >= start && s.startedAt <= end
-    );
-    const filteredMessages = messages.filter(
-      (m) =>
-        m.createdAt >= start &&
-        m.createdAt <= end &&
-        filteredSessions.some((s) => s._id === m.sessionId)
-    );
-    const filteredEscalations = escalations.filter(
-      (e) => e.createdAt >= start && e.createdAt <= end
-    );
-    const filteredFeedback = feedback.filter(
-      (f) => f.createdAt >= start && f.createdAt <= end
-    );
-
-    return {
-      exportedAt: Date.now(),
-      period: { start, end },
-      counts: {
-        sessions: filteredSessions.length,
-        messages: filteredMessages.length,
-        escalations: filteredEscalations.length,
-        feedback: filteredFeedback.length,
-      },
-      data: {
-        sessions: filteredSessions,
-        messages: filteredMessages,
-        escalations: filteredEscalations,
-        feedback: filteredFeedback,
-      },
-    };
-  },
-});
+// exportAllData verwijderd (3 aug 2026, privacy). Was een bulk-export van ALLE
+// klanten hun ruwe gesprekken/berichten voor de admin, en werd nergens gebruikt.
+// De klant kan zijn EIGEN data (incl. eigen gesprekken) downloaden via
+// dataExport.getUserExportData; dat blijft, dat is zijn recht.
 
 // ============================================================================
 // ONBEVREDIGENDE ANTWOORDEN
