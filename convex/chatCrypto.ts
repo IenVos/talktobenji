@@ -117,3 +117,22 @@ export const _cryptoSelfTest = internalQuery({
     }
   },
 });
+
+/**
+ * Test de ECHTE encryptContent/decryptContent (inclusief de ACTIEF-schakelaar en het
+ * enc:v1:-formaat). Draai via `npx convex run chatCrypto:_encryptRoundTripTest`.
+ */
+export const _encryptRoundTripTest = internalQuery({
+  args: {},
+  handler: async () => {
+    const plain = "Een testbericht van Ien, met een emoji 🍃 en accenten café.";
+    const enc = await encryptContent(plain);
+    const dec = await decryptContent(enc);
+    return {
+      actief: process.env.CHAT_ENCRYPTION_ACTIEF === "true",
+      werdVersleuteld: enc.startsWith("enc:v1:"),
+      voorbeeldOpslag: enc.slice(0, 24) + (enc.length > 24 ? "..." : ""),
+      roundtripOk: dec === plain,
+    };
+  },
+});
