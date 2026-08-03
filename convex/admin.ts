@@ -786,13 +786,124 @@ export const deleteChatSession = mutation({
 // ONBEVREDIGENDE ANTWOORDEN
 // ============================================================================
 
-// markFeedbackHandled verwijderd (3 aug 2026): werd alleen gebruikt door de
-// goede/slechte-antwoorden-pagina's, die weg zijn. De duim gaat nu via het rapport.
+/**
+ * Markeer feedback als afgehandeld (archiveren).
+ */
+export const markFeedbackHandled = mutation({
+  args: { adminToken: v.string(), messageId: v.id("chatMessages") },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    await ctx.db.patch(args.messageId, { feedbackHandled: true });
+  },
+});
 
-// getHelpfulMessages + getNotHelpfulMessages verwijderd (3 aug 2026, privacy). Gaven
-// per gewaardeerd bericht het VOLLEDIGE gesprek aan de admin terug (de goede/slechte-
-// antwoorden-pagina's). De duim omhoog/omlaag wordt nu in het kwaliteitsrapport
-// meegewogen (analyzeSessionAdmin); geen los scherm met letterlijke gesprekken meer.
+/**
+ * Haal alle berichten op die als "helpful" zijn gemarkeerd, met context.
+ * LET OP: nog niet verwijderen zolang de live frontend (admin/layout.tsx badges)
+ * deze query aanroept. Pas weghalen NA de Vercel-deploy die de aanroep verwijdert.
+ */
+export const getHelpfulMessages = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const flagged = await ctx.db
+      .query("chatMessages")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("feedback"), "helpful"),
+          q.neq(q.field("feedbackHandled"), true)
+        )
+      )
+      .order("desc")
+      .take(200);
+
+    const result = await Promise.all(
+      flagged.map(async (msg) => {
+        const sessionMsgs = await ctx.db
+          .query("chatMessages")
+          .withIndex("by_session", (q) => q.eq("sessionId", msg.sessionId))
+          .order("asc")
+          .collect();
+        const msgIndex = sessionMsgs.findIndex((m) => m._id === msg._id);
+        const prevUser = msgIndex > 0
+          ? sessionMsgs.slice(0, msgIndex).reverse().find((m) => m.role === "user")
+          : null;
+        const session = await ctx.db.get(msg.sessionId);
+        return {
+          _id: msg._id,
+          botResponse: msg.content,
+          userMessage: prevUser?.content ?? null,
+          createdAt: msg.createdAt,
+          sessionId: msg.sessionId,
+          userId: session?.userId ?? null,
+          feedbackHandled: msg.feedbackHandled ?? false,
+          fullConversation: sessionMsgs.map((m) => ({
+            role: m.role,
+            content: m.content,
+            isFlagged: false,
+          })),
+        };
+      })
+    );
+
+    return result;
+  },
+});
+
+/**
+ * Haal alle berichten op die als "not_helpful" zijn gemarkeerd, met context.
+ * LET OP: nog niet verwijderen zolang de live frontend (admin/layout.tsx badges)
+ * deze query aanroept. Pas weghalen NA de Vercel-deploy die de aanroep verwijdert.
+ */
+export const getNotHelpfulMessages = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const flagged = await ctx.db
+      .query("chatMessages")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("feedback"), "not_helpful"),
+          q.neq(q.field("feedbackHandled"), true)
+        )
+      )
+      .order("desc")
+      .take(200);
+
+    const result = await Promise.all(
+      flagged.map(async (msg) => {
+        const sessionMsgs = await ctx.db
+          .query("chatMessages")
+          .withIndex("by_session", (q) => q.eq("sessionId", msg.sessionId))
+          .order("asc")
+          .collect();
+        const msgIndex = sessionMsgs.findIndex((m) => m._id === msg._id);
+        const prevUser = msgIndex > 0
+          ? sessionMsgs.slice(0, msgIndex).reverse().find((m) => m.role === "user")
+          : null;
+        const session = await ctx.db.get(msg.sessionId);
+        return {
+          _id: msg._id,
+          botResponse: msg.content,
+          userMessage: prevUser?.content ?? null,
+          createdAt: msg.createdAt,
+          sessionId: msg.sessionId,
+          userId: session?.userId ?? null,
+          feedbackHandled: msg.feedbackHandled ?? false,
+          fullConversation: sessionMsgs.map((m) => ({
+            role: m.role,
+            content: m.content,
+            isFlagged: m._id === msg._id,
+          })),
+        };
+      })
+    );
+
+    return result;
+  },
+});
 
 /**
  * Voeg een toevoeging toe aan de bestaande rules in botSettings.
