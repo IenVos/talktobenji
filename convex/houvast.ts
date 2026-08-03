@@ -281,8 +281,8 @@ function bouwBriefSlotzin(verliesNaam: string, benjiUrl: string): string {
   const linkTekst = naam ? `Vertel me meer over ${naam}` : `Praat verder met mij`;
   return (
     P(eersteZin, 26) +
-    P("Je komt dan in een gesprek met mij terecht. Geen formulier, geen wachtwoord. Je typt, ik lees mee.", 16) +
-    P(link(linkTekst), 16)
+    P(link(linkTekst), 16) +
+    P("Je komt dan bij mij in een gesprek. Je hoeft niets in te vullen, je kunt gewoon beginnen.", 16)
   );
 }
 
