@@ -10,6 +10,7 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { encryptContent, decryptContent } from "./chatCrypto";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
@@ -106,8 +107,11 @@ export const getMessagesRaw = internalQuery({
       .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
       .order("asc")
       .collect();
-    if (args.limit) return messages.slice(-args.limit);
-    return messages;
+    const sliced = args.limit ? messages.slice(-args.limit) : messages;
+    // Ontsleutel de berichttekst (platte tekst gaat ongewijzigd door).
+    return await Promise.all(
+      sliced.map(async (m) => ({ ...m, content: await decryptContent(m.content) }))
+    );
   },
 });
 
@@ -135,12 +139,11 @@ export const getMessages = query({
       .order("asc");
 
     const messages = await q.collect();
-
-    if (args.limit) {
-      return messages.slice(-args.limit);
-    }
-
-    return messages;
+    const sliced = args.limit ? messages.slice(-args.limit) : messages;
+    // Ontsleutel de berichttekst voordat de klant zijn eigen historie ziet.
+    return await Promise.all(
+      sliced.map(async (m) => ({ ...m, content: await decryptContent(m.content) }))
+    );
   },
 });
 
@@ -427,7 +430,7 @@ export const addPersonalizedOpenerToSession = mutation({
     await ctx.db.insert("chatMessages", {
       sessionId: args.sessionId,
       role: "bot",
-      content: openerText,
+      content: await encryptContent(openerText),
       isAiGenerated: false,
       createdAt: now,
     });
@@ -466,7 +469,7 @@ export const addOpenerToSession = mutation({
     await ctx.db.insert("chatMessages", {
       sessionId: args.sessionId,
       role: "bot",
-      content: openerText,
+      content: await encryptContent(openerText),
       isAiGenerated: false,
       createdAt: now,
     });
@@ -618,7 +621,7 @@ export const startEhChat = mutation({
     await ctx.db.insert("chatMessages", {
       sessionId,
       role: "bot",
-      content: tekst,
+      content: await encryptContent(tekst),
       isAiGenerated: false,
       createdAt: now,
     });
@@ -652,7 +655,7 @@ export const sendUserMessage = internalMutation({
     const messageId = await ctx.db.insert("chatMessages", {
       sessionId: args.sessionId,
       role: "user",
-      content: args.content.trim(),
+      content: await encryptContent(args.content.trim()),
       isAiGenerated: false,
       createdAt: now,
     });
@@ -703,7 +706,7 @@ export const sendBotMessage = internalMutation({
     const messageId = await ctx.db.insert("chatMessages", {
       sessionId: args.sessionId,
       role: "bot",
-      content: args.content,
+      content: await encryptContent(args.content),
       knowledgeBaseId: args.knowledgeBaseId,
       confidenceScore: args.confidenceScore,
       isAiGenerated: args.isAiGenerated,
@@ -855,8 +858,9 @@ export const endSession = mutation({
 
     // Genereer korte samenvatting (eerste gebruikersvraag)
     const firstUserMessage = messages.find((m) => m.role === "user");
+    const firstUserContent = firstUserMessage ? await decryptContent(firstUserMessage.content) : "";
     const summary = firstUserMessage
-      ? firstUserMessage.content.substring(0, 100) + "..."
+      ? firstUserContent.substring(0, 100) + "..."
       : "Geen berichten gevonden";
 
     // Update sessie
@@ -941,7 +945,8 @@ export const markSessionsAsAbandoned = internalMutation({
       const laatsteBezoeker = [...berichten]
         .reverse()
         .find((m) => m.role === "user");
-      const afgesloten = lijktNetjesAfgesloten(laatsteBezoeker?.content);
+      const laatsteContent = laatsteBezoeker ? await decryptContent(laatsteBezoeker.content) : undefined;
+      const afgesloten = lijktNetjesAfgesloten(laatsteContent);
 
       await ctx.db.patch(session._id, {
         status: afgesloten ? "reviewed" : "abandoned",

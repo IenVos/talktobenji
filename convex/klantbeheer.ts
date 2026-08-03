@@ -6,6 +6,7 @@ import { v } from "convex/values";
 import { action, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { berekenLevering, berekenDagNummer } from "./nietAlleenLevering";
+import { decryptContent } from "./chatCrypto";
 
 /** Lijst van alle klant-e-mailadressen in het bestand (voor autocomplete bij zoeken).
  *  Combineert TTB-accounts (credentials) en Niet Alleen-klanten (nietAlleenProfiles). */
@@ -652,7 +653,7 @@ export const sessiesVandaag = internalQuery({
         .filter((m) => m.role === "bot")
         .sort((a, b) => a.createdAt - b.createdAt)[0];
       const aantalUser = berichten.filter((m) => m.role === "user").length;
-      const opener = eersteBot?.content ?? "";
+      const opener = eersteBot ? await decryptContent(eersteBot.content) : "";
       const email = (s.userEmail ?? "").toLowerCase().trim();
       let briefLinkGelogd = false;
       if (email) {

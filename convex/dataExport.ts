@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { decryptContent } from "./chatCrypto";
 
 function checkSecret(secret: string) {
   const envSecret = process.env.CONVEX_AUTH_ADAPTER_SECRET;
@@ -35,11 +36,14 @@ export const getUserExportData = query({
           id: session._id,
           startedAt: new Date(session.startedAt).toISOString(),
           topic: session.topic ?? null,
-          messages: messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-            createdAt: new Date(m.createdAt).toISOString(),
-          })),
+          // Ontsleutel de eigen berichten voor de download van de klant.
+          messages: await Promise.all(
+            messages.map(async (m) => ({
+              role: m.role,
+              content: await decryptContent(m.content),
+              createdAt: new Date(m.createdAt).toISOString(),
+            }))
+          ),
         };
       })
     );
