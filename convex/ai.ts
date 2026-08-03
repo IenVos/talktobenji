@@ -1234,7 +1234,17 @@ export const analyzeSessionAdmin = internalAction({
     const MAX_BERICHT_LENGTE = 1000;
     const transcript = messages
       .filter((m: any) => m.content?.trim())
-      .map((m: any) => `${m.role === "user" ? "G" : "B"}: ${m.content.slice(0, MAX_BERICHT_LENGTE)}`)
+      .map((m: any) => {
+        const prefix = m.role === "user" ? "G" : "B";
+        // Directe feedback van de bezoeker op een Benji-bericht (duim omhoog/omlaag).
+        const duim =
+          m.feedback === "helpful"
+            ? " [bezoeker: duim omhoog]"
+            : m.feedback === "not_helpful"
+            ? " [bezoeker: duim omlaag]"
+            : "";
+        return `${prefix}${duim}: ${m.content.slice(0, MAX_BERICHT_LENGTE)}`;
+      })
       .join("\n");
 
     // Als het transcript te lang is, behoud het EINDE (hoe het gesprek afliep is
@@ -1259,6 +1269,8 @@ export const analyzeSessionAdmin = internalAction({
         system: `Je analyseert gesprekken tussen gebruikers (G) en Benji (B), een empathische chatbot voor rouwverwerking van TalkToBenji.nl.
 
 BELANGRIJK — GEHEUGEN: Benji heeft geheugen van eerdere gesprekken met deze bezoeker (samenvattingen van vorige sessies worden automatisch meegegeven). Jij ziet hier ALLEEN het huidige gesprek, niet dat geheugen. Als Benji verwijst naar een naam, huisdier, gebeurtenis of detail dat niet in dít transcript is geïntroduceerd, is dat vrijwel altijd correcte herinnering uit een vorig gesprek, GEEN verzinsel. Markeer dit NIET als fout of "verzonnen geheugen", tenzij de bezoeker het in dit gesprek zelf expliciet tegenspreekt.
+
+DIRECTE FEEDBACK: Sommige Benji-berichten zijn door de bezoeker zelf gemarkeerd met [bezoeker: duim omhoog] (behulpzaam) of [bezoeker: duim omlaag] (niet behulpzaam). Dat is de sterkste, directe feedback die er is. Weeg die zwaar: bij een duim omlaag benoem je in het Aandachtspunt expliciet wat op dát bericht misging; bij een duim omhoog benoem je in het Verloop kort wat daar juist goed werkte.
 
 Schrijf een beknopt kwaliteitsrapport voor de beheerder. Gebruik GEEN citaten of persoonlijke details.
 

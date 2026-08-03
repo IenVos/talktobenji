@@ -11,8 +11,8 @@ import { AdminAuthProvider, useAdminQuery } from "./AdminAuthContext";
 import {
   Settings, LogOut, Home, Menu, X, BookOpen, FileStack, BarChart3,
   MessageSquare, Sparkles, HandHelping, MessageCircleHeart, Bell,
-  ShoppingBag, Mail, Users, HelpCircle, ThumbsUp,
-  ThumbsDown, Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield, Newspaper, Layers, MousePointerClick, Smile, Network, Heart, FileHeart,
+  ShoppingBag, Mail, Users, HelpCircle,
+  Quote, ChevronDown, ChevronRight, LayoutTemplate, CreditCard, Shield, Newspaper, Layers, MousePointerClick, Smile, Network, Heart, FileHeart,
 } from "lucide-react";
 
 function GiftCodeIcon({ size = 17, className }: { size?: number; className?: string }) {
@@ -222,10 +222,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "";
   const allFeedback = useAdminQuery(api.admin.getAllFeedback, {});
   const newFeedbackCount = allFeedback?.filter((f: any) => f.status === "new").length ?? 0;
-  const notHelpful = useAdminQuery(api.admin.getNotHelpfulMessages, {});
-  const notHelpfulCount = notHelpful?.length ?? 0;
-  const helpful = useAdminQuery(api.admin.getHelpfulMessages, {});
-  const helpfulCount = helpful?.length ?? 0;
   const securityAlertCount = (useAdminQuery(api.security.getAlertCount, {}) as number | undefined) ?? 0;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -350,8 +346,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         icon: MessageCircleHeart,
         items: [
           { href: "/admin/feedback", label: "Feedback", icon: MessageCircleHeart, badge: newFeedbackCount },
-          { href: "/admin/goede-antwoorden", label: "Goede antwoorden", icon: ThumbsUp, badge: helpfulCount },
-          { href: "/admin/slechte-antwoorden", label: "Slechte antwoorden", icon: ThumbsDown, badge: notHelpfulCount },
           { href: "/admin/wensen", label: "Wensen", icon: MessageCircleHeart },
         ],
       },
