@@ -73,22 +73,9 @@ export const listChatHistory = query({
 /**
  * Haal sessie + berichten op voor admin detailweergave
  */
-export const getChatHistoryDetail = query({
-  args: { adminToken: v.string(), sessionId: v.id("chatSessions") },
-  handler: async (ctx, args) => {
-    await checkAdmin(ctx, args.adminToken);
-    const session = await ctx.db.get(args.sessionId);
-    if (!session) return null;
-
-    const messages = await ctx.db
-      .query("chatMessages")
-      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
-      .order("asc")
-      .collect();
-
-    return { session, messages };
-  },
-});
+// getChatHistoryDetail verwijderd (3 aug 2026, privacy). Gaf de volledige ruwe
+// gesprekstekst van een sessie terug aan de admin. Werd nergens meer aangeroepen.
+// De admin ziet alleen nog de AI-kwaliteitsrapporten, niet de letterlijke berichten.
 
 // ============================================================================
 // ESCALATION QUERIES
@@ -157,32 +144,8 @@ export const getEscalations = query({
 /**
  * Haal escalation met complete sessie info
  */
-export const getEscalationWithSession = query({
-  args: { adminToken: v.string(), escalationId: v.id("escalations") },
-  handler: async (ctx, args) => {
-    await checkAdmin(ctx, args.adminToken);
-    const escalation = await ctx.db.get(args.escalationId);
-    if (!escalation) {
-      throw new Error("Escalation niet gevonden");
-    }
-
-    // Haal sessie op
-    const session = await ctx.db.get(escalation.sessionId);
-
-    // Haal alle berichten op
-    const messages = await ctx.db
-      .query("chatMessages")
-      .withIndex("by_session", (q) => q.eq("sessionId", escalation.sessionId))
-      .order("asc")
-      .collect();
-
-    return {
-      escalation,
-      session,
-      messages,
-    };
-  },
-});
+// getEscalationWithSession verwijderd (3 aug 2026, privacy). Gaf de escalatie mét de
+// volledige ruwe gesprekstekst terug aan de admin. Werd nergens meer aangeroepen.
 
 // ============================================================================
 // ESCALATION MUTATIONS
