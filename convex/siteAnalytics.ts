@@ -3,6 +3,7 @@
  */
 import { v } from "convex/values";
 import { mutation, query, internalQuery } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
 /** Sla een paginabezoek op (publiek, geen auth vereist). */
@@ -1619,11 +1620,7 @@ export const getRevenueOverview = query({
  * - chatMessages (role "user")                    → hoeveel berichten uitgewisseld
  * - meerdere sessies / activiteit ná de kom-terug-mail → teruggekomen
  */
-export const getBriefBenjiStats = query({
-  args: { adminToken: v.string() },
-  handler: async (ctx, args) => {
-    await checkAdmin(ctx, args.adminToken);
-
+async function berekenBriefBenjiStats(ctx: QueryCtx) {
     const excluded = await ctx.db.query("analyticsExcludedEmails").collect();
     const testSet = new Set(excluded.map((e: any) => (e.email || "").toLowerCase()));
     const isTest = (e?: string | null) => !!e && testSet.has(e.toLowerCase());
@@ -1712,5 +1709,18 @@ export const getBriefBenjiStats = query({
       komTerugVerstuurd: komTerugEmails.size,
       komTerugActiefNa,
     };
+}
+
+export const getBriefBenjiStats = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return await berekenBriefBenjiStats(ctx);
   },
+});
+
+// Interne test-variant (geen auth) om de berekening los te verifiëren via convex run.
+export const _briefBenjiStatsTest = internalQuery({
+  args: {},
+  handler: async (ctx) => await berekenBriefBenjiStats(ctx),
 });
