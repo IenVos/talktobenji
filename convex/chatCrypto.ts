@@ -164,6 +164,10 @@ export const _encryptionCheck = internalQuery({
       .order("asc")
       .collect();
     return {
+      sessionId: laatste._id,
+      status: laatste.status,
+      heeftKwaliteitsrapport: !!(laatste as any).adminRapport,
+      rapportLengte: typeof (laatste as any).adminRapport === "string" ? (laatste as any).adminRapport.length : 0,
       sessieGestart: new Date(laatste.startedAt).toISOString(),
       aantalBerichten: msgs.length,
       berichten: msgs.map((m) => ({
