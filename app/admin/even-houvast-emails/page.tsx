@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import type { ReactNode } from "react";
 import { ChevronDown, ChevronRight, Save, Send, Upload } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { DEFAULT_TEMPLATES } from "@/convex/emailTemplatesDefaults";
@@ -263,13 +264,17 @@ function VerzendSchemaPaneel({ schema, onSave }: {
 // Compacte editor voor de voorwaardelijke brief-klikker "kom terug"-mail. Vaste
 // template-sleutel (geen type/nummer), geen afbeelding, geen knop-URL (die wordt
 // automatisch de persoonlijke Benji-link).
-function BriefKomTerugEditor({ saved, onSave, onTest, canTest }: {
+function BriefKomTerugEditor({ templateKey, titel, badge, beschrijving, saved, onSave, onTest, canTest }: {
+  templateKey: string;
+  titel: string;
+  badge: string;
+  beschrijving: ReactNode;
   saved: any;
   onSave: (f: { subject: string; bodyText: string; buttonText: string }) => Promise<void>;
   onTest: () => Promise<void>;
   canTest: boolean;
 }) {
-  const def = (DEFAULT_TEMPLATES as any)["eh_brief_kom_terug"] ?? {};
+  const def = (DEFAULT_TEMPLATES as any)[templateKey] ?? {};
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState<string>(saved?.subject ?? def.subject ?? "");
   const [bodyText, setBodyText] = useState<string>(saved?.bodyText ?? def.bodyText ?? "");
@@ -291,14 +296,14 @@ function BriefKomTerugEditor({ saved, onSave, onTest, canTest }: {
     <div className={`border rounded-xl overflow-hidden ${isEdited ? "border-primary-300 bg-primary-50/30" : "border-amber-300 bg-amber-50/40"}`}>
       <button type="button" onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors">
         {open ? <ChevronDown size={15} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-gray-400 flex-shrink-0" />}
-        <span className="text-sm font-medium text-gray-700 flex-1 truncate">Brief-opvolg: kom terug</span>
-        <span className="flex-shrink-0 text-[10px] font-semibold text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2 py-0.5">na brief-klik</span>
+        <span className="text-sm font-medium text-gray-700 flex-1 truncate">{titel}</span>
+        <span className="flex-shrink-0 text-[10px] font-semibold text-amber-700 bg-amber-100 border border-amber-200 rounded-full px-2 py-0.5">{badge}</span>
         {isEdited && <span className="flex-shrink-0 text-[10px] font-semibold text-primary-600 bg-primary-100 border border-primary-200 rounded-full px-2 py-0.5">aangepast</span>}
       </button>
       {open && (
         <div className="px-4 pb-4 pt-1 space-y-3 border-t border-gray-100">
           <p className="text-xs text-gray-500 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            Voorwaardelijke mail: gaat op <strong>dag 3</strong>, in plaats van de &ldquo;Benji voorstellen&rdquo;-mail, voor wie de brief-link al gebruikte (die kennen Benji al). <strong>Staat nog uit</strong> tot de gespreks-privacy live is (de tekst belooft &ldquo;alleen jij en Benji&rdquo;). De knop wordt automatisch een persoonlijke Benji-link.
+            {beschrijving}
           </p>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Onderwerp</label>
@@ -377,19 +382,20 @@ export default function EvenHouvastEmailsPage() {
   };
   const canTest = testEmail.includes("@");
 
-  // Brief-klikker "kom terug"-mail (voorwaardelijk, geen dag-reeks).
-  const briefKomTerugSaved = templates?.find((t: any) => t.key === "eh_brief_kom_terug");
-  const saveBriefKomTerug = async (f: { subject: string; bodyText: string; buttonText: string }) => {
+  // Brief-klikker dag-3-mails (geen dag-reeks): kom-terug (weinig gepraat) + vervolg
+  // (>= 10 berichten). Beide bewerkbaar, elk met een eigen template.
+  const savedVoor = (key: string) => templates?.find((t: any) => t.key === key);
+  const saveBriefMail = (key: string) => async (f: { subject: string; bodyText: string; buttonText: string }) => {
     await upsertTemplate({
-      key: "eh_brief_kom_terug",
+      key,
       subject: f.subject,
       bodyText: f.bodyText,
       buttonText: f.buttonText,
       buttonUrl: "", // knop wordt automatisch de persoonlijke Benji-link
     });
   };
-  const testBriefKomTerug = async () => {
-    await stuurTestBriefKomTerug({ email: testEmail.trim(), naam: testNaam.trim() || undefined, type: bewerkType });
+  const testBriefMail = (key: string) => async () => {
+    await stuurTestBriefKomTerug({ email: testEmail.trim(), naam: testNaam.trim() || undefined, type: bewerkType, templateKey: key });
   };
 
   // Testmail van een gekozen opvolgmail (via de dropdown), met zichtbare fout.
@@ -525,13 +531,27 @@ export default function EvenHouvastEmailsPage() {
         ))}
       </div>
 
-      {/* Voorwaardelijke mail buiten de dag-reeks: brief-klikkers ~1 dag na hun klik. */}
+      {/* Voorwaardelijke dag-3-mails voor brief-klikkers, i.p.v. "Benji voorstellen". */}
       <div className="mt-6 pt-5 border-t border-gray-200 space-y-2">
-        <h2 className="text-sm font-bold text-gray-700">Losse mail (geen dag-reeks)</h2>
+        <h2 className="text-sm font-bold text-gray-700">Brief-klikker mails (dag 3, i.p.v. Benji voorstellen)</h2>
         <BriefKomTerugEditor
-          saved={briefKomTerugSaved}
-          onSave={saveBriefKomTerug}
-          onTest={testBriefKomTerug}
+          templateKey="eh_brief_kom_terug"
+          titel="Brief-opvolg: kom terug"
+          badge="geklikt, weinig gepraat"
+          beschrijving={<>Gaat op <strong>dag 3</strong> naar wie de brief-link klikte maar <strong>weinig praatte</strong> (minder dan 10 berichten). Vervangt de &ldquo;Benji voorstellen&rdquo;-mail. De knop wordt automatisch een persoonlijke Benji-link.</>}
+          saved={savedVoor("eh_brief_kom_terug")}
+          onSave={saveBriefMail("eh_brief_kom_terug")}
+          onTest={testBriefMail("eh_brief_kom_terug")}
+          canTest={canTest}
+        />
+        <BriefKomTerugEditor
+          templateKey="eh_brief_vervolg"
+          titel="Brief-opvolg: vervolg"
+          badge="veel gepraat (10+)"
+          beschrijving={<>Gaat op <strong>dag 3</strong> naar wie al <strong>veel praatte</strong> (10 of meer berichten). Geen herkansing maar een vervolg: Benji onthoudt, dus doorgaan waar je was. De knop wordt automatisch een persoonlijke Benji-link.</>}
+          saved={savedVoor("eh_brief_vervolg")}
+          onSave={saveBriefMail("eh_brief_vervolg")}
+          onTest={testBriefMail("eh_brief_vervolg")}
           canTest={canTest}
         />
       </div>

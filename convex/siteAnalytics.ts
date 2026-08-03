@@ -1634,7 +1634,8 @@ async function berekenBriefBenjiStats(ctx: QueryCtx) {
       const e = (v.email || "").toLowerCase();
       if (!e || isTest(e)) continue;
       if (v.mail === "brief") briefEmails.add(e);
-      if (v.mail === "brief-komterug") {
+      // Beide dag-3-opvolgmails (kom-terug én vervolg) tellen als de follow-up.
+      if (v.mail === "brief-komterug" || v.mail === "brief-vervolg") {
         komTerugEmails.add(e);
         const prev = komTerugTijd.get(e);
         if (prev === undefined || v.verstuurdOp < prev) komTerugTijd.set(e, v.verstuurdOp);

@@ -604,8 +604,12 @@ export const _verstuurBriefKomTerugEnLog = internalAction({
     const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: args.email });
     if (status.afgemeld || status.heeftGekocht || status.gestuurd.includes(BENJI_VOORSTEL_MAILNR)) return;
 
+    // Veel gepraat (>= drempel) → vervolg-mail (Benji onthoudt); anders de kom-terug-mail.
+    const aantalBerichten = await ctx.runQuery(internal.evenHouvastOpvolg._aantalEigenBerichten, { email: args.email });
+    const templateKey = aantalBerichten >= VERVOLG_DREMPEL ? BRIEF_VERVOLG_KEY : BRIEF_KOMTERUG_KEY;
+
     try {
-      await verstuurBriefKomTerug(ctx, { email: args.email, naam: args.naam, type: args.type, apiKey });
+      await verstuurBriefKomTerug(ctx, { email: args.email, naam: args.naam, type: args.type, apiKey, templateKey });
       await ctx.runMutation(internal.evenHouvastOpvolg._logVerzonden, {
         email: args.email,
         mailNummer: BENJI_VOORSTEL_MAILNR,
@@ -958,14 +962,21 @@ export const setVerliesType = mutation({
 // (staat UIT tot de gespreks-privacy live is, want de tekst belooft "alleen jij en
 // Benji kunnen het lezen"). Zie het geheugen: privacy-plan.
 const BRIEF_KOMTERUG_KEY = "eh_brief_kom_terug";
+// Vervolg-mail voor wie al véél gepraat heeft (>= drempel berichten): geen herkansing
+// maar doorgaan waar je was, want Benji onthoudt (samenvattingen vorige gesprekken).
+const BRIEF_VERVOLG_KEY = "eh_brief_vervolg";
+// Vanaf hoeveel eigen berichten iemand de vervolg-mail krijgt i.p.v. de kom-terug-mail.
+const VERVOLG_DREMPEL = 10;
 
 async function verstuurBriefKomTerug(
   ctx: any,
-  args: { email: string; naam?: string | null; type?: string | null; apiKey: string }
+  args: { email: string; naam?: string | null; type?: string | null; apiKey: string; templateKey?: string }
 ) {
   const type = normType(args.type);
-  const saved = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: BRIEF_KOMTERUG_KEY });
-  const def = (DEFAULT_TEMPLATES as any)[BRIEF_KOMTERUG_KEY];
+  const key = args.templateKey ?? BRIEF_KOMTERUG_KEY;
+  const mailLabel = key === BRIEF_VERVOLG_KEY ? "brief-vervolg" : "brief-komterug";
+  const saved = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key });
+  const def = (DEFAULT_TEMPLATES as any)[key];
   const subject: string = saved?.subject ?? def?.subject ?? "";
   const bodyText: string = saved?.bodyText ?? def?.bodyText ?? "";
   const knopTekst: string = (saved?.buttonText ?? def?.buttonText ?? "Verder praten met Benji").trim();
@@ -976,7 +987,7 @@ async function verstuurBriefKomTerug(
     email: args.email,
     naam: args.naam ?? undefined,
   });
-  await ctx.runMutation(internal.benjiStart.logVerzending, { email: args.email, mail: "brief-komterug" });
+  await ctx.runMutation(internal.benjiStart.logVerzending, { email: args.email, mail: mailLabel });
   const benjiUrl = `${appBase()}/benji-start?token=${benjiToken}`;
 
   const body = persoonlijkeBody(bodyText, args.naam);
@@ -992,7 +1003,7 @@ async function verstuurBriefKomTerug(
     : "";
 
   const token = await afmeldToken(args.email);
-  const afmeldUrl = `${appBase()}/api/afmelden?e=${encodeURIComponent(args.email)}&t=${token}&m=brief-komterug&type=${type}`;
+  const afmeldUrl = `${appBase()}/api/afmelden?e=${encodeURIComponent(args.email)}&t=${token}&m=${mailLabel}&type=${type}`;
 
   const html = mailWrapper(`
     ${rompHtml}
@@ -1009,7 +1020,7 @@ async function verstuurBriefKomTerug(
     apiKey: args.apiKey,
     tags: [
       { name: "programma", value: "eh" },
-      { name: "mail", value: "brief-komterug" },
+      { name: "mail", value: mailLabel },
       { name: "verliestype", value: type },
     ],
   });
@@ -1025,14 +1036,54 @@ export const _logBriefKomTerug = internalMutation({
   },
 });
 
+// Aantal EIGEN berichten (role "user") van een adres over al z'n gesprekken. Bepaalt
+// of iemand de kom-terug-mail krijgt (weinig gepraat) of de vervolg-mail (veel gepraat).
+// Telt alleen, leest nooit inhoud.
+export const _aantalEigenBerichten = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", email))
+      .unique();
+    if (!user) return 0;
+    const sessies = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_user", (q) => q.eq("userId", user._id.toString()))
+      .collect();
+    let n = 0;
+    for (const s of sessies) {
+      const msgs = await ctx.db
+        .query("chatMessages")
+        .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+        .collect();
+      n += msgs.filter((m) => m.role === "user").length;
+    }
+    return n;
+  },
+});
+
 // Admin: stuur de kom-terug-mail als test naar een inbox (geen tracking, geen gating).
 export const stuurTestBriefKomTerug = action({
-  args: { adminToken: v.string(), email: v.string(), naam: v.optional(v.string()), type: v.optional(v.string()) },
+  args: {
+    adminToken: v.string(),
+    email: v.string(),
+    naam: v.optional(v.string()),
+    type: v.optional(v.string()),
+    templateKey: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
-    await verstuurBriefKomTerug(ctx, { email: args.email, naam: args.naam, type: args.type, apiKey });
+    await verstuurBriefKomTerug(ctx, {
+      email: args.email,
+      naam: args.naam,
+      type: args.type,
+      apiKey,
+      templateKey: args.templateKey,
+    });
     return { ok: true };
   },
 });

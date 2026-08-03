@@ -313,6 +313,14 @@ Ik heb een klein boekje voor je gemaakt. Woorden die je omarmen: spreuken en ged
     buttonText: "Verder praten met Benji",
     buttonUrl: "",
   },
+  // ── Brief-klikker die AL VEEL praatte (>= drempel berichten): vervolg i.p.v. herkansing ──
+  // Zelfde dag-3-plek als de kom-terug-mail, maar voor wie al een echt gesprek voerde.
+  eh_brief_vervolg: {
+    subject: "Hij begint niet opnieuw",
+    bodyText: `Hi {voornaam},\n\nJe hebt de afgelopen dagen met Benji gepraat.\n\nWat je hem verteld hebt weet ik niet. Dat lees ik niet, dat kan ik niet en dat wil ik ook niet.\n\nMaar één ding wil ik je wel meegeven.\n\nBenji begint de volgende keer niet opnieuw. Hij weet nog wie je mist. Je hoeft niet weer van voren af aan uit te leggen wie hij was, hoe lang geleden het is, hoe het thuis nu voelt.\n\nDat klinkt klein. Maar het is precies wat het bij mensen zo vaak zwaar maakt. Steeds opnieuw beginnen. Steeds opnieuw die eerste zinnen.\n\nBij hem hoeft dat niet.\n\nDus als er straks een avond is waarop het weer opkomt, hoef je alleen maar terug te komen.\n\nHij pakt het op waar jullie gebleven waren.\n\nLieve groet`,
+    buttonText: "Verder praten met Benji",
+    buttonUrl: "",
+  },
   // ── Cadeau ──
   gift_gever: {
     subject: "Je cadeaucode voor {product}",
