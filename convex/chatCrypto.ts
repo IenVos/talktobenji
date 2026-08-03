@@ -15,6 +15,7 @@
  *   Versleuteling kan zo nooit een gesprek breken, hoogstens "niet versleuteld".
  */
 import { internalQuery } from "./_generated/server";
+import { v } from "convex/values";
 
 const PREFIX = "enc:v1:";
 
@@ -133,6 +134,43 @@ export const _encryptRoundTripTest = internalQuery({
       werdVersleuteld: enc.startsWith("enc:v1:"),
       voorbeeldOpslag: enc.slice(0, 24) + (enc.length > 24 ? "..." : ""),
       roundtripOk: dec === plain,
+    };
+  },
+});
+
+/**
+ * Privacy-veilige controle: staat de tekst van het laatste gesprek van een adres
+ * VERSLEUTELD op de schijf? Leest de RAUWE opslag (niet ontsleuteld) en geeft alleen
+ * de `enc:v1:`-markering + lengte terug, nooit de inhoud.
+ */
+export const _encryptionCheck = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", email))
+      .unique();
+    if (!user) return { error: "gebruiker niet gevonden" };
+    const sessions = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_user", (q) => q.eq("userId", user._id.toString()))
+      .collect();
+    const laatste = [...sessions].sort((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0))[0];
+    if (!laatste) return { error: "geen gesprek gevonden" };
+    const msgs = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", laatste._id))
+      .order("asc")
+      .collect();
+    return {
+      sessieGestart: new Date(laatste.startedAt).toISOString(),
+      aantalBerichten: msgs.length,
+      berichten: msgs.map((m) => ({
+        role: m.role,
+        versleuteldOpSchijf: typeof m.content === "string" && m.content.startsWith("enc:v1:"),
+        lengte: typeof m.content === "string" ? m.content.length : 0,
+      })),
     };
   },
 });
