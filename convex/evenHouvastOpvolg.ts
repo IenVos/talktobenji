@@ -477,6 +477,10 @@ export const _logVerzonden = internalMutation({
   },
 });
 
+// Intern mailnummer van de "Benji voorstellen"-mail (EH_META n=6). Voor wie Benji al
+// gebruikte vervangen we deze door de kom-terug-mail (zie processEvenHouvastOpvolg).
+const BENJI_VOORSTEL_MAILNR = 6;
+
 // ── Dagelijkse cron ────────────────────────────────────────────────────────────
 
 export const processEvenHouvastOpvolg = internalAction({
@@ -492,6 +496,10 @@ export const processEvenHouvastOpvolg = internalAction({
 
     // Verzamel eerst alle te versturen mails van deze run.
     const teVerzenden: { email: string; naam?: string; type: string; mailNummer: number }[] = [];
+    // Brief-klikkers krijgen op de "Benji voorstellen"-plek (mail 6) de kom-terug-mail
+    // in plaats daarvan (ze kennen Benji al). Alleen als de schakelaar aan staat.
+    const teVerzendenKomTerug: { email: string; naam?: string; type: string }[] = [];
+    const komTerugAan = process.env.EH_BRIEF_KOMTERUG_ACTIEF === "true";
     for (const lead of leads) {
       const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: lead.email });
       if (status.afgemeld || status.heeftGekocht) continue;
@@ -515,19 +523,33 @@ export const processEvenHouvastOpvolg = internalAction({
         }
       }
       if (teVersturen === null) continue;
-      teVerzenden.push({ email: lead.email, naam: lead.naam ?? undefined, type, mailNummer: teVersturen });
+
+      // "Benji voorstellen" (mail 6) → voor wie Benji al gebruikte de kom-terug-mail
+      // sturen i.p.v. de intro. Zo geen dubbele "maak kennis" en geen extra mail.
+      if (
+        teVersturen === BENJI_VOORSTEL_MAILNR &&
+        komTerugAan &&
+        (await ctx.runQuery(internal.benjiStart.heeftBenjiGebruikt, { email: lead.email }))
+      ) {
+        teVerzendenKomTerug.push({ email: lead.email, naam: lead.naam ?? undefined, type });
+      } else {
+        teVerzenden.push({ email: lead.email, naam: lead.naam ?? undefined, type, mailNummer: teVersturen });
+      }
     }
 
     // Gespreid versturen: elke mail als losse geplande taak, standaard 90s uit elkaar
     // (instelbaar via env EH_SPREID_SECONDEN). Zo raken we Microsoft (Hotmail/Outlook)
-    // niet in één burst, wat 'server busy'-throttling en bounces gaf.
+    // niet in één burst, wat 'server busy'-throttling en bounces gaf. Opvolgmails en
+    // kom-terug-vervangingen delen dezelfde cadans.
     const intervalMs = Math.max(0, Number(process.env.EH_SPREID_SECONDEN ?? "90")) * 1000;
-    for (let i = 0; i < teVerzenden.length; i++) {
-      await ctx.scheduler.runAfter(
-        i * intervalMs,
-        internal.evenHouvastOpvolg._verstuurEnLog,
-        teVerzenden[i]
-      );
+    let planIdx = 0;
+    for (const m of teVerzenden) {
+      await ctx.scheduler.runAfter(planIdx * intervalMs, internal.evenHouvastOpvolg._verstuurEnLog, m);
+      planIdx++;
+    }
+    for (const k of teVerzendenKomTerug) {
+      await ctx.scheduler.runAfter(planIdx * intervalMs, internal.evenHouvastOpvolg._verstuurBriefKomTerugEnLog, k);
+      planIdx++;
     }
   },
 });
@@ -564,6 +586,33 @@ export const _verstuurEnLog = internalAction({
     } catch (e) {
       // Niet fataal: volgende dag-run probeert opnieuw (nog niet gelogd).
       console.error(`EH opvolgmail ${args.mailNummer} mislukt voor ${args.email}:`, e);
+    }
+  },
+});
+
+// Vervanging op de "Benji voorstellen"-plek (mail 6) voor brief-klikkers: verstuur de
+// kom-terug-mail en log mail 6 als verstuurd, zodat de funnel gewoon doorloopt. Her-
+// controleert net als _verstuurEnLog, zodat de gespreide planning veilig is.
+export const _verstuurBriefKomTerugEnLog = internalAction({
+  args: { email: v.string(), naam: v.optional(v.string()), type: v.string() },
+  handler: async (ctx, args) => {
+    if (process.env.EH_OPVOLG_ACTIEF !== "true") return;
+    if (process.env.EH_BRIEF_KOMTERUG_ACTIEF !== "true") return;
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) return;
+
+    const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: args.email });
+    if (status.afgemeld || status.heeftGekocht || status.gestuurd.includes(BENJI_VOORSTEL_MAILNR)) return;
+
+    try {
+      await verstuurBriefKomTerug(ctx, { email: args.email, naam: args.naam, type: args.type, apiKey });
+      await ctx.runMutation(internal.evenHouvastOpvolg._logVerzonden, {
+        email: args.email,
+        mailNummer: BENJI_VOORSTEL_MAILNR,
+      });
+      await ctx.runMutation(internal.evenHouvastOpvolg._logBriefKomTerug, { email: args.email });
+    } catch (e) {
+      console.error(`EH brief-kom-terug (i.p.v. mail ${BENJI_VOORSTEL_MAILNR}) mislukt voor ${args.email}:`, e);
     }
   },
 });
@@ -902,11 +951,12 @@ export const setVerliesType = mutation({
 });
 
 // ── Brief-klikker "kom terug"-mail ───────────────────────────────────────────────
-// Voorwaardelijke mail (geen dag-reeks): gaat ~1 dag na de eerste Benji-klik vanuit
-// de brief, één keer per adres. Zacht bedoeld: normaliseert dat een eerste gesprek
-// even wennen is en nodigt uit om het nog een kans te geven. Aan/uit via env
-// EH_BRIEF_KOMTERUG_ACTIEF (staat UIT tot de gespreks-privacy live is, want de tekst
-// belooft "alleen jij en Benji kunnen het lezen"). Zie het geheugen: privacy-plan.
+// Vervangt op de "Benji voorstellen"-plek (mail 6, ~dag 3) de intro-mail voor wie de
+// brief-link al gebruikte: zij kennen Benji al. Zo geen extra mail en geen dubbele
+// "maak kennis". Zacht bedoeld: normaliseert dat een eerste gesprek even wennen is en
+// nodigt uit om het nog een kans te geven. Aan/uit via env EH_BRIEF_KOMTERUG_ACTIEF
+// (staat UIT tot de gespreks-privacy live is, want de tekst belooft "alleen jij en
+// Benji kunnen het lezen"). Zie het geheugen: privacy-plan.
 const BRIEF_KOMTERUG_KEY = "eh_brief_kom_terug";
 
 async function verstuurBriefKomTerug(
@@ -965,39 +1015,6 @@ async function verstuurBriefKomTerug(
   });
 }
 
-// Kandidaten: brief-leads die hun Benji-link ~1 dag geleden gebruikten, nog geen
-// kom-terug-mail kregen, niet afgemeld zijn en Niet Alleen niet kochten. De floor van
-// 7 dagen voorkomt dat we bij het aanzetten oude klikkers alsnog mailen.
-export const _briefKomTerugKandidaten = internalQuery({
-  args: {},
-  handler: async (ctx) => {
-    const now = Date.now();
-    const onder = now - 7 * 24 * 60 * 60 * 1000;
-    const boven = now - 20 * 60 * 60 * 1000;
-    const tokens = (await ctx.db.query("benjiStartTokens").collect()).filter(
-      (t: any) => typeof t.usedAt === "number" && t.usedAt >= onder && t.usedAt <= boven
-    );
-    const seen = new Set<string>();
-    const uit: { email: string; naam: string | null; type: string }[] = [];
-    for (const t of tokens) {
-      const email = (t.email || "").toLowerCase().trim();
-      if (!email || seen.has(email)) continue;
-      seen.add(email);
-      const [alGestuurd, afgemeld, profiel, brieven] = await Promise.all([
-        ctx.db.query("ehBriefKomTerugVerzonden").withIndex("by_email", (q) => q.eq("email", email)).first(),
-        ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", email)).first(),
-        ctx.db.query("nietAlleenProfiles").withIndex("by_email", (q) => q.eq("email", email)).first(),
-        ctx.db.query("houvastBrieven").withIndex("by_email", (q) => q.eq("email", email)).collect(),
-      ]);
-      if (alGestuurd || afgemeld || profiel) continue;
-      if (brieven.length === 0) continue; // moet een echte brief-lead zijn
-      const laatste = [...brieven].sort((a: any, b: any) => (b.sentAt ?? 0) - (a.sentAt ?? 0))[0];
-      uit.push({ email, naam: t.naam ?? laatste.naam ?? null, type: laatste.verliesType ?? "algemeen" });
-    }
-    return uit;
-  },
-});
-
 export const _logBriefKomTerug = internalMutation({
   args: { email: v.string() },
   handler: async (ctx, args) => {
@@ -1005,25 +1022,6 @@ export const _logBriefKomTerug = internalMutation({
       email: args.email.toLowerCase().trim(),
       verstuurdOp: Date.now(),
     });
-  },
-});
-
-// Dagelijkse cron. Uit tot EH_BRIEF_KOMTERUG_ACTIEF === "true" (samen met privacy live).
-export const processBriefKomTerug = internalAction({
-  args: {},
-  handler: async (ctx) => {
-    if (process.env.EH_BRIEF_KOMTERUG_ACTIEF !== "true") return;
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) return;
-    const kandidaten = await ctx.runQuery(internal.evenHouvastOpvolg._briefKomTerugKandidaten, {});
-    for (const k of kandidaten) {
-      try {
-        await verstuurBriefKomTerug(ctx, { email: k.email, naam: k.naam, type: k.type, apiKey });
-        await ctx.runMutation(internal.evenHouvastOpvolg._logBriefKomTerug, { email: k.email });
-      } catch (e) {
-        console.error("brief-komterug faalde voor", k.email, e);
-      }
-    }
   },
 });
 

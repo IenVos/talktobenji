@@ -298,7 +298,7 @@ function BriefKomTerugEditor({ saved, onSave, onTest, canTest }: {
       {open && (
         <div className="px-4 pb-4 pt-1 space-y-3 border-t border-gray-100">
           <p className="text-xs text-gray-500 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            Voorwaardelijke mail: gaat ~1 dag nadat iemand vanuit de brief op Benji klikte, één keer per persoon. <strong>Staat nog uit</strong> tot de gespreks-privacy live is (de tekst belooft &ldquo;alleen jij en Benji&rdquo;). De knop wordt automatisch een persoonlijke Benji-link.
+            Voorwaardelijke mail: gaat op <strong>dag 3</strong>, in plaats van de &ldquo;Benji voorstellen&rdquo;-mail, voor wie de brief-link al gebruikte (die kennen Benji al). <strong>Staat nog uit</strong> tot de gespreks-privacy live is (de tekst belooft &ldquo;alleen jij en Benji&rdquo;). De knop wordt automatisch een persoonlijke Benji-link.
           </p>
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">Onderwerp</label>
