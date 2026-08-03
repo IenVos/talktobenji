@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery } from "../AdminAuthContext";
 
@@ -8,6 +10,32 @@ import { useAdminQuery } from "../AdminAuthContext";
 // als op de Mails-pagina. Mail 6 ("Wie ben ik"/Benji) valt chronologisch als 2e.
 const EH_VOLGORDE = [1, 6, 2, 3, 4, 5];
 const positieVanMail = (n: number) => EH_VOLGORDE.indexOf(n) + 1;
+
+// Opklapbaar kader: witte box met een klikbare kop (chevron) die de inhoud toont/verbergt.
+function Kader({ titel, rechts, standaardOpen = true, children }: {
+  titel: string;
+  rechts?: ReactNode;
+  standaardOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(standaardOpen);
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl">
+      <div className="flex items-center justify-between gap-3 px-5 py-4">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          className="flex items-center gap-2 min-w-0 text-left"
+        >
+          {open ? <ChevronDown size={16} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={16} className="text-gray-400 flex-shrink-0" />}
+          <h2 className="text-base font-semibold text-gray-900 truncate">{titel}</h2>
+        </button>
+        {rechts && <span className="text-xs text-gray-400 flex-shrink-0">{rechts}</span>}
+      </div>
+      {open && <div className="px-5 pb-5 space-y-4">{children}</div>}
+    </div>
+  );
+}
 
 export default function EvenHouvastFunnelPage() {
   const overzicht = useAdminQuery(api.evenHouvastOpvolg.funnelOverzicht, {}) as
@@ -50,6 +78,19 @@ export default function EvenHouvastFunnelPage() {
         kochtNA: number;
       }
     | undefined;
+  const briefBenji = useAdminQuery(api.siteAnalytics.getBriefBenjiStats, {}) as
+    | {
+        briefVerstuurd: number;
+        geklikt: number;
+        klikRatio: number;
+        praters: number;
+        gemBerichten: number;
+        totaalBerichten: number;
+        teruggekomen: number;
+        komTerugVerstuurd: number;
+        komTerugActiefNa: number;
+      }
+    | undefined;
   const [toonAfmeldingen, setToonAfmeldingen] = useState(false);
   const [toonLijst, setToonLijst] = useState(false);
   const [toonKlikFunnel, setToonKlikFunnel] = useState(false);
@@ -70,12 +111,27 @@ export default function EvenHouvastFunnelPage() {
         </p>
       </div>
 
+      {/* Benji link vanuit de brief: klik, berichten, terugkeer (per uniek adres) */}
+      {briefBenji && (
+        <Kader titel="Benji link vanuit de brief" rechts="sinds 2 aug 2026" standaardOpen>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{briefBenji.briefVerstuurd}</p><p className="text-xs text-gray-500">brief met Benji-link</p></div>
+            <div className="rounded-lg bg-primary-50 p-3"><p className="text-2xl font-bold text-primary-700">{briefBenji.geklikt}</p><p className="text-xs text-gray-500">klikten · {briefBenji.klikRatio}%</p></div>
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{briefBenji.praters}</p><p className="text-xs text-gray-500">voerden een gesprek</p></div>
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{briefBenji.gemBerichten}</p><p className="text-xs text-gray-500">gem. berichten</p></div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 border-t border-gray-100">
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{briefBenji.teruggekomen}</p><p className="text-xs text-gray-500">kwamen terug</p></div>
+            <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{briefBenji.totaalBerichten}</p><p className="text-xs text-gray-500">berichten totaal</p></div>
+            <div className="rounded-lg bg-amber-50 p-3"><p className="text-2xl font-bold text-amber-700">{briefBenji.komTerugVerstuurd}</p><p className="text-xs text-gray-500">kom-terug-mail</p></div>
+            <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{briefBenji.komTerugActiefNa}</p><p className="text-xs text-gray-500">actief ná kom-terug</p></div>
+          </div>
+          <p className="text-xs text-gray-400">Per uniek e-mailadres geteld, testadressen niet meegerekend. &ldquo;Kwamen terug&rdquo; = 2 of meer gesprekken, of activiteit op 2 of meer dagen. Nooit gespreksinhoud.</p>
+        </Kader>
+      )}
+
       {/* Funnel-overzicht: hoeveel leads en waar ze zitten */}
-      <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900">In de funnel</h2>
-          <span className="text-xs text-gray-400">vanaf 25 juni 2026</span>
-        </div>
+      <Kader titel="In de funnel" rechts="vanaf 25 juni 2026" standaardOpen>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{totaal}</p><p className="text-xs text-gray-500">leads totaal</p></div>
           <div className="rounded-lg bg-primary-50 p-3"><p className="text-2xl font-bold text-primary-700">{lopend}</p><p className="text-xs text-gray-500">lopend in reeks</p></div>
@@ -134,15 +190,11 @@ export default function EvenHouvastFunnelPage() {
             )}
           </div>
         )}
-      </div>
+      </Kader>
 
       {/* Benji-proef: één-klik-activaties, gebruik (aantal gesprekken) en doorverkoop */}
       {benjiProef && (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">Benji-proef</h2>
-            <span className="text-xs text-gray-400">7 dagen gratis via de mail</span>
-          </div>
+        <Kader titel="Benji-proef" rechts="7 dagen gratis via de mail">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <button
               type="button"
@@ -204,16 +256,12 @@ export default function EvenHouvastFunnelPage() {
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.kwamenTerug}</p><p className="text-xs text-gray-500">kwamen terug (2+ keer)</p></div>
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{benjiProef.gemGesprekken}</p><p className="text-xs text-gray-500">gem. per proef</p></div>
           </div>
-        </div>
+        </Kader>
       )}
 
       {/* De warme reis: compacte samenvatting carrousel -> brug -> checkout */}
       {ehReis && (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">De warme reis</h2>
-            <a href="/admin/analytics" className="text-xs font-medium text-primary-700 hover:text-primary-900">Volledige analyse →</a>
-          </div>
+        <Kader titel="De warme reis" rechts={<a href="/admin/analytics" className="font-medium text-primary-700 hover:text-primary-900">Volledige analyse →</a>}>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{ehReis.tour.stappen[0]?.count ?? 0}</p><p className="text-xs text-gray-500">carrousel gestart</p></div>
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{ehReis.tour.slot}</p><p className="text-xs text-gray-500">uitgelopen</p></div>
@@ -221,18 +269,12 @@ export default function EvenHouvastFunnelPage() {
             <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{ehReis.ehCheckout.reduce((s, c) => s + c.purchased, 0)}</p><p className="text-xs text-gray-500">gekocht via checkout</p></div>
           </div>
           <p className="text-xs text-gray-400">Carrousel → brugpagina → betaalpagina. De volledige analyse (per scherm, per verliestype) staat in Analytics.</p>
-        </div>
+        </Kader>
       )}
 
       {/* Waar haken mensen af: afmeldingen per mail, met de afmeldratio erbij */}
       {afmeldingen && afmeldingen.totaalAfgemeld > 0 && (
-        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">Waar haken ze af?</h2>
-            <span className="text-xs text-gray-400">
-              {afmeldingen.ehTotaal} EH-afmeldingen · laatste {afmeldingen.dagen} dagen
-            </span>
-          </div>
+        <Kader titel="Waar haken ze af?" rechts={<>{afmeldingen.ehTotaal} EH-afmeldingen · laatste {afmeldingen.dagen} dagen</>}>
 
           <div className="space-y-1.5">
             {afmeldingen.perMail.map((m) => {
@@ -315,7 +357,7 @@ export default function EvenHouvastFunnelPage() {
               </div>
             )}
           </div>
-        </div>
+        </Kader>
       )}
     </div>
   );

@@ -1606,3 +1606,111 @@ export const getRevenueOverview = query({
     };
   },
 });
+
+/**
+ * Analytics specifiek voor de Benji-link VANUIT DE BRIEF (mail 0) en de kom-terug-mail.
+ * Alles per UNIEK e-mailadres, zodat niets dubbel wordt geteld. Testadressen eruit.
+ * Privacyveilig: telt alleen berichten en sessies, leest nooit gespreksinhoud.
+ *
+ * Bronnen:
+ * - benjiLinkVerzonden.mail === "brief"          → wie kreeg de brief mét Benji-link
+ * - benjiLinkVerzonden.mail === "brief-komterug" → wie kreeg de kom-terug-mail
+ * - benjiStartTokens.usedAt                       → wie klikte (1x per adres)
+ * - chatMessages (role "user")                    → hoeveel berichten uitgewisseld
+ * - meerdere sessies / activiteit ná de kom-terug-mail → teruggekomen
+ */
+export const getBriefBenjiStats = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const excluded = await ctx.db.query("analyticsExcludedEmails").collect();
+    const testSet = new Set(excluded.map((e: any) => (e.email || "").toLowerCase()));
+    const isTest = (e?: string | null) => !!e && testSet.has(e.toLowerCase());
+
+    // Verzendingen: wie kreeg een brief-link, wie kreeg de kom-terug-mail (+ wanneer).
+    const verzendingen = await ctx.db.query("benjiLinkVerzonden").collect();
+    const briefEmails = new Set<string>();
+    const komTerugEmails = new Set<string>();
+    const komTerugTijd = new Map<string, number>();
+    for (const v of verzendingen) {
+      const e = (v.email || "").toLowerCase();
+      if (!e || isTest(e)) continue;
+      if (v.mail === "brief") briefEmails.add(e);
+      if (v.mail === "brief-komterug") {
+        komTerugEmails.add(e);
+        const prev = komTerugTijd.get(e);
+        if (prev === undefined || v.verstuurdOp < prev) komTerugTijd.set(e, v.verstuurdOp);
+      }
+    }
+
+    // Klik (eerste usedAt) per adres.
+    const tokens = await ctx.db.query("benjiStartTokens").collect();
+    const klikTijd = new Map<string, number>();
+    for (const t of tokens) {
+      const e = (t.email || "").toLowerCase();
+      if (!e || isTest(e) || !t.usedAt) continue;
+      const prev = klikTijd.get(e);
+      if (prev === undefined || t.usedAt < prev) klikTijd.set(e, t.usedAt);
+    }
+
+    let geklikt = 0;
+    let praters = 0; // klikkers met >=1 eigen bericht
+    let somBerichten = 0; // totaal eigen berichten van de praters
+    let teruggekomen = 0; // >=2 sessies met bericht, of activiteit op >=2 dagen
+    let komTerugActiefNa = 0; // kom-terug-ontvangers met een eigen bericht ná die mail
+
+    for (const email of briefEmails) {
+      if (!klikTijd.has(email)) continue; // niet geklikt
+      geklikt++;
+      const user = await ctx.db
+        .query("users")
+        .withIndex("email", (q) => q.eq("email", email))
+        .unique();
+      if (!user) continue;
+      const sessies = await ctx.db
+        .query("chatSessions")
+        .withIndex("by_user", (q) => q.eq("userId", user._id.toString()))
+        .collect();
+
+      let userBerichten = 0;
+      let sessiesMetBericht = 0;
+      const dagen = new Set<string>();
+      const ktTijd = komTerugTijd.get(email);
+      let berichtNaKomTerug = false;
+      for (const s of sessies) {
+        const msgs = await ctx.db
+          .query("chatMessages")
+          .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+          .collect();
+        const eigen = msgs.filter((m) => m.role === "user");
+        if (eigen.length > 0) {
+          sessiesMetBericht++;
+          userBerichten += eigen.length;
+          for (const m of eigen) {
+            dagen.add(new Date(m.createdAt).toISOString().slice(0, 10));
+            if (ktTijd !== undefined && m.createdAt > ktTijd) berichtNaKomTerug = true;
+          }
+        }
+      }
+      if (userBerichten > 0) {
+        praters++;
+        somBerichten += userBerichten;
+      }
+      if (sessiesMetBericht >= 2 || dagen.size >= 2) teruggekomen++;
+      if (berichtNaKomTerug) komTerugActiefNa++;
+    }
+
+    return {
+      briefVerstuurd: briefEmails.size,
+      geklikt,
+      klikRatio: briefEmails.size > 0 ? Math.round((geklikt / briefEmails.size) * 1000) / 10 : 0,
+      praters,
+      gemBerichten: praters > 0 ? Math.round((somBerichten / praters) * 10) / 10 : 0,
+      totaalBerichten: somBerichten,
+      teruggekomen,
+      komTerugVerstuurd: komTerugEmails.size,
+      komTerugActiefNa,
+    };
+  },
+});
