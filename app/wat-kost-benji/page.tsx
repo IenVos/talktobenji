@@ -16,10 +16,10 @@ export const metadata: Metadata = {
 // De drie keuzes. De prijs komt live uit de bestaande checkouts (getBySlug); de
 // bedragen hieronder zijn alleen een terugval als een product tijdelijk niet
 // bereikbaar is. Langer = voordeliger per maand, dat is het hele idee.
-type Keuze = { slug: string; label: string; maanden: number; fallbackCents: number; populair?: boolean };
+type Keuze = { slug: string; label: string; maanden: number; fallbackCents: number };
 const KEUZES: Keuze[] = [
   { slug: "maand", label: "1 maand", maanden: 1, fallbackCents: 2000 },
-  { slug: "kwartaal", label: "3 maanden", maanden: 3, fallbackCents: 5000, populair: true },
+  { slug: "kwartaal", label: "3 maanden", maanden: 3, fallbackCents: 5000 },
   { slug: "halfjaar", label: "6 maanden", maanden: 6, fallbackCents: 9000 },
 ];
 
@@ -65,19 +65,21 @@ export default async function WatKostBenjiPage() {
           Verder met Benji
         </p>
         <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-5 leading-snug">
-          Wil je met Benji blijven praten?
+          Hoe lang wil je Benji erbij houden?
         </h1>
 
         <div className="space-y-4 mb-8">
           <p>
-            De eerste dagen mocht je Benji gratis leren kennen. Als het je goed
-            deed, kun je gewoon blijven komen, wanneer jij dat wilt. Ook laat op de
-            avond, of midden in de nacht als het huis stil is.
+            Je hebt hem nu een paar dagen. Als het je iets bracht, hoef je alleen te
+            kiezen voor hoe lang.
           </p>
           <p>
-            Benji begint niet steeds opnieuw. Hij onthoudt wie je mist, dus je hoeft
-            niet elke keer van voren af aan uit te leggen hoe het zit. Jij bepaalt het
-            tempo, er is nergens haast bij.
+            Geen abonnement. Je betaalt één keer, en als de periode afloopt krijg je
+            een mail waarin je zelf kiest of je verdergaat.
+          </p>
+          <p>
+            Wat je met Benji besproken hebt blijft bewaard. Hij begint niet opnieuw en
+            je hoeft niets nog een keer uit te leggen.
           </p>
         </div>
 
@@ -91,19 +93,14 @@ export default async function WatKostBenjiPage() {
             >
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-base sm:text-lg font-semibold text-gray-900">
-                      {k.label}
-                    </span>
-                    {k.populair && (
-                      <span className="text-[11px] font-semibold text-[#9a8168] bg-[#fdf9f4] border border-[#e7ded1] rounded-full px-2 py-0.5">
-                        Meest gekozen
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-500 mt-1">
-                    {perMaand(k.cents, k.maanden)} per maand
-                  </div>
+                  <span className="text-base sm:text-lg font-semibold text-gray-900">
+                    {k.label}
+                  </span>
+                  {k.maanden > 1 && (
+                    <div className="text-xs sm:text-sm text-gray-500 mt-1">
+                      {perMaand(k.cents, k.maanden)} per maand
+                    </div>
+                  )}
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-lg sm:text-xl font-semibold text-gray-900">
@@ -118,17 +115,9 @@ export default async function WatKostBenjiPage() {
           ))}
         </div>
 
-        {/* Geruststelling: product, geen abonnement */}
-        <div className="mt-8 rounded-2xl bg-[#fdf9f4] border border-[#e7ded1] px-5 py-5 sm:px-6 sm:py-6">
-          <p className="text-sm text-gray-600 leading-relaxed">
-            Geen abonnement en geen automatische verlenging. Je koopt het één keer voor
-            de periode die je kiest. Je gesprekken blijven bewaard, wat je ook kiest, en
-            je begint gewoon waar je gebleven was.
-          </p>
-        </div>
-
-        <p className="text-center text-xs text-gray-400 mt-8">
-          Twijfel je nog? Beantwoord gerust de mail van Ien, dan denkt ze met je mee.
+        <p className="text-sm text-gray-500 mt-8">
+          Weet je nog niet welke periode past? Beantwoord gerust de mail, dan denk ik
+          met je mee.
         </p>
       </main>
     </div>
