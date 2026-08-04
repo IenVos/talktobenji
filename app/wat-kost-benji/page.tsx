@@ -115,10 +115,18 @@ export default async function WatKostBenjiPage() {
           ))}
         </div>
 
-        <p className="text-sm text-gray-500 mt-8">
-          Weet je nog niet welke periode past? Beantwoord gerust de mail, dan denk ik
-          met je mee.
-        </p>
+        <div className="text-center mt-10 space-y-1">
+          <p className="text-sm text-gray-500">Weet je nog niet welke periode past?</p>
+          <p className="text-sm text-gray-500">
+            Stuur me gerust een berichtje op{" "}
+            <a
+              href="mailto:contactmetien@talktobenji.com"
+              className="text-[#9a8168] underline"
+            >
+              contactmetien@talktobenji.com
+            </a>
+          </p>
+        </div>
       </main>
     </div>
   );
