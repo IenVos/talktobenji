@@ -18,9 +18,9 @@ export const metadata: Metadata = {
 // bereikbaar is. Langer = voordeliger per maand, dat is het hele idee.
 type Keuze = { slug: string; label: string; maanden: number; fallbackCents: number };
 const KEUZES: Keuze[] = [
-  { slug: "maand", label: "1 maand", maanden: 1, fallbackCents: 2000 },
-  { slug: "kwartaal", label: "3 maanden", maanden: 3, fallbackCents: 5000 },
-  { slug: "halfjaar", label: "6 maanden", maanden: 6, fallbackCents: 9000 },
+  { slug: "benji-1-maand", label: "1 maand", maanden: 1, fallbackCents: 2000 },
+  { slug: "benji-3-maanden", label: "3 maanden", maanden: 3, fallbackCents: 5000 },
+  { slug: "benji-6-maanden", label: "6 maanden", maanden: 6, fallbackCents: 9000 },
 ];
 
 function euro(cents: number): string {
