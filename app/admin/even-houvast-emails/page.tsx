@@ -382,8 +382,8 @@ export default function EvenHouvastEmailsPage() {
   };
   const canTest = testEmail.includes("@");
 
-  // Brief-klikker dag-3-mails (geen dag-reeks): kom-terug (weinig gepraat) + vervolg
-  // (>= 10 berichten). Beide bewerkbaar, elk met een eigen template.
+  // Brief-klikker-mails (geen dag-reeks): kom-terug op dag 3 (1e herinnering) + vervolg
+  // op dag 4 (2e mail, alleen als iemand niet terugkwam). Beide bewerkbaar, eigen template.
   const savedVoor = (key: string) => templates?.find((t: any) => t.key === key);
   const saveBriefMail = (key: string) => async (f: { subject: string; bodyText: string; buttonText: string }) => {
     await upsertTemplate({
@@ -533,12 +533,12 @@ export default function EvenHouvastEmailsPage() {
 
       {/* Voorwaardelijke dag-3-mails voor brief-klikkers, i.p.v. "Benji voorstellen". */}
       <div className="mt-6 pt-5 border-t border-gray-200 space-y-2">
-        <h2 className="text-sm font-bold text-gray-700">Brief-klikker mails (dag 3, i.p.v. Benji voorstellen)</h2>
+        <h2 className="text-sm font-bold text-gray-700">Brief-klikker mails (i.p.v. Benji voorstellen)</h2>
         <BriefKomTerugEditor
           templateKey="eh_brief_kom_terug"
           titel="Brief-opvolg: kom terug"
-          badge="geklikt, weinig gepraat"
-          beschrijving={<>Gaat op <strong>dag 3</strong> naar wie de brief-link klikte maar <strong>weinig praatte</strong> (minder dan 10 berichten). Vervangt de &ldquo;Benji voorstellen&rdquo;-mail. De knop wordt automatisch een persoonlijke Benji-link.</>}
+          badge="dag 3 · 1e herinnering"
+          beschrijving={<>Gaat op <strong>dag 3</strong> naar wie de brief-link klikte (in plaats van de &ldquo;Benji voorstellen&rdquo;-mail). De knop wordt automatisch een persoonlijke Benji-link.</>}
           saved={savedVoor("eh_brief_kom_terug")}
           onSave={saveBriefMail("eh_brief_kom_terug")}
           onTest={testBriefMail("eh_brief_kom_terug")}
@@ -547,8 +547,8 @@ export default function EvenHouvastEmailsPage() {
         <BriefKomTerugEditor
           templateKey="eh_brief_vervolg"
           titel="Brief-opvolg: vervolg"
-          badge="veel gepraat (10+)"
-          beschrijving={<>Gaat op <strong>dag 3</strong> naar wie al <strong>veel praatte</strong> (10 of meer berichten). Geen herkansing maar een vervolg: Benji onthoudt, dus doorgaan waar je was. De knop wordt automatisch een persoonlijke Benji-link.</>}
+          badge="dag 4 · 2e mail"
+          beschrijving={<>Gaat op <strong>dag 4</strong>, ná de kom-terug-mail, naar wie <strong>niet terugkwam</strong>. Wie intussen genoeg met Benji chatte, loopt door in de Benji-funnel en krijgt deze mail niet. De knop wordt automatisch een persoonlijke Benji-link.</>}
           saved={savedVoor("eh_brief_vervolg")}
           onSave={saveBriefMail("eh_brief_vervolg")}
           onTest={testBriefMail("eh_brief_vervolg")}
