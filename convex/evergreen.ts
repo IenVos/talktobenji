@@ -519,15 +519,18 @@ function evergreenFooter(
   const brug = naUrl
     ? `<p style="font-size:14px;font-weight:600;color:#3d3530;margin:0 0 12px;"><a href="${naUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen voor jou</a></p>`
     : "";
-  const kost = benjiKostUrl
-    ? `<p style="font-size:13px;color:#718096;margin:12px 0 0 0;">Benieuwd wat Benji kost? <a href="${benjiKostUrl}" style="color:#9a8168;text-decoration:underline;">Bekijk je opties</a></p>`
-    : "";
+  // Benji-spoor krijgt een eigen "vragen"-regel (verwijst naar Ien) plus de wat-kost-
+  // regel met de link eronder. Gewone evergreen houdt de standaardregel.
+  const vragenEnKost = benjiKostUrl
+    ? `<p style="font-size:13px;line-height:1.6;color:#718096;margin:7px 0 0 0;">Heb je een vraag die ik niet kan beantwoorden? Antwoord op deze mail, dan komt hij bij Ien terecht.</p>` +
+      `<p style="font-size:13px;color:#718096;margin:16px 0 0 0;">Wat Benji kost lees je hier.</p>` +
+      `<p style="font-size:13px;margin:2px 0 0 0;"><a href="${benjiKostUrl}" style="color:#9a8168;text-decoration:underline;">${benjiKostUrl.replace(/^https?:\/\//, "")}</a></p>`
+    : `<p style="font-size:13px;color:#718096;margin:7px 0 0 0;">Heb je vragen? Beantwoord gewoon deze mail.</p>`;
   return `
     <div style="text-align:center;margin-top:44px;">
       <img src="https://www.talktobenji.com/images/benji-logo-2.png" alt="Talk To Benji" width="42" height="42" style="display:inline-block;width:42px;height:42px;margin:0 0 12px 0;" />
       ${brug}
-      <p style="font-size:13px;color:#718096;margin:7px 0 0 0;">Heb je vragen? Beantwoord gewoon deze mail.</p>
-      ${kost}
+      ${vragenEnKost}
       <p style="font-size:12px;line-height:1.7;color:#a0aec0;margin:26px 0 0 0;border-top:1px solid #ece5dc;padding-top:16px;">
         <a href="${rustUrl}" style="color:#a0aec0;text-decoration:underline;">Liever minder mail? Alleen nog maandelijks</a>
         <br/>
