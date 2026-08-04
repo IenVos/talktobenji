@@ -149,9 +149,12 @@ export const seedBenjiOpening = mutation({
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
 
+    const OPENING_NAAM = "Opening (brief-klikkers)";
     const alleBlokken = await ctx.db.query("funnelBlokken").collect();
-    if (alleBlokken.some((b: any) => spoorVan(b.spoor) === "benji")) {
-      return { ok: false, reden: "Er staat al een Benji-blok" };
+    // Alleen dit specifieke openingsblok mag niet dubbel; andere Benji-blokken (die je
+    // zelf maakte) laten we met rust.
+    if (alleBlokken.some((b: any) => spoorVan(b.spoor) === "benji" && b.naam === OPENING_NAAM)) {
+      return { ok: false, reden: "Het openingsblok staat er al" };
     }
 
     const leesTemplate = async (key: string) => {
@@ -171,7 +174,7 @@ export const seedBenjiOpening = mutation({
     const now = Date.now();
     const volgorde = alleBlokken.reduce((m, b) => Math.max(m, b.volgorde), -1) + 1;
     const blokId = await ctx.db.insert("funnelBlokken", {
-      naam: "Opening (brief-klikkers)",
+      naam: OPENING_NAAM,
       spoor: "benji",
       volgorde,
       vanDag: 3,
