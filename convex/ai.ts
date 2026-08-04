@@ -1737,9 +1737,11 @@ Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig 
             "anthropic-version": "2023-06-01",
           },
           body: JSON.stringify({
+            // temperature verwijderd: Opus 4.8 accepteert die parameter niet meer
+            // (gaf 400 "temperature is deprecated"). Variatie in antwoorden sturen
+            // we via de regels; Opus is daar goed op afgesteld.
             model: CLAUDE_MODEL,
             max_tokens: 1024,
-            temperature: 0.85,
             system: systemPrompt,
             messages: messages,
           }),
