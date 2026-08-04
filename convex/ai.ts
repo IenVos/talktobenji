@@ -927,11 +927,19 @@ Gok geen gevoel of betekenis vóór de ander ("Rustiger dagen zijn soms het zwaa
       // Benji-regels (uit instellingen) gaan altijd volledig mee — nooit afkappen
       // De extra hardcoded regels worden apart beperkt tot 2000 chars
       const customRules = settings?.rules || "";
-      // Geen afkap meer op de extra-regels: de oude 2000-limiet gooide o.a. de
-      // huisdiertaal-, tip- en Memories-regels stil weg. De totale regelset past
-      // ruim in het model (context = 1 miljoen tokens); zie maxRulesLength hieronder.
-      const limitedExtraRules = [onlyFromKbRule, dutchLanguageRule, noJargonRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
-      const rules = [customRules, openingRule, gespreksdynamiekRule, crisisAfterRule, noAssumedNamesRule, emptinessValidationRule, withinConversationMemoryRule, practicalHelpRule, sleepRule, physicalComplaintsRule, noTimeAssumptionsRule, minimalInputRule, noRepetitionRule, conversationClosingRule, socialConnectionRule, accountNudgeRule, limitedExtraRules].filter(Boolean).join("\n\n");
+      // DEDUP (4 aug 2026): de gedragsregels (crisis, tempo, afronden, geheugen,
+      // huisdiertaal, geen-namen, slapen, lichaam, sociale verbinding, enz.) staan nu
+      // in customRules — de geconsolideerde admin-tekst (settings.rules). In de code
+      // blijven alleen de voorwaardelijke/functionele stukken:
+      //  - onlyFromKbRule:   KB-grondslag + [UNANSWERED]-markering
+      //  - dutchLanguageRule: NL-grammatica-detail (bewust behouden, geen regressie)
+      //  - accountRule:      account aanmaken via het menu
+      //  - memoryRule:       [HERINNERING: ...]-opslagmarkering (feature)
+      //  - accountNudgeRule: gast-nudge, afhankelijk van isGuest + messageCount
+      // De overige hardcoded regelblokken hierboven zijn hiermee overbodig (dead code)
+      // en worden in een aparte opschoonronde uit dit bestand verwijderd.
+      const limitedExtraRules = [onlyFromKbRule, dutchLanguageRule, accountRule, memoryRule].filter(Boolean).join("\n\n");
+      const rules = [customRules, accountNudgeRule, limitedExtraRules].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
