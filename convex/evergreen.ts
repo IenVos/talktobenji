@@ -29,7 +29,7 @@ import {
   persoonlijkOnderwerp,
   persoonlijkeBody,
 } from "./ehMailFooter";
-import { BENJI_BLOK_MARKER } from "./ehConcepten";
+import { BENJI_BLOK_MARKER, BENJI_KNOP_MARKER } from "./ehConcepten";
 import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
 
 const DAG_MS = 24 * 60 * 60 * 1000;
@@ -163,10 +163,13 @@ export const seedBenjiOpening = mutation({
         .withIndex("by_key", (q) => q.eq("key", key))
         .unique();
       const def = (DEFAULT_TEMPLATES as any)[key] ?? {};
-      let bodyText: string = saved?.bodyText ?? def.bodyText ?? "";
-      // Zorg dat de één-klik-Benji-knop verschijnt (zoals in de EH-versie).
-      if (!bodyText.includes(BENJI_BLOK_MARKER)) bodyText = `${bodyText.trim()}\n\n${BENJI_BLOK_MARKER}`;
-      return { subject: saved?.subject ?? def.subject ?? "", bodyText };
+      const rawBody: string = saved?.bodyText ?? def.bodyText ?? "";
+      // Zorg dat de persoonlijke CTA-knop verschijnt (zoals in de EH-versie): niet het
+      // koude [benji-blok]-kaartje, maar de nette "Verder praten met Benji"-knop, boven
+      // de afsluitgroet.
+      const bodyText = metBenjiKnop(rawBody);
+      const buttonText: string = (saved?.buttonText ?? def.buttonText ?? "Verder praten met Benji").trim();
+      return { subject: saved?.subject ?? def.subject ?? "", bodyText, buttonText };
     };
     const komTerug = await leesTemplate("eh_brief_kom_terug");
     const vervolg = await leesTemplate("eh_brief_vervolg");
@@ -184,13 +187,50 @@ export const seedBenjiOpening = mutation({
     });
     await ctx.db.insert("funnelMails", {
       blokId, dagOffset: 3, subject: komTerug.subject, bodyText: komTerug.bodyText,
-      actief: true, updatedAt: now,
+      buttonText: komTerug.buttonText, actief: true, updatedAt: now,
     });
     await ctx.db.insert("funnelMails", {
       blokId, dagOffset: 4, subject: vervolg.subject, bodyText: vervolg.bodyText,
-      actief: true, updatedAt: now,
+      buttonText: vervolg.buttonText, actief: true, updatedAt: now,
     });
     return { ok: true };
+  },
+});
+
+/**
+ * Eenmalige, idempotente reparatie: zet de al-bestaande brief-klikker-mails (die met
+ * het koude [benji-blok]-kaartje geseed zijn) om naar de persoonlijke CTA-knop
+ * [benji-knop] met knoptekst "Verder praten met Benji". Zo brengt de knop de lead
+ * direct naar zijn eigen plek, net als in de EH-scherm-versie. Veilig meerdere keren
+ * te draaien: doet niets als een mail al de knop-marker heeft.
+ */
+export const _migreerBenjiOpeningNaarKnop = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const OPENING_NAAM = "Opening (brief-klikkers)";
+    const blokken = await ctx.db.query("funnelBlokken").collect();
+    const openingBlokken = blokken.filter(
+      (b: any) => spoorVan(b.spoor) === "benji" && b.naam === OPENING_NAAM
+    );
+    let aangepast = 0;
+    for (const blok of openingBlokken) {
+      const mails = await ctx.db
+        .query("funnelMails")
+        .withIndex("by_blok", (q) => q.eq("blokId", blok._id))
+        .collect();
+      for (const m of mails) {
+        const bodyText = metBenjiKnop(m.bodyText);
+        const patch: Record<string, unknown> = {};
+        if (bodyText !== m.bodyText) patch.bodyText = bodyText;
+        if (!(m.buttonText ?? "").trim()) patch.buttonText = "Verder praten met Benji";
+        if (Object.keys(patch).length > 0) {
+          patch.updatedAt = Date.now();
+          await ctx.db.patch(m._id, patch);
+          aangepast++;
+        }
+      }
+    }
+    return { ok: true, aangepast };
   },
 });
 
@@ -402,6 +442,32 @@ function benjiBlokHtml(benjiUrl: string): string {
   return `<div style="margin:26px 0 6px;background:#ffffff;border:1px solid #e7ded1;border-radius:16px;padding:24px 22px;text-align:center;"><p style="font-size:16px;font-weight:700;color:#3d3530;margin:0 0 8px;">7 dagen gratis met Benji</p><p style="font-size:14px;line-height:1.6;color:#6b6460;margin:0 0 18px;">Een plek om je verhaal kwijt te kunnen, wanneer jij wilt. Ook midden in de nacht.</p><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Maak kennis met Benji &rarr;</a><p style="font-size:12px;line-height:1.5;color:#9a938c;margin:14px 0 0;">Geen formulier, geen wachtwoord.</p></div>`;
 }
 
+// De persoonlijke CTA-knop ("Verder praten met Benji"), links uitgelijnd. Zelfde stijl
+// en link als de EH-scherm-versie (verstuurBriefKomTerug): brengt de lead direct naar
+// zijn eigen plek/gesprek via de één-klik-link.
+function benjiPersoonlijkeKnop(benjiUrl: string, label: string): string {
+  return `<div style="text-align:left;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${label} &rarr;</a></div>`;
+}
+
+// Zet de [benji-knop]-marker op de juiste plek in de tekst: vlak vóór de afsluitgroet
+// ("Liefs"), zodat de knop boven de handtekening staat (net als de EH-scherm-versie).
+// Bestaande benji-markers worden eerst verwijderd, dan opnieuw goed geplaatst. Zonder
+// herkende afsluitgroet komt de knop onderaan.
+function metBenjiKnop(bodyText: string): string {
+  const alineas = bodyText
+    .trim()
+    .split(/\n\n+/)
+    .map((p) => p.trim())
+    .filter((p) => p && !p.includes(BENJI_KNOP_MARKER) && !p.includes(BENJI_BLOK_MARKER));
+  let groetIndex = -1;
+  alineas.forEach((p, i) => {
+    if (isAfsluiting(p)) groetIndex = i;
+  });
+  if (groetIndex === -1) alineas.push(BENJI_KNOP_MARKER);
+  else alineas.splice(groetIndex, 0, BENJI_KNOP_MARKER);
+  return alineas.join("\n\n");
+}
+
 // Eigen evergreen-voettekst: Niet Alleen-brug alleen in de laatste mail van een blok;
 // altijd een rustoptie (alleen maandelijks) én een afmeldlink.
 function evergreenFooter(naUrl: string | null, rustUrl: string, afmeldUrl: string): string {
@@ -448,14 +514,24 @@ async function bouwEvergreenHtml(
   const imageUrl = (args.imageUrl || "").trim() || undefined;
   const imageCaption = (args.imageCaption || "").trim() || undefined;
 
+  // Beide Benji-markers gebruiken dezelfde persoonlijke één-klik-link (per lead een
+  // eigen token). [benji-blok] = het koude intro-kaartje; [benji-knop] = de nette CTA-
+  // knop "Verder praten met Benji" naar de eigen plek (warme brief-klikkers).
   const heeftBlok = body.includes(BENJI_BLOK_MARKER);
+  const heeftBenjiKnop = body.includes(BENJI_KNOP_MARKER);
   let blokHtml = "";
-  if (heeftBlok) {
+  let benjiKnopHtml = "";
+  if (heeftBlok || heeftBenjiKnop) {
     const token = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
       email: args.email,
       naam: args.naam,
     });
-    blokHtml = benjiBlokHtml(`${appBase()}/benji-start?token=${token}`);
+    const benjiUrl = `${appBase()}/benji-start?token=${token}`;
+    if (heeftBlok) blokHtml = benjiBlokHtml(benjiUrl);
+    if (heeftBenjiKnop) {
+      const label = (args.buttonText || "").trim() || "Verder praten met Benji";
+      benjiKnopHtml = benjiPersoonlijkeKnop(benjiUrl, label);
+    }
   }
 
   const knopTekst = (args.buttonText || "").trim();
@@ -482,7 +558,8 @@ async function bouwEvergreenHtml(
   const psStukken: string[] = [];
   const stukken: string[] = [];
   alineas.forEach((p: string, i: number) => {
-    if (p.includes(BENJI_BLOK_MARKER)) stukken.push(blokHtml);
+    if (p.includes(BENJI_KNOP_MARKER)) stukken.push(benjiKnopHtml);
+    else if (p.includes(BENJI_BLOK_MARKER)) stukken.push(blokHtml);
     else if (AFBEELDING_MARKER.test(p)) { if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption)); }
     else if (KNOP_MARKER.test(p)) { if (toonKnop) stukken.push(knopHtml); }
     else if (isPS(p)) psStukken.push(psStijl(p));

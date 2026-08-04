@@ -570,7 +570,8 @@ function MailForm({
         <span className="text-xs font-semibold text-gray-600">Tekst</span>
         <textarea value={bodyText} onChange={(e) => setBodyText(e.target.value)} rows={8} className={`${inputCls} font-mono`} />
         <span className="text-[11px] text-gray-400">
-          Markers op een eigen regel: <code>[benji-blok]</code>, <code>[afbeelding]</code>, <code>[knop]</code>.
+          Markers op een eigen regel: <code>[benji-knop]</code> (persoonlijke "Verder praten met Benji"-knop),
+          {" "}<code>[benji-blok]</code>, <code>[afbeelding]</code>, <code>[knop]</code>.
           <code>{"{voornaam}"}</code> wordt ingevuld. Een afsluitgroet krijgt de foto-handtekening; een
           P.S.-regel wordt als P.S. opgemaakt.
         </span>

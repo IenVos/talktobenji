@@ -46,6 +46,12 @@ export const BENJI_MARKER = "[benji-start-link]";
 // 7-dagen-gratis-uitnodiging. Rendert altijd onderaan, ná de handtekening en P.S.
 export const BENJI_BLOK_MARKER = "[benji-blok]";
 
+// De persoonlijke één-klik CTA-knop ("Verder praten met Benji"). Anders dan het
+// [benji-blok]-kaartje (koude intro) is dit een nette knop die de lead direct naar
+// zijn eigen plek/gesprek brengt via /benji-start?token=… . Voor warme mails (brief-
+// klikkers die Benji al kennen). De knoptekst komt uit het buttonText-veld van de mail.
+export const BENJI_KNOP_MARKER = "[benji-knop]";
+
 export const DEFAULT_CONCEPTEN: ConceptDefinitie[] = [
   {
     key: "concept_benji_intro",
