@@ -284,7 +284,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         label: "Mailsysteem",
         icon: Mail,
         items: [
-          { href: "/admin/mailsysteem/evergreen", label: "Evergreen funnel", icon: Mail },
+          { href: "/admin/mailsysteem/evergreen", label: "Funnels", icon: Mail },
           { href: "/admin/mailsysteem/losse-mails", label: "Losse mails", icon: Mail },
         ],
       },

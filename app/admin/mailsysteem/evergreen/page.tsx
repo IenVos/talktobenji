@@ -4,6 +4,13 @@ import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { useAdminQuery, useAdminMutation, useAdminAction } from "../../AdminAuthContext";
 
+// De funnels ("sporen") die op dezelfde motor draaien. "evergreen" = de bestaande
+// reeks. Nieuwe funnels voeg je hier toe; verder werkt alles hetzelfde.
+const SPOREN = [
+  { code: "evergreen", label: "Evergreen", beschrijving: "De tijdloze reeks waar EH-doorlopers in stromen (het huidige NA-gerichte spoor)." },
+  { code: "benji", label: "Benji", beschrijving: "Voor wie de Benji-link uit de brief gebruikte en chatte: op weg naar doorgaan met Benji na de gratis week." },
+];
+
 const FASES = [
   { code: "", label: "Geen fase" },
   { code: "intensief", label: "Intensief (maand 1-3)" },
@@ -45,24 +52,47 @@ type Blok = {
 };
 
 export default function EvergreenPage() {
-  const blokken = useAdminQuery(api.evergreen.blokkenMetMails, {}) as Blok[] | undefined;
-  const tijdlijn = useAdminQuery(api.evergreen.tijdlijn, {}) as
+  const [spoor, setSpoor] = useState<string>("evergreen");
+
+  const blokken = useAdminQuery(api.evergreen.blokkenMetMails, { spoor }) as Blok[] | undefined;
+  const tijdlijn = useAdminQuery(api.evergreen.tijdlijn, { spoor }) as
     | { dagOffset: number; subject: string; blokNaam: string; verliesType: string | null }[]
     | undefined;
 
   const blokToevoegen = useAdminMutation(api.evergreen.blokToevoegen);
   const [nieuwBlok, setNieuwBlok] = useState(false);
 
+  const huidigSpoor = SPOREN.find((s) => s.code === spoor);
+
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Evergreen funnel</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Funnels</h1>
         <p className="text-sm text-gray-500 mt-1">
-          De tijdloze reeks waar leads op hun eigen dag 1 doorheen bewegen, opgedeeld in blokken per
-          thema. Hier stel je de reeks samen. Er verstuurt nog niets: het aanzetten komt in de volgende
-          stap.
+          Eén motor, meerdere funnels ("sporen"). Elke funnel heeft eigen blokken en mails; een lead
+          krijgt alleen de blokken van zijn eigen spoor. Kies hieronder welke funnel je bewerkt.
         </p>
       </div>
+
+      {/* Spoor-keuze */}
+      <div className="flex flex-wrap gap-2">
+        {SPOREN.map((s) => (
+          <button
+            key={s.code}
+            onClick={() => { setSpoor(s.code); setNieuwBlok(false); }}
+            className={`rounded-full px-4 py-1.5 text-sm font-medium border ${
+              spoor === s.code
+                ? "bg-primary-600 text-white border-primary-600"
+                : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+      {huidigSpoor?.beschrijving && (
+        <p className="-mt-3 text-xs text-gray-500">{huidigSpoor.beschrijving}</p>
+      )}
 
       {/* Tijdlijn-preview */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
@@ -102,7 +132,7 @@ export default function EvergreenPage() {
         <BlokForm
           onKlaar={() => setNieuwBlok(false)}
           onOpslaan={async (f) => {
-            await blokToevoegen(f);
+            await blokToevoegen({ ...f, spoor });
             setNieuwBlok(false);
           }}
         />

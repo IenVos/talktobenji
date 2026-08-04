@@ -977,6 +977,10 @@ export default defineSchema({
   // pauzeschakelaar.
   funnelBlokken: defineTable({
     naam: v.string(),
+    // Welk spoor (welke funnel) dit blok hoort. Leeg = "evergreen" (bestaand
+    // gedrag). Zo draait er één motor voor meerdere funnels (evergreen, benji,
+    // later na). Een lead krijgt alleen blokken van zijn eigen spoor.
+    spoor: v.optional(v.string()),  // "evergreen" (default) | "benji" | ...
     fase: v.optional(v.string()),   // "intensief" | "verdieping" | "aanwezigheid"
     volgorde: v.number(),           // volgorde tussen blokken
     vanDag: v.number(),             // eerste dag van dit blok (t.o.v. instroom = dag 1)
@@ -1010,8 +1014,12 @@ export default defineSchema({
     email: v.string(),              // lowercase
     naam: v.optional(v.string()),
     verliesType: v.optional(v.string()),
+    // Op welk spoor (welke funnel) deze lead loopt. Leeg = "evergreen". Wordt
+    // automatisch gezet bij instroom en is handmatig te wijzigen in klantbeheer
+    // (verplaatsen = verse dag 1 in het nieuwe spoor).
+    spoor: v.optional(v.string()),  // "evergreen" (default) | "benji" | ...
     ingestroomdOp: v.number(),      // moment van instroom = basis voor de dagteller
-    bron: v.string(),               // "reactivatie" | "eh" | "handmatig"
+    bron: v.string(),               // "even-houvast" | "benji" | "handmatig" | ...
     status: v.string(),             // "in-backend" | "alleen-maandmail" | "koper" | "afgemeld"
     updatedAt: v.number(),
   })

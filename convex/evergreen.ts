@@ -33,6 +33,12 @@ import { BENJI_BLOK_MARKER } from "./ehConcepten";
 
 const DAG_MS = 24 * 60 * 60 * 1000;
 
+// Sporen: één motor, meerdere funnels. Een blok/lead zonder spoor telt als de
+// bestaande evergreen, zodat alles wat er nu is ongewijzigd blijft draaien. Een
+// lead krijgt uitsluitend de blokken van zijn eigen spoor.
+const DEFAULT_SPOOR = "evergreen";
+const spoorVan = (x?: string | null): string => (x && x.trim()) || DEFAULT_SPOOR;
+
 // ── Lezen ────────────────────────────────────────────────────────────────────
 
 /** Diagnose (CLI): actieve mails per dagOffset + leads-instroomspreiding. Read-only. */
@@ -72,15 +78,19 @@ export const _evergreenOverzicht = internalQuery({
   },
 });
 
-/** Alle blokken op volgorde, elk met hun mails (op dagoffset). Voor de admin. */
+/** Alle blokken op volgorde, elk met hun mails (op dagoffset). Voor de admin.
+ * Met `spoor` filter je op één funnel (default toont het alle sporen). */
 export const blokkenMetMails = query({
-  args: { adminToken: v.string() },
+  args: { adminToken: v.string(), spoor: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const [blokken, mails] = await Promise.all([
+    const [alleBlokken, mails] = await Promise.all([
       ctx.db.query("funnelBlokken").withIndex("by_volgorde").collect(),
       ctx.db.query("funnelMails").collect(),
     ]);
+    const blokken = args.spoor
+      ? alleBlokken.filter((b) => spoorVan(b.spoor) === args.spoor)
+      : alleBlokken;
     blokken.sort((a, b) => a.volgorde - b.volgorde);
     return blokken.map((b) => ({
       ...b,
@@ -97,7 +107,7 @@ export const blokkenMetMails = query({
  * op hun dag getoond.
  */
 export const tijdlijn = query({
-  args: { adminToken: v.string() },
+  args: { adminToken: v.string(), spoor: v.optional(v.string()) },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
     const [blokken, mails] = await Promise.all([
@@ -108,7 +118,8 @@ export const tijdlijn = query({
     return mails
       .filter((m) => {
         const b = blokById.get(m.blokId);
-        return m.actief && b && b.actief;
+        if (!m.actief || !b || !b.actief) return false;
+        return !args.spoor || spoorVan(b.spoor) === args.spoor;
       })
       .map((m) => {
         const b = blokById.get(m.blokId)!;
@@ -129,6 +140,7 @@ export const blokToevoegen = mutation({
   args: {
     adminToken: v.string(),
     naam: v.string(),
+    spoor: v.optional(v.string()),
     fase: v.optional(v.string()),
     vanDag: v.number(),
     totDag: v.number(),
@@ -140,6 +152,8 @@ export const blokToevoegen = mutation({
     const volgorde = bestaande.reduce((m, b) => Math.max(m, b.volgorde), -1) + 1;
     await ctx.db.insert("funnelBlokken", {
       naam: args.naam.trim() || "Naamloos blok",
+      // Leeg spoor bewaren we als undefined (= evergreen), anders de gekozen waarde.
+      spoor: args.spoor && args.spoor !== DEFAULT_SPOOR ? args.spoor.trim() : undefined,
       fase: args.fase?.trim() || undefined,
       volgorde,
       vanDag: args.vanDag,
@@ -503,15 +517,19 @@ export const _evergreenPlan = internalQuery({
       if (m.dagOffset > cur) maxDagPerBlok.set(m.blokId, m.dagOffset);
     }
 
-    // Verzonden per e-mail → set van dagOffsets (via de mail waar het bij hoort).
+    // Verzonden per e-mail + spoor → set van dagOffsets (via de mail + z'n blok).
+    // Sleutel is "email|spoor", zodat een lead die van spoor wisselt niet vastloopt
+    // op dagnummers die hij in zijn vorige spoor al kreeg.
     const verzondenDagen = new Map<string, Set<number>>();
     for (const v of verzonden) {
       const m = mailById.get(v.mailId);
       if (!m) continue;
       const e = v.email.toLowerCase();
-      const set = verzondenDagen.get(e) ?? new Set<number>();
+      const spoor = spoorVan(blokById.get(m.blokId)?.spoor);
+      const key = `${e}|${spoor}`;
+      const set = verzondenDagen.get(key) ?? new Set<number>();
       set.add(m.dagOffset);
-      verzondenDagen.set(e, set);
+      verzondenDagen.set(key, set);
     }
 
     const teVerzenden: {
@@ -532,19 +550,25 @@ export const _evergreenPlan = internalQuery({
       if (afgemeldSet.has(email)) continue; // afmelding = geen mail (status blijft; cron slaat over)
 
       const type = normType(lead.verliesType);
+      const leadSpoor = spoorVan(lead.spoor);
       const dag = Math.floor((nu - lead.ingestroomdOp) / DAG_MS) + 1; // eigen dag 1 = instroomdag
-      const alGehad = verzondenDagen.get(email) ?? new Set<number>();
+      const alGehad = verzondenDagen.get(`${email}|${leadSpoor}`) ?? new Set<number>();
+
+      // Alleen de mails van blokken op het spoor van deze lead.
+      const spoorMails = actieveMails.filter(
+        (m: any) => spoorVan(blokById.get(m.blokId)?.spoor) === leadSpoor
+      );
 
       // Kies per dagOffset de passende mail (variant voor dit type, anders algemeen).
       // Een dagOffset zonder passende mail is voor deze lead simpelweg geen stap.
-      const kandidaten = actieveMails
+      const kandidaten = spoorMails
         .filter((m: any) => m.dagOffset <= dag && !alGehad.has(m.dagOffset))
         .map((m: any) => m.dagOffset);
       const unieke = Array.from(new Set<number>(kandidaten)).sort((a, b) => a - b);
 
       let gekozen: any = null;
       for (const d of unieke) {
-        const opDag = actieveMails.filter((m: any) => m.dagOffset === d);
+        const opDag = spoorMails.filter((m: any) => m.dagOffset === d);
         const variant = opDag.find((m: any) => normType(m.verliesType) === type && m.verliesType);
         const algemeen = opDag.find((m: any) => !m.verliesType);
         const mail = variant ?? algemeen ?? null;
@@ -586,10 +610,24 @@ export const _evergreenCheck = internalQuery({
     if (naProfiel || subs.some((s: any) => (s.pricePaid ?? 0) > 0)) return null;
     if (!mail || !mail.actief) return null;
     if (verzonden.some((v: any) => v.mailId === args.mailId)) return null;
-    // Ook niet als er al een mail op dezelfde dagOffset ging (logische stap-dedup).
-    const alleMails = await ctx.db.query("funnelMails").collect();
+
+    // De mail moet op het spoor van de lead vallen (spoor zit op het blok).
+    const [alleMails, alleBlokken] = await Promise.all([
+      ctx.db.query("funnelMails").collect(),
+      ctx.db.query("funnelBlokken").collect(),
+    ]);
     const mailById = new Map(alleMails.map((m: any) => [m._id, m]));
-    if (verzonden.some((v: any) => (mailById.get(v.mailId) as any)?.dagOffset === mail.dagOffset)) return null;
+    const blokById = new Map(alleBlokken.map((b: any) => [b._id, b]));
+    const mailSpoor = spoorVan(blokById.get(mail.blokId)?.spoor);
+    if (spoorVan(lead.spoor) !== mailSpoor) return null;
+
+    // Ook niet als er al een mail op dezelfde dagOffset (binnen HETZELFDE spoor) ging.
+    const alDieDag = verzonden.some((v: any) => {
+      const sm = mailById.get(v.mailId);
+      if (!sm || sm.dagOffset !== mail.dagOffset) return false;
+      return spoorVan(blokById.get(sm.blokId)?.spoor) === mailSpoor;
+    });
+    if (alDieDag) return null;
     return { mail };
   },
 });
