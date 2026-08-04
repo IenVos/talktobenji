@@ -744,6 +744,150 @@ export const _evergreenLeadToevoegen = internalMutation({
   },
 });
 
+// ── Instap Benji-spoor: brief-klikker die met Benji chat ─────────────────────
+// Zodra een Even Houvast-lead genoeg met Benji heeft gepraat (>= drempel eigen
+// berichten), verhuist die direct naar spoor "benji" (verse dag 1) en krijgt geen
+// EH-mails meer (dat regelt evenHouvastOpvolg via de spoor-check). Real-time
+// aangeroepen vanuit chat.sendUserMessage. Gated door BENJI_SPOOR_ACTIEF, zodat er
+// niks verandert tot het Benji-spoor gevuld is en we het bewust aanzetten.
+const BENJI_SPOOR_DREMPEL = 5;
+
+export const _benjiSpoorInstroomCheck = internalMutation({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    if (process.env.BENJI_SPOOR_ACTIEF !== "true") return { enrolled: false, reden: "uit" };
+    const email = args.email.toLowerCase().trim();
+    if (!email) return { enrolled: false, reden: "geen adres" };
+
+    // Al op het Benji-spoor? Klaar.
+    const lead = await ctx.db
+      .query("funnelLeads")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (lead && spoorVan(lead.spoor) === "benji") return { enrolled: false, reden: "al benji" };
+
+    // Alleen Even Houvast-leads (die kregen de brief + Benji-link).
+    const brief = await ctx.db
+      .query("houvastBrieven")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    if (!brief) return { enrolled: false, reden: "geen EH-lead" };
+
+    // Niet wie zich afmeldde of al betaalde (trial telt niet als betaald).
+    const [afgemeld, subs] = await Promise.all([
+      ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", email)).first(),
+      ctx.db.query("userSubscriptions").withIndex("by_email", (q) => q.eq("email", email)).collect(),
+    ]);
+    if (afgemeld) return { enrolled: false, reden: "afgemeld" };
+    if (subs.some((s: any) => (s.pricePaid ?? 0) > 0)) return { enrolled: false, reden: "al klant" };
+
+    // Genoeg eigen berichten met Benji? Tel over al z'n gesprekken (alleen tellen,
+    // nooit inhoud lezen).
+    const user = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", email))
+      .unique();
+    if (!user) return { enrolled: false, reden: "geen account" };
+    const sessies = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_user", (q) => q.eq("userId", user._id.toString()))
+      .collect();
+    let aantal = 0;
+    for (const s of sessies) {
+      const msgs = await ctx.db
+        .query("chatMessages")
+        .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+        .collect();
+      aantal += msgs.filter((m: any) => m.role === "user").length;
+    }
+    if (aantal < BENJI_SPOOR_DREMPEL) return { enrolled: false, reden: `<${BENJI_SPOOR_DREMPEL}` };
+
+    // Overzetten naar spoor benji, verse dag 1. Bestaande (evergreen-)lead verhuist mee.
+    const now = Date.now();
+    const type = normType(brief.verliesType);
+    if (lead) {
+      await ctx.db.patch(lead._id, {
+        spoor: "benji",
+        ingestroomdOp: now,
+        status: "in-backend",
+        updatedAt: now,
+      });
+    } else {
+      await ctx.db.insert("funnelLeads", {
+        email,
+        naam: brief.naam?.trim() || undefined,
+        verliesType: type !== ALGEMEEN ? type : undefined,
+        spoor: "benji",
+        ingestroomdOp: now,
+        bron: "benji",
+        status: "in-backend",
+        updatedAt: now,
+      });
+    }
+    return { enrolled: true };
+  },
+});
+
+// ── Handoff: na afloop van een spoor door naar het volgende ──────────────────
+// Alleen sporen in deze map ketenen; de rest eindigt gewoon. Benji-doorlopers die
+// niet kochten gaan naar de evergreen, zodat ze alsnog het Niet Alleen-aanbod
+// krijgen (kopers vallen daar uit, dat regelt de evergreen zelf). Verse dag 1.
+const SPOOR_VERVOLG: Record<string, string> = { benji: "evergreen" };
+const HANDOFF_RUST_DAGEN = 3;
+
+export const _spoorHandoff = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const nu = Date.now();
+    const [leads, blokken, mails, verzonden] = await Promise.all([
+      ctx.db.query("funnelLeads").withIndex("by_status", (q) => q.eq("status", "in-backend")).collect(),
+      ctx.db.query("funnelBlokken").collect(),
+      ctx.db.query("funnelMails").collect(),
+      ctx.db.query("funnelVerzonden").collect(),
+    ]);
+    const blokById = new Map(blokken.map((b: any) => [b._id, b]));
+    const mailById = new Map(mails.map((m: any) => [m._id, m]));
+
+    // Hoogste dagOffset per spoor (alleen actieve mails in actieve blokken).
+    const maxDagPerSpoor = new Map<string, number>();
+    for (const m of mails) {
+      const b = blokById.get(m.blokId);
+      if (!m.actief || !b || !b.actief) continue;
+      const sp = spoorVan(b.spoor);
+      maxDagPerSpoor.set(sp, Math.max(maxDagPerSpoor.get(sp) ?? -1, m.dagOffset));
+    }
+    // Per e-mail: welke (spoor|dagOffset) heeft die al gehad.
+    const gehad = new Map<string, Set<string>>();
+    for (const v of verzonden) {
+      const m = mailById.get(v.mailId);
+      if (!m) continue;
+      const sp = spoorVan(blokById.get(m.blokId)?.spoor);
+      const e = v.email.toLowerCase();
+      (gehad.get(e) ?? gehad.set(e, new Set()).get(e)!).add(`${sp}|${m.dagOffset}`);
+    }
+
+    let verhuisd = 0;
+    for (const lead of leads) {
+      const sp = spoorVan(lead.spoor);
+      const vervolg = SPOOR_VERVOLG[sp];
+      if (!vervolg) continue;
+      const maxDag = maxDagPerSpoor.get(sp);
+      if (maxDag === undefined) continue; // spoor nog leeg → niks te ketenen
+      // Laatste mail van het spoor echt gehad?
+      if (!gehad.get(lead.email.toLowerCase())?.has(`${sp}|${maxDag}`)) continue;
+      const dag = Math.floor((nu - lead.ingestroomdOp) / DAG_MS) + 1;
+      if (dag < maxDag + HANDOFF_RUST_DAGEN) continue; // nog even rust na de laatste mail
+      await ctx.db.patch(lead._id, {
+        spoor: vervolg === DEFAULT_SPOOR ? undefined : vervolg,
+        ingestroomdOp: nu, // verse dag 1 in het nieuwe spoor
+        updatedAt: nu,
+      });
+      verhuisd++;
+    }
+    return { verhuisd };
+  },
+});
+
 // ── De dagelijkse motor ──────────────────────────────────────────────────────
 
 export const processEvergreen = internalAction({
@@ -757,6 +901,9 @@ export const processEvergreen = internalAction({
     // daarna pas de verzending plannen. Nieuw ingestroomde leads staan op dag 1, dus
     // ze krijgen vanavond nog niets (eerste mail op dag 7).
     await ctx.runMutation(internal.evergreen._instroomEHAfgerond, {});
+
+    // Doorlopers van een spoor doorzetten naar hun vervolgspoor (bijv. benji → evergreen).
+    await ctx.runMutation(internal.evergreen._spoorHandoff, {});
 
     const { teVerzenden, teMarkerenKoper } = await ctx.runQuery(internal.evergreen._evergreenPlan, {});
 

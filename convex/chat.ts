@@ -665,6 +665,15 @@ export const sendUserMessage = internalMutation({
       lastActivityAt: now,
     });
 
+    // Benji-spoor: zodra een Even Houvast-lead genoeg met Benji chat, direct naar
+    // spoor "benji" (en geen EH-mails meer). Async buiten de hot path, en gated door
+    // BENJI_SPOOR_ACTIEF zodat het pas telt als het spoor gevuld en aangezet is.
+    if (process.env.BENJI_SPOOR_ACTIEF === "true" && session.userEmail) {
+      await ctx.scheduler.runAfter(0, internal.evergreen._benjiSpoorInstroomCheck, {
+        email: session.userEmail,
+      });
+    }
+
     // A/B test: markeer dat gebruiker doorpraatte na opener
     const openerTest = await ctx.db
       .query("openerTests")

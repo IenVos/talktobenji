@@ -389,15 +389,18 @@ export const _statusVoorLead = internalQuery({
   args: { email: v.string() },
   handler: async (ctx, args) => {
     const lc = args.email.toLowerCase();
-    const [verzonden, afgemeld, profiel] = await Promise.all([
+    const [verzonden, afgemeld, profiel, funnelLead] = await Promise.all([
       ctx.db.query("ehOpvolgVerzonden").withIndex("by_email", (q) => q.eq("email", lc)).collect(),
       ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", lc)).first(),
       ctx.db.query("nietAlleenProfiles").withIndex("by_email", (q) => q.eq("email", lc)).first(),
+      ctx.db.query("funnelLeads").withIndex("by_email", (q) => q.eq("email", lc)).first(),
     ]);
     return {
       gestuurd: verzonden.map((v: any) => v.mailNummer as number),
       afgemeld: !!afgemeld,
       heeftGekocht: !!profiel,
+      // Op het Benji-spoor? Dan geen EH-mails meer (die persoon praat met Benji).
+      opBenjiSpoor: (funnelLead?.spoor ?? "") === "benji",
     };
   },
 });
@@ -502,7 +505,7 @@ export const processEvenHouvastOpvolg = internalAction({
     const komTerugAan = process.env.EH_BRIEF_KOMTERUG_ACTIEF === "true";
     for (const lead of leads) {
       const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: lead.email });
-      if (status.afgemeld || status.heeftGekocht) continue;
+      if (status.afgemeld || status.heeftGekocht || status.opBenjiSpoor) continue;
 
       const type = normType(lead.verliesType);
       if (!schemaCache[type]) {
@@ -569,7 +572,7 @@ export const _verstuurEnLog = internalAction({
     if (!apiKey) return;
 
     const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: args.email });
-    if (status.afgemeld || status.heeftGekocht || status.gestuurd.includes(args.mailNummer)) return;
+    if (status.afgemeld || status.heeftGekocht || status.opBenjiSpoor || status.gestuurd.includes(args.mailNummer)) return;
 
     try {
       await verstuurOpvolgMail(ctx, {
@@ -602,7 +605,7 @@ export const _verstuurBriefKomTerugEnLog = internalAction({
     if (!apiKey) return;
 
     const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: args.email });
-    if (status.afgemeld || status.heeftGekocht || status.gestuurd.includes(BENJI_VOORSTEL_MAILNR)) return;
+    if (status.afgemeld || status.heeftGekocht || status.opBenjiSpoor || status.gestuurd.includes(BENJI_VOORSTEL_MAILNR)) return;
 
     // Veel gepraat (>= drempel) → vervolg-mail (Benji onthoudt); anders de kom-terug-mail.
     const aantalBerichten = await ctx.runQuery(internal.evenHouvastOpvolg._aantalEigenBerichten, { email: args.email });
