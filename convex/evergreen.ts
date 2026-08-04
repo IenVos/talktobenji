@@ -234,6 +234,43 @@ export const _migreerBenjiOpeningNaarKnop = internalMutation({
   },
 });
 
+/**
+ * Eenmalige herschikking: verplaats de mails uit het "Opening (brief-klikkers)"-blok
+ * naar het "Start"-blok (zodat de hele Benji-funnel in één blok staat), en ruim het
+ * lege Opening-blok op. Idempotent: doet niets als Opening al weg is. Het Start-blok
+ * rekt zo nodig mee in dag-bereik. De mails behouden hun eigen dagOffset (3 en 4).
+ */
+export const _verplaatsOpeningNaarStart = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const blokken = await ctx.db.query("funnelBlokken").collect();
+    const benji = blokken.filter((b: any) => spoorVan(b.spoor) === "benji");
+    const opening = benji.find((b: any) => b.naam === "Opening (brief-klikkers)");
+    const start = benji.find((b: any) => b.naam === "Start");
+    if (!opening) return { ok: true, reden: "geen Opening-blok (al verplaatst)", verplaatst: 0 };
+    if (!start) return { ok: false, reden: "geen Start-blok gevonden", verplaatst: 0 };
+
+    const mails = await ctx.db
+      .query("funnelMails")
+      .withIndex("by_blok", (q) => q.eq("blokId", opening._id))
+      .collect();
+
+    const now = Date.now();
+    let vanDag = start.vanDag;
+    let totDag = start.totDag;
+    for (const m of mails) {
+      await ctx.db.patch(m._id, { blokId: start._id, updatedAt: now });
+      vanDag = Math.min(vanDag, m.dagOffset);
+      totDag = Math.max(totDag, m.dagOffset);
+    }
+    if (vanDag !== start.vanDag || totDag !== start.totDag) {
+      await ctx.db.patch(start._id, { vanDag, totDag, updatedAt: now });
+    }
+    await ctx.db.delete(opening._id);
+    return { ok: true, verplaatst: mails.length };
+  },
+});
+
 export const blokToevoegen = mutation({
   args: {
     adminToken: v.string(),
@@ -468,17 +505,29 @@ function metBenjiKnop(bodyText: string): string {
   return alineas.join("\n\n");
 }
 
-// Eigen evergreen-voettekst: Niet Alleen-brug alleen in de laatste mail van een blok;
-// altijd een rustoptie (alleen maandelijks) én een afmeldlink.
-function evergreenFooter(naUrl: string | null, rustUrl: string, afmeldUrl: string): string {
+// Eigen evergreen-voettekst. Twee smaken, afhankelijk van het spoor:
+//  • gewone evergreen: Niet Alleen-brug (alleen in de laatste mail van een blok).
+//  • Benji-spoor: GEEN Niet Alleen (die funnel richt zich enkel op Benji), maar wél
+//    een zacht linkje naar /wat-kost-benji. Zo is de footer voor élke Benji-mail gelijk.
+// Altijd een rustoptie (alleen maandelijks) én een afmeldlink.
+function evergreenFooter(
+  naUrl: string | null,
+  rustUrl: string,
+  afmeldUrl: string,
+  benjiKostUrl: string | null
+): string {
   const brug = naUrl
     ? `<p style="font-size:14px;font-weight:600;color:#3d3530;margin:0 0 12px;"><a href="${naUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen voor jou</a></p>`
+    : "";
+  const kost = benjiKostUrl
+    ? `<p style="font-size:13px;color:#718096;margin:12px 0 0 0;">Benieuwd wat Benji kost? <a href="${benjiKostUrl}" style="color:#9a8168;text-decoration:underline;">Bekijk je opties</a></p>`
     : "";
   return `
     <div style="text-align:center;margin-top:44px;">
       <img src="https://www.talktobenji.com/images/benji-logo-2.png" alt="Talk To Benji" width="42" height="42" style="display:inline-block;width:42px;height:42px;margin:0 0 12px 0;" />
       ${brug}
       <p style="font-size:13px;color:#718096;margin:7px 0 0 0;">Heb je vragen? Beantwoord gewoon deze mail.</p>
+      ${kost}
       <p style="font-size:12px;line-height:1.7;color:#a0aec0;margin:26px 0 0 0;border-top:1px solid #ece5dc;padding-top:16px;">
         <a href="${rustUrl}" style="color:#a0aec0;text-decoration:underline;">Liever minder mail? Alleen nog maandelijks</a>
         <br/>
@@ -508,6 +557,7 @@ async function bouwEvergreenHtml(
     imageUrl?: string;
     imageCaption?: string;
     isLaatsteVanBlok: boolean;
+    spoor?: string;
   }
 ): Promise<string> {
   const body = persoonlijkeBody(args.bodyText, args.naam);
@@ -575,7 +625,12 @@ async function bouwEvergreenHtml(
   }
   stukken.push(...psStukken);
 
-  const naUrl = args.isLaatsteVanBlok ? nietAlleenUrlVoorType(args.type) : null;
+  // Benji-spoor: geen Niet Alleen-brug (die funnel gaat enkel over Benji), wél de
+  // wat-kost-benji-link. Gewone evergreen: Niet Alleen-brug op de laatste mail, geen
+  // Benji-kostlink. Zo krijgt élke Benji-mail dezelfde voettekst.
+  const isBenjiSpoor = spoorVan(args.spoor) === "benji";
+  const naUrl = args.isLaatsteVanBlok && !isBenjiSpoor ? nietAlleenUrlVoorType(args.type) : null;
+  const benjiKostUrl = isBenjiSpoor ? `${appBase()}/wat-kost-benji` : null;
   const [rustUrl, afmeldUrl] = await Promise.all([
     rustUrlVoor(args.email),
     ehAfmeldUrl(args.email, "evergreen", args.type),
@@ -583,7 +638,7 @@ async function bouwEvergreenHtml(
 
   return mailWrapper(`
     ${stukken.join("\n")}
-    ${evergreenFooter(naUrl, rustUrl, afmeldUrl)}
+    ${evergreenFooter(naUrl, rustUrl, afmeldUrl, benjiKostUrl)}
   `);
 }
 
@@ -763,7 +818,7 @@ export const _evergreenCheck = internalQuery({
       return spoorVan(blokById.get(sm.blokId)?.spoor) === mailSpoor;
     });
     if (alDieDag) return null;
-    return { mail };
+    return { mail, spoor: mailSpoor };
   },
 });
 
@@ -1086,6 +1141,7 @@ export const _verstuurEvergreen = internalAction({
         imageUrl: mail.imageUrl,
         imageCaption: mail.imageCaption,
         isLaatsteVanBlok: args.isLaatsteVanBlok,
+        spoor: check.spoor,
       });
       await verstuurEvergreenEmail({
         to: args.email,
@@ -1153,7 +1209,8 @@ export const _evergreenMailVoorTest = internalQuery({
     const maxDag = alleMails
       .filter((m: any) => m.actief)
       .reduce((mx: number, m: any) => Math.max(mx, m.dagOffset), -1);
-    return { mail, isLaatsteVanBlok: mail.dagOffset === maxDag };
+    const blok = await ctx.db.get(mail.blokId);
+    return { mail, isLaatsteVanBlok: mail.dagOffset === maxDag, spoor: spoorVan(blok?.spoor) };
   },
 });
 
@@ -1185,6 +1242,7 @@ export const stuurTestEvergreen = action({
       imageUrl: mail.imageUrl,
       imageCaption: mail.imageCaption,
       isLaatsteVanBlok: res.isLaatsteVanBlok,
+      spoor: res.spoor,
     });
     await verstuurEvergreenEmail({
       to: args.email,

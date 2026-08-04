@@ -123,7 +123,7 @@ export default function EvergreenPage() {
       </div>
 
       {/* Snelstart Benji-spoor: bestaande brief-klikker-mails erin zetten */}
-      {spoor === "benji" && blokken && !blokken.some((b) => b.naam === "Opening (brief-klikkers)") && (
+      {spoor === "benji" && blokken && !blokken.some((b) => b.mails.length > 0) && (
         <div className="bg-primary-50 border border-primary-200 rounded-xl p-5">
           <h2 className="text-sm font-semibold text-gray-900">Begin met de brief-klikker-mails</h2>
           <p className="text-xs text-gray-600 mt-1 mb-3">
