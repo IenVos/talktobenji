@@ -1,6 +1,10 @@
 "use node";
 
-const CLAUDE_MODEL = "claude-sonnet-4-6";
+// Opus 4.8: warmer en volgt de gedragsregels trouwer dan Sonnet, ideaal voor
+// een rouw/verlies-chatbot. Bewust 4.8 en niet Opus 5: op 4.8 staat "denken" uit
+// zonder extra config, zodat het max_tokens-budget (1024) volledig naar Benji's
+// antwoord gaat en er geen extra latency bijkomt.
+const CLAUDE_MODEL = "claude-opus-4-8";
 
 /**
  * AI INTEGRATIE (Claude API)
@@ -923,9 +927,10 @@ Gok geen gevoel of betekenis vóór de ander ("Rustiger dagen zijn soms het zwaa
       // Benji-regels (uit instellingen) gaan altijd volledig mee — nooit afkappen
       // De extra hardcoded regels worden apart beperkt tot 2000 chars
       const customRules = settings?.rules || "";
-      // noRepetitionRule staat buiten de limiet — te belangrijk om weg te vallen
-      const extraRules = [onlyFromKbRule, dutchLanguageRule, noJargonRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
-      const limitedExtraRules = extraRules.length > 2000 ? extraRules.slice(0, 2000) : extraRules;
+      // Geen afkap meer op de extra-regels: de oude 2000-limiet gooide o.a. de
+      // huisdiertaal-, tip- en Memories-regels stil weg. De totale regelset past
+      // ruim in het model (context = 1 miljoen tokens); zie maxRulesLength hieronder.
+      const limitedExtraRules = [onlyFromKbRule, dutchLanguageRule, noJargonRule, contextAwarenessRule, conversationStyleRule, accountRule, memoryRule, personalContextRule].filter(Boolean).join("\n\n");
       const rules = [customRules, openingRule, gespreksdynamiekRule, crisisAfterRule, noAssumedNamesRule, emptinessValidationRule, withinConversationMemoryRule, practicalHelpRule, sleepRule, physicalComplaintsRule, noTimeAssumptionsRule, minimalInputRule, noRepetitionRule, conversationClosingRule, socialConnectionRule, accountNudgeRule, limitedExtraRules].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
@@ -1650,8 +1655,9 @@ async function callClaudeAPI(
     ? knowledge.slice(0, maxKnowledgeLength) + " [Kennis ingekort...]"
     : knowledge;
   
-  // Rules worden al goed beperkt vóór callClaudeAPI — hier alleen een veiligheidsnet van 18000 chars
-  const maxRulesLength = 18000;
+  // Veiligheidsnet ruim gezet zodat de volledige (samengevoegde) regelset aankomt
+  // i.p.v. afgekapt te worden. ~60k tekens ≈ ~16k tokens, ruim binnen 1M context.
+  const maxRulesLength = 60000;
   const limitedRules = rules && rules.length > maxRulesLength
     ? rules.slice(0, maxRulesLength)
     : rules;
@@ -1691,9 +1697,9 @@ Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig 
     systemPrompt += `\n\n${dynamicContext}\n\n${languageInstruction}`;
   }
   
-  // Totale limiet voor system prompt: 26000 chars
-  // (rules ~16400 + kennis ~8000 + preamble/context ~1000 = ~25400)
-  const maxSystemPromptLength = 26000;
+  // Totale limiet voor system prompt ruim gezet, zodat regels + kennis niet alsnog
+  // aan het eind worden afgekapt. (rules tot ~60k + kennis ~8k + preamble ~1k)
+  const maxSystemPromptLength = 80000;
   if (systemPrompt.length > maxSystemPromptLength) {
     systemPrompt = systemPrompt.slice(0, maxSystemPromptLength) + " [System prompt ingekort...]";
   }
