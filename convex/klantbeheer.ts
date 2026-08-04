@@ -151,6 +151,20 @@ export const getCustomerByEmail = query({
     const email = args.email.toLowerCase().trim();
     if (!email) return null;
 
+    // Funnel-lead (welk spoor loopt deze persoon in de mailfunnels).
+    const funnelLead = await ctx.db
+      .query("funnelLeads")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+    const funnel = funnelLead
+      ? {
+          spoor: (funnelLead.spoor ?? "evergreen") as string,
+          status: funnelLead.status,
+          bron: funnelLead.bron,
+          ingestroomdOp: funnelLead.ingestroomdOp,
+        }
+      : null;
+
     const user = await ctx.db
       .query("users")
       .withIndex("email", (q) => q.eq("email", email))
@@ -189,6 +203,7 @@ export const getCustomerByEmail = query({
         ],
         preferences: { hasAccentColor: false, hasBackground: false, hasUserContext: false },
         counts: { notes: 0, goals: 0, memories: 0, checkIns: 0, conversationsThisMonth: 0 },
+        funnel,
       };
     }
 
@@ -317,7 +332,56 @@ export const getCustomerByEmail = query({
         checkIns: checkIns.length,
         conversationsThisMonth: usage?.conversationCount ?? 0,
       },
+      funnel,
     };
+  },
+});
+
+/**
+ * Verplaats een klant handmatig naar een ander funnel-spoor (of eruit). Voor
+ * correcties als er iets misging. "verwijderen" haalt de lead uit de funnels;
+ * een spoor kiezen zet 'm daar met verse dag 1. Los van het Niet Alleen-programma.
+ */
+export const zetFunnelSpoor = mutation({
+  args: {
+    adminToken: v.optional(v.string()),
+    email: v.string(),
+    spoor: v.union(v.literal("evergreen"), v.literal("benji"), v.literal("verwijderen")),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase().trim();
+    const lead = await ctx.db
+      .query("funnelLeads")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+
+    if (args.spoor === "verwijderen") {
+      if (lead) await ctx.db.delete(lead._id);
+      return { ok: true, actie: "verwijderd" };
+    }
+
+    const now = Date.now();
+    // Leeg spoor bewaren we als undefined (= evergreen).
+    const spoorVal = args.spoor === "evergreen" ? undefined : args.spoor;
+    if (lead) {
+      await ctx.db.patch(lead._id, {
+        spoor: spoorVal,
+        ingestroomdOp: now, // verse dag 1 in het nieuwe spoor
+        status: "in-backend",
+        updatedAt: now,
+      });
+      return { ok: true, actie: "verplaatst" };
+    }
+    // Nog geen lead? Aanmaken op het gekozen spoor.
+    await ctx.db.insert("funnelLeads", {
+      email,
+      spoor: spoorVal,
+      ingestroomdOp: now,
+      bron: "handmatig",
+      status: "in-backend",
+      updatedAt: now,
+    });
+    return { ok: true, actie: "aangemaakt" };
   },
 });
 

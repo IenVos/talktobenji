@@ -25,6 +25,11 @@ type Levering = {
   specials: { dag15: SpecialStatus; dag28: SpecialStatus; dag30: SpecialStatus };
 };
 
+const SPOOR_LABELS: Record<string, string> = {
+  evergreen: "Evergreen (NA)",
+  benji: "Benji",
+};
+
 const STATUS_STIJL: Record<DagStatus, { box: string; label: string; dot: string }> = {
   verzonden: { box: "bg-green-50 border-green-200 text-green-700", label: "verstuurd", dot: "bg-green-500" },
   gemist: { box: "bg-red-50 border-red-200 text-red-600", label: "gemist", dot: "bg-red-500" },
@@ -321,6 +326,7 @@ export default function KlantbeheerPage() {
   const resetNietAlleenDag = useAdminMutation(api.klantbeheer.resetNietAlleenDag);
   const stuurDagNu = useAction(api.klantbeheer.stuurDagNuAdmin);
   const setMailsGestopt = useAdminMutation(api.klantbeheer.setNietAlleenMailsGestopt);
+  const zetFunnelSpoor = useAdminMutation(api.klantbeheer.zetFunnelSpoor);
 
   const [hervatDag, setHervatDag] = useState(1);
   const [stuurDag, setStuurDag] = useState(1);
@@ -544,6 +550,61 @@ export default function KlantbeheerPage() {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Funnel-spoor (los van het Niet Alleen-programma) */}
+          <div className="bg-white rounded-xl border border-primary-200 shadow-sm p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Mail size={16} className="text-primary-600" />
+              <h2 className="text-sm font-semibold text-gray-800">Funnel-spoor</h2>
+            </div>
+            <p className="text-xs text-gray-500">
+              In welke mailfunnel deze persoon loopt. Verplaatsen zet 'm met verse dag 1 in het gekozen spoor. Los van het Niet Alleen-programma.
+            </p>
+            <p className="text-sm text-gray-700">
+              Huidig spoor:{" "}
+              <strong>
+                {customer.funnel
+                  ? (SPOOR_LABELS[customer.funnel.spoor] ?? customer.funnel.spoor)
+                  : "Niet in een funnel"}
+              </strong>
+              {customer.funnel && (
+                <span className="text-xs text-gray-400">
+                  {" "}· sinds {new Date(customer.funnel.ingestroomdOp).toLocaleDateString("nl-NL")} · bron {customer.funnel.bron}
+                </span>
+              )}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { code: "evergreen", label: "Evergreen" },
+                { code: "benji", label: "Benji" },
+              ].map((s) => (
+                <button
+                  key={s.code}
+                  disabled={customer.funnel?.spoor === s.code}
+                  onClick={async () => {
+                    if (confirm(`${activeEmail} naar het ${s.label}-spoor zetten? Die begint dan op verse dag 1.`)) {
+                      await zetFunnelSpoor({ email: activeEmail, spoor: s.code as "evergreen" | "benji" });
+                    }
+                  }}
+                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-default"
+                >
+                  Naar {s.label}
+                </button>
+              ))}
+              {customer.funnel && (
+                <button
+                  onClick={async () => {
+                    if (confirm(`${activeEmail} uit alle mailfunnels halen? Die krijgt dan geen funnel-mails meer.`)) {
+                      await zetFunnelSpoor({ email: activeEmail, spoor: "verwijderen" });
+                    }
+                  }}
+                  className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                >
+                  Uit funnels halen
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Niet Alleen voortgang */}
