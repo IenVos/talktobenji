@@ -60,7 +60,9 @@ export default function EvergreenPage() {
     | undefined;
 
   const blokToevoegen = useAdminMutation(api.evergreen.blokToevoegen);
+  const seedBenjiOpening = useAdminMutation(api.evergreen.seedBenjiOpening);
   const [nieuwBlok, setNieuwBlok] = useState(false);
+  const [seedBezig, setSeedBezig] = useState(false);
 
   const huidigSpoor = SPOREN.find((s) => s.code === spoor);
 
@@ -119,6 +121,33 @@ export default function EvergreenPage() {
           </ol>
         )}
       </div>
+
+      {/* Snelstart Benji-spoor: bestaande brief-klikker-mails erin zetten */}
+      {spoor === "benji" && blokken && blokken.length === 0 && (
+        <div className="bg-primary-50 border border-primary-200 rounded-xl p-5">
+          <h2 className="text-sm font-semibold text-gray-900">Begin met de brief-klikker-mails</h2>
+          <p className="text-xs text-gray-600 mt-1 mb-3">
+            Zet je bestaande <strong>kom-terug</strong> (dag 3) en <strong>vervolg</strong> (dag 4) hierin, met de tekst
+            die je nu hebt opgeslagen. De één-klik-Benji-knop komt automatisch mee. Daarna bouw je vanaf hier verder.
+          </p>
+          <button
+            disabled={seedBezig}
+            onClick={async () => {
+              if (!confirm("De kom-terug (dag 3) en vervolg (dag 4) mails als eerste blok in dit Benji-spoor zetten?")) return;
+              setSeedBezig(true);
+              try {
+                const r: any = await seedBenjiOpening({});
+                if (r && r.ok === false) alert(r.reden ?? "Er staat al een Benji-blok.");
+              } finally {
+                setSeedBezig(false);
+              }
+            }}
+            className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:opacity-50"
+          >
+            {seedBezig ? "Bezig…" : "Zet de brief-klikker-mails hierin"}
+          </button>
+        </div>
+      )}
 
       {/* Blokken */}
       <div className="space-y-4">

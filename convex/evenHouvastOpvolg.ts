@@ -389,12 +389,11 @@ export const _statusVoorLead = internalQuery({
   args: { email: v.string() },
   handler: async (ctx, args) => {
     const lc = args.email.toLowerCase();
-    const [verzonden, afgemeld, profiel, funnelLead, komTerug] = await Promise.all([
+    const [verzonden, afgemeld, profiel, funnelLead] = await Promise.all([
       ctx.db.query("ehOpvolgVerzonden").withIndex("by_email", (q) => q.eq("email", lc)).collect(),
       ctx.db.query("ehAfmeldingen").withIndex("by_email", (q) => q.eq("email", lc)).first(),
       ctx.db.query("nietAlleenProfiles").withIndex("by_email", (q) => q.eq("email", lc)).first(),
       ctx.db.query("funnelLeads").withIndex("by_email", (q) => q.eq("email", lc)).first(),
-      ctx.db.query("ehBriefKomTerugVerzonden").withIndex("by_email", (q) => q.eq("email", lc)).first(),
     ]);
     return {
       gestuurd: verzonden.map((v: any) => v.mailNummer as number),
@@ -402,8 +401,6 @@ export const _statusVoorLead = internalQuery({
       heeftGekocht: !!profiel,
       // Op het Benji-spoor? Dan geen EH-mails meer (die persoon praat met Benji).
       opBenjiSpoor: (funnelLead?.spoor ?? "") === "benji",
-      // Kreeg de kom-terug-mail (dag 3) al? Bepaalt of de vervolg-mail (dag 4) mag.
-      kreegKomTerug: !!komTerug,
     };
   },
 });
@@ -486,10 +483,6 @@ export const _logVerzonden = internalMutation({
 // Intern mailnummer van de "Benji voorstellen"-mail (EH_META n=6). Voor wie Benji al
 // gebruikte vervangen we deze door de kom-terug-mail (zie processEvenHouvastOpvolg).
 const BENJI_VOORSTEL_MAILNR = 6;
-// Vervolg-mail (2e brief-klikker-mail) valt op dag 4, na de kom-terug-mail (dag 3).
-// Eigen marker-mailnummer (buiten de EH-reeks 1-6), zodat de cron/overzichten 'm negeren.
-const BRIEF_VERVOLG_MAILNR = 7;
-const BRIEF_VERVOLG_DAG = 4;
 
 // ── Dagelijkse cron ────────────────────────────────────────────────────────────
 
@@ -509,8 +502,6 @@ export const processEvenHouvastOpvolg = internalAction({
     // Brief-klikkers krijgen op de "Benji voorstellen"-plek (mail 6) de kom-terug-mail
     // in plaats daarvan (ze kennen Benji al). Alleen als de schakelaar aan staat.
     const teVerzendenKomTerug: { email: string; naam?: string; type: string }[] = [];
-    // Vervolg-mail (2e brief-klikker-mail) op dag 4, los van de slot-logica.
-    const teVerzendenVervolg: { email: string; naam?: string; type: string }[] = [];
     const komTerugAan = process.env.EH_BRIEF_KOMTERUG_ACTIEF === "true";
     for (const lead of leads) {
       const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: lead.email });
@@ -523,18 +514,6 @@ export const processEvenHouvastOpvolg = internalAction({
       const schema = schemaCache[type];
 
       const dagenGeleden = Math.floor((nu - lead.sentAt) / DAG_MS);
-
-      // Dag 4: de vervolg-mail voor wie de kom-terug-mail (dag 3) kreeg en niet
-      // terugkwam. Los van de slot-logica, want dag 4 is geen verzendslot. Benji-spoor
-      // leads zijn hierboven al overgeslagen, die krijgen de vervolg-mail dus niet.
-      if (
-        komTerugAan &&
-        status.kreegKomTerug &&
-        !status.gestuurd.includes(BRIEF_VERVOLG_MAILNR) &&
-        dagenGeleden >= BRIEF_VERVOLG_DAG
-      ) {
-        teVerzendenVervolg.push({ email: lead.email, naam: lead.naam ?? undefined, type });
-      }
 
       // Eerste mail (op dagvolgorde) die wél verschuldigd is en nog niet verstuurd.
       // Maximaal één per run.
@@ -573,10 +552,6 @@ export const processEvenHouvastOpvolg = internalAction({
     }
     for (const k of teVerzendenKomTerug) {
       await ctx.scheduler.runAfter(planIdx * intervalMs, internal.evenHouvastOpvolg._verstuurBriefKomTerugEnLog, k);
-      planIdx++;
-    }
-    for (const vv of teVerzendenVervolg) {
-      await ctx.scheduler.runAfter(planIdx * intervalMs, internal.evenHouvastOpvolg._verstuurBriefVervolgEnLog, vv);
       planIdx++;
     }
   },
@@ -632,10 +607,12 @@ export const _verstuurBriefKomTerugEnLog = internalAction({
     const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: args.email });
     if (status.afgemeld || status.heeftGekocht || status.opBenjiSpoor || status.gestuurd.includes(BENJI_VOORSTEL_MAILNR)) return;
 
-    // Dag 3 = altijd de kom-terug-mail (1e herinnering). De vervolg-mail is een aparte
-    // 2e mail op dag 4 (zie _verstuurBriefVervolgEnLog).
+    // Veel gepraat (>= drempel) → vervolg-mail (Benji onthoudt); anders de kom-terug-mail.
+    const aantalBerichten = await ctx.runQuery(internal.evenHouvastOpvolg._aantalEigenBerichten, { email: args.email });
+    const templateKey = aantalBerichten >= VERVOLG_DREMPEL ? BRIEF_VERVOLG_KEY : BRIEF_KOMTERUG_KEY;
+
     try {
-      await verstuurBriefKomTerug(ctx, { email: args.email, naam: args.naam, type: args.type, apiKey, templateKey: BRIEF_KOMTERUG_KEY });
+      await verstuurBriefKomTerug(ctx, { email: args.email, naam: args.naam, type: args.type, apiKey, templateKey });
       await ctx.runMutation(internal.evenHouvastOpvolg._logVerzonden, {
         email: args.email,
         mailNummer: BENJI_VOORSTEL_MAILNR,
@@ -643,41 +620,6 @@ export const _verstuurBriefKomTerugEnLog = internalAction({
       await ctx.runMutation(internal.evenHouvastOpvolg._logBriefKomTerug, { email: args.email });
     } catch (e) {
       console.error(`EH brief-kom-terug (i.p.v. mail ${BENJI_VOORSTEL_MAILNR}) mislukt voor ${args.email}:`, e);
-    }
-  },
-});
-
-// Vervolg-mail (2e brief-klikker-mail) op dag 4. Alleen voor wie de kom-terug-mail
-// (dag 3) kreeg en niet terugkwam: wie intussen genoeg met Benji chatte zit op het
-// Benji-spoor (status.opBenjiSpoor) en wordt overgeslagen → die krijgt de vervolg-mail
-// niet, maar loopt door in de Benji-funnel. Tekst = de bestaande vervolg-mail, ongewijzigd.
-export const _verstuurBriefVervolgEnLog = internalAction({
-  args: { email: v.string(), naam: v.optional(v.string()), type: v.string() },
-  handler: async (ctx, args) => {
-    if (process.env.EH_OPVOLG_ACTIEF !== "true") return;
-    if (process.env.EH_BRIEF_KOMTERUG_ACTIEF !== "true") return;
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) return;
-
-    const status = await ctx.runQuery(internal.evenHouvastOpvolg._statusVoorLead, { email: args.email });
-    if (
-      status.afgemeld ||
-      status.heeftGekocht ||
-      status.opBenjiSpoor ||
-      !status.kreegKomTerug ||
-      status.gestuurd.includes(BRIEF_VERVOLG_MAILNR)
-    ) {
-      return;
-    }
-
-    try {
-      await verstuurBriefKomTerug(ctx, { email: args.email, naam: args.naam, type: args.type, apiKey, templateKey: BRIEF_VERVOLG_KEY });
-      await ctx.runMutation(internal.evenHouvastOpvolg._logVerzonden, {
-        email: args.email,
-        mailNummer: BRIEF_VERVOLG_MAILNR,
-      });
-    } catch (e) {
-      console.error(`EH brief-vervolg (dag ${BRIEF_VERVOLG_DAG}) mislukt voor ${args.email}:`, e);
     }
   },
 });
@@ -1023,10 +965,11 @@ export const setVerliesType = mutation({
 // (staat UIT tot de gespreks-privacy live is, want de tekst belooft "alleen jij en
 // Benji kunnen het lezen"). Zie het geheugen: privacy-plan.
 const BRIEF_KOMTERUG_KEY = "eh_brief_kom_terug";
-// Vervolg-mail (2e brief-klikker-mail, dag 4): doorgaan waar je was, want Benji
-// onthoudt (samenvattingen vorige gesprekken). Alleen voor wie na de kom-terug-mail
-// niet terugkwam (wie wél terugkwam zit op het Benji-spoor en wordt overgeslagen).
+// Vervolg-mail voor wie al véél gepraat heeft (>= drempel berichten): geen herkansing
+// maar doorgaan waar je was, want Benji onthoudt (samenvattingen vorige gesprekken).
 const BRIEF_VERVOLG_KEY = "eh_brief_vervolg";
+// Vanaf hoeveel eigen berichten iemand de vervolg-mail krijgt i.p.v. de kom-terug-mail.
+const VERVOLG_DREMPEL = 10;
 
 async function verstuurBriefKomTerug(
   ctx: any,

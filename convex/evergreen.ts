@@ -30,6 +30,7 @@ import {
   persoonlijkeBody,
 } from "./ehMailFooter";
 import { BENJI_BLOK_MARKER } from "./ehConcepten";
+import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
 
 const DAG_MS = 24 * 60 * 60 * 1000;
 
@@ -135,6 +136,60 @@ export const tijdlijn = query({
 });
 
 // ── Blokken ──────────────────────────────────────────────────────────────────
+
+/**
+ * Zet de bestaande brief-klikker-mails (kom-terug + vervolg) als eerste blok in het
+ * Benji-spoor: kom-terug op dag 3, vervolg op dag 4. Neemt de OPGESLAGEN tekst over
+ * (jouw aangepaste versie), of anders de standaardtekst. De één-klik-Benji-knop komt
+ * automatisch via de [benji-blok]-marker in de tekst. Doet niets als er al een
+ * Benji-blok staat (dus veilig één keer te klikken).
+ */
+export const seedBenjiOpening = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+
+    const alleBlokken = await ctx.db.query("funnelBlokken").collect();
+    if (alleBlokken.some((b: any) => spoorVan(b.spoor) === "benji")) {
+      return { ok: false, reden: "Er staat al een Benji-blok" };
+    }
+
+    const leesTemplate = async (key: string) => {
+      const saved = await ctx.db
+        .query("emailTemplates")
+        .withIndex("by_key", (q) => q.eq("key", key))
+        .unique();
+      const def = (DEFAULT_TEMPLATES as any)[key] ?? {};
+      let bodyText: string = saved?.bodyText ?? def.bodyText ?? "";
+      // Zorg dat de één-klik-Benji-knop verschijnt (zoals in de EH-versie).
+      if (!bodyText.includes(BENJI_BLOK_MARKER)) bodyText = `${bodyText.trim()}\n\n${BENJI_BLOK_MARKER}`;
+      return { subject: saved?.subject ?? def.subject ?? "", bodyText };
+    };
+    const komTerug = await leesTemplate("eh_brief_kom_terug");
+    const vervolg = await leesTemplate("eh_brief_vervolg");
+
+    const now = Date.now();
+    const volgorde = alleBlokken.reduce((m, b) => Math.max(m, b.volgorde), -1) + 1;
+    const blokId = await ctx.db.insert("funnelBlokken", {
+      naam: "Opening (brief-klikkers)",
+      spoor: "benji",
+      volgorde,
+      vanDag: 3,
+      totDag: 4,
+      actief: true,
+      updatedAt: now,
+    });
+    await ctx.db.insert("funnelMails", {
+      blokId, dagOffset: 3, subject: komTerug.subject, bodyText: komTerug.bodyText,
+      actief: true, updatedAt: now,
+    });
+    await ctx.db.insert("funnelMails", {
+      blokId, dagOffset: 4, subject: vervolg.subject, bodyText: vervolg.bodyText,
+      actief: true, updatedAt: now,
+    });
+    return { ok: true };
+  },
+});
 
 export const blokToevoegen = mutation({
   args: {
