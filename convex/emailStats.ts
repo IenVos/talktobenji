@@ -82,7 +82,13 @@ function linkLabel(url: string): string {
   return pad || url;
 }
 
-type Groep = "evenHouvast" | "nietAlleen" | "evergreen" | "losseMail" | "overig";
+type Groep = "evenHouvast" | "benji" | "nietAlleen" | "evergreen" | "losseMail" | "overig";
+
+// Schone start: na het herzien van alle EH-mails + de start van de Benji-funnel meten
+// we vanaf deze datum. Oudere events blijven in de database (resendEmailEvents) staan
+// en zijn opvraagbaar door deze datum te verzetten; ze tellen alleen niet mee in de
+// lopende reeks. 5 aug 2026.
+const STATS_RESET_MS = Date.UTC(2026, 7, 5);
 
 // Onderwerpen die in houvast.ts hardcoded staan: de brief-mail zelf en de mail
 // die de brief aankondigt. De opvolgmails komen uit de templates.
@@ -226,7 +232,9 @@ export const stats = query({
     await checkAdmin(ctx, args.adminToken);
 
     const dagen = args.sinceDays && args.sinceDays > 0 ? args.sinceDays : 30;
-    const cutoff = Date.now() - dagen * 24 * 60 * 60 * 1000;
+    // De reset-datum is een harde ondergrens: ook bij een lange periode meten we niet
+    // vóór de schone start. Naarmate de tijd verstrijkt vult de periode zich vanzelf.
+    const cutoff = Math.max(Date.now() - dagen * 24 * 60 * 60 * 1000, STATS_RESET_MS);
 
     const events = await ctx.db
       .query("resendEmailEvents")
@@ -272,11 +280,30 @@ export const stats = query({
     const totaal = leegAgg("Totaal", "overig");
     const perGroep: Record<Groep, StroomAgg> = {
       evenHouvast: leegAgg("Even Houvast", "evenHouvast"),
+      benji: leegAgg("Benji funnel", "benji"),
       nietAlleen: leegAgg("Niet Alleen", "nietAlleen"),
       evergreen: leegAgg("Evergreen", "evergreen"),
       losseMail: leegAgg("Losse mails", "losseMail"),
       overig: leegAgg("Overige mails", "overig"),
     };
+
+    // Benji-spoor-mails draaien op de evergreen-motor (tag programma=evergreen,
+    // mail=funnelMail-id). Bepaal welke funnelMails op het Benji-spoor zitten, zodat we
+    // die onder "Benji funnel" tonen i.p.v. bij de gewone evergreen.
+    const [funnelMails, funnelBlokken] = await Promise.all([
+      ctx.db.query("funnelMails").collect(),
+      ctx.db.query("funnelBlokken").collect(),
+    ]);
+    const spoorPerBlok = new Map(
+      funnelBlokken.map((b: any) => [b._id, (b.spoor || "evergreen").trim() || "evergreen"])
+    );
+    const benjiFunnelMailIds = new Set(
+      funnelMails.filter((m: any) => spoorPerBlok.get(m.blokId) === "benji").map((m: any) => String(m._id))
+    );
+    // De brief-klikker-mails (kom-terug/vervolg) zijn vervangen door de Benji-funnel en
+    // sturen niets meer; we laten ze helemaal buiten de statistiek (geen "Opvolgmail NaN").
+    const isDodeBriefKlikkerMail = (tags?: Record<string, string>) =>
+      tags?.programma === "eh" && (tags.mail === "brief-komterug" || tags.mail === "brief-vervolg");
     // Eén regel per mail, met daarbinnen een telling per verliestype én per
     // onderwerpregel: zo zie je of een andere titel of een ander type beter loopt.
     type VariantAgg = StroomAgg & { verliestype?: string };
@@ -292,10 +319,16 @@ export const stats = query({
       // Ruis eruit: systeem-/transactiemails en interne meldingen horen niet in de
       // marketing-statistieken. Deze tellen in geen enkele groep of totaal mee.
       if (isRuisMail(m.subject)) continue;
+      // Dode brief-klikker-mails helemaal weglaten (vervangen door de Benji-funnel).
+      if (isDodeBriefKlikkerMail(m.tags)) continue;
       // Labels (meegestuurd bij verzending) zijn leidend; oudere mails hebben ze
       // niet, dan leiden we de mail af uit de onderwerpregel.
-      const herkomst: Herkomst = herkomstVanTags(m.tags, label) ??
+      let herkomst: Herkomst = herkomstVanTags(m.tags, label) ??
         groepIndex.get(label) ?? { groep: "overig", stroomId: label, titel: label };
+      // Benji-spoor-mail (evergreen-motor, maar op spoor benji) → onder "Benji funnel".
+      if (herkomst.groep === "evergreen" && m.tags?.mail && benjiFunnelMailIds.has(String(m.tags.mail))) {
+        herkomst = { ...herkomst, groep: "benji" };
+      }
       const verliestype = m.tags?.verliestype;
 
       let s = perStroom.get(herkomst.stroomId);
@@ -360,7 +393,7 @@ export const stats = query({
     // Even Houvast op leesvolgorde (verzendvolgorde op dag), NIET op het interne
     // mailnummer: mail 6 komt als 2e binnen. Losse mails (brief) matchen niet op
     // eh_<nr> en zakken naar onderen.
-    const volgorde: Groep[] = ["evenHouvast", "nietAlleen", "evergreen", "losseMail", "overig"];
+    const volgorde: Groep[] = ["evenHouvast", "benji", "nietAlleen", "evergreen", "losseMail", "overig"];
     const groepen = volgorde
       .map((g) => ({
         groep: g,

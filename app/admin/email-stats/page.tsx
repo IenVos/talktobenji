@@ -29,7 +29,7 @@ type Stroom = Cijfers & {
 };
 
 type Groep = {
-  groep: "evenHouvast" | "nietAlleen" | "evergreen" | "losseMail" | "overig";
+  groep: "evenHouvast" | "benji" | "nietAlleen" | "evergreen" | "losseMail" | "overig";
   titel: string;
   totaal: Cijfers;
   stromen: Stroom[];
@@ -528,31 +528,39 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
   const [mode, setMode] = useState<"attn" | "best">("attn");
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
+  // Zet de stromen van een groep om naar mails-met-oordeel. metAfmeld = alleen bij
+  // Even Houvast (daar meten we afmeldingen per mail); andere funnels hebben dat niet.
+  const maakMails = (stromen: Stroom[] | undefined, metAfmeld: boolean): WWMail[] =>
+    (stromen ?? []).map((s) => {
+      const noemer = s.afgeleverd || s.verzonden || 1;
+      const b = bestemming(s.links ?? []);
+      const t = s.onderwerp.toLowerCase();
+      const afm = metAfmeld
+        ? afmeld?.perMail?.find((p) => (t.includes("brief") ? p.mail === "brief" : p.label.toLowerCase() === t))
+        : undefined;
+      // Klikken op de afmeldlink tellen we NIET als doorklik: dat is geen interesse
+      // in de inhoud maar een uitschrijving. Zo is "klik" echt doorklik naar de mail.
+      const afmeldKlik = (s.links ?? []).filter((l) => l.label.toLowerCase().includes("afmeld")).reduce((sum, l) => sum + l.aantal, 0);
+      const doorklik = Math.max(0, s.geklikt - afmeldKlik);
+      return {
+        naam: s.onderwerp,
+        open: Math.round((s.geopend / noemer) * 100),
+        klik: Math.round((doorklik / noemer) * 100),
+        afmeld: afm && Number.isFinite(afm.ratio) ? afm.ratio : null,
+        volume: noemer,
+        doel: b.doel,
+        checkout: b.checkout,
+      };
+    });
+
   const ehGroep = stats.groepen.find((g) => g.groep === "evenHouvast");
-  const ehMails: WWMail[] = (ehGroep?.stromen ?? []).map((s) => {
-    const noemer = s.afgeleverd || s.verzonden || 1;
-    const b = bestemming(s.links ?? []);
-    const t = s.onderwerp.toLowerCase();
-    const afm = afmeld?.perMail?.find((p) =>
-      t.includes("brief") ? p.mail === "brief" : p.label.toLowerCase() === t
-    );
-    // Klikken op de afmeldlink tellen we NIET als doorklik: dat is geen interesse
-    // in de inhoud maar een uitschrijving. Zo is "klik" echt doorklik naar de mail.
-    const afmeldKlik = (s.links ?? []).filter((l) => l.label.toLowerCase().includes("afmeld")).reduce((sum, l) => sum + l.aantal, 0);
-    const doorklik = Math.max(0, s.geklikt - afmeldKlik);
-    return {
-      naam: s.onderwerp,
-      open: Math.round((s.geopend / noemer) * 100),
-      klik: Math.round((doorklik / noemer) * 100),
-      afmeld: afm && Number.isFinite(afm.ratio) ? afm.ratio : null,
-      volume: noemer,
-      doel: b.doel,
-      checkout: b.checkout,
-    };
-  });
+  const benjiGroep = stats.groepen.find((g) => g.groep === "benji");
+  const ehMails = maakMails(ehGroep?.stromen, true);
+  const benjiMails = maakMails(benjiGroep?.stromen, false);
 
   const secties: { naam: string; count: string; mails: WWMail[]; leeg?: string }[] = [
     { naam: "Even Houvast", count: `${ehMails.length} mails`, mails: ehMails },
+    { naam: "Benji funnel", count: `${benjiMails.length} mails`, mails: benjiMails, leeg: "Nog geen verstuurde Benji-mails. Zodra de funnel loopt, verschijnen ze hier met hun oordeel." },
     { naam: "Evergreen funnel", count: "0 mails", mails: [], leeg: "Nog geen verstuurde mails. Zodra de reeks loopt, verschijnen de mails hier met hun oordeel." },
     { naam: "Losse mails", count: "0 mails", mails: [], leeg: "Nog geen losse mails verstuurd. Elke mail die je stuurt, komt hier te staan." },
   ];
