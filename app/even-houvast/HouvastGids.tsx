@@ -264,13 +264,10 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
   const topRowIds = ALLE_STAPPEN.filter((id) => id === "kies" || id === "welkom");
   const momentRowIds = MOMENTEN.map((m) => m.id);
 
-  // "En nu?" leidt naar de kennismaking-tour (rustige swipe langs Niet Alleen),
-  // met verliestype, naam en e-mail mee (voorgevuld t/m de brugpagina). Geen
-  // verkoop direct na Even Houvast; de tour eindigt zacht.
-  const nietAlleenUrl =
-    `/niet-alleen/tour?type=${encodeURIComponent(actiefType || "algemeen")}` +
-    (naam.trim() ? `&n=${encodeURIComponent(naam.trim())}` : "") +
-    (email.trim() ? `&e=${encodeURIComponent(email.trim())}` : "");
+  // "En nu?" is een warme afsluiting, geen doorstroom. Geen knop naar buiten: de
+  // kennismaking met Benji loopt via de brief-mail (één-klik-link met token + proef
+  // + brief-opener). De oude Niet Alleen-carrousel /niet-alleen/tour blijft bestaan
+  // maar is hier losgekoppeld (geparkeerd voor een latere Benji-versie).
 
   // ─── Token aanwezig maar nog aan het laden ───────────────────────────────────
   if (heeftToken && profiel === undefined) {
@@ -682,22 +679,6 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
                 {alineas(gids.slotTekst).map((alinea, i) => (
                   <p key={i} className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{alinea}</p>
                 ))}
-
-                {/* Doorstroom naar Niet Alleen (per verliestype) — enige pad vanaf hier */}
-                <div className="space-y-1.5">
-                  <a
-                    href={nietAlleenUrl}
-                    className="block w-full text-center py-3.5 rounded-2xl font-medium text-white text-sm"
-                    style={{ background: "#6d84a8" }}
-                  >
-                    Ik wil er niet alleen voor staan
-                  </a>
-                  {gids.slotPrijsRegel && (
-                    <p className="text-center text-xs" style={{ color: "#a09890" }}>
-                      {gids.slotPrijsRegel}
-                    </p>
-                  )}
-                </div>
               </div>
             )}
 
