@@ -120,19 +120,20 @@ export async function ehAfmeldUrl(email: string, mail?: string, type?: string): 
   return `${appBase()}/api/afmelden?e=${encodeURIComponent(email)}&t=${token}${extra}`;
 }
 
-// De vaste footer onder elke EH-mail. nietAlleenUrl = per type; afmeldUrl = met token.
-export function ehFooter(nietAlleenUrl: string, afmeldUrl: string): string {
+// De vaste footer onder elke EH-mail. Gelijkgetrokken met de Benji-funnel-footer:
+// geen Niet Alleen meer, maar een zachte vragen-regel (verwijst naar Ien) plus de
+// "Wat Benji kost"-link. afmeldUrl = met token. De eerste parameter (voorheen de
+// Niet Alleen-URL per type) wordt niet meer gebruikt maar blijft in de signatuur
+// zodat de aanroepplekken ongemoeid blijven.
+export function ehFooter(_nietAlleenUrl: string, afmeldUrl: string): string {
   return `
     <div style="text-align:center;margin-top:48px;">
       <img src="https://www.talktobenji.com/images/benji-logo-2.png" alt="Talk To Benji" width="46" height="46" style="display:inline-block;width:46px;height:46px;margin:0 0 12px 0;" />
-      <p style="font-size:14px;font-weight:600;color:#3d3530;margin:0;">
-        <a href="${nietAlleenUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen voor jou</a>
+      <p style="font-size:13px;line-height:1.6;color:#718096;margin:0;">
+        Heb je een vraag die ik niet kan beantwoorden?<br/>Antwoord op deze mail, dan komt hij bij Ien terecht.
       </p>
-      <p style="font-size:13px;color:#718096;margin:7px 0 0 0;">
-        Heb je vragen? Beantwoord gewoon deze mail.
-      </p>
-      <p style="font-size:13px;color:#718096;margin:12px 0 0 0;">
-        <a href="${appBase()}/waarom-benji" style="color:#6d84a8;text-decoration:none;">Meer weten over Ien en waarom ik Talk To Benji ben gestart &rarr;</a>
+      <p style="font-size:13px;color:#718096;margin:16px 0 0 0;">
+        <a href="${appBase()}/wat-kost-benji" style="color:#718096;text-decoration:none;">Wat Benji kost lees je hier &rarr;</a>
       </p>
       <p style="font-size:12px;line-height:1.6;color:#a0aec0;margin:30px 0 0 0;border-top:1px solid #ece5dc;padding-top:16px;">
         <a href="${afmeldUrl}" style="color:#a0aec0;text-decoration:underline;">Geen opvolgmails meer ontvangen</a>
