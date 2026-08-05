@@ -463,6 +463,10 @@ const isAfsluiting = (p: string) =>
 
 const AFBEELDING_MARKER = /^\[afbeelding\]$/i;
 const KNOP_MARKER = /^\[knop\]$/i;
+// Elke marker met "benji" tussen haakjes is een Benji-CTA (bijv. [benji-knop] of
+// "[Praat verder met Benji >>]"). [benji-blok] valt hier ook onder, maar wordt in de
+// render éérst als kaartje afgevangen.
+const BENJI_CTA_RE = /\[[^\]]*benji[^\]]*\]/i;
 
 function inlineAfbeelding(url: string, caption?: string): string {
   const img = `<img src="${url}" alt="" style="width:100%;max-width:480px;height:auto;border-radius:12px;display:block;margin:0 auto;" />`;
@@ -566,25 +570,46 @@ async function bouwEvergreenHtml(
   const imageUrl = (args.imageUrl || "").trim() || undefined;
   const imageCaption = (args.imageCaption || "").trim() || undefined;
 
-  // Beide Benji-markers gebruiken dezelfde persoonlijke één-klik-link (per lead een
-  // eigen token). [benji-blok] = het koude intro-kaartje; [benji-knop] = de nette CTA-
-  // knop "Verder praten met Benji" naar de eigen plek (warme brief-klikkers).
-  const heeftBlok = body.includes(BENJI_BLOK_MARKER);
-  const heeftBenjiKnop = body.includes(BENJI_KNOP_MARKER);
+  // Opdracht-kader: alles tussen [opdracht] en [/opdracht] wordt een zacht blok
+  // (zelfde als de EH-render). Zonder de markers: geen effect.
+  let opdrachtCard = "";
+  let bodyVoorSplit = body;
+  const opdrachtMatch = body.match(/\[opdracht\]([\s\S]*?)\[\/opdracht\]/i);
+  if (opdrachtMatch) {
+    const innerHtml = opdrachtMatch[1]
+      .trim()
+      .split(/\n\n+/)
+      .map((p) => `<p style="font-size:15px;line-height:1.7;color:#4a5568;margin:0 0 12px;">${p.trim().replace(/\n/g, "<br/>")}</p>`)
+      .join("");
+    opdrachtCard = `<div style="background:#fdf9f4;border:1px solid #e7ded1;border-radius:14px;padding:18px 22px 6px;margin:22px 0;">${innerHtml}</div>`;
+    bodyVoorSplit = body.replace(opdrachtMatch[0], "\n\n[[OPDRACHT]]\n\n");
+  }
+
+  // Benji-CTA's delen dezelfde persoonlijke één-klik-link (per lead een eigen token).
+  // [benji-blok] = het intro-kaartje; élke andere [...Benji...]-marker wordt de CTA-
+  // knop naar de eigen plek. De knoptekst komt uit de marker zelf; bij de kale
+  // [benji-knop] uit buttonText (of de standaardtekst).
+  const heeftBlok = bodyVoorSplit.includes(BENJI_BLOK_MARKER);
+  const heeftBenjiCta = BENJI_CTA_RE.test(bodyVoorSplit);
   let blokHtml = "";
-  let benjiKnopHtml = "";
-  if (heeftBlok || heeftBenjiKnop) {
+  let benjiUrl = "";
+  if (heeftBlok || heeftBenjiCta) {
     const token = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
       email: args.email,
       naam: args.naam,
     });
-    const benjiUrl = `${appBase()}/benji-start?token=${token}`;
+    benjiUrl = `${appBase()}/benji-start?token=${token}`;
     if (heeftBlok) blokHtml = benjiBlokHtml(benjiUrl);
-    if (heeftBenjiKnop) {
-      const label = (args.buttonText || "").trim() || "Verder praten met Benji";
-      benjiKnopHtml = benjiPersoonlijkeKnop(benjiUrl, label);
-    }
   }
+  const benjiKnopVoor = (p: string): string => {
+    const binnen = (p.match(/\[([^\]]*)\]/)?.[1] ?? "").replace(/[>»→\s]+$/g, "").trim();
+    const kaal =
+      binnen === "" ||
+      binnen.toLowerCase() === "benji-knop" ||
+      binnen.toLowerCase() === "benji-start-link";
+    const label = kaal ? ((args.buttonText || "").trim() || "Verder praten met Benji") : binnen;
+    return benjiPersoonlijkeKnop(benjiUrl, label);
+  };
 
   const knopTekst = (args.buttonText || "").trim();
   const knopUrl = (args.buttonUrl || "").trim();
@@ -594,7 +619,7 @@ async function bouwEvergreenHtml(
   const psStijl = (p: string) =>
     `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${p.replace(/\n/g, "<br/>")}</p>`;
 
-  const alineas = body.split(/\n\n+/).map((p: string) => p.trim()).filter(Boolean);
+  const alineas = bodyVoorSplit.split(/\n\n+/).map((p: string) => p.trim()).filter(Boolean);
   const gebruiktAfbeelding = alineas.some((p: string) => AFBEELDING_MARKER.test(p));
   const gebruiktKnop = alineas.some((p: string) => KNOP_MARKER.test(p));
   const isPS = (p: string) => /^p\.?\s*s\.?/i.test(p);
@@ -610,8 +635,9 @@ async function bouwEvergreenHtml(
   const psStukken: string[] = [];
   const stukken: string[] = [];
   alineas.forEach((p: string, i: number) => {
-    if (p.includes(BENJI_KNOP_MARKER)) stukken.push(benjiKnopHtml);
+    if (p === "[[OPDRACHT]]") stukken.push(opdrachtCard);
     else if (p.includes(BENJI_BLOK_MARKER)) stukken.push(blokHtml);
+    else if (BENJI_CTA_RE.test(p)) stukken.push(benjiKnopVoor(p));
     else if (AFBEELDING_MARKER.test(p)) { if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption)); }
     else if (KNOP_MARKER.test(p)) { if (toonKnop) stukken.push(knopHtml); }
     else if (isPS(p)) psStukken.push(psStijl(p));
