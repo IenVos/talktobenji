@@ -93,10 +93,8 @@ function EHMailEditor({
     <div className={`border rounded-xl overflow-hidden ${isEdited ? "border-primary-300 bg-primary-50/30" : "border-gray-200 bg-white"}`}>
       <button type="button" onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors">
         {open ? <ChevronDown size={15} className="text-gray-400 flex-shrink-0" /> : <ChevronRight size={15} className="text-gray-400 flex-shrink-0" />}
-        <span className="text-xs font-bold text-gray-500 w-12 flex-shrink-0">Mail {positieVanMail(n)}</span>
-        <span className="text-sm font-medium text-gray-700 flex-1 truncate">{titel}</span>
-        <span className="text-[11px] font-medium text-gray-400 flex-shrink-0">dag {dag}</span>
-        <span className="text-xs text-gray-400 truncate hidden md:block max-w-[180px]">{subject}</span>
+        <span className="text-xs font-bold text-gray-500 w-14 flex-shrink-0">Dag {dag}</span>
+        <span className="text-sm font-medium text-gray-700 flex-1 truncate">{subject}</span>
         {isEdited && (
           <span className="flex-shrink-0 text-[10px] font-semibold text-primary-600 bg-primary-100 border border-primary-200 rounded-full px-2 py-0.5">aangepast</span>
         )}
