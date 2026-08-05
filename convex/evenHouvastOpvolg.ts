@@ -282,7 +282,7 @@ async function verstuurOpvolgMail(
     });
 
     const knopLabel = gestart ? "Praat met Benji" : "Maak kennis met Benji";
-    benjiKnopHtml = `<div style="text-align:center;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${knopLabel} &rarr;</a></div>`;
+    benjiKnopHtml = `<div style="text-align:left;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${knopLabel} &rarr;</a></div>`;
 
     if (gestart) {
       // Kom-terug-blok voor wie Benji al opende. Persoonlijke toon, geen promo. De
