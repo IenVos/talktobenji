@@ -260,7 +260,7 @@ async function verstuurOpvolgMail(
   // /benji-start-link. Mails zonder Benji-marker raken hier niet door: geen token,
   // geen knop, geen blok, alles blijft precies als voorheen.
   const heeftBenjiMarker = /\[[^\]]*benji[^\]]*\]/i.test(body);
-  let benjiKnopHtml = "";
+  let benjiKnopVoor: (p: string) => string = () => "";
   let benjiBlokHtml = "";
   if (heeftBenjiMarker) {
     const benjiToken = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
@@ -281,8 +281,17 @@ async function verstuurOpvolgMail(
       email: args.email,
     });
 
-    const knopLabel = gestart ? "Praat met Benji" : "Maak kennis met Benji";
-    benjiKnopHtml = `<div style="text-align:left;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${knopLabel} &rarr;</a></div>`;
+    // Knoptekst: de tekst die je in de admin tussen de haakjes zet wint (bijv.
+    // "[Probeer Benji gratis >>]" wordt de knop "Probeer Benji gratis"). De
+    // sluit-pijltjes halen we eraf. Alleen bij de kale marker [benji-start-link] of
+    // lege haakjes gebruiken we de slimme standaard, mét de automatische "Praat met
+    // Benji" voor wie Benji al opende.
+    benjiKnopVoor = (p: string): string => {
+      const binnen = (p.match(/\[([^\]]*)\]/)?.[1] ?? "").replace(/[>»→\s]+$/g, "").trim();
+      const eigen = binnen && binnen.toLowerCase() !== "benji-start-link" ? binnen : "";
+      const label = eigen || (gestart ? "Praat met Benji" : "Maak kennis met Benji");
+      return `<div style="text-align:left;margin:26px 0;"><a href="${benjiUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:12px 26px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">${label} &rarr;</a></div>`;
+    };
 
     if (gestart) {
       // Kom-terug-blok voor wie Benji al opende. Persoonlijke toon, geen promo. De
@@ -334,7 +343,7 @@ async function verstuurOpvolgMail(
       p === "[[OPDRACHT]]"
         ? opdrachtCard
         : isBenjiCta(p)
-        ? benjiKnopHtml
+        ? benjiKnopVoor(p)
         : AFBEELDING_MARKER.test(p)
         ? imageUrl ? inlineAfbeelding(imageUrl, imageCaption) : ""
         : alineaPHtml(p)
