@@ -522,9 +522,8 @@ function evergreenFooter(
   // Benji-spoor krijgt een eigen "vragen"-regel (verwijst naar Ien) plus de wat-kost-
   // regel met de link eronder. Gewone evergreen houdt de standaardregel.
   const vragenEnKost = benjiKostUrl
-    ? `<p style="font-size:13px;line-height:1.6;color:#718096;margin:7px 0 0 0;">Heb je een vraag die ik niet kan beantwoorden? Antwoord op deze mail, dan komt hij bij Ien terecht.</p>` +
-      `<p style="font-size:13px;color:#718096;margin:16px 0 0 0;">Wat Benji kost lees je hier.</p>` +
-      `<p style="font-size:13px;margin:2px 0 0 0;"><a href="${benjiKostUrl}" style="color:#9a8168;text-decoration:underline;">${benjiKostUrl.replace(/^https?:\/\//, "")}</a></p>`
+    ? `<p style="font-size:13px;line-height:1.6;color:#718096;margin:7px 0 0 0;">Heb je een vraag die ik niet kan beantwoorden?<br/>Antwoord op deze mail, dan komt hij bij Ien terecht.</p>` +
+      `<p style="font-size:13px;color:#718096;margin:16px 0 0 0;"><a href="${benjiKostUrl}" style="color:#718096;text-decoration:none;">Wat Benji kost lees je hier &#8594;</a></p>`
     : `<p style="font-size:13px;color:#718096;margin:7px 0 0 0;">Heb je vragen? Beantwoord gewoon deze mail.</p>`;
   return `
     <div style="text-align:center;margin-top:44px;">
