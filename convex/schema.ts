@@ -1003,6 +1003,10 @@ export default defineSchema({
     imageCaption: v.optional(v.string()),
     verliesType: v.optional(v.string()), // leeg = algemene versie; anders variant
     actief: v.boolean(),            // uit = wordt overgeslagen zonder de reeks te verschuiven
+    // Terugkom-conditie: alleen versturen als de lead NIET is teruggekomen in de chat
+    // sinds de vorige mail. Gebruikt voor de "we zijn er nog"-mail die je alleen aan
+    // niet-reagerende leads wilt sturen. Leeg/false = altijd versturen.
+    alleenAlsNietTeruggekomen: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index("by_blok", ["blokId"])
@@ -1031,6 +1035,9 @@ export default defineSchema({
     email: v.string(),              // lowercase
     mailId: v.id("funnelMails"),
     sentAt: v.number(),
+    // true = niet echt verstuurd maar bewust overgeslagen (bijv. terugkom-conditie
+    // niet gehaald). Telt wel als "gehad" zodat de lead netjes doorschuift.
+    overgeslagen: v.optional(v.boolean()),
   }).index("by_email", ["email"]),
 
   // Losse tussendoor-mails (o.a. de eenmalige reactivatiemail en de maandmail):

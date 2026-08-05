@@ -697,6 +697,30 @@ async function verstuurEvergreenEmail(args: { to: string; subject: string; html:
 
 // ── Interne data + veiligheids-helpers ───────────────────────────────────────
 
+// Is deze lead teruggekomen in de chat ná `sinds`? (een eigen bericht getypt).
+// Alleen tellen, nooit inhoud lezen. Gebruikt voor de terugkom-conditie op een mail.
+async function leadIsTeruggekomen(ctx: any, email: string, sinds: number): Promise<boolean> {
+  const user = await ctx.db
+    .query("users")
+    .withIndex("email", (q: any) => q.eq("email", email))
+    .first();
+  if (!user) return false;
+  const sessies = await ctx.db
+    .query("chatSessions")
+    .withIndex("by_user", (q: any) => q.eq("userId", user._id.toString()))
+    .collect();
+  for (const s of sessies) {
+    const msg = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q: any) => q.eq("sessionId", s._id))
+      .filter((q: any) => q.eq(q.field("role"), "user"))
+      .filter((q: any) => q.gt(q.field("createdAt"), sinds))
+      .first();
+    if (msg) return true;
+  }
+  return false;
+}
+
 // Bepaalt per lead welke mail nu aan de beurt is (hoogstens één), inclusief alle
 // veiligheidschecks. Kopers worden apart teruggegeven om op "koper" te zetten.
 export const _evergreenPlan = internalQuery({
@@ -758,6 +782,9 @@ export const _evergreenPlan = internalQuery({
       isLaatsteVanBlok: boolean;
     }[] = [];
     const teMarkerenKoper: string[] = [];
+    // Mails met een terugkom-conditie die NIET verstuurd worden (lead kwam terug):
+    // wél als "gehad" wegschrijven zodat de lead netjes doorschuift.
+    const teMarkerenOvergeslagen: { email: string; mailId: any }[] = [];
 
     for (const lead of leads) {
       const email = lead.email.toLowerCase();
@@ -797,6 +824,24 @@ export const _evergreenPlan = internalQuery({
       }
       if (!gekozen) continue;
 
+      // Terugkom-conditie: deze mail alleen sturen als de lead NIET is teruggekomen in
+      // de chat sinds de vorige mail. Referentietijd = wanneer de vorige mail (lagere
+      // dagOffset, zelfde spoor) naar deze lead ging; anders het instroommoment.
+      if (gekozen.alleenAlsNietTeruggekomen) {
+        let sinds = lead.ingestroomdOp;
+        for (const v of verzonden) {
+          if (v.email.toLowerCase() !== email) continue;
+          const vm = mailById.get(v.mailId);
+          if (!vm || spoorVan(blokById.get(vm.blokId)?.spoor) !== leadSpoor) continue;
+          if (vm.dagOffset >= gekozen.dagOffset) continue;
+          if (v.sentAt > sinds) sinds = v.sentAt;
+        }
+        if (await leadIsTeruggekomen(ctx, email, sinds)) {
+          teMarkerenOvergeslagen.push({ email, mailId: gekozen._id });
+          continue; // wél gehad-markeren (hieronder), niet versturen
+        }
+      }
+
       teVerzenden.push({
         email,
         naam: lead.naam ?? null,
@@ -806,7 +851,7 @@ export const _evergreenPlan = internalQuery({
       });
     }
 
-    return { teVerzenden, teMarkerenKoper };
+    return { teVerzenden, teMarkerenKoper, teMarkerenOvergeslagen };
   },
 });
 
@@ -857,6 +902,26 @@ export const _logEvergreenVerzonden = internalMutation({
       email: args.email.toLowerCase(),
       mailId: args.mailId,
       sentAt: Date.now(),
+    });
+  },
+});
+
+// Markeer een mail als bewust overgeslagen (terugkom-conditie niet gehaald): geen
+// verzending, maar wel "gehad" zodat de lead doorschuift naar de volgende mail.
+export const _logEvergreenOvergeslagen = internalMutation({
+  args: { email: v.string(), mailId: v.id("funnelMails") },
+  handler: async (ctx, args) => {
+    const email = args.email.toLowerCase();
+    const bestaand = await ctx.db
+      .query("funnelVerzonden")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    if (bestaand.some((v: any) => v.mailId === args.mailId)) return; // niet dubbel
+    await ctx.db.insert("funnelVerzonden", {
+      email,
+      mailId: args.mailId,
+      sentAt: Date.now(),
+      overgeslagen: true,
     });
   },
 });
@@ -1123,10 +1188,17 @@ export const processEvergreen = internalAction({
     // Doorlopers van een spoor doorzetten naar hun vervolgspoor (bijv. benji → evergreen).
     await ctx.runMutation(internal.evergreen._spoorHandoff, {});
 
-    const { teVerzenden, teMarkerenKoper } = await ctx.runQuery(internal.evergreen._evergreenPlan, {});
+    const { teVerzenden, teMarkerenKoper, teMarkerenOvergeslagen } =
+      await ctx.runQuery(internal.evergreen._evergreenPlan, {});
 
     for (const email of teMarkerenKoper) {
       await ctx.runMutation(internal.evergreen._markeerKoperInternal, { email });
+    }
+
+    // Terugkom-conditie niet gehaald (lead kwam terug): mail overslaan maar wél als
+    // gehad wegschrijven, zodat de lead doorschuift naar de volgende mail.
+    for (const { email, mailId } of teMarkerenOvergeslagen) {
+      await ctx.runMutation(internal.evergreen._logEvergreenOvergeslagen, { email, mailId });
     }
 
     // Gespreid inplannen (kleine pieken, tegen Outlook/Hotmail-throttling).
