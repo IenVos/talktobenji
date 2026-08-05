@@ -441,6 +441,15 @@ export const handleUserMessage = action({
         parts.push("## Persoonlijke context van deze gebruiker\n" + userBgParts.join("\n\n"));
       }
 
+      // Eerste gesprek vs terugkerende bezoeker — expliciet meegeven zodat Benji NOOIT
+      // ten onrechte doet alsof iemand terugkomt. Herkenning mag alleen bij echt bewijs
+      // van een eerder gesprek (samengevatte eerdere gesprekken).
+      if (sessionSummaries) {
+        parts.push("## Terugkerende bezoeker\nJe hebt deze bezoeker eerder gesproken (zie de samengevatte eerdere gesprekken). Herkenning mag warm zijn, maar ga niet uit van details die je niet zeker weet.");
+      } else {
+        parts.push("## Eerste gesprek met deze bezoeker\nJullie hebben nog niet eerder samen gepraat. Wat je hierboven eventueel over hen weet mag je gebruiken, maar doe NOOIT alsof jullie elkaar al uit een eerder gesprek kennen of alsof ze terugkomen. Gebruik geen zinnen als \"fijn dat je terugkomt\", \"hoe is het sindsdien gegaan\" of \"je bent er weer\". Behandel dit als een eerste kennismaking.");
+      }
+
       // Altijd: algemene kennis (dynamische limiet)
       if (knowledgeFromSettings) {
         const limitedSettings = knowledgeFromSettings.slice(0, settingsLimit);
