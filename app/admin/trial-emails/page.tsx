@@ -25,7 +25,7 @@ const SECTIONS = [
   },
   {
     id: "renewal_jaar",
-    label: "Verlengingsmails — Jaar",
+    label: "Verlengingsmails — 6 maanden",
     subtitle: "Mail 1 op 30 dagen voor afloop · Mail 2 op 15 dagen · Mail 3 op de laatste dag",
     emails: [
       { key: "renewal_jaar_1" as TemplateKey, title: "Mail 1 — 30 dagen voor afloop", subtitle: "Gebruik {einddatum} en {naam}" },

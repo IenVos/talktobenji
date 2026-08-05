@@ -8,12 +8,15 @@ import { internalAction, internalQuery, internalMutation } from "./_generated/se
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
+// De "jaar"-flow is nu de HALFJAAR-flow (er is geen jaarproduct meer). Zelfde 3 mails
+// (30/15/0 dagen voor afloop, templates renewal_jaar_*, admin-label "6 maanden"), maar
+// gekoppeld aan de half_yearly-abonnementen (Benji 6 maanden, €90).
 export const getJaarSubscriptions = internalQuery({
   args: {},
   handler: async (ctx) => {
     return await ctx.db
       .query("userSubscriptions")
-      .filter((q) => q.eq(q.field("billingPeriod"), "yearly"))
+      .filter((q) => q.eq(q.field("billingPeriod"), "half_yearly"))
       .collect();
   },
 });
