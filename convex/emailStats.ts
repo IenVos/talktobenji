@@ -119,12 +119,21 @@ const ehPositie = (n: number) => {
   const i = EH_LEESVOLGORDE.indexOf(n);
   return i === -1 ? n : i + 1;
 };
+// Verzenddag per intern mailnummer (het centrale EH-schema, zie evenHouvastOpvolg.ts).
+// Voor het label op de statistiekpagina: "Dag 2 · <onderwerp>" i.p.v. "Opvolgmail 1".
+const EH_DAG: Record<number, number> = { 1: 2, 6: 3, 2: 5, 3: 8, 4: 10, 5: 12 };
+const ehDagLabel = (nr: number, onderwerp?: string) => {
+  const dag = EH_DAG[nr];
+  const prefix = dag ? `Dag ${dag}` : `Opvolgmail ${ehPositie(nr)}`;
+  return onderwerp && onderwerp.trim() ? `${prefix} · ${onderwerp.trim()}` : prefix;
+};
 
 // Vertaalt een template-key (eh_huisdier_3) naar de mail waar hij bij hoort.
-function ehHerkomst(key: string): Herkomst | undefined {
+function ehHerkomst(key: string, onderwerp?: string): Herkomst | undefined {
   const match = /^eh_[a-z]+_(\d+)$/.exec(key);
   if (!match) return undefined;
-  return { groep: "evenHouvast", stroomId: `eh_${match[1]}`, titel: `Opvolgmail ${ehPositie(Number(match[1]))}` };
+  const nr = Number(match[1]);
+  return { groep: "evenHouvast", stroomId: `eh_${nr}`, titel: ehDagLabel(nr, onderwerp) };
 }
 
 // Labels die we sinds 13 juli 2026 bij elke verzending meesturen. Mails van
@@ -136,7 +145,7 @@ function herkomstVanTags(
   const mail = tags?.mail;
   if (!tags || !mail) return undefined;
   if (tags.programma === "eh") {
-    return { groep: "evenHouvast", stroomId: `eh_${mail}`, titel: `Opvolgmail ${ehPositie(Number(mail))}` };
+    return { groep: "evenHouvast", stroomId: `eh_${mail}`, titel: ehDagLabel(Number(mail), label) };
   }
   if (tags.programma === "na") {
     return { groep: "nietAlleen", stroomId: `na_${mail}`, titel: label };
@@ -175,14 +184,14 @@ async function bouwGroepIndex(ctx: QueryCtx): Promise<Map<string, Herkomst>> {
   for (const [key, tpl] of Object.entries(DEFAULT_TEMPLATES)) {
     const subject = (tpl as { subject?: string }).subject;
     if (!subject) continue;
-    const eh = ehHerkomst(key);
+    const eh = ehHerkomst(key, subject);
     if (eh) zet(subject, eh);
     else if (key.startsWith("niet_alleen")) zet(subject, opZichzelf(subject, "nietAlleen"));
   }
 
   for (const tpl of await ctx.db.query("emailTemplates").collect()) {
     const herkomst =
-      ehHerkomst(tpl.key) ??
+      ehHerkomst(tpl.key, tpl.subject) ??
       (tpl.key.startsWith("niet_alleen") ? opZichzelf(tpl.subject, "nietAlleen") : undefined);
     if (!herkomst) continue;
     zet(tpl.subject, herkomst);

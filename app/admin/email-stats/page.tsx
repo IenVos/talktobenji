@@ -535,8 +535,11 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
       const noemer = s.afgeleverd || s.verzonden || 1;
       const b = bestemming(s.links ?? []);
       const t = s.onderwerp.toLowerCase();
+      // Koppel de afmeld-ratio op het interne mailnummer (stroomId eh_<nr>), niet op de
+      // labeltekst, want die toont nu "Dag X · onderwerp".
+      const ehNr = /^eh_(\d+)$/.exec(s.stroomId)?.[1];
       const afm = metAfmeld
-        ? afmeld?.perMail?.find((p) => (t.includes("brief") ? p.mail === "brief" : p.label.toLowerCase() === t))
+        ? afmeld?.perMail?.find((p) => (ehNr ? p.mail === ehNr : t.includes("brief") && p.mail === "brief"))
         : undefined;
       // Klikken op de afmeldlink tellen we NIET als doorklik: dat is geen interesse
       // in de inhoud maar een uitschrijving. Zo is "klik" echt doorklik naar de mail.
