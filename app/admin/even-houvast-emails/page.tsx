@@ -528,31 +528,6 @@ export default function EvenHouvastEmailsPage() {
           />
         ))}
       </div>
-
-      {/* Voorwaardelijke dag-3-mails voor brief-klikkers, i.p.v. "Benji voorstellen". */}
-      <div className="mt-6 pt-5 border-t border-gray-200 space-y-2">
-        <h2 className="text-sm font-bold text-gray-700">Brief-klikker mails (dag 3, i.p.v. Benji voorstellen)</h2>
-        <BriefKomTerugEditor
-          templateKey="eh_brief_kom_terug"
-          titel="Brief-opvolg: kom terug"
-          badge="geklikt, weinig gepraat"
-          beschrijving={<>Gaat op <strong>dag 3</strong> naar wie de brief-link klikte maar <strong>weinig praatte</strong> (minder dan 10 berichten). Vervangt de &ldquo;Benji voorstellen&rdquo;-mail. De knop wordt automatisch een persoonlijke Benji-link.</>}
-          saved={savedVoor("eh_brief_kom_terug")}
-          onSave={saveBriefMail("eh_brief_kom_terug")}
-          onTest={testBriefMail("eh_brief_kom_terug")}
-          canTest={canTest}
-        />
-        <BriefKomTerugEditor
-          templateKey="eh_brief_vervolg"
-          titel="Brief-opvolg: vervolg"
-          badge="veel gepraat (10+)"
-          beschrijving={<>Gaat op <strong>dag 3</strong> naar wie al <strong>veel praatte</strong> (10 of meer berichten). Geen herkansing maar een vervolg: Benji onthoudt, dus doorgaan waar je was. De knop wordt automatisch een persoonlijke Benji-link.</>}
-          saved={savedVoor("eh_brief_vervolg")}
-          onSave={saveBriefMail("eh_brief_vervolg")}
-          onTest={testBriefMail("eh_brief_vervolg")}
-          canTest={canTest}
-        />
-      </div>
     </div>
   );
 }
