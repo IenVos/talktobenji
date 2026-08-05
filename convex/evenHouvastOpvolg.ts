@@ -28,6 +28,7 @@ import {
   persoonlijkeBody,
 } from "./ehMailFooter";
 import { BENJI_MARKER, BENJI_BLOK_MARKER } from "./ehConcepten";
+import { STATS_RESET_MS } from "./emailStats";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 const DAG_MS = 24 * 60 * 60 * 1000;
@@ -837,7 +838,10 @@ export const afmeldOverzicht = query({
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
     const dagen = args.sinceDays && args.sinceDays > 0 ? args.sinceDays : 90;
-    const cutoff = Date.now() - dagen * DAG_MS;
+    // De reset-datum is een harde ondergrens (net als bij emailStats): afmeld-ratio's
+    // tellen alleen afmeldingen én verzendingen ná de schone start mee. Zo staat een
+    // vers gestarte reeks op 0%, in plaats van historische afmeldingen te tonen.
+    const cutoff = Math.max(Date.now() - dagen * DAG_MS, STATS_RESET_MS);
 
     const [alleAfmeldingen, alleVerzonden, alleBrieven] = await Promise.all([
       ctx.db.query("ehAfmeldingen").collect(),

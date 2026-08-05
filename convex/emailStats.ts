@@ -88,7 +88,7 @@ type Groep = "evenHouvast" | "benji" | "nietAlleen" | "evergreen" | "losseMail" 
 // we vanaf deze datum. Oudere events blijven in de database (resendEmailEvents) staan
 // en zijn opvraagbaar door deze datum te verzetten; ze tellen alleen niet mee in de
 // lopende reeks. 5 aug 2026.
-const STATS_RESET_MS = Date.UTC(2026, 7, 5);
+export const STATS_RESET_MS = Date.UTC(2026, 7, 5);
 
 // Onderwerpen die in houvast.ts hardcoded staan: de brief-mail zelf en de mail
 // die de brief aankondigt. De opvolgmails komen uit de templates.

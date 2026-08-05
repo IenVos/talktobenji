@@ -339,7 +339,7 @@ export default function EmailStatsPage() {
             </div>
           </div>
 
-          {/* Wat werkt, en wat niet — het oordeel per mail, bovenaan */}
+          {/* Cijfers per mail, per funnel gegroepeerd, bovenaan */}
           <WatWerkt stats={stats} afmeld={afmeld} />
 
           {/* Details per mail (de tabellen), ingeklapt eronder */}
@@ -465,10 +465,10 @@ function Sluimerend() {
   );
 }
 
-// ── Wat werkt, en wat niet ───────────────────────────────────────────────────
-// Vertaalt de open/klik-cijfers per mail naar een oordeel, afgestemd op waar de
-// knop heen gaat. Nu voor Even Houvast (met echte cijfers); Evergreen en Losse
-// mails vullen zich zodra je daar mails stuurt.
+// ── Cijfers per mail ─────────────────────────────────────────────────────────
+// Toont per mail de open/klik/afmeld-cijfers, gegroepeerd per funnel. Geen oordeel
+// of kleuren; alleen de kale cijfers. Nu voor Even Houvast (met echte cijfers);
+// Evergreen en Losse mails vullen zich zodra je daar mails stuurt.
 type WWMail = { naam: string; open: number; klik: number; afmeld: number | null; volume: number; doel: string; checkout: boolean };
 
 function bestemming(links: { label: string; aantal: number }[]): { doel: string; checkout: boolean } {
@@ -482,53 +482,10 @@ function bestemming(links: { label: string; aantal: number }[]): { doel: string;
   return { doel: "link", checkout: false };
 }
 
-type Sev = "good" | "ok" | "warn" | "bad";
-// Oordeel t.o.v. de doorsnee (mediaan) van de stroom, met dezelfde grens als de
-// pijltjes (±3). Zo spreken pijltjes en oordeel elkaar nooit tegen: twee pijltjes
-// omlaag geeft nooit "Sterk". Vier niveaus: Sterk, Prima, Let op, Aandacht.
-function oordeel(m: WWMail, refOpen: number, refKlik: number): { sev: Sev; reason: string; weinig: boolean } {
-  const weinig = m.volume < 25;
-  const D = 3;
-  const openOnder = m.open <= refOpen - D;
-  const openBoven = m.open >= refOpen + D;
-  const klikOnder = m.klik <= refKlik - D;
-  const klikBoven = m.klik >= refKlik + D;
-  const onder = (openOnder ? 1 : 0) + (klikOnder ? 1 : 0);
-  const boven = (openBoven ? 1 : 0) + (klikBoven ? 1 : 0);
-  let sev: Sev, reason: string;
-  if (onder >= 2) {
-    sev = "bad";
-    reason = m.checkout
-      ? "Zwakke open én klik. Onderwerpregel herschrijven en de doorklik naar de checkout aanpakken."
-      : "Zwakke open én klik. Onderwerpregel herschrijven en knop aanscherpen.";
-  } else if (onder === 1) {
-    sev = "warn";
-    reason = openOnder
-      ? "Wordt te weinig geopend. Je grootste winst zit in de onderwerpregel."
-      : m.checkout
-        ? "Goede open, maar weinig doorklik naar de checkout. Geef een zachtere stap of scherp het aanbod aan."
-        : `Goede open, maar weinig doorklik${m.doel !== "link" ? ` naar ${m.doel}` : ""}. Knop of inhoud aanscherpen.`;
-  } else if (boven >= 1) {
-    sev = "good";
-    reason = openBoven && klikBoven
-      ? "Sterk. Onderwerp én knop werken."
-      : openBoven
-        ? "Sterk. Wordt goed geopend."
-        : `Sterk. Mensen klikken goed door${m.doel !== "link" ? ` naar ${m.doel}` : ""}.`;
-  } else {
-    sev = "ok";
-    reason = "Rond je doorsnee. Prima, maar hier valt nog winst te halen.";
-  }
-  if (m.afmeld != null && m.afmeld >= 3) reason += " Relatief veel afmeldingen.";
-  if (weinig) { reason += " (Nog weinig data, dus met een korrel zout.)"; if (sev === "good") sev = "ok"; }
-  return { sev, reason, weinig };
-}
-
 function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail: string; label: string; ratio: number }[] } }) {
-  const [mode, setMode] = useState<"attn" | "best">("attn");
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
-  // Zet de stromen van een groep om naar mails-met-oordeel. metAfmeld = alleen bij
+  // Zet de stromen van een groep om naar mails met hun cijfers. metAfmeld = alleen bij
   // Even Houvast (daar meten we afmeldingen per mail); andere funnels hebben dat niet.
   const maakMails = (stromen: Stroom[] | undefined, metAfmeld: boolean): WWMail[] =>
     (stromen ?? []).map((s) => {
@@ -563,70 +520,39 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
 
   const secties: { naam: string; count: string; mails: WWMail[]; leeg?: string }[] = [
     { naam: "Even Houvast", count: `${ehMails.length} mails`, mails: ehMails },
-    { naam: "Benji funnel", count: `${benjiMails.length} mails`, mails: benjiMails, leeg: "Nog geen verstuurde Benji-mails. Zodra de funnel loopt, verschijnen ze hier met hun oordeel." },
-    { naam: "Evergreen funnel", count: "0 mails", mails: [], leeg: "Nog geen verstuurde mails. Zodra de reeks loopt, verschijnen de mails hier met hun oordeel." },
+    { naam: "Benji funnel", count: `${benjiMails.length} mails`, mails: benjiMails, leeg: "Nog geen verstuurde Benji-mails. Zodra de funnel loopt, verschijnen ze hier met hun cijfers." },
+    { naam: "Evergreen funnel", count: "0 mails", mails: [], leeg: "Nog geen verstuurde mails. Zodra de reeks loopt, verschijnen de mails hier met hun cijfers." },
     { naam: "Losse mails", count: "0 mails", mails: [], leeg: "Nog geen losse mails verstuurd. Elke mail die je stuurt, komt hier te staan." },
   ];
 
-  const sevRank = { bad: 0, warn: 1, ok: 2, good: 3 } as const;
-  const badgeLabel = { good: "Sterk", ok: "Prima", warn: "Let op", bad: "Aandacht" } as const;
-  const badgeCls = { good: "bg-green-50 text-green-700", ok: "bg-gray-100 text-gray-600", warn: "bg-amber-50 text-amber-700", bad: "bg-red-50 text-red-600" } as const;
-  const stripe = { good: "border-l-green-500", ok: "border-l-gray-300", warn: "border-l-amber-500", bad: "border-l-red-500" } as const;
-  const arrow = (v: number, a: number) => (v >= a + 3 ? <span className="text-green-600 text-[11px] font-bold">▲</span> : v <= a - 3 ? <span className="text-red-500 text-[11px] font-bold">▼</span> : null);
-  const median = (a: number[]) => {
-    if (!a.length) return 0;
-    const s = [...a].sort((x, y) => x - y);
-    const m = Math.floor(s.length / 2);
-    return s.length % 2 ? s[m] : Math.round((s[m - 1] + s[m]) / 2);
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900">Wat werkt, en wat niet</h2>
-          <p className="text-sm text-gray-500">Elke mail met een oordeel. Aandacht nodig staat bovenaan. Het oordeel houdt rekening met waar de knop heen gaat.</p>
-        </div>
-        <div className="inline-flex rounded-lg border border-gray-200 overflow-hidden text-sm">
-          <button onClick={() => setMode("attn")} className={`px-3 py-1.5 ${mode === "attn" ? "bg-primary-600 text-white" : "text-gray-600"}`}>Aandacht eerst</button>
-          <button onClick={() => setMode("best")} className={`px-3 py-1.5 ${mode === "best" ? "bg-primary-600 text-white" : "text-gray-600"}`}>Beste eerst</button>
-        </div>
+      <div>
+        <h2 className="text-lg font-bold text-gray-900">Cijfers per mail</h2>
+        <p className="text-sm text-gray-500">De cijfers per mail. Klap een funnel open om de mails te zien.</p>
       </div>
 
       {secties.map((sec) => {
-        const refOpen = median(sec.mails.map((m) => m.open));
-        const refKlik = median(sec.mails.map((m) => m.klik));
-        const rows = sec.mails.map((m) => ({ m, o: oordeel(m, refOpen, refKlik) }));
-        const score = (m: WWMail) => m.open + m.klik * 1.5;
-        rows.sort((a, b) => (mode === "best" ? score(b.m) - score(a.m) : sevRank[a.o.sev] - sevRank[b.o.sev] || score(a.m) - score(b.m)));
+        const rows = [...sec.mails].sort((a, b) => (b.open + b.klik * 1.5) - (a.open + a.klik * 1.5));
         const isOpen = open[sec.naam] ?? false;
         return (
           <div key={sec.naam} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <button onClick={() => setOpen((o) => ({ ...o, [sec.naam]: !isOpen }))} className="w-full flex items-center gap-3 px-4 py-3 text-left">
               <span className="text-gray-400 text-xs">{isOpen ? "▾" : "▸"}</span>
               <span className="flex-1 font-semibold text-gray-900">{sec.naam} <span className="text-xs text-gray-400 font-normal">· {sec.count}</span></span>
-              {sec.mails.length > 0 && <span className="text-xs text-gray-500 tabular-nums">doorsnee <b className="text-gray-800">{refOpen}%</b> open · <b className="text-gray-800">{refKlik}%</b> klik</span>}
             </button>
             {isOpen && (
               <div className="border-t border-gray-100 p-3 space-y-2">
                 {sec.mails.length === 0 && <p className="text-sm text-gray-400 px-1 py-2">{sec.leeg}</p>}
-                {rows.map(({ m, o }) => (
-                  <div key={m.naam} className={`grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-x-4 gap-y-2 items-center rounded-lg bg-gray-50 border border-gray-100 border-l-4 ${stripe[o.sev]} px-4 py-3`}>
-                    <div>
-                      <span className="font-semibold text-gray-900 text-sm">{m.naam}</span>
-                      <span className="ml-2 text-[10.5px] text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 align-middle">knop → {m.doel}</span>
-                      <div className="grid grid-cols-[70px_86px_78px_70px] gap-x-4 gap-y-1 mt-2 tabular-nums">
-                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Open</div><div className="text-[15px] font-semibold">{m.open}% {arrow(m.open, refOpen)}</div></div>
-                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Klik</div><div className="text-[15px] font-semibold">{m.klik}% {arrow(m.klik, refKlik)}</div></div>
-                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Verkocht</div><div className="text-[15px] font-semibold text-gray-400">{m.checkout ? "—" : "—"}</div></div>
-                        <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Afmeld</div><div className="text-[15px] font-semibold">{m.afmeld != null ? `${m.afmeld}%` : "—"}</div></div>
-                      </div>
-                    </div>
-                    <div className="sm:text-right sm:max-w-[250px]">
-                      <span className={`inline-flex items-center gap-1.5 text-[12.5px] font-semibold rounded-full px-2.5 py-1 ${badgeCls[o.sev]}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-current" />{badgeLabel[o.sev]}
-                      </span>
-                      <p className="text-[12.5px] text-gray-500 mt-1.5">{o.reason}</p>
+                {rows.map((m) => (
+                  <div key={m.naam} className="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3">
+                    <span className="font-semibold text-gray-900 text-sm">{m.naam}</span>
+                    <span className="ml-2 text-[10.5px] text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 align-middle">knop → {m.doel}</span>
+                    <div className="grid grid-cols-[70px_86px_78px_70px] gap-x-4 gap-y-1 mt-2 tabular-nums">
+                      <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Open</div><div className="text-[15px] font-semibold">{m.open}%</div></div>
+                      <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Klik</div><div className="text-[15px] font-semibold">{m.klik}%</div></div>
+                      <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Verkocht</div><div className="text-[15px] font-semibold text-gray-400">—</div></div>
+                      <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Afmeld</div><div className="text-[15px] font-semibold">{m.afmeld != null ? `${m.afmeld}%` : "—"}</div></div>
                     </div>
                   </div>
                 ))}
@@ -638,10 +564,8 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
 
       <p className="text-xs text-gray-400 leading-relaxed">
         <strong>Zo lees je het.</strong> Open = geopend gedeeld door afgeleverd. Klik = doorklik gedeeld door afgeleverd,
-        waarbij klikken op de afmeldlink níét meetellen (dat is geen interesse). De pijltjes en het oordeel vergelijken met
-        je <strong>doorsnee</strong> mail (de mediaan), niet met het gemiddelde: zo trekken een paar toppers de lat niet
-        omhoog. Twee pijltjes omlaag geeft daarom nooit "Sterk". De doorsnee schuift mee met nieuwe cijfers. De kolom
-        Verkocht (verkopen per mail) vullen we bij de verkoopanalyse.
+        waarbij klikken op de afmeldlink níét meetellen (dat is geen interesse). Afmeld = afmeldingen gedeeld door verzonden,
+        sinds de schone start. De kolom Verkocht (verkopen per mail) vullen we bij de verkoopanalyse.
       </p>
     </div>
   );
