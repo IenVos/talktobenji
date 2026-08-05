@@ -6,7 +6,7 @@ import { action, internalAction, internalMutation, internalQuery, mutation, quer
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { checkAdmin, logAdminAction } from "./adminAuth";
-import { ehFooter, ehAfmeldUrl, appBase } from "./ehMailFooter";
+import { ehFooter, ehAfmeldUrl } from "./ehMailFooter";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
 
@@ -264,26 +264,14 @@ function wrapperBrief(inhoud: string, nietAlleenUrl: string, afmeldUrl: string, 
     </div>`;
 }
 
-// Zachte slotzin onderaan de brief (vóór de ondertekening): geen apart promo-blok,
-// gewoon de laatste regel van de brief zelf, met een klikbare link naar Benji. De
-// link opent direct de chat met een brugzin-opener (zie startEhChat, variant "brief").
-// verliesNaam = van wie/wat ze missen (leeg = de algemene variant zonder naam).
-// Geen prijs, geen "gratis 7 dagen": de deur gaat zacht open, zonder aanbod-toon.
-function bouwBriefSlotzin(verliesNaam: string, benjiUrl: string): string {
-  const naam = verliesNaam.trim();
+// Warme afsluiting onderaan de brief (vóór de ondertekening): geen link, geen
+// uitnodiging naar een gesprek. Net na een persoonlijke brief past geen CTA; de
+// woorden mogen op zichzelf staan. De kennismaking met Benji loopt via de losse
+// opvolgmails, niet vastgeplakt aan dit tere moment.
+function bouwBriefSlotzin(): string {
   const P = (t: string, mt: number) =>
     `<p style="font-size:15px;line-height:1.9;color:#4a5568;margin:${mt}px 0 0;">${t}</p>`;
-  const link = (tekst: string) =>
-    `<a href="${benjiUrl}" style="color:#9a8168;font-weight:600;text-decoration:underline;">${tekst} &rarr;</a>`;
-  const eersteZin = naam
-    ? `Je woorden staan nu op papier. Maar over ${naam} valt zoveel meer te zeggen dan in één brief past.`
-    : `Je woorden staan nu op papier. En toch stopt gemis niet bij een brief.`;
-  const linkTekst = naam ? `Vertel me meer over ${naam}` : `Praat verder met mij`;
-  return (
-    P(eersteZin, 26) +
-    P(link(linkTekst), 16) +
-    P("Je komt dan bij mij in een gesprek. Je hoeft niets in te vullen, je kunt gewoon beginnen.", 16)
-  );
+  return P("Je woorden staan nu op papier. Draag ze met je mee, zo lang als je wil.", 26);
 }
 
 /**
@@ -558,16 +546,10 @@ export const genereerEnVerstuurBrief = action({
       }
     }
 
-    // Zachte slotzin die uitnodigt om het gesprek met Benji voort te zetten. De link
-    // is een één-klik-login (net als de opvolgmails) mét tag o=brief, zodat Benji
-    // opent met een brugzin-opener. Account + 7-daagse proef starten pas bij de klik.
-    const benjiToken = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
-      email: emailLc,
-      naam: args.naam,
-    });
-    // Log de verzending (mail "brief") zodat we brief-klikken los kunnen meten.
+    // De brief eindigt warm, zonder Benji-link (dat bleek te sturend net na het emotionele
+    // moment). Kennismaking met Benji loopt via de opvolgmails. We loggen de verzending
+    // ("brief") nog wel, zodat de brief-metingen los blijven bestaan.
     await ctx.runMutation(internal.benjiStart.logVerzending, { email: emailLc, mail: "brief" });
-    const benjiUrl = `${appBase()}/benji-start?token=${benjiToken}&o=brief`;
 
     const html = bouwBriefHtml({
       aanhef,
@@ -576,7 +558,7 @@ export const genereerEnVerstuurBrief = action({
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
       afmeldUrl: await ehAfmeldUrl(emailLc, "brief", type),
-      slotzin: bouwBriefSlotzin((args.verliesNaam || "").trim(), benjiUrl),
+      slotzin: bouwBriefSlotzin(),
     });
 
     await verstuurEmail({
@@ -644,15 +626,7 @@ export const stuurTestBrief = action({
       "https://www.talktobenji.com/images/benji-app-homescreen.png",
     ];
 
-    // Werkende Benji-link (met tag o=brief), zodat de testbrief er identiek uitziet
-    // als de echte. We loggen deze verzending bewust NIET (test vervuilt anders de
-    // brief-klik-metingen). Sample-naam in de slotzin zodat de met-naam-variant zichtbaar is.
-    const benjiToken = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
-      email: emailLc,
-      naam: args.naam,
-    });
-    const benjiUrl = `${appBase()}/benji-start?token=${benjiToken}&o=brief`;
-
+    // De testbrief ziet er identiek uit als de echte: warme afsluiting, geen Benji-link.
     const html = bouwBriefHtml({
       aanhef,
       briefHtml,
@@ -660,7 +634,7 @@ export const stuurTestBrief = action({
       gedichtTekst: resolveFotoGedicht(saved, type),
       nietAlleenUrl,
       afmeldUrl: await ehAfmeldUrl(emailLc, "brief", type),
-      slotzin: bouwBriefSlotzin("Sam", benjiUrl),
+      slotzin: bouwBriefSlotzin(),
     });
 
     await verstuurEmail({
