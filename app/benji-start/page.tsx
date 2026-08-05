@@ -7,12 +7,11 @@
  * Geen wachtwoord nodig. Bestaande login-flows blijven ongemoeid.
  */
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useConvex } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import Link from "next/link";
 
 function BenjiStartInner() {
   const params = useSearchParams();
@@ -22,14 +21,14 @@ function BenjiStartInner() {
   // aan de chat (?start=brief) zodat Benji opent met een brugzin die de brief erkent.
   // Andere Benji-links (opvolgmails, evergreen, funnel) hebben deze tag niet.
   const opener = (params?.get("o") || "").trim();
-  const [status, setStatus] = useState<"bezig" | "fout">("bezig");
   const gestart = useRef(false);
 
   useEffect(() => {
     if (gestart.current) return; // maar één keer inwisselen
     gestart.current = true;
+    // Geen token in de URL: gewoon door naar de publieke Benji-pagina.
     if (!token) {
-      setStatus("fout");
+      window.location.href = "/benji";
       return;
     }
     (async () => {
@@ -52,10 +51,12 @@ function BenjiStartInner() {
           const chatUrl = opener === "brief" ? "/benji?start=brief" : "/benji?start=eh";
           window.location.href = bestemming === "account" ? "/account" : chatUrl;
         } else {
-          setStatus("fout");
+          // Token verlopen of ongeldig (na de 7 dagen). Geen doodlopend scherm meer:
+          // stuur de warme lead gewoon door naar de publieke Benji-pagina.
+          window.location.href = "/benji";
         }
       } catch {
-        setStatus("fout");
+        window.location.href = "/benji";
       }
     })();
   }, [token, opener, convex]);
@@ -73,51 +74,23 @@ function BenjiStartInner() {
         color: "#3d3530",
       }}
     >
-      {status === "bezig" ? (
-        <div style={{ textAlign: "center", maxWidth: "340px" }}>
-          <div
-            style={{
-              width: "38px",
-              height: "38px",
-              margin: "0 auto 20px",
-              border: "3px solid rgba(109,132,168,.25)",
-              borderTopColor: "#6d84a8",
-              borderRadius: "50%",
-              animation: "benjiSpin 0.9s linear infinite",
-            }}
-          />
-          <p style={{ fontSize: "16px", lineHeight: 1.6, color: "#6b6460", margin: 0 }}>
-            Even Benji voor je klaarzetten...
-          </p>
-          <style>{`@keyframes benjiSpin{to{transform:rotate(360deg)}}`}</style>
-        </div>
-      ) : (
-        <div style={{ textAlign: "center", maxWidth: "380px" }}>
-          <p style={{ fontSize: "20px", fontWeight: 600, margin: "0 0 10px" }}>
-            Deze link werkt niet meer
-          </p>
-          <p style={{ fontSize: "15px", lineHeight: 1.6, color: "#6b6460", margin: "0 0 22px" }}>
-            De link is zeven dagen geldig. Heb je al een wachtwoord ingesteld? Log dan
-            gewoon in. Anders kun je de mail van Ien beantwoorden, dan sturen we je een
-            nieuwe link.
-          </p>
-          <Link
-            href="/inloggen"
-            style={{
-              display: "inline-block",
-              background: "#6d84a8",
-              color: "#ffffff",
-              padding: "12px 26px",
-              borderRadius: "10px",
-              textDecoration: "none",
-              fontSize: "15px",
-              fontWeight: 600,
-            }}
-          >
-            Inloggen
-          </Link>
-        </div>
-      )}
+      <div style={{ textAlign: "center", maxWidth: "340px" }}>
+        <div
+          style={{
+            width: "38px",
+            height: "38px",
+            margin: "0 auto 20px",
+            border: "3px solid rgba(109,132,168,.25)",
+            borderTopColor: "#6d84a8",
+            borderRadius: "50%",
+            animation: "benjiSpin 0.9s linear infinite",
+          }}
+        />
+        <p style={{ fontSize: "16px", lineHeight: 1.6, color: "#6b6460", margin: 0 }}>
+          Even Benji voor je klaarzetten...
+        </p>
+        <style>{`@keyframes benjiSpin{to{transform:rotate(360deg)}}`}</style>
+      </div>
     </main>
   );
 }
