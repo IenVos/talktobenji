@@ -15,6 +15,7 @@
  */
 import { v } from "convex/values";
 import { mutation, internalMutation, internalQuery, query } from "./_generated/server";
+import { probeerBenjiSpoorInstap } from "./evergreen";
 
 const TOKEN_GELDIGHEID_MS = 7 * 24 * 60 * 60 * 1000; // 7 dagen
 const TRIAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dagen
@@ -191,6 +192,11 @@ export const consumeToken = mutation({
     }
 
     if (!rij.usedAt) await ctx.db.patch(rij._id, { usedAt: now });
+
+    // Brief-klikker die de Benji-link gebruikt: direct het Benji-spoor in (gated door
+    // BENJI_SPOOR_ACTIEF; idempotent en met eigen veiligheidschecks). Zo stoppen de
+    // EH-mails en start de Benji-funnel op zijn eigen dag 1.
+    await probeerBenjiSpoorInstap(ctx, email);
 
     return { userId: user._id.toString(), email, name: user.name ?? null };
   },
