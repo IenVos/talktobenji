@@ -349,7 +349,7 @@ export default function EmailStatsPage() {
             </summary>
             <div className="space-y-3 mt-3">
               {stats.groepen.map((g) => (
-                <GroepBlok key={g.groep} groep={g} standaardOpen={g.groep === "evenHouvast"} />
+                <GroepBlok key={g.groep} groep={g} standaardOpen={false} />
               ))}
             </div>
           </details>
@@ -526,7 +526,7 @@ function oordeel(m: WWMail, refOpen: number, refKlik: number): { sev: Sev; reaso
 
 function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail: string; label: string; ratio: number }[] } }) {
   const [mode, setMode] = useState<"attn" | "best">("attn");
-  const [open, setOpen] = useState<Record<string, boolean>>({ "Even Houvast": true });
+  const [open, setOpen] = useState<Record<string, boolean>>({});
 
   const ehGroep = stats.groepen.find((g) => g.groep === "evenHouvast");
   const ehMails: WWMail[] = (ehGroep?.stromen ?? []).map((s) => {
@@ -544,7 +544,7 @@ function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail:
       naam: s.onderwerp,
       open: Math.round((s.geopend / noemer) * 100),
       klik: Math.round((doorklik / noemer) * 100),
-      afmeld: afm ? afm.ratio : null,
+      afmeld: afm && Number.isFinite(afm.ratio) ? afm.ratio : null,
       volume: noemer,
       doel: b.doel,
       checkout: b.checkout,
