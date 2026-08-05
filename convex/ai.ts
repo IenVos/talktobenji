@@ -106,7 +106,12 @@ interface ClaudeMessage {
 
 interface ClaudeAPIResponse {
   content: Array<{ type: string; text: string }>;
-  usage: { input_tokens: number; output_tokens: number };
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+    cache_read_input_tokens?: number;
+    cache_creation_input_tokens?: number;
+  };
   stop_reason: string;
 }
 
@@ -639,7 +644,10 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
       // De overige hardcoded regelblokken hierboven zijn hiermee overbodig (dead code)
       // en worden in een aparte opschoonronde uit dit bestand verwijderd.
       const limitedExtraRules = [onlyFromKbRule, dutchLanguageRule, accountRule, memoryRule].filter(Boolean).join("\n\n");
-      const rules = [customRules, accountNudgeRule, limitedExtraRules].filter(Boolean).join("\n\n");
+      // CACHING: het vaste regelblok bevat alleen stabiele regels (admin-regels + vaste extra
+      // regels). De gast-nudge verandert per bericht (interpoleert het berichtaantal) en gaat
+      // daarom apart mee als variabel blok — anders breekt de cache elk bericht.
+      const rules = [customRules, limitedExtraRules].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
@@ -648,7 +656,8 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
           args.userMessage,
           knowledgeCombined,
           rules,
-          conversationHistory
+          conversationHistory,
+          accountNudgeRule
         );
       } catch (error: any) {
         // Fallback: bij 503 overflow of 400 errors, probeer opnieuw met minimale context
@@ -1315,7 +1324,8 @@ async function callClaudeAPI(
   userMessage: string,
   knowledge: string,
   rules: string,
-  conversationHistory: ClaudeMessage[]
+  conversationHistory: ClaudeMessage[],
+  volatileRules: string = ""
 ): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
@@ -1370,48 +1380,58 @@ async function callClaudeAPI(
     ? rules.slice(0, maxRulesLength)
     : rules;
 
-  // Bouw het systeem bericht met knowledge en rules
-  const languageInstruction = isEnglish 
+  // Bouw het systeem bericht met knowledge en rules.
+  // PROMPT CACHING: gesplitst in een VAST blok (persona + regels) dat bij elk bericht
+  // identiek is en gecachet wordt, en een VARIABEL blok (datum/tijd, gast-nudge, kennis)
+  // dat per bericht verandert en dus NA het cachepunt komt. De klok mag NIET in het vaste
+  // blok, anders breekt de cache elke minuut.
+  const languageInstruction = isEnglish
     ? "IMPORTANT: The user is asking in English. Respond in English using the same language as the question."
     : "BELANGRIJK: De gebruiker vraagt in het Nederlands. Antwoord in het Nederlands, gebruik dezelfde taal als de vraag.";
 
-  let systemPrompt = isEnglish 
-    ? "You are a helpful assistant."
-    : "Je bent een behulpzame assistent.";
+  let stableSystem: string;
+  let volatileSystem: string;
 
   if (limitedKnowledge || limitedRules) {
-    systemPrompt = isEnglish
-      ? `You are a helpful assistant for a company.
-
-${dynamicContext}
-
-${limitedRules ? `## Rules for how you should respond:\n${limitedRules}\n\n` : ""}
-${limitedKnowledge ? `## Knowledge you should use:\n${limitedKnowledge}` : ""}
+    if (isEnglish) {
+      stableSystem = `You are a helpful assistant for a company.
 
 ${languageInstruction}
 
-Answer questions based on the above knowledge and rules. If you don't know the answer based on the given knowledge, be honest about it.`
-      : `${languageInstruction}
+${limitedRules ? `## Rules for how you should respond:\n${limitedRules}` : ""}`;
+      volatileSystem = `${dynamicContext}
+
+${volatileRules ? `${volatileRules}\n\n` : ""}${limitedKnowledge ? `## Knowledge you should use:\n${limitedKnowledge}\n\n` : ""}Answer questions based on the above knowledge and rules. If you don't know the answer based on the given knowledge, be honest about it.`;
+    } else {
+      stableSystem = `${languageInstruction}
 
 Je bent Benji, een warme en empathische gesprekspartner voor mensen die met verlies, verdriet of een moeilijke periode omgaan. Je luistert zonder oordeel en geeft ruimte aan wat de ander voelt. Je geeft geen adviezen tenzij daarom gevraagd wordt.
 
 Let op hoe je klinkt, dit is belangrijk: kaats niet terug wat de bezoeker net zei en herhaal hun eigen woorden of getallen niet als opening. Reageer op de betekenis erachter, niet op de letterlijke tekst. Stel niet elke beurt een vraag. Ongeveer één op de drie beurten blijf je gewoon bij wat er net gezegd is, zonder vraag. Wissel je openingen af en begin nooit twee berichten op dezelfde manier.
 
-${dynamicContext}
+${limitedRules ? `## Aanvullende richtlijnen:\n${limitedRules}` : ""}`;
+      volatileSystem = `${dynamicContext}
 
-${limitedRules ? `## Aanvullende richtlijnen:\n${limitedRules}\n\n` : ""}
-${limitedKnowledge ? `## Achtergrondkennis:\n${limitedKnowledge}` : ""}
-
-Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig is. Gebruik de achtergrondkennis alleen als het natuurlijk past in het gesprek — dwing het er nooit in.`;
+${volatileRules ? `${volatileRules}\n\n` : ""}${limitedKnowledge ? `## Achtergrondkennis:\n${limitedKnowledge}\n\n` : ""}Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig is. Gebruik de achtergrondkennis alleen als het natuurlijk past in het gesprek, dwing het er nooit in.`;
+    }
   } else {
-    systemPrompt += `\n\n${dynamicContext}\n\n${languageInstruction}`;
+    stableSystem = (isEnglish ? "You are a helpful assistant." : "Je bent een behulpzame assistent.") + `\n\n${languageInstruction}`;
+    volatileSystem = dynamicContext;
   }
-  
-  // Totale limiet voor system prompt ruim gezet, zodat regels + kennis niet alsnog
-  // aan het eind worden afgekapt. (rules tot ~60k + kennis ~8k + preamble ~1k)
-  const maxSystemPromptLength = 80000;
-  if (systemPrompt.length > maxSystemPromptLength) {
-    systemPrompt = systemPrompt.slice(0, maxSystemPromptLength) + " [System prompt ingekort...]";
+
+  // Veiligheidscap per blok (ruim: regels ~60k, kennis ~10k)
+  const maxStableLength = 70000;
+  const maxVolatileLength = 20000;
+  if (stableSystem.length > maxStableLength) stableSystem = stableSystem.slice(0, maxStableLength) + " [ingekort...]";
+  if (volatileSystem.length > maxVolatileLength) volatileSystem = volatileSystem.slice(0, maxVolatileLength) + " [ingekort...]";
+
+  // System als content-blokken: het vaste blok krijgt cache_control zodat Anthropic het
+  // hergebruikt (prefix-cache, ~90% goedkoper op input). Het variabele blok komt erna, ongecachet.
+  const systemBlocks: Array<{ type: "text"; text: string; cache_control?: { type: "ephemeral" } }> = [
+    { type: "text", text: stableSystem, cache_control: { type: "ephemeral" } },
+  ];
+  if (volatileSystem.trim()) {
+    systemBlocks.push({ type: "text", text: volatileSystem });
   }
 
   // Limiter user message lengte (max 1000 karakters - verlaagd voor rate limits)
@@ -1452,7 +1472,7 @@ Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig 
             // we via de regels; Opus is daar goed op afgesteld.
             model: CLAUDE_MODEL,
             max_tokens: 1024,
-            system: systemPrompt,
+            system: systemBlocks,
             messages: messages,
           }),
         });
@@ -1461,7 +1481,7 @@ Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig 
         if (!response.ok) {
           // Log volledige error voor debugging
           console.error("Claude API error:", response.status, responseText);
-          console.error("System prompt length:", systemPrompt.length);
+          console.error("System prompt length:", stableSystem.length + volatileSystem.length);
           console.error("Messages count:", messages.length);
           console.error("Total message length:", messages.reduce((sum, m) => sum + m.content.length, 0));
           
@@ -1474,7 +1494,7 @@ Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig 
             // 400 Bad Request kan betekenen dat de request te groot is
             const errorData = responseText.slice(0, 500);
             if (errorData.includes("token") || errorData.includes("length") || errorData.includes("too large") || errorData.includes("context_length")) {
-              throw new Error(`Request te groot (400): De input is te lang (${systemPrompt.length} karakters system prompt). Probeer kortere berichten of verminder knowledge base. Details: ${errorData}`);
+              throw new Error(`Request te groot (400): De input is te lang (${stableSystem.length + volatileSystem.length} karakters system prompt). Probeer kortere berichten of verminder knowledge base. Details: ${errorData}`);
             }
           }
           if (response.status === 429) {
@@ -1490,6 +1510,8 @@ Reageer als een mens die écht luistert. Kort als het kan, dieper als het nodig 
         }
 
         const data = JSON.parse(responseText) as ClaudeAPIResponse;
+        // Cache-controle: bij het 2e bericht in een gesprek hoort read > 0 te zijn.
+        console.log(`[cache] read=${data.usage?.cache_read_input_tokens ?? 0} write=${data.usage?.cache_creation_input_tokens ?? 0} input=${data.usage?.input_tokens ?? 0}`);
         if (!data.content?.length || !data.content[0].text) {
           console.error("Claude API: lege of onverwachte response", data);
           throw new Error("Claude API gaf geen antwoord terug");
