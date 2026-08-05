@@ -26,9 +26,11 @@ function ehMailSet(
     [`eh_${type}_1`]: { subject: c.m1s, bodyText: c.m1, buttonText: "Schrijf Ien een bericht", buttonUrl: "mailto:contactmetien@talktobenji.com" },
     [`eh_${type}_6`]: { subject: "Even voorstellen, dit ben ik", bodyText: EH_IEN_VERHAAL },
     [`eh_${type}_2`]: { subject: c.m2s, bodyText: c.m2 },
-    [`eh_${type}_3`]: { subject: c.m3s, bodyText: c.m3, buttonText: "Lees de vraag van dag 13", buttonUrl: `${TTB}/niet-alleen/proef?type=${type}&dag=13` },
-    [`eh_${type}_4`]: { subject: c.m4s, bodyText: c.m4, buttonText: "Lees meer ervaringen", buttonUrl: `${TTB}${c.lp}` },
-    [`eh_${type}_5`]: { subject: c.m5s, bodyText: c.m5, buttonText: "Start Niet Alleen — eenmalig €37", buttonUrl: `${TTB}${c.checkout}` },
+    // Geen knop meer in de default van mail 3/4/5: de CTA komt uit een [...Benji...]-
+    // marker in de body. Zo valt een leeg knop-veld nooit meer terug op een NA-knop.
+    [`eh_${type}_3`]: { subject: c.m3s, bodyText: c.m3 },
+    [`eh_${type}_4`]: { subject: c.m4s, bodyText: c.m4 },
+    [`eh_${type}_5`]: { subject: c.m5s, bodyText: c.m5 },
   };
 }
 
