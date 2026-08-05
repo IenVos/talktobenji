@@ -87,7 +87,7 @@ function BenjiStartInner() {
           }}
         />
         <p style={{ fontSize: "16px", lineHeight: 1.6, color: "#6b6460", margin: 0 }}>
-          Even Benji voor je klaarzetten...
+          Een moment...
         </p>
         <style>{`@keyframes benjiSpin{to{transform:rotate(360deg)}}`}</style>
       </div>
