@@ -132,9 +132,6 @@ export function ehFooter(_nietAlleenUrl: string, afmeldUrl: string): string {
       <p style="font-size:13px;line-height:1.6;color:#718096;margin:0;">
         Heb je een vraag die ik niet kan beantwoorden?<br/>Antwoord op deze mail, dan komt hij bij Ien terecht.
       </p>
-      <p style="font-size:13px;color:#718096;margin:16px 0 0 0;">
-        <a href="${appBase()}/wat-kost-benji" style="color:#718096;text-decoration:none;">Wat Benji kost lees je hier &rarr;</a>
-      </p>
       <p style="font-size:12px;line-height:1.6;color:#a0aec0;margin:30px 0 0 0;border-top:1px solid #ece5dc;padding-top:16px;">
         <a href="${afmeldUrl}" style="color:#a0aec0;text-decoration:underline;">Geen opvolgmails meer ontvangen</a>
       </p>
