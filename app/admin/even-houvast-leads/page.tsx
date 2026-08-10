@@ -54,6 +54,38 @@ function datumTijd(ms: number | null): string {
   return new Date(ms).toLocaleString("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 }
 
+// Hele kalenderdagen tussen `ms` en nu (op lokale middernacht, zodat "vandaag" = 0).
+function dagenGeleden(ms: number): number {
+  const middernacht = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  return Math.round((middernacht(new Date()) - middernacht(new Date(ms))) / 86_400_000);
+}
+// "Vandaag" / "Gisteren" / "N dagen geleden" / de datum. Zo zie je in één oogopslag
+// hoe vers de laatste activiteit is (de lijst is op laatste activiteit gesorteerd).
+function relatieveDatum(ms: number): string {
+  if (!ms) return "";
+  const n = dagenGeleden(ms);
+  if (n <= 0) return "Vandaag";
+  if (n === 1) return "Gisteren";
+  if (n < 7) return `${n} dagen geleden`;
+  return datum(ms);
+}
+
+// Wat gebeurde er als laatste bij deze lead (matcht het sorteerveld laatsteActiviteit)?
+// Client-side afgeleid uit de al opgehaalde tijdstippen, zodat de kop laat zien
+// WAAROM een lead bovenaan staat (bijv. "Opvolgmail 3 verstuurd · Vandaag").
+function laatsteActiviteit(lead: Lead): { label: string; at: number } {
+  const kandidaten: { label: string; at: number }[] = [];
+  if (lead.welkomstAt) kandidaten.push({ label: "Aangemeld", at: lead.welkomstAt });
+  if (lead.briefAt) kandidaten.push({ label: "Brief verstuurd", at: lead.briefAt });
+  for (const o of lead.opvolgmails) {
+    const idx = OPVOLG_VOLGORDE.indexOf(o.mailNummer);
+    kandidaten.push({ label: `Opvolgmail ${idx >= 0 ? idx + 1 : o.mailNummer} verstuurd`, at: o.sentAt });
+  }
+  if (lead.gekochtAt) kandidaten.push({ label: "Kocht Niet Alleen", at: lead.gekochtAt });
+  if (kandidaten.length === 0) return { label: "Nog geen activiteit", at: 0 };
+  return kandidaten.reduce((best, k) => (k.at > best.at ? k : best));
+}
+
 // Eén stap in de tijdlijn.
 function Stap({
   klaar,
@@ -99,6 +131,9 @@ function LeadCard({ lead, onVerwijder }: { lead: Lead; onVerwijder: (email: stri
     }
   };
 
+  const la = laatsteActiviteit(lead);
+  const isVandaag = la.at > 0 && dagenGeleden(la.at) <= 0;
+
   const status: { label: string; cls: string } = lead.gekocht
     ? { label: "Kocht Niet Alleen", cls: "bg-green-50 text-green-700 border-green-200" }
     : lead.afgemeld
@@ -121,11 +156,18 @@ function LeadCard({ lead, onVerwijder }: { lead: Lead; onVerwijder: (email: stri
               {lead.naam || lead.email}
               {lead.naam && <span className="font-normal text-gray-400 ml-2">{lead.email}</span>}
             </p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs text-gray-400 mt-0.5 truncate">
               {lead.verliesType ? TYPE_LABEL[lead.verliesType] || lead.verliesType : "Type onbekend"}
               {lead.briefAt && <> · brief op {datum(lead.briefAt)}</>}
               {lead.bron && <> · via {lead.bron}</>}
             </p>
+            {la.at > 0 && (
+              <p className="text-xs mt-0.5 truncate">
+                <span className={isVandaag ? "text-primary-600 font-semibold" : "text-gray-500"}>
+                  {la.label} · {relatieveDatum(la.at)}
+                </span>
+              </p>
+            )}
           </div>
           <span className={`flex-shrink-0 text-[11px] font-semibold border rounded-full px-2.5 py-0.5 ${status.cls}`}>
             {status.label}
