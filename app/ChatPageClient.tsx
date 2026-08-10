@@ -187,7 +187,7 @@ export default function ChatPageClient({
   // er geen flikker is tussen chat- en keuzescherm.
   const [ehResolving, setEhResolving] = useState<boolean>(() => {
     const s = Array.isArray(searchParams?.start) ? searchParams.start[0] : searchParams?.start;
-    return s === "eh" || s === "brief";
+    return s === "eh" || s === "brief" || s === "ennu";
   });
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [input, setInput] = useState("");
