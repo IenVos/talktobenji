@@ -603,6 +603,19 @@ export const startEhChat = mutation({
       } else {
         tekst = `Je hebt net je woorden opgeschreven, en dat is niet niks. Blijf nog even, dan praten we samen verder. ${vraag} Begin gewoon waar je wilt, ik luister.`;
       }
+    } else if (args.variant === "en-nu") {
+      // "En nu?"-kaart bij relatiebreuk: de lead klikte net op "Ik wil nog iets
+      // vertellen". Warme, laagdrempelige opener die inhaakt op het moment (ze hebben
+      // net de momenten ingevuld), met de voornaam waar bekend. Gerouleerd voor
+      // variatie. Geen uitlegkaartje: ze landen direct in dit gesprek.
+      const naamAanhef = leadVoornaam ? `, ${leadVoornaam}` : "";
+      const enNuOpeners = [
+        `Fijn dat je er nog even bent${naamAanhef}. Je hebt net stilgestaan bij een paar zware momenten. Vertel maar, waar zit je op dit moment het meest mee?`,
+        `Je wilde nog iets kwijt${naamAanhef}, en dat mag hier. Begin gewoon bij wat er nu bovenkomt, ik luister.`,
+        `Dat je hier bent zegt al genoeg${naamAanhef}. Neem de tijd, en vertel wat er nog in je hoofd rondgaat. Er is geen goede of verkeerde manier.`,
+        `Je hoeft niet bij het begin te beginnen${naamAanhef}. Zeg gewoon wat er nu het zwaarst voelt, dan gaan we van daaruit verder.`,
+      ];
+      tekst = enNuOpeners[Math.floor(Math.random() * enNuOpeners.length)];
     } else {
       tekst = openerText;
     }

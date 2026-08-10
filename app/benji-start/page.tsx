@@ -48,7 +48,12 @@ function BenjiStartInner() {
             // Bij twijfel: naar /benji?start=eh; daar wordt alsnog veilig beslist.
           }
           // Harde navigatie zodat de nieuwe sessie meteen geladen is.
-          const chatUrl = opener === "brief" ? "/benji?start=brief" : "/benji?start=eh";
+          const chatUrl =
+            opener === "brief"
+              ? "/benji?start=brief"
+              : opener === "ennu"
+                ? "/benji?start=ennu"
+                : "/benji?start=eh";
           window.location.href = bestemming === "account" ? "/account" : chatUrl;
         } else {
           // Token verlopen of ongeldig (na de 7 dagen). Geen doodlopend scherm meer:

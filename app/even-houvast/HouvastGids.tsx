@@ -81,6 +81,28 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
   const [verliesNaam, setVerliesNaam] = useState("");
   const [honeypot, setHoneypot] = useState(""); // onzichtbaar veld tegen bots
   const [briefStatus, setBriefStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  // "Ik wil nog iets vertellen" op de En nu?-kaart (relatiebreuk): idle → knoppen,
+  // loading → we maken de Benji-link, dismissed → zachte afsluiting.
+  const [verderStatus, setVerderStatus] = useState<"idle" | "loading" | "dismissed">("idle");
+  const verderMetBenji = async () => {
+    setVerderStatus("loading");
+    try {
+      const res = await fetch("/api/houvast/verder-met-benji", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), naam: naam.trim() || undefined }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data?.url) {
+        window.location.href = data.url;
+        return;
+      }
+    } catch {
+      // val hieronder terug
+    }
+    // Terugval: naar de publieke Benji-pagina, daar kunnen ze alsnog starten.
+    window.location.href = "/benji";
+  };
   const [briefFout, setBriefFout] = useState("Er ging iets mis. Probeer het opnieuw.");
 
   useEffect(() => {
@@ -677,8 +699,43 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
                 <h2 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>{gids.slotTitel}</h2>
 
                 {alineas(gids.slotTekst).map((alinea, i) => (
-                  <p key={i} className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>{alinea}</p>
+                  <p key={i} className="text-sm leading-relaxed" style={{ color: "#6b6460", textWrap: "balance" }}>{alinea}</p>
                 ))}
+
+                {/* Relatiebreuk: zachte ja/nee naar een gesprek met Benji, op precies
+                    het beste contactmoment. "Ja" opent meteen de chat (o=ennu → eigen
+                    relatiebreuk-opener), "nee" sluit warm af. De uitnodigingszin staat
+                    al in de admin-slottekst, dus die herhalen we hier niet. */}
+                {actiefType === "scheiding" && (
+                  verderStatus === "dismissed" ? (
+                    <p className="text-sm leading-relaxed pt-1" style={{ color: "#6b6460", textWrap: "balance" }}>
+                      Dat is helemaal goed. Benji is er wanneer jij er klaar voor bent, ook later nog.
+                    </p>
+                  ) : (
+                    <div className="pt-1">
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          onClick={verderMetBenji}
+                          disabled={verderStatus === "loading"}
+                          className="text-sm font-semibold px-5 py-3 rounded-xl transition-opacity disabled:opacity-60"
+                          style={{ background: "#6d84a8", color: "#fff" }}
+                        >
+                          {verderStatus === "loading" ? "Een moment..." : "Ik wil nog iets vertellen"}
+                        </button>
+                        <button
+                          onClick={() => setVerderStatus("dismissed")}
+                          className="text-sm font-semibold px-5 py-3 rounded-xl transition-colors"
+                          style={{ background: "transparent", color: "#6b7280", border: "1.5px solid #cfd5de" }}
+                        >
+                          Liever nu even niet
+                        </button>
+                      </div>
+                      <p className="mt-6 leading-relaxed" style={{ fontSize: "12px", color: "#a89e90", textWrap: "balance" }}>
+                        Er is geen goed moment of juiste manier. Je mag gewoon vertellen wat er nog in je hoofd zit.
+                      </p>
+                    </div>
+                  )
+                )}
               </div>
             )}
 

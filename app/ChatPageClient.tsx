@@ -303,7 +303,7 @@ export default function ChatPageClient({
   // naam opgezocht; wie al eens gepraat heeft of geen EH-lead is, krijgt gewoon het
   // welkomstscherm (fallback).
   useEffect(() => {
-    if ((startParam !== "eh" && startParam !== "brief") || ehStartHandled.current) return;
+    if ((startParam !== "eh" && startParam !== "brief" && startParam !== "ennu") || ehStartHandled.current) return;
     if (status === "loading") return; // wacht op auth; spinner blijft staan
 
     const schoonUrl = () => {
@@ -332,7 +332,7 @@ export default function ChatPageClient({
           userId: uid,
           userEmail: session.user?.email ?? undefined,
           userName: session.user?.name ?? undefined,
-          variant: startParam === "brief" ? "brief" : undefined,
+          variant: startParam === "brief" ? "brief" : startParam === "ennu" ? "en-nu" : undefined,
           previewType: startParam === "brief" ? previewType || undefined : undefined,
           previewNaam: startParam === "brief" ? previewNaam || undefined : undefined,
         });
