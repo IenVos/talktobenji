@@ -41,11 +41,17 @@ function BenjiStartInner() {
           // EH-lead gaat direct de verliestype-chat in via ?start=eh. De query werkt
           // op het token (zelf het geheim), dus vóórdat de sessie is doorgedrongen.
           let bestemming: "chat" | "account" = "chat";
-          try {
-            const r = await convex.query(api.benjiStart.routeNaStart, { token });
-            if (r?.bestemming === "account") bestemming = "account";
-          } catch {
-            // Bij twijfel: naar /benji?start=eh; daar wordt alsnog veilig beslist.
+          // "En nu?"-klik (o=ennu): altijd het gesprek in met de opener, ook zonder
+          // (nieuwe) brief of bij een terugkerende gebruiker. Iemand na "Ik wil nog
+          // iets vertellen" naar een dashboard sturen zou het moment breken. De andere
+          // ingangen laten routeNaStart beslissen (terugkerende lead → account).
+          if (opener !== "ennu") {
+            try {
+              const r = await convex.query(api.benjiStart.routeNaStart, { token });
+              if (r?.bestemming === "account") bestemming = "account";
+            } catch {
+              // Bij twijfel: naar /benji?start=eh; daar wordt alsnog veilig beslist.
+            }
           }
           // Harde navigatie zodat de nieuwe sessie meteen geladen is.
           const chatUrl =

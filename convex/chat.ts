@@ -549,29 +549,39 @@ export const startEhChat = mutation({
         .sort((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0))[0];
       if (recent) return { fallback: false as const, sessionId: recent._id };
 
-      // Al eens echt gepraat (oudere sessie)? Dan geen opener forceren.
-      for (const s of sessies) {
-        const userMsg = await ctx.db
-          .query("chatMessages")
-          .withIndex("by_session", (q) => q.eq("sessionId", s._id))
-          .filter((q) => q.eq(q.field("role"), "user"))
-          .first();
-        if (userMsg) return { fallback: true as const };
+      // variant "en-nu": de lead klikte net bewust op "Ik wil nog iets vertellen" op de
+      // En nu?-kaart. Dan forceren we altijd een verse opener, ook als ze al eerder met
+      // Benji praatten of (nog) geen brief hebben. Anders belanden ze op hun account
+      // i.p.v. in het gesprek, precies op het verkeerde moment.
+      const forceerOpener = args.variant === "en-nu";
+
+      if (!forceerOpener) {
+        // Al eens echt gepraat (oudere sessie)? Dan geen opener forceren.
+        for (const s of sessies) {
+          const userMsg = await ctx.db
+            .query("chatMessages")
+            .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+            .filter((q) => q.eq(q.field("role"), "user"))
+            .first();
+          if (userMsg) return { fallback: true as const };
+        }
       }
 
       const email = (args.userEmail ?? "").toLowerCase().trim();
-      if (!email) return { fallback: true as const };
+      if (!email && !forceerOpener) return { fallback: true as const };
 
-      const brieven = await ctx.db
-        .query("houvastBrieven")
-        .withIndex("by_email", (q) => q.eq("email", email))
-        .collect();
-      if (brieven.length === 0) return { fallback: true as const }; // geen EH-lead
+      const brieven = email
+        ? await ctx.db
+            .query("houvastBrieven")
+            .withIndex("by_email", (q) => q.eq("email", email))
+            .collect()
+        : [];
+      if (brieven.length === 0 && !forceerOpener) return { fallback: true as const }; // geen EH-lead
 
       const laatste = [...brieven].sort((a, b) => (b.sentAt ?? 0) - (a.sentAt ?? 0))[0];
-      verliesType = (laatste.verliesType ?? "algemeen").toLowerCase().trim();
-      verliesNaam = laatste.verliesNaam?.trim() || undefined;
-      leadNaamRaw = laatste.naam?.trim() || undefined;
+      verliesType = (laatste?.verliesType ?? (forceerOpener ? "scheiding" : "algemeen")).toLowerCase().trim();
+      verliesNaam = laatste?.verliesNaam?.trim() || undefined;
+      leadNaamRaw = laatste?.naam?.trim() || undefined;
     }
 
     // Sterke aanzet-vraag, persoonlijk met de voornaam van de lead als die er is.
