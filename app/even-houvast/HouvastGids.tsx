@@ -670,6 +670,11 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
                         className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                         style={{ background: "rgba(255,255,255,0.90)", border: "1px solid rgba(0,0,0,0.09)", color: "#3d3530" }}
                       />
+                      {email.trim() !== "" && (
+                        <p className="text-xs" style={{ color: "#8a8078" }}>
+                          Klopt je e-mailadres? Dan komt je brief zeker aan.
+                        </p>
+                      )}
                       {briefStatus === "error" && (
                         <p className="text-xs" style={{ color: "#c0392b" }}>{briefFout}</p>
                       )}
