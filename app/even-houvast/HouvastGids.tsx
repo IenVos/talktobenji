@@ -81,6 +81,9 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
   const [verliesNaam, setVerliesNaam] = useState("");
   const [honeypot, setHoneypot] = useState(""); // onzichtbaar veld tegen bots
   const [briefStatus, setBriefStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  // Eerste klik op "Stuur mij mijn brief" bevestigt eerst het adres (amber oplichting),
+  // pas de tweede klik verstuurt. Zo vangen we typo's op het moment dat het telt.
+  const [adresBevestigd, setAdresBevestigd] = useState(false);
   // "Ik wil nog iets vertellen" op de En nu?-kaart (relatiebreuk): idle → knoppen,
   // loading → we maken de Benji-link, dismissed → zachte afsluiting.
   const [verderStatus, setVerderStatus] = useState<"idle" | "loading" | "dismissed">("idle");
@@ -666,12 +669,19 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
                         type="email"
                         placeholder="jouw@email.nl"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => { setEmail(e.target.value); setAdresBevestigd(false); }}
                         className="w-full px-4 py-3 rounded-xl text-sm outline-none"
                         style={{ background: "rgba(255,255,255,0.90)", border: "1px solid rgba(0,0,0,0.09)", color: "#3d3530" }}
                       />
                       {email.trim() !== "" && (
-                        <p className="text-xs" style={{ color: "#8a8078" }}>
+                        <p
+                          className="text-xs rounded-lg transition-colors"
+                          style={
+                            adresBevestigd
+                              ? { color: "#92400e", fontWeight: 600, background: "#fef3c7", padding: "9px 12px" }
+                              : { color: "#8a8078" }
+                          }
+                        >
                           Klopt je e-mailadres? Dan komt je brief zeker aan.
                         </p>
                       )}
@@ -679,12 +689,12 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
                         <p className="text-xs" style={{ color: "#c0392b" }}>{briefFout}</p>
                       )}
                       <button
-                        onClick={stuurBrief}
+                        onClick={() => { if (adresBevestigd) { stuurBrief(); } else { setAdresBevestigd(true); } }}
                         disabled={briefStatus === "loading" || !email.trim() || !email.includes("@")}
                         className="w-full py-3.5 rounded-2xl font-medium text-white text-sm disabled:opacity-50"
                         style={{ background: "#6d84a8" }}
                       >
-                        {briefStatus === "loading" ? "Bezig…" : "Stuur mij mijn brief"}
+                        {briefStatus === "loading" ? "Bezig…" : adresBevestigd ? "Ja, verstuur naar dit adres" : "Stuur mij mijn brief"}
                       </button>
                       <p className="text-xs text-center" style={{ color: "#a09890" }}>
                         Je woorden blijven van jou. We sturen alleen deze brief.
