@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
@@ -26,6 +26,7 @@ const WARME_LABELS: Record<string, string> = {
 // (de code) opgezocht in de content, zonder dat hier iets aangepast hoeft.
 export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride?: string }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const token = searchParams?.get("token") ?? "";
   const verliesType = verliesTypeOverride || (searchParams?.get("type") ?? "");
   const heeftToken = !!token;
@@ -97,14 +98,17 @@ export function HouvasteGids({ verliesTypeOverride = "" }: { verliesTypeOverride
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data?.url) {
-        window.location.href = data.url;
+        // Client-side navigeren (geen volledige page-unload), anders waarschuwt de
+        // browser met "Site verlaten? wijzigingen niet opgeslagen" door de ingevulde
+        // momenten. benji-start doet daarna zelf de harde navigatie naar de chat.
+        router.push(data.url);
         return;
       }
     } catch {
       // val hieronder terug
     }
     // Terugval: naar de publieke Benji-pagina, daar kunnen ze alsnog starten.
-    window.location.href = "/benji";
+    router.push("/benji");
   };
   const [briefFout, setBriefFout] = useState("Er ging iets mis. Probeer het opnieuw.");
 
