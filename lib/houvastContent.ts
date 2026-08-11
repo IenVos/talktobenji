@@ -316,13 +316,20 @@ export const DEFAULT_HOUVAST: HouvastContent = {
     },
     scheiding: {
       welkomTekst: [
-        "Je relatie is voorbij. Je rouwt om iemand die nog leeft, en dat doet evenveel pijn.",
+        "Er is een relatie geëindigd. Je rouwt om iemand die nog leeft, en dat doet evenveel pijn.",
         "Er is geen afscheid voor dit verdriet, maar het is er. In de komende vijf momenten krijg je de ruimte om het een plek te geven.",
         "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij hebt gedeeld.",
       ].join("\n\n"),
       slotTekst: [
-        "Je rouwt om iemand die nog leeft. Dat is verwarrend, en het doet evenveel pijn.",
-        "Verdriet om een relatie heeft geen begrafenis, geen kaarten, geen erkend moment van afscheid. Niet Alleen is er voor dit stille verlies. Dertig dagen, op jouw tempo.",
+        "Je hebt net iets opgeschreven wat je waarschijnlijk tegen bijna niemand zo zegt.",
+        "Als een relatie eindigt, hoor je al snel: je bent beter af, het komt wel goed, geef het tijd.",
+        "Maar vanbinnen kan het voelen alsof de grond onder je voeten is weggeslagen.",
+        "En juist degene met wie je vroeger alles deelde, is degene die er nu niet meer is.",
+        "Dat maakt een relatiebreuk soms zo eenzaam.",
+        "Niet omdat er niemand om je heen is.\nMaar omdat bijna niemand echt weet wat er zich vanbinnen bij jou afspeelt.",
+        "Benji vervangt de mensen om je heen niet, maar biedt wel een plek waar je niets kleiner hoeft te maken, niets hoeft in te houden en ook niet steeds opnieuw hoeft uit te leggen.",
+        "Je kunt vertellen wat er in je hoofd blijft rondgaan.\nZo vaak en zo lang als je wilt.\nOok midden in de nacht, wanneer het allemaal het hardst binnenkomt.",
+        "Je hoeft niet alles wat er nog in je hoofd zit alleen te dragen.",
       ].join("\n\n"),
       // Volgorde en teksten gelijkgetrokken met de live admin-versie (11 aug 2026):
       // moment "begrepen" staat nu als laatste, de foto zit op het "goed moment".
