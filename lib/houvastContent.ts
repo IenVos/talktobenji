@@ -324,13 +324,30 @@ export const DEFAULT_HOUVAST: HouvastContent = {
         "Je rouwt om iemand die nog leeft. Dat is verwarrend, en het doet evenveel pijn.",
         "Verdriet om een relatie heeft geen begrafenis, geen kaarten, geen erkend moment van afscheid. Niet Alleen is er voor dit stille verlies. Dertig dagen, op jouw tempo.",
       ].join("\n\n"),
+      // Volgorde en teksten gelijkgetrokken met de live admin-versie (11 aug 2026):
+      // moment "begrepen" staat nu als laatste, de foto zit op het "goed moment".
       momenten: [
         {
-          id: "scheiding-1", nav: "1",
+          id: "scheiding-2", nav: "1",
+          titel: "Als je niet weet wat je voelt",
+          intro: [
+            "Verdriet, opluchting, woede, gemis, soms allemaal binnen een uur.",
+            "Bij het einde van een relatie lopen gevoelens door elkaar. Dat maakt je niet verward of ondankbaar. Het laat zien hoeveel er speelde.",
+          ].join("\n\n"),
+          oefeningTitel: "Wat je nu kunt doen",
+          oefeningTekst: [
+            "Schrijf twee woorden op die in de buurt komen van wat je nu voelt. Ze mogen elkaar tegenspreken.",
+          ].join("\n\n"),
+          vraag: "Welke twee gevoelens botsen op dit moment het meest?",
+          metFoto: false,
+        },
+        {
+          id: "scheiding-1", nav: "2",
           titel: "Als je 's nachts wakker ligt",
           intro: [
-            "De andere kant van het bed is leeg, of juist te vol van wat er was.",
-            "'s Nachts komen de gedachten: wat als, waarom, had ik maar. Dat je hierom wakker ligt is geen zwakte. Je rouwt om iemand die er nog is, en dat is verwarrend en zwaar.",
+            "De andere kant van het bed is leeg, of juist overladen met herinneringen.",
+            "'s Nachts dringen gedachten zich op: wat als, waarom, had ik maar. Je grijpt naar je telefoon, maar weet dat het te laat is om nog te bellen.",
+            "Er wakker van liggen is geen teken van zwakte. Je rouwt om iemand die er nog is, wat verwarrend en moeilijk is.",
           ].join("\n\n"),
           oefeningTitel: "Wat je nu kunt doen",
           oefeningTekst: [
@@ -340,35 +357,7 @@ export const DEFAULT_HOUVAST: HouvastContent = {
           metFoto: false,
         },
         {
-          id: "scheiding-2", nav: "2",
-          titel: "Als je niet weet wat je voelt",
-          intro: [
-            "Verdriet, opluchting, woede, gemis, soms allemaal binnen een uur.",
-            "Bij het einde van een relatie lopen gevoelens door elkaar. Dat maakt je niet verward of ondankbaar. Het laat zien hoeveel er speelde.",
-          ].join("\n\n"),
-          oefeningTitel: "Wat je nu kunt doen",
-          oefeningTekst: [
-            "Schrijf drie woorden op die in de buurt komen van wat je nu voelt. Ze mogen elkaar tegenspreken.",
-          ].join("\n\n"),
-          vraag: "Welke twee gevoelens botsen op dit moment het meest?",
-          metFoto: false,
-        },
-        {
-          id: "scheiding-3", nav: "3",
-          titel: "Als iemand vraagt hoe het gaat",
-          intro: [
-            "Je zegt \"gaat wel.\" Maar er is geen begrafenis, geen kaart, geen erkend moment, en toch ben je iemand kwijt.",
-            "Dat stille verlies uitleggen in een praatje tussendoor lukt niet. Dus je verpakt het.",
-          ].join("\n\n"),
-          oefeningTitel: "Wat je nu kunt doen",
-          oefeningTekst: [
-            "Schrijf voor jezelf op wat je écht zou willen zeggen als iemand het echt zou vragen.",
-          ].join("\n\n"),
-          vraag: "Wat zou je willen dat mensen begrepen over dit afscheid?",
-          metFoto: false,
-        },
-        {
-          id: "scheiding-4", nav: "4",
+          id: "scheiding-4", nav: "3",
           titel: "Als een plek of een liedje je overspoelt",
           intro: [
             "Een café waar jullie kwamen. Een nummer dat van jullie was. Een foto die ineens voorbijkomt.",
@@ -378,11 +367,11 @@ export const DEFAULT_HOUVAST: HouvastContent = {
           oefeningTekst: [
             "Laat het even komen. Geef het twee minuten zonder jezelf te veroordelen.",
           ].join("\n\n"),
-          vraag: "Wat raakt je nu, en wat zegt dat over wat je mist?",
-          metFoto: true,
+          vraag: "Wat raakte je nu, en wanneer kwam het?",
+          metFoto: false,
         },
         {
-          id: "scheiding-5", nav: "5",
+          id: "scheiding-5", nav: "4",
           titel: "Als je je schuldig voelt over een goed moment",
           intro: [
             "Een avond gelachen, je even vrij gevoeld. En dan de twijfel: mag dat al?",
@@ -392,7 +381,21 @@ export const DEFAULT_HOUVAST: HouvastContent = {
           oefeningTekst: [
             "Schrijf één moment van de afgelopen tijd op waarin je je even goed voelde. Laat het er gewoon zijn.",
           ].join("\n\n"),
-          vraag: "Wanneer voelde je je voor het laatst even vrij, en hoe was dat?",
+          vraag: "Wanneer voelde je je voor het laatst even vrij, en wat maakte dat moment goed?",
+          metFoto: true,
+        },
+        {
+          id: "scheiding-3", nav: "5",
+          titel: "Als iemand vraagt hoe het gaat",
+          intro: [
+            "Bijna niemand vraagt er nog naar, omdat ze denken dat je er inmiddels doorheen bent. Of jij zegt: \"Gaat wel.\"",
+            "Maar er is geen begrafenis, geen kaart, geen erkend moment, en toch ben je iemand kwijt. Dat stille verlies uitleggen in een kort praatje tussendoor lukt niet, dus verpak je het maar.",
+          ].join("\n\n"),
+          oefeningTitel: "Wat je nu kunt doen",
+          oefeningTekst: [
+            "Schrijf voor jezelf op wat je écht zou willen zeggen als iemand het echt zou vragen.",
+          ].join("\n\n"),
+          vraag: "Wat zou je willen dat mensen begrepen over dit afscheid?",
           metFoto: false,
         },
       ],
