@@ -899,19 +899,20 @@ export function LandingPageView({ slug }: { slug: string }) {
 
         {/* INHOUDSBLOKKEN */}
         {(() => {
-          let blocks: { titel: string; tekst: string; afbeelding?: string; video?: string; accent?: boolean }[] = [];
+          let blocks: { titel: string; tekst: string; afbeelding?: string; video?: string; accent?: boolean; geenKaart?: boolean }[] = [];
           try { if ((page as any).contentBlocksJson) blocks = JSON.parse((page as any).contentBlocksJson); } catch {}
           if (!blocks.length) return null;
           return (
             <section className="px-5 pb-8">
               <div className="max-w-lg mx-auto space-y-4">
                 {blocks.map((block, i) => (
-                  // accent = lichtblauw kader met donkere rand (zoals op de betaalpagina)
-                  <div key={i} className={block.accent ? "bg-primary-50 border-2 border-primary-600 rounded-2xl p-6 space-y-3" : "bg-white rounded-2xl p-6 shadow-sm space-y-3"}>
+                  // geenKaart = tekst direct op de achtergrond, geen witte kaart (geeft ritme).
+                  // accent = lichtblauw kader met donkere rand (zoals op de betaalpagina).
+                  <div key={i} className={block.geenKaart ? "px-1 py-3 space-y-3" : block.accent ? "bg-primary-50 border-2 border-primary-600 rounded-2xl p-6 space-y-3" : "bg-white rounded-2xl p-6 shadow-sm space-y-3"}>
                     <SectieMarker />
                     {block.titel && <h3 className="text-base font-semibold" style={{ color: block.accent ? "#3a4a63" : "#3d3530" }}>{block.titel}</h3>}
                     {block.tekst && (
-                      <div className="text-sm leading-relaxed space-y-2" style={{ color: block.accent ? "#4a5a72" : "#6b6460" }}>
+                      <div className="text-sm leading-relaxed space-y-2" style={{ color: block.accent ? "#4a5a72" : block.geenKaart ? "#4a4640" : "#6b6460" }}>
                         {renderTextWithParagraphs(block.tekst)}
                       </div>
                     )}

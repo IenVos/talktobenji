@@ -171,7 +171,7 @@ type FormState = {
   typeButtonLabelRelatie: string;
   typeButtonLabelEenzaamheid: string;
   typeButtonLabelKinderloos: string;
-  contentBlocks: { titel: string; tekst: string; afbeelding: string; file: File | null; video: string; videoFile: File | null; accent?: boolean }[];
+  contentBlocks: { titel: string; tekst: string; afbeelding: string; file: File | null; video: string; videoFile: File | null; accent?: boolean; geenKaart?: boolean }[];
   watJeKrijgt: WatItemForm[];
   watJeKrijgtTitel: string;
   kpHeroKop1: string;
@@ -638,7 +638,7 @@ export default function AdminLandingspaginasPage() {
       typeButtonLabelRelatie: (page as any).typeButtonLabelRelatie ?? "",
       typeButtonLabelEenzaamheid: (page as any).typeButtonLabelEenzaamheid ?? "",
       typeButtonLabelKinderloos: (page as any).typeButtonLabelKinderloos ?? "",
-      contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p.map((b: any) => ({ titel: b.titel ?? "", tekst: b.tekst ?? "", afbeelding: b.afbeelding ?? "", file: null, video: b.video ?? "", videoFile: null, accent: b.accent ?? false })) : []; } catch { return []; } })(),
+      contentBlocks: (() => { try { const p = JSON.parse((page as any).contentBlocksJson || "[]"); return Array.isArray(p) ? p.map((b: any) => ({ titel: b.titel ?? "", tekst: b.tekst ?? "", afbeelding: b.afbeelding ?? "", file: null, video: b.video ?? "", videoFile: null, accent: b.accent ?? false, geenKaart: b.geenKaart ?? false })) : []; } catch { return []; } })(),
       watJeKrijgt: (() => { try { const p = JSON.parse((page as any).watJeKrijgtJson || "[]"); return Array.isArray(p) ? p : []; } catch { return []; } })(),
       watJeKrijgtTitel: (page as any).watJeKrijgtTitel ?? "",
       kpHeroKop1: (page as any).kpHeroKop1 ?? "",
@@ -814,7 +814,7 @@ export default function AdminLandingspaginasPage() {
   };
 
   const buildContentBlocksJson = async (blocks: FormState["contentBlocks"]) => {
-    const result: { titel: string; tekst: string; afbeelding?: string; video?: string; accent?: boolean }[] = [];
+    const result: { titel: string; tekst: string; afbeelding?: string; video?: string; accent?: boolean; geenKaart?: boolean }[] = [];
     for (const b of blocks) {
       if (!b.titel && !b.tekst && !b.afbeelding && !b.file && !b.video && !b.videoFile) continue;
       let afbeelding = b.afbeelding;
@@ -829,7 +829,7 @@ export default function AdminLandingspaginasPage() {
         const url = await getImageUrl({ storageId });
         if (url) video = url;
       }
-      result.push({ titel: b.titel, tekst: b.tekst, afbeelding: afbeelding || undefined, video: video || undefined, accent: b.accent || undefined });
+      result.push({ titel: b.titel, tekst: b.tekst, afbeelding: afbeelding || undefined, video: video || undefined, accent: b.accent || undefined, geenKaart: b.geenKaart || undefined });
     }
     return result.length ? JSON.stringify(result) : "";
   };
@@ -2303,6 +2303,15 @@ export default function AdminLandingspaginasPage() {
                         className="rounded border-primary-300 text-primary-600"
                       />
                       <span className="text-xs text-gray-600">Lichtblauw kader (met donkere rand)</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={block.geenKaart ?? false}
+                        onChange={(e) => setForm(f => { const b = [...f.contentBlocks]; b[i] = { ...b[i], geenKaart: e.target.checked }; return { ...f, contentBlocks: b }; })}
+                        className="rounded border-primary-300 text-primary-600"
+                      />
+                      <span className="text-xs text-gray-600">Geen witte kaart (tekst direct op de achtergrond)</span>
                     </label>
                   </div>
                 ))}
