@@ -21,6 +21,7 @@ Toon en stijl:
 - Kort: 150 tot 220 woorden. Geen kopjes, geen opsommingen, geen aanhef als "Beste". Schrijf in de tweede persoon ("je").
 - Gebruik GEEN streepjes of gedachtestreepjes (— of –) in de tekst. Schrijf gewone zinnen met komma's en punten.
 - Verzin geen feiten, namen of relaties die ze niet zelf hebben benoemd.
+- Laat de brief eindigen op wat ze bij het laatste moment opschreef, en benoem zacht dat die woorden tot nu toe nog nergens heen konden.
 - Eindig met iets wat rust en nabijheid geeft, zonder te beloven dat het overgaat.
 
 Geef alleen de brieftekst terug, niets anders.`;
