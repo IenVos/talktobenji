@@ -60,8 +60,19 @@ export function persoonlijkeBody(bodyText: string, naam?: string | null): string
     .replace(/[ \t]+\n/g, "\n"); // geen spatie aan het regeleinde
 }
 
+// Zet inline markdown-links [tekst](https://...) om naar een klikbare <a>, zodat de
+// admin gewoon in de mailtekst een link in een zin kan zetten zonder HTML. Alleen
+// absolute http(s)-URL's (e-mailclients hebben die nodig). Markers als [knop] of
+// [benji-knop] blijven ongemoeid: die hebben geen (url) erachter.
+export function mailLinks(tekst: string): string {
+  return tekst.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
+    (_m, label, url) => `<a href="${url}" style="color:#6d84a8;text-decoration:underline;">${label}</a>`
+  );
+}
+
 export function mailAlinea(p: string): string {
-  return `<p style="font-size: 15px; line-height: 1.8; color: #4a5568;">${p.trim().replace(/\n/g, "<br/>")}</p>`;
+  return `<p style="font-size: 15px; line-height: 1.8; color: #4a5568;">${mailLinks(p.trim()).replace(/\n/g, "<br/>")}</p>`;
 }
 
 export function mailKnop(tekst: string, url: string): string {

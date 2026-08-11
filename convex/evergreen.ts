@@ -20,6 +20,7 @@ import { checkAdmin } from "./adminAuth";
 import {
   appBase,
   mailAlinea,
+  mailLinks,
   mailKnop,
   mailWrapper,
   mailHandtekeningIen,
@@ -616,7 +617,7 @@ async function bouwEvergreenHtml(
   const knopHtml = toonKnop ? mailKnop(knopTekst, knopUrl) : "";
   const coverHtml = imageUrl ? coverBlok(imageUrl, knopUrl || undefined, imageCaption) : "";
   const psStijl = (p: string) =>
-    `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${p.replace(/\n/g, "<br/>")}</p>`;
+    `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${mailLinks(p).replace(/\n/g, "<br/>")}</p>`;
 
   const alineas = bodyVoorSplit.split(/\n\n+/).map((p: string) => p.trim()).filter(Boolean);
   const gebruiktAfbeelding = alineas.some((p: string) => AFBEELDING_MARKER.test(p));

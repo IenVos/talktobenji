@@ -21,6 +21,7 @@ import {
   nietAlleenUrlVoorType,
   appBase,
   mailAlinea,
+  mailLinks,
   mailKnop,
   mailHandtekeningIen,
   mailWrapper,
@@ -351,7 +352,7 @@ async function verstuurOpvolgMail(
     )
     .join("\n");
   const psHtml = ps
-    ? `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${ps.replace(/\n/g, "<br/>")}</p>`
+    ? `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${mailLinks(ps).replace(/\n/g, "<br/>")}</p>`
     : "";
 
   // De cover-afbeelding (boven de knop) alleen tonen als de afbeelding niet al
