@@ -2057,6 +2057,20 @@ export default function AdminLandingspaginasPage() {
 
             {/* Voor wie */}
             <Section openSet={openSections} onToggle={toggleSection} id="voorwie" title="Voor wie">
+              <div className="mb-3 flex items-start justify-between gap-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                <p className="text-xs text-amber-800">
+                  Dit is een apart blok op de pagina. Staat het er dubbel op? Maak het hier leeg en sla op, dan verdwijnt het.
+                </p>
+                {(form.voorWieBullets || form.voorWieTitle || form.voorWieSubtitel) && (
+                  <button
+                    type="button"
+                    onClick={() => setForm((f) => ({ ...f, voorWieBullets: "", voorWieTitle: "", voorWieSubtitel: "" }))}
+                    className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 size={13} /> Dit blok leegmaken
+                  </button>
+                )}
+              </div>
               <div>
                 <label className={labelSmClass}>Voor wie — één bullet per regel</label>
                 <textarea
