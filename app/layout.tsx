@@ -10,6 +10,7 @@ import { ConnectionBanner } from "@/components/chat/ConnectionBanner";
 import { SessionProvider } from "@/lib/SessionProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageViewTracker } from "@/components/analytics/PageViewTracker";
+import { AnonymousSessionClaimer } from "@/lib/AnonymousSessionClaimer";
 import { ConsentScripts } from "@/components/ConsentScripts";
 
 export const metadata: Metadata = {
@@ -128,6 +129,7 @@ export default function RootLayout({
                 <AboutModalProvider>
                   <ProfessionalHelpProvider>
                     <PageViewTracker />
+                    <AnonymousSessionClaimer />
                     <LayoutMenu />
                     {children}
                     <CookieConsentBanner />

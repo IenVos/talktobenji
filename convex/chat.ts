@@ -148,6 +148,41 @@ export const getMessages = query({
 });
 
 /**
+ * Koppel anonieme gesprekken aan het account van de ingelogde gebruiker.
+ *
+ * Wordt aangeroepen zodra iemand na anoniem chatten een account aanmaakt of inlogt
+ * (client geeft de anonymousId uit localStorage mee). De userId wordt uit de
+ * geverifieerde JWT gehaald (identity.subject), niet uit een client-argument, zodat
+ * niemand het gesprek van een ander kan claimen. Het semantisch geheugen zit als
+ * samenvatting op de sessie zelf en verhuist dus automatisch mee naar het account.
+ */
+export const claimAnonymousSessions = mutation({
+  args: { anonymousId: v.string() },
+  handler: async (ctx, { anonymousId }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    // Nog niet (volledig) geauthenticeerd bij Convex: laat de client het later opnieuw proberen.
+    if (!identity) return { authed: false, claimed: 0 };
+    const userId = identity.subject;
+
+    const sessions = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_anonymous", (q) => q.eq("anonymousId", anonymousId))
+      .collect();
+
+    let claimed = 0;
+    for (const s of sessions) {
+      if (s.userId) continue; // al gekoppeld (aan wie dan ook) → niet overnemen
+      await ctx.db.patch(s._id, {
+        userId,
+        userEmail: (identity.email as string | undefined) ?? s.userEmail,
+      });
+      claimed++;
+    }
+    return { authed: true, claimed };
+  },
+});
+
+/**
  * Haal alle sessies van een gebruiker op
  */
 export const getUserSessions = query({
