@@ -30,6 +30,8 @@ const DEFAULTS: Record<string, string> = {
   blok3Tekst:      "Voor wie wil dat Benji er altijd is, ook als het even beter gaat. Ontdek wat erbij zit.",
   blok3Cta:        "Bekijk wat erbij zit",
   blok3Url:        "/lp/jaar-toegang",
+  blokkenTitel:    "Waar kan ik je mee helpen?",
+  blokkenSubtitel: "Of je nu wilt praten, lezen of een begeleid programma wilt volgen, kies wat bij jou past.",
   overTitle:       "Gemaakt omdat er iets ontbrak en uit eigen ervaring met verlies",
   overP1:          "Ik ben Ien, oprichter van Talk To Benji. Ik vroeg me af waarom er voor mensen met verdriet zo weinig is dat echt laagdrempelig is. Geen wachtlijst, geen intake, geen afspraak, gewoon iemand die luistert, ook om 03:00 's nachts.",
   overP2:          "Dat werd Benji. Zes jaar lang zocht ik naar de beste manier om een plek te maken waar je je verhaal kwijt kunt, je gedachten kunt ordenen en zo beter zicht krijgt op alles wat er in je hoofd zit. Niet om je te vertellen wat je moet doen, maar om je te helpen het zelf te begrijpen.",
@@ -93,6 +95,41 @@ function IconArrow() {
     </svg>
   );
 }
+
+function IconStar() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-7 h-7">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.5l2.29 4.64 5.12.74-3.7 3.61.87 5.1L11.48 15.2 6.9 17.6l.87-5.1-3.7-3.61 5.12-.74L11.48 3.5z" />
+    </svg>
+  );
+}
+
+function IconSun() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-7 h-7">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m14.66 6.66l-1.41-1.41M7.76 7.76 6.34 6.34m11.32 0-1.41 1.41M7.76 16.24l-1.42 1.42M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  );
+}
+
+function IconHand() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-7 h-7">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 11V6a1.5 1.5 0 013 0v4m0-1V4.5a1.5 1.5 0 013 0V10m0-1V5.5a1.5 1.5 0 013 0V12m0-2.5a1.5 1.5 0 013 0V15a6 6 0 01-6 6h-1.5a6 6 0 01-4.24-1.76l-3.5-3.5a1.5 1.5 0 012.12-2.12L7 13" />
+    </svg>
+  );
+}
+
+// Iconen die per homepage-blok gekozen kunnen worden (key = wat in de admin/DB staat).
+const HELP_ICONS: Record<string, () => React.ReactElement> = {
+  chat: IconChat,
+  blog: IconBlog,
+  heart: IconHeart,
+  night: IconNight,
+  star: IconStar,
+  sun: IconSun,
+  hand: IconHand,
+};
 
 
 const KENMERKEN = [
@@ -185,6 +222,23 @@ export default async function HomePage() {
     try { customFeatures = JSON.parse(c.screenshots); } catch {}
   }
 
+  // Homepage-blokken ("Waar kan ik je mee helpen?"): dynamisch, admin-beheerd.
+  // Fallback naar de oude drie vaste blokken als er nog niets is ingesteld.
+  type HelpBlok = { icon: string; titel: string; tekst: string; cta: string; url: string };
+  let helpBlokken: HelpBlok[] = [];
+  if (c.helpBlokken) {
+    try { helpBlokken = JSON.parse(c.helpBlokken); } catch {}
+  }
+  if (!helpBlokken.length) {
+    helpBlokken = [
+      { icon: "chat",  titel: c.blok1Titel, tekst: c.blok1Tekst, cta: c.blok1Cta, url: c.blok1Url || "/benji" },
+      { icon: "blog",  titel: c.blok2Titel, tekst: c.blok2Tekst, cta: c.blok2Cta, url: c.blok2Url || "/blog" },
+      { icon: "heart", titel: c.blok3Titel, tekst: c.blok3Tekst, cta: c.blok3Cta, url: c.blok3Url || "/lp/jaar-toegang" },
+    ];
+  }
+  helpBlokken = helpBlokken.filter(b => b && (b.titel || b.tekst));
+  const blokKleuren = ["bg-primary-600", "bg-primary-700", "bg-primary-800"];
+
   const ervaringen: { tekst: string; naam: string }[] =
     liveTestimonials && liveTestimonials.length > 0
       ? liveTestimonials.map((t: { quote: string; name: string }) => ({ tekst: t.quote, naam: t.name }))
@@ -269,38 +323,38 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Drie blokken */}
+      {/* Blokken: "Waar kan ik je mee helpen?" */}
       <section className="max-w-5xl mx-auto px-6 py-16 sm:py-20">
         <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 text-center mb-3 text-balance">
-          Waar kan ik je mee helpen?
+          {c.blokkenTitel}
         </h2>
         <p className="text-primary-600 text-center mb-12 max-w-lg mx-auto text-balance">
-          Of je nu wilt praten, lezen of een begeleid programma wilt volgen,
-          kies wat bij jou past.
+          {c.blokkenSubtitel}
         </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {[
-            { icon: <IconChat />,  kleur: "bg-primary-600", href: c.blok1Url || "/benji",           titel: c.blok1Titel, omschrijving: c.blok1Tekst, cta: c.blok1Cta },
-            { icon: <IconBlog />,  kleur: "bg-primary-700", href: c.blok2Url || "/blog",            titel: c.blok2Titel, omschrijving: c.blok2Tekst, cta: c.blok2Cta },
-            { icon: <IconHeart />, kleur: "bg-primary-800", href: c.blok3Url || "/lp/jaar-toegang", titel: c.blok3Titel, omschrijving: c.blok3Tekst, cta: c.blok3Cta },
-          ].map((blok) => (
-            <Link
-              key={blok.href}
-              href={blok.href}
-              className="group relative flex flex-col bg-white border border-primary-100 rounded-2xl p-6 hover:shadow-md hover:border-primary-300 transition-all"
-            >
-              <div className={`w-12 h-12 rounded-xl ${blok.kleur} text-white flex items-center justify-center mb-4 flex-shrink-0`}>
-                {blok.icon}
-              </div>
-              <h3 className="text-base font-semibold text-primary-900 mb-2 text-balance">{blok.titel}</h3>
-              <p className="text-sm text-primary-600 leading-relaxed flex-1 text-balance">{blok.omschrijving}</p>
-              <div className="mt-5 text-sm font-medium text-primary-700 flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
-                {blok.cta}
-                <IconArrow />
-              </div>
-            </Link>
-          ))}
+          {helpBlokken.map((blok, i) => {
+            const Icon = HELP_ICONS[blok.icon] ?? IconChat;
+            return (
+              <Link
+                key={i}
+                href={blok.url || "#"}
+                className="group relative flex flex-col bg-white border border-primary-100 rounded-2xl p-6 hover:shadow-md hover:border-primary-300 transition-all"
+              >
+                <div className={`w-12 h-12 rounded-xl ${blokKleuren[i % blokKleuren.length]} text-white flex items-center justify-center mb-4 flex-shrink-0`}>
+                  <Icon />
+                </div>
+                <h3 className="text-base font-semibold text-primary-900 mb-2 text-balance">{blok.titel}</h3>
+                <p className="text-sm text-primary-600 leading-relaxed flex-1 text-balance">{blok.tekst}</p>
+                {blok.cta && (
+                  <div className="mt-5 text-sm font-medium text-primary-700 flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
+                    {blok.cta}
+                    <IconArrow />
+                  </div>
+                )}
+              </Link>
+            );
+          })}
         </div>
       </section>
 

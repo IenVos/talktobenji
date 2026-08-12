@@ -24,23 +24,9 @@ const HOMEPAGE_FIELDS = [
     { key: "heroCta2",        label: "Secundaire knoptekst",            multiline: false },
     { key: "heroNote",        label: "Kleine noot onder knoppen",       multiline: false },
   ]},
-  { section: "Blok 1 — Gesprek", fields: [
-    { key: "blok1Titel", label: "Titel",        multiline: false },
-    { key: "blok1Tekst", label: "Beschrijving", multiline: true  },
-    { key: "blok1Cta",   label: "Link tekst",   multiline: false },
-    { key: "blok1Url",   label: "Link URL",     multiline: false },
-  ]},
-  { section: "Blok 2 — Blog", fields: [
-    { key: "blok2Titel", label: "Titel",        multiline: false },
-    { key: "blok2Tekst", label: "Beschrijving", multiline: true  },
-    { key: "blok2Cta",   label: "Link tekst",   multiline: false },
-    { key: "blok2Url",   label: "Link URL",     multiline: false },
-  ]},
-  { section: "Blok 3 — Jaar toegang", fields: [
-    { key: "blok3Titel", label: "Titel",        multiline: false },
-    { key: "blok3Tekst", label: "Beschrijving", multiline: true  },
-    { key: "blok3Cta",   label: "Link tekst",   multiline: false },
-    { key: "blok3Url",   label: "Link URL",     multiline: false },
+  { section: "Blokken — kop", fields: [
+    { key: "blokkenTitel",    label: "Sectietitel",    multiline: false },
+    { key: "blokkenSubtitel", label: "Sectiesubtitel", multiline: true  },
   ]},
   { section: "Over Benji", fields: [
     { key: "overTitle", label: "Titel",    multiline: false },
@@ -102,6 +88,8 @@ const HOMEPAGE_DEFAULTS: Record<string, string> = {
   blok3Tekst: "Voor wie wil dat Benji er altijd is, ook als het even beter gaat. Ontdek wat erbij zit.",
   blok3Cta: "Bekijk wat erbij zit",
   blok3Url: "/lp/jaar-toegang",
+  blokkenTitel: "Waar kan ik je mee helpen?",
+  blokkenSubtitel: "Of je nu wilt praten, lezen of een begeleid programma wilt volgen, kies wat bij jou past.",
   overTitle: "Gemaakt omdat er iets ontbrak en uit eigen ervaring met verlies",
   overP1: "Ik ben Ien, oprichter van Talk To Benji. Ik vroeg me af waarom er voor mensen met verdriet zo weinig is dat echt laagdrempelig is. Geen wachtlijst, geen intake, geen afspraak, gewoon iemand die luistert, ook om 03:00 's nachts.",
   overP2: "Dat werd Benji. Zes jaar lang zocht ik naar de beste manier om een plek te maken waar je je verhaal kwijt kunt, je gedachten kunt ordenen en zo beter zicht krijgt op alles wat er in je hoofd zit. Niet om je te vertellen wat je moet doen, maar om je te helpen het zelf te begrijpen.",
@@ -321,6 +309,23 @@ const SCREENSHOT_SLOTS = [
   { id: "handreikingen",  label: "Handreikingen" },
 ];
 
+// Homepage-blokken ("Waar kan ik je mee helpen?")
+type HelpBlok = { icon: string; titel: string; tekst: string; cta: string; url: string };
+const HELP_ICON_OPTIES: { key: string; label: string }[] = [
+  { key: "chat",  label: "Chat (gesprek)" },
+  { key: "blog",  label: "Boek (artikelen)" },
+  { key: "heart", label: "Hart" },
+  { key: "night", label: "Maan (nacht)" },
+  { key: "star",  label: "Ster" },
+  { key: "sun",   label: "Zon" },
+  { key: "hand",  label: "Helpende hand" },
+];
+const DEFAULT_HELP_BLOKKEN: HelpBlok[] = [
+  { icon: "chat",  titel: HOMEPAGE_DEFAULTS.blok1Titel, tekst: HOMEPAGE_DEFAULTS.blok1Tekst, cta: HOMEPAGE_DEFAULTS.blok1Cta, url: HOMEPAGE_DEFAULTS.blok1Url },
+  { icon: "blog",  titel: HOMEPAGE_DEFAULTS.blok2Titel, tekst: HOMEPAGE_DEFAULTS.blok2Tekst, cta: HOMEPAGE_DEFAULTS.blok2Cta, url: HOMEPAGE_DEFAULTS.blok2Url },
+  { icon: "heart", titel: HOMEPAGE_DEFAULTS.blok3Titel, tekst: HOMEPAGE_DEFAULTS.blok3Tekst, cta: HOMEPAGE_DEFAULTS.blok3Cta, url: HOMEPAGE_DEFAULTS.blok3Url },
+];
+
 function HomepageTab() {
   const saved = useAdminQuery(api.pageContent.getPageContent, { pageKey: "homepage" });
   const setContent = useAdminMutation(api.pageContent.setPageContent);
@@ -333,11 +338,28 @@ function HomepageTab() {
     SCREENSHOT_SLOTS.map(s => ({ ...s, image: `/images/screenshots/${s.id}.png`, imageAlt: s.label }))
   );
 
+  // Homepage-blokken: dynamische lijst, opgeslagen als JSON in values.helpBlokken
+  const [helpBlokken, setHelpBlokken] = useState<HelpBlok[]>(DEFAULT_HELP_BLOKKEN);
+
   useEffect(() => {
     if (saved) {
       setValues({ ...HOMEPAGE_DEFAULTS, ...saved });
       if (saved.screenshots) {
         try { setScreenshots(JSON.parse(saved.screenshots)); } catch {}
+      }
+      // Blokken: nieuw formaat (helpBlokken) heeft voorrang; anders val terug op
+      // de oude losse blok1/2/3-velden zodat eerdere aanpassingen behouden blijven.
+      if (saved.helpBlokken) {
+        try {
+          const parsed = JSON.parse(saved.helpBlokken);
+          if (Array.isArray(parsed) && parsed.length) setHelpBlokken(parsed);
+        } catch {}
+      } else if (saved.blok1Titel || saved.blok2Titel || saved.blok3Titel) {
+        setHelpBlokken([
+          { icon: "chat",  titel: saved.blok1Titel ?? HOMEPAGE_DEFAULTS.blok1Titel, tekst: saved.blok1Tekst ?? HOMEPAGE_DEFAULTS.blok1Tekst, cta: saved.blok1Cta ?? HOMEPAGE_DEFAULTS.blok1Cta, url: saved.blok1Url ?? HOMEPAGE_DEFAULTS.blok1Url },
+          { icon: "blog",  titel: saved.blok2Titel ?? HOMEPAGE_DEFAULTS.blok2Titel, tekst: saved.blok2Tekst ?? HOMEPAGE_DEFAULTS.blok2Tekst, cta: saved.blok2Cta ?? HOMEPAGE_DEFAULTS.blok2Cta, url: saved.blok2Url ?? HOMEPAGE_DEFAULTS.blok2Url },
+          { icon: "heart", titel: saved.blok3Titel ?? HOMEPAGE_DEFAULTS.blok3Titel, tekst: saved.blok3Tekst ?? HOMEPAGE_DEFAULTS.blok3Tekst, cta: saved.blok3Cta ?? HOMEPAGE_DEFAULTS.blok3Cta, url: saved.blok3Url ?? HOMEPAGE_DEFAULTS.blok3Url },
+        ]);
       }
     }
   }, [saved]);
@@ -347,10 +369,22 @@ function HomepageTab() {
   const setScreenshotUrl = (id: string, url: string) =>
     setScreenshots(p => p.map(s => s.id === id ? { ...s, image: url } : s));
 
+  const updateBlok = (i: number, field: keyof HelpBlok, val: string) =>
+    setHelpBlokken(p => p.map((b, idx) => idx === i ? { ...b, [field]: val } : b));
+  const addBlok = () => setHelpBlokken(p => [...p, { icon: "chat", titel: "Nieuw blok", tekst: "", cta: "", url: "" }]);
+  const removeBlok = (i: number) => setHelpBlokken(p => p.filter((_, idx) => idx !== i));
+  const moveBlok = (i: number, dir: -1 | 1) => setHelpBlokken(p => {
+    const j = i + dir;
+    if (j < 0 || j >= p.length) return p;
+    const next = [...p];
+    [next[i], next[j]] = [next[j], next[i]];
+    return next;
+  });
+
   const handleSave = async () => {
     setSaving(true); setSaved2(false);
     try {
-      await setContent({ pageKey: "homepage", content: JSON.stringify({ ...values, screenshots: JSON.stringify(screenshots) }) });
+      await setContent({ pageKey: "homepage", content: JSON.stringify({ ...values, screenshots: JSON.stringify(screenshots), helpBlokken: JSON.stringify(helpBlokken) }) });
       setSaved2(true); setTimeout(() => setSaved2(false), 2000);
     } finally { setSaving(false); }
   };
@@ -367,6 +401,54 @@ function HomepageTab() {
           </div>
         </div>
       ))}
+
+      {/* Blokken "Waar kan ik je mee helpen?" */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="flex items-center justify-between mb-1 pb-3 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900">Blokken (&quot;Waar kan ik je mee helpen?&quot;)</h3>
+          <button type="button" onClick={addBlok}
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary-700 hover:text-primary-900">
+            <Plus size={14} /> Blok toevoegen
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mb-4">De kaartjes tonen automatisch 3 per rij. Een leeg blok (geen titel én geen tekst) wordt niet getoond.</p>
+        <div className="space-y-4">
+          {helpBlokken.map((b, i) => (
+            <div key={i} className="rounded-lg border border-gray-200 p-4 bg-gray-50/50">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-gray-500">Blok {i + 1}</span>
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => moveBlok(i, -1)} disabled={i === 0}
+                    className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30" title="Omhoog">
+                    <ChevronUp size={16} />
+                  </button>
+                  <button type="button" onClick={() => moveBlok(i, 1)} disabled={i === helpBlokken.length - 1}
+                    className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30" title="Omlaag">
+                    <ChevronDown size={16} />
+                  </button>
+                  <button type="button" onClick={() => removeBlok(i)}
+                    className="p-1 text-red-400 hover:text-red-600" title="Verwijderen">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Icoon</label>
+                  <select value={b.icon} onChange={e => updateBlok(i, "icon", e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-400 bg-white">
+                    {HELP_ICON_OPTIES.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
+                  </select>
+                </div>
+                <Field label="Titel" value={b.titel} onChange={v => updateBlok(i, "titel", v)} multiline={false} />
+                <Field label="Beschrijving" value={b.tekst} onChange={v => updateBlok(i, "tekst", v)} multiline={true} />
+                <Field label="Link tekst" value={b.cta} onChange={v => updateBlok(i, "cta", v)} multiline={false} />
+                <Field label="Link URL" value={b.url} onChange={v => updateBlok(i, "url", v)} multiline={false} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Screenshot-afbeeldingen */}
       <div className="bg-white rounded-xl border border-gray-200 p-5">
