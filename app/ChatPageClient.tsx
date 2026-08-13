@@ -187,7 +187,7 @@ export default function ChatPageClient({
   // er geen flikker is tussen chat- en keuzescherm.
   const [ehResolving, setEhResolving] = useState<boolean>(() => {
     const s = Array.isArray(searchParams?.start) ? searchParams.start[0] : searchParams?.start;
-    return s === "eh" || s === "brief" || s === "ennu";
+    return s === "eh" || s === "brief" || s === "ennu" || s === "direct";
   });
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -303,7 +303,7 @@ export default function ChatPageClient({
   // naam opgezocht; wie al eens gepraat heeft of geen EH-lead is, krijgt gewoon het
   // welkomstscherm (fallback).
   useEffect(() => {
-    if ((startParam !== "eh" && startParam !== "brief" && startParam !== "ennu") || ehStartHandled.current) return;
+    if ((startParam !== "eh" && startParam !== "brief" && startParam !== "ennu" && startParam !== "direct") || ehStartHandled.current) return;
     if (status === "loading") return; // wacht op auth; spinner blijft staan
 
     const schoonUrl = () => {
@@ -332,7 +332,7 @@ export default function ChatPageClient({
           userId: uid,
           userEmail: session.user?.email ?? undefined,
           userName: session.user?.name ?? undefined,
-          variant: startParam === "brief" ? "brief" : startParam === "ennu" ? "en-nu" : undefined,
+          variant: startParam === "brief" ? "brief" : startParam === "ennu" ? "en-nu" : startParam === "direct" ? "direct" : undefined,
           previewType: startParam === "brief" ? previewType || undefined : undefined,
           previewNaam: startParam === "brief" ? previewNaam || undefined : undefined,
         });

@@ -573,7 +573,8 @@ function MailForm({
           Markers op een eigen regel: <code>[benji-knop]</code> (persoonlijke "Verder praten met Benji"-knop),
           {" "}<code>[benji-blok]</code>, <code>[afbeelding]</code>, <code>[knop]</code>.
           <code>{"{voornaam}"}</code> wordt ingevuld. Een afsluitgroet krijgt de foto-handtekening; een
-          P.S.-regel wordt als P.S. opgemaakt.
+          P.S.-regel wordt als P.S. opgemaakt. In een P.S.-regel wordt het losse woord
+          {" "}<code>Benji</code> vanzelf een klikbare link (naar de chat); "Talk To Benji" blijft gewone tekst.
         </span>
       </label>
 

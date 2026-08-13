@@ -544,8 +544,9 @@ export const startEhChat = mutation({
     userName: v.optional(v.string()),
     // "brief" = de lead komt binnen via de link in de persoonlijke brief. Dan zetten
     // we een zachte brugzin vóór de gewone verliestype-opener, zodat het gesprek
-    // naadloos voortloopt op de brief die ze net weglegden. Alle andere Benji-links
-    // (opvolgmails, evergreen, funnel) laten dit leeg en houden hun bestaande opener.
+    // naadloos voortloopt op de brief die ze net weglegden. "direct" = de klikbare naam
+    // Benji in een mail-P.S.: forceer de verliestype-opener (als "en-nu"). Overige
+    // Benji-links (opvolgmails, evergreen-knop) laten dit leeg en houden hun opener.
     variant: v.optional(v.string()),
     // Voorbeeldmodus (admin): toon de brief-opener o.b.v. deze URL-params in plaats
     // van de echte lead-data, zodat de opener per type/naam bekeken kan worden vóór
@@ -588,7 +589,10 @@ export const startEhChat = mutation({
       // En nu?-kaart. Dan forceren we altijd een verse opener, ook als ze al eerder met
       // Benji praatten of (nog) geen brief hebben. Anders belanden ze op hun account
       // i.p.v. in het gesprek, precies op het verkeerde moment.
-      const forceerOpener = args.variant === "en-nu";
+      // "direct" = de klikbare naam Benji in een mail-P.S.: net als "en-nu" altijd een
+      // verse verliestype-opener, ook voor wie al eerder praatte, zodat de klik direct
+      // in het juiste gesprek met de juiste openingszin landt.
+      const forceerOpener = args.variant === "en-nu" || args.variant === "direct";
 
       if (!forceerOpener) {
         // Al eens echt gepraat (oudere sessie)? Dan geen opener forceren.
@@ -614,7 +618,7 @@ export const startEhChat = mutation({
       if (brieven.length === 0 && !forceerOpener) return { fallback: true as const }; // geen EH-lead
 
       const laatste = [...brieven].sort((a, b) => (b.sentAt ?? 0) - (a.sentAt ?? 0))[0];
-      verliesType = (laatste?.verliesType ?? (forceerOpener ? "scheiding" : "algemeen")).toLowerCase().trim();
+      verliesType = (laatste?.verliesType ?? (args.variant === "en-nu" ? "scheiding" : "algemeen")).toLowerCase().trim();
       verliesNaam = laatste?.verliesNaam?.trim() || undefined;
       leadNaamRaw = laatste?.naam?.trim() || undefined;
     }

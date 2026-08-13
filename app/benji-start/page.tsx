@@ -45,7 +45,9 @@ function BenjiStartInner() {
           // (nieuwe) brief of bij een terugkerende gebruiker. Iemand na "Ik wil nog
           // iets vertellen" naar een dashboard sturen zou het moment breken. De andere
           // ingangen laten routeNaStart beslissen (terugkerende lead → account).
-          if (opener !== "ennu") {
+          // "o=direct" (de klikbare naam Benji in een P.S.): net als "ennu" altijd
+          // rechtstreeks het gesprek in met een verse opener, nooit naar het account.
+          if (opener !== "ennu" && opener !== "direct") {
             try {
               const r = await convex.query(api.benjiStart.routeNaStart, { token });
               if (r?.bestemming === "account") bestemming = "account";
@@ -59,7 +61,9 @@ function BenjiStartInner() {
               ? "/benji?start=brief"
               : opener === "ennu"
                 ? "/benji?start=ennu"
-                : "/benji?start=eh";
+                : opener === "direct"
+                  ? "/benji?start=direct"
+                  : "/benji?start=eh";
           window.location.href = bestemming === "account" ? "/account" : chatUrl;
         } else {
           // Token verlopen of ongeldig (na de 7 dagen). Geen doodlopend scherm meer:

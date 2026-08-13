@@ -591,9 +591,16 @@ async function bouwEvergreenHtml(
   // [benji-knop] uit buttonText (of de standaardtekst).
   const heeftBlok = bodyVoorSplit.includes(BENJI_BLOK_MARKER);
   const heeftBenjiCta = BENJI_CTA_RE.test(bodyVoorSplit);
+  // Losse naam "Benji" in een P.S.-regel wordt automatisch een klikbaar, bruin woord
+  // (niet onderstreept) met dezelfde persoonlijke één-klik-link. Enkel de losse naam
+  // in de P.S.; "Talk To Benji" (merknaam/handtekening) blijft ongemoeid. Verandert
+  // verder niets aan de tekst: alleen kleur + link op dat ene woord.
+  const heeftPsBenji = bodyVoorSplit
+    .split(/\n\n+/)
+    .some((p) => /^p\.?\s*s\.?/i.test(p.trim()) && /(?<!Talk To )(?<!Talk to )Benji/.test(p));
   let blokHtml = "";
   let benjiUrl = "";
-  if (heeftBlok || heeftBenjiCta) {
+  if (heeftBlok || heeftBenjiCta || heeftPsBenji) {
     const token = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
       email: args.email,
       naam: args.naam,
@@ -601,6 +608,13 @@ async function bouwEvergreenHtml(
     benjiUrl = `${appBase()}/benji-start?token=${token}`;
     if (heeftBlok) blokHtml = benjiBlokHtml(benjiUrl);
   }
+  // De P.S.-Benji-link stuurt met "&o=direct" de klik meteen de juiste verliestype-chat
+  // in met de vaste opener (i.p.v. via het account). Global, dus élke losse naam in de
+  // P.S. wordt gelinkt; "Talk To Benji" wordt door de lookbehind overgeslagen.
+  const PS_BENJI_RE = /(?<!Talk To )(?<!Talk to )Benji/g;
+  const benjiInlineAnchor = benjiUrl
+    ? `<a href="${benjiUrl}&o=direct" style="color:#9a8168;text-decoration:none;font-weight:600;">Benji</a>`
+    : "";
   const benjiKnopVoor = (p: string): string => {
     const binnen = (p.match(/\[([^\]]*)\]/)?.[1] ?? "").replace(/[>»→\s]+$/g, "").trim();
     const kaal =
@@ -616,8 +630,11 @@ async function bouwEvergreenHtml(
   const toonKnop = !!knopTekst && !!knopUrl;
   const knopHtml = toonKnop ? mailKnop(knopTekst, knopUrl) : "";
   const coverHtml = imageUrl ? coverBlok(imageUrl, knopUrl || undefined, imageCaption) : "";
-  const psStijl = (p: string) =>
-    `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${mailLinks(p).replace(/\n/g, "<br/>")}</p>`;
+  const psStijl = (p: string) => {
+    let inner = mailLinks(p);
+    if (benjiInlineAnchor) inner = inner.replace(PS_BENJI_RE, benjiInlineAnchor);
+    return `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${inner.replace(/\n/g, "<br/>")}</p>`;
+  };
 
   const alineas = bodyVoorSplit.split(/\n\n+/).map((p: string) => p.trim()).filter(Boolean);
   const gebruiktAfbeelding = alineas.some((p: string) => AFBEELDING_MARKER.test(p));
