@@ -411,28 +411,81 @@ export const linkSessionToUser = mutation({
 // Warme, type-specifieke INTRO-zinnen. De sterke aanzet-vraag ("Wat gaat er op dit
 // moment door je heen{, voornaam}?") wordt in startEhChat erachter geplakt, zodat
 // elke Benji-ingang (opvolgmail én brief) consistent aanzet tot praten.
-const EH_VERLIES_OPENERS: Record<string, { metNaam?: string; zonderNaam: string }> = {
+// Per verliestype meerdere warme intro-varianten (zelfde toon, andere woorden), zodat
+// een lead die de chat opnieuw opent niet telkens exact dezelfde zin ziet. Bij een
+// heropening (zie WELKOM_TERUG_OPENERS) openen we juist NIET opnieuw met het verlies.
+const EH_VERLIES_OPENERS: Record<string, { metNaam?: string[]; zonderNaam: string[] }> = {
   huisdier: {
-    metNaam: "Een huisdier is nooit 'maar een dier'. {naam} hoort bij je leven, en dat gemis is echt.",
-    zonderNaam: "Een huisdier is nooit 'maar een dier'. Dat gemis is echt, ook al ziet niet iedereen dat.",
+    metNaam: [
+      "Een huisdier is nooit 'maar een dier'. {naam} hoort bij je leven, en dat gemis is echt.",
+      "{naam} was geen 'maar een dier', {naam} hoorde bij je dagen. Dat je dat mist is niet gek.",
+      "Het huis voelt anders zonder {naam}. Dat gemis mag er zijn, hoe klein anderen het soms maken.",
+    ],
+    zonderNaam: [
+      "Een huisdier is nooit 'maar een dier'. Dat gemis is echt, ook al ziet niet iedereen dat.",
+      "Een dier missen is een echt verlies, ook al snapt niet iedereen hoe diep dat gaat.",
+      "Het huis voelt vaak leger zonder ze. Dat gemis mag er hier gewoon zijn.",
+    ],
   },
   persoon: {
-    metNaam: "Het gemis van {naam} laat een leegte achter die moeilijk te beschrijven is.",
-    zonderNaam: "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is. Neem de tijd, ik luister.",
+    metNaam: [
+      "Het gemis van {naam} laat een leegte achter die moeilijk te beschrijven is.",
+      "{naam} kwijt zijn werkt door in bijna alles. Neem de tijd, ik luister.",
+      "Er is geen goede manier om {naam} te missen. Wat er ook bovenkomt, het mag er zijn.",
+    ],
+    zonderNaam: [
+      "Iemand kwijtraken laat een leegte achter die moeilijk te beschrijven is. Neem de tijd, ik luister.",
+      "Iemand missen werkt door in bijna alles. Er is hier geen goede of verkeerde manier.",
+      "Een gemis als dit laat zich moeilijk in woorden vangen. Begin gewoon waar je wilt.",
+    ],
   },
   scheiding: {
-    zonderNaam: "Een band die breekt of verwatert is ook een verlies, ook al ziet niet iedereen dat zo.",
+    zonderNaam: [
+      "Een band die breekt of verwatert is ook een verlies, ook al ziet niet iedereen dat zo.",
+      "Ook zonder afscheid kan een relatie een leegte achterlaten. Dat gemis is echt.",
+      "Uit elkaar gaan is ook rouwen, om wat was en om wat je je had voorgesteld.",
+    ],
   },
   eenzaamheid: {
-    zonderNaam: "Alleen voelen is een van de zwaarste dingen die er zijn.",
+    zonderNaam: [
+      "Alleen voelen is een van de zwaarste dingen die er zijn.",
+      "Je alleen voelen, ook tussen mensen, is zwaarder dan het van buiten lijkt.",
+      "Eenzaamheid weegt, juist omdat anderen het vaak niet zien. Hier mag het er zijn.",
+    ],
   },
   kinderloos: {
-    zonderNaam: "Een kinderwens die niet in vervulling gaat draag je vaak in stilte. Hier mag het er zijn.",
+    zonderNaam: [
+      "Een kinderwens die niet in vervulling gaat draag je vaak in stilte. Hier mag het er zijn.",
+      "Een verlangen naar een kind dat uitblijft is een stil verdriet. Je hoeft het hier niet stil te houden.",
+      "Wat niet gekomen is, mag je toch missen. Dat gemis is echt, ook al ziet niemand het.",
+    ],
   },
   algemeen: {
-    zonderNaam: "Fijn dat je er bent.",
+    zonderNaam: [
+      "Fijn dat je er bent.",
+      "Fijn dat je de stap zet om er even te zijn.",
+      "Goed dat je hier bent, neem gerust de tijd.",
+    ],
   },
 };
+
+// Kies willekeurig een variant uit een lijst.
+function kiesWillekeurig<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// Openers voor een HEROPENING (de lead was al eens in Benji, maar praatte nog niet):
+// niet opnieuw met het verlies beginnen, maar warm erkennen dat ze terugkomen en
+// laagdrempelig uitnodigen. Gerouleerd voor variatie. {naamAanhef} = ", Voornaam" of "".
+function welkomTerugOpeners(naamAanhef: string): string[] {
+  return [
+    `Fijn dat je er weer bent${naamAanhef}. Je hoeft nergens te beginnen, vertel gewoon wat er nu speelt.`,
+    `Goed dat je terugkomt${naamAanhef}. Waar zit je op dit moment het meest mee?`,
+    `Je bent er weer${naamAanhef}, fijn. Neem de tijd, en zeg wat er nu bovenkomt.`,
+    `Dat je nog eens terugkomt zegt genoeg${naamAanhef}. Ik luister, begin maar waar je wilt.`,
+    `Welkom terug${naamAanhef}. Er hoeft niets, maar als er iets is, ben ik er.`,
+  ];
+}
 
 /** Gepersonaliseerde openers voor ingelogde gebruikers (vanuit account) */
 const PERSONALIZED_OPENERS: string[] = [
@@ -563,6 +616,9 @@ export const startEhChat = mutation({
     let verliesType: string;
     let verliesNaam: string | undefined;
     let leadNaamRaw: string | undefined; // voornaam van de lead zelf (persoonlijk aanspreken)
+    // Is dit een heropening (de lead was al eerder in Benji, maar praatte nog niet)?
+    // Dan openen we met een "welkom terug"-zin i.p.v. opnieuw met het verlies.
+    let isHeropening = false;
 
     if (isPreview) {
       // Voorbeeldmodus: sla de "al eens gepraat"- en EH-lead-checks over zodat de
@@ -584,6 +640,10 @@ export const startEhChat = mutation({
         .filter((s) => (s.startedAt ?? 0) > Date.now() - 10 * 60 * 1000)
         .sort((a, b) => (b.startedAt ?? 0) - (a.startedAt ?? 0))[0];
       if (recent) return { fallback: false as const, sessionId: recent._id };
+
+      // Al eens eerder een sessie gehad (dus eerder de chat geopend)? Dan is dit een
+      // heropening en gebruiken we straks een "welkom terug"-opener.
+      isHeropening = sessies.length > 0;
 
       // variant "en-nu": de lead klikte net bewust op "Ik wil nog iets vertellen" op de
       // En nu?-kaart. Dan forceren we altijd een verse opener, ook als ze al eerder met
@@ -631,10 +691,8 @@ export const startEhChat = mutation({
       : `Wat gaat er op dit moment door je heen?`;
 
     const opener = EH_VERLIES_OPENERS[verliesType] ?? EH_VERLIES_OPENERS.algemeen;
-    const intro =
-      verliesNaam && opener.metNaam
-        ? opener.metNaam.replace("{naam}", verliesNaam)
-        : opener.zonderNaam;
+    const introBron = verliesNaam && opener.metNaam ? opener.metNaam : opener.zonderNaam;
+    const intro = kiesWillekeurig(introBron).replace("{naam}", verliesNaam ?? "");
     const openerText = `${intro} ${vraag}`;
 
     // Brief-lead: geen herstart. Ze hebben net de vijf Even Houvast-momenten ingevuld
@@ -665,6 +723,11 @@ export const startEhChat = mutation({
         `Je hoeft niet bij het begin te beginnen${naamAanhef}. Zeg gewoon wat er nu het zwaarst voelt, dan gaan we van daaruit verder.`,
       ];
       tekst = enNuOpeners[Math.floor(Math.random() * enNuOpeners.length)];
+    } else if (isHeropening) {
+      // Heropening (eh/direct): niet opnieuw met het verlies beginnen, maar warm
+      // erkennen dat ze terugkomen. Gerouleerd voor variatie.
+      const naamAanhef = leadVoornaam ? `, ${leadVoornaam}` : "";
+      tekst = kiesWillekeurig(welkomTerugOpeners(naamAanhef));
     } else {
       tekst = openerText;
     }
