@@ -136,6 +136,94 @@ export const tijdlijn = query({
   },
 });
 
+/**
+ * Bezetting per funnel-spoor: hoeveel leads zitten er nu in, en op welke dag/mail.
+ * Voor de e-mailstatistieken-pagina, zodat je ziet waar mensen "vastzitten". De
+ * dag-verdeling geldt alleen voor leads die actief de reeks doorlopen (in-backend);
+ * gepauzeerd (alleen-maandmail), kopers en afgemelden staan apart in de status. De
+ * buckets volgen het actieve mailschema van het spoor, dus ze kloppen ook als je het
+ * schema aanpast.
+ */
+export const funnelBezetting = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const [blokken, mails, leads] = await Promise.all([
+      ctx.db.query("funnelBlokken").collect(),
+      ctx.db.query("funnelMails").collect(),
+      ctx.db.query("funnelLeads").collect(),
+    ]);
+    const spoorPerBlok = new Map(blokken.map((b) => [String(b._id), spoorVan(b.spoor)]));
+
+    // Actief mailschema per spoor, op dagvolgorde (dagOffset). Alleen actieve mails in
+    // actieve blokken tellen mee, want inactieve worden overgeslagen.
+    const blokActief = new Map(blokken.map((b) => [String(b._id), b.actief !== false]));
+    const schemaPerSpoor = new Map<string, { dagOffset: number; subject: string }[]>();
+    for (const m of mails) {
+      if (!m.actief || !blokActief.get(String(m.blokId))) continue;
+      const sp = spoorPerBlok.get(String(m.blokId)) ?? DEFAULT_SPOOR;
+      if (!schemaPerSpoor.has(sp)) schemaPerSpoor.set(sp, []);
+      schemaPerSpoor.get(sp)!.push({ dagOffset: m.dagOffset, subject: m.subject });
+    }
+    for (const arr of schemaPerSpoor.values()) arr.sort((a, b) => a.dagOffset - b.dagOffset);
+
+    const now = Date.now();
+    const DAG = 86_400_000;
+    const titelVan = (sp: string) =>
+      sp === "benji" ? "Benji funnel" : sp === "evergreen" ? "Evergreen funnel" : sp;
+
+    // Leads groeperen per spoor: totaal, status-verdeling, en dag-buckets (in-backend).
+    const spoors = new Set<string>([...schemaPerSpoor.keys()]);
+    for (const l of leads) spoors.add(spoorVan(l.spoor));
+
+    const result = [...spoors].map((sp) => {
+      const schema = schemaPerSpoor.get(sp) ?? [];
+      const status: Record<string, number> = {};
+      const bucketCounts = new Array(schema.length + 1).fill(0);
+      let totaal = 0;
+      let actiefInReeks = 0;
+      for (const l of leads) {
+        if (spoorVan(l.spoor) !== sp) continue;
+        totaal++;
+        status[l.status] = (status[l.status] || 0) + 1;
+        if (l.status !== "in-backend") continue;
+        actiefInReeks++;
+        const dagen = (now - l.ingestroomdOp) / DAG;
+        let gepasseerd = 0;
+        for (const m of schema) if (dagen >= m.dagOffset) gepasseerd++;
+        bucketCounts[gepasseerd]++;
+      }
+      const buckets = bucketCounts.map((aantal, i) => {
+        if (schema.length === 0) return { label: "Nog geen mailschema", aantal };
+        if (i === 0) {
+          return { label: `Nog voor mail 1 (dag 0–${schema[0].dagOffset})`, aantal };
+        }
+        if (i === schema.length) {
+          return { label: `Reeks klaar (na dag ${schema[schema.length - 1].dagOffset})`, aantal };
+        }
+        const gehad = schema[i - 1];
+        const volgende = schema[i];
+        return {
+          label: `Na mail ${i}, wacht op mail ${i + 1} (dag ${gehad.dagOffset}–${volgende.dagOffset})`,
+          subject: gehad.subject,
+          aantal,
+        };
+      });
+      return { spoor: sp, titel: titelVan(sp), totaal, actiefInReeks, aantalMails: schema.length, status, buckets };
+    });
+
+    // Lege sporen (geen leads én geen schema) weglaten; evergreen + benji vooraan.
+    const volgorde = ["evergreen", "benji"];
+    return result
+      .filter((r) => r.totaal > 0 || r.aantalMails > 0)
+      .sort((a, b) => {
+        const ia = volgorde.indexOf(a.spoor);
+        const ib = volgorde.indexOf(b.spoor);
+        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.titel.localeCompare(b.titel);
+      });
+  },
+});
+
 // ── Blokken ──────────────────────────────────────────────────────────────────
 
 /**

@@ -240,9 +240,6 @@ function GroepBlok({ groep, standaardOpen }: { groep: Groep; standaardOpen: bool
 export default function EmailStatsPage() {
   const [dagen, setDagen] = useState(30);
   const stats = useAdminQuery(api.emailStats.stats, { sinceDays: dagen }) as Stats | undefined;
-  const afmeld = useAdminQuery(api.evenHouvastOpvolg.afmeldOverzicht, { sinceDays: 90 }) as
-    | { perMail: { mail: string; label: string; ratio: number }[] }
-    | undefined;
 
   const t = stats?.totaal;
   // Open-rate en klik-ratio berekenen we t.o.v. het aantal afgeleverde mails
@@ -339,30 +336,33 @@ export default function EmailStatsPage() {
             </div>
           </div>
 
-          {/* Cijfers per mail, per funnel gegroepeerd, bovenaan */}
-          <WatWerkt stats={stats} afmeld={afmeld} />
-
-          {/* Details per mail (de tabellen), ingeklapt eronder */}
-          <details className="group">
-            <summary className="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-900 select-none">
-              Details per mail (open, klik en bounce per onderwerpregel)
-            </summary>
-            <div className="space-y-3 mt-3">
-              {stats.groepen.map((g) => (
-                <GroepBlok key={g.groep} groep={g} standaardOpen={false} />
-              ))}
+          {/* Cijfers per mail: één blok per funnel. Klap een funnel open voor de losse
+              mails; klap een mail open voor per verliestype én waar er geklikt is. */}
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Cijfers per mail</h2>
+              <p className="text-sm text-gray-500">
+                Per funnel. Klap een funnel open voor de losse mails, en een mail voor de
+                uitsplitsing per verliestype en waar er geklikt is.
+              </p>
             </div>
-          </details>
+            {stats.groepen.map((g) => (
+              <GroepBlok key={g.groep} groep={g} standaardOpen={false} />
+            ))}
+          </div>
+
+          {/* Wie zit waar in de funnel: aantal actief + verdeling over de dagen. */}
+          <FunnelBezetting />
 
           <p className="text-xs text-gray-400 leading-relaxed">
             Elke opvolgmail staat één keer in de lijst, met het totaal over alle verliestypen.
             Klap een regel uit om per verliestype en per onderwerpregel de open-rate en
-            klik-ratio te vergelijken. Het verliestype is alleen bekend van mails die vanaf
-            13 juli 2026 zijn verstuurd; oudere mails staan als "verliestype onbekend".{" "}
-            Open-rate en klik-ratio zijn berekend t.o.v. het aantal afgeleverde mails.
-            Open-rate is een indicatie: sommige mailprogramma's laden de meet-pixel niet,
-            waardoor het werkelijke aantal hoger kan liggen. Periode:{" "}
-            laatste {stats.dagen} dagen.
+            klik-ratio te vergelijken (zo zie je bijv. scheiding-leads los van huisdier).
+            Het verliestype is alleen bekend van mails die vanaf 13 juli 2026 zijn verstuurd;
+            oudere mails staan als "verliestype onbekend". Open-rate en klik-ratio zijn
+            berekend t.o.v. het aantal afgeleverde mails. Open-rate is een indicatie: sommige
+            mailprogramma's laden de meet-pixel niet, waardoor het werkelijke aantal hoger kan
+            liggen. Periode: laatste {stats.dagen} dagen.
           </p>
         </>
       )}
@@ -465,108 +465,96 @@ function Sluimerend() {
   );
 }
 
-// ── Cijfers per mail ─────────────────────────────────────────────────────────
-// Toont per mail de open/klik/afmeld-cijfers, gegroepeerd per funnel. Geen oordeel
-// of kleuren; alleen de kale cijfers. Nu voor Even Houvast (met echte cijfers);
-// Evergreen en Losse mails vullen zich zodra je daar mails stuurt.
-type WWMail = { naam: string; open: number; klik: number; afmeld: number | null; volume: number; doel: string; checkout: boolean };
+// ── Funnel-bezetting ─────────────────────────────────────────────────────────
+// Hoeveel leads zitten er nu in elke funnel, en op welke dag/mail. Zo zie je waar
+// mensen "vastzitten" en of een spoor leeg begint te lopen.
+type Bucket = { label: string; subject?: string; aantal: number };
+type BezettingFunnel = {
+  spoor: string;
+  titel: string;
+  totaal: number;
+  actiefInReeks: number;
+  aantalMails: number;
+  status: Record<string, number>;
+  buckets: Bucket[];
+};
 
-function bestemming(links: { label: string; aantal: number }[]): { doel: string; checkout: boolean } {
-  const labels = links.map((l) => l.label.toLowerCase()).filter((l) => !l.includes("afmeld"));
-  const has = (kw: string) => labels.some((l) => l.includes(kw));
-  if (has("checkout") || has("betaal")) return { doel: "checkout", checkout: true };
-  if (has("taster") || has("proef")) return { doel: "proefdag", checkout: false };
-  if (has("benji")) return { doel: "Benji", checkout: false };
-  if (has("landing") || has("review") || has("ervaring")) return { doel: "reviews", checkout: false };
-  if (has("boekje") || has("gids")) return { doel: "het boekje", checkout: false };
-  return { doel: "link", checkout: false };
-}
+const STATUS_LABEL: Record<string, string> = {
+  "in-backend": "in de reeks",
+  "alleen-maandmail": "alleen maandmail",
+  koper: "koper",
+  afgemeld: "afgemeld",
+};
 
-function WatWerkt({ stats, afmeld }: { stats: Stats; afmeld?: { perMail: { mail: string; label: string; ratio: number }[] } }) {
-  const [open, setOpen] = useState<Record<string, boolean>>({});
-
-  // Zet de stromen van een groep om naar mails met hun cijfers. metAfmeld = alleen bij
-  // Even Houvast (daar meten we afmeldingen per mail); andere funnels hebben dat niet.
-  const maakMails = (stromen: Stroom[] | undefined, metAfmeld: boolean): WWMail[] =>
-    (stromen ?? []).map((s) => {
-      const noemer = s.afgeleverd || s.verzonden || 1;
-      const b = bestemming(s.links ?? []);
-      const t = s.onderwerp.toLowerCase();
-      // Koppel de afmeld-ratio op het interne mailnummer (stroomId eh_<nr>), niet op de
-      // labeltekst, want die toont nu "Dag X · onderwerp".
-      const ehNr = /^eh_(\d+)$/.exec(s.stroomId)?.[1];
-      const afm = metAfmeld
-        ? afmeld?.perMail?.find((p) => (ehNr ? p.mail === ehNr : t.includes("brief") && p.mail === "brief"))
-        : undefined;
-      // Klikken op de afmeldlink tellen we NIET als doorklik: dat is geen interesse
-      // in de inhoud maar een uitschrijving. Zo is "klik" echt doorklik naar de mail.
-      const afmeldKlik = (s.links ?? []).filter((l) => l.label.toLowerCase().includes("afmeld")).reduce((sum, l) => sum + l.aantal, 0);
-      const doorklik = Math.max(0, s.geklikt - afmeldKlik);
-      return {
-        naam: s.onderwerp,
-        open: Math.round((s.geopend / noemer) * 100),
-        klik: Math.round((doorklik / noemer) * 100),
-        afmeld: afm && Number.isFinite(afm.ratio) ? afm.ratio : null,
-        volume: noemer,
-        doel: b.doel,
-        checkout: b.checkout,
-      };
-    });
-
-  const ehGroep = stats.groepen.find((g) => g.groep === "evenHouvast");
-  const benjiGroep = stats.groepen.find((g) => g.groep === "benji");
-  const ehMails = maakMails(ehGroep?.stromen, true);
-  const benjiMails = maakMails(benjiGroep?.stromen, false);
-
-  const secties: { naam: string; count: string; mails: WWMail[]; leeg?: string }[] = [
-    { naam: "Even Houvast", count: `${ehMails.length} mails`, mails: ehMails },
-    { naam: "Benji funnel", count: `${benjiMails.length} mails`, mails: benjiMails, leeg: "Nog geen verstuurde Benji-mails. Zodra de funnel loopt, verschijnen ze hier met hun cijfers." },
-    { naam: "Evergreen funnel", count: "0 mails", mails: [], leeg: "Nog geen verstuurde mails. Zodra de reeks loopt, verschijnen de mails hier met hun cijfers." },
-    { naam: "Losse mails", count: "0 mails", mails: [], leeg: "Nog geen losse mails verstuurd. Elke mail die je stuurt, komt hier te staan." },
-  ];
+function FunnelBezetting() {
+  const data = useAdminQuery(api.evergreen.funnelBezetting, {}) as BezettingFunnel[] | undefined;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div>
-        <h2 className="text-lg font-bold text-gray-900">Cijfers per mail</h2>
-        <p className="text-sm text-gray-500">De cijfers per mail. Klap een funnel open om de mails te zien.</p>
+        <h2 className="text-lg font-bold text-gray-900">Funnel-bezetting</h2>
+        <p className="text-sm text-gray-500">
+          Hoeveel mensen er nu in elke funnel zitten en op welke dag. De dag-verdeling
+          geldt voor wie de reeks actief doorloopt.
+        </p>
       </div>
 
-      {secties.map((sec) => {
-        const rows = [...sec.mails].sort((a, b) => (b.open + b.klik * 1.5) - (a.open + a.klik * 1.5));
-        const isOpen = open[sec.naam] ?? false;
-        return (
-          <div key={sec.naam} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <button onClick={() => setOpen((o) => ({ ...o, [sec.naam]: !isOpen }))} className="w-full flex items-center gap-3 px-4 py-3 text-left">
-              <span className="text-gray-400 text-xs">{isOpen ? "▾" : "▸"}</span>
-              <span className="flex-1 font-semibold text-gray-900">{sec.naam} <span className="text-xs text-gray-400 font-normal">· {sec.count}</span></span>
-            </button>
-            {isOpen && (
-              <div className="border-t border-gray-100 p-3 space-y-2">
-                {sec.mails.length === 0 && <p className="text-sm text-gray-400 px-1 py-2">{sec.leeg}</p>}
-                {rows.map((m) => (
-                  <div key={m.naam} className="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3">
-                    <span className="font-semibold text-gray-900 text-sm">{m.naam}</span>
-                    <span className="ml-2 text-[10.5px] text-gray-500 border border-gray-200 rounded-full px-2 py-0.5 align-middle">knop → {m.doel}</span>
-                    <div className="grid grid-cols-[70px_86px_78px_70px] gap-x-4 gap-y-1 mt-2 tabular-nums">
-                      <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Open</div><div className="text-[15px] font-semibold">{m.open}%</div></div>
-                      <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Klik</div><div className="text-[15px] font-semibold">{m.klik}%</div></div>
-                      <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Verkocht</div><div className="text-[15px] font-semibold text-gray-400">—</div></div>
-                      <div><div className="text-[10.5px] uppercase tracking-wide text-gray-400">Afmeld</div><div className="text-[15px] font-semibold">{m.afmeld != null ? `${m.afmeld}%` : "—"}</div></div>
-                    </div>
-                  </div>
-                ))}
+      {data === undefined ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600" />
+        </div>
+      ) : data.length === 0 ? (
+        <p className="text-sm text-gray-400 px-1">Nog geen leads in een funnel.</p>
+      ) : (
+        data.map((f) => {
+          const maxBucket = Math.max(1, ...f.buckets.map((b) => b.aantal));
+          return (
+            <div key={f.spoor} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+              <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold text-gray-900">{f.titel}</h3>
+                  <p className="text-xs text-gray-400">
+                    {f.actiefInReeks} actief in de reeks · {f.totaal} totaal
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-1.5 justify-end">
+                  {Object.entries(f.status)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([st, n]) => (
+                      <span
+                        key={st}
+                        className="text-[11px] text-gray-600 bg-gray-50 border border-gray-200 rounded-full px-2 py-0.5"
+                      >
+                        {STATUS_LABEL[st] ?? st} <span className="font-semibold text-gray-800">{n}</span>
+                      </span>
+                    ))}
+                </div>
               </div>
-            )}
-          </div>
-        );
-      })}
 
-      <p className="text-xs text-gray-400 leading-relaxed">
-        <strong>Zo lees je het.</strong> Open = geopend gedeeld door afgeleverd. Klik = doorklik gedeeld door afgeleverd,
-        waarbij klikken op de afmeldlink níét meetellen (dat is geen interesse). Afmeld = afmeldingen gedeeld door verzonden,
-        sinds de schone start. De kolom Verkocht (verkopen per mail) vullen we bij de verkoopanalyse.
-      </p>
+              {f.aantalMails === 0 ? (
+                <p className="text-sm text-gray-400 px-5 py-3">Deze funnel heeft nog geen actief mailschema.</p>
+              ) : f.actiefInReeks === 0 ? (
+                <p className="text-sm text-gray-400 px-5 py-3">Niemand loopt op dit moment actief de reeks door.</p>
+              ) : (
+                <div className="p-3 space-y-1.5">
+                  {f.buckets.map((b) => (
+                    <div key={b.label} className="flex items-center gap-3 px-2 py-1">
+                      <span className="text-sm text-gray-600 w-64 shrink-0">{b.label}</span>
+                      <div className="flex-1 h-2 rounded-full bg-gray-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-primary-400"
+                          style={{ width: `${(b.aantal / maxBucket) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-900 tabular-nums w-8 text-right">{b.aantal}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
     </div>
   );
 }
