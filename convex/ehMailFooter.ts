@@ -46,13 +46,18 @@ export function persoonlijkOnderwerp(subject: string, naam?: string | null): str
 
 // Vult {voornaam} in de mailtekst. Mét naam: gewoon invullen. Zónder naam schonen we
 // netjes op, ook middenin een zin: een "{voornaam}" met een komma ervoor (bijv.
-// "...was, {voornaam}.") valt met komma en al weg, en een placeholder in de aanhef
-// ("Hi {voornaam},") laat alleen "Hi," over. Zo blijft er nooit een kale komma of
-// dubbele spatie staan. Veilig voor teksten zonder {voornaam}: die blijven ongewijzigd.
+// "...was, {voornaam}.") valt met komma en al weg, een placeholder in de aanhef
+// ("Hi {voornaam},") laat alleen "Hi," over, en een naam-aanhef vooraan een regel
+// ("{voornaam}, er is...") valt met de komma weg en de zin begint met een hoofdletter
+// ("Er is..."). Zo blijft er nooit een kale komma of dubbele spatie staan. Veilig voor
+// teksten zonder {voornaam}: die blijven ongewijzigd.
 export function persoonlijkeBody(bodyText: string, naam?: string | null): string {
   const voornaam = (naam || "").trim().split(" ")[0];
   if (voornaam) return (bodyText || "").replace(/\{voornaam\}/g, voornaam);
   return (bodyText || "")
+    // Naam-aanhef vooraan een regel ("{voornaam}, Tekst") → naam + komma weg, en de
+    // volgende letter wordt een hoofdletter, zodat er geen losse komma blijft staan.
+    .replace(/(^|\n)[ \t]*\{voornaam\}[ \t]*,[ \t]*([a-zà-ÿ])/g, (_m, pre, c) => pre + c.toUpperCase())
     .replace(/,[ \t]*\{voornaam\}/g, "{voornaam}") // komma vlak vóór de naam weghalen
     .replace(/\{voornaam\}/g, "") // de placeholder zelf weghalen
     .replace(/[ \t]{2,}/g, " ") // dubbele spaties dichttrekken

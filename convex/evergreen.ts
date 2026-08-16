@@ -598,9 +598,13 @@ async function bouwEvergreenHtml(
   const heeftPsBenji = bodyVoorSplit
     .split(/\n\n+/)
     .some((p) => /^p\.?\s*s\.?/i.test(p.trim()) && /(?<!Talk To )(?<!Talk to )Benji/.test(p));
+  // Losse naam "Benji" ergens in de brieftekst zelf (buiten "Talk To Benji"). De eerste
+  // zo'n vermelding maken we één keer klikbaar, net als in de P.S. Ook zonder P.S. of
+  // marker moet er dan een token/link zijn.
+  const heeftBodyBenji = /(?<!Talk To )(?<!Talk to )Benji/.test(bodyVoorSplit);
   let blokHtml = "";
   let benjiUrl = "";
-  if (heeftBlok || heeftBenjiCta || heeftPsBenji) {
+  if (heeftBlok || heeftBenjiCta || heeftPsBenji || heeftBodyBenji) {
     const token = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
       email: args.email,
       naam: args.naam,
@@ -635,6 +639,18 @@ async function bouwEvergreenHtml(
     if (benjiInlineAnchor) inner = inner.replace(PS_BENJI_RE, benjiInlineAnchor);
     return `<p style="font-size:14px;line-height:1.75;color:#718096;margin-top:20px;">${inner.replace(/\n/g, "<br/>")}</p>`;
   };
+  // Eén losse "Benji" in de brieftekst zelf wordt (max één keer over de hele mail)
+  // hetzelfde klikbare, bruine woord als in de P.S. "Talk To Benji" blijft ongemoeid,
+  // en de handtekening raken we nooit aan (die loopt niet via deze renderer).
+  let benjiInBodyGelinkt = false;
+  const EERSTE_BODY_BENJI_RE = /(?<!Talk To )(?<!Talk to )Benji/;
+  const bodyAlinea = (p: string): string => {
+    if (benjiInlineAnchor && !benjiInBodyGelinkt && EERSTE_BODY_BENJI_RE.test(p)) {
+      benjiInBodyGelinkt = true;
+      return mailAlinea(p.replace(EERSTE_BODY_BENJI_RE, benjiInlineAnchor));
+    }
+    return mailAlinea(p);
+  };
 
   const alineas = bodyVoorSplit.split(/\n\n+/).map((p: string) => p.trim()).filter(Boolean);
   const gebruiktAfbeelding = alineas.some((p: string) => AFBEELDING_MARKER.test(p));
@@ -660,9 +676,9 @@ async function bouwEvergreenHtml(
     else if (isPS(p)) psStukken.push(psStijl(p));
     else if (i === groetIndex) {
       stukken.push(autoVoorGroet);
-      stukken.push(mailAlinea(p));
+      stukken.push(bodyAlinea(p));
       stukken.push(mailHandtekeningIen());
-    } else stukken.push(mailAlinea(p));
+    } else stukken.push(bodyAlinea(p));
   });
   if (groetIndex === -1) {
     stukken.push(autoVoorGroet);
