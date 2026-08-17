@@ -900,8 +900,11 @@ export default function ChatPageClient({
               const parsed = !isUser ? parseMemoryMarker(msg.content) : null;
               const displayContent = parsed ? parsed.cleanContent : msg.content;
               const showDeviceMemoryCard = isAnonymousUser && userMsgCount === DEVICE_MEMORY_CARD_AFTER && !isUser;
-              const showSaveCard = isAnonymousUser && !saveCardDismissed && userMsgCount === SAVE_CARD_AFTER && !isUser;
-              const showLimitWarning = isAnonymousUser && userMsgCount === LIMIT_WARNING_AFTER && !isUser;
+              // Save- en limiet-kaart tellen nog op de oude per-sessie-logica ("3 gesprekken",
+              // "nog 2 berichten"). Onder het nieuwe model regelen het zachte zinnetje + de
+              // inline-paywall de grens, dus die twee uit om tegenstrijdige tellingen te voorkomen.
+              const showSaveCard = !berichtenModelActief && isAnonymousUser && !saveCardDismissed && userMsgCount === SAVE_CARD_AFTER && !isUser;
+              const showLimitWarning = !berichtenModelActief && isAnonymousUser && userMsgCount === LIMIT_WARNING_AFTER && !isUser;
               return (
                 <>
                 <div key={msg._id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
