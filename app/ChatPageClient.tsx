@@ -947,10 +947,10 @@ export default function ChatPageClient({
                 </div>
                 {showDeviceMemoryCard && (
                   <div key={`device-memory-${msg._id}`} className="flex justify-center my-2">
-                    <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
-                      <p className="text-sm text-blue-900 font-medium mb-1">Benji onthoudt je verhaal</p>
-                      <p className="text-xs text-blue-700 mb-2">Met een gratis account onthoudt Benji wat je deelt, op elk apparaat waar je inlogt. Zo hoef je nooit opnieuw te beginnen.</p>
-                      <a href="/registreren" className="text-xs font-medium text-blue-700 underline hover:text-blue-900 transition-colors">
+                    <div className="animate-card-in bg-primary-50 border border-primary-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
+                      <p className="text-sm text-primary-900 font-medium mb-1">Benji onthoudt je verhaal</p>
+                      <p className="text-xs text-primary-700 mb-2">Met een gratis account onthoudt Benji wat je deelt, op elk apparaat waar je inlogt. Zo hoef je nooit opnieuw te beginnen.</p>
+                      <a href="/registreren" className="text-xs font-medium text-primary-700 underline hover:text-primary-900 transition-colors">
                         Maak een gratis account →
                       </a>
                     </div>
@@ -958,7 +958,7 @@ export default function ChatPageClient({
                 )}
                 {showSaveCard && (
                   <div key={`save-card-${msg._id}`} className="flex justify-center my-2">
-                    <div className="bg-primary-50 border border-primary-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
+                    <div className="animate-card-in bg-primary-50 border border-primary-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
                       <p className="text-sm text-primary-900 font-medium mb-1">Wil je meer dan 3 gesprekken?</p>
                       <p className="text-xs text-primary-700 mb-3">Met een gratis profiel kun je vijf gesprekken gratis voeren, én onthoudt Benji je verhaal.</p>
                       <div className="flex gap-2">
@@ -980,7 +980,7 @@ export default function ChatPageClient({
                 )}
                 {showLimitWarning && (
                   <div key={`limit-warning-${msg._id}`} className="flex justify-center my-2">
-                    <div className="bg-primary-50 border border-primary-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
+                    <div className="animate-card-in bg-primary-50 border border-primary-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
                       <p className="text-sm text-primary-900 font-medium mb-1">Nog 2 berichten over</p>
                       <p className="text-xs text-primary-700 mb-3">Met een gratis profiel kun je doorpraten én onthoudt Benji je verhaal de volgende keer. Zo hoef je niet opnieuw te beginnen.</p>
                       <div className="flex gap-2">

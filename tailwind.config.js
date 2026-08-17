@@ -27,11 +27,17 @@ module.exports = {
         'pulse-slow': 'pulse 3s infinite',
         'spin-slow': 'spin 3s linear infinite',
         'fade-in': 'fadeIn 0.35s ease-out forwards',
+        // Zachte, rustige binnenkomst voor nudge-kaartjes: infaden + iets omhoog.
+        'card-in': 'cardIn 0.6s ease-out both',
       },
       keyframes: {
         fadeIn: {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
+        },
+        cardIn: {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
         },
       },
     },
