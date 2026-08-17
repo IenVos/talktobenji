@@ -68,6 +68,20 @@ export function berekenGesprekNummer(tijdenOplopend: number[]): number {
 }
 
 /**
+ * Info voor de zachte melding: welk gesprek het VOLGENDE bericht wordt, en of de
+ * bezoeker nu aan het begin van een nieuw gesprek staat (leeg, of >drempel sinds het
+ * laatste bericht = keert terug). Zo kunnen we de melding vooraf tonen i.p.v. pas
+ * nadat er getypt is.
+ */
+export function gesprekInfo(tijdenOplopend: number[]): { volgend: number; nieuwStart: boolean } {
+  const huidig = berekenGesprekNummer(tijdenOplopend);
+  if (tijdenOplopend.length === 0) return { volgend: 1, nieuwStart: true };
+  const laatst = tijdenOplopend[tijdenOplopend.length - 1];
+  const nieuwStart = Date.now() - laatst > gesprekPauzeMs();
+  return { volgend: nieuwStart ? huidig + 1 : huidig, nieuwStart };
+}
+
+/**
  * Titel van het [benji-blok] onderaan de mails (EH-opvolg + evergreen) en soortgelijke
  * "gratis proberen"-copy. Flipt mee met de vlag: uit = de bestaande 7-dagen-belofte,
  * aan = de berichten/gesprekken-belofte. Zo belooft de mail nooit iets anders dan de
@@ -195,6 +209,7 @@ export const getBerichtenStatus = query({
 
     const tijden = await berichtTijdenUser(ctx, args.userId);
     const gebruikt = tijden.length;
+    const info = gesprekInfo(tijden);
     return {
       actief: true,
       gebruikt,
@@ -203,6 +218,8 @@ export const getBerichtenStatus = query({
       bereikt: gebruikt >= limiet,
       zachtSein: gebruikt >= seinVanaf && gebruikt < limiet,
       gesprekNummer: berekenGesprekNummer(tijden),
+      volgendGesprekNummer: info.volgend,
+      nieuwGesprekStart: info.nieuwStart,
     };
   },
 });
@@ -221,6 +238,7 @@ export const getAnoniemBerichtenStatus = query({
     }
     const tijden = await berichtTijdenAnoniem(ctx, args.anonymousId);
     const gebruikt = tijden.length;
+    const info = gesprekInfo(tijden);
     return {
       actief: true,
       gebruikt,
@@ -229,6 +247,8 @@ export const getAnoniemBerichtenStatus = query({
       bereikt: gebruikt >= limiet,
       zachtSein: gebruikt >= seinVanaf && gebruikt < limiet,
       gesprekNummer: berekenGesprekNummer(tijden),
+      volgendGesprekNummer: info.volgend,
+      nieuwGesprekStart: info.nieuwStart,
     };
   },
 });

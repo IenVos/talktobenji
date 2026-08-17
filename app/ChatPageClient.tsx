@@ -251,22 +251,24 @@ export default function ChatPageClient({
   const anonStatus = useQuery(
     api.benjiLimiet.getAnoniemBerichtenStatus,
     berichtenModelActief && !session?.userId && anonymousId ? { anonymousId } : "skip"
-  ) as { actief: boolean; gebruikt: number; bereikt: boolean; zachtSein: boolean; gesprekNummer: number } | undefined;
+  ) as { actief: boolean; gebruikt: number; bereikt: boolean; zachtSein: boolean; volgendGesprekNummer: number; nieuwGesprekStart: boolean } | undefined;
   // Ingelogde bezoeker: apart status-query voor het gesprek-nummer (de zachte tekst).
   const berichtenStatus = useQuery(
     api.benjiLimiet.getBerichtenStatus,
     berichtenModelActief && session?.userId ? { userId: session.userId } : "skip"
-  ) as { actief: boolean; gebruikt: number; bereikt: boolean; gesprekNummer: number } | undefined;
+  ) as { actief: boolean; gebruikt: number; bereikt: boolean; volgendGesprekNummer: number; nieuwGesprekStart: boolean } | undefined;
 
   const loggedInPaywallActief = !!(berichtenModelActief && convCount && convCount.isBerichtenModel && !convCount.hasUnlimited);
   const paywallBereikt = session?.userId
     ? !!(loggedInPaywallActief && convCount!.limit !== null && (convCount!.count ?? 0) >= convCount!.limit!)
     : !!anonStatus?.bereikt;
-  // Gesprek-nummer (>6u-pauze telt als nieuw gesprek). Alleen voor de zachte tekst
-  // "dit is je vijfde gesprek"; de grens blijft de berichtenteller.
+  // Zachte melding "dit is je vijfde gesprek": op basis van welk gesprek het VOLGENDE
+  // bericht wordt, en alleen aan het begin van een nieuw gesprek (vóór je typt). Alleen
+  // beleving; de grens blijft de berichtenteller.
   const nietBetaald = session?.userId ? loggedInPaywallActief : berichtenModelActief;
-  const gesprekNummer = session?.userId ? (berichtenStatus?.gesprekNummer ?? 1) : (anonStatus?.gesprekNummer ?? 1);
-  const toonGesprekMelding = !!(nietBetaald && !paywallBereikt);
+  const gesprekStatus = session?.userId ? berichtenStatus : anonStatus;
+  const volgendGesprek = gesprekStatus?.volgendGesprekNummer ?? 1;
+  const toonGesprekMelding = !!(nietBetaald && !paywallBereikt && gesprekStatus?.nieuwGesprekStart && (volgendGesprek === 4 || volgendGesprek === 5));
 
   // Leading indicator voor advertentie-rendement: meld eenmalig dat de paywall in
   // beeld kwam (de client blokkeert versturen, dus de server ziet het anders niet).
@@ -841,21 +843,6 @@ export default function ChatPageClient({
         )}
         {/* Chat-inhoud */}
         <div className={`relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation ${!sessionId && !isAddingOpener && !ehResolving ? "flex flex-col justify-center" : ""}`}>
-          {/* Zachte melding aan het BEGIN van gesprek 4 en 5, zodat iemand het vooraf
-              weet en niet middenin verrast wordt. Alleen beleving; de grens blijft de
-              berichtenteller. Bij gesprek 1-3 niets. */}
-          {sessionId && toonGesprekMelding && (gesprekNummer === 4 || gesprekNummer === 5) && (
-            <div className="animate-card-in max-w-sm mx-auto mb-4 text-center text-xs text-primary-700 bg-primary-50/80 border border-primary-200 rounded-xl px-4 py-2.5">
-              {gesprekNummer === 4 ? (
-                <>
-                  Je hebt hierna nog één gesprek met Benji. Daarna kun je{" "}
-                  <Link href="/wat-kost-benji" className="font-medium text-primary-800 underline hover:text-primary-900 transition-colors">altijd verder</Link>.
-                </>
-              ) : (
-                "Dit is je vijfde gesprek met Benji."
-              )}
-            </div>
-          )}
           {!sessionId && !isAddingOpener && !ehResolving && (
             <>
               <WelcomeScreen
@@ -1146,6 +1133,23 @@ export default function ChatPageClient({
           gesprek blijft gewoon zichtbaar. Verschijnt pas ná Benji's antwoord
           (niet terwijl hij nog aan het typen is), zodat het gesprek niet wordt
           onderbroken. */}
+      {/* Zachte melding aan het BEGIN van gesprek 4 en 5 (vóór je typt), boven het
+          invoerveld zodat je het meteen ziet. Alleen beleving; grens = berichtenteller. */}
+      {toonGesprekMelding && !isLoading && !pendingUserMessage && (
+        <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pb-1 pt-1">
+          <div className="animate-card-in max-w-sm mx-auto text-center text-xs text-primary-700 bg-primary-50/90 border border-primary-200 rounded-xl px-4 py-2.5">
+            {volgendGesprek === 4 ? (
+              <>
+                Je hebt hierna nog één gesprek met Benji. Daarna kun je{" "}
+                <Link href="/wat-kost-benji" className="font-medium text-primary-800 underline hover:text-primary-900 transition-colors">altijd verder</Link>.
+              </>
+            ) : (
+              "Dit is je vijfde gesprek met Benji."
+            )}
+          </div>
+        </div>
+      )}
+
       {paywallBereikt && !isLoading && !pendingUserMessage && (
         <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pb-2 pt-1">
           <div className="animate-card-in bg-primary-100 border border-primary-300 rounded-2xl px-5 py-5 shadow-sm text-center max-w-sm mx-auto">
