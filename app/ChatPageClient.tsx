@@ -232,6 +232,37 @@ export default function ChatPageClient({
   const SAVE_CARD_AFTER = 8;  // toon save-card na 8 gebruikersberichten
   const LIMIT_WARNING_AFTER = 13; // toon limiet-waarschuwing na 13 gebruikersberichten (limiet is 15)
 
+  // Nieuw gratis-model (gebruik i.p.v. tijd). Alles hangt achter de env-flag; zolang
+  // die uit staat is berichtenModelActief false en verandert er niets aan de UI.
+  const berichtenConfig = useQuery(api.benjiLimiet.getConfig) as
+    | { actief: boolean; limiet: number; zachtSeinVanaf: number }
+    | undefined;
+  const berichtenModelActief = berichtenConfig?.actief ?? false;
+  // getConversationCount weet als enige of deze ingelogde gebruiker onder de teller
+  // valt (isBerichtenModel) én of hij onbeperkt/betaald is (hasUnlimited). Zo raakt
+  // een betaalde klant nooit de paywall, ook al heeft die >175 berichten.
+  const convCount = useQuery(
+    api.subscriptions.getConversationCount,
+    berichtenModelActief && session?.userId
+      ? { userId: session.userId, email: session.user?.email ?? undefined }
+      : "skip"
+  ) as { count: number; limit: number | null; hasUnlimited: boolean; isBerichtenModel?: boolean } | undefined;
+  const paywallActief = !!(berichtenModelActief && convCount && convCount.isBerichtenModel && !convCount.hasUnlimited);
+  const berichtenGebruikt = convCount?.count ?? 0;
+  const paywallBereikt = !!(paywallActief && convCount!.limit !== null && berichtenGebruikt >= convCount!.limit!);
+  const toonZachtSein = !!(paywallActief && !paywallBereikt && berichtenGebruikt >= (berichtenConfig?.zachtSeinVanaf ?? 130));
+
+  // Leading indicator voor advertentie-rendement: meld eenmalig dat de paywall in
+  // beeld kwam (de client blokkeert versturen, dus de server ziet het anders niet).
+  const meldPaywallBereikt = useMutation(api.benjiLimiet.meldPaywallBereikt);
+  const paywallGemeld = useRef(false);
+  useEffect(() => {
+    if (paywallBereikt && !paywallGemeld.current) {
+      paywallGemeld.current = true;
+      meldPaywallBereikt().catch(() => {});
+    }
+  }, [paywallBereikt, meldPaywallBereikt]);
+
   const preferencesData = useQuery(
     api.preferences.getPreferencesWithUrl,
     session?.userId ? { userId: session.userId } : "skip"
@@ -575,6 +606,8 @@ export default function ChatPageClient({
 
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
+    // Nieuw model: gratis berichten-tegoed op → paywall staat in beeld, niet versturen.
+    if (paywallBereikt) return;
     setShowTopicButtons(false);
     const messageText = text.trim();
     setInput("");
@@ -624,6 +657,13 @@ export default function ChatPageClient({
         }
         if (result.error === "USER_MESSAGE_LIMIT") {
           setMessageLimitType("free");
+          return;
+        }
+        if (result.error === "BENJI_LIMIET_BEREIKT") {
+          // Nieuw model: gratis berichten-tegoed op. De paywall verschijnt reactief
+          // via convCount; het niet-verstuurde bericht weghalen zodat het niet als
+          // "verzonden" blijft staan.
+          setPendingUserMessage(null);
           return;
         }
         setChatError(result.error);
@@ -1054,6 +1094,32 @@ export default function ChatPageClient({
           >
             ✕
           </button>
+        </div>
+      )}
+
+      {/* Nieuw model: zacht seintje rond 75% — geen kaart, geen teller, één rustige regel */}
+      {toonZachtSein && !paywallBereikt && (
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 pb-1 pt-2 text-center text-xs text-primary-700/80">
+          Je bent goed bezig, we hebben nog wat samen.
+        </div>
+      )}
+
+      {/* Nieuw model: paywall op ~175 berichten. Warm, geen muur. */}
+      {paywallBereikt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Wat je hier opbouwt, blijft van jou</h2>
+            <p className="text-sm text-gray-600 leading-relaxed mb-4">
+              Je gesprekken, je brief, je herinneringen. Ze blijven bewaard zolang je met Benji verdergaat.
+            </p>
+            <div className="flex flex-col gap-2">
+              <Link href="/wat-kost-benji" className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
+                Verder met Benji · 20 p/m →
+              </Link>
+              <p className="text-xs text-gray-400 mt-1">Liever langer? 3 mnd 50 · half jaar 90</p>
+              <p className="text-[11px] text-gray-400">Geen abonnement, stopt vanzelf.</p>
+            </div>
+          </div>
         </div>
       )}
 

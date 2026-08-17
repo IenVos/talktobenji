@@ -174,6 +174,7 @@ export const handleUserMessage = action({
       // BACKEND GESPREKSLIMIET CHECK + bepaal account type
       let isPaid = false;
       let isFreeUser = false;
+      let nieuwModelUser = false; // ingelogde gratis gebruiker onder het berichten-model
       const isGuest = !chatSession?.userId;
 
       if (chatSession?.userId) {
@@ -183,7 +184,17 @@ export const handleUserMessage = action({
         });
         isPaid = convCount.hasUnlimited;
         isFreeUser = !convCount.hasUnlimited;
-        if (!convCount.hasUnlimited && convCount.limit !== null && convCount.count > convCount.limit) {
+        nieuwModelUser = !!(convCount as any).isBerichtenModel;
+        if (nieuwModelUser) {
+          // Nieuw model: harde grens = berichten-tegoed (~175) over alle gesprekken.
+          // De per-sessie-limiet hieronder geldt hier niet; deze teller is leidend.
+          if (convCount.limit !== null && convCount.count >= convCount.limit) {
+            await ctx.runMutation(internal.benjiLimiet.markPaywallBereikt, {
+              userId: chatSession.userId,
+            });
+            return { success: false, error: "BENJI_LIMIET_BEREIKT" };
+          }
+        } else if (!convCount.hasUnlimited && convCount.limit !== null && convCount.count > convCount.limit) {
           return {
             success: false,
             error: "Je hebt je gespreksmaandlimiet bereikt. Upgrade je abonnement voor onbeperkte gesprekken.",
@@ -202,9 +213,11 @@ export const handleUserMessage = action({
         }
       }
 
-      // BERICHTENLIMIET PER SESSIE — voorkomt open laten staan van chat
+      // BERICHTENLIMIET PER SESSIE — voorkomt open laten staan van chat.
+      // Onder het nieuwe model geldt voor ingelogde gratis gebruikers de totale
+      // berichten-teller (hierboven), niet deze per-sessie-limiet.
       const sessionUserMsgCount = (recentMessages || []).filter((m: any) => m.role === "user").length;
-      const msgLimit = isGuest ? 15 : isFreeUser ? 15 : Infinity;
+      const msgLimit = isGuest ? 15 : nieuwModelUser ? Infinity : isFreeUser ? 15 : Infinity;
       if (sessionUserMsgCount >= msgLimit) {
         return {
           success: false,

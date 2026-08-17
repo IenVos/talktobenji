@@ -267,6 +267,11 @@ export default defineSchema({
     // EH-proef: "morgen stopt je week met Benji"-mail, vastgehangen aan de eigen
     // proefklok (dag voor afloop), één keer. Los van de generieke day5/day7-reminders.
     proefEindMailSent: v.optional(v.boolean()),
+    // Nieuw berichten-model: moment waarop deze gebruiker voor het eerst tegen de
+    // gratis grens (~175 berichten) aanliep en de paywall in beeld kreeg. Eén keer
+    // gezet; leading indicator voor advertentie-rendement (klik → account → paywall
+    // → koop). Zie convex/benjiLimiet.ts.
+    paywallBereiktAt: v.optional(v.number()),
     renewalEmail1SentAt: v.optional(v.number()), // 30 dagen voor einde jaar-toegang
     renewalEmail2SentAt: v.optional(v.number()), // 15 dagen voor einde jaar-toegang
     renewalEmail3SentAt: v.optional(v.number()), // laatste dag jaar-toegang

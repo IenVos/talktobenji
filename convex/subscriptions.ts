@@ -4,6 +4,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { berichtenModelActief, telGebruikersberichten, GRATIS_BERICHTEN_LIMIET } from "./benjiLimiet";
 
 // Admin email met volledige toegang — via env var, niet hardcoded
 const ADMIN_EMAIL = process.env.ADMIN_EXEMPT_EMAIL ?? "";
@@ -179,6 +180,11 @@ export const getConversationCount = query({
       .first();
 
     const subType = subscription?.subscriptionType || "free";
+    // Nieuw gebruik-model: een lopende trial is GEEN onbeperkte toegang meer,
+    // maar valt onder het berichten-tegoed hieronder. Alleen echt betaalde
+    // pakketten (uitgebreid/alles_in_1/benji-venster/lopend-na-opzegging) blijven
+    // onbeperkt. Zolang de flag uit staat, gedraagt alles zich als vroeger.
+    const nieuwModel = berichtenModelActief();
     const isActiveTrial =
       subType === "trial" &&
       (!subscription?.expiresAt || subscription.expiresAt >= Date.now());
@@ -191,12 +197,32 @@ export const getConversationCount = query({
     // Los Benji-venster (30 dagen na aankoop Niet Alleen): onbeperkt zolang geldig.
     const benjiVenster = !!(subscription?.benjiExpiresAt && subscription.benjiExpiresAt > Date.now());
 
-    if (subType === "uitgebreid" || subType === "alles_in_1" || isActiveTrial || isCancelledButValid || benjiVenster) {
+    if (
+      subType === "uitgebreid" ||
+      subType === "alles_in_1" ||
+      (isActiveTrial && !nieuwModel) ||
+      isCancelledButValid ||
+      benjiVenster
+    ) {
       return {
         count,
         limit: null,
         hasUnlimited: true,
         isLapsed: false,
+      };
+    }
+
+    // Nieuw model: gratis = een tegoed aan berichten (~175) over alle gesprekken
+    // heen. De teller is de harde grens; het aantal "gesprekken" is alleen tekst.
+    if (nieuwModel) {
+      const gebruikt = await telGebruikersberichten(ctx, args.userId);
+      return {
+        count: gebruikt,
+        limit: GRATIS_BERICHTEN_LIMIET,
+        hasUnlimited: false,
+        isLapsed: false,
+        isFree: true,
+        isBerichtenModel: true,
       };
     }
 
