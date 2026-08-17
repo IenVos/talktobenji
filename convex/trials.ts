@@ -4,12 +4,18 @@
 import { mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { berichtenModelActief } from "./benjiLimiet";
 
 const DAY_MS = 1000 * 60 * 60 * 24;
 
 export const checkAndProcessTrials = mutation({
   args: { adminToken: v.optional(v.string()) },
   handler: async (ctx) => {
+    // Nieuw gebruik-model: de tijd-machine (dagen aftellen, dag5/dag7-reminders,
+    // proefeind-mail, trial → free zetten) is dan overbodig en misleidend. Zolang
+    // de vlag aan staat doet deze cron niets. Vlag uit = alles werkt als vroeger.
+    if (berichtenModelActief()) return;
+
     const now = Date.now();
 
     const trialSubscriptions = await ctx.db

@@ -50,11 +50,12 @@ Dit is copy/mail die "7 dagen" belooft. Zolang de vlag uit staat klopt de oude t
 - [ ] `convex/emailTemplatesDefaults.ts` (r. 123, 265) proefeind-mails ("laatste dag van je 7 dagen", "nog 7 dagen om te bewaren"). Dit zijn trial-eind-mails die bij het usage-model niet meer verstuurd worden (cron uit); of vervangen door 1 "bijna op"-mail. LET OP: dit zijn DEFAULTS; bestaande DB-templates moet je apart in de admin nalopen.
 - [ ] Losse mail-templates in de DB die "7 dagen" noemen (admin nalopen; code-defaults ≠ live DB-tekst).
 
-**Tijd-machine (uitzetten of laten uitdoven):**
-- [ ] `convex/crons.ts` — `checkAndProcessTrials` (2×/dag) uitzetten
-- [ ] `convex/trials.ts` — dagen aftellen / dag5+dag7 reminders / verlopen→free: overbodig bij usage-model
-- [ ] `trial_day5` / `trial_day7`-mails + `app/admin/trial-emails` — vervangen door optioneel 1 "bijna op"-mail, of laten vallen
-- [ ] `convex/benjiStart.ts` — trial-subscription blijft prima (wordt onder de vlag als teller-gratis behandeld); `TRIAL_MS`/`expiresAt` doen dan niets meer functioneel
+**Tijd-machine — AL flag-gated (niks meer te doen):**
+- [x] `convex/trials.ts` `checkAndProcessTrials` — doet niets zodra de vlag aan staat (geen dagen aftellen, geen dag5/dag7-reminders, geen proefeind-mail, geen trial→free). De cron in `crons.ts` mag blijven draaien; hij is dan een no-op.
+- [x] `convex/benjiStart.ts` — trial-subscription blijft prima (wordt onder de vlag als teller-gratis behandeld); `TRIAL_MS`/`expiresAt` doen dan niets meer functioneel. Geen wijziging nodig.
+
+**Tijd-machine — optioneel later:**
+- [ ] `trial_day5` / `trial_day7`-mails + `app/admin/trial-emails` — nu ongebruikt onder de vlag; eventueel opruimen of vervangen door 1 "bijna op"-mail (op basis van gebruik).
 
 **Benji-prompt:**
 - [ ] Regel toevoegen: Benji praat NOOIT over proef/limiet/berichten-over/betalen. De UI regelt dat, buiten hem om.
