@@ -1123,10 +1123,10 @@ export default function ChatPageClient({
           gesprek blijft gewoon zichtbaar. Warm, geen blokkerend scherm. */}
       {paywallBereikt && (
         <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pb-2 pt-1">
-          <div className="animate-card-in bg-primary-50 border border-primary-200 rounded-2xl px-4 py-4 shadow-sm text-center max-w-sm mx-auto">
+          <div className="animate-card-in bg-primary-100 border border-primary-300 rounded-2xl px-4 py-4 shadow-sm text-center max-w-sm mx-auto">
             <p className="text-sm font-medium text-primary-900 mb-1">Je vijf gesprekken zitten erop</p>
             <p className="text-xs text-primary-700 mb-3">Wil je verdergaan met Benji? Je gesprekken en herinneringen blijven gewoon bewaard.</p>
-            <Link href="/wat-kost-benji" className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-300 hover:bg-primary-400 text-primary-900 rounded-xl text-sm font-medium transition-colors">
+            <Link href="/wat-kost-benji" className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-400 hover:bg-primary-500 text-primary-900 rounded-xl text-sm font-medium transition-colors">
               Verder met Benji →
             </Link>
             <p className="text-[11px] text-primary-600/70 mt-2">Vanaf 20 p/m. Geen abonnement, stopt vanzelf.</p>
