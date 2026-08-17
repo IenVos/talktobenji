@@ -899,7 +899,9 @@ export default function ChatPageClient({
               if (isUser) userMsgCount++;
               const parsed = !isUser ? parseMemoryMarker(msg.content) : null;
               const displayContent = parsed ? parsed.cleanContent : msg.content;
-              const showDeviceMemoryCard = isAnonymousUser && userMsgCount === DEVICE_MEMORY_CARD_AFTER && !isUser;
+              // Onder het nieuwe model verstoren tussentijdse kaartjes het gesprek;
+              // we laten alleen bij de afsluiting (de paywall) iets zien.
+              const showDeviceMemoryCard = !berichtenModelActief && isAnonymousUser && userMsgCount === DEVICE_MEMORY_CARD_AFTER && !isUser;
               // Save- en limiet-kaart tellen nog op de oude per-sessie-logica ("3 gesprekken",
               // "nog 2 berichten"). Onder het nieuwe model regelen het zachte zinnetje + de
               // inline-paywall de grens, dus die twee uit om tegenstrijdige tellingen te voorkomen.
@@ -1025,13 +1027,13 @@ export default function ChatPageClient({
               </div>
             )}
             {(isLoading || isAddingOpener) && (
-              <div className="flex justify-start">
-                <div className={`max-w-sm rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm ${isNacht ? "bg-white/80 border border-white/30 backdrop-blur-sm" : "bg-white border border-gray-200"}`}>
-                  <span className="relative flex h-3 w-3">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-primary-400/40 animate-ping" style={{ animationDuration: '2.4s' }}></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-500/60"></span>
-                  </span>
-                </div>
+              <div className="flex justify-start pl-2 py-2">
+                {/* Geen chatwolkje: alleen een rustig pulserend puntje met een dun
+                    donkerblauw randje. */}
+                <span className="relative flex h-3.5 w-3.5">
+                  <span className={`absolute inline-flex h-full w-full rounded-full border animate-ping ${isNacht ? "border-white/50" : "border-primary-900/50"}`} style={{ animationDuration: '2.4s' }}></span>
+                  <span className={`relative inline-flex rounded-full h-3.5 w-3.5 border ${isNacht ? "border-white/80 bg-white/30" : "border-primary-900 bg-primary-900/60"}`}></span>
+                </span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -1112,24 +1114,19 @@ export default function ChatPageClient({
         </div>
       )}
 
-      {/* Nieuw model: zacht seintje rond 75% — geen kaart, geen teller, één rustige regel */}
-      {toonZachtSein && !paywallBereikt && (
-        <div className="max-w-3xl mx-auto px-3 sm:px-4 pb-1 pt-2 text-center text-xs text-primary-700/80">
-          Je bent goed bezig, we hebben nog wat samen.
-        </div>
-      )}
-
       {/* Nieuw model: paywall wanneer de 5 gesprekken op zijn. Inline melding, het
-          gesprek blijft gewoon zichtbaar. Warm, geen blokkerend scherm. */}
-      {paywallBereikt && (
+          gesprek blijft gewoon zichtbaar. Verschijnt pas ná Benji's antwoord
+          (niet terwijl hij nog aan het typen is), zodat het gesprek niet wordt
+          onderbroken. */}
+      {paywallBereikt && !isLoading && !pendingUserMessage && (
         <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pb-2 pt-1">
-          <div className="animate-card-in bg-primary-100 border border-primary-300 rounded-2xl px-4 py-4 shadow-sm text-center max-w-sm mx-auto">
-            <p className="text-sm font-medium text-primary-900 mb-1">Je vijf gesprekken zitten erop</p>
-            <p className="text-xs text-primary-700 mb-3">Wil je verdergaan met Benji? Je gesprekken en herinneringen blijven gewoon bewaard.</p>
-            <Link href="/wat-kost-benji" className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-400 hover:bg-primary-500 text-primary-900 rounded-xl text-sm font-medium transition-colors">
-              Verder met Benji →
+          <div className="animate-card-in bg-primary-100 border border-primary-300 rounded-2xl px-5 py-5 shadow-sm text-center max-w-sm mx-auto">
+            <p className="text-sm font-semibold text-primary-900 mb-2">Benji blijft er graag voor je</p>
+            <p className="text-xs text-primary-700 leading-relaxed mb-4">Je gesprekken en herinneringen blijven bewaard. Je kunt gewoon verder waar je gebleven was.</p>
+            <Link href="/wat-kost-benji" className="inline-flex items-center justify-center px-5 py-2.5 bg-primary-400 hover:bg-primary-500 text-primary-900 rounded-xl text-sm font-medium transition-colors">
+              Verder praten met Benji
             </Link>
-            <p className="text-[11px] text-primary-600/70 mt-2">Vanaf 20 p/m. Geen abonnement, stopt vanzelf.</p>
+            <p className="text-[11px] text-primary-600/70 mt-3">Vanaf 20 p/m. Geen abonnement, stopt vanzelf.</p>
           </div>
         </div>
       )}
