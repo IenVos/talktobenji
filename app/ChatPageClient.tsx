@@ -555,11 +555,15 @@ export default function ChatPageClient({
     prevMessageCountRef.current = currentCount;
 
     if (newMessageArrived) {
-      // Nieuw bericht: altijd naar beneden scrollen
+      // Nieuw bericht: naar beneden scrollen. Dubbele requestAnimationFrame zodat het
+      // pas gebeurt NADAT het wachtbolletje weg is en de nieuwe bubbel is uitgelijnd,
+      // anders verspringt het beeld (scroll naar een hoogte die daarna nog krimpt).
       requestAnimationFrame(() => {
-        if (mainRef.current) {
-          mainRef.current.scrollTo({ top: mainRef.current.scrollHeight, behavior: "smooth" });
-        }
+        requestAnimationFrame(() => {
+          if (mainRef.current) {
+            mainRef.current.scrollTo({ top: mainRef.current.scrollHeight, behavior: "smooth" });
+          }
+        });
       });
       return;
     }
@@ -1048,13 +1052,14 @@ export default function ChatPageClient({
                 </div>
               </div>
             )}
-            {(isLoading || isAddingOpener) && (
+            {isLoading && (
               <div className="flex justify-start pl-2 py-2">
-                {/* Geen chatwolkje: alleen een rustig pulserend puntje met een dun
-                    donkerblauw randje. */}
+                {/* Geen chatwolkje: alleen een rustig pulserend puntje. Lichtblauw
+                    bolletje met een dun donkerblauw randje. Alleen bij het wachten op
+                    een antwoord (niet bij het openen van de chat). */}
                 <span className="relative flex h-3.5 w-3.5">
-                  <span className={`absolute inline-flex h-full w-full rounded-full border animate-ping ${isNacht ? "border-white/50" : "border-primary-900/50"}`} style={{ animationDuration: '2.4s' }}></span>
-                  <span className={`relative inline-flex rounded-full h-3.5 w-3.5 border ${isNacht ? "border-white/80 bg-white/30" : "border-primary-900 bg-primary-900/60"}`}></span>
+                  <span className={`absolute inline-flex h-full w-full rounded-full animate-ping ${isNacht ? "bg-white/30" : "bg-primary-300/50"}`} style={{ animationDuration: '2.4s' }}></span>
+                  <span className={`relative inline-flex rounded-full h-3.5 w-3.5 border ${isNacht ? "border-white bg-white/40" : "border-primary-900 bg-primary-300"}`}></span>
                 </span>
               </div>
             )}
@@ -1144,11 +1149,17 @@ export default function ChatPageClient({
         <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pb-2 pt-1">
           <div className="animate-card-in bg-primary-100 border border-primary-300 rounded-2xl px-5 py-5 shadow-sm text-center max-w-sm mx-auto">
             <p className="text-sm font-semibold text-primary-900 mb-2">Benji blijft er graag voor je</p>
-            <p className="text-xs text-primary-700 leading-relaxed mb-4">Je gesprekken en herinneringen blijven bewaard. Je kunt gewoon verder waar je gebleven was.</p>
+            <p className="text-xs text-primary-700 leading-relaxed mb-4">
+              Je gesprekken en herinneringen blijven bewaard.<br />
+              Je kunt gewoon verder waar je gebleven was.
+            </p>
             <Link href="/wat-kost-benji" className="inline-flex items-center justify-center px-5 py-2.5 bg-primary-400 hover:bg-primary-500 text-primary-900 rounded-xl text-sm font-medium transition-colors">
               Verder praten met Benji
             </Link>
-            <p className="text-[11px] text-primary-600/70 mt-3">Vanaf 20 p/m. Geen abonnement, stopt vanzelf.</p>
+            <p className="text-[11px] text-primary-600/70 mt-3">
+              Vanaf 20 p/m. Geen abonnement,<br />
+              stopt vanzelf.
+            </p>
           </div>
         </div>
       )}
