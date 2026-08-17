@@ -74,9 +74,9 @@ export function WelcomeScreen({
           met Benji heeft gepraat; terugkerende mensen kennen het al. */}
       {toonIntroKader && showTopicButtons && (
         <div className="w-full max-w-sm mx-auto mb-4 sm:mb-5">
-          <div className={`rounded-xl px-4 py-3 text-left backdrop-blur-sm border-2 ${isDark ? "bg-white/10 border-amber-300/60" : "bg-white/55 border-amber-300 shadow-sm"}`}>
+          <div className={`rounded-xl px-4 py-3 text-left backdrop-blur-sm border ${isDark ? "bg-white/10 border-primary-300/50" : "bg-white/60 border-primary-300 shadow-sm"}`}>
             <div className="flex items-center gap-1.5 mb-1.5">
-              <MessageCircle size={15} strokeWidth={2} className={`flex-shrink-0 ${isDark ? "text-amber-200" : "text-amber-500"}`} />
+              <MessageCircle size={15} strokeWidth={2} className={`flex-shrink-0 ${isDark ? "text-primary-200" : "text-primary-500"}`} />
               <span className={`text-xs sm:text-[13px] font-semibold leading-snug ${isDark ? "text-white" : "text-primary-900"}`}>
                 Benji is geen zoekmachine, zie hem als een buddy
               </span>
