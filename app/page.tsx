@@ -188,7 +188,7 @@ const FAQ: FaqItem[] = [
   {
     vraag: "Is het veilig om hier mijn verhaal te delen?",
     antwoord:
-      "Je kunt gewoon beginnen, zonder naam, e-mailadres of account. Je gesprekken zijn versleuteld en worden nooit verkocht of gedeeld met derden. Jij beslist zelf wat je vertelt en wat niet.\n\nWil je meer? Maak een gratis account aan en probeer alles 7 dagen zonder kosten uit. Daarna kies je zelf of en hoe je verdergaat.",
+      "Je kunt gewoon beginnen, zonder naam, e-mailadres of account. Je gesprekken zijn versleuteld en worden nooit verkocht of gedeeld met derden. Jij beslist zelf wat je vertelt en wat niet.\n\nWil je meer? Maak een gratis account aan, dan zijn je eerste vijf gesprekken gratis. Daarna kies je zelf of en hoe je verdergaat.",
   },
   {
     vraag: "Is Benji een vervanging voor professionele hulp?",
@@ -203,7 +203,7 @@ const FAQ: FaqItem[] = [
   {
     vraag: "Kost praten met Benji geld?",
     antwoord:
-      "Je eerste gesprekken zijn gratis, zonder account. Maak je een account aan, dan kun je 7 dagen gratis alles uitproberen.\n\nDaarna kies je wat bij je past: een maand voor €20, drie maanden voor €50 (meest gekozen), of een half jaar voor €90.",
+      "Je eerste gesprekken zijn gratis, zonder account. Maak je een account aan, dan zijn je eerste vijf gesprekken gratis.\n\nDaarna kies je wat bij je past: een maand voor €20, drie maanden voor €50 (meest gekozen), of een half jaar voor €90.",
     link: { tekst: "Bekijk wat er allemaal bij zit", href: "/lp/jaar-toegang" },
   },
 ];

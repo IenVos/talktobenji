@@ -256,7 +256,7 @@ export default async function WaaromBenjiPage() {
           </div>
 
           <p className="text-sm sm:text-base text-gray-500 leading-relaxed">
-            <span className="italic">P.S.</span> Als je een account aanmaakt, heb je de eerste 7 dagen gratis toegang tot alles wat Benji te bieden heeft. Daarna kies je zelf hoe je verdergaat.
+            <span className="italic">P.S.</span> Als je een account aanmaakt, zijn je eerste vijf gesprekken gratis, met toegang tot alles wat Benji te bieden heeft. Daarna kies je zelf hoe je verdergaat.
           </p>
 
           <div className="flex justify-center pt-4">
