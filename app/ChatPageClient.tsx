@@ -251,15 +251,22 @@ export default function ChatPageClient({
   const anonStatus = useQuery(
     api.benjiLimiet.getAnoniemBerichtenStatus,
     berichtenModelActief && !session?.userId && anonymousId ? { anonymousId } : "skip"
-  ) as { actief: boolean; gebruikt: number; bereikt: boolean; zachtSein: boolean } | undefined;
+  ) as { actief: boolean; gebruikt: number; bereikt: boolean; zachtSein: boolean; gesprekNummer: number } | undefined;
+  // Ingelogde bezoeker: apart status-query voor het gesprek-nummer (de zachte tekst).
+  const berichtenStatus = useQuery(
+    api.benjiLimiet.getBerichtenStatus,
+    berichtenModelActief && session?.userId ? { userId: session.userId } : "skip"
+  ) as { actief: boolean; gebruikt: number; bereikt: boolean; gesprekNummer: number } | undefined;
 
   const loggedInPaywallActief = !!(berichtenModelActief && convCount && convCount.isBerichtenModel && !convCount.hasUnlimited);
   const paywallBereikt = session?.userId
     ? !!(loggedInPaywallActief && convCount!.limit !== null && (convCount!.count ?? 0) >= convCount!.limit!)
     : !!anonStatus?.bereikt;
-  const toonZachtSein = session?.userId
-    ? !!(loggedInPaywallActief && !paywallBereikt && (convCount!.count ?? 0) >= (berichtenConfig?.zachtSeinVanaf ?? 130))
-    : !!anonStatus?.zachtSein;
+  // Gesprek-nummer (>6u-pauze telt als nieuw gesprek). Alleen voor de zachte tekst
+  // "dit is je vijfde gesprek"; de grens blijft de berichtenteller.
+  const nietBetaald = session?.userId ? loggedInPaywallActief : berichtenModelActief;
+  const gesprekNummer = session?.userId ? (berichtenStatus?.gesprekNummer ?? 1) : (anonStatus?.gesprekNummer ?? 1);
+  const toonGesprekMelding = !!(nietBetaald && !paywallBereikt);
 
   // Leading indicator voor advertentie-rendement: meld eenmalig dat de paywall in
   // beeld kwam (de client blokkeert versturen, dus de server ziet het anders niet).
@@ -830,6 +837,16 @@ export default function ChatPageClient({
         )}
         {/* Chat-inhoud */}
         <div className="relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation">
+          {/* Zachte melding aan het BEGIN van gesprek 4 en 5, zodat iemand het vooraf
+              weet en niet middenin verrast wordt. Alleen beleving; de grens blijft de
+              berichtenteller. Bij gesprek 1-3 niets. */}
+          {sessionId && toonGesprekMelding && (gesprekNummer === 4 || gesprekNummer === 5) && (
+            <div className="animate-card-in max-w-sm mx-auto mb-4 text-center text-xs text-primary-700 bg-primary-50/80 border border-primary-200 rounded-xl px-4 py-2.5">
+              {gesprekNummer === 4
+                ? "Nog één gesprek, daarna vraagt Benji of je verder wilt."
+                : "Dit is je vijfde gesprek met Benji."}
+            </div>
+          )}
           {!sessionId && !isAddingOpener && !ehResolving && (
             <>
               <WelcomeScreen

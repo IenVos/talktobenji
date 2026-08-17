@@ -40,6 +40,31 @@ export function berichtenModelActief(): boolean {
 }
 
 /**
+ * Pauze waarna een volgend bericht als een nieuw "gesprek" telt. Artifact: >6 uur.
+ * Alleen voor de beleving/zachte tekst ("dit is je vijfde gesprek"), NIET de grens
+ * (dat blijft de berichtenteller). Env in minuten (BENJI_GESPREK_PAUZE_MIN) zodat je
+ * kunt testen zonder 6 uur te wachten; default 360 (= 6 uur).
+ */
+export function gesprekPauzeMs(): number {
+  return (envPositiefGetal("BENJI_GESPREK_PAUZE_MIN") ?? 360) * 60 * 1000;
+}
+
+/**
+ * Huidig gesprek-nummer uit oplopende bericht-tijdstippen: begint op 1 en telt +1
+ * telkens er tussen twee opeenvolgende berichten een pauze groter dan de drempel zit.
+ * 0 berichten = gesprek 1 (staat op het punt te beginnen).
+ */
+export function berekenGesprekNummer(tijdenOplopend: number[]): number {
+  if (tijdenOplopend.length === 0) return 1;
+  const drempel = gesprekPauzeMs();
+  let gesprekken = 1;
+  for (let i = 1; i < tijdenOplopend.length; i++) {
+    if (tijdenOplopend[i] - tijdenOplopend[i - 1] > drempel) gesprekken++;
+  }
+  return gesprekken;
+}
+
+/**
  * Titel van het [benji-blok] onderaan de mails (EH-opvolg + evergreen) en soortgelijke
  * "gratis proberen"-copy. Flipt mee met de vlag: uit = de bestaande 7-dagen-belofte,
  * aan = de berichten/gesprekken-belofte. Zo belooft de mail nooit iets anders dan de
@@ -101,6 +126,43 @@ export async function telGebruikersberichtenAnoniem(
   return totaal;
 }
 
+/** Oplopende tijdstippen van alle gebruikersberichten (voor teller + gesprek-nummer). */
+async function berichtTijdenUser(ctx: { db: any }, userId: string): Promise<number[]> {
+  const sessions = await ctx.db
+    .query("chatSessions")
+    .withIndex("by_user", (q: any) => q.eq("userId", userId))
+    .collect();
+  const tijden: number[] = [];
+  for (const s of sessions) {
+    const berichten = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q: any) => q.eq("sessionId", s._id))
+      .collect();
+    for (const m of berichten) if (m.role === "user") tijden.push(m.createdAt);
+  }
+  tijden.sort((a, b) => a - b);
+  return tijden;
+}
+
+/** Idem voor een anonieme bezoeker (nog niet-geclaimde sessies). */
+async function berichtTijdenAnoniem(ctx: { db: any }, anonymousId: string): Promise<number[]> {
+  const sessions = await ctx.db
+    .query("chatSessions")
+    .withIndex("by_anonymous", (q: any) => q.eq("anonymousId", anonymousId))
+    .collect();
+  const tijden: number[] = [];
+  for (const s of sessions) {
+    if (s.userId) continue;
+    const berichten = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q: any) => q.eq("sessionId", s._id))
+      .collect();
+    for (const m of berichten) if (m.role === "user") tijden.push(m.createdAt);
+  }
+  tijden.sort((a, b) => a - b);
+  return tijden;
+}
+
 /**
  * Config voor de frontend: staat het model aan, en wat zijn de grenzen. Zo hoeft
  * de client de env-flag niet te kennen.
@@ -125,14 +187,11 @@ export const getBerichtenStatus = query({
     const limiet = gratisBerichtenLimiet();
     const seinVanaf = zachtSeinVanaf();
     if (!berichtenModelActief()) {
-      return { actief: false, gebruikt: 0, limiet, zachtSeinVanaf: seinVanaf, bereikt: false, zachtSein: false };
+      return { actief: false, gebruikt: 0, limiet, zachtSeinVanaf: seinVanaf, bereikt: false, zachtSein: false, gesprekNummer: 1 };
     }
 
-    // Onbeperkte (betaalde) gebruikers hebben geen grens: hasUnlimited via
-    // getConversationCount. We halen die hier niet opnieuw op om dubbel werk te
-    // voorkomen; de client vraagt getBerichtenStatus alleen voor niet-onbeperkte
-    // gebruikers. Voor de zekerheid geven we toch de rauwe telling terug.
-    const gebruikt = await telGebruikersberichten(ctx, args.userId);
+    const tijden = await berichtTijdenUser(ctx, args.userId);
+    const gebruikt = tijden.length;
     return {
       actief: true,
       gebruikt,
@@ -140,6 +199,7 @@ export const getBerichtenStatus = query({
       zachtSeinVanaf: seinVanaf,
       bereikt: gebruikt >= limiet,
       zachtSein: gebruikt >= seinVanaf && gebruikt < limiet,
+      gesprekNummer: berekenGesprekNummer(tijden),
     };
   },
 });
@@ -154,9 +214,10 @@ export const getAnoniemBerichtenStatus = query({
     const limiet = gratisBerichtenLimiet();
     const seinVanaf = zachtSeinVanaf();
     if (!berichtenModelActief()) {
-      return { actief: false, gebruikt: 0, limiet, zachtSeinVanaf: seinVanaf, bereikt: false, zachtSein: false };
+      return { actief: false, gebruikt: 0, limiet, zachtSeinVanaf: seinVanaf, bereikt: false, zachtSein: false, gesprekNummer: 1 };
     }
-    const gebruikt = await telGebruikersberichtenAnoniem(ctx, args.anonymousId);
+    const tijden = await berichtTijdenAnoniem(ctx, args.anonymousId);
+    const gebruikt = tijden.length;
     return {
       actief: true,
       gebruikt,
@@ -164,6 +225,7 @@ export const getAnoniemBerichtenStatus = query({
       zachtSeinVanaf: seinVanaf,
       bereikt: gebruikt >= limiet,
       zachtSein: gebruikt >= seinVanaf && gebruikt < limiet,
+      gesprekNummer: berekenGesprekNummer(tijden),
     };
   },
 });
