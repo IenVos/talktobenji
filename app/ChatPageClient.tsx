@@ -960,7 +960,7 @@ export default function ChatPageClient({
                   <div key={`save-card-${msg._id}`} className="flex justify-center my-2">
                     <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
                       <p className="text-sm text-amber-900 font-medium mb-1">Wil je meer dan 3 gesprekken?</p>
-                      <p className="text-xs text-amber-700 mb-3">Met een gratis profiel kun je vijf gesprekken gratis voeren — én onthoudt Benji je verhaal.</p>
+                      <p className="text-xs text-amber-700 mb-3">Met een gratis profiel kun je vijf gesprekken gratis voeren, én onthoudt Benji je verhaal.</p>
                       <div className="flex gap-2">
                         <a
                           href="/registreren"

@@ -4,7 +4,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { berichtenModelActief, telGebruikersberichten, GRATIS_BERICHTEN_LIMIET } from "./benjiLimiet";
+import { berichtenModelActief, telGebruikersberichten, gratisBerichtenLimiet } from "./benjiLimiet";
 
 // Admin email met volledige toegang — via env var, niet hardcoded
 const ADMIN_EMAIL = process.env.ADMIN_EXEMPT_EMAIL ?? "";
@@ -218,7 +218,7 @@ export const getConversationCount = query({
       const gebruikt = await telGebruikersberichten(ctx, args.userId);
       return {
         count: gebruikt,
-        limit: GRATIS_BERICHTEN_LIMIET,
+        limit: gratisBerichtenLimiet(),
         hasUnlimited: false,
         isLapsed: false,
         isFree: true,

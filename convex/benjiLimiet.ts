@@ -15,9 +15,24 @@ import { v } from "convex/values";
 import { query, mutation, internalMutation } from "./_generated/server";
 
 // Gratis tegoed: ~5 gesprekken van ~30-40 berichten = samen ~175 berichten.
-export const GRATIS_BERICHTEN_LIMIET = 175;
-// Zacht seintje rond 75% (~bericht 130): geen kaart, alleen een rustige regel.
-export const ZACHT_SEIN_VANAF = 130;
+// Instelbaar via env-var BENJI_GRATIS_BERICHTEN_LIMIET (handig om te testen: zet 'm
+// laag, test de paywall, zet 'm daarna terug op 175 of haal de var weg).
+const DEFAULT_LIMIET = 175;
+
+function envPositiefGetal(naam: string): number | null {
+  const raw = parseInt(process.env[naam] ?? "", 10);
+  return Number.isFinite(raw) && raw > 0 ? raw : null;
+}
+
+/** Gratis berichten-tegoed. Env-var wint, anders 175. */
+export function gratisBerichtenLimiet(): number {
+  return envPositiefGetal("BENJI_GRATIS_BERICHTEN_LIMIET") ?? DEFAULT_LIMIET;
+}
+
+/** Zacht seintje: env-var wint, anders 75% van de limiet (schaalt mee bij testen). */
+export function zachtSeinVanaf(): number {
+  return envPositiefGetal("BENJI_ZACHT_SEIN_VANAF") ?? Math.round(gratisBerichtenLimiet() * 0.75);
+}
 
 /** True zodra de env-flag expliciet aan staat. Overal één bron. */
 export function berichtenModelActief(): boolean {
@@ -68,8 +83,8 @@ export const getConfig = query({
   args: {},
   handler: async () => ({
     actief: berichtenModelActief(),
-    limiet: GRATIS_BERICHTEN_LIMIET,
-    zachtSeinVanaf: ZACHT_SEIN_VANAF,
+    limiet: gratisBerichtenLimiet(),
+    zachtSeinVanaf: zachtSeinVanaf(),
   }),
 });
 
@@ -81,8 +96,10 @@ export const getConfig = query({
 export const getBerichtenStatus = query({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
+    const limiet = gratisBerichtenLimiet();
+    const seinVanaf = zachtSeinVanaf();
     if (!berichtenModelActief()) {
-      return { actief: false, gebruikt: 0, limiet: GRATIS_BERICHTEN_LIMIET, zachtSeinVanaf: ZACHT_SEIN_VANAF, bereikt: false, zachtSein: false };
+      return { actief: false, gebruikt: 0, limiet, zachtSeinVanaf: seinVanaf, bereikt: false, zachtSein: false };
     }
 
     // Onbeperkte (betaalde) gebruikers hebben geen grens: hasUnlimited via
@@ -93,10 +110,10 @@ export const getBerichtenStatus = query({
     return {
       actief: true,
       gebruikt,
-      limiet: GRATIS_BERICHTEN_LIMIET,
-      zachtSeinVanaf: ZACHT_SEIN_VANAF,
-      bereikt: gebruikt >= GRATIS_BERICHTEN_LIMIET,
-      zachtSein: gebruikt >= ZACHT_SEIN_VANAF && gebruikt < GRATIS_BERICHTEN_LIMIET,
+      limiet,
+      zachtSeinVanaf: seinVanaf,
+      bereikt: gebruikt >= limiet,
+      zachtSein: gebruikt >= seinVanaf && gebruikt < limiet,
     };
   },
 });
