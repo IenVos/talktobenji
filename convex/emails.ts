@@ -8,6 +8,7 @@ import { v } from "convex/values";
 
 const ADMIN_EMAIL = process.env.ADMIN_EXEMPT_EMAIL ?? "";
 import { DEFAULT_TEMPLATES } from "./emailTemplates";
+import { berichtenModelActief } from "./benjiLimiet";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
 
@@ -289,7 +290,7 @@ export const sendWelcomeEmail = internalAction({
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          De komende 7 dagen heb je toegang tot alles. Begin gewoon ergens — er is geen goede of verkeerde manier. Een gesprek met Benji, een dagelijkse check-in, herinneringen bewaren in Memories, of bladeren door gedichten die zeggen wat jij zelf niet onder woorden kunt brengen.
+          ${berichtenModelActief() ? "Je eerste vijf gesprekken zijn gratis" : "De komende 7 dagen heb je toegang tot alles"}. Begin gewoon ergens — er is geen goede of verkeerde manier. Een gesprek met Benji, een dagelijkse check-in, herinneringen bewaren in Memories, of bladeren door gedichten die zeggen wat jij zelf niet onder woorden kunt brengen.
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">

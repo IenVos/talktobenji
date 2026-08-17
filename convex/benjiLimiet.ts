@@ -25,6 +25,16 @@ export function berichtenModelActief(): boolean {
 }
 
 /**
+ * Titel van het [benji-blok] onderaan de mails (EH-opvolg + evergreen) en soortgelijke
+ * "gratis proberen"-copy. Flipt mee met de vlag: uit = de bestaande 7-dagen-belofte,
+ * aan = de berichten/gesprekken-belofte. Zo belooft de mail nooit iets anders dan de
+ * chat geeft.
+ */
+export function benjiGratisLabel(): string {
+  return berichtenModelActief() ? "5 gesprekken gratis met Benji" : "7 dagen gratis met Benji";
+}
+
+/**
  * Tel het totaal aantal gebruikersberichten van één ingelogde gebruiker over al
  * zijn gesprekken heen. Goedkoop: een gratis gebruiker heeft er per definitie
  * hooguit ~175 in een handvol sessies; betaalde gebruikers raken deze telling niet

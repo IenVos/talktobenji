@@ -41,9 +41,14 @@ Dit is copy/mail die "7 dagen" belooft. Zolang de vlag uit staat klopt de oude t
 - [ ] `app/account/wachtwoord/page.tsx` (r. 721-733) — usage-bar toont nu alleen bij type "free" en labelt "Gesprekken deze maand"; onder nieuw model relabelen naar "Berichten (gratis) — x / 175" en ook voor trial tonen
 - [ ] admin-labels: `klantbeheer`, `even-houvast-funnel`, `trial-test`, `trial-emails`
 
-**Mails (code + DB-templates):**
-- [ ] `convex/emails.ts` welkomstmail "7 dagen"
-- [ ] EH-opvolgmails + evergreen: de Benji-mail "Probeer Benji 7 dagen gratis" en het `[benji-blok]` in `convex/evenHouvastOpvolg.ts` ("7 dagen gratis met Benji"). Raakt ALLE verliestypes. Deze staan deels in de live mail-templates (DB), niet alleen in code.
+**Mails — AL flag-gated (flippen automatisch mee, niks meer te doen):**
+- [x] `[benji-blok]` onderaan de EH-opvolgmails (`convex/evenHouvastOpvolg.ts`) → titel via `benjiGratisLabel()`
+- [x] `[benji-blok]` onderaan de evergreen-mails (`convex/evergreen.ts`) → titel via `benjiGratisLabel()`
+- [x] `convex/emails.ts` welkomstmail "De komende 7 dagen…" → onder vlag "Je eerste vijf gesprekken zijn gratis…"
+
+**Mails — nog te doen:**
+- [ ] `convex/emailTemplatesDefaults.ts` (r. 123, 265) proefeind-mails ("laatste dag van je 7 dagen", "nog 7 dagen om te bewaren"). Dit zijn trial-eind-mails die bij het usage-model niet meer verstuurd worden (cron uit); of vervangen door 1 "bijna op"-mail. LET OP: dit zijn DEFAULTS; bestaande DB-templates moet je apart in de admin nalopen.
+- [ ] Losse mail-templates in de DB die "7 dagen" noemen (admin nalopen; code-defaults ≠ live DB-tekst).
 
 **Tijd-machine (uitzetten of laten uitdoven):**
 - [ ] `convex/crons.ts` — `checkAndProcessTrials` (2×/dag) uitzetten
