@@ -46,6 +46,9 @@ export function berichtenModelActief(): boolean {
  * kunt testen zonder 6 uur te wachten; default 360 (= 6 uur).
  */
 export function gesprekPauzeMs(): number {
+  // Seconden-override voor snel testen (bijv. 15). Anders minuten (default 360 = 6u).
+  const sec = envPositiefGetal("BENJI_GESPREK_PAUZE_SEC");
+  if (sec) return sec * 1000;
   return (envPositiefGetal("BENJI_GESPREK_PAUZE_MIN") ?? 360) * 60 * 1000;
 }
 
