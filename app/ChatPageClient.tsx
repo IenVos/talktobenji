@@ -836,7 +836,7 @@ export default function ChatPageClient({
           </div>
         )}
         {/* Chat-inhoud */}
-        <div className="relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation">
+        <div className={`relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation ${!sessionId && !isAddingOpener && !ehResolving ? "flex flex-col justify-center" : ""}`}>
           {/* Zachte melding aan het BEGIN van gesprek 4 en 5, zodat iemand het vooraf
               weet en niet middenin verrast wordt. Alleen beleving; de grens blijft de
               berichtenteller. Bij gesprek 1-3 niets. */}

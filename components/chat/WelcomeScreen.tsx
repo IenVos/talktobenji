@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Lock, AlertTriangle, MessageCircle } from "lucide-react";
+import { Lock, AlertTriangle, MessageCircle, ChevronDown } from "lucide-react";
 import { TopicButtons, type TopicId, type TopicButtonItem } from "./TopicButtons";
 
 type WelcomeScreenProps = {
@@ -55,12 +56,42 @@ export function WelcomeScreen({
   toonIntroKader = true,
 }: WelcomeScreenProps) {
   const isDark = theme === "dark";
+  const [kaderOpen, setKaderOpen] = useState(false);
   const introClass = isDark ? "text-white/85" : "text-gray-600";
   const questionClass = isDark ? "text-white/90" : "text-gray-600";
   const subTextClass = isDark ? "text-gray-300/80" : "text-gray-500";
 
   return (
-    <div className="w-full flex flex-col items-center justify-center text-center pt-2 sm:pt-4 pb-4 sm:pb-8 px-4 sm:px-6">
+    <div className="w-full flex flex-col items-center text-center pt-2 sm:pt-4 pb-4 sm:pb-8 px-4 sm:px-6">
+      {/* Inklapbaar uitlegkader – bovenaan, dichtgeklapt zodat het weinig ruimte kost.
+          Alleen voor wie nog niet eerder met Benji heeft gepraat. */}
+      {toonIntroKader && showTopicButtons && (
+        <div className="w-full max-w-sm mx-auto mb-4">
+          <button
+            type="button"
+            onClick={() => setKaderOpen((o) => !o)}
+            aria-expanded={kaderOpen}
+            className={`w-full flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-left backdrop-blur-sm border transition-colors ${isDark ? "bg-white/10 border-primary-300/50 hover:bg-white/15" : "bg-white/60 border-primary-300 shadow-sm hover:bg-white/70"}`}
+          >
+            <MessageCircle size={15} strokeWidth={2} className={`flex-shrink-0 ${isDark ? "text-primary-200" : "text-primary-500"}`} />
+            <span className={`flex-1 text-xs sm:text-[13px] font-semibold leading-snug ${isDark ? "text-white" : "text-primary-900"}`}>
+              Benji is geen zoekmachine, zie hem als een buddy
+            </span>
+            <ChevronDown size={16} className={`flex-shrink-0 transition-transform duration-200 ${kaderOpen ? "rotate-180" : ""} ${isDark ? "text-primary-200" : "text-primary-500"}`} />
+          </button>
+          {kaderOpen && (
+            <div className={`animate-card-in mt-2 rounded-xl px-4 py-3 text-left backdrop-blur-sm border ${isDark ? "bg-white/10 border-primary-300/50" : "bg-white/60 border-primary-300 shadow-sm"}`}>
+              <p className={`text-xs sm:text-[13px] leading-relaxed ${isDark ? "text-white/80" : "text-gray-600"}`}>
+                Begin gewoon met je verhaal: wie je bent en wat er speelt. Hoe meer je deelt, hoe beter Benji je begrijpt.
+              </p>
+              <p className={`text-xs sm:text-[13px] leading-relaxed mt-2 ${isDark ? "text-white/80" : "text-gray-600"}`}>
+                Geef hem even de tijd, zoals in een echt gesprek. &ldquo;Ik weet niet waar ik moet beginnen&rdquo; is ook een prima eerste zin.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Introtekst – eigen regelafbrekingen behouden (\n) */}
       <div className="w-full max-w-sm mx-auto mb-4 flex justify-center">
         <p className={`text-xs sm:text-sm break-words leading-relaxed text-center text-pretty max-w-xs sm:max-w-sm whitespace-pre-line ${introClass}`}>
@@ -68,28 +99,6 @@ export function WelcomeScreen({
             "Een warme plek waar je je verhaal kwijt kunt,\nook om 03:00 's nachts.\nZonder oordeel, altijd."}
         </p>
       </div>
-
-      {/* Uitleg – zet de verwachting goed (zoals in mail 2). Doorschijnend matglas
-          zodat de achtergrond erdoorheen schemert. Alleen voor wie nog niet eerder
-          met Benji heeft gepraat; terugkerende mensen kennen het al. */}
-      {toonIntroKader && showTopicButtons && (
-        <div className="w-full max-w-sm mx-auto mb-4 sm:mb-5">
-          <div className={`rounded-xl px-4 py-3 text-left backdrop-blur-sm border ${isDark ? "bg-white/10 border-primary-300/50" : "bg-white/60 border-primary-300 shadow-sm"}`}>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <MessageCircle size={15} strokeWidth={2} className={`flex-shrink-0 ${isDark ? "text-primary-200" : "text-primary-500"}`} />
-              <span className={`text-xs sm:text-[13px] font-semibold leading-snug ${isDark ? "text-white" : "text-primary-900"}`}>
-                Benji is geen zoekmachine, zie hem als een buddy
-              </span>
-            </div>
-            <p className={`text-xs sm:text-[13px] leading-relaxed ${isDark ? "text-white/80" : "text-gray-600"}`}>
-              Begin gewoon met je verhaal: wie je bent en wat er speelt. Hoe meer je deelt, hoe beter Benji je begrijpt.
-            </p>
-            <p className={`text-xs sm:text-[13px] leading-relaxed mt-2 ${isDark ? "text-white/80" : "text-gray-600"}`}>
-              Geef hem even de tijd, zoals in een echt gesprek. &ldquo;Ik weet niet waar ik moet beginnen&rdquo; is ook een prima eerste zin.
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Waarom Benji-knop – gecentreerd */}
       {showWaaromButton && (
