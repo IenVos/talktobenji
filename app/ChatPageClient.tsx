@@ -949,7 +949,10 @@ export default function ChatPageClient({
                   <div key={`device-memory-${msg._id}`} className="flex justify-center my-2">
                     <div className="bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
                       <p className="text-sm text-blue-900 font-medium mb-1">Benji onthoudt je verhaal</p>
-                      <p className="text-xs text-blue-700">Als je later terugkomt op dit apparaat en deze browser, onthoudt Benji wat je hebt gedeeld. Je hoeft dan niet opnieuw te beginnen.</p>
+                      <p className="text-xs text-blue-700 mb-2">Met een gratis account onthoudt Benji wat je deelt, op elk apparaat waar je inlogt. Zo hoef je nooit opnieuw te beginnen.</p>
+                      <a href="/registreren" className="text-xs font-medium text-blue-700 underline hover:text-blue-900 transition-colors">
+                        Maak een gratis account →
+                      </a>
                     </div>
                   </div>
                 )}
@@ -1011,10 +1014,12 @@ export default function ChatPageClient({
             {(isLoading || isAddingOpener) && (
               <div className="flex justify-start">
                 <div className={`max-w-sm rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm ${isNacht ? "bg-white/80 border border-white/30 backdrop-blur-sm" : "bg-white border border-gray-200"}`}>
-                  <div className="flex gap-1 items-center">
-                    <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0ms', animationDuration: '2s' }}></div>
-                    <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0.3s', animationDuration: '2s' }}></div>
-                    <div className="w-1 h-1 bg-primary-600/60 rounded-full animate-bounce" style={{ animationDelay: '0.6s', animationDuration: '2s' }}></div>
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-primary-400/40 animate-ping" style={{ animationDuration: '2.4s' }}></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500/60"></span>
+                    </span>
+                    <span className={`text-xs italic ${isNacht ? "text-white/70" : "text-primary-700/70"}`}>Benji neemt even de tijd</span>
                   </div>
                 </div>
               </div>
