@@ -94,6 +94,7 @@ const CLAUDE_MODEL = "claude-opus-4-8";
 import { v } from "convex/values";
 import { action, internalAction } from "./_generated/server";
 import { api, internal } from "./_generated/api";
+import { berichtenModelActief } from "./benjiLimiet";
 
 // ============================================================================
 // TYPES EN INTERFACES
@@ -201,23 +202,35 @@ export const handleUserMessage = action({
           };
         }
       } else if (chatSession?.anonymousId) {
-        // Anonieme bezoeker: max 3 gesprekken
-        const anonCount = await ctx.runQuery(api.chat.countAnonymousSessions, {
-          anonymousId: chatSession.anonymousId,
-        });
-        if (anonCount > 3) {
-          return {
-            success: false,
-            error: "Je hebt je 3 gratis gesprekken gebruikt. Maak een gratis profiel aan om verder te gaan.",
-          };
+        if (berichtenModelActief()) {
+          // Nieuw model: ook zonder account krijgt de bezoeker hetzelfde tegoed van
+          // 5 gesprekken (berichten-teller op anonymousId). Daarna de betaalde versie.
+          const anonStatus = await ctx.runQuery(api.benjiLimiet.getAnoniemBerichtenStatus, {
+            anonymousId: chatSession.anonymousId,
+          });
+          nieuwModelUser = true; // per-sessie-limiet hieronder overslaan
+          if (anonStatus.bereikt) {
+            return { success: false, error: "BENJI_LIMIET_BEREIKT" };
+          }
+        } else {
+          // Oud model: max 3 gesprekken
+          const anonCount = await ctx.runQuery(api.chat.countAnonymousSessions, {
+            anonymousId: chatSession.anonymousId,
+          });
+          if (anonCount > 3) {
+            return {
+              success: false,
+              error: "Je hebt je 3 gratis gesprekken gebruikt. Maak een gratis profiel aan om verder te gaan.",
+            };
+          }
         }
       }
 
       // BERICHTENLIMIET PER SESSIE — voorkomt open laten staan van chat.
-      // Onder het nieuwe model geldt voor ingelogde gratis gebruikers de totale
-      // berichten-teller (hierboven), niet deze per-sessie-limiet.
+      // Onder het nieuwe model geldt de totale berichten-teller (hierboven), niet
+      // deze per-sessie-limiet (ook voor anonieme bezoekers).
       const sessionUserMsgCount = (recentMessages || []).filter((m: any) => m.role === "user").length;
-      const msgLimit = isGuest ? 15 : nieuwModelUser ? Infinity : isFreeUser ? 15 : Infinity;
+      const msgLimit = nieuwModelUser ? Infinity : isGuest ? 15 : isFreeUser ? 15 : Infinity;
       if (sessionUserMsgCount >= msgLimit) {
         return {
           success: false,

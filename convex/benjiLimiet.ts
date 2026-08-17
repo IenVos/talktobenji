@@ -76,6 +76,32 @@ export async function telGebruikersberichten(
 }
 
 /**
+ * Zelfde telling maar voor een anonieme bezoeker (zonder account), op basis van
+ * anonymousId. Zo krijgt iedereen (met én zonder account) hetzelfde tegoed van 5
+ * gesprekken voordat de betaalde versie in beeld komt.
+ */
+export async function telGebruikersberichtenAnoniem(
+  ctx: { db: any },
+  anonymousId: string
+): Promise<number> {
+  const sessions = await ctx.db
+    .query("chatSessions")
+    .withIndex("by_anonymous", (q: any) => q.eq("anonymousId", anonymousId))
+    .collect();
+
+  let totaal = 0;
+  for (const s of sessions) {
+    if (s.userId) continue; // al geclaimd door een account: telt daar mee
+    const berichten = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q: any) => q.eq("sessionId", s._id))
+      .collect();
+    totaal += berichten.filter((m: any) => m.role === "user").length;
+  }
+  return totaal;
+}
+
+/**
  * Config voor de frontend: staat het model aan, en wat zijn de grenzen. Zo hoeft
  * de client de env-flag niet te kennen.
  */
@@ -107,6 +133,30 @@ export const getBerichtenStatus = query({
     // voorkomen; de client vraagt getBerichtenStatus alleen voor niet-onbeperkte
     // gebruikers. Voor de zekerheid geven we toch de rauwe telling terug.
     const gebruikt = await telGebruikersberichten(ctx, args.userId);
+    return {
+      actief: true,
+      gebruikt,
+      limiet,
+      zachtSeinVanaf: seinVanaf,
+      bereikt: gebruikt >= limiet,
+      zachtSein: gebruikt >= seinVanaf && gebruikt < limiet,
+    };
+  },
+});
+
+/**
+ * Zelfde status maar voor een anonieme bezoeker (zonder account). Zo krijgt de
+ * chat-UI dezelfde paywall/zacht-sein-info voor niet-ingelogde bezoekers.
+ */
+export const getAnoniemBerichtenStatus = query({
+  args: { anonymousId: v.string() },
+  handler: async (ctx, args) => {
+    const limiet = gratisBerichtenLimiet();
+    const seinVanaf = zachtSeinVanaf();
+    if (!berichtenModelActief()) {
+      return { actief: false, gebruikt: 0, limiet, zachtSeinVanaf: seinVanaf, bereikt: false, zachtSein: false };
+    }
+    const gebruikt = await telGebruikersberichtenAnoniem(ctx, args.anonymousId);
     return {
       actief: true,
       gebruikt,

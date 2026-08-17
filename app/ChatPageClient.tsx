@@ -247,21 +247,31 @@ export default function ChatPageClient({
       ? { userId: session.userId, email: session.user?.email ?? undefined }
       : "skip"
   ) as { count: number; limit: number | null; hasUnlimited: boolean; isBerichtenModel?: boolean } | undefined;
-  const paywallActief = !!(berichtenModelActief && convCount && convCount.isBerichtenModel && !convCount.hasUnlimited);
-  const berichtenGebruikt = convCount?.count ?? 0;
-  const paywallBereikt = !!(paywallActief && convCount!.limit !== null && berichtenGebruikt >= convCount!.limit!);
-  const toonZachtSein = !!(paywallActief && !paywallBereikt && berichtenGebruikt >= (berichtenConfig?.zachtSeinVanaf ?? 130));
+  // Anonieme bezoeker (zonder account): zelfde tegoed van 5 gesprekken via anonymousId.
+  const anonStatus = useQuery(
+    api.benjiLimiet.getAnoniemBerichtenStatus,
+    berichtenModelActief && !session?.userId && anonymousId ? { anonymousId } : "skip"
+  ) as { actief: boolean; gebruikt: number; bereikt: boolean; zachtSein: boolean } | undefined;
+
+  const loggedInPaywallActief = !!(berichtenModelActief && convCount && convCount.isBerichtenModel && !convCount.hasUnlimited);
+  const paywallBereikt = session?.userId
+    ? !!(loggedInPaywallActief && convCount!.limit !== null && (convCount!.count ?? 0) >= convCount!.limit!)
+    : !!anonStatus?.bereikt;
+  const toonZachtSein = session?.userId
+    ? !!(loggedInPaywallActief && !paywallBereikt && (convCount!.count ?? 0) >= (berichtenConfig?.zachtSeinVanaf ?? 130))
+    : !!anonStatus?.zachtSein;
 
   // Leading indicator voor advertentie-rendement: meld eenmalig dat de paywall in
   // beeld kwam (de client blokkeert versturen, dus de server ziet het anders niet).
+  // Alleen zinvol voor ingelogde bezoekers (die hebben een subscription-rij).
   const meldPaywallBereikt = useMutation(api.benjiLimiet.meldPaywallBereikt);
   const paywallGemeld = useRef(false);
   useEffect(() => {
-    if (paywallBereikt && !paywallGemeld.current) {
+    if (paywallBereikt && session?.userId && !paywallGemeld.current) {
       paywallGemeld.current = true;
       meldPaywallBereikt().catch(() => {});
     }
-  }, [paywallBereikt, meldPaywallBereikt]);
+  }, [paywallBereikt, session?.userId, meldPaywallBereikt]);
 
   const preferencesData = useQuery(
     api.preferences.getPreferencesWithUrl,
@@ -853,13 +863,13 @@ export default function ChatPageClient({
                         placeholder={isRecording ? "Luisteren..." : (isNacht && nachtConfig?.inputPlaceholder) ? nachtConfig.inputPlaceholder! : "Typ je bericht..."}
                         suppressHydrationWarning
                         className={`w-full px-3 py-2 sm:py-2.5 rounded-lg text-sm bg-white border focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`}
-                        disabled={isLoading}
+                        disabled={isLoading || paywallBereikt}
                       />
                       {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
                     </div>
                     <button
                       type="submit"
-                      disabled={!input.trim() || isLoading}
+                      disabled={!input.trim() || isLoading || paywallBereikt}
                       className="p-2 sm:p-2.5 rounded-lg flex-shrink-0 bg-primary-700 text-white hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Send size={18} />
@@ -1106,21 +1116,17 @@ export default function ChatPageClient({
         </div>
       )}
 
-      {/* Nieuw model: paywall op ~175 berichten. Warm, geen muur. */}
+      {/* Nieuw model: paywall wanneer de 5 gesprekken op zijn. Inline melding, het
+          gesprek blijft gewoon zichtbaar. Warm, geen blokkerend scherm. */}
       {paywallBereikt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-center">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Wat je hier opbouwt, blijft van jou</h2>
-            <p className="text-sm text-gray-600 leading-relaxed mb-4">
-              Je gesprekken, je brief, je herinneringen. Ze blijven bewaard zolang je met Benji verdergaat.
-            </p>
-            <div className="flex flex-col gap-2">
-              <Link href="/wat-kost-benji" className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors">
-                Verder met Benji · 20 p/m →
-              </Link>
-              <p className="text-xs text-gray-400 mt-1">Liever langer? 3 mnd 50 · half jaar 90</p>
-              <p className="text-[11px] text-gray-400">Geen abonnement, stopt vanzelf.</p>
-            </div>
+        <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pb-2 pt-1">
+          <div className="animate-card-in bg-primary-50 border border-primary-200 rounded-2xl px-4 py-4 shadow-sm text-center max-w-sm mx-auto">
+            <p className="text-sm font-medium text-primary-900 mb-1">Je vijf gesprekken zitten erop</p>
+            <p className="text-xs text-primary-700 mb-3">Wil je verdergaan met Benji? Je gesprekken en herinneringen blijven gewoon bewaard.</p>
+            <Link href="/wat-kost-benji" className="inline-flex items-center justify-center px-4 py-2.5 bg-primary-300 hover:bg-primary-400 text-primary-900 rounded-xl text-sm font-medium transition-colors">
+              Verder met Benji →
+            </Link>
+            <p className="text-[11px] text-primary-600/70 mt-2">Vanaf 20 p/m. Geen abonnement, stopt vanzelf.</p>
           </div>
         </div>
       )}
@@ -1171,10 +1177,10 @@ export default function ChatPageClient({
                   </button>
                 </div>
                 <div className="flex-1 relative overflow-visible">
-                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je bericht..."} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading} />
+                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je bericht..."} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading || paywallBereikt} />
                   {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
                 </div>
-                <button type="submit" disabled={!input.trim() || isLoading} className="p-3 sm:p-3.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
+                <button type="submit" disabled={!input.trim() || isLoading || paywallBereikt} className="p-3 sm:p-3.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
                   <Send size={20} />
                 </button>
               </div>
