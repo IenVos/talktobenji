@@ -958,19 +958,19 @@ export default function ChatPageClient({
                 )}
                 {showSaveCard && (
                   <div key={`save-card-${msg._id}`} className="flex justify-center my-2">
-                    <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
-                      <p className="text-sm text-amber-900 font-medium mb-1">Wil je meer dan 3 gesprekken?</p>
-                      <p className="text-xs text-amber-700 mb-3">Met een gratis profiel kun je vijf gesprekken gratis voeren, én onthoudt Benji je verhaal.</p>
+                    <div className="bg-primary-50 border border-primary-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
+                      <p className="text-sm text-primary-900 font-medium mb-1">Wil je meer dan 3 gesprekken?</p>
+                      <p className="text-xs text-primary-700 mb-3">Met een gratis profiel kun je vijf gesprekken gratis voeren, én onthoudt Benji je verhaal.</p>
                       <div className="flex gap-2">
                         <a
                           href="/registreren"
-                          className="flex-1 text-center text-xs font-medium bg-amber-500 hover:bg-amber-600 text-white rounded-xl px-3 py-2 transition-colors"
+                          className="flex-1 text-center text-xs font-medium bg-primary-300 hover:bg-primary-400 text-primary-900 rounded-xl px-3 py-2 transition-colors"
                         >
                           Aanmelden
                         </a>
                         <button
                           onClick={() => setSaveCardDismissed(true)}
-                          className="text-xs text-amber-600 hover:text-amber-800 px-3 py-2 transition-colors"
+                          className="text-xs text-primary-600 hover:text-primary-800 px-3 py-2 transition-colors"
                         >
                           Niet nu
                         </button>
@@ -980,19 +980,19 @@ export default function ChatPageClient({
                 )}
                 {showLimitWarning && (
                   <div key={`limit-warning-${msg._id}`} className="flex justify-center my-2">
-                    <div className="bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
-                      <p className="text-sm text-orange-900 font-medium mb-1">Nog 2 berichten over</p>
-                      <p className="text-xs text-orange-700 mb-3">Met een gratis profiel kun je doorpraten én onthoudt Benji je verhaal de volgende keer. Zo hoef je niet opnieuw te beginnen.</p>
+                    <div className="bg-primary-50 border border-primary-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
+                      <p className="text-sm text-primary-900 font-medium mb-1">Nog 2 berichten over</p>
+                      <p className="text-xs text-primary-700 mb-3">Met een gratis profiel kun je doorpraten én onthoudt Benji je verhaal de volgende keer. Zo hoef je niet opnieuw te beginnen.</p>
                       <div className="flex gap-2">
                         <a
                           href="/registreren"
-                          className="flex-1 text-center text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-3 py-2 transition-colors"
+                          className="flex-1 text-center text-xs font-medium bg-primary-300 hover:bg-primary-400 text-primary-900 rounded-xl px-3 py-2 transition-colors"
                         >
                           Gratis profiel aanmaken
                         </a>
                         <a
-                          href="/login"
-                          className="text-xs text-orange-600 hover:text-orange-800 px-3 py-2 transition-colors"
+                          href="/inloggen"
+                          className="text-xs text-primary-600 hover:text-primary-800 px-3 py-2 transition-colors"
                         >
                           Inloggen
                         </a>
