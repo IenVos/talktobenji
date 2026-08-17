@@ -1014,13 +1014,10 @@ export default function ChatPageClient({
             {(isLoading || isAddingOpener) && (
               <div className="flex justify-start">
                 <div className={`max-w-sm rounded-2xl rounded-bl-md px-3 sm:px-4 py-2 sm:py-3 shadow-sm ${isNacht ? "bg-white/80 border border-white/30 backdrop-blur-sm" : "bg-white border border-gray-200"}`}>
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full rounded-full bg-primary-400/40 animate-ping" style={{ animationDuration: '2.4s' }}></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500/60"></span>
-                    </span>
-                    <span className={`text-xs italic ${isNacht ? "text-white/70" : "text-primary-700/70"}`}>Benji neemt even de tijd</span>
-                  </div>
+                  <span className="relative flex h-3 w-3">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-primary-400/40 animate-ping" style={{ animationDuration: '2.4s' }}></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-primary-500/60"></span>
+                  </span>
                 </div>
               </div>
             )}
