@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Lock, AlertTriangle, MessageCircle, ChevronDown } from "lucide-react";
+import { Lock, AlertTriangle, ChevronDown } from "lucide-react";
 import { TopicButtons, type TopicId, type TopicButtonItem } from "./TopicButtons";
 
 type WelcomeScreenProps = {
@@ -71,21 +71,26 @@ export function WelcomeScreen({
             type="button"
             onClick={() => setKaderOpen((o) => !o)}
             aria-expanded={kaderOpen}
-            className={`w-full flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-left backdrop-blur-sm border transition-colors ${isDark ? "bg-white/10 border-primary-300/50 hover:bg-white/15" : "bg-white/60 border-primary-300 shadow-sm hover:bg-white/70"}`}
+            className={`w-full flex items-center gap-2 rounded-xl px-4 py-2.5 text-left backdrop-blur-sm border transition-colors ${isDark ? "bg-white/10 border-primary-300/50 hover:bg-white/15" : "bg-white/60 border-primary-300 shadow-sm hover:bg-white/70"}`}
           >
-            <MessageCircle size={15} strokeWidth={2} className={`flex-shrink-0 ${isDark ? "text-primary-200" : "text-primary-500"}`} />
             <span className={`flex-1 text-xs sm:text-[13px] font-semibold leading-snug ${isDark ? "text-white" : "text-primary-900"}`}>
-              Benji is geen zoekmachine, zie hem als een buddy
+              Hoe meer je deelt, hoe beter Benji je begrijpt
             </span>
             <ChevronDown size={16} className={`flex-shrink-0 transition-transform duration-200 ${kaderOpen ? "rotate-180" : ""} ${isDark ? "text-primary-200" : "text-primary-500"}`} />
           </button>
           {kaderOpen && (
-            <div className={`animate-card-in mt-2 rounded-xl px-4 py-3 text-left backdrop-blur-sm border ${isDark ? "bg-white/10 border-primary-300/50" : "bg-white/60 border-primary-300 shadow-sm"}`}>
-              <p className={`text-xs sm:text-[13px] leading-relaxed ${isDark ? "text-white/80" : "text-gray-600"}`}>
-                Begin gewoon met je verhaal: wie je bent en wat er speelt. Hoe meer je deelt, hoe beter Benji je begrijpt.
+            <div className={`animate-card-in mt-2 rounded-xl px-4 py-3 text-left backdrop-blur-sm border space-y-2 ${isDark ? "bg-white/10 border-primary-300/50" : "bg-white/60 border-primary-300 shadow-sm"}`}>
+              <p className={`text-xs sm:text-[13px] font-semibold leading-snug ${isDark ? "text-white" : "text-primary-900"}`}>
+                Benji is geen zoekmachine, zie hem als een buddy
               </p>
-              <p className={`text-xs sm:text-[13px] leading-relaxed mt-2 ${isDark ? "text-white/80" : "text-gray-600"}`}>
-                Geef hem even de tijd, zoals in een echt gesprek. &ldquo;Ik weet niet waar ik moet beginnen&rdquo; is ook een prima eerste zin.
+              <p className={`text-xs sm:text-[13px] leading-relaxed ${isDark ? "text-white/80" : "text-gray-600"}`}>
+                Begin gewoon met je verhaal: wie je bent en wat er speelt.
+              </p>
+              <p className={`text-xs sm:text-[13px] leading-relaxed ${isDark ? "text-white/80" : "text-gray-600"}`}>
+                Geef hem even de tijd, zoals in een echt gesprek.
+              </p>
+              <p className={`text-xs sm:text-[13px] leading-relaxed ${isDark ? "text-white/80" : "text-gray-600"}`}>
+                &ldquo;Ik weet niet waar ik moet beginnen&rdquo; is ook een prima eerste zin.
               </p>
             </div>
           )}
@@ -96,7 +101,7 @@ export function WelcomeScreen({
       <div className="w-full max-w-sm mx-auto mb-4 flex justify-center">
         <p className={`text-xs sm:text-sm break-words leading-relaxed text-center text-pretty max-w-xs sm:max-w-sm whitespace-pre-line ${introClass}`}>
           {introText?.trim() ||
-            "Een warme plek waar je je verhaal kwijt kunt,\nook om 03:00 's nachts.\nZonder oordeel, altijd."}
+            "Een warme plek voor je verhaal.\nZonder oordeel. Ook om 03:00 's nachts."}
         </p>
       </div>
 
