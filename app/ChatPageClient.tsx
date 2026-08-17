@@ -842,9 +842,14 @@ export default function ChatPageClient({
               berichtenteller. Bij gesprek 1-3 niets. */}
           {sessionId && toonGesprekMelding && (gesprekNummer === 4 || gesprekNummer === 5) && (
             <div className="animate-card-in max-w-sm mx-auto mb-4 text-center text-xs text-primary-700 bg-primary-50/80 border border-primary-200 rounded-xl px-4 py-2.5">
-              {gesprekNummer === 4
-                ? "Nog één gesprek, daarna vraagt Benji of je verder wilt."
-                : "Dit is je vijfde gesprek met Benji."}
+              {gesprekNummer === 4 ? (
+                <>
+                  Je hebt hierna nog één gesprek met Benji. Daarna kun je{" "}
+                  <Link href="/wat-kost-benji" className="font-medium text-primary-800 underline hover:text-primary-900 transition-colors">altijd verder</Link>.
+                </>
+              ) : (
+                "Dit is je vijfde gesprek met Benji."
+              )}
             </div>
           )}
           {!sessionId && !isAddingOpener && !ehResolving && (
