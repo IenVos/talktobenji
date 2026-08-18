@@ -30,6 +30,9 @@ export function HeaderBar({ onLogoClick, accountLink }: HeaderBarProps) {
   const openRegistratie = () => {
     const terug = typeof window !== "undefined" ? window.location.pathname : "/benji";
     if (typeof window !== "undefined") {
+      // Vlag zodat de chat na inloggen (in het nieuwe tabblad) automatisch het laatste
+      // gesprek teruglaadt. Gedeeld via localStorage tussen tabbladen.
+      try { localStorage.setItem("benji_restore_after_login", "1"); } catch {}
       window.open(`/registreren?callbackUrl=${encodeURIComponent(terug)}`, "_blank", "noopener");
     }
     setTabGeopend(true);

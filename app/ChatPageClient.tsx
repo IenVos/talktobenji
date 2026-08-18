@@ -329,6 +329,29 @@ export default function ChatPageClient({
     }
   }, [sessionIdState, storedSession, convexAuthLoading]);
 
+  // Na registratie/inloggen (via "Bewaar je gesprek"): laad automatisch het laatste
+  // gesprek terug, zodat de klant niet op het welkomstscherm belandt en het gesprek
+  // via het menu moet opzoeken. Alleen in dit scenario (vlag in localStorage), zodat
+  // "nieuw gesprek" onaangetast blijft.
+  const [restoreAfterLogin] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try { return localStorage.getItem("benji_restore_after_login") === "1"; } catch { return false; }
+  });
+  const restoreSessions = useQuery(
+    api.chat.getUserSessions,
+    restoreAfterLogin && session?.userId ? { userId: session.userId, limit: 1 } : "skip"
+  );
+  const restoreDone = useRef(false);
+  useEffect(() => {
+    if (restoreDone.current || !restoreAfterLogin || !session?.userId) return;
+    if (restoreSessions === undefined) return; // nog aan het laden
+    restoreDone.current = true;
+    try { localStorage.removeItem("benji_restore_after_login"); } catch {}
+    if (restoreSessions.length > 0 && !sessionIdState) {
+      setSessionId(restoreSessions[0]._id as Id<"chatSessions">);
+    }
+  }, [restoreAfterLogin, session?.userId, restoreSessions, sessionIdState]);
+
   // Toon mic-hint bij het starten van een nieuw gesprek (eenmalig per sessie)
   useEffect(() => {
     if (sessionIdState && speechSupported && !micHintShownRef.current) {
