@@ -1072,7 +1072,7 @@ export default function ChatPageClient({
       </main>
 
       {/* Zachte nudge: eerste bezoek (5s), gesprek 3 en gesprek 4 — alleen op welkomstscherm */}
-      {showNudgeBanner && !sessionId && !isAddingOpener && (
+      {showNudgeBanner && !berichtenModelActief && !sessionId && !isAddingOpener && (
         <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3 rounded-xl bg-primary-50 border border-primary-200 text-primary-800 text-sm mx-3 mb-1">
           <span>
             {anonymousCount === 0
