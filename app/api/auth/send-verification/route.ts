@@ -67,6 +67,9 @@ export async function POST(req: NextRequest) {
               <span style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #1a1a2e;">${otp}</span>
             </div>
           </div>
+          <p style="font-size: 14px; color: #555; line-height: 1.5;">
+            Zodra je je e-mailadres hebt bevestigd, ga je automatisch verder met je gesprek. Dat blijft voor je bewaard.
+          </p>
           <p style="font-size: 12px; color: #999; line-height: 1.5;">
             Als je dit niet hebt aangevraagd, kun je deze e-mail negeren.
           </p>

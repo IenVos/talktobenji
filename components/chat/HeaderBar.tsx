@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -21,6 +22,19 @@ type HeaderBarProps = {
 
 /** Eén gedeelde header voor alle pagina's – logo, Talk To Benji, menu. Altijd identiek. */
 export function HeaderBar({ onLogoClick, accountLink }: HeaderBarProps) {
+  const [tabGeopend, setTabGeopend] = useState(false);
+
+  // Opent registratie in een NIEUW tabblad (chat blijft hier open staan) met een
+  // callbackUrl terug naar de chat. Synchroon in de klik, anders blokkeert de browser
+  // de popup. Na bevestigen koppelt de app het anonieme gesprek automatisch aan het account.
+  const openRegistratie = () => {
+    const terug = typeof window !== "undefined" ? window.location.pathname : "/benji";
+    if (typeof window !== "undefined") {
+      window.open(`/registreren?callbackUrl=${encodeURIComponent(terug)}`, "_blank", "noopener");
+    }
+    setTabGeopend(true);
+  };
+
   const logoContent = (
     <>
       <div className="h-8 w-8 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -69,12 +83,19 @@ export function HeaderBar({ onLogoClick, accountLink }: HeaderBarProps) {
             </Link>
           )}
           {accountLink && (
-            <Link
-              href="/registreren"
-              className="self-start ml-11 -mt-0.5 text-[11px] leading-tight text-primary-400/90 hover:text-primary-300 transition-colors"
-            >
-              Bewaar je gesprek
-            </Link>
+            tabGeopend ? (
+              <span className="self-start ml-11 -mt-0.5 text-[11px] leading-tight text-primary-300">
+                Nieuw tabblad geopend. Je gesprek blijft hier bewaard.
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={openRegistratie}
+                className="self-start ml-11 -mt-0.5 text-[11px] leading-tight text-primary-400/90 hover:text-primary-300 transition-colors bg-transparent border-0 p-0 cursor-pointer text-left"
+              >
+                Bewaar je gesprek
+              </button>
+            )
           )}
         </div>
         <div className="flex-shrink-0 flex items-center">
