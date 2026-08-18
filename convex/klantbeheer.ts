@@ -838,6 +838,14 @@ export const verwijderGebruikerPerEmail = internalMutation({
       await del(profiel._id, "nietAlleenProfiles");
     }
 
+    // Funnel-lead(s) op e-mail: stopt de evergreen-/Benji-funnelmails. Anders blijft
+    // een verwijderde gebruiker mails krijgen.
+    const funnelLeadsVanEmail = await ctx.db
+      .query("funnelLeads")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    for (const l of funnelLeadsVanEmail) await del(l._id, "funnelLeads");
+
     // Credentials + reset-tokens + NextAuth-sessies + de gebruiker zelf.
     const creds = await ctx.db
       .query("credentials")

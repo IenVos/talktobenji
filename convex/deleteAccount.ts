@@ -95,6 +95,14 @@ export const deleteAccount = mutation({
       await ctx.db.delete(profiel._id);
     }
 
+    // 5c. Funnel-lead(s) op e-mail: stopt de evergreen-/Benji-funnelmails, zodat een
+    //     verwijderd account geen mails meer krijgt.
+    const funnelLeadsVanEmail = await ctx.db
+      .query("funnelLeads")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .collect();
+    for (const l of funnelLeadsVanEmail) await ctx.db.delete(l._id);
+
     // 6. Wachtwoord reset tokens + credentials
     const userRecord = await ctx.db
       .query("users")
