@@ -290,7 +290,7 @@ export const sendWelcomeEmail = internalAction({
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          ${berichtenModelActief() ? "Je eerste vijf gesprekken zijn gratis" : "De komende 7 dagen heb je toegang tot alles"}. Begin gewoon ergens — er is geen goede of verkeerde manier. Een gesprek met Benji, een dagelijkse check-in, herinneringen bewaren in Memories, of bladeren door gedichten die zeggen wat jij zelf niet onder woorden kunt brengen.
+          ${berichtenModelActief() ? "Je eerste vijf gesprekken zijn gratis, zonder tijdslimiet" : "De komende 7 dagen heb je toegang tot alles"}. Er is geen goede of verkeerde manier: een gesprek met Benji, een dagelijkse check-in, herinneringen bewaren in Memories, of bladeren door gedichten die zeggen wat jij zelf niet onder woorden kunt brengen.
         </p>
 
         <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
@@ -314,7 +314,7 @@ export const sendWelcomeEmail = internalAction({
         <div style="margin: 28px 0;">
           <a href="https://talktobenji.com/chat"
              style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
-            Begin je eerste gesprek
+            Ga verder met Benji
           </a>
         </div>
 
