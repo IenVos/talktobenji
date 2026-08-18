@@ -270,6 +270,21 @@ export default function ChatPageClient({
   const volgendGesprek = gesprekStatus?.volgendGesprekNummer ?? 1;
   const toonGesprekMelding = !!(nietBetaald && !paywallBereikt && gesprekStatus?.nieuwGesprekStart && (volgendGesprek === 4 || volgendGesprek === 5));
 
+  // Account-nudge onder het logo: pas tonen na 4 eigen berichten, net nadat Benji
+  // heeft geantwoord. Latcht dan aan en blijft staan; reset bij een nieuw gesprek.
+  const [accountNudge, setAccountNudge] = useState(false);
+  const accountNudgeSession = useRef<string | null>(null);
+  useEffect(() => {
+    if (sessionId !== accountNudgeSession.current) {
+      accountNudgeSession.current = sessionId;
+      setAccountNudge(false);
+    }
+    if (accountNudge || !isAnonymousUser || !sessionId) return;
+    const userMsgCount = messages?.filter((m) => m.role === "user").length ?? 0;
+    const laatste = messages && messages.length ? messages[messages.length - 1] : null;
+    if (userMsgCount >= 4 && laatste?.role === "bot" && !isLoading) setAccountNudge(true);
+  }, [messages, sessionId, isAnonymousUser, isLoading, accountNudge]);
+
   // Leading indicator voor advertentie-rendement: meld eenmalig dat de paywall in
   // beeld kwam (de client blokkeert versturen, dus de server ziet het anders niet).
   // Alleen zinvol voor ingelogde bezoekers (die hebben een subscription-rij).
@@ -827,7 +842,7 @@ export default function ChatPageClient({
           }}
         />
       )}
-      <HeaderBar onLogoClick={isNacht && sessionId ? handleBackToWelcome : undefined} accountLink={isAnonymousUser} />
+      <HeaderBar onLogoClick={isNacht && sessionId ? handleBackToWelcome : undefined} accountLink={accountNudge} />
 
       <ConversationLimitGate
         userId={session?.userId as string | undefined}

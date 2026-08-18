@@ -71,9 +71,9 @@ export function HeaderBar({ onLogoClick, accountLink }: HeaderBarProps) {
           {accountLink && (
             <Link
               href="/registreren"
-              className="self-start ml-11 -mt-0.5 text-[11px] leading-tight text-primary-400/90 hover:text-primary-300 underline underline-offset-2 transition-colors"
+              className="self-start ml-11 -mt-0.5 text-[11px] leading-tight text-primary-400/90 hover:text-primary-300 transition-colors"
             >
-              Bewaar je gesprekken. Maak een gratis account
+              Bewaar je gesprek. Maak een gratis account
             </Link>
           )}
         </div>
