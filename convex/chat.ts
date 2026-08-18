@@ -178,6 +178,18 @@ export const claimAnonymousSessions = mutation({
       });
       claimed++;
     }
+
+    // Wie via "Bewaar je gesprek" een account maakt na anoniem chatten, heeft
+    // aantoonbaar met Benji gepraat → direct op het Benji-spoor (niet evergreen).
+    // Gebeurt hier bij het koppelen, want na registratie stuurt men vaak geen nieuw
+    // bericht (waar de instap anders pas op zou vuren).
+    if (claimed > 0 && process.env.BENJI_SPOOR_ACTIEF === "true" && identity.email) {
+      await ctx.scheduler.runAfter(0, internal.evergreen._benjiSpoorInstroomCheck, {
+        email: identity.email as string,
+        naam: (identity.name as string | undefined) ?? undefined,
+      });
+    }
+
     return { authed: true, claimed };
   },
 });
