@@ -337,20 +337,39 @@ export default function ChatPageClient({
     if (typeof window === "undefined") return false;
     try { return localStorage.getItem("benji_restore_after_login") === "1"; } catch { return false; }
   });
+  // Zolang het terugladen loopt: laadstand aan, zodat het welkomstscherm niet even
+  // flitst voordat het gesprek er is.
+  const [restoreBezig, setRestoreBezig] = useState<boolean>(restoreAfterLogin);
   const restoreSessions = useQuery(
     api.chat.getUserSessions,
     restoreAfterLogin && session?.userId ? { userId: session.userId, limit: 1 } : "skip"
   );
   const restoreDone = useRef(false);
   useEffect(() => {
-    if (restoreDone.current || !restoreAfterLogin || !session?.userId) return;
-    if (restoreSessions === undefined) return; // nog aan het laden
+    if (restoreDone.current) return;
+    if (!restoreAfterLogin) { setRestoreBezig(false); return; }
+    if (status === "unauthenticated") {
+      // Niet ingelogd → niks te herstellen, vlag opruimen.
+      restoreDone.current = true;
+      try { localStorage.removeItem("benji_restore_after_login"); } catch {}
+      setRestoreBezig(false);
+      return;
+    }
+    if (!session?.userId) return;        // auth nog aan het laden
+    if (restoreSessions === undefined) return; // sessies nog aan het laden
     restoreDone.current = true;
     try { localStorage.removeItem("benji_restore_after_login"); } catch {}
     if (restoreSessions.length > 0 && !sessionIdState) {
       setSessionId(restoreSessions[0]._id as Id<"chatSessions">);
     }
-  }, [restoreAfterLogin, session?.userId, restoreSessions, sessionIdState]);
+    setRestoreBezig(false);
+  }, [restoreAfterLogin, status, session?.userId, restoreSessions, sessionIdState]);
+  // Veiligheidsklep: nooit langer dan 5s in de laadstand.
+  useEffect(() => {
+    if (!restoreBezig) return;
+    const t = setTimeout(() => setRestoreBezig(false), 5000);
+    return () => clearTimeout(t);
+  }, [restoreBezig]);
 
   // Toon mic-hint bij het starten van een nieuw gesprek (eenmalig per sessie)
   useEffect(() => {
@@ -881,7 +900,13 @@ export default function ChatPageClient({
         )}
         {/* Chat-inhoud */}
         <div className={`relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation ${!sessionId && !isAddingOpener && !ehResolving ? "flex flex-col justify-center" : ""}`}>
-          {!sessionId && !isAddingOpener && !ehResolving && (
+          {/* Terugladen na inloggen: spinner i.p.v. even het welkomstscherm laten flitsen */}
+          {restoreBezig && !sessionId && (
+            <div className="flex items-center justify-center py-24">
+              <div className="w-6 h-6 rounded-full border-2 border-primary-400 border-t-transparent animate-spin" />
+            </div>
+          )}
+          {!restoreBezig && !sessionId && !isAddingOpener && !ehResolving && (
             <>
               <WelcomeScreen
                 showTopicButtons={showTopicButtons}
