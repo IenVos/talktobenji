@@ -1155,7 +1155,11 @@ export const _evergreenLeadToevoegen = internalMutation({
 // meer (dat regelt evenHouvastOpvolg via de spoor-check). Aangeroepen bij het
 // inwisselen van de link (benjiStart.consumeToken) én realtime vanuit
 // chat.sendUserMessage. Gated door BENJI_SPOOR_ACTIEF. Idempotent (al benji → klaar).
-export async function probeerBenjiSpoorInstap(ctx: any, emailRaw: string) {
+export async function probeerBenjiSpoorInstap(
+  ctx: any,
+  emailRaw: string,
+  opts?: { naam?: string; viaChat?: boolean }
+) {
   if (process.env.BENJI_SPOOR_ACTIEF !== "true") return { enrolled: false, reden: "uit" };
   const email = (emailRaw || "").toLowerCase().trim();
   if (!email) return { enrolled: false, reden: "geen adres" };
@@ -1167,12 +1171,25 @@ export async function probeerBenjiSpoorInstap(ctx: any, emailRaw: string) {
     .first();
   if (lead && spoorVan(lead.spoor) === "benji") return { enrolled: false, reden: "al benji" };
 
-  // Alleen Even Houvast-leads (die kregen de brief + Benji-link).
+  // Bepaal naam + verliestype. Even Houvast-lead (kreeg de brief) → uit de brief.
+  // Anders een gewone Benji-gebruiker die met Benji chatte (viaChat) → algemeen, geen
+  // verliestype. Wie niks van beide is (bv. leeg account dat nooit chatte) valt af.
   const brief = await ctx.db
     .query("houvastBrieven")
     .withIndex("by_email", (q: any) => q.eq("email", email))
     .first();
-  if (!brief) return { enrolled: false, reden: "geen EH-lead" };
+  let naam: string | undefined;
+  let verliesType: string | undefined;
+  if (brief) {
+    naam = brief.naam?.trim() || undefined;
+    const type = normType(brief.verliesType);
+    verliesType = type !== ALGEMEEN ? type : undefined;
+  } else if (opts?.viaChat) {
+    naam = opts.naam?.trim() || undefined;
+    verliesType = undefined;
+  } else {
+    return { enrolled: false, reden: "geen EH-lead en niet via chat" };
+  }
 
   // Niet wie zich afmeldde of al betaalde (trial telt niet als betaald).
   const [afgemeld, subs] = await Promise.all([
@@ -1184,7 +1201,6 @@ export async function probeerBenjiSpoorInstap(ctx: any, emailRaw: string) {
 
   // Overzetten naar spoor benji, verse dag 1. Bestaande (evergreen-)lead verhuist mee.
   const now = Date.now();
-  const type = normType(brief.verliesType);
   if (lead) {
     await ctx.db.patch(lead._id, {
       spoor: "benji",
@@ -1195,8 +1211,8 @@ export async function probeerBenjiSpoorInstap(ctx: any, emailRaw: string) {
   } else {
     await ctx.db.insert("funnelLeads", {
       email,
-      naam: brief.naam?.trim() || undefined,
-      verliesType: type !== ALGEMEEN ? type : undefined,
+      naam,
+      verliesType,
       spoor: "benji",
       ingestroomdOp: now,
       bron: "benji",
@@ -1208,8 +1224,9 @@ export async function probeerBenjiSpoorInstap(ctx: any, emailRaw: string) {
 }
 
 export const _benjiSpoorInstroomCheck = internalMutation({
-  args: { email: v.string() },
-  handler: async (ctx, args) => probeerBenjiSpoorInstap(ctx, args.email),
+  args: { email: v.string(), naam: v.optional(v.string()) },
+  handler: async (ctx, args) =>
+    probeerBenjiSpoorInstap(ctx, args.email, { naam: args.naam, viaChat: true }),
 });
 
 // ── Handoff: na afloop van een spoor door naar het volgende ──────────────────

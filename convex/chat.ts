@@ -796,6 +796,7 @@ export const sendUserMessage = internalMutation({
     if (process.env.BENJI_SPOOR_ACTIEF === "true" && session.userEmail) {
       await ctx.scheduler.runAfter(0, internal.evergreen._benjiSpoorInstroomCheck, {
         email: session.userEmail,
+        naam: session.userName ?? undefined,
       });
     }
 
