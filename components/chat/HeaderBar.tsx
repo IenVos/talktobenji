@@ -15,10 +15,12 @@ const headerStyle = {
 type HeaderBarProps = {
   /** Op de chatpagina: bij klik op logo, reset sessie i.p.v. navigeren */
   onLogoClick?: () => void;
+  /** Klein "maak een gratis account"-regeltje onder de titel (alleen voor bezoekers zonder account). */
+  accountLink?: boolean;
 };
 
 /** Eén gedeelde header voor alle pagina's – logo, Talk To Benji, menu. Altijd identiek. */
-export function HeaderBar({ onLogoClick }: HeaderBarProps) {
+export function HeaderBar({ onLogoClick, accountLink }: HeaderBarProps) {
   const logoContent = (
     <>
       <div className="h-8 w-8 flex items-center justify-center flex-shrink-0 overflow-hidden">
@@ -45,26 +47,36 @@ export function HeaderBar({ onLogoClick }: HeaderBarProps) {
       style={{ ...headerStyle, pointerEvents: "auto" }}
     >
       <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 min-w-0 min-h-[2.5rem] sm:min-h-[3rem] w-full">
-        {onLogoClick ? (
-          <button
-            type="button"
-            onClick={onLogoClick}
-            className="flex items-center gap-2 min-w-0 group cursor-pointer no-underline outline-none bg-transparent border-0 p-0 text-left"
-            aria-label="Terug naar startscherm"
-            title="Terug naar startscherm"
-          >
-            <ArrowLeft size={16} className="text-white/40 group-hover:text-white/70 transition-colors flex-shrink-0" />
-            {logoContent}
-          </button>
-        ) : (
-          <Link
-            href="/"
-            className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none"
-            aria-label="Naar Talk To Benji"
-          >
-            {logoContent}
-          </Link>
-        )}
+        <div className="flex flex-col min-w-0">
+          {onLogoClick ? (
+            <button
+              type="button"
+              onClick={onLogoClick}
+              className="flex items-center gap-2 min-w-0 group cursor-pointer no-underline outline-none bg-transparent border-0 p-0 text-left"
+              aria-label="Terug naar startscherm"
+              title="Terug naar startscherm"
+            >
+              <ArrowLeft size={16} className="text-white/40 group-hover:text-white/70 transition-colors flex-shrink-0" />
+              {logoContent}
+            </button>
+          ) : (
+            <Link
+              href="/"
+              className="flex items-center gap-3 min-w-0 group cursor-pointer no-underline outline-none"
+              aria-label="Naar Talk To Benji"
+            >
+              {logoContent}
+            </Link>
+          )}
+          {accountLink && (
+            <Link
+              href="/registreren"
+              className="self-start ml-11 -mt-0.5 text-[11px] leading-tight text-primary-400/90 hover:text-primary-300 underline underline-offset-2 transition-colors"
+            >
+              Bewaar je gesprekken. Maak een gratis account
+            </Link>
+          )}
+        </div>
         <div className="flex-shrink-0 flex items-center">
           <GlobalMenu embedded />
         </div>

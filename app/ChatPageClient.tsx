@@ -827,7 +827,7 @@ export default function ChatPageClient({
           }}
         />
       )}
-      <HeaderBar onLogoClick={isNacht && sessionId ? handleBackToWelcome : undefined} />
+      <HeaderBar onLogoClick={isNacht && sessionId ? handleBackToWelcome : undefined} accountLink={isAnonymousUser} />
 
       <ConversationLimitGate
         userId={session?.userId as string | undefined}
@@ -890,11 +890,6 @@ export default function ChatPageClient({
                   </div>
                   {isRecording && <p className="text-xs text-red-300 mt-1.5 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
                 </form>
-                {isAnonymousUser && (
-                  <p className="text-center text-xs text-primary-700 mt-2.5">
-                    <a href="/registreren" className="underline hover:text-primary-900 transition-colors">Maak een gratis account</a> om je gesprekken te bewaren.
-                  </p>
-                )}
               </div>
             </>
           )}
@@ -1229,18 +1224,7 @@ export default function ChatPageClient({
               </div>
               {isRecording && <p className="text-xs text-red-300 mt-2 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
             </form>
-            {sessionId && isAnonymousUser && (
-              <p className="text-center text-xs text-primary-400 mt-2">
-                Bewaar dit gesprek.{" "}
-                <a
-                  href="/registreren"
-                  className="underline hover:text-primary-200 transition-colors"
-                >
-                  Maak een gratis account
-                </a>
-              </p>
-            )}
-            {sessionId && !isAnonymousUser && (
+            {sessionId && (
               <p className="text-center text-xs text-primary-400 mt-2">
                 Benji leert van elk gesprek.{" "}
                 <button
