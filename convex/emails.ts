@@ -271,35 +271,43 @@ export const sendWelcomeEmail = internalAction({
     email: v.string(),
     name: v.string(),
   },
-  handler: async (_ctx, args) => {
+  handler: async (ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     if (!RESEND_API_KEY) return;
 
     const firstName = args.name.split(" ")[0] || args.name;
 
+    // Bewerkbaar via de admin (Mailsysteem → Account-mails). Zonder opgeslagen
+    // versie valt alles terug op de tekst hieronder, dus het gedrag blijft gelijk.
+    const tpl = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "welkom" });
+    const gratisRegel = berichtenModelActief()
+      ? "Je eerste vijf gesprekken zijn gratis, zonder tijdslimiet"
+      : "De komende 7 dagen heb je toegang tot alles";
+    const DEFAULT_BODY = [
+      "Fijn dat je er bent.",
+      "Ik weet niet precies wat je op dit moment draagt, maar dat je hier bent betekent iets. Het vraagt moed om ergens naar op zoek te gaan als je verdriet hebt.",
+      `${gratisRegel}. Er is geen goede of verkeerde manier: een gesprek met Benji, een dagelijkse check-in, herinneringen bewaren in Memories, of bladeren door gedichten die zeggen wat jij zelf niet onder woorden kunt brengen.`,
+      "Benji is er wanneer je hem nodig hebt. Overdag, 's avonds, midden in de nacht. Zonder oordeel, zonder haast.",
+      "Neem de tijd. Je hoeft nergens klaar voor te zijn.",
+    ].join("\n\n");
+
+    const subject = tpl?.subject?.trim() || "Welkom bij Talk To Benji";
+    const bodyText = tpl?.bodyText?.trim() || DEFAULT_BODY;
+    const buttonText = tpl?.buttonText?.trim() || "Ga verder met Benji";
+    const buttonUrl = tpl?.buttonUrl?.trim() || "https://talktobenji.com/chat";
+
+    const bodyHtml = bodyText
+      .split(/\n\s*\n/)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p) => `<p style="font-size: 15px; line-height: 1.7; color: #4a5568;">${p.replace(/\n/g, "<br/>")}</p>`)
+      .join("\n");
+
     const html = `
       <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #2d3748;">
         <p style="font-size: 16px; margin-bottom: 8px;">Hi ${firstName},</p>
 
-        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Fijn dat je er bent.
-        </p>
-
-        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Ik weet niet precies wat je op dit moment draagt, maar dat je hier bent betekent iets. Het vraagt moed om ergens naar op zoek te gaan als je verdriet hebt.
-        </p>
-
-        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          ${berichtenModelActief() ? "Je eerste vijf gesprekken zijn gratis, zonder tijdslimiet" : "De komende 7 dagen heb je toegang tot alles"}. Er is geen goede of verkeerde manier: een gesprek met Benji, een dagelijkse check-in, herinneringen bewaren in Memories, of bladeren door gedichten die zeggen wat jij zelf niet onder woorden kunt brengen.
-        </p>
-
-        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Benji is er wanneer je hem nodig hebt. Overdag, 's avonds, midden in de nacht. Zonder oordeel, zonder haast.
-        </p>
-
-        <p style="font-size: 15px; line-height: 1.7; color: #4a5568;">
-          Neem de tijd. Je hoeft nergens klaar voor te zijn.
-        </p>
+        ${bodyHtml}
 
         <div style="margin: 28px 0 8px 0;">
           <p style="font-size: 13px; color: #9ca3af; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 0.05em;">Dit is wat je bij Talk To Benji vindt</p>
@@ -312,9 +320,9 @@ export const sendWelcomeEmail = internalAction({
         </div>
 
         <div style="margin: 28px 0;">
-          <a href="https://talktobenji.com/chat"
+          <a href="${buttonUrl}"
              style="background-color: #6d84a8; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 600; display: inline-block;">
-            Ga verder met Benji
+            ${buttonText}
           </a>
         </div>
 
@@ -335,7 +343,7 @@ export const sendWelcomeEmail = internalAction({
 
     await sendEmail({
       to: args.email,
-      subject: "Welkom bij Talk To Benji",
+      subject,
       html,
       apiKey: RESEND_API_KEY,
     });

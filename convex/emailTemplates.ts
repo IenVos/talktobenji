@@ -179,3 +179,15 @@ export const upsertTemplate = mutation({
     return await ctx.db.insert("emailTemplates", { key: args.key, ...fields });
   },
 });
+
+/** Template verwijderen (terug naar de standaardtekst uit de code). */
+export const deleteTemplate = mutation({
+  args: { adminToken: v.optional(v.string()), key: v.string() },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("emailTemplates")
+      .withIndex("by_key", (q) => q.eq("key", args.key))
+      .unique();
+    if (existing) await ctx.db.delete(existing._id);
+  },
+});
