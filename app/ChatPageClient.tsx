@@ -280,9 +280,9 @@ export default function ChatPageClient({
       setAccountNudge(false);
     }
     if (accountNudge || !isAnonymousUser || !sessionId) return;
-    const userMsgCount = messages?.filter((m) => m.role === "user").length ?? 0;
+    const totaalBerichten = messages?.length ?? 0;
     const laatste = messages && messages.length ? messages[messages.length - 1] : null;
-    if (userMsgCount >= 4 && laatste?.role === "bot" && !isLoading) setAccountNudge(true);
+    if (totaalBerichten >= 4 && laatste?.role === "bot" && !isLoading) setAccountNudge(true);
   }, [messages, sessionId, isAnonymousUser, isLoading, accountNudge]);
 
   // Leading indicator voor advertentie-rendement: meld eenmalig dat de paywall in
