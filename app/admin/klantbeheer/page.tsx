@@ -215,14 +215,14 @@ function MailLeveringPanel({ profileId, email, levering }: { profileId: string; 
 
 const SUB_LABELS: Record<string, string> = {
   free: "Gratis",
-  trial: "Proefperiode (7 dagen)",
+  trial: "Proefperiode (5 gesprekken)",
   uitgebreid: "Uitgebreid",
   alles_in_1: "Alles-in-1",
 };
 
 const SUB_OPTIONS = [
   { value: "free", label: "Gratis" },
-  { value: "trial", label: "Proefperiode (reset naar 7 dagen)" },
+  { value: "trial", label: "Proefperiode (5 gesprekken)" },
   { value: "uitgebreid", label: "Uitgebreid" },
   { value: "alles_in_1", label: "Alles-in-1" },
 ] as const;
