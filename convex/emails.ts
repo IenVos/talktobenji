@@ -8,7 +8,6 @@ import { v } from "convex/values";
 
 const ADMIN_EMAIL = process.env.ADMIN_EXEMPT_EMAIL ?? "";
 import { DEFAULT_TEMPLATES } from "./emailTemplates";
-import { berichtenModelActief } from "./benjiLimiet";
 
 const FROM = "Talk To Benji <noreply@talktobenji.com>";
 
@@ -280,9 +279,7 @@ export const sendWelcomeEmail = internalAction({
     // Bewerkbaar via de admin (Mailsysteem → Account-mails). Zonder opgeslagen
     // versie valt alles terug op de tekst hieronder, dus het gedrag blijft gelijk.
     const tpl = await ctx.runQuery(internal.emailTemplates.getTemplateInternal, { key: "welkom" });
-    const gratisRegel = berichtenModelActief()
-      ? "Je eerste vijf gesprekken zijn gratis, zonder tijdslimiet"
-      : "De komende 7 dagen heb je toegang tot alles";
+    const gratisRegel = "Je eerste vijf gesprekken zijn gratis, zonder tijdslimiet";
     const DEFAULT_BODY = [
       "Fijn dat je er bent.",
       "Ik weet niet precies wat je op dit moment draagt, maar dat je hier bent betekent iets. Het vraagt moed om ergens naar op zoek te gaan als je verdriet hebt.",
