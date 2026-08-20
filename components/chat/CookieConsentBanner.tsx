@@ -57,8 +57,8 @@ export function CookieConsentBanner() {
     // Smalle balk onderaan, zonder verduistering: de bezoeker kan de pagina meteen
     // gebruiken en kiest wanneer het uitkomt. De wrapper laat kliks doorgaan; alleen
     // de balk zelf vangt kliks op (pointer-events).
-    <div className="fixed bottom-0 inset-x-0 z-[200] flex justify-center p-3 sm:p-4 pointer-events-none">
-      <div className="pointer-events-auto w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-stone-200 p-4 sm:p-5">
+    <div className="fixed bottom-0 inset-x-0 z-[200] flex justify-center p-2 sm:p-3 pointer-events-none">
+      <div className="pointer-events-auto w-full max-w-xl bg-white rounded-2xl shadow-xl border border-stone-200 p-3.5 sm:p-4">
         {showSettings ? (
           <div className="space-y-3">
             <p className="text-sm text-stone-600 leading-relaxed">
@@ -107,19 +107,19 @@ export function CookieConsentBanner() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-            <p className="text-sm text-stone-600 leading-relaxed flex-1">
-              We gebruiken cookies om de site goed te laten werken en om anonieme statistieken te verzamelen. Lees meer in ons{" "}
+          <div className="space-y-3">
+            <p className="text-sm text-stone-600 leading-relaxed">
+              We gebruiken cookies zodat de site fijn werkt. Meer weten? Lees ons{" "}
               <Link href="/privacy" className="text-primary-600 hover:underline">
                 privacybeleid
               </Link>
               .
             </p>
-            <div className="flex flex-wrap gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={handleAcceptAll}
-                className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+                className="px-5 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
               >
                 Akkoord
               </button>
@@ -133,10 +133,10 @@ export function CookieConsentBanner() {
               <button
                 type="button"
                 onClick={() => setShowSettings(true)}
-                className="px-4 py-2 text-stone-500 hover:text-stone-700 text-sm font-medium inline-flex items-center gap-1"
+                className="ml-auto text-stone-400 hover:text-stone-600 text-xs font-medium inline-flex items-center gap-0.5"
               >
-                Instellingen
-                <ChevronDown size={16} />
+                Instellingen aanpassen
+                <ChevronDown size={14} />
               </button>
             </div>
           </div>
