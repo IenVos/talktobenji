@@ -29,6 +29,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  const pillarArtikelenPages: MetadataRoute.Sitemap = (pillars as any[]).map((p) => ({
+    url: `${base}/thema/${p.slug}/artikelen`,
+    lastModified: new Date(p.updatedAt),
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
   const blogPages: MetadataRoute.Sitemap = (posts as any[]).map((p) => ({
     url: `${base}/blog/${p.slug}`,
     lastModified: new Date(p.updatedAt),
@@ -36,5 +43,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...pillarPages, ...blogPages];
+  return [...staticPages, ...pillarPages, ...pillarArtikelenPages, ...blogPages];
 }
