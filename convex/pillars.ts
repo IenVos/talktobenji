@@ -3,6 +3,48 @@ import { mutation, query, internalMutation } from "./_generated/server";
 import { api } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
 
+/** Eenmalig: inline links in de lopende tekst van de twee pillars (idempotent). */
+export const _addInlineLinks = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    type Pair = { find: string; replace: string; guard: string };
+    const perPillar: Record<string, Pair[]> = {
+      "verlies-van-een-huisdier": [
+        { guard: "niemand-begrijpt-mijn-verdriet-om-mijn-huisdier", find: "de stilte eromheen", replace: "[de stilte eromheen](/blog/niemand-begrijpt-mijn-verdriet-om-mijn-huisdier)" },
+        { guard: "kinderen-en-het-verlies-van-een-huisdier-hoe-leg-je-het-uit", find: "hoe is het voor een kind om een huisdier te verliezen", replace: "[hoe is het voor een kind om een huisdier te verliezen](/blog/kinderen-en-het-verlies-van-een-huisdier-hoe-leg-je-het-uit)" },
+        { guard: "leegte-na-overlijden-hond", find: "het voelen van een aanwezigheid in een lege kamer", replace: "[het voelen van een aanwezigheid in een lege kamer](/blog/leegte-na-overlijden-hond)" },
+        { guard: "opeens-weer-verdriet-hond-rouw-golven", find: "Soms voel je beide op één dag", replace: "[Soms voel je beide op één dag](/blog/opeens-weer-verdriet-hond-rouw-golven)" },
+        { guard: "herinnering-hond-levend-houden-aandenken", find: "een foto of een object dat hen aan hun dier herinnert", replace: "[een foto of een object dat hen aan hun dier herinnert](/blog/herinnering-hond-levend-houden-aandenken)" },
+        { guard: "wanneer-hulp-zoeken-verlies-huisdier", find: "of professionele ondersteuning iets voor jou kan zijn", replace: "of [professionele ondersteuning](/blog/wanneer-hulp-zoeken-verlies-huisdier) iets voor jou kan zijn" },
+        { guard: "ik-mis-mijn-hond-zo-erg-gemis", find: "midden in een gewone dinsdag", replace: "[midden in een gewone dinsdag](/blog/ik-mis-mijn-hond-zo-erg-gemis)" },
+      ],
+      "rouw-en-verdriet": [
+        { guard: "niemand-begrijpt-mijn-verdriet-meer-eenzaamheid-na-verlies", find: "kun je je onbegrepen voelen", replace: "[kun je je onbegrepen voelen](/blog/niemand-begrijpt-mijn-verdriet-meer-eenzaamheid-na-verlies)" },
+        { guard: "waarom-komt-het-verdriet-steeds-terug-golven", find: "Je slingert voortdurend heen en weer tussen deze twee werelden", replace: "[Je slingert voortdurend heen en weer tussen deze twee werelden](/blog/waarom-komt-het-verdriet-steeds-terug-golven)" },
+        { guard: "eerste-jaar-na-verlies-wat-is-normaal", find: "Er is geen stopwatch die bepaalt wanneer je ergens over heen moet zijn", replace: "[Er is geen stopwatch die bepaalt wanneer je ergens over heen moet zijn](/blog/eerste-jaar-na-verlies-wat-is-normaal)" },
+        { guard: "weer-aan-het-werk-terwijl-je-rouwt", find: "nieuwe rollen op te pakken en soms zelfs weer te lachen", replace: "[nieuwe rollen op te pakken](/blog/weer-aan-het-werk-terwijl-je-rouwt) en soms zelfs weer te lachen" },
+      ],
+    };
+    const report: Record<string, { applied: string[]; skipped: string[] }> = {};
+    for (const [slug, pairs] of Object.entries(perPillar)) {
+      const pillar = await ctx.db.query("pillars").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+      const r = { applied: [] as string[], skipped: [] as string[] };
+      if (pillar?.content) {
+        let content = pillar.content;
+        for (const p of pairs) {
+          if (content.includes("/blog/" + p.guard) || content.includes("/thema/" + p.guard)) { r.skipped.push(p.guard + " (al gelinkt)"); continue; }
+          if (!content.includes(p.find)) { r.skipped.push(p.guard + " (anker niet gevonden)"); continue; }
+          content = content.replace(p.find, p.replace);
+          r.applied.push(p.guard);
+        }
+        if (r.applied.length) await ctx.db.patch(pillar._id, { content, updatedAt: Date.now() });
+      }
+      report[slug] = r;
+    }
+    return report;
+  },
+});
+
 /** Eenmalig: "Lees ook"-blok (internalLinks) zetten voor de twee pillars. */
 export const _setLeesookLinks = internalMutation({
   args: {},
