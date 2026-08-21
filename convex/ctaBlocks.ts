@@ -69,11 +69,29 @@ export const save = mutation({
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
-    const { adminToken, id, ...fields } = args;
-    const data = { ...fields, updatedAt: Date.now() };
-    if (id) {
-      await ctx.db.patch(id, data);
-      return id;
+    // Optionele velden expliciet uitschrijven (ook als undefined), zodat een
+    // leeggemaakt veld bij een update écht wordt gewist. De Convex-client laat
+    // undefined-argumenten weg en patch raakt ontbrekende velden niet aan, dus
+    // spreaden van alleen de aangeleverde velden zou de oude waarde laten staan.
+    const data = {
+      key: args.key,
+      label: args.label,
+      eyebrow: args.eyebrow,
+      title: args.title,
+      body: args.body,
+      buttonText: args.buttonText,
+      footnote: args.footnote,
+      showImage: args.showImage,
+      imageStorageId: args.imageStorageId,
+      bgColor: args.bgColor,
+      borderColor: args.borderColor,
+      buttonColor: args.buttonColor,
+      buttonUrl: args.buttonUrl,
+      updatedAt: Date.now(),
+    };
+    if (args.id) {
+      await ctx.db.patch(args.id, data);
+      return args.id;
     }
     return ctx.db.insert("ctaBlocks", data);
   },
