@@ -525,13 +525,13 @@ export default async function HomePage() {
           {faqToShow.map((item) => (
             <details
               key={item.vraag}
-              className="group bg-white border border-[#F0B429]/40 open:border-[#F0B429]/70 rounded-2xl overflow-hidden transition-colors"
+              className="group bg-white border border-[#F0B429] rounded-2xl overflow-hidden"
             >
-              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none select-none hover:bg-[#F0B429]/5 transition-colors">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none select-none hover:bg-primary-50 transition-colors">
                 <span className="text-sm sm:text-base font-semibold text-primary-900 text-balance pr-2">
                   {item.vraag}
                 </span>
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#F0B429]/15 text-[#c8901a] flex items-center justify-center text-lg font-light leading-none group-open:rotate-45 transition-transform">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-lg font-light leading-none group-open:rotate-45 transition-transform">
                   +
                 </span>
               </summary>
