@@ -261,6 +261,7 @@ export default async function PillarPage({ params }: Props) {
     description: pillar.metaDescription,
     url: `https://www.talktobenji.com/thema/${pillar.slug}`,
     inLanguage: "nl-NL",
+    datePublished: new Date((pillar as any).createdAt).toISOString(),
     dateModified: new Date(pillar.updatedAt).toISOString(),
     publisher: {
       "@type": "Organization",
@@ -331,6 +332,20 @@ export default async function PillarPage({ params }: Props) {
             {pillar.title}
           </h1>
           <AuthorCard />
+
+          {(() => {
+            const fmt = (ms: number) => new Date(ms).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
+            const created = (pillar as any).createdAt as number | undefined;
+            const updated = (pillar as any).updatedAt as number | undefined;
+            if (!created) return null;
+            const sameDay = updated ? new Date(created).toDateString() === new Date(updated).toDateString() : true;
+            return (
+              <p className="text-xs text-stone-400 -mt-4 mb-6">
+                Gepubliceerd op {fmt(created)}
+                {!sameDay && updated ? ` · Bijgewerkt op ${fmt(updated)}` : ""}
+              </p>
+            );
+          })()}
 
           {(pillar as any).excerpt && (
             <div className="mt-6 mb-6 p-4 bg-primary-50 border-l-4 border-primary-400 rounded-r-xl">
