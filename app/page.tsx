@@ -295,7 +295,7 @@ export default async function HomePage() {
         </div>
 
         <div className="relative max-w-4xl mx-auto px-6 py-20 sm:py-28 text-center">
-          <p className="text-amber-300 text-base sm:text-lg font-semibold mb-4 tracking-wide">
+          <p className="text-[#F0B429] text-base sm:text-lg font-semibold mb-4 tracking-wide">
             {metRegelafbrekingen(c.heroLabel)}
           </p>
 
@@ -525,13 +525,13 @@ export default async function HomePage() {
           {faqToShow.map((item) => (
             <details
               key={item.vraag}
-              className="group bg-white border border-primary-100 rounded-2xl overflow-hidden"
+              className="group bg-white border border-[#F0B429]/40 open:border-[#F0B429]/70 rounded-2xl overflow-hidden transition-colors"
             >
-              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none select-none hover:bg-primary-50 transition-colors">
+              <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer list-none select-none hover:bg-[#F0B429]/5 transition-colors">
                 <span className="text-sm sm:text-base font-semibold text-primary-900 text-balance pr-2">
                   {item.vraag}
                 </span>
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-lg font-light leading-none group-open:rotate-45 transition-transform">
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#F0B429]/15 text-[#c8901a] flex items-center justify-center text-lg font-light leading-none group-open:rotate-45 transition-transform">
                   +
                 </span>
               </summary>

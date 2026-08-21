@@ -32,7 +32,7 @@ export function FeatureShowcase({ features }: { features?: FeatureItem[] }) {
         {/* Pijl links */}
         <button
           onClick={() => scroll("left")}
-          className="flex-shrink-0 w-9 h-9 rounded-full bg-white border border-primary-200 shadow-sm flex items-center justify-center text-primary-500 hover:text-primary-900 hover:border-primary-400 transition-colors"
+          className="flex-shrink-0 w-9 h-9 rounded-full bg-white border border-[#F0B429] shadow-sm flex items-center justify-center text-[#c8901a] hover:text-[#a9760f] hover:border-[#d99a10] transition-colors"
           aria-label="Scroll links"
         >
           <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
@@ -68,7 +68,7 @@ export function FeatureShowcase({ features }: { features?: FeatureItem[] }) {
         {/* Pijl rechts */}
         <button
           onClick={() => scroll("right")}
-          className="flex-shrink-0 w-9 h-9 rounded-full bg-white border border-primary-200 shadow-sm flex items-center justify-center text-primary-500 hover:text-primary-900 hover:border-primary-400 transition-colors"
+          className="flex-shrink-0 w-9 h-9 rounded-full bg-white border border-[#F0B429] shadow-sm flex items-center justify-center text-[#c8901a] hover:text-[#a9760f] hover:border-[#d99a10] transition-colors"
           aria-label="Scroll rechts"
         >
           <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
