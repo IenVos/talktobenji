@@ -3,6 +3,28 @@ import { mutation, query, internalMutation } from "./_generated/server";
 import { api } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
 
+/** Eenmalig: verwijder featuredSlugs die niet naar een live artikel van die pillar wijzen. */
+export const _pruneFeaturedSlugs = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const pillars = await ctx.db.query("pillars").collect();
+    const report: Record<string, { before: string[]; after: string[]; removed: string[] }> = {};
+    for (const pillar of pillars) {
+      if (!pillar.featuredSlugs?.length) continue;
+      const posts = await ctx.db.query("blogPosts").withIndex("by_pillar", (q) => q.eq("pillarSlug", pillar.slug)).collect();
+      const liveSlugs = new Set(posts.filter((p) => p.isLive && (!p.publishedAt || p.publishedAt <= now)).map((p) => p.slug));
+      const after = pillar.featuredSlugs.filter((s) => liveSlugs.has(s));
+      const removed = pillar.featuredSlugs.filter((s) => !liveSlugs.has(s));
+      if (removed.length) {
+        await ctx.db.patch(pillar._id, { featuredSlugs: after.length ? after : undefined, updatedAt: Date.now() });
+        report[pillar.slug] = { before: pillar.featuredSlugs, after, removed };
+      }
+    }
+    return report;
+  },
+});
+
 /** Eenmalig: inline links in de lopende tekst van de twee pillars (idempotent). */
 export const _addInlineLinks = internalMutation({
   args: {},
