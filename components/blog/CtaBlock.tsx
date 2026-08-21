@@ -123,7 +123,7 @@ function CtaBlockInner({ data }: { data: CtaData }) {
 
       <div className="px-6 pb-6 pt-4 text-center">
         <Link
-          href={data.buttonUrl?.trim() || "/"}
+          href={data.buttonUrl?.trim() || "/benji"}
           className="inline-block text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-opacity hover:opacity-90"
           style={{ background: btnColor }}
         >

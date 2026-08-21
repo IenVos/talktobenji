@@ -137,7 +137,7 @@ function renderInlineCta(data: any, key: number) {
   const bg = data?.bgColor || "#f5f0eb";
   const btnColor = data?.buttonColor || "#6d84a8";
   const borderStyle = data?.borderColor ? { border: `2px solid ${data.borderColor}` } : {};
-  const href = data?.buttonUrl?.trim() || "/";
+  const href = data?.buttonUrl?.trim() || "/benji";
   return (
     <div key={key} style={{ background: bg, borderRadius: "14px", padding: "20px 24px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const, ...borderStyle }}>
       <div>

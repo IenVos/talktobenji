@@ -1,6 +1,23 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
+
+/** Eenmalige opschoning: wis footnotes die de (vervallen) 7-dagen-gratis-belofte noemen. */
+export const clearPromoFootnotes = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const blocks = await ctx.db.query("ctaBlocks").collect();
+    let cleared = 0;
+    for (const b of blocks) {
+      const f = (b.footnote ?? "").toLowerCase();
+      if (f && (f.includes("dagen") || f.includes("gratis") || f.includes("toegang") || f.includes("creditcard"))) {
+        await ctx.db.patch(b._id, { footnote: undefined });
+        cleared++;
+      }
+    }
+    return { total: blocks.length, cleared };
+  },
+});
 
 export const list = query({
   args: { adminToken: v.string() },

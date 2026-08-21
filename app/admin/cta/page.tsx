@@ -31,7 +31,7 @@ const DEFAULTS: CtaForm = {
   body: "",
   buttonText: "Kijk of het bij je past",
   buttonUrl: "",
-  footnote: "7 dagen volledig toegang · geen creditcard nodig",
+  footnote: "",
   showImage: false,
   imageStorageId: null,
   imagePreviewUrl: null,
@@ -53,7 +53,7 @@ const PRESETS: { label: string; data: Partial<CtaForm> }[] = [
       title: "Misschien is dit het moment.",
       body: "Benji luistert — zonder oordeel, zonder haast. Er voor je overdag, 's avonds en midden in de nacht.",
       buttonText: "Kijk of het bij je past",
-      footnote: "7 dagen volledig toegang · geen creditcard nodig",
+      footnote: "",
       showImage: false,
       bgColor: "#f5f0eb",
       borderColor: "",
@@ -69,7 +69,7 @@ const PRESETS: { label: string; data: Partial<CtaForm> }[] = [
       title: "Je hoeft het niet alleen te dragen.",
       body: "Benji is er voor je — wanneer je even wil praten, stilstaan of gewoon niet meer weet waar je het zoeken moet.",
       buttonText: "Kijk of het bij je past",
-      footnote: "7 dagen volledig toegang · geen creditcard nodig",
+      footnote: "",
       showImage: false,
       bgColor: "#fef3c7",
       borderColor: "#d97706",
@@ -85,7 +85,7 @@ const PRESETS: { label: string; data: Partial<CtaForm> }[] = [
       title: "Soms wil je gewoon ergens heen kunnen.",
       body: "Benji is er voor de momenten dat je het moeilijk hebt. Een gesprek, een dagelijkse check-in, herinneringen bewaren — op jouw tempo, wanneer jij er behoefte aan hebt.",
       buttonText: "Kijk of het bij je past",
-      footnote: "7 dagen volledig toegang · geen creditcard nodig",
+      footnote: "",
       showImage: true,
       bgColor: "#f5f0eb",
       borderColor: "",
@@ -382,18 +382,18 @@ export default function CtaAdminPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Kleine tekst onder knop</label>
-                  <input type="text" value={form.footnote} onChange={set("footnote")} placeholder="7 dagen gratis..." className={inputClass} />
+                  <input type="text" value={form.footnote} onChange={set("footnote")} placeholder="Optioneel..." className={inputClass} />
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Knop URL <span className="text-gray-400 font-normal">(leeg = homepage /)</span>
+                  Knop URL <span className="text-gray-400 font-normal">(leeg = chat /benji)</span>
                 </label>
                 <input
                   type="text"
                   value={form.buttonUrl}
                   onChange={set("buttonUrl")}
-                  placeholder="/lp/niet-alleen-nl of https://..."
+                  placeholder="/benji of https://..."
                   className={inputClass + " font-mono text-xs"}
                 />
               </div>
