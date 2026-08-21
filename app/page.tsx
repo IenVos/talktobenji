@@ -295,8 +295,8 @@ export default async function HomePage() {
         </div>
 
         <div className="relative max-w-4xl mx-auto px-6 py-20 sm:py-28 text-center">
-          <p className="text-primary-300 text-base sm:text-lg font-medium mb-4 tracking-wide">
-            {c.heroLabel}
+          <p className="text-primary-100 text-base sm:text-lg font-semibold mb-4 tracking-wide">
+            {metRegelafbrekingen(c.heroLabel)}
           </p>
 
           <h1 className={`text-3xl sm:text-5xl font-bold leading-tight text-white max-w-3xl mx-auto ${(c.heroTitle + c.heroTitleAccent).includes("|") ? "" : "text-balance"}`}>
