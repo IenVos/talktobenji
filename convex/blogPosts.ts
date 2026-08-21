@@ -187,6 +187,8 @@ export const create = mutation({
     excerptCtaKey: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     anchorPhrases: v.optional(v.array(v.string())),
+    noindex: v.optional(v.boolean()),
+    archived: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -214,6 +216,8 @@ export const create = mutation({
       excerptCtaKey: args.excerptCtaKey,
       tags: args.tags,
       anchorPhrases: anchorPhrases.length ? anchorPhrases : undefined,
+      noindex: args.noindex,
+      archived: args.archived,
       kbSynced: false,
       createdAt: now,
       updatedAt: now,
@@ -247,6 +251,7 @@ export const update = mutation({
     kbSynced: v.optional(v.boolean()),
     anchorPhrases: v.optional(v.array(v.string())),
     noindex: v.optional(v.boolean()),
+    archived: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);

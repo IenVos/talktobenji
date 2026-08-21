@@ -1270,6 +1270,7 @@ export default defineSchema({
     tags: v.optional(v.array(v.string())),   // Inhoudelijke labels, bijv. ["kinderloosheid", "zwangerschap"]
     anchorPhrases: v.optional(v.array(v.string())), // Zinnen die in andere artikelen automatisch naar dit artikel linken
     noindex: v.optional(v.boolean()),
+    archived: v.optional(v.boolean()),       // Bewust met pensioen: niet publiek, niet in sitemap, meestal met redirect
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_slug", ["slug"]).index("by_published", ["publishedAt"]).index("by_pillar", ["pillarSlug"]),

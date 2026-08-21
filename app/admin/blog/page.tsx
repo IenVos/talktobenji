@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
   Newspaper, Plus, Edit, Trash2, Save, X, ExternalLink,
-  BookOpen, RefreshCw, Image as ImageIcon, Link as LinkIcon, ArrowLeft, Search, CheckCircle,
+  BookOpen, RefreshCw, Image as ImageIcon, Link as LinkIcon, ArrowLeft, Search, CheckCircle, Signpost, Archive, ArchiveRestore,
 } from "lucide-react";
 import { FormatToolbar } from "@/components/admin/FormatToolbar";
 
@@ -29,6 +29,7 @@ type FormState = {
   publishedAt: string; // "YYYY-MM-DD"
   isLive: boolean;
   noindex: boolean;
+  archived: boolean;
   faqItems: FaqItem[];
   internalLinks: InternalLink[];
   coverImageStorageId?: Id<"_storage">;
@@ -52,6 +53,7 @@ const EMPTY_FORM: FormState = {
   publishedAt: new Date().toISOString().slice(0, 10),
   isLive: false,
   noindex: false,
+  archived: false,
   faqItems: [{ question: "", answer: "" }],
   internalLinks: [{ label: "", slug: "" }, { label: "", slug: "" }],
   coverImageStorageId: undefined,
@@ -123,10 +125,22 @@ export default function AdminBlogPage() {
   const getImageUrl = useAdminMutation(api.blogPosts.getImageUrl);
   const applyLinks = useAdminMutation(api.blogPosts.applyLinkSuggestions);
   const removeAnchorPhrase = useAdminMutation(api.blogPosts.removeAnchorPhrase);
+  const redirects = useAdminQuery(api.redirects.listAll, {});
+
+  // Map: slug -> redirect-doel, zodat de lijst direct toont welk artikel een redirect heeft
+  const redirectBySlug = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of (redirects ?? []) as any[]) {
+      const mt = /^\/blog\/([^/?#]+)/.exec(r.from);
+      if (mt && r.active) m.set(mt[1], r.to);
+    }
+    return m;
+  }, [redirects]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<Id<"blogPosts"> | null>(null);
   const [filterPillar, setFilterPillar] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "live" | "concept" | "archief" | "redirect">("all");
   const [listPage, setListPage] = useState(0);
   const LIST_PAGE_SIZE = 10;
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -331,20 +345,41 @@ export default function AdminBlogPage() {
     setSavedSlugs(new Set());
   };
 
+  // Status-rang: gearchiveerd onderaan, dan concept, live bovenaan (0 = bovenaan)
+  const statusRank = (p: any) => (p.archived ? 2 : p.isLive ? 0 : 1);
+
+  // Tellingen per status (voor de tabs)
+  const statusCounts = useMemo(() => {
+    const c = { all: 0, live: 0, concept: 0, archief: 0, redirect: 0 };
+    for (const p of (posts ?? []) as any[]) {
+      c.all++;
+      if (p.archived) c.archief++;
+      else if (p.isLive) c.live++;
+      else c.concept++;
+      if (redirectBySlug.has(p.slug)) c.redirect++;
+    }
+    return c;
+  }, [posts, redirectBySlug]);
+
   // Gesorteerd + gefilterd + gepagineerd voor de artikellijst
   const sortedPosts = useMemo(() => {
     if (!posts) return [];
     const sorted = [...posts].sort((a: any, b: any) => {
-      // Concepten bovenaan
-      if (!a.isLive && b.isLive) return -1;
-      if (a.isLive && !b.isLive) return 1;
-      // Dan nieuwste eerst
+      const r = statusRank(a) - statusRank(b);
+      if (r !== 0) return r;
       return (b.publishedAt ?? b.createdAt ?? 0) - (a.publishedAt ?? a.createdAt ?? 0);
     });
-    return filterPillar === "all"
-      ? sorted
-      : sorted.filter((p: any) => (filterPillar === "" ? !p.pillarSlug : p.pillarSlug === filterPillar));
-  }, [posts, filterPillar]);
+    return sorted.filter((p: any) => {
+      // Status-filter
+      if (filterStatus === "live" && !(p.isLive && !p.archived)) return false;
+      if (filterStatus === "concept" && !(!p.isLive && !p.archived)) return false;
+      if (filterStatus === "archief" && !p.archived) return false;
+      if (filterStatus === "redirect" && !redirectBySlug.has(p.slug)) return false;
+      // Pillar-filter
+      if (filterPillar === "all") return true;
+      return filterPillar === "" ? !p.pillarSlug : p.pillarSlug === filterPillar;
+    });
+  }, [posts, filterPillar, filterStatus, redirectBySlug]);
 
   // Actieve auto-links VANUIT het huidige artikel: ankerzinnen van andere artikelen die in de huidige tekst voorkomen
   const activeAnchorsFromHere = useMemo(() => {
@@ -383,6 +418,7 @@ export default function AdminBlogPage() {
       focusKeyword: post.focusKeyword ?? "",
       publishedAt: publishDate,
       isLive: post.isLive,
+      archived: post.archived ?? false,
       faqItems: post.faqItems?.length ? post.faqItems : [{ question: "", answer: "" }],
       internalLinks: [
         post.internalLinks?.[0] ?? { label: "", slug: "" },
@@ -489,8 +525,9 @@ export default function AdminBlogPage() {
       metaDescription: form.metaDescription.trim(),
       coverImageStorageId,
       publishedAt,
-      isLive: form.isLive,
+      isLive: form.archived ? false : form.isLive, // gearchiveerd = nooit publiek
       noindex: form.noindex || undefined,
+      archived: form.archived,
       faqItems: faqItems.length ? faqItems : undefined,
       internalLinks: internalLinks.length ? internalLinks : [],
       pillarSlug: form.pillarSlug.trim(),
@@ -1476,14 +1513,23 @@ export default function AdminBlogPage() {
                 <input type="date" value={form.publishedAt} onChange={set("publishedAt")} className={inputClass} />
                 <p className="text-xs text-gray-400 mt-0.5">Toekomstige datum = ingepland, nog niet zichtbaar</p>
               </div>
-              <label className={`flex items-center gap-3 cursor-pointer px-3 py-2.5 rounded-lg border transition-colors ${form.isLive ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-300"}`}>
-                <input type="checkbox" checked={form.isLive} onChange={(e) => setForm((f) => ({ ...f, isLive: e.target.checked }))}
+              <label className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${form.archived ? "bg-slate-100 border-slate-300 opacity-60 cursor-not-allowed" : form.isLive ? "bg-green-50 border-green-200 cursor-pointer" : "bg-amber-50 border-amber-300 cursor-pointer"}`}>
+                <input type="checkbox" checked={form.isLive} disabled={form.archived} onChange={(e) => setForm((f) => ({ ...f, isLive: e.target.checked }))}
                   className="rounded border-primary-300 text-primary-600 w-4 h-4" />
                 <div>
                   <span className={`text-sm font-semibold ${form.isLive ? "text-green-800" : "text-amber-800"}`}>
                     {form.isLive ? "✓ Live — publiek zichtbaar" : "⚠ Concept — nog niet publiek"}
                   </span>
-                  {!form.isLive && <p className="text-xs text-amber-700 mt-0.5">Vink aan om het artikel te publiceren.</p>}
+                  {!form.isLive && !form.archived && <p className="text-xs text-amber-700 mt-0.5">Vink aan om het artikel te publiceren.</p>}
+                  {form.archived && <p className="text-xs text-slate-500 mt-0.5">Gearchiveerd: eerst uit archief halen om te publiceren.</p>}
+                </div>
+              </label>
+              <label className={`flex items-center gap-3 cursor-pointer px-3 py-2.5 rounded-lg border transition-colors ${form.archived ? "bg-slate-200 border-slate-300" : "bg-stone-50 border-stone-200"}`}>
+                <input type="checkbox" checked={form.archived} onChange={(e) => setForm((f) => ({ ...f, archived: e.target.checked, isLive: e.target.checked ? false : f.isLive }))}
+                  className="rounded border-primary-300 text-primary-600 w-4 h-4" />
+                <div>
+                  <span className={`text-sm font-semibold ${form.archived ? "text-slate-700" : "text-gray-600"}`}>Archief</span>
+                  <p className="text-xs text-gray-500 mt-0.5">Offline halen maar bewaren. Zet een redirect voor de oude URL.</p>
                 </div>
               </label>
               <label className={`flex items-center gap-3 cursor-pointer px-3 py-2.5 rounded-lg border transition-colors ${form.noindex ? "bg-red-50 border-red-200" : "bg-stone-50 border-stone-200"}`}>
@@ -1544,6 +1590,25 @@ export default function AdminBlogPage() {
               <p className="text-sm text-gray-500 py-4">Nog geen artikelen. Klik op "Voorbeeldartikel laden" om te starten.</p>
             ) : (
               <>
+                {/* Status-tabs */}
+                <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+                  {([
+                    { key: "all", label: "Alle", count: statusCounts.all },
+                    { key: "live", label: "Live", count: statusCounts.live },
+                    { key: "concept", label: "Concept", count: statusCounts.concept },
+                    { key: "archief", label: "Archief", count: statusCounts.archief },
+                    { key: "redirect", label: "Redirect", count: statusCounts.redirect },
+                  ] as const).map((t) => (
+                    <button
+                      key={t.key}
+                      onClick={() => { setFilterStatus(t.key); setListPage(0); }}
+                      className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${filterStatus === t.key ? "bg-primary-600 text-white border-primary-600" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}
+                    >
+                      {t.label} <span className={filterStatus === t.key ? "text-white/70" : "text-gray-400"}>{t.count}</span>
+                    </button>
+                  ))}
+                </div>
+
                 {/* Pillar filter */}
                 <div className="flex items-center gap-3 mb-3">
                   <select
@@ -1568,9 +1633,14 @@ export default function AdminBlogPage() {
                         <div className="flex justify-between items-start gap-4">
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
-                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${post.isLive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
-                                {post.isLive ? "Live" : "Concept"}
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${post.archived ? "bg-slate-200 text-slate-700" : post.isLive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"}`}>
+                                {post.archived ? "Archief" : post.isLive ? "Live" : "Concept"}
                               </span>
+                              {redirectBySlug.has(post.slug) && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 inline-flex items-center gap-1" title={`Redirect naar ${redirectBySlug.get(post.slug)}`}>
+                                  <Signpost size={11} /> Redirect
+                                </span>
+                              )}
                               {post.publishedAt && post.publishedAt > Date.now() && (
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
                                   Ingepland {new Date(post.publishedAt).toLocaleDateString("nl-NL")}
@@ -1623,6 +1693,17 @@ export default function AdminBlogPage() {
                             >
                               <Edit size={17} />
                             </a>
+                            {post.archived ? (
+                              <button type="button" onClick={() => updatePost({ id: post._id, archived: false })}
+                                className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg" title="Uit archief halen (weer als concept)">
+                                <ArchiveRestore size={17} />
+                              </button>
+                            ) : (
+                              <button type="button" onClick={() => { if (confirm("Artikel archiveren? Het wordt offline gehaald maar blijft bewaard.")) updatePost({ id: post._id, archived: true, isLive: false }); }}
+                                className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg" title="Archiveren (offline, blijft bewaard)">
+                                <Archive size={17} />
+                              </button>
+                            )}
                             <button type="button" onClick={() => { if (confirm("Artikel verwijderen?")) removePost({ id: post._id }); }}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg">
                               <Trash2 size={17} />
