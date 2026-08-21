@@ -295,7 +295,7 @@ export default async function HomePage() {
         </div>
 
         <div className="relative max-w-4xl mx-auto px-6 py-20 sm:py-28 text-center">
-          <p className="text-primary-100 text-base sm:text-lg font-semibold mb-4 tracking-wide">
+          <p className="text-amber-300 text-base sm:text-lg font-semibold mb-4 tracking-wide">
             {metRegelafbrekingen(c.heroLabel)}
           </p>
 
