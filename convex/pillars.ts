@@ -17,7 +17,7 @@ export const _pruneFeaturedSlugs = internalMutation({
       const after = pillar.featuredSlugs.filter((s) => liveSlugs.has(s));
       const removed = pillar.featuredSlugs.filter((s) => !liveSlugs.has(s));
       if (removed.length) {
-        await ctx.db.patch(pillar._id, { featuredSlugs: after.length ? after : undefined, updatedAt: Date.now() });
+        await ctx.db.patch(pillar._id, { featuredSlugs: after, updatedAt: Date.now() });
         report[pillar.slug] = { before: pillar.featuredSlugs, after, removed };
       }
     }

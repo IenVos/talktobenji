@@ -201,7 +201,7 @@ export default function AdminPillarsPage() {
       anchorPhrases: form.anchorPhrases.trim()
         ? form.anchorPhrases.split("\n").map(s => s.trim()).filter(Boolean).slice(0, 5)
         : undefined,
-      featuredSlugs: form.featuredSlugs.length ? form.featuredSlugs : undefined,
+      featuredSlugs: form.featuredSlugs, // altijd (ook lege) array sturen, zodat leegmaken echt wist
     };
   };
 
