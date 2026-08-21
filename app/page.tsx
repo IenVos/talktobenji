@@ -120,6 +120,14 @@ function IconHand() {
   );
 }
 
+// Zet een '|' (of echte newline) in de admin-tekst om in een handmatige regelafbreking.
+// Zo kun je zelf bepalen waar een regel breekt, ook zonder enters in het invoerveld.
+function metRegelafbrekingen(text: string): React.ReactNode {
+  const delen = text.split(/\s*\|\s*|\n/).filter((s) => s.length > 0);
+  if (delen.length <= 1) return text;
+  return delen.flatMap((deel, i) => (i === 0 ? [deel] : [<br key={i} />, deel]));
+}
+
 // Iconen die per homepage-blok gekozen kunnen worden (key = wat in de admin/DB staat).
 const HELP_ICONS: Record<string, () => React.ReactElement> = {
   chat: IconChat,
@@ -298,8 +306,8 @@ export default async function HomePage() {
             </span>
           </h1>
 
-          <p className="mt-6 text-lg sm:text-xl text-primary-200 max-w-xl mx-auto leading-relaxed text-balance">
-            {c.heroSubtitle}
+          <p className={`mt-6 text-lg sm:text-xl text-primary-200 max-w-xl mx-auto leading-relaxed ${c.heroSubtitle.includes("|") ? "" : "text-balance"}`}>
+            {metRegelafbrekingen(c.heroSubtitle)}
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
