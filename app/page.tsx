@@ -299,10 +299,10 @@ export default async function HomePage() {
             {c.heroLabel}
           </p>
 
-          <h1 className="text-3xl sm:text-5xl font-bold leading-tight text-white max-w-3xl mx-auto text-balance">
-            {c.heroTitle}
+          <h1 className={`text-3xl sm:text-5xl font-bold leading-tight text-white max-w-3xl mx-auto ${(c.heroTitle + c.heroTitleAccent).includes("|") ? "" : "text-balance"}`}>
+            {metRegelafbrekingen(c.heroTitle)}
             <span className="block text-primary-200 mt-1">
-              {c.heroTitleAccent}
+              {metRegelafbrekingen(c.heroTitleAccent)}
             </span>
           </h1>
 
@@ -326,7 +326,7 @@ export default async function HomePage() {
           </div>
 
           <p className="mt-6 text-sm text-primary-300">
-            {c.heroNote}
+            {metRegelafbrekingen(c.heroNote)}
           </p>
         </div>
       </section>
