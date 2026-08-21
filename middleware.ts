@@ -1,10 +1,40 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
+
+/** Normaliseer een pad zoals in convex/redirects.ts (leidende slash, geen trailing slash). */
+function normalizePath(p: string): string {
+  if (!p) return "/";
+  let out = p.split("#")[0].split("?")[0];
+  if (out.length > 1 && out.endsWith("/")) out = out.slice(0, -1);
+  return out;
+}
+
+// Korte in-memory cache van de actieve redirects, zodat we niet elke request Convex bevragen.
+type RedirectRule = { from: string; to: string; permanent: boolean };
+let redirectCache: { map: Map<string, RedirectRule>; at: number } | null = null;
+const REDIRECT_TTL_MS = 60_000;
+
+async function lookupRedirect(pathname: string): Promise<RedirectRule | null> {
+  const now = Date.now();
+  if (!redirectCache || now - redirectCache.at > REDIRECT_TTL_MS) {
+    try {
+      const client = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+      const rules = (await client.query(api.redirects.listActive, {})) as RedirectRule[];
+      redirectCache = { map: new Map(rules.map((r) => [normalizePath(r.from), r])), at: now };
+    } catch {
+      // Convex onbereikbaar: nooit de site breken, gewoon geen redirect toepassen.
+      if (!redirectCache) return null;
+    }
+  }
+  return redirectCache?.map.get(normalizePath(pathname)) ?? null;
+}
 
 /**
- * Redirect HTTP → HTTPS in productie + security headers + admin route protection.
+ * Redirect HTTP → HTTPS in productie + beheerbare redirects + security headers + admin route protection.
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   if (
     process.env.NODE_ENV === "production" &&
     request.headers.get("x-forwarded-proto") === "http"
@@ -12,6 +42,20 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.protocol = "https:";
     return NextResponse.redirect(url, 301);
+  }
+
+  // Beheerbare redirects (admin). Alleen op de hoofdsite, niet voor admin/api.
+  const path = request.nextUrl.pathname;
+  const host = request.headers.get("host") ?? "";
+  const isNietAlleenHost = host === "niet-alleen.nl" || host === "www.niet-alleen.nl";
+  if (!isNietAlleenHost && !path.startsWith("/admin") && !path.startsWith("/api")) {
+    const rule = await lookupRedirect(path);
+    if (rule) {
+      const dest = /^https?:\/\//i.test(rule.to)
+        ? rule.to
+        : new URL(rule.to + request.nextUrl.search, request.url).toString();
+      return NextResponse.redirect(dest, rule.permanent ? 301 : 302);
+    }
   }
 
   // Hostname-based routing voor niet-alleen.nl

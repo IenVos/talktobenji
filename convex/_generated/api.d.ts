@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as _tmpFotoBody from "../_tmpFotoBody.js";
 import type * as admin from "../admin.js";
 import type * as adminAuth from "../adminAuth.js";
 import type * as ai from "../ai.js";
@@ -76,6 +77,7 @@ import type * as pillars from "../pillars.js";
 import type * as preferences from "../preferences.js";
 import type * as pushNotifications from "../pushNotifications.js";
 import type * as pushSubscriptions from "../pushSubscriptions.js";
+import type * as redirects from "../redirects.js";
 import type * as reflecties from "../reflecties.js";
 import type * as security from "../security.js";
 import type * as seedData from "../seedData.js";
@@ -98,6 +100,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  _tmpFotoBody: typeof _tmpFotoBody;
   admin: typeof admin;
   adminAuth: typeof adminAuth;
   ai: typeof ai;
@@ -166,6 +169,7 @@ declare const fullApi: ApiFromModules<{
   preferences: typeof preferences;
   pushNotifications: typeof pushNotifications;
   pushSubscriptions: typeof pushSubscriptions;
+  redirects: typeof redirects;
   reflecties: typeof reflecties;
   security: typeof security;
   seedData: typeof seedData;

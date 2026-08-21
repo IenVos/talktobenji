@@ -1386,6 +1386,19 @@ export default defineSchema({
     updatedAt: v.number(),
   }),
 
+  // Beheerbare URL-redirects (301/302). Vervangt de soft 404 voor hernoemde of
+  // verwijderde pagina's: de bezoeker en Google gaan door naar de juiste URL.
+  redirects: defineTable({
+    from: v.string(),        // pad, genormaliseerd: "/blog/oude-slug"
+    to: v.string(),          // pad of volledige URL: "/blog/nieuwe-slug" of "https://..."
+    permanent: v.boolean(),  // true = 301 (blijvend), false = 302 (tijdelijk)
+    active: v.boolean(),
+    hits: v.optional(v.number()), // hoe vaak gebruikt
+    note: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_from", ["from"]),
+
   checkoutHerstelConfig: defineTable({
     actief: v.boolean(),          // mails aan/uit; staat standaard uit
     urenWachten: v.number(),      // hoe lang na het afhaken mail 1 gaat
