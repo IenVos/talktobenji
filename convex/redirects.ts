@@ -3,22 +3,8 @@
  * Uitvoering gebeurt in middleware.ts (cachet listActive kort).
  */
 import { v } from "convex/values";
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
-
-/** Tijdelijk: test-redirect zetten/opruimen om de middleware te verifiëren. */
-export const _seedTestRedirect = internalMutation({
-  args: { on: v.boolean() },
-  handler: async (ctx, args) => {
-    const from = "/zz-redirect-test-987";
-    const existing = await ctx.db.query("redirects").withIndex("by_from", (q) => q.eq("from", from)).first();
-    if (!args.on) { if (existing) await ctx.db.delete(existing._id); return { removed: !!existing }; }
-    const now = Date.now();
-    if (existing) { await ctx.db.patch(existing._id, { active: true, updatedAt: now }); return { updated: true }; }
-    await ctx.db.insert("redirects", { from, to: "/waarom-benji", permanent: true, active: true, hits: 0, note: "tijdelijke test", createdAt: now, updatedAt: now });
-    return { inserted: true };
-  },
-});
 
 /** Normaliseer een pad: leidende slash, geen trailing slash (behalve root), lowercase host-onafhankelijk. */
 function normalizePath(input: string): string {
