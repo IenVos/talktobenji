@@ -480,6 +480,28 @@ export default async function PillarPage({ params }: Props) {
           </div>
         )}
 
+        {/* Veelgestelde vragen */}
+        {(pillar as any).faqItems?.length > 0 && (
+          <div className="mt-14">
+            <h2 className="text-xl font-bold text-stone-800 mb-5">Veelgestelde vragen</h2>
+            <div className="space-y-3">
+              {(pillar as any).faqItems.map((faq: any, i: number) => (
+                <details key={i} className="group bg-white rounded-2xl border border-stone-200 overflow-hidden">
+                  <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-5 py-4 font-semibold text-stone-800 hover:text-primary-600 transition-colors">
+                    <span>{faq.question}</span>
+                    <span className="text-primary-400 flex-shrink-0 transition-transform group-open:rotate-45 text-xl leading-none">+</span>
+                  </summary>
+                  <div className="px-5 pb-5 -mt-1 space-y-3">
+                    {faq.answer.split("\n\n").filter(Boolean).map((para: string, j: number) => (
+                      <p key={j} className="text-stone-600 leading-relaxed text-[15px]" style={{ whiteSpace: "pre-line" }}>{para.trim()}</p>
+                    ))}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
+
         <CtaBlockA data={ctaData} />
       </div>
       <SiteFooter variant="dark" />
