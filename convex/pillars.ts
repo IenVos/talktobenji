@@ -1,7 +1,39 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { api } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
+
+/** Eenmalig: "Lees ook"-blok (internalLinks) zetten voor de twee pillars. */
+export const _setLeesookLinks = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const sets: Record<string, { label: string; slug: string }[]> = {
+      "rouw-en-verdriet": [
+        { label: "Het eerste jaar na een verlies: wat je kunt verwachten en wat normaal is", slug: "eerste-jaar-na-verlies-wat-is-normaal" },
+        { label: "Waarom komt het verdriet steeds terug? Over de golven die je blijven overvallen", slug: "waarom-komt-het-verdriet-steeds-terug-golven" },
+        { label: "Iemand helpen die rouwt: wat je wel en niet moet zeggen", slug: "iemand-helpen-die-rouwt-wat-zeggen" },
+        { label: "Schuldgevoel na verlies: waarom je het voelt en wat je ermee kunt doen", slug: "schuldgevoel-na-verlies-waarom-je-het-voelt" },
+        { label: "Niet weten hoe verder na verlies: het gevoel van verloren zijn", slug: "niet-weten-hoe-verder-na-verlies-het-gevoel-van-verloren-zijn" },
+      ],
+      "verlies-van-een-huisdier": [
+        { label: "Ik mis mijn hond zo erg: wat doe je als het gemis niet minder wordt", slug: "ik-mis-mijn-hond-zo-erg-gemis" },
+        { label: "De herinnering aan je hond levend houden: wat helpt en wat troost geeft", slug: "herinnering-hond-levend-houden-aandenken" },
+        { label: "Wanneer neem je een nieuwe hond? Over twijfel, schuldgevoel en klaarheid", slug: "wanneer-nieuwe-hond-na-overlijden" },
+        { label: "Je huisdier verliezen als je alleen woont", slug: "je-huisdier-verliezen-alleen-wonen" },
+        { label: "Wanneer is het verdriet om je huisdier te veel? Over hulp zoeken na een verlies", slug: "wanneer-hulp-zoeken-verlies-huisdier" },
+      ],
+    };
+    const updated: string[] = [];
+    for (const [slug, links] of Object.entries(sets)) {
+      const pillar = await ctx.db.query("pillars").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+      if (pillar) {
+        await ctx.db.patch(pillar._id, { internalLinks: links, updatedAt: Date.now() });
+        updated.push(slug);
+      }
+    }
+    return { updated };
+  },
+});
 
 /** Admin: alle pillars */
 export const list = query({
