@@ -483,6 +483,11 @@ export default async function HomePage() {
                 </Link>
               ))}
             </div>
+            <div className="mt-10 text-center">
+              <Link href="/blog" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-700 border border-primary-200 rounded-xl px-5 py-2.5 hover:bg-white hover:border-primary-300 transition-colors">
+                Bekijk alle artikelen<IconArrow />
+              </Link>
+            </div>
           </div>
         </section>
       )}
