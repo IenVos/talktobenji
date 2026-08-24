@@ -372,6 +372,11 @@ export default async function HomePage() {
                   {s.cta}<IconArrow />
                 </Link>
               )}
+              {s.stap === "3" && (
+                <Link href="/benji" className="inline-flex items-center gap-1 mt-3 text-sm font-semibold hover:opacity-80 transition-opacity" style={{ color: "#F0B429" }}>
+                  Start je eerste gesprek met Benji<IconArrow />
+                </Link>
+              )}
             </div>
           ))}
         </div>
