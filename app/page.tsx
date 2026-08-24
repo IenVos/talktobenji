@@ -337,7 +337,7 @@ export default async function HomePage() {
           <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-4 text-balance">
             Praten met een AI. Helpt dat?
           </h2>
-          <div className="space-y-4 text-sm sm:text-[15px] text-primary-700 leading-relaxed">
+          <div className="space-y-4 text-sm sm:text-[15px] text-primary-700 leading-relaxed text-pretty">
             <p>Eerlijk: het is niet hetzelfde als een vriend die naast je zit. Dat wordt het ook nooit.</p>
             <p>{`Maar om 3 uur 's nachts is er vaak niemand. En sommige dingen zeg je makkelijker als je niemand belast. Benji is daar speciaal voor gemaakt: voor verdriet, verlies en eenzaamheid. Geen oordeel, geen tijdslimiet, geen "hoe gaat het nú met je" van iemand die het eigenlijk niet wil horen.`}</p>
             <p>{`Benji is er voor de momenten ertussenin, en helpt je weer richting de mensen om je heen wanneer jij zover bent.`}</p>
@@ -373,33 +373,11 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
-
-        <div className="mt-6 flex flex-col sm:flex-row justify-center gap-6">
-          <div className="flex flex-col p-8 bg-white rounded-2xl border sm:w-[calc(33.333%-0.75rem)]" style={{ borderColor: "#7ec8e3" }}>
-            <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">4</div>
-            <h3 className="text-base font-semibold text-primary-900 mb-2">{c.stap4Titel}</h3>
-            <p className="text-sm text-primary-600 leading-relaxed text-pretty flex-1">{c.stap4Tekst}</p>
-            {c.stap4Cta && c.stap4Url && (
-              <Link href={c.stap4Url} className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
-                {c.stap4Cta}<IconArrow />
-              </Link>
-            )}
-          </div>
-          <div className="flex flex-col p-8 bg-white rounded-2xl border sm:w-[calc(33.333%-0.75rem)]" style={{ borderColor: "#7ec8e3" }}>
-            <div className="w-10 h-10 rounded-full bg-primary-900 text-white text-base font-bold flex items-center justify-center mb-5 flex-shrink-0">5</div>
-            <h3 className="text-base font-semibold text-primary-900 mb-2">{c.stap5Titel}</h3>
-            <p className="text-sm text-primary-600 leading-relaxed text-pretty flex-1">{c.stap5Tekst}</p>
-            {(c.stap5Cta || "Bekijk wat erbij zit") && (
-              <Link href={c.stap5Url || "/lp/jaar-toegang"} className="inline-flex items-center gap-1 mt-3 text-sm font-medium hover:opacity-80 transition-opacity" style={{ color: "#7ec8e3" }}>
-                {c.stap5Cta || "Bekijk wat erbij zit"}<IconArrow />
-              </Link>
-            )}
-          </div>
-        </div>
       </section>
 
       {/* Blokken: "Waar kan ik je mee helpen?" */}
-      <section className="max-w-5xl mx-auto px-6 py-16 sm:py-20">
+      <section className="bg-primary-50">
+        <div className="max-w-5xl mx-auto px-6 py-16 sm:py-20">
         <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 text-center mb-3 text-balance">
           {c.blokkenTitel}
         </h2>
@@ -430,6 +408,7 @@ export default async function HomePage() {
               </Link>
             );
           })}
+        </div>
         </div>
       </section>
 
