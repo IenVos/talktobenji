@@ -482,7 +482,7 @@ export default async function HomePage() {
       )}
 
       {/* Over Benji / Ien */}
-      <section className="bg-primary-50 border-b border-primary-100">
+      <section className="bg-white border-b border-primary-100">
         <div className="max-w-2xl mx-auto px-6 py-14">
           <div className="flex flex-col items-center mb-6 text-center">
             <div className="w-20 h-20 rounded-2xl overflow-hidden mb-3">
