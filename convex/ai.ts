@@ -530,7 +530,7 @@ export const handleUserMessage = action({
 
       const onlyFromKbRule = isEnglish
         ? "KNOWLEDGE BASE: The Q&As below were semantically matched to this conversation — they are the most relevant available. Use them as grounding for your response, but always prioritize the emotional tone of the conversation over literal Q&A content. If no Q&As are provided, rely on your general knowledge and the rules above. If a question falls completely outside grief/loss/emotions, end your response with exactly [UNANSWERED] so we can track it."
-        : "KNOWLEDGE BASE: De Q&A's hieronder zijn semantisch geselecteerd op basis van dit gesprek — ze zijn de meest relevante die beschikbaar zijn. Gebruik ze als inhoudelijke basis, maar prioriteer altijd de emotionele toon van het gesprek boven letterlijke Q&A-inhoud. Als er geen Q&A's zijn meegegeven, vertrouw dan op je algemene kennis en de regels hierboven. Als een vraag volledig buiten rouw/verlies/emoties valt, eindig je antwoord dan met exact [UNANSWERED] zodat we het kunnen bijhouden.";
+        : "KNOWLEDGE BASE: De Q&A's hieronder zijn semantisch geselecteerd op basis van dit gesprek — ze zijn de meest relevante die beschikbaar zijn. Gebruik ze als inhoudelijke basis, maar prioriteer altijd de emotionele toon van het gesprek boven letterlijke Q&A-inhoud. Als er geen Q&A's zijn meegegeven, vertrouw dan op je algemene kennis en de regels hierboven. Als een vraag volledig buiten verdriet, verlies, eenzaamheid, relaties of emoties valt, eindig je antwoord dan met exact [UNANSWERED] zodat we het kunnen bijhouden.";
 
       const dutchLanguageRule = `TAAL: Antwoord ALTIJD in het Nederlands. Nooit in het Engels, zelfs niet als de gebruiker iets in het Engels schrijft. Reageer dan gewoon in het Nederlands.
 
@@ -944,7 +944,7 @@ export const summarizeSession = internalAction({
           body: JSON.stringify({
             model: CLAUDE_MODEL,
             max_tokens: 400,
-            system: `Je maakt beknopte samenvattingen van gesprekken tussen een gebruiker en Benji (een empathische chatbot voor rouwverwerking). Schrijf in derde persoon ("de gebruiker"), in het Nederlands, max 120 woorden.
+            system: `Je maakt beknopte samenvattingen van gesprekken tussen een gebruiker en Benji (een empathische gesprekspartner voor mensen met verdriet, verlies, eenzaamheid, relatiebreuk of een moeilijke periode). Schrijf in derde persoon ("de gebruiker"), in het Nederlands, max 120 woorden.
 
 Vat samen:
 1. Wat de gebruiker heeft gedeeld (situatie, emoties, verlies)
@@ -1047,7 +1047,7 @@ export const analyzeSessionAdmin = internalAction({
       body: JSON.stringify({
         model: CLAUDE_MODEL,
         max_tokens: 500,
-        system: `Je analyseert gesprekken tussen gebruikers (G) en Benji (B), een empathische chatbot voor rouwverwerking van TalkToBenji.nl.
+        system: `Je analyseert gesprekken tussen gebruikers (G) en Benji (B), een empathische gesprekspartner van TalkToBenji.nl voor mensen met verdriet, verlies, eenzaamheid, relatiebreuk of een andere moeilijke periode. Benji is er dus niet alleen voor rouw; beoordeel het gesprek nooit alsof rouw het enige onderwerp zou moeten zijn.
 
 BELANGRIJK — GEHEUGEN: Benji heeft geheugen van eerdere gesprekken met deze bezoeker (samenvattingen van vorige sessies worden automatisch meegegeven). Jij ziet hier ALLEEN het huidige gesprek, niet dat geheugen. Als Benji verwijst naar een naam, huisdier, gebeurtenis of detail dat niet in dít transcript is geïntroduceerd, is dat vrijwel altijd correcte herinnering uit een vorig gesprek, GEEN verzinsel. Markeer dit NIET als fout of "verzonnen geheugen", tenzij de bezoeker het in dit gesprek zelf expliciet tegenspreekt.
 
@@ -1059,7 +1059,7 @@ Geef in 4 punten:
 1. Onderwerp: wat speelde er globaal? (max 8 woorden, geen namen)
 2. Verloop: hoe ging het gesprek? Was Benji behulpzaam, herhaalde hij zichzelf, haakte de gebruiker gefrustreerd af?
 3. Aandachtspunt: wat ging er mis of kon beter? (of "geen" als het goed ging)
-4. Actie: moet er iets worden toegevoegd aan de kennisbank, of een aanpassing aan Benji? (of "geen")
+4. Actie: alleen als er echt iets misging of ontbrak, benoem één concrete verbetering (meestal een gedragsaanpassing aan Benji). Stel niet standaard voor om iets aan de kennisbank toe te voegen; doe dat alleen bij een duidelijk ontbrekend, feitelijk antwoord. Ging het goed, schrijf dan "geen".
 
 Schrijf strak en zakelijk. Max 100 woorden totaal.`,
         messages: [
@@ -1087,9 +1087,10 @@ Schrijf strak en zakelijk. Max 100 woorden totaal.`,
 
       // Auto-genereer trainingsuggestie op basis van het rapport (Haiku = snel & goedkoop)
       try {
-        const suggestPrompt = `Je bent een kwaliteitscontroleur voor Benji, een empathische rouw-chatbot.
+        const suggestPrompt = `Je bent een kwaliteitscontroleur voor Benji, een empathische gesprekspartner voor mensen met verdriet, verlies, eenzaamheid, relatiebreuk of een moeilijke periode (niet alleen rouw).
 Hieronder staat een kwaliteitsrapport. Vertaal het "Actie" punt naar een concrete verbetering.
 Kies "rules" voor gedragsregels/aanpak/crisisprotocol, of "knowledge" voor ontbrekende inhoudelijke kennis.
+Als het "Actie"-punt "geen" is of er valt niets concreets te verbeteren, antwoord dan EXACT met {"type":"geen"} en niets anders. Verzin geen verbetering als het gesprek gewoon goed ging.
 
 RAPPORT:
 ${rapport}
@@ -1107,10 +1108,12 @@ Antwoord ALLEEN in dit JSON formaat:
           const suggestText = suggestData.content?.[0]?.text?.trim() ?? "";
           const match = suggestText.match(/\{[\s\S]*\}/);
           if (match) {
+            let isGeen = false;
+            try { isGeen = JSON.parse(match[0])?.type === "geen"; } catch {}
             await ctx.runMutation(internal.chat.setAdminRapport, {
               sessionId: args.sessionId,
               rapport,
-              suggestie: match[0],
+              suggestie: isGeen ? undefined : match[0],
             });
           }
         }

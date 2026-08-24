@@ -64,9 +64,27 @@
  *  5. Verwijs bij acute crisis naar 113 of huisarts"
  */
 
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 import { checkAdmin } from "./adminAuth";
+
+/** Eenmalig: diepgang- + warme-afsluitingsregel toevoegen aan de Benji-regels (idempotent). */
+export const _appendDiepgangEnAfsluitRegel = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const marker = "Blijft een gesprek oppervlakkig";
+    const settings = await ctx.db.query("botSettings").first();
+    const current = settings?.rules ?? "";
+    if (current.includes(marker)) return { skipped: true };
+    const addition =
+      "Blijft een gesprek oppervlakkig (korte, feitelijke antwoorden, weinig gevoel), ga er dan zelf een laag dieper op in in plaats van te benoemen dat het oppervlakkig blijft. Papegaai niet, maar benoem zacht het gevoel dat onder de woorden lijkt te zitten en zet zo zelf een klein stapje richting meer diepte. Dring niet aan; blijft iemand liever luchtig, respecteer dat volledig.\n" +
+      "Sluit een gesprek warm af met een open uitnodiging om terug te komen, zodat iemand voelt dat de deur openstaat (bijvoorbeeld dat je er een volgende keer ook bent). Wissel dat af en zeg het niet elke keer op dezelfde manier.";
+    const updated = current.trimEnd() + "\n\n" + addition;
+    if (settings) await ctx.db.patch(settings._id, { rules: updated, updatedAt: Date.now() });
+    else await ctx.db.insert("botSettings", { rules: addition, knowledge: "", updatedAt: Date.now() });
+    return { added: true };
+  },
+});
 
 /**
  * Haal de huidige bot instellingen op
