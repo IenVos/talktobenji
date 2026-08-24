@@ -349,7 +349,8 @@ export default async function HomePage() {
       </section>
 
       {/* Zo werkt een gesprek met Benji */}
-      <section className="max-w-5xl mx-auto px-6 py-16 sm:py-20">
+      <section className="bg-primary-50">
+        <div className="max-w-5xl mx-auto px-6 py-16 sm:py-20">
         <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 text-center mb-3 text-balance">
           {c.stappenTitel}
         </h2>
@@ -380,6 +381,81 @@ export default async function HomePage() {
               )}
             </div>
           ))}
+        </div>
+        </div>
+      </section>
+
+      {/* Ervaringen */}
+      <section className="bg-white border-y border-primary-100">
+        <div className="max-w-5xl mx-auto px-6 py-14 sm:py-16">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8">
+            Wat anderen zeggen
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {ervaringen.slice(0, 4).map((e) => (
+              <div key={e.naam + e.tekst.slice(0, 20)} className="bg-white rounded-xl border border-gray-100 flex flex-col p-5">
+                <svg viewBox="0 0 24 24" className="w-5 h-5 text-primary-200 mb-2 flex-shrink-0" fill="currentColor">
+                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                </svg>
+                <p className="text-sm leading-relaxed italic mb-3 flex-1 text-balance text-primary-700">
+                  {e.tekst}
+                </p>
+                <p className="text-xs font-medium text-primary-400">{e.naam}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-xs text-center max-w-lg mx-auto text-balance" style={{ color: "#b0b8c8" }}>
+            Vanwege privacy gebruiken we geen volledige naam of foto, maar we zijn oprecht blij dat deze mensen hun ervaring met Benji willen delen.
+          </p>
+        </div>
+      </section>
+
+      {/* Screenshot strip */}
+      <section className="py-12 sm:py-16 bg-primary-50">
+        <div className="max-w-5xl mx-auto px-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 text-center mb-2">Wat je krijgt</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8 text-balance">
+            {c.showcaseTitel}
+          </h2>
+          <FeatureShowcase features={customFeatures} />
+        </div>
+      </section>
+
+      {/* Over Benji / Ien */}
+      <section className="bg-white border-b border-primary-100">
+        <div className="max-w-2xl mx-auto px-6 py-14">
+          <div className="flex flex-col items-center mb-6 text-center">
+            <div className="w-20 h-20 rounded-2xl overflow-hidden mb-3">
+              <Image
+                src={c.founderImageUrl || "/images/ien-founder.png"}
+                alt="Ien, oprichter"
+                width={80}
+                height={80}
+                className="object-cover w-full h-full"
+              />
+            </div>
+            <p className="text-xs font-semibold text-primary-900">Ien</p>
+            <p className="text-xs text-primary-400">Founder Talk To Benji</p>
+          </div>
+
+          <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-2 text-center">Over Benji</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-5 text-balance text-center">
+            {c.overTitle}
+          </h2>
+          <div className="space-y-4 text-sm text-primary-700 leading-relaxed text-left">
+            <p>{c.overP1}</p>
+            <p>{c.overP2}</p>
+            <p>{c.overP3}</p>
+          </div>
+          <Link
+            href="/waarom-benji"
+            className="inline-flex items-center gap-1.5 mt-5 text-sm font-medium hover:opacity-80 transition-opacity"
+            style={{ color: "#7ec8e3" }}
+          >
+            Waarom Benji?
+            <IconArrow />
+          </Link>
         </div>
       </section>
 
@@ -439,17 +515,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Screenshot strip */}
-      <section className="py-12 sm:py-16">
-        <div className="max-w-5xl mx-auto px-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 text-center mb-2">Wat je krijgt</p>
-          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8 text-balance">
-            {c.showcaseTitel}
-          </h2>
-          <FeatureShowcase features={customFeatures} />
-        </div>
-      </section>
-
       {/* Laatste artikelen per thema */}
       {(laatsteArtikelen as any[]).length > 0 && (
         <section className="bg-primary-50 border-t border-primary-100">
@@ -491,69 +556,6 @@ export default async function HomePage() {
           </div>
         </section>
       )}
-
-      {/* Over Benji / Ien */}
-      <section className="bg-white border-b border-primary-100">
-        <div className="max-w-2xl mx-auto px-6 py-14">
-          <div className="flex flex-col items-center mb-6 text-center">
-            <div className="w-20 h-20 rounded-2xl overflow-hidden mb-3">
-              <Image
-                src={c.founderImageUrl || "/images/ien-founder.png"}
-                alt="Ien, oprichter"
-                width={80}
-                height={80}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <p className="text-xs font-semibold text-primary-900">Ien</p>
-            <p className="text-xs text-primary-400">Founder Talk To Benji</p>
-          </div>
-
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-2 text-center">Over Benji</p>
-          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-5 text-balance text-center">
-            {c.overTitle}
-          </h2>
-          <div className="space-y-4 text-sm text-primary-700 leading-relaxed text-left">
-            <p>{c.overP1}</p>
-            <p>{c.overP2}</p>
-            <p>{c.overP3}</p>
-          </div>
-          <Link
-            href="/waarom-benji"
-            className="inline-flex items-center gap-1.5 mt-5 text-sm font-medium hover:opacity-80 transition-opacity"
-            style={{ color: "#7ec8e3" }}
-          >
-            Waarom Benji?
-            <IconArrow />
-          </Link>
-        </div>
-      </section>
-
-      {/* Ervaringen */}
-      <section className="bg-primary-50 border-y border-primary-100">
-        <div className="max-w-5xl mx-auto px-6 py-14 sm:py-16">
-          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8">
-            Wat anderen zeggen
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {ervaringen.slice(0, 4).map((e) => (
-              <div key={e.naam + e.tekst.slice(0, 20)} className="bg-white rounded-xl border border-gray-100 flex flex-col p-5">
-                <svg viewBox="0 0 24 24" className="w-5 h-5 text-primary-200 mb-2 flex-shrink-0" fill="currentColor">
-                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                </svg>
-                <p className="text-sm leading-relaxed italic mb-3 flex-1 text-balance text-primary-700">
-                  {e.tekst}
-                </p>
-                <p className="text-xs font-medium text-primary-400">{e.naam}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 text-xs text-center max-w-lg mx-auto text-balance" style={{ color: "#b0b8c8" }}>
-            Vanwege privacy gebruiken we geen volledige naam of foto, maar we zijn oprecht blij dat deze mensen hun ervaring met Benji willen delen.
-          </p>
-        </div>
-      </section>
 
       {/* FAQ */}
       <section className="max-w-3xl mx-auto px-6 py-16 sm:py-20">
@@ -623,7 +625,7 @@ export default async function HomePage() {
       </section>
 
       {/* Brug naar Niet Alleen */}
-      <section className="bg-primary-50 border-b border-primary-100">
+      <section className="bg-white border-b border-primary-100">
         <div className="max-w-2xl mx-auto px-6 pb-10 pt-6 text-center">
           <p className="text-sm text-primary-500 text-balance">
             Wil je meer dan één gesprek?{" "}
