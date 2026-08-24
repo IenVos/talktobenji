@@ -333,7 +333,7 @@ export default async function HomePage() {
       </section>
 
       {/* Praten met een AI: helpt dat? */}
-      <section className="max-w-2xl mx-auto px-6 pt-14 sm:pt-16">
+      <section className="max-w-2xl mx-auto px-6 pt-14 sm:pt-16 pb-12 sm:pb-14">
         <div className="bg-primary-50 border border-primary-100 rounded-2xl p-7 sm:p-9">
           <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-4 text-balance">
             Praten met een AI. Helpt dat?
@@ -350,11 +350,11 @@ export default async function HomePage() {
 
       {/* Zo werkt een gesprek met Benji */}
       <section className="bg-primary-50">
-        <div className="max-w-5xl mx-auto px-6 py-16 sm:py-20">
+        <div className="max-w-5xl mx-auto px-6 py-12 sm:py-14">
         <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 text-center mb-3 text-balance">
           {c.stappenTitel}
         </h2>
-        <p className="text-primary-500 text-center text-sm mb-10 text-balance">
+        <p className="text-primary-500 text-center text-sm mb-8 text-balance">
           Geen formulieren, geen intake. Gewoon beginnen.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
