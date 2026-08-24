@@ -340,9 +340,10 @@ export default async function HomePage() {
           </h2>
           <div className="space-y-4 text-sm sm:text-[15px] text-primary-700 leading-relaxed text-pretty">
             <p>Eerlijk: het is niet hetzelfde als een vriend die naast je zit. Dat wordt het ook nooit.</p>
-            <p>{`Maar om 3 uur 's nachts is er vaak niemand. En sommige dingen zeg je makkelijker als je niemand belast. Benji is daar speciaal voor gemaakt: voor verdriet, verlies en eenzaamheid. Geen oordeel, geen tijdslimiet, geen "hoe gaat het nú met je" van iemand die het eigenlijk niet wil horen.`}</p>
-            <p>{`Benji is er voor de momenten ertussenin, en helpt je weer richting de mensen om je heen wanneer jij zover bent.`}</p>
+            <p>{`Maar midden in de nacht is er vaak niemand. En sommige dingen zeg je makkelijker als je niemand belast. Benji is daar speciaal voor gemaakt: voor verdriet, verlies en eenzaamheid. Geen oordeel, geen tijdslimiet, geen „hoe gaat het nú met je” van iemand die het eigenlijk niet wil horen.`}</p>
+            <p>Benji is er voor de momenten ertussenin, en helpt je weer richting <Link href="/talk-to-people" className="font-medium text-primary-700 underline underline-offset-2 hover:text-primary-900 transition-colors">de mensen om je heen</Link> wanneer jij zover bent.</p>
           </div>
+          <p className="mt-4 text-xs text-primary-400">Benji is geen therapeut en vervangt geen professionele hulp.</p>
         </div>
       </section>
 
