@@ -218,10 +218,11 @@ const FAQ: FaqItem[] = [
 
 
 export default async function HomePage() {
-  const [saved, liveTestimonials, faqItems] = await Promise.all([
+  const [saved, liveTestimonials, faqItems, laatsteArtikelen] = await Promise.all([
     fetchQuery(api.pageContent.getPublicPageContent, { pageKey: "homepage" }).catch(() => null),
     fetchQuery(api.testimonials.listActive, {}).catch(() => []),
     fetchQuery(api.homepageFaq.listActief, {}).catch(() => []),
+    fetchQuery(api.pillars.latestArticlePerPillar, {}).catch(() => [] as any[]),
   ]);
   const c = { ...DEFAULTS, ...(saved ?? {}) };
 
@@ -441,6 +442,43 @@ export default async function HomePage() {
           <FeatureShowcase features={customFeatures} />
         </div>
       </section>
+
+      {/* Laatste artikelen per thema */}
+      {(laatsteArtikelen as any[]).length > 0 && (
+        <section className="bg-primary-50 border-t border-primary-100">
+          <div className="max-w-5xl mx-auto px-6 py-16 sm:py-20">
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 text-center mb-2">Om te lezen</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 text-center mb-3 text-balance">
+              Woorden die kunnen helpen
+            </h2>
+            <p className="text-primary-600 text-center mb-12 max-w-lg mx-auto text-balance">
+              Verhalen en artikelen over verdriet, verlies en eenzaamheid. Lees op je eigen tempo.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {(laatsteArtikelen as any[]).map((a) => (
+                <Link
+                  key={a.slug}
+                  href={`/blog/${a.slug}`}
+                  className="group bg-white rounded-2xl border border-primary-100 overflow-hidden hover:shadow-md hover:border-primary-300 transition-all flex flex-col"
+                >
+                  {a.coverImageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={a.coverImageUrl} alt={a.title} loading="lazy" decoding="async" className="w-full h-40 object-cover" />
+                  ) : (
+                    <div className="w-full h-40 bg-gradient-to-br from-primary-100 to-primary-200" />
+                  )}
+                  <div className="p-5 flex flex-col flex-1">
+                    <span className="text-xs font-medium text-primary-500 mb-2 line-clamp-1">{a.pillarTitle}</span>
+                    <h3 className="font-semibold text-primary-900 leading-snug mb-2 text-balance group-hover:text-primary-700 transition-colors">{a.title}</h3>
+                    {a.excerpt && <p className="text-sm text-primary-600 line-clamp-2 flex-1">{a.excerpt}</p>}
+                    <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary-700 group-hover:gap-2 transition-all">Lees verder<IconArrow /></span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Over Benji / Ien */}
       <section className="bg-primary-50 border-b border-primary-100">

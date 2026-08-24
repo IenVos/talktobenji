@@ -213,6 +213,37 @@ export const listSlugs = query({
   },
 });
 
+/** Publiek: per live pillar het laatst gepubliceerde artikel (voor de homepage-artikelenstrip). */
+export const latestArticlePerPillar = query({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const pillars = await ctx.db.query("pillars").filter((q) => q.eq(q.field("isLive"), true)).collect();
+    const rows = [];
+    for (const p of pillars) {
+      const posts = await ctx.db.query("blogPosts").withIndex("by_pillar", (q) => q.eq("pillarSlug", p.slug)).collect();
+      const live = posts.filter((x) => x.isLive && !x.archived && (!x.publishedAt || x.publishedAt <= now));
+      if (!live.length) continue;
+      live.sort((a, b) => (b.publishedAt ?? b.createdAt) - (a.publishedAt ?? a.createdAt));
+      const a = live[0];
+      const coverImageUrl = a.coverImageStorageId
+        ? await ctx.storage.getUrl(a.coverImageStorageId).catch(() => null)
+        : null;
+      rows.push({
+        pillarSlug: p.slug,
+        pillarTitle: p.title,
+        title: a.title,
+        slug: a.slug,
+        excerpt: a.excerpt ?? null,
+        coverImageUrl,
+        publishedAt: a.publishedAt ?? a.createdAt,
+      });
+    }
+    rows.sort((x, y) => y.publishedAt - x.publishedAt);
+    return rows.slice(0, 3);
+  },
+});
+
 /** Publiek: lichte dataset voor auto-linking (slug, title, anchorPhrases) — linkt naar /thema/ */
 export const listAnchorData = query({
   args: {},
