@@ -9,6 +9,7 @@
  */
 
 import type * as _tmpFotoBody from "../_tmpFotoBody.js";
+import type * as _tmpRelatieLeads from "../_tmpRelatieLeads.js";
 import type * as admin from "../admin.js";
 import type * as adminAuth from "../adminAuth.js";
 import type * as ai from "../ai.js";
@@ -101,6 +102,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   _tmpFotoBody: typeof _tmpFotoBody;
+  _tmpRelatieLeads: typeof _tmpRelatieLeads;
   admin: typeof admin;
   adminAuth: typeof adminAuth;
   ai: typeof ai;

@@ -387,6 +387,32 @@ async function verstuurOpvolgMail(
 
 // ── Interne data-helpers ──────────────────────────────────────────────────────
 
+/** Compact campagne-overzicht (leads, afmeldingen, per verliestype). Geen auth: intern via CLI. */
+export const _campagneOverzicht = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const [brieven, profielen, afmeldingen] = await Promise.all([
+      ctx.db.query("houvastBrieven").collect(),
+      ctx.db.query("houvasteProfielen").collect(),
+      ctx.db.query("ehAfmeldingen").collect(),
+    ]);
+    const week = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const perType: Record<string, number> = {};
+    for (const b of brieven) {
+      const t = b.verliesType || "onbekend";
+      perType[t] = (perType[t] || 0) + 1;
+    }
+    return {
+      aangemeld: profielen.length,
+      leads_briefVerstuurd: brieven.length,
+      leadsLaatste7dagen: brieven.filter((b) => (b.sentAt || 0) >= week).length,
+      afmeldingen: afmeldingen.length,
+      afmeldRatio: brieven.length ? Math.round((afmeldingen.length / brieven.length) * 1000) / 10 : 0,
+      perVerliestype: perType,
+    };
+  },
+});
+
 export const _leadsVoorOpvolg = internalQuery({
   args: {},
   handler: async (ctx) => {
