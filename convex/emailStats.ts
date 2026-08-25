@@ -12,8 +12,47 @@
  * aangeklikt is → open-rate en klik-ratio.
  */
 import { v } from "convex/values";
-import { internalMutation, query, type QueryCtx } from "./_generated/server";
+import { internalMutation, internalQuery, query, type QueryCtx } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
+
+/** Open/klik-rate per programma vanaf een datum. Geen auth: intern via CLI. */
+export const _openRateSinds = internalQuery({
+  args: { since: v.number() },
+  handler: async (ctx, { since }) => {
+    const events = await ctx.db
+      .query("resendEmailEvents")
+      .filter((q) => q.gte(q.field("createdAt"), since))
+      .collect();
+    const perMail = new Map<string, { prog: string; sent: boolean; opened: boolean; clicked: boolean }>();
+    for (const e of events) {
+      let m = perMail.get(e.emailId);
+      if (!m) {
+        m = { prog: e.tags?.programma ?? "onbekend", sent: false, opened: false, clicked: false };
+        perMail.set(e.emailId, m);
+      }
+      if (m.prog === "onbekend" && e.tags?.programma) m.prog = e.tags.programma;
+      if (e.type === "email.delivered" || e.type === "email.sent") m.sent = true;
+      if (e.type === "email.opened") m.opened = true;
+      if (e.type === "email.clicked") m.clicked = true;
+    }
+    const agg: Record<string, { verzonden: number; geopend: number; geklikt: number }> = {};
+    for (const m of perMail.values()) {
+      const a = (agg[m.prog] ??= { verzonden: 0, geopend: 0, geklikt: 0 });
+      if (m.sent) a.verzonden++;
+      if (m.opened) a.geopend++;
+      if (m.clicked) a.geklikt++;
+    }
+    const out: Record<string, unknown> = {};
+    for (const [p, a] of Object.entries(agg)) {
+      out[p] = {
+        ...a,
+        openRate: a.verzonden ? Math.round((a.geopend / a.verzonden) * 1000) / 10 : 0,
+        klikRate: a.verzonden ? Math.round((a.geklikt / a.verzonden) * 1000) / 10 : 0,
+      };
+    }
+    return out;
+  },
+});
 import { DEFAULT_TEMPLATES } from "./emailTemplatesDefaults";
 import { NIET_ALLEEN_CONTENT } from "./nietAlleenContent";
 import { EENZAAMHEID_CONTENT } from "./nietAlleenEenzaamheidContent";
