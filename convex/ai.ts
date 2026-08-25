@@ -95,6 +95,7 @@ import { v } from "convex/values";
 import { action, internalAction } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { berichtenModelActief } from "./benjiLimiet";
+import { momentenScript } from "./momentenScript";
 
 // ============================================================================
 // TYPES EN INTERFACES
@@ -684,6 +685,11 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
       // daarom apart mee als variabel blok — anders breekt de cache elk bericht.
       const rules = [customRules, limitedExtraRules].filter(Boolean).join("\n\n");
 
+      // Geleide-momenten-modus: plak het momenten-script als variabel blok mee, zodat
+      // Benji de vijf momenten in volgorde stelt en op de antwoorden reageert.
+      const momentenBlok = chatSession?.momentenType ? momentenScript(chatSession.momentenType) : "";
+      const volatileRulesCombined = [momentenBlok, accountNudgeRule].filter(Boolean).join("\n\n");
+
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
       try {
@@ -692,7 +698,7 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
           knowledgeCombined,
           rules,
           conversationHistory,
-          accountNudgeRule
+          volatileRulesCombined
         );
       } catch (error: any) {
         // Fallback: bij 503 overflow of 400 errors, probeer opnieuw met minimale context

@@ -11,6 +11,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { encryptContent, decryptContent } from "./chatCrypto";
+import { MOMENTEN_OPENER } from "./momentenScript";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
@@ -302,6 +303,7 @@ export const startSession = mutation({
     userName: v.optional(v.string()),
     anonymousId: v.optional(v.string()),
     topic: v.optional(v.string()),
+    momentenType: v.optional(v.string()), // geleide-momenten-modus (bijv. "scheiding")
     metadata: v.optional(
       v.object({
         browser: v.optional(v.string()),
@@ -374,12 +376,27 @@ export const startSession = mutation({
       userName: args.userName,
       anonymousId: args.anonymousId,
       topic: args.topic,
+      momentenType: args.momentenType,
       status: "active",
       wasResolved: false,
       metadata: args.metadata,
       startedAt: now,
       lastActivityAt: now,
     });
+
+    // Geleide-momenten-modus: open meteen met moment 1 als Benji-bericht.
+    if (args.momentenType) {
+      const opener = MOMENTEN_OPENER[args.momentenType];
+      if (opener) {
+        await ctx.db.insert("chatMessages", {
+          sessionId,
+          role: "bot",
+          content: await encryptContent(opener),
+          isAiGenerated: false,
+          createdAt: now,
+        });
+      }
+    }
 
     return sessionId;
   },

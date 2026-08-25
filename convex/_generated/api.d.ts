@@ -63,6 +63,7 @@ import type * as mailFunnel from "../mailFunnel.js";
 import type * as mailGroepen from "../mailGroepen.js";
 import type * as memories from "../memories.js";
 import type * as mensenOmJeHeen from "../mensenOmJeHeen.js";
+import type * as momentenScript from "../momentenScript.js";
 import type * as nietAlleen from "../nietAlleen.js";
 import type * as nietAlleenAnkerContent from "../nietAlleenAnkerContent.js";
 import type * as nietAlleenContent from "../nietAlleenContent.js";
@@ -156,6 +157,7 @@ declare const fullApi: ApiFromModules<{
   mailGroepen: typeof mailGroepen;
   memories: typeof memories;
   mensenOmJeHeen: typeof mensenOmJeHeen;
+  momentenScript: typeof momentenScript;
   nietAlleen: typeof nietAlleen;
   nietAlleenAnkerContent: typeof nietAlleenAnkerContent;
   nietAlleenContent: typeof nietAlleenContent;

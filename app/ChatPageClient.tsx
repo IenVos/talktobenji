@@ -187,7 +187,7 @@ export default function ChatPageClient({
   // er geen flikker is tussen chat- en keuzescherm.
   const [ehResolving, setEhResolving] = useState<boolean>(() => {
     const s = Array.isArray(searchParams?.start) ? searchParams.start[0] : searchParams?.start;
-    return s === "eh" || s === "brief" || s === "ennu" || s === "direct";
+    return s === "eh" || s === "brief" || s === "ennu" || s === "direct" || s === "momenten";
   });
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -508,6 +508,44 @@ export default function ChatPageClient({
       }
     })();
   }, [welcomeParam, session?.userId, session?.user?.name, session?.user?.email, startSession, addPersonalizedOpenerToSession]);
+
+  // Geleide momenten via ?start=momenten (&t=scheiding): start anoniem een
+  // momenten-sessie in de gewone chat-UI. Benji opent met moment 1 en loopt de
+  // vijf momenten door (script zit in de AI-prompt op basis van momentenType).
+  const momentenHandled = useRef(false);
+  useEffect(() => {
+    if (startParam !== "momenten" || momentenHandled.current) return;
+    momentenHandled.current = true;
+    const type = (Array.isArray(searchParams?.t) ? searchParams.t[0] : searchParams?.t) || "scheiding";
+    setShowTopicButtons(false);
+    (async () => {
+      try {
+        setIsAddingOpener(true);
+        setSessionId(null);
+        if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
+        const newSessionId = await startSession({
+          anonymousId: getOrCreateAnonymousId(),
+          momentenType: type,
+        });
+        setSessionId(newSessionId);
+        if (typeof window !== "undefined") {
+          if (!sessionStorage.getItem("benji_start_chat_fired") && typeof (window as any).fbq === "function") {
+            (window as any).fbq("trackCustom", "StartChat");
+            sessionStorage.setItem("benji_start_chat_fired", "1");
+          }
+          localStorage.setItem(HAS_CHATTED_KEY, "1");
+        }
+      } catch (e) {
+        console.error(e);
+        momentenHandled.current = false;
+        setChatError("Er ging iets mis. Probeer het opnieuw.");
+      } finally {
+        setIsAddingOpener(false);
+        setEhResolving(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startParam]);
 
   // Koppel anonieme sessie aan gebruiker na inloggen
   useEffect(() => {

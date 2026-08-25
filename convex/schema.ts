@@ -31,6 +31,7 @@ export default defineSchema({
     userName: v.optional(v.string()),
     anonymousId: v.optional(v.string()),
     topic: v.optional(v.string()),
+    momentenType: v.optional(v.string()), // geleide-momenten-modus: verliestype (bijv. "scheiding")
     status: v.union(
       v.literal("active"),
       v.literal("resolved"),
