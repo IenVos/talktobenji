@@ -1158,7 +1158,7 @@ export const _evergreenLeadToevoegen = internalMutation({
 export async function probeerBenjiSpoorInstap(
   ctx: any,
   emailRaw: string,
-  opts?: { naam?: string; viaChat?: boolean }
+  opts?: { naam?: string; viaChat?: boolean; verliesType?: string }
 ) {
   if (process.env.BENJI_SPOOR_ACTIEF !== "true") return { enrolled: false, reden: "uit" };
   const email = (emailRaw || "").toLowerCase().trim();
@@ -1186,7 +1186,9 @@ export async function probeerBenjiSpoorInstap(
     verliesType = type !== ALGEMEEN ? type : undefined;
   } else if (opts?.viaChat) {
     naam = opts.naam?.trim() || undefined;
-    verliesType = undefined;
+    // Via-chat instroom mag een verliestype meegeven (bijv. de momenten-chat geeft
+    // "scheiding" mee, zodat de relatiebreuk-variant van de funnelmails wordt gekozen).
+    verliesType = opts.verliesType?.trim() || undefined;
   } else {
     return { enrolled: false, reden: "geen EH-lead en niet via chat" };
   }
@@ -1207,6 +1209,8 @@ export async function probeerBenjiSpoorInstap(
       ingestroomdOp: now,
       status: "in-backend",
       updatedAt: now,
+      // Vul verliestype aan als de instroom er een meegaf en de lead er nog geen had.
+      ...(verliesType && !lead.verliesType ? { verliesType } : {}),
     });
   } else {
     await ctx.db.insert("funnelLeads", {
@@ -1224,9 +1228,9 @@ export async function probeerBenjiSpoorInstap(
 }
 
 export const _benjiSpoorInstroomCheck = internalMutation({
-  args: { email: v.string(), naam: v.optional(v.string()) },
+  args: { email: v.string(), naam: v.optional(v.string()), verliesType: v.optional(v.string()) },
   handler: async (ctx, args) =>
-    probeerBenjiSpoorInstap(ctx, args.email, { naam: args.naam, viaChat: true }),
+    probeerBenjiSpoorInstap(ctx, args.email, { naam: args.naam, viaChat: true, verliesType: args.verliesType }),
 });
 
 // ── Handoff: na afloop van een spoor door naar het volgende ──────────────────

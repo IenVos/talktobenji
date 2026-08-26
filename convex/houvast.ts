@@ -693,6 +693,7 @@ export const genereerEnVerstuurMomentenBrief = internalAction({
       await ctx.runMutation(internal.evergreen._benjiSpoorInstroomCheck, {
         email: emailLc,
         naam,
+        verliesType: type, // "scheiding" → kiest de relatiebreuk-variant van de funnelmails
       });
     } catch (e) {
       console.error("momenten-lead Benji-spoor instroom mislukt:", e);
