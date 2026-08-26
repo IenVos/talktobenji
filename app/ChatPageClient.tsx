@@ -97,11 +97,15 @@ function MomentEmailKaart({ onDone }: { onDone: (email: string, naam: string) =>
   const geldig = /\S+@\S+\.\S+/.test(email);
   return (
     <div className="w-full max-w-sm bg-white/90 border border-gray-200 rounded-2xl shadow-sm px-5 py-5">
-      <h3 className="text-base font-bold text-primary-900 mb-1">Je brief, terug naar jou</h3>
-      <p className="text-sm text-primary-600 leading-relaxed mb-3">Ik maak een persoonlijke brief van wat je deelde. Waar mag ik &apos;m naartoe sturen?</p>
       {klaar ? (
-        <p className="text-sm text-primary-700">Dank je. Je brief komt binnen een paar minuten in je mail. 💙</p>
+        <>
+          <h3 className="text-base font-bold text-primary-900 mb-1">Je brief is onderweg</h3>
+          <p className="text-sm text-primary-700 leading-relaxed">Dank je. Je brief komt binnen een paar minuten in je mail. 💙</p>
+        </>
       ) : (
+        <>
+        <h3 className="text-base font-bold text-primary-900 mb-1">Je brief, terug naar jou</h3>
+        <p className="text-sm text-primary-600 leading-relaxed mb-3">Ik maak een persoonlijke brief van wat je deelde. Waar mag ik &apos;m naartoe sturen?</p>
         <div className="space-y-2">
           <input type="text" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="Je voornaam (optioneel)" className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
@@ -110,6 +114,7 @@ function MomentEmailKaart({ onDone }: { onDone: (email: string, naam: string) =>
           </button>
           <p className="text-[11px] text-primary-400 text-center">Je woorden blijven van jou. We sturen alleen deze brief.</p>
         </div>
+        </>
       )}
     </div>
   );
@@ -1134,6 +1139,7 @@ export default function ChatPageClient({
                           />
                         )}
                       </div>
+                      {startParam !== "momenten" && (
                       <div className="flex justify-start pl-1">
                         {msg.feedback === "helpful" ? (
                           <span className="flex items-center gap-1 text-xs text-green-500">
@@ -1164,6 +1170,7 @@ export default function ChatPageClient({
                           </div>
                         )}
                       </div>
+                      )}
                     </div>
                   )}
                 </div>
