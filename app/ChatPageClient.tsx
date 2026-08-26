@@ -52,7 +52,7 @@ const MOMENT_INTRO: Record<string, { titel: string; body: string[]; brief: strin
     titel: "Wat goed dat je hier bent",
     body: [
       "Er is een relatie geëindigd. Je rouwt om iemand die nog leeft, en dat doet evenveel pijn.",
-      "Er is geen afscheid voor dit verdriet, maar het is er. In de komende vijf momenten krijg je de ruimte om het een plek te geven.",
+      "Er is geen afscheid voor dit verdriet, maar het is er. In de momenten die je met me deelt, krijg je de ruimte om het een plek te geven.",
     ],
     brief: "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij hebt gedeeld.",
   },
