@@ -573,6 +573,121 @@ export const genereerEnVerstuurBrief = action({
   },
 });
 
+/** Interne mutatie: markeer dat de momenten-brief voor deze sessie is verstuurd (idempotent). */
+export const markMomentenBriefVerzonden = internalMutation({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.sessionId, { momentenBriefVerzondenAt: Date.now() });
+  },
+});
+
+/**
+ * Geleide momenten: genereert op basis van het chatgesprek een persoonlijke brief
+ * (Benji-toon, jij-vorm, terug naar de bezoeker) en stuurt die naar het opgegeven
+ * adres. Hergebruikt het EH-brief-pad (instructie + opmaak + verzending). De met de
+ * bezoeker afgestemde briefzin ([[q]]...[[/q]]) wordt vrijwel letterlijk overgenomen.
+ * Wordt gepland vanuit chat.saveMomentenEmail. Idempotent per sessie; faalt stil.
+ */
+export const genereerEnVerstuurMomentenBrief = internalAction({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    if (!RESEND_API_KEY || !ANTHROPIC_API_KEY) return;
+
+    const session = await ctx.runQuery(internal.chat.getSessionRaw, { sessionId: args.sessionId });
+    if (!session) return;
+    if (session.momentenBriefVerzondenAt) return; // al verstuurd (idempotent)
+    const emailLc = (session.userEmail ?? "").trim().toLowerCase();
+    if (!/\S+@\S+\.\S+/.test(emailLc)) return;
+    const type = session.momentenType || "scheiding";
+    const naam = session.userName?.trim() || undefined;
+
+    const messages = await ctx.runQuery(internal.chat.getMessagesRaw, { sessionId: args.sessionId, limit: 80 });
+    if (!messages || messages.length < 2) return;
+
+    // Afgestemde briefzin uit de transcript halen (laatste bot-bericht met [[q]]...[[/q]]).
+    let briefzin = "";
+    for (const m of messages) {
+      if (m.role !== "user") {
+        const mt = (m.content || "").match(/\[\[q\]\]([\s\S]*?)\[\[\/q\]\]/);
+        if (mt) briefzin = mt[1].trim();
+      }
+    }
+
+    // Het gesprek als materiaal: kaart-/quote-markers eruit, lege berichten overslaan.
+    const strip = (s: string) => (s || "").replace(/\[\[[^\]]*\]\]/g, "").replace(/\s+/g, " ").trim();
+    const gesprek = messages
+      .map((m: any) => ({ role: m.role, text: strip(m.content) }))
+      .filter((m: { text: string }) => m.text.length > 0)
+      .map((m: { role: string; text: string }) => `${m.role === "user" ? "De persoon" : "Benji"}: ${m.text.slice(0, 500)}`)
+      .join("\n");
+
+    // Brief-instructie (scheiding-override → basis) + geen opmaak-tekens (zoals bij EH).
+    const saved = (await ctx.runQuery(api.pageContent.getPublicPageContent, { pageKey: "houvast" })) as Record<string, any> | null;
+    const typeInstructie = typeof saved?.perType?.[type]?.briefInstructie === "string" ? saved.perType[type].briefInstructie.trim() : "";
+    const briefInstructie =
+      typeInstructie ||
+      (typeof saved?.briefInstructie === "string" ? saved.briefInstructie.trim() : "") ||
+      BRIEF_INSTRUCTIE_DEFAULT;
+    const systemPrompt = `${briefInstructie}\n\nSchrijf platte tekst zonder opmaak-tekens. Gebruik geen sterretjes (* of **), geen onderstrepingen (_) en geen markdown. Nadruk leg je met woorden, niet met opmaak.`;
+
+    const verliesContext = VERLIES_CONTEXT[type] || "";
+    const userContent = [
+      naam ? `Naam: ${naam}` : null,
+      verliesContext ? `Het verdriet gaat over: ${verliesContext}.` : null,
+      "De persoon heeft dit in een gesprek met Benji gedeeld (hun eigen woorden, gebruik ze als basis voor de brief):",
+      gesprek,
+      briefzin
+        ? `Deze zin is samen met de persoon al voor de brief afgestemd. Neem hem vrijwel letterlijk over in de brief; je mag hem hooguit licht laten aansluiten op de rest van de tekst:\n"${briefzin}"`
+        : null,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    let briefRaw = "";
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({ model: "claude-sonnet-4-6", max_tokens: 800, system: systemPrompt, messages: [{ role: "user", content: userContent }] }),
+      });
+      if (!response.ok) return;
+      const data = (await response.json()) as { content?: Array<{ text?: string }> };
+      briefRaw = (data.content?.[0]?.text ?? "").trim();
+    } catch {
+      return;
+    }
+    if (!briefRaw) return;
+
+    // Geen gedachtestreepjes; markdown-vangnet per alinea (zoals bij de EH-brief).
+    const brief = briefRaw.replace(/\s*[—–]\s*/g, ", ").replace(/, ,/g, ",");
+    const aanhef = naam ? `Lieve ${naam},` : "Voor jou,";
+    const briefHtml = brief
+      .split(/\n\s*\n/)
+      .map((p) => `<p style="font-size:15px;line-height:1.9;color:#3d3530;margin:0 0 16px 0;">${schoonMarkdown(p).replace(/\n/g, "<br>")}</p>`)
+      .join("");
+
+    const html = bouwBriefHtml({
+      aanhef,
+      briefHtml,
+      fotoUrls: [],
+      gedichtTekst: resolveFotoGedicht(saved, type),
+      nietAlleenUrl: bepaalNietAlleenUrl(saved, type),
+      afmeldUrl: await ehAfmeldUrl(emailLc, "brief", type),
+      slotzin: bouwBriefSlotzin(),
+    });
+
+    try {
+      await verstuurEmail({ to: emailLc, subject: "Jouw persoonlijke brief van Benji", html, apiKey: RESEND_API_KEY });
+    } catch (e) {
+      console.error("momenten-brief verzenden mislukt:", e);
+      return;
+    }
+    await ctx.runMutation(internal.houvast.markMomentenBriefVerzonden, { sessionId: args.sessionId });
+  },
+});
+
 // Voorbeeldantwoorden voor de testbrief (algemeen, passend bij elk verliestype).
 const TESTBRIEF_ANTWOORDEN = [
   {

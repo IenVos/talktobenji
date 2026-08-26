@@ -60,6 +60,7 @@ export default defineSchema({
     startedAt: v.number(),
     endedAt: v.optional(v.number()),
     lastActivityAt: v.number(),
+    momentenBriefVerzondenAt: v.optional(v.number()), // geleide momenten: tijdstip dat de persoonlijke brief is verstuurd (idempotent)
   })
     .index("by_user", ["userId"])
     .index("by_status", ["status"])
