@@ -49,12 +49,12 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
 /** Introkaartje van de geleide momenten: korte uitleg wat de lead kan verwachten. */
 const MOMENT_INTRO: Record<string, { titel: string; body: string[]; brief: string }> = {
   scheiding: {
-    titel: "Wat goed dat je hier bent",
+    titel: "Ik schrijf een brief voor je",
     body: [
       "Er is een relatie geëindigd. Je rouwt om iemand die nog leeft, en dat doet evenveel pijn.",
-      "Er is geen afscheid voor dit verdriet, maar het is er. In de komende vijf momenten geef ik je de ruimte om het een plek te geven.",
+      "Ik schrijf hier samen met jou een brief van, aan degene van wie je afscheid nam. Niet om te versturen, maar om het ergens neer te kunnen leggen.",
     ],
-    brief: "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij deelt.",
+    brief: "Ik hoef niet veel te weten. We beginnen gewoon ergens.",
   },
 };
 
