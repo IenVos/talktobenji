@@ -1272,13 +1272,13 @@ export default function ChatPageClient({
             )}
             {isLoading && !isAddingOpener && (
               <div className="flex justify-start pl-2 py-2">
-                {/* Geen chatwolkje: alleen een rustig pulserend puntje. Lichtblauw
-                    bolletje met een dun donkerblauw randje. Alleen bij het wachten op
-                    een antwoord op JOUW bericht, niet tijdens het openen (de opener
-                    zet isLoading ook aan, vandaar de !isAddingOpener). */}
-                <span className="relative flex h-3.5 w-3.5">
-                  <span className={`absolute inline-flex h-full w-full rounded-full animate-ping ${isNacht ? "bg-white/30" : "bg-primary-300/50"}`} style={{ animationDuration: '2.4s' }}></span>
-                  <span className={`relative inline-flex rounded-full h-3.5 w-3.5 border ${isNacht ? "border-white bg-white/40" : "border-primary-900 bg-primary-300"}`}></span>
+                {/* Eén rustig pulserend bolletje, maar nu duidelijk zichtbaar: groter,
+                    vollere kleur en een snellere, verder uitdijende puls. Alleen bij het
+                    wachten op een antwoord op JOUW bericht, niet tijdens het openen
+                    (de opener zet isLoading ook aan, vandaar de !isAddingOpener). */}
+                <span className="relative flex h-4 w-4">
+                  <span className={`absolute inline-flex h-full w-full rounded-full animate-ping ${isNacht ? "bg-white/70" : "bg-primary-400"}`} style={{ animationDuration: '1.2s' }}></span>
+                  <span className={`relative inline-flex rounded-full h-4 w-4 ${isNacht ? "bg-white" : "bg-primary-600"}`}></span>
                 </span>
               </div>
             )}
