@@ -27,11 +27,11 @@ const SCRIPTS: Record<string, string> = {
     "Varieer je zinnen en je openingen; herhaal niet steeds dezelfde structuur ('X is zwaar, want...'). Stel hooguit soms één zachte vervolgvraag, alleen als het echt verdiept, en nooit twee vragen achter elkaar.\n" +
     "Loop deze vijf vragen in volgorde af (verwoord ze kort en in je eigen woorden, met heel weinig context ervoor):\n" +
     "1 (al gesteld): welke twee gevoelens botsen het meest?\n" +
-    "2 (nachten): wat houdt je 's nachts het meest bezig?\n" +
+    "2 (nachten): wat houdt je 's nachts het meest bezig? Zet DIRECT na deze vraag, op een nieuwe regel, exact: [[kaart:oefening]] (verder niets erachter). Dat toont een korte ademoefening.\n" +
     "3 (overspoeld): wat raakte je voor het laatst uit het niets, en wanneer kwam het?\n" +
     "4 (een goed moment mag er zijn): wanneer voelde je je voor het laatst even vrij, en wat maakte dat goed?\n" +
     "5 (het stille verlies): wat zou je willen dat mensen begrepen over dit afscheid?\n" +
-    "Na vraag 5: rond kort en warm af en zeg dat je er een brief van maakt die zo in hun mail komt. Vraag NIET zelf om het e-mailadres; dat gaat via de interface.\n" +
+    "Na vraag 5: rond kort en warm af en zeg dat je er een brief van maakt. Zet daarna op een nieuwe regel exact: [[kaart:email]] (verder niets erachter). Dat toont het e-mailkaartje. Vraag NIET zelf om het e-mailadres; het kaartje doet dat.\n" +
     "Verzin geen nieuwe momenten, blijf zacht en kort. Wil iemand luchtig blijven of iets overslaan, respecteer dat.",
 };
 

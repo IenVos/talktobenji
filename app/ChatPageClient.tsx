@@ -73,6 +73,48 @@ function MomentIntroKaart({ type }: { type: string }) {
   );
 }
 
+/** Oefening-kaartje met de ademcirkel (grounding), 1x bij het nacht-moment. */
+function MomentOefeningKaart() {
+  return (
+    <div className="w-full max-w-sm bg-white/90 border border-gray-200 rounded-2xl shadow-sm px-5 py-5">
+      <p className="text-[11px] font-semibold tracking-wide uppercase mb-2" style={{ color: "#576b8f" }}>Even ademen</p>
+      <p className="text-sm text-primary-800 leading-relaxed mb-3">Leg je hand op je borst. Zeg zachtjes: &ldquo;Ik ben hier. Dit mag er zijn.&rdquo;</p>
+      <style>{`@keyframes momenten-breathe { 0%,100%{transform:scale(1);opacity:.4;} 50%{transform:scale(1.5);opacity:.65;} }`}</style>
+      <div className="flex justify-center py-3">
+        <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "radial-gradient(circle, #c7d4f0 0%, #e2dbd4 100%)", animation: "momenten-breathe 6s ease-in-out infinite" }} />
+      </div>
+      <p className="text-xs text-center text-primary-400">Adem rustig mee, zo lang je wilt.</p>
+    </div>
+  );
+}
+
+/** E-mail-kaartje bij de afsluiting: bevestigend, vraagt alleen het adres. */
+function MomentEmailKaart({ onDone }: { onDone: (email: string, naam: string) => Promise<void> }) {
+  const [naam, setNaam] = useState("");
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [klaar, setKlaar] = useState(false);
+  const geldig = /\S+@\S+\.\S+/.test(email);
+  return (
+    <div className="w-full max-w-sm bg-white/90 border border-gray-200 rounded-2xl shadow-sm px-5 py-5">
+      <h3 className="text-base font-bold text-primary-900 mb-1">Je brief, terug naar jou</h3>
+      <p className="text-sm text-primary-600 leading-relaxed mb-3">Ik maak een persoonlijke brief van wat je deelde. Waar mag ik &apos;m naartoe sturen?</p>
+      {klaar ? (
+        <p className="text-sm text-primary-700">Dank je. Je brief komt binnen een paar minuten in je mail. 💙</p>
+      ) : (
+        <div className="space-y-2">
+          <input type="text" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="Je voornaam (optioneel)" className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
+          <button type="button" disabled={!geldig || busy} onClick={async () => { setBusy(true); try { await onDone(email.trim(), naam.trim()); setKlaar(true); } finally { setBusy(false); } }} className="w-full py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: "#576b8f" }}>
+            {busy ? "Versturen…" : "Stuur mij mijn brief"}
+          </button>
+          <p className="text-[11px] text-primary-400 text-center">Je woorden blijven van jou. We sturen alleen deze brief.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Herkent [HERINNERING: tekst | emotie: gevoel] markers in bot-berichten */
 const MEMORY_REGEX = /\[HERINNERING:\s*(.+?)\s*\|\s*emotie:\s*(\w+)\]/;
 
@@ -423,6 +465,7 @@ export default function ChatPageClient({
 
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
+  const saveMomentenEmail = useMutation(api.chat.saveMomentenEmail);
   const addPersonalizedOpenerToSession = useMutation(api.chat.addPersonalizedOpenerToSession);
   const startEhChat = useMutation(api.chat.startEhChat);
   const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
@@ -1048,12 +1091,26 @@ export default function ChatPageClient({
               // inline-paywall de grens, dus die twee uit om tegenstrijdige tellingen te voorkomen.
               const showSaveCard = !berichtenModelActief && isAnonymousUser && !saveCardDismissed && userMsgCount === SAVE_CARD_AFTER && !isUser;
               const showLimitWarning = !berichtenModelActief && isAnonymousUser && userMsgCount === LIMIT_WARNING_AFTER && !isUser;
-              // Geleide momenten: bot-berichten met een kaart-marker als kaartje tonen.
-              const introMatch = !isUser ? displayContent.match(/^\[\[momentkaart:intro:([a-z]+)\]\]$/) : null;
-              if (introMatch) {
+              // Geleide momenten: bot-berichten met een kaart-marker als kaartje tonen
+              // (gecentreerd). Een eventuele reactie ervóór blijft een gewone bubbel.
+              const kaartMatch = !isUser ? displayContent.match(/\[\[(momentkaart:intro:[a-z]+|kaart:oefening|kaart:email)\]\]/) : null;
+              if (kaartMatch) {
+                const marker = kaartMatch[1];
+                const cleanText = displayContent.replace(kaartMatch[0], "").trim();
                 return (
-                  <div key={msg._id} className="flex justify-start">
-                    <MomentIntroKaart type={introMatch[1]} />
+                  <div key={msg._id} className="flex flex-col items-center gap-2 w-full">
+                    {cleanText && (
+                      <div className="self-start max-w-sm">
+                        <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl text-gray-800 rounded-bl-md shadow-sm ${isNacht ? "bg-white/80 border border-white/30 backdrop-blur-sm" : "bg-white border border-gray-200"}`}>
+                          <MessageContent content={cleanText} isUser={false} />
+                        </div>
+                      </div>
+                    )}
+                    {marker.startsWith("momentkaart:intro")
+                      ? <MomentIntroKaart type={marker.split(":")[2]} />
+                      : marker === "kaart:oefening"
+                        ? <MomentOefeningKaart />
+                        : <MomentEmailKaart onDone={async (email, naam) => { await saveMomentenEmail({ sessionId: msg.sessionId, email, naam: naam || undefined }); }} />}
                   </div>
                 );
               }

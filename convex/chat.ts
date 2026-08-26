@@ -413,6 +413,24 @@ export const startSession = mutation({
 });
 
 /**
+ * Geleide momenten: e-mailadres vastleggen op de sessie (bevestigend e-mailkaartje).
+ * Voorlopig slaan we alleen het adres op de sessie op; de brief-generatie en het
+ * stille account (magic-link) volgen in een aparte stap.
+ */
+export const saveMomentenEmail = mutation({
+  args: { sessionId: v.id("chatSessions"), email: v.string(), naam: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const email = args.email.trim().toLowerCase();
+    if (!/\S+@\S+\.\S+/.test(email)) throw new Error("Ongeldig e-mailadres");
+    await ctx.db.patch(args.sessionId, {
+      userEmail: email,
+      userName: args.naam?.trim() || undefined,
+    });
+    return { ok: true };
+  },
+});
+
+/**
  * Koppel een anonieme chat-sessie aan een gebruiker (na inloggen).
  * Zo blijven eerdere gesprekken behouden op het account.
  */
