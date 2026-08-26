@@ -1068,7 +1068,7 @@ export default function ChatPageClient({
                     <div className="flex flex-col gap-1 max-w-sm">
                       <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl text-gray-800 rounded-bl-md shadow-sm ${isNacht ? "bg-white/80 border border-white/30 backdrop-blur-sm" : "bg-white border border-gray-200"}`}>
                         <MessageContent content={displayContent} isUser={false} />
-                        {parsed?.memoryText && session?.userId && (
+                        {parsed?.memoryText && session?.userId && startParam !== "momenten" && (
                           <MemorySaveButton
                             memoryText={parsed.memoryText}
                             emotion={parsed.emotion || "warm"}
