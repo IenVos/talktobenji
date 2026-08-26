@@ -61,7 +61,7 @@ const SCRIPTS: Record<string, string> = {
     "- Blijven ze kort, plaats dan een beurt zonder vraag (zie boven). Zodra ze één eigen woord of beeld geven, ben je klaar: neem dat woord over en ga naar de briefzin.\n" +
     "\n" +
     "DE BRIEFZIN, HALVERWEGE (het bewijs, NIET het slot):\n" +
-    "- Zodra je het eerste beeld goed te pakken hebt (meestal na twee tot drie uitwisselingen), laat je één keer zien wat het oplevert. Schrijf ÉÉN of twee zinnen die klinken alsof ze uit hun brief komen, volledig opgebouwd uit HUN eigen beelden en woorden, tussen aanhalingstekens. Leid het kort in, bijvoorbeeld: 'Ik heb hier al iets staan:' Daarna de zin tussen aanhalingstekens.\n" +
+    "- Zodra je het eerste beeld goed te pakken hebt (meestal na twee tot drie uitwisselingen), laat je één keer zien wat het oplevert. Leid het kort in, bijvoorbeeld: 'Ik heb hier al iets staan:'. Schrijf daarna ÉÉN of twee zinnen die klinken alsof ze uit hun brief komen, volledig opgebouwd uit HUN eigen beelden en woorden, en zet die zin(nen) tussen de markeringen [[q]] en [[/q]] (dus: [[q]]hier de briefzin[[/q]]). Gebruik GEEN gewone aanhalingstekens hiervoor; alleen deze markering, zodat de zin als apart quote-blok wordt getoond.\n" +
     "- Vraag daarna zacht of het klopt, in gewone tekst (geen knoppen): 'Klopt dit, of mis ik iets?'\n" +
     "- Dit is een tussentijds bewijs, GEEN afsluiting. Ga hierna gewoon door met het gesprek; toon niet meteen daarna het e-mailkaartje.\n" +
     "\n" +

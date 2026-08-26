@@ -19,19 +19,20 @@ import { SiteFooter } from "@/components/SiteFooter";
 export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[]; start?: string | string[]; t?: string | string[]; vn?: string | string[] };
 
 /** Rendert chatbericht met klikbare markdown-links [tekst](url) */
-function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
+// Rendert links ([tekst](url)) binnen een stuk platte tekst.
+function renderTextWithLinks(text: string, isUser: boolean, keyPrefix: string): React.ReactNode[] {
   const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match;
-  while ((match = linkRegex.exec(content)) !== null) {
+  while ((match = linkRegex.exec(text)) !== null) {
     const href = match[2];
     const isSafe = href.startsWith("/") || href.startsWith("https://") || href.startsWith("http://");
     if (!isSafe) { lastIndex = match.index + match[0].length; continue; }
-    parts.push(content.slice(lastIndex, match.index));
+    parts.push(text.slice(lastIndex, match.index));
     parts.push(
       <a
-        key={match.index}
+        key={`${keyPrefix}-${match.index}`}
         href={href}
         className={isUser ? "underline underline-offset-2 opacity-90" : "text-primary-600 hover:text-primary-700 underline underline-offset-2 font-medium"}
         target={href.startsWith("http") ? "_blank" : undefined}
@@ -42,8 +43,37 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
     );
     lastIndex = match.index + match[0].length;
   }
-  parts.push(content.slice(lastIndex));
-  return <p className="text-sm sm:text-base break-words">{parts}</p>;
+  parts.push(text.slice(lastIndex));
+  return parts;
+}
+
+function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
+  // Briefzin-quote: Benji zet een concept-zin voor de brief tussen [[q]]...[[/q]].
+  // Die tonen we als apart quote-blok, niet verweven in de gewone tekst.
+  const quoteRegex = /\[\[q\]\]([\s\S]*?)\[\[\/q\]\]/g;
+  if (quoteRegex.test(content)) {
+    quoteRegex.lastIndex = 0;
+    const blocks: React.ReactNode[] = [];
+    let last = 0;
+    let m;
+    let i = 0;
+    while ((m = quoteRegex.exec(content)) !== null) {
+      const before = content.slice(last, m.index).trim();
+      if (before) blocks.push(<p key={`t${i}`} className="text-sm sm:text-base break-words">{renderTextWithLinks(before, isUser, `b${i}`)}</p>);
+      const quote = m[1].trim();
+      if (quote) blocks.push(
+        <blockquote key={`q${i}`} className="my-2 border-l-4 border-primary-300 pl-3 py-1 italic text-sm sm:text-base text-primary-800">
+          {quote}
+        </blockquote>
+      );
+      last = m.index + m[0].length;
+      i++;
+    }
+    const after = content.slice(last).trim();
+    if (after) blocks.push(<p key={`t${i}`} className="text-sm sm:text-base break-words">{renderTextWithLinks(after, isUser, `b${i}`)}</p>);
+    return <div className="space-y-1">{blocks}</div>;
+  }
+  return <p className="text-sm sm:text-base break-words">{renderTextWithLinks(content, isUser, "l")}</p>;
 }
 
 /** Introkaartje van de geleide momenten: korte uitleg wat de lead kan verwachten. */
