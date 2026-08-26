@@ -685,29 +685,18 @@ export const genereerEnVerstuurMomentenBrief = internalAction({
       return;
     }
 
-    // Behandel de momenten-lead als een volwaardige EH-lead: registreer een profiel
-    // (telt mee in de leads + zichtbaar in EH-leads) en log de brief in houvastBrieven,
-    // zodat de lead automatisch de Benji-opvolgfunnel in rolt. De eerste opvolgmail
-    // vuurt pas na de 2-daagse ondergrens, dus dit stuurt niet meteen iets uit.
+    // Zet de momenten-lead DIRECT op het Benji-spoor (niet de EH-funnel). Dat maakt
+    // een funnelLead met spoor="benji", waardoor de lead (a) meetelt in "leads op je
+    // lijst" (de ontdubbelde unie bevat funnelLeads) en (b) de Benji-opvolgmails krijgt
+    // i.p.v. de Even Houvast-opvolg. Vereist BENJI_SPOOR_ACTIEF=true.
     try {
-      const bestaandProfiel = await ctx.runQuery(internal.houvast.getByEmailInternal, { email: emailLc });
-      if (!bestaandProfiel) {
-        await ctx.runMutation(internal.houvast.createProfiel, {
-          email: emailLc,
-          token: crypto.randomUUID(),
-          name: naam,
-          bron: "momenten-chat",
-        });
-      }
-      await ctx.runMutation(internal.houvast.markBriefVerzonden, {
+      await ctx.runMutation(internal.evergreen._benjiSpoorInstroomCheck, {
         email: emailLc,
-        verliesType: type,
         naam,
-        bron: "momenten-chat",
       });
     } catch (e) {
-      console.error("momenten-lead registreren mislukt:", e);
-      // De brief is al verstuurd; lead-registratie is best effort.
+      console.error("momenten-lead Benji-spoor instroom mislukt:", e);
+      // De brief is al verstuurd; instroom is best effort.
     }
 
     await ctx.runMutation(internal.houvast.markMomentenBriefVerzonden, { sessionId: args.sessionId });
