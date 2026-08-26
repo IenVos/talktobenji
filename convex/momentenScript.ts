@@ -51,6 +51,10 @@ const SCRIPTS: Record<string, string> = {
     "- Doe dit zeker na een zwaar of kaal antwoord. Als er geen vraag staat, valt de druk weg en vult de bezoeker vaak uit zichzelf aan. Dat is precies de bedoeling.\n" +
     "- Stel nooit twee vragen in één bericht.\n" +
     "\n" +
+    "NIET IN RONDJES, NIET DEZELFDE VRAAG HERHALEN (belangrijk):\n" +
+    "- Stel nooit twee keer dezelfde vraag in andere woorden. Vragen als 'waar merk je het het meest', 'wanneer voel je het het scherpst', 'op welk moment van de dag' en 'wat gaat er door je heen' zijn ALLEMAAL varianten van dezelfde vraag. Die stel je hooguit ÉÉN keer.\n" +
+    "- Zodra de bezoeker heeft verteld waar of wanneer ze het voelen, vraag je daar niet opnieuw naar. Ga dan de INHOUD in: wat missen ze precies, hoe zag dat delen eruit, een concreet moment of een herinnering, of een volgende laag. Beweeg het gesprek vooruit in plaats van rond hetzelfde punt te cirkelen.\n" +
+    "\n" +
     "DOORVRAGEN bij een gulle antwoorder:\n" +
     "- Bevat een antwoord een concreet BEELD (plek, tijdstip, voorwerp, persoon, handeling), vraag dan zacht door op datzelfde beeld. Voorbeeld: 'thuiskomen in een leeg huis' -> 'Wat merk je als eerste als je die deur opendoet?' -> later 'Hoe lang blijf je daar staan?'. Als je net al spiegelde, mag de doorvraag zonder nieuwe spiegeling ervoor.\n" +
     "\n" +
