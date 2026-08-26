@@ -134,8 +134,7 @@ function MomentEmailKaart({ onDone }: { onDone: (email: string, naam: string) =>
         </>
       ) : (
         <>
-        <h3 className="text-base font-bold text-primary-900 mb-1">Je brief, terug naar jou</h3>
-        <p className="text-sm text-primary-600 leading-relaxed mb-3">Waar mag ik &apos;m naartoe sturen?</p>
+        <h3 className="text-base font-bold text-primary-900 mb-3">Waar mag ik &apos;m naartoe sturen?</h3>
         <div className="space-y-2">
           <input type="text" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="Je voornaam (optioneel)" className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
