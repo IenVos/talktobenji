@@ -630,7 +630,7 @@ export const genereerEnVerstuurMomentenBrief = internalAction({
       typeInstructie ||
       (typeof saved?.briefInstructie === "string" ? saved.briefInstructie.trim() : "") ||
       BRIEF_INSTRUCTIE_DEFAULT;
-    const systemPrompt = `${briefInstructie}\n\nSchrijf platte tekst zonder opmaak-tekens. Gebruik geen sterretjes (* of **), geen onderstrepingen (_) en geen markdown. Nadruk leg je met woorden, niet met opmaak.`;
+    const systemPrompt = `${briefInstructie}\n\nSchrijf platte tekst zonder opmaak-tekens. Gebruik geen sterretjes (* of **), geen onderstrepingen (_) en geen markdown. Nadruk leg je met woorden, niet met opmaak.\n\nDraag geen oplossingen of adviezen aan. Sluit de brief af met een zachte, hoopvolle noot: iets wat licht geeft zonder te beloven dat het verdriet snel overgaat (bijvoorbeeld dat ze hier doorheen komen, of dat wat echt was blijft bestaan).`;
 
     const verliesContext = VERLIES_CONTEXT[type] || "";
     const userContent = [
