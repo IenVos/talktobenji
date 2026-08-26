@@ -1277,7 +1277,7 @@ export default function ChatPageClient({
                     wachten op een antwoord op JOUW bericht, niet tijdens het openen
                     (de opener zet isLoading ook aan, vandaar de !isAddingOpener). */}
                 <span className="relative flex h-4 w-4">
-                  <span className={`absolute inline-flex h-full w-full rounded-full animate-ping ${isNacht ? "bg-white/70" : "bg-primary-400"}`} style={{ animationDuration: '1.2s' }}></span>
+                  <span className={`absolute inline-flex h-full w-full rounded-full animate-ping ${isNacht ? "bg-white/70" : "bg-primary-400"}`} style={{ animationDuration: '1.6s' }}></span>
                   <span className={`relative inline-flex rounded-full h-4 w-4 ${isNacht ? "bg-white" : "bg-primary-600"}`}></span>
                 </span>
               </div>
