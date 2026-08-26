@@ -941,6 +941,8 @@ function AlleContacten({ onSelect }: { onSelect: (email: string) => void }) {
   // en de filter). Zo is het totaal het aantal contacten dat je nog mag mailen.
   const totaal = contacten ? contacten.length - afgemeld : 0;
   const klanten = contacten?.filter((c) => c.klant).length ?? 0;
+  // Echte login-accounts (wachtwoordloos of met wachtwoord): subset van de contacten.
+  const accounts = contacten?.filter((c) => c.account).length ?? 0;
 
   const exporteer = () => {
     if (!contacten) return;
@@ -972,8 +974,9 @@ function AlleContacten({ onSelect }: { onSelect: (email: string) => void }) {
       {open && (
         <div className="border-t border-gray-100 p-5 space-y-3">
           {/* Samenvatting + conclusie */}
-          <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{totaal}</p><p className="text-xs text-gray-500">actieve contacten</p></div>
+            <div className="rounded-lg bg-blue-50 p-3"><p className="text-2xl font-bold text-blue-700">{accounts}</p><p className="text-xs text-gray-500">accounts</p></div>
             <div className="rounded-lg bg-green-50 p-3"><p className="text-2xl font-bold text-green-700">{klanten}</p><p className="text-xs text-gray-500">klanten</p></div>
             <div className="rounded-lg bg-gray-50 p-3"><p className="text-2xl font-bold text-gray-900">{afgemeld}</p><p className="text-xs text-gray-500">afgemeld</p></div>
           </div>

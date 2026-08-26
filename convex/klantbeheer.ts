@@ -126,6 +126,9 @@ export const alleContacten = query({
       zetNaam(r, l.naam);
     }
     for (const a of afmeldingen) if (a.email) rec(a.email).afgemeld = true;
+    // Wachtwoordloze accounts (een users-record zonder credentials, bijv. aangemaakt via
+    // een magic-link) tellen óók als account, naast de credentials-accounts hierboven.
+    for (const u of users) if (u.email) rec(u.email).account = true;
     for (const gl of groepLeden) {
       if (!gl.email) continue;
       const r = rec(gl.email);

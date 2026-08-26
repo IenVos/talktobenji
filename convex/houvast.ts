@@ -699,6 +699,25 @@ export const genereerEnVerstuurMomentenBrief = internalAction({
       // De brief is al verstuurd; instroom is best effort.
     }
 
+    // Registreer een houvasteProfiel (bron "momenten-chat") zodat de lead zichtbaar
+    // wordt bij "nieuwe Houvast leads" en meetelt. Dit is puur zichtbaarheid: het zet
+    // de lead NIET in de EH-opvolg (die leest houvastBrieven, niet dit profiel), en het
+    // maakt geen login-account. Geen welkomstmail (die stuurt alleen `registreer`).
+    try {
+      const bestaandProfiel = await ctx.runQuery(internal.houvast.getByEmailInternal, { email: emailLc });
+      if (!bestaandProfiel) {
+        await ctx.runMutation(internal.houvast.createProfiel, {
+          email: emailLc,
+          token: crypto.randomUUID(),
+          name: naam,
+          bron: "momenten-chat",
+        });
+      }
+    } catch (e) {
+      console.error("momenten-lead houvasteProfiel registreren mislukt:", e);
+      // Best effort; de brief + Benji-spoor zijn al gelukt.
+    }
+
     await ctx.runMutation(internal.houvast.markMomentenBriefVerzonden, { sessionId: args.sessionId });
   },
 });

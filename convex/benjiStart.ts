@@ -193,6 +193,18 @@ export const consumeToken = mutation({
 
     if (!rij.usedAt) await ctx.db.patch(rij._id, { usedAt: now });
 
+    // Koppel eerdere anonieme gesprekken op dit e-mailadres aan het account, zodat een
+    // momenten-chat-lead (die anoniem chatte en z'n adres deelde) het gesprek kan
+    // teruglezen zodra hij op de magic-link klikt, ook op een ander apparaat. Alleen
+    // nog niet-gekoppelde sessies; bestaande koppelingen blijven ongemoeid.
+    const anonSessies = await ctx.db
+      .query("chatSessions")
+      .withIndex("by_email", (q) => q.eq("userEmail", email))
+      .collect();
+    for (const s of anonSessies) {
+      if (!s.userId) await ctx.db.patch(s._id, { userId: user._id.toString() });
+    }
+
     // Brief-klikker die de Benji-link gebruikt: direct het Benji-spoor in (gated door
     // BENJI_SPOOR_ACTIEF; idempotent en met eigen veiligheidschecks). Zo stoppen de
     // EH-mails en start de Benji-funnel op zijn eigen dag 1.

@@ -65,6 +65,7 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_status", ["status"])
     .index("by_anonymous", ["anonymousId"])
+    .index("by_email", ["userEmail"])
     .vectorIndex("by_summary_embedding", {
       vectorField: "summaryEmbedding",
       dimensions: 1024,
