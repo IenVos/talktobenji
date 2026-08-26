@@ -426,6 +426,11 @@ export const saveMomentenEmail = mutation({
       userEmail: email,
       userName: args.naam?.trim() || undefined,
     });
+    // Geleide momenten: Benji stelt nog één warme vervolgvraag die teruggrijpt op
+    // wat gedeeld is en uitnodigt om door te praten (open punt: doorpakken na e-mail).
+    await ctx.scheduler.runAfter(0, internal.ai.momentenFollowUp, {
+      sessionId: args.sessionId,
+    });
     return { ok: true };
   },
 });

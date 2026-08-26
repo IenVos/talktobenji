@@ -886,6 +886,76 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
 });
 
 // ============================================================================
+// GELEIDE MOMENTEN: VERVOLG NA HET E-MAILADRES
+// ============================================================================
+
+/**
+ * Nadat de bezoeker in de geleide momenten-chat het e-mailadres voor de brief
+ * heeft gedeeld, stelt Benji nog één warme vervolgvraag die teruggrijpt op iets
+ * concreets dat gedeeld is en uitnodigt om nog even door te praten. Wordt
+ * gepland vanuit chat.saveMomentenEmail. Faalt stil (best effort).
+ */
+export const momentenFollowUp = internalAction({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey || apiKey === "your-api-key-here") return;
+
+    const messages = await ctx.runQuery(internal.chat.getMessagesRaw, {
+      sessionId: args.sessionId,
+      limit: 40,
+    });
+    if (!messages || messages.length < 2) return;
+
+    // Transcript opbouwen (kaart-markers eruit, ze zeggen niets over de inhoud)
+    const transcript = messages
+      .filter((m: any) => m.content?.trim() && !m.content.includes("[[") )
+      .map((m: any) => `${m.role === "user" ? "Bezoeker" : "Benji"}: ${m.content.slice(0, 400)}`)
+      .join("\n");
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: CLAUDE_MODEL,
+          max_tokens: 200,
+          system:
+            "Je bent Benji, een warme, rustige gesprekspartner. De bezoeker heeft zojuist het e-mailadres gedeeld waar de persoonlijke brief naartoe mag. De brief is dus geregeld. Schrijf nu ÉÉN kort bericht (1 tot 2 zinnen) dat teruggrijpt op iets CONCREETS dat de bezoeker eerder deelde (gebruik hun eigen beeld of woord) en dat zacht uitnodigt om hier gewoon nog even door te praten als ze willen. Eindig met één open, warme vervolgvraag over dat wat ze deelden. Regels: schrijf in het Nederlands, doorlopende tekst zonder lege regels, geen streepjes (em-dash), noem de brief of het e-mailadres niet opnieuw, geen kaartjes of markeringen, verzin geen details die niet genoemd zijn, en gebruik geen afsluitende toon (dit is geen afscheid maar een uitnodiging om door te gaan).",
+          messages: [
+            {
+              role: "user",
+              content: `Dit is het gesprek tot nu toe:\n\n${transcript.slice(0, 6000)}\n\nSchrijf nu die ene warme uitnodiging met vervolgvraag.`,
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) return;
+      const data = (await response.json()) as ClaudeAPIResponse;
+      let text = data.content?.[0]?.text?.trim() ?? "";
+      if (!text) return;
+      // Zekerheidshalve: geen markers, geen lege regels
+      text = text.replace(/\[\[[^\]]*\]\]/g, "").replace(/\s*\n\s*/g, " ").replace(/\s+/g, " ").trim();
+      if (!text) return;
+
+      await ctx.runMutation(internal.chat.sendBotMessage, {
+        sessionId: args.sessionId,
+        content: text,
+        isAiGenerated: true,
+        confidenceScore: 0.8,
+      });
+    } catch (e) {
+      console.error("momentenFollowUp error:", e);
+    }
+  },
+});
+
+// ============================================================================
 // SAMENVATTEN VAN GESPREKKEN
 // ============================================================================
 
