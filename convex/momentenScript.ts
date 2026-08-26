@@ -7,12 +7,15 @@
  * Bewust kort gehouden: te veel tekst schrikt af. Eén à twee zinnen, dan de vraag.
  */
 
+// Openingsbericht = een kaart-marker die de chat als introkaartje rendert (korte
+// uitleg wat de lead kan verwachten). De inhoud van de kaart staat frontend-side.
 export const MOMENTEN_OPENER: Record<string, string> = {
-  scheiding:
-    "Wat goed dat je hier bent.\n\n" +
-    "Er is een relatie geëindigd, en je rouwt om iemand die nog leeft. Dat doet evenveel pijn.\n\n" +
-    "We nemen samen vijf kleine momenten, en aan het eind maak ik er een brief van voor jou. Je mag zoveel of zo weinig zeggen als je wilt.\n\n" +
-    "Welke twee gevoelens botsen op dit moment het meest?",
+  scheiding: "[[momentkaart:intro:scheiding]]",
+};
+
+// Eerste moment als losse (korte) vraag, direct na het introkaartje.
+export const MOMENTEN_VRAAG1: Record<string, string> = {
+  scheiding: "Welke twee gevoelens botsen op dit moment het meest?",
 };
 
 const SCRIPTS: Record<string, string> = {

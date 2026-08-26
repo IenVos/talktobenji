@@ -46,6 +46,33 @@ function MessageContent({ content, isUser }: { content: string; isUser: boolean 
   return <p className="text-sm sm:text-base break-words">{parts}</p>;
 }
 
+/** Introkaartje van de geleide momenten: korte uitleg wat de lead kan verwachten. */
+const MOMENT_INTRO: Record<string, { titel: string; body: string[]; brief: string }> = {
+  scheiding: {
+    titel: "Wat goed dat je hier bent",
+    body: [
+      "Er is een relatie geëindigd. Je rouwt om iemand die nog leeft, en dat doet evenveel pijn.",
+      "Er is geen afscheid voor dit verdriet, maar het is er. In de komende vijf momenten geef ik je de ruimte om het een plek te geven.",
+    ],
+    brief: "Aan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij deelt.",
+  },
+};
+
+function MomentIntroKaart({ type }: { type: string }) {
+  const k = MOMENT_INTRO[type] ?? MOMENT_INTRO.scheiding;
+  return (
+    <div className="w-full max-w-sm bg-white/90 border border-gray-200 rounded-2xl shadow-sm px-5 py-5">
+      <h3 className="text-lg font-bold text-primary-900 mb-3 text-balance">{k.titel}</h3>
+      <div className="space-y-2.5">
+        {k.body.map((p, i) => (
+          <p key={i} className={i === 0 ? "text-sm text-primary-800 leading-relaxed" : "text-sm text-primary-600 leading-relaxed"}>{p}</p>
+        ))}
+      </div>
+      <p className="mt-3 text-sm leading-relaxed" style={{ color: "#576b8f" }}>{k.brief}</p>
+    </div>
+  );
+}
+
 /** Herkent [HERINNERING: tekst | emotie: gevoel] markers in bot-berichten */
 const MEMORY_REGEX = /\[HERINNERING:\s*(.+?)\s*\|\s*emotie:\s*(\w+)\]/;
 
@@ -1021,6 +1048,15 @@ export default function ChatPageClient({
               // inline-paywall de grens, dus die twee uit om tegenstrijdige tellingen te voorkomen.
               const showSaveCard = !berichtenModelActief && isAnonymousUser && !saveCardDismissed && userMsgCount === SAVE_CARD_AFTER && !isUser;
               const showLimitWarning = !berichtenModelActief && isAnonymousUser && userMsgCount === LIMIT_WARNING_AFTER && !isUser;
+              // Geleide momenten: bot-berichten met een kaart-marker als kaartje tonen.
+              const introMatch = !isUser ? displayContent.match(/^\[\[momentkaart:intro:([a-z]+)\]\]$/) : null;
+              if (introMatch) {
+                return (
+                  <div key={msg._id} className="flex justify-start">
+                    <MomentIntroKaart type={introMatch[1]} />
+                  </div>
+                );
+              }
               return (
                 <>
                 <div key={msg._id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>

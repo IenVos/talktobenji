@@ -11,7 +11,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { encryptContent, decryptContent } from "./chatCrypto";
-import { MOMENTEN_OPENER } from "./momentenScript";
+import { MOMENTEN_OPENER, MOMENTEN_VRAAG1 } from "./momentenScript";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
@@ -384,7 +384,7 @@ export const startSession = mutation({
       lastActivityAt: now,
     });
 
-    // Geleide-momenten-modus: open meteen met moment 1 als Benji-bericht.
+    // Geleide-momenten-modus: eerst het introkaartje (marker), dan de eerste vraag.
     if (args.momentenType) {
       const opener = MOMENTEN_OPENER[args.momentenType];
       if (opener) {
@@ -394,6 +394,16 @@ export const startSession = mutation({
           content: await encryptContent(opener),
           isAiGenerated: false,
           createdAt: now,
+        });
+      }
+      const vraag1 = MOMENTEN_VRAAG1[args.momentenType];
+      if (vraag1) {
+        await ctx.db.insert("chatMessages", {
+          sessionId,
+          role: "bot",
+          content: await encryptContent(vraag1),
+          isAiGenerated: false,
+          createdAt: now + 1, // net na het introkaartje, zodat de volgorde klopt
         });
       }
     }
