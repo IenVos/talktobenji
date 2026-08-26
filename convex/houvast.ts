@@ -684,6 +684,32 @@ export const genereerEnVerstuurMomentenBrief = internalAction({
       console.error("momenten-brief verzenden mislukt:", e);
       return;
     }
+
+    // Behandel de momenten-lead als een volwaardige EH-lead: registreer een profiel
+    // (telt mee in de leads + zichtbaar in EH-leads) en log de brief in houvastBrieven,
+    // zodat de lead automatisch de Benji-opvolgfunnel in rolt. De eerste opvolgmail
+    // vuurt pas na de 2-daagse ondergrens, dus dit stuurt niet meteen iets uit.
+    try {
+      const bestaandProfiel = await ctx.runQuery(internal.houvast.getByEmailInternal, { email: emailLc });
+      if (!bestaandProfiel) {
+        await ctx.runMutation(internal.houvast.createProfiel, {
+          email: emailLc,
+          token: crypto.randomUUID(),
+          name: naam,
+          bron: "momenten-chat",
+        });
+      }
+      await ctx.runMutation(internal.houvast.markBriefVerzonden, {
+        email: emailLc,
+        verliesType: type,
+        naam,
+        bron: "momenten-chat",
+      });
+    } catch (e) {
+      console.error("momenten-lead registreren mislukt:", e);
+      // De brief is al verstuurd; lead-registratie is best effort.
+    }
+
     await ctx.runMutation(internal.houvast.markMomentenBriefVerzonden, { sessionId: args.sessionId });
   },
 });
