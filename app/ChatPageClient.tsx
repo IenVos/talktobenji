@@ -109,7 +109,7 @@ function MomentIntroKaart({ type }: { type: string }) {
 // de opdracht is en niet Benji zelf. De bezoeker antwoordt in de chat.
 const MOMENT_KAARTJES: Record<
   string,
-  { welkom: { titel: string; body: string[]; brief: string }; momenten: { titel: string; erkenning: string; vraag: string }[] }
+  { welkom: { titel: string; body: string[]; brief: string }; momenten: { titel: string; erkenning: string[]; vraag: string }[] }
 > = {
   scheiding: {
     welkom: {
@@ -123,28 +123,43 @@ const MOMENT_KAARTJES: Record<
     momenten: [
       {
         titel: "Als je niet weet wat je voelt",
-        erkenning: "Bij het einde van een relatie lopen gevoelens door elkaar. Dat maakt je niet verward of ondankbaar, het laat zien hoeveel er speelde.",
-        vraag: "Welke twee gevoelens botsen bij jou op dit moment het meest? Ze mogen elkaar tegenspreken.",
-      },
-      {
-        titel: "Als je 's nachts wakker ligt",
-        erkenning: "De andere kant van het bed is leeg, of juist overladen met herinneringen. Je rouwt om iemand die er nog is, en dat is de moeilijkste soort.",
-        vraag: "Waar liggen je gedachten als het stil wordt?",
+        erkenning: [
+          "“Ik mis hem en ik ben blij dat het voorbij is.” Beide waar. Tegelijk.",
+          "Bij het einde van een relatie lopen gevoelens door elkaar heen. Dat maakt je niet verward of ondankbaar, het laat zien hoeveel er speelde. De meeste mensen kiezen dan één van de twee, meestal de nette. En de andere gaat mee naar bed.",
+        ],
+        vraag: "Noem twee gevoelens die op dit moment allebei waar zijn. Ze mogen elkaar tegenspreken. Welke van de twee mag er van jezelf eigenlijk niet zijn?",
       },
       {
         titel: "Als een plek of een liedje je overspoelt",
-        erkenning: "Een café waar jullie kwamen, een nummer dat van jullie was, een foto die ineens voorbijkomt. Herinnering zit in plekken en geluiden, niet in een agenda. Dat is geen terugval.",
-        vraag: "Wat overviel je voor het laatst, en waar was je toen?",
+        erkenning: [
+          "Een café waar jullie kwamen. Een nummer dat van jullie was. Een foto die ineens voorbijkomt. Het vraagt niet of het gelegen komt: je staat in de rij bij de supermarkt en drie seconden later ben je twee jaar terug.",
+          "Dat is geen terugval. Zo werkt herinnering, die zit in plekken en geluiden, niet in een agenda. En het geeft aan waar iets van jullie nog ligt.",
+        ],
+        vraag: "Beschrijf één plek, liedje of gewoonte die je terugbrengt. Waar was je, wat gebeurde er precies, en wil je die plek terug of wil je hem kwijt?",
+      },
+      {
+        titel: "Als je 's nachts wakker ligt met ‘had ik maar’",
+        erkenning: [
+          "Wat als. Waarom. Had ik maar iets gezegd. Je grijpt naar je telefoon, maar het is te laat om te bellen.",
+          "Je rouwt om iemand die er nog is, dat is de moeilijkste soort, want de deur is dicht maar niet op slot. Vaak zit daar één zin onder. Iets wat je nooit hebt gezegd, of wat je juist te vaak zei zonder dat het aankwam.",
+        ],
+        vraag: "Wat heb je nooit gezegd? Schrijf het op zoals je het zou zeggen als je wist dat het geen gevolgen had.",
       },
       {
         titel: "Als je je schuldig voelt over een goed moment",
-        erkenning: "Even gelachen, je even vrij gevoeld, en dan de twijfel: mag dat al? Ja. Dat het even lichter was, zegt niets over hoeveel het telde.",
-        vraag: "Wanneer voelde je je voor het laatst even vrij?",
+        erkenning: [
+          "Een avond gelachen, je even vrij gevoeld. En dan de twijfel: mag dat al?",
+          "Dat het even lichter was, zegt niets over hoeveel het telde. Verdriet is geen bewijs dat je moet blijven leveren. Maar die twijfel zegt wél iets, meestal over wat je denkt te moeten laten zien aan de mensen om je heen.",
+        ],
+        vraag: "Wanneer voelde je je voor het laatst even vrij? Waar was je, met wie, en wat dacht je toen?",
       },
       {
         titel: "Als iemand vraagt hoe het gaat",
-        erkenning: "Er is geen afscheid, geen kaart, geen erkend moment, en toch ben je iemand kwijt. Dat leg je niet even uit tussendoor.",
-        vraag: "Wat zou je willen dat mensen begrepen over dit afscheid?",
+        erkenning: [
+          "“Gaat wel.” En dan gaat het gesprek verder.",
+          "Er is geen begrafenis, geen kaart, geen erkend moment, en toch ben je iemand kwijt. Dat uitleggen in een praatje tussendoor lukt niet, dus verpak je het maar. Steeds korter, tot je het zelf bijna gelooft. Ergens moet het één keer voluit gezegd kunnen worden.",
+        ],
+        vraag: "Maak de zin af zoals je hem nooit hardop zegt: “Wat ik eigenlijk kwijt ben, is…”",
       },
     ],
   },
@@ -175,7 +190,11 @@ function MomentOpdrachtKaart({ type, nummer }: { type: string; nummer: number })
     <div className="w-full max-w-sm rounded-2xl shadow-sm px-5 py-5" style={{ background: "#eef2fb", border: "1px solid #c7d4f0" }}>
       <p className="text-[11px] font-semibold tracking-wide uppercase mb-1.5" style={{ color: "#576b8f" }}>Moment {nummer} van 5</p>
       <h3 className="text-base font-bold mb-2 text-balance" style={{ color: "#2f3b52" }}>{m.titel}</h3>
-      <p className="text-sm leading-relaxed mb-3" style={{ color: "#4a5772" }}>{m.erkenning}</p>
+      <div className="space-y-2 mb-3">
+        {m.erkenning.map((p, i) => (
+          <p key={i} className="text-sm leading-relaxed" style={{ color: "#4a5772" }}>{p}</p>
+        ))}
+      </div>
       <p className="text-sm font-semibold leading-relaxed" style={{ color: "#2f3b52" }}>{m.vraag}</p>
     </div>
   );
