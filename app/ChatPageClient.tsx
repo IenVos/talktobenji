@@ -17,7 +17,7 @@ import { bepaalBron } from "@/lib/leadBron";
 import { ConversationLimitGate } from "@/components/ConversationLimitGate";
 import { SiteFooter } from "@/components/SiteFooter";
 
-export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[]; start?: string | string[]; t?: string | string[]; vn?: string | string[] };
+export type SearchParamsProp = { topic?: string | string[]; testError?: string | string[]; welcome?: string | string[]; start?: string | string[]; t?: string | string[]; vn?: string | string[]; stijl?: string | string[] };
 
 /** Rendert chatbericht met klikbare markdown-links [tekst](url) */
 // Rendert links ([tekst](url)) binnen een stuk platte tekst.
@@ -100,6 +100,83 @@ function MomentIntroKaart({ type }: { type: string }) {
         ))}
       </div>
       <p className="mt-3 text-sm leading-relaxed" style={{ color: "#576b8f" }}>{k.brief}</p>
+    </div>
+  );
+}
+
+// Kaartjes-flow (test via ?stijl=kaartjes): een welkomstkaartje (wie is Benji + brief)
+// en vijf lichtblauwe "opdracht"-kaartjes. De lichtblauwe kleur maakt duidelijk dat dit
+// de opdracht is en niet Benji zelf. De bezoeker antwoordt in de chat.
+const MOMENT_KAARTJES: Record<
+  string,
+  { welkom: { titel: string; body: string[]; brief: string }; momenten: { titel: string; erkenning: string; vraag: string }[] }
+> = {
+  scheiding: {
+    welkom: {
+      titel: "Wat goed dat je hier bent",
+      body: [
+        "Ik ben Benji. Ik luister naar je, zonder oordeel, in jouw tempo.",
+        "Ik neem je zo langs een paar korte momenten. Je antwoordt gewoon door te typen, en soms vraag ik je om er iets meer over te vertellen.",
+      ],
+      brief: "Aan het eind maak ik daar een persoonlijke brief van, voor jou.",
+    },
+    momenten: [
+      {
+        titel: "Als je niet weet wat je voelt",
+        erkenning: "Bij het einde van een relatie lopen gevoelens door elkaar. Dat maakt je niet verward of ondankbaar, het laat zien hoeveel er speelde.",
+        vraag: "Welke twee gevoelens botsen bij jou op dit moment het meest? Ze mogen elkaar tegenspreken.",
+      },
+      {
+        titel: "Als je 's nachts wakker ligt",
+        erkenning: "De andere kant van het bed is leeg, of juist overladen met herinneringen. Je rouwt om iemand die er nog is, en dat is de moeilijkste soort.",
+        vraag: "Waar liggen je gedachten als het stil wordt?",
+      },
+      {
+        titel: "Als een plek of een liedje je overspoelt",
+        erkenning: "Een café waar jullie kwamen, een nummer dat van jullie was, een foto die ineens voorbijkomt. Herinnering zit in plekken en geluiden, niet in een agenda. Dat is geen terugval.",
+        vraag: "Wat overviel je voor het laatst, en waar was je toen?",
+      },
+      {
+        titel: "Als je je schuldig voelt over een goed moment",
+        erkenning: "Even gelachen, je even vrij gevoeld, en dan de twijfel: mag dat al? Ja. Dat het even lichter was, zegt niets over hoeveel het telde.",
+        vraag: "Wanneer voelde je je voor het laatst even vrij?",
+      },
+      {
+        titel: "Als iemand vraagt hoe het gaat",
+        erkenning: "Er is geen afscheid, geen kaart, geen erkend moment, en toch ben je iemand kwijt. Dat leg je niet even uit tussendoor.",
+        vraag: "Wat zou je willen dat mensen begrepen over dit afscheid?",
+      },
+    ],
+  },
+};
+
+/** Welkomstkaartje van de kaartjes-flow: wie is Benji + de brief-belofte. */
+function MomentWelkomKaart({ type }: { type: string }) {
+  const k = (MOMENT_KAARTJES[type] ?? MOMENT_KAARTJES.scheiding).welkom;
+  return (
+    <div className="w-full max-w-sm bg-white/90 border border-gray-200 rounded-2xl shadow-sm px-5 py-5">
+      <h3 className="text-lg font-bold text-primary-900 mb-3 text-balance">{k.titel}</h3>
+      <div className="space-y-2.5">
+        {k.body.map((p, i) => (
+          <p key={i} className="text-sm text-primary-800 leading-relaxed">{p}</p>
+        ))}
+      </div>
+      <p className="mt-3 text-sm leading-relaxed" style={{ color: "#576b8f" }}>{k.brief}</p>
+    </div>
+  );
+}
+
+/** Lichtblauw opdracht-kaartje (moment 1..5): titel + korte erkenning + één kleine vraag. */
+function MomentOpdrachtKaart({ type, nummer }: { type: string; nummer: number }) {
+  const lijst = (MOMENT_KAARTJES[type] ?? MOMENT_KAARTJES.scheiding).momenten;
+  const m = lijst[nummer - 1];
+  if (!m) return null;
+  return (
+    <div className="w-full max-w-sm rounded-2xl shadow-sm px-5 py-5" style={{ background: "#eef2fb", border: "1px solid #c7d4f0" }}>
+      <p className="text-[11px] font-semibold tracking-wide uppercase mb-1.5" style={{ color: "#576b8f" }}>Moment {nummer} van 5</p>
+      <h3 className="text-base font-bold mb-2 text-balance" style={{ color: "#2f3b52" }}>{m.titel}</h3>
+      <p className="text-sm leading-relaxed mb-3" style={{ color: "#4a5772" }}>{m.erkenning}</p>
+      <p className="text-sm font-semibold leading-relaxed" style={{ color: "#2f3b52" }}>{m.vraag}</p>
     </div>
   );
 }
@@ -262,6 +339,9 @@ export default function ChatPageClient({
   const topicParam = Array.isArray(searchParams?.topic) ? searchParams.topic[0] : searchParams?.topic;
   const welcomeParam = Array.isArray(searchParams?.welcome) ? searchParams.welcome[0] : searchParams?.welcome;
   const startParam = Array.isArray(searchParams?.start) ? searchParams.start[0] : searchParams?.start;
+  // Geleide-momenten: verliestype (?t=) en stijl (?stijl=kaartjes voor de kaartjes-flow).
+  const momentenTypeParam = (Array.isArray(searchParams?.t) ? searchParams.t[0] : searchParams?.t) || "scheiding";
+  const momentenStijlParam = Array.isArray(searchParams?.stijl) ? searchParams.stijl[0] : searchParams?.stijl;
   const [sessionIdState, setSessionIdState] = useState<Id<"chatSessions"> | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -636,6 +716,8 @@ export default function ChatPageClient({
         const newSessionId = await startSession({
           anonymousId: getOrCreateAnonymousId(),
           momentenType: type,
+          // ?stijl=kaartjes → de kaartjes-flow (test). Zonder param = de huidige flow.
+          momentenVariant: momentenStijlParam === "kaartjes" ? "kaartjes" : undefined,
         });
         setSessionId(newSessionId);
         if (typeof window !== "undefined") {
@@ -1133,7 +1215,7 @@ export default function ChatPageClient({
               const showLimitWarning = !berichtenModelActief && isAnonymousUser && userMsgCount === LIMIT_WARNING_AFTER && !isUser;
               // Geleide momenten: bot-berichten met een kaart-marker als kaartje tonen
               // (gecentreerd). Een eventuele reactie ervóór blijft een gewone bubbel.
-              const kaartMatch = !isUser ? displayContent.match(/\[\[(momentkaart:intro:[a-z]+|kaart:oefening|kaart:email)\]\]/) : null;
+              const kaartMatch = !isUser ? displayContent.match(/\[\[(momentkaart:intro:[a-z]+|kaart:welkom|kaart:moment[1-5]|kaart:oefening|kaart:email)\]\]/) : null;
               if (kaartMatch) {
                 const marker = kaartMatch[1];
                 const cleanText = displayContent.replace(kaartMatch[0], "").trim();
@@ -1148,9 +1230,13 @@ export default function ChatPageClient({
                     )}
                     {marker.startsWith("momentkaart:intro")
                       ? <MomentIntroKaart type={marker.split(":")[2]} />
-                      : marker === "kaart:oefening"
-                        ? <MomentOefeningKaart />
-                        : <MomentEmailKaart onDone={async (email, naam) => { await saveMomentenEmail({ sessionId: msg.sessionId, email, naam: naam || undefined, bron: momentenBronRef.current.bron || undefined, bronUrl: momentenBronRef.current.bronUrl || undefined }); }} />}
+                      : marker === "kaart:welkom"
+                        ? <MomentWelkomKaart type={momentenTypeParam} />
+                        : marker.startsWith("kaart:moment")
+                          ? <MomentOpdrachtKaart type={momentenTypeParam} nummer={parseInt(marker.replace("kaart:moment", ""), 10)} />
+                          : marker === "kaart:oefening"
+                            ? <MomentOefeningKaart />
+                            : <MomentEmailKaart onDone={async (email, naam) => { await saveMomentenEmail({ sessionId: msg.sessionId, email, naam: naam || undefined, bron: momentenBronRef.current.bron || undefined, bronUrl: momentenBronRef.current.bronUrl || undefined }); }} />}
                   </div>
                 );
               }

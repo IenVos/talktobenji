@@ -685,16 +685,21 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
       // daarom apart mee als variabel blok — anders breekt de cache elk bericht.
       const rules = [customRules, limitedExtraRules].filter(Boolean).join("\n\n");
 
-      // Geleide-momenten-modus: plak het momenten-script als variabel blok mee. Zodra de
-      // brief al verstuurd is (momentenBriefVerzondenAt), schakelt het script naar de
-      // na-brief-modus: gewoon warm doorpraten, maar NOOIT nog een tweede brief of
-      // e-mailkaart aanbieden (anders biedt Benji na een vervolggesprek een 2e brief aan).
-      // Post-brief zodra het e-mailadres binnen is (userEmail wordt synchroon gezet in
-      // saveMomentenEmail) OF de brief-actie klaar is. Het adres dekt de race af waarin
-      // de bezoeker al reageert vóór de async brief-generatie momentenBriefVerzondenAt zet.
+      // Geleide-momenten-modus: plak het momenten-script als variabel blok mee. Twee
+      // gates:
+      //  1. De geleide flow geldt alleen zolang de sessie ANONIEM is (geen userId). Een
+      //     momenten-sessie wordt altijd anoniem aangemaakt; zodra de lead terugkomt via
+      //     de magic-link of inlogt, krijgt de sessie een userId (claimAnonymousSessions /
+      //     consumeToken). Vanaf dan is het een VOLGEND gesprek en praat de lead gewoon
+      //     met de normale Benji, niet meer in de momenten-flow.
+      //  2. Zodra de brief verstuurd is (of het e-mailadres binnen is, wat synchroon in
+      //     saveMomentenEmail gebeurt en de async brief-race afdekt) schakelt het script
+      //     binnen dezelfde sessie naar de na-brief-modus: warm doorpraten, maar NOOIT nog
+      //     een tweede brief of e-mailkaart aanbieden.
+      const isMomentenSessie = !!chatSession?.momentenType && !chatSession?.userId;
       const momentenNaBrief = !!chatSession?.momentenBriefVerzondenAt || !!chatSession?.userEmail;
-      const momentenBlok = chatSession?.momentenType
-        ? momentenScript(chatSession.momentenType, momentenNaBrief)
+      const momentenBlok = isMomentenSessie
+        ? momentenScript(chatSession!.momentenType!, momentenNaBrief, chatSession?.momentenVariant)
         : "";
       const volatileRulesCombined = [momentenBlok, accountNudgeRule].filter(Boolean).join("\n\n");
 

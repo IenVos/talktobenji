@@ -11,7 +11,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { encryptContent, decryptContent } from "./chatCrypto";
-import { MOMENTEN_OPENER, MOMENTEN_VRAAG1 } from "./momentenScript";
+import { MOMENTEN_OPENER, MOMENTEN_VRAAG1, MOMENTEN_WELKOM, MOMENTEN_KAART1 } from "./momentenScript";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
@@ -304,6 +304,7 @@ export const startSession = mutation({
     anonymousId: v.optional(v.string()),
     topic: v.optional(v.string()),
     momentenType: v.optional(v.string()), // geleide-momenten-modus (bijv. "scheiding")
+    momentenVariant: v.optional(v.string()), // "kaartjes" = de kaartjes-flow (test via ?stijl=kaartjes)
     metadata: v.optional(
       v.object({
         browser: v.optional(v.string()),
@@ -377,6 +378,7 @@ export const startSession = mutation({
       anonymousId: args.anonymousId,
       topic: args.topic,
       momentenType: args.momentenType,
+      momentenVariant: args.momentenVariant,
       status: "active",
       wasResolved: false,
       metadata: args.metadata,
@@ -384,26 +386,33 @@ export const startSession = mutation({
       lastActivityAt: now,
     });
 
-    // Geleide-momenten-modus: eerst het introkaartje (marker), dan de eerste vraag.
+    // Geleide-momenten-modus: open met de juiste kaartjes/vraag.
     if (args.momentenType) {
-      const opener = MOMENTEN_OPENER[args.momentenType];
-      if (opener) {
+      // Twee openingsberichten (marker + tekst/marker), in volgorde.
+      const opener1 =
+        args.momentenVariant === "kaartjes"
+          ? MOMENTEN_WELKOM[args.momentenType] // welkomstkaartje (wie is Benji + brief)
+          : MOMENTEN_OPENER[args.momentenType]; // huidige flow: introkaartje
+      const opener2 =
+        args.momentenVariant === "kaartjes"
+          ? MOMENTEN_KAART1[args.momentenType] // eerste opdracht-kaartje
+          : MOMENTEN_VRAAG1[args.momentenType]; // huidige flow: open eerste vraag
+      if (opener1) {
         await ctx.db.insert("chatMessages", {
           sessionId,
           role: "bot",
-          content: await encryptContent(opener),
+          content: await encryptContent(opener1),
           isAiGenerated: false,
           createdAt: now,
         });
       }
-      const vraag1 = MOMENTEN_VRAAG1[args.momentenType];
-      if (vraag1) {
+      if (opener2) {
         await ctx.db.insert("chatMessages", {
           sessionId,
           role: "bot",
-          content: await encryptContent(vraag1),
+          content: await encryptContent(opener2),
           isAiGenerated: false,
-          createdAt: now + 1, // net na het introkaartje, zodat de volgorde klopt
+          createdAt: now + 1, // net na het eerste bericht, zodat de volgorde klopt
         });
       }
     }

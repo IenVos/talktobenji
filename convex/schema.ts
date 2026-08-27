@@ -32,6 +32,7 @@ export default defineSchema({
     anonymousId: v.optional(v.string()),
     topic: v.optional(v.string()),
     momentenType: v.optional(v.string()), // geleide-momenten-modus: verliestype (bijv. "scheiding")
+    momentenVariant: v.optional(v.string()), // geleide-momenten-variant: "kaartjes" = de kaartjes-flow (test via ?stijl=kaartjes); leeg = de huidige vrije chat
     status: v.union(
       v.literal("active"),
       v.literal("resolved"),
