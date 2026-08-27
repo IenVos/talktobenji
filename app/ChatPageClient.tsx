@@ -13,6 +13,7 @@ import { FeedbackModal } from "@/components/chat/FeedbackModal";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import type { TopicId } from "@/components/chat/TopicButtons";
 import { hexToDarker } from "@/lib/utils";
+import { bepaalBron } from "@/lib/leadBron";
 import { ConversationLimitGate } from "@/components/ConversationLimitGate";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -617,9 +618,14 @@ export default function ChatPageClient({
   // momenten-sessie in de gewone chat-UI. Benji opent met moment 1 en loopt de
   // vijf momenten door (script zit in de AI-prompt op basis van momentenType).
   const momentenHandled = useRef(false);
+  // Ad-herkomst (utm) van de momenten-landings-URL, vastgelegd bij het openen.
+  const momentenBronRef = useRef<{ bron: string; bronUrl: string }>({ bron: "", bronUrl: "" });
   useEffect(() => {
     if (startParam !== "momenten" || momentenHandled.current) return;
     momentenHandled.current = true;
+    // Leg de ad-herkomst (utm) van de landings-URL vast zodra de momenten-chat opent,
+    // zodat we die later bij de brief kunnen meesturen voor advertentie-attributie.
+    momentenBronRef.current = bepaalBron();
     const type = (Array.isArray(searchParams?.t) ? searchParams.t[0] : searchParams?.t) || "scheiding";
     setShowTopicButtons(false);
     (async () => {
@@ -1144,7 +1150,7 @@ export default function ChatPageClient({
                       ? <MomentIntroKaart type={marker.split(":")[2]} />
                       : marker === "kaart:oefening"
                         ? <MomentOefeningKaart />
-                        : <MomentEmailKaart onDone={async (email, naam) => { await saveMomentenEmail({ sessionId: msg.sessionId, email, naam: naam || undefined }); }} />}
+                        : <MomentEmailKaart onDone={async (email, naam) => { await saveMomentenEmail({ sessionId: msg.sessionId, email, naam: naam || undefined, bron: momentenBronRef.current.bron || undefined, bronUrl: momentenBronRef.current.bronUrl || undefined }); }} />}
                   </div>
                 );
               }

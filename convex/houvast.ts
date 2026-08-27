@@ -589,7 +589,12 @@ export const markMomentenBriefVerzonden = internalMutation({
  * Wordt gepland vanuit chat.saveMomentenEmail. Idempotent per sessie; faalt stil.
  */
 export const genereerEnVerstuurMomentenBrief = internalAction({
-  args: { sessionId: v.id("chatSessions") },
+  args: {
+    sessionId: v.id("chatSessions"),
+    // Ad-herkomst (utm) van de landings-URL, voor advertentie-attributie.
+    bron: v.optional(v.string()),
+    bronUrl: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const RESEND_API_KEY = process.env.RESEND_API_KEY;
     const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -700,10 +705,12 @@ export const genereerEnVerstuurMomentenBrief = internalAction({
       // De brief is al verstuurd; instroom is best effort.
     }
 
-    // Registreer een houvasteProfiel (bron "momenten-chat") zodat de lead zichtbaar
-    // wordt bij "nieuwe Houvast leads" en meetelt. Dit is puur zichtbaarheid: het zet
-    // de lead NIET in de EH-opvolg (die leest houvastBrieven, niet dit profiel), en het
-    // maakt geen login-account. Geen welkomstmail (die stuurt alleen `registreer`).
+    // Registreer de lead in de Houvast-leadtabellen zodat 'ie (a) zichtbaar wordt bij
+    // "nieuwe Houvast leads" + correct toont in de leads-lijst (voltooid/type via het
+    // houvastBrieven-record), en (b) in het Advertenties-overzicht per ad verschijnt
+    // (dat leest houvastBrieven.bronUrl). Dit zet 'm NIET in de EH-opvolg: die slaat
+    // Benji-spoor-leads over (evenHouvastOpvolg _statusVoorLead: opBenjiSpoor). Geen
+    // welkomstmail (die stuurt alleen `registreer`).
     try {
       const bestaandProfiel = await ctx.runQuery(internal.houvast.getByEmailInternal, { email: emailLc });
       if (!bestaandProfiel) {
@@ -712,10 +719,21 @@ export const genereerEnVerstuurMomentenBrief = internalAction({
           token: crypto.randomUUID(),
           name: naam,
           bron: "momenten-chat",
+          bronUrl: args.bronUrl,
         });
       }
+      // Brief-record: markeert de lead als "voltooid/brief verstuurd" in de leads-lijst
+      // én levert de bronUrl voor advertentie-attributie. verliesType = het momenten-type
+      // (scheiding) zodat de leads-lijst het juiste type toont.
+      await ctx.runMutation(internal.houvast.markBriefVerzonden, {
+        email: emailLc,
+        verliesType: type,
+        naam,
+        bron: "momenten-chat",
+        bronUrl: args.bronUrl,
+      });
     } catch (e) {
-      console.error("momenten-lead houvasteProfiel registreren mislukt:", e);
+      console.error("momenten-lead registreren mislukt:", e);
       // Best effort; de brief + Benji-spoor zijn al gelukt.
     }
 

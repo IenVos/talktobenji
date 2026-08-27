@@ -418,7 +418,14 @@ export const startSession = mutation({
  * stille account (magic-link) volgen in een aparte stap.
  */
 export const saveMomentenEmail = mutation({
-  args: { sessionId: v.id("chatSessions"), email: v.string(), naam: v.optional(v.string()) },
+  args: {
+    sessionId: v.id("chatSessions"),
+    email: v.string(),
+    naam: v.optional(v.string()),
+    // Ad-herkomst (utm) van de landings-URL, voor advertentie-attributie in het lead-record.
+    bron: v.optional(v.string()),
+    bronUrl: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
     const email = args.email.trim().toLowerCase();
     if (!/\S+@\S+\.\S+/.test(email)) throw new Error("Ongeldig e-mailadres");
@@ -431,6 +438,8 @@ export const saveMomentenEmail = mutation({
     // wat gedeeld is en uitnodigt om door te praten.
     await ctx.scheduler.runAfter(0, internal.houvast.genereerEnVerstuurMomentenBrief, {
       sessionId: args.sessionId,
+      bron: args.bron,
+      bronUrl: args.bronUrl,
     });
     await ctx.scheduler.runAfter(0, internal.ai.momentenFollowUp, {
       sessionId: args.sessionId,
