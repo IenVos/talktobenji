@@ -223,7 +223,7 @@ function MomentEmailKaart({ onDone }: { onDone: (email: string, naam: string) =>
   const [klaar, setKlaar] = useState(false);
   const geldig = /\S+@\S+\.\S+/.test(email);
   return (
-    <div className="w-full max-w-sm bg-white/90 border border-gray-200 rounded-2xl shadow-sm px-5 py-5">
+    <div className="w-full max-w-sm rounded-2xl shadow-sm px-5 py-5" style={{ background: "#eef2fb", border: "1px solid #c7d4f0" }}>
       {klaar ? (
         <>
           <h3 className="text-base font-bold text-primary-900 mb-1">Je brief is onderweg</h3>
@@ -602,6 +602,7 @@ export default function ChatPageClient({
   const saveMomentenEmail = useMutation(api.chat.saveMomentenEmail);
   const showMomentKaart = useMutation(api.chat.showMomentKaart);
   const startMomentenAfsluiting = useMutation(api.chat.startMomentenAfsluiting);
+  const saveKaartAntwoord = useMutation(api.chat.saveKaartAntwoord);
   const addPersonalizedOpenerToSession = useMutation(api.chat.addPersonalizedOpenerToSession);
   const startEhChat = useMutation(api.chat.startEhChat);
   const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
@@ -773,6 +774,17 @@ export default function ChatPageClient({
       if (mm) maxCard = Math.max(maxCard, parseInt(mm[1], 10));
     }
     return maxCard;
+  }, [messages, startParam, momentenStijlParam]);
+  // Heeft de bezoeker het laatst getoonde moment-kaartje al beantwoord? Pas dan mag de
+  // "Volgende moment"-knop verschijnen (anders raakt getypte tekst kwijt bij doorklikken).
+  const momentBeantwoord = useMemo(() => {
+    if (startParam !== "momenten" || momentenStijlParam !== "kaartjes" || !messages) return false;
+    let idx = -1;
+    messages.forEach((m, i) => {
+      if (m.role !== "user" && /\[\[kaart:moment[1-5]\]\]/.test(m.content)) idx = i;
+    });
+    if (idx < 0) return false;
+    return messages.slice(idx + 1).some((m) => m.role === "user");
   }, [messages, startParam, momentenStijlParam]);
   // Is het e-mailkaartje (afsluiting) al getoond? Dan geen "Volgende"-knop meer.
   const momentenEmailGetoond = useMemo(
@@ -972,6 +984,39 @@ export default function ChatPageClient({
     const currentScrollTop = mainRef.current?.scrollTop ?? 0;
     setPendingUserMessage(messageText); // Direct tonen: 1. jouw bericht, 2. bolletjes, 3. Benji
     const startTime = Date.now();
+
+    // Kaartjes-flow: Benji reageert NIET op elk moment. Alleen op moment 2 en 4 geeft hij
+    // één korte reactie; de andere momenten worden stil opgeslagen (geen bolletjes). Moment 5
+    // start meteen de afsluiting (erkenning + brief + e-mailkaartje), zonder extra knop.
+    if (startParam === "momenten" && momentenStijlParam === "kaartjes" && sessionId) {
+      const huidigMoment = momentenKaartTot; // 1..5
+      const reactieMomenten = [2, 4];
+      try {
+        if (huidigMoment >= 5) {
+          await saveKaartAntwoord({ sessionId, content: messageText });
+          setPendingUserMessage(null);
+          setMomentenAfsluitBezig(true);
+          setIsLoading(true);
+          await startMomentenAfsluiting({ sessionId });
+          const elapsed = Date.now() - startTime;
+          if (elapsed < 4000) await new Promise((r) => setTimeout(r, 4000 - elapsed));
+        } else if (reactieMomenten.includes(huidigMoment)) {
+          setIsLoading(true);
+          await handleUserMessage({ sessionId, userMessage: messageText });
+          const elapsed = Date.now() - startTime;
+          if (elapsed < 4000) await new Promise((r) => setTimeout(r, 4000 - elapsed));
+        } else {
+          await saveKaartAntwoord({ sessionId, content: messageText });
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+        setPendingUserMessage(null);
+      }
+      return;
+    }
+
     try {
       let activeSessionId = sessionId;
 
@@ -1415,34 +1460,20 @@ export default function ChatPageClient({
                 </span>
               </div>
             )}
-            {/* Kaartjes-flow: de bezoeker bepaalt zelf het tempo. Cards 1-4: door naar het
-                volgende moment. Card 5: de brief laten maken (teaser + e-mailkaartje). */}
+            {/* Kaartjes-flow: pas ná het verzonden antwoord verschijnt "Volgende moment".
+                Moment 5 sluit vanzelf af (geen knop), dus alleen bij moment 1 t/m 4. */}
             {startParam === "momenten" && momentenStijlParam === "kaartjes" && sessionId &&
-              momentenKaartTot >= 1 && !momentenEmailGetoond && !isLoading && (
+              momentenKaartTot >= 1 && momentenKaartTot < 5 && momentBeantwoord &&
+              !momentenEmailGetoond && !isLoading && (
               <div className="flex justify-center pt-1 pb-2">
-                {momentenKaartTot < 5 ? (
-                  <button
-                    type="button"
-                    onClick={() => showMomentKaart({ sessionId, nummer: momentenKaartTot + 1 })}
-                    className="text-sm font-semibold px-4 py-2 rounded-full transition-colors"
-                    style={{ background: "#eef2fb", border: "1px solid #c7d4f0", color: "#576b8f" }}
-                  >
-                    Volgende moment →
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled={momentenAfsluitBezig}
-                    onClick={async () => {
-                      setMomentenAfsluitBezig(true);
-                      try { await startMomentenAfsluiting({ sessionId }); } catch { setMomentenAfsluitBezig(false); }
-                    }}
-                    className="text-sm font-semibold px-5 py-2.5 rounded-full text-white transition-colors disabled:opacity-50"
-                    style={{ background: "#576b8f" }}
-                  >
-                    {momentenAfsluitBezig ? "Momentje…" : "Maak mijn brief →"}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => showMomentKaart({ sessionId, nummer: momentenKaartTot + 1 })}
+                  className="text-sm font-semibold px-4 py-2 rounded-full transition-colors"
+                  style={{ background: "#eef2fb", border: "1px solid #c7d4f0", color: "#576b8f" }}
+                >
+                  Volgende moment →
+                </button>
               </div>
             )}
             <div ref={messagesEndRef} />

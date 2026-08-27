@@ -487,9 +487,33 @@ export const showMomentKaart = mutation({
 });
 
 /**
- * Kaartjes-flow: start de afsluiting nadat de bezoeker op "Maak mijn brief" tikt (na
- * moment 5). Plant de AI-afsluiting (teaser + e-mailkaartje). Idempotent: doet niets
- * als het e-mailkaartje al getoond is.
+ * Kaartjes-flow: sla een moment-antwoord op ZONDER dat Benji reageert. Benji reageert
+ * maar op een paar momenten (dat regelt de frontend); op de stille momenten bewaren we
+ * alleen het antwoord zodat het in de brief meekomt.
+ */
+export const saveKaartAntwoord = mutation({
+  args: { sessionId: v.id("chatSessions"), content: v.string() },
+  handler: async (ctx, args) => {
+    const c = args.content.trim();
+    if (!c) return { ok: false };
+    const session = await ctx.db.get(args.sessionId);
+    if (!session || session.momentenVariant !== "kaartjes" || session.status !== "active") return { ok: false };
+    await ctx.db.insert("chatMessages", {
+      sessionId: args.sessionId,
+      role: "user",
+      content: await encryptContent(c),
+      isAiGenerated: false,
+      createdAt: Date.now(),
+    });
+    await ctx.db.patch(args.sessionId, { lastActivityAt: Date.now() });
+    return { ok: true };
+  },
+});
+
+/**
+ * Kaartjes-flow: start de afsluiting nadat de bezoeker moment 5 heeft beantwoord.
+ * Plant de AI-afsluiting (korte erkenning + teaser + e-mailkaartje). Idempotent: doet
+ * niets als het e-mailkaartje al getoond is.
  */
 export const startMomentenAfsluiting = mutation({
   args: { sessionId: v.id("chatSessions") },
