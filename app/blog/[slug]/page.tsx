@@ -52,6 +52,20 @@ function extractTOC(content: string) {
 
 type AnchorEntry = { slug: string; pillarSlug?: string | null; anchorPhrases: string[]; isPillar?: boolean };
 
+const AL_WORD_RE = /[\p{L}\p{N}]/u;
+/** Vind de eerste positie waar `needle` als heel woord voorkomt (woordgrenzen links/rechts), of -1. */
+function findWholeWordIndex(hayLower: string, needleLower: string): number {
+  let from = 0;
+  for (;;) {
+    const idx = hayLower.indexOf(needleLower, from);
+    if (idx === -1) return -1;
+    const before = idx > 0 ? hayLower[idx - 1] : "";
+    const after = hayLower[idx + needleLower.length] ?? "";
+    if ((!before || !AL_WORD_RE.test(before)) && (!after || !AL_WORD_RE.test(after))) return idx;
+    from = idx + 1;
+  }
+}
+
 /** Verwerkt **vet**, *cursief*, [link](url) én auto-linking in één pass */
 function renderInlineAll(
   text: string,
@@ -82,7 +96,7 @@ function renderInlineAll(
     const lower = t.toLowerCase();
     for (const { phrase, slug, isPillar } of candidates) {
       if (used.has(phrase) || used.has(`slug:${slug}`)) continue;
-      const idx = lower.indexOf(phrase.toLowerCase());
+      const idx = findWholeWordIndex(lower, phrase.toLowerCase());
       if (idx === -1) continue;
       if (s.some(x => idx < x.end && idx + phrase.length > x.start)) continue;
       used.add(phrase);
@@ -414,11 +428,11 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
             )}
             <span className="text-stone-300 text-sm">·</span>
             <span className="text-xs text-stone-400">{readingTime(post.content)} min lezen</span>
-            {post.updatedAt && post.publishedAt && post.updatedAt - post.publishedAt > 30 * 24 * 60 * 60 * 1000 && (
+            {post.updatedAt && post.publishedAt && new Date(post.updatedAt).toDateString() !== new Date(post.publishedAt).toDateString() && (
               <>
                 <span className="text-stone-300 text-sm">·</span>
                 <span className="text-xs text-stone-400">
-                  Bijgewerkt {new Date(post.updatedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
+                  Bijgewerkt op {new Date(post.updatedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
                 </span>
               </>
             )}

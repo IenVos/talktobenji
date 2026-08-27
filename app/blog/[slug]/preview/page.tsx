@@ -29,6 +29,20 @@ function extractTOC(content: string) {
 
 type AnchorEntry = { slug: string; pillarSlug?: string | null; anchorPhrases: string[]; isPillar?: boolean };
 
+const AL_WORD_RE = /[\p{L}\p{N}]/u;
+/** Vind de eerste positie waar `needle` als heel woord voorkomt (woordgrenzen links/rechts), of -1. */
+function findWholeWordIndex(hayLower: string, needleLower: string): number {
+  let from = 0;
+  for (;;) {
+    const idx = hayLower.indexOf(needleLower, from);
+    if (idx === -1) return -1;
+    const before = idx > 0 ? hayLower[idx - 1] : "";
+    const after = hayLower[idx + needleLower.length] ?? "";
+    if ((!before || !AL_WORD_RE.test(before)) && (!after || !AL_WORD_RE.test(after))) return idx;
+    from = idx + 1;
+  }
+}
+
 function renderInlineAll(
   text: string,
   anchorData: AnchorEntry[] | undefined,
@@ -54,7 +68,7 @@ function renderInlineAll(
     const lower = t.toLowerCase();
     for (const { phrase, slug, isPillar } of candidates) {
       if (used.has(phrase)) continue;
-      const idx = lower.indexOf(phrase.toLowerCase());
+      const idx = findWholeWordIndex(lower, phrase.toLowerCase());
       if (idx === -1) continue;
       if (s.some(x => idx < x.end && idx + phrase.length > x.start)) continue;
       used.add(phrase);
