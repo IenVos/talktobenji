@@ -685,9 +685,17 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
       // daarom apart mee als variabel blok — anders breekt de cache elk bericht.
       const rules = [customRules, limitedExtraRules].filter(Boolean).join("\n\n");
 
-      // Geleide-momenten-modus: plak het momenten-script als variabel blok mee, zodat
-      // Benji de vijf momenten in volgorde stelt en op de antwoorden reageert.
-      const momentenBlok = chatSession?.momentenType ? momentenScript(chatSession.momentenType) : "";
+      // Geleide-momenten-modus: plak het momenten-script als variabel blok mee. Zodra de
+      // brief al verstuurd is (momentenBriefVerzondenAt), schakelt het script naar de
+      // na-brief-modus: gewoon warm doorpraten, maar NOOIT nog een tweede brief of
+      // e-mailkaart aanbieden (anders biedt Benji na een vervolggesprek een 2e brief aan).
+      // Post-brief zodra het e-mailadres binnen is (userEmail wordt synchroon gezet in
+      // saveMomentenEmail) OF de brief-actie klaar is. Het adres dekt de race af waarin
+      // de bezoeker al reageert vóór de async brief-generatie momentenBriefVerzondenAt zet.
+      const momentenNaBrief = !!chatSession?.momentenBriefVerzondenAt || !!chatSession?.userEmail;
+      const momentenBlok = chatSession?.momentenType
+        ? momentenScript(chatSession.momentenType, momentenNaBrief)
+        : "";
       const volatileRulesCombined = [momentenBlok, accountNudgeRule].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken

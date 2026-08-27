@@ -37,6 +37,14 @@ function Kader({ titel, rechts, standaardOpen = true, children }: {
   );
 }
 
+type MomentenFunnel = {
+  gestart: number;
+  metGesprek: number;
+  emailGedeeld: number;
+  briefVerzonden: number;
+  afgehaaktNaGesprekZonderEmail: number;
+};
+
 export default function EvenHouvastFunnelPage() {
   const overzicht = useAdminQuery(api.evenHouvastOpvolg.funnelOverzicht, {}) as
     | { email: string; naam: string | null; dagenGeleden: number; laatsteMail: number; afgemeld: boolean; gekocht: boolean }[]
@@ -91,6 +99,13 @@ export default function EvenHouvastFunnelPage() {
         komTerugActiefNa: number;
       }
     | undefined;
+  const momentenChat = useAdminQuery(api.siteAnalytics.getMomentenChatStats, {}) as
+    | {
+        vandaag: MomentenFunnel;
+        gisteren: MomentenFunnel;
+        totaal: MomentenFunnel;
+      }
+    | undefined;
   const [toonAfmeldingen, setToonAfmeldingen] = useState(false);
   const [toonLijst, setToonLijst] = useState(false);
   const [toonKlikFunnel, setToonKlikFunnel] = useState(false);
@@ -110,6 +125,56 @@ export default function EvenHouvastFunnelPage() {
           <a href="/admin/even-houvast-emails" className="text-primary-700 hover:underline">Mails</a>.
         </p>
       </div>
+
+      {/* Momenten-chat (ad-verkeer): opende chat → praatte → deelde e-mail → brief */}
+      {momentenChat && (
+        <Kader titel="Momenten-chat (ad)" rechts="live sinds 26 aug 2026" standaardOpen>
+          {(() => {
+            const rijen: { label: string; key: keyof MomentenFunnel; hint?: string }[] = [
+              { label: "Chat geopend", key: "gestart" },
+              { label: "Gingen praten", key: "metGesprek" },
+              { label: "E-mail gedeeld", key: "emailGedeeld" },
+              { label: "Brief verstuurd", key: "briefVerzonden" },
+            ];
+            const pct = (b: MomentenFunnel, k: keyof MomentenFunnel) =>
+              b.gestart > 0 ? Math.round((b[k] / b.gestart) * 100) : 0;
+            const kolom = (titel: string, b: MomentenFunnel, accent = false) => (
+              <div className={`rounded-lg p-3 ${accent ? "bg-primary-50" : "bg-gray-50"}`}>
+                <p className={`text-xs font-semibold mb-2 ${accent ? "text-primary-700" : "text-gray-500"}`}>{titel}</p>
+                <div className="space-y-1">
+                  {rijen.map((r) => (
+                    <div key={r.key} className="flex items-baseline justify-between gap-2">
+                      <span className="text-xs text-gray-500">{r.label}</span>
+                      <span className="text-sm font-bold text-gray-900">
+                        {b[r.key]}
+                        {r.key !== "gestart" && b.gestart > 0 && (
+                          <span className="text-[10px] font-medium text-gray-400 ml-1">{pct(b, r.key)}%</span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex items-baseline justify-between gap-2 pt-1.5 mt-1 border-t border-gray-200/70">
+                    <span className="text-xs text-amber-700">Afgehaakt na gesprek, geen e-mail</span>
+                    <span className="text-sm font-bold text-amber-700">{b.afgehaaktNaGesprekZonderEmail}</span>
+                  </div>
+                </div>
+              </div>
+            );
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {kolom("Vandaag", momentenChat.vandaag, true)}
+                {kolom("Gisteren", momentenChat.gisteren)}
+                {kolom("Totaal", momentenChat.totaal)}
+              </div>
+            );
+          })()}
+          <p className="text-xs text-gray-400">
+            Van de ad naar de chat op /benji?start=momenten. &ldquo;Chat geopend&rdquo; = het kaartje geladen;
+            &ldquo;gingen praten&rdquo; = minstens één eigen bericht. Het amber-getal is wie wél praatte maar
+            afhaakte zonder een e-mailadres achter te laten. Testadressen niet meegeteld; nooit gespreksinhoud.
+          </p>
+        </Kader>
+      )}
 
       {/* Benji link vanuit de brief: klik, berichten, terugkeer (per uniek adres) */}
       {briefBenji && (

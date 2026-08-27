@@ -1725,3 +1725,78 @@ export const _briefBenjiStatsTest = internalQuery({
   args: {},
   handler: async (ctx) => await berekenBriefBenjiStats(ctx),
 });
+
+/**
+ * Funnel van de geleide momenten-chat (ad-verkeer, /benji?start=momenten). Toont per
+ * dag (vandaag / gisteren) en totaal hoeveel bezoekers de chat openden, echt gingen
+ * praten, hun e-mailadres deelden en een brief kregen. Het belangrijkste getal is
+ * "afgehaakt na gesprek zonder e-mail": mensen die wél praatten maar afhaakten rond
+ * de e-mailvraag. Privacyveilig: telt alleen sessies + berichtaantallen, nooit inhoud.
+ */
+async function berekenMomentenChatStats(ctx: QueryCtx) {
+  const excluded = await ctx.db.query("analyticsExcludedEmails").collect();
+  const testSet = new Set(excluded.map((e: any) => (e.email || "").toLowerCase()));
+  const isTest = (e?: string | null) => !!e && testSet.has(e.toLowerCase());
+
+  // Amsterdam-datumstring (YYYY-MM-DD) om "vandaag"/"gisteren" juist te bucketen,
+  // ongeacht de UTC-servertijd.
+  const amsDatum = (ms: number) =>
+    new Date(ms).toLocaleDateString("en-CA", { timeZone: "Europe/Amsterdam" });
+  const nu = Date.now();
+  const vandaagStr = amsDatum(nu);
+  const gisterenStr = amsDatum(nu - 24 * 60 * 60 * 1000);
+
+  const leeg = () => ({
+    gestart: 0, // chat geopend (kaartje geladen)
+    metGesprek: 0, // >= 1 eigen bericht getypt
+    emailGedeeld: 0, // e-mailadres achtergelaten
+    briefVerzonden: 0, // persoonlijke brief gegenereerd + verstuurd
+    afgehaaktNaGesprekZonderEmail: 0, // praatte wel, maar deelde geen e-mail
+  });
+  const vandaag = leeg();
+  const gisteren = leeg();
+  const totaal = leeg();
+
+  const alle = await ctx.db.query("chatSessions").collect();
+  const momenten = alle.filter((s) => s.momentenType);
+
+  for (const s of momenten) {
+    if (isTest(s.userEmail)) continue; // testadressen niet meetellen
+    const msgs = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", s._id))
+      .collect();
+    const heeftGesprek = msgs.some((m) => m.role === "user");
+    const heeftEmail = !!s.userEmail;
+    const heeftBrief = !!s.momentenBriefVerzondenAt;
+
+    const tel = (b: ReturnType<typeof leeg>) => {
+      b.gestart++;
+      if (heeftGesprek) b.metGesprek++;
+      if (heeftEmail) b.emailGedeeld++;
+      if (heeftBrief) b.briefVerzonden++;
+      if (heeftGesprek && !heeftEmail) b.afgehaaktNaGesprekZonderEmail++;
+    };
+
+    tel(totaal);
+    const dag = amsDatum(s.startedAt);
+    if (dag === vandaagStr) tel(vandaag);
+    else if (dag === gisterenStr) tel(gisteren);
+  }
+
+  return { vandaag, gisteren, totaal };
+}
+
+export const getMomentenChatStats = query({
+  args: { adminToken: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    return await berekenMomentenChatStats(ctx);
+  },
+});
+
+// Interne test-variant (geen auth) om de berekening los te verifiëren via convex run.
+export const _momentenChatStatsTest = internalQuery({
+  args: {},
+  handler: async (ctx) => await berekenMomentenChatStats(ctx),
+});
