@@ -11,7 +11,7 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { encryptContent, decryptContent } from "./chatCrypto";
-import { MOMENTEN_OPENER, MOMENTEN_VRAAG1, MOMENTEN_WELKOM, MOMENTEN_KAART1 } from "./momentenScript";
+import { MOMENTEN_OPENER, MOMENTEN_VRAAG1, MOMENTEN_WELKOM } from "./momentenScript";
 
 // Openers per categorie (A/B test: variant 1, 2 of 3)
 const OPENERS: Record<
@@ -379,8 +379,9 @@ export const startSession = mutation({
       topic: args.topic,
       momentenType: args.momentenType,
       momentenVariant: args.momentenVariant,
-      // Kaartjes-flow: moment-kaartje 1 wordt hieronder direct getoond, dus teller = 1.
-      momentenKaartTot: args.momentenVariant === "kaartjes" && args.momentenType ? 1 : undefined,
+      // Kaartjes-flow: alleen het welkomstkaartje wordt hieronder getoond; moment 1 komt
+      // even later (de frontend toont 'm na een korte pauze), dus teller start op 0.
+      momentenKaartTot: args.momentenVariant === "kaartjes" && args.momentenType ? 0 : undefined,
       status: "active",
       wasResolved: false,
       metadata: args.metadata,
@@ -397,7 +398,7 @@ export const startSession = mutation({
           : MOMENTEN_OPENER[args.momentenType]; // huidige flow: introkaartje
       const opener2 =
         args.momentenVariant === "kaartjes"
-          ? MOMENTEN_KAART1[args.momentenType] // eerste opdracht-kaartje
+          ? undefined // kaartjes-flow: moment 1 komt even later via de frontend
           : MOMENTEN_VRAAG1[args.momentenType]; // huidige flow: open eerste vraag
       if (opener1) {
         await ctx.db.insert("chatMessages", {
@@ -468,10 +469,10 @@ export const saveMomentenEmail = mutation({
 export const showMomentKaart = mutation({
   args: { sessionId: v.id("chatSessions"), nummer: v.number() },
   handler: async (ctx, args) => {
-    if (args.nummer < 2 || args.nummer > 5) return { ok: false };
+    if (args.nummer < 1 || args.nummer > 5) return { ok: false };
     const session = await ctx.db.get(args.sessionId);
     if (!session || !session.momentenType || session.momentenVariant !== "kaartjes") return { ok: false };
-    const tot = session.momentenKaartTot ?? 1;
+    const tot = session.momentenKaartTot ?? 0;
     // Alleen het eerstvolgende kaartje mag getoond worden, en nooit twee keer.
     if (args.nummer !== tot + 1) return { ok: false, already: true };
     await ctx.db.insert("chatMessages", {

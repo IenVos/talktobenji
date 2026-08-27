@@ -362,6 +362,9 @@ export default function ChatPageClient({
   // Geleide-momenten: verliestype (?t=) en stijl (?stijl=kaartjes voor de kaartjes-flow).
   const momentenTypeParam = (Array.isArray(searchParams?.t) ? searchParams.t[0] : searchParams?.t) || "scheiding";
   const momentenStijlParam = Array.isArray(searchParams?.stijl) ? searchParams.stijl[0] : searchParams?.stijl;
+  // De kaartjes-flow is nu de STANDAARD voor de momenten-landingspagina. Met ?stijl=vrij
+  // val je terug op de oude vrije chat (voor de zekerheid / vergelijken).
+  const momentenKaartjes = momentenStijlParam !== "vrij";
   const [sessionIdState, setSessionIdState] = useState<Id<"chatSessions"> | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -740,9 +743,18 @@ export default function ChatPageClient({
           anonymousId: getOrCreateAnonymousId(),
           momentenType: type,
           // ?stijl=kaartjes → de kaartjes-flow (test). Zonder param = de huidige flow.
-          momentenVariant: momentenStijlParam === "kaartjes" ? "kaartjes" : undefined,
+          momentenVariant: momentenKaartjes ? "kaartjes" : undefined,
         });
         setSessionId(newSessionId);
+        // Kaartjes-flow: alleen het welkomstkaartje staat er nu. Laat moment 1 iets later
+        // komen (rustiger tempo, tijd om het welkom te lezen), met even de bolletjes ertussen.
+        if (momentenKaartjes) {
+          setIsLoading(true);
+          setTimeout(async () => {
+            try { await showMomentKaart({ sessionId: newSessionId, nummer: 1 }); } catch {}
+            setIsLoading(false);
+          }, 2600);
+        }
         if (typeof window !== "undefined") {
           if (!sessionStorage.getItem("benji_start_chat_fired") && typeof (window as any).fbq === "function") {
             (window as any).fbq("trackCustom", "StartChat");
@@ -767,7 +779,7 @@ export default function ChatPageClient({
   // door naar het volgende kaartje, of tikt 'm meteen om een moment over te slaan.
   // Het hoogste getoonde moment-kaartje bepalen we uit de berichten.
   const momentenKaartTot = useMemo(() => {
-    if (startParam !== "momenten" || momentenStijlParam !== "kaartjes" || !messages) return 0;
+    if (startParam !== "momenten" || !momentenKaartjes || !messages) return 0;
     let maxCard = 0;
     for (const m of messages) {
       if (m.role === "user") continue;
@@ -775,18 +787,18 @@ export default function ChatPageClient({
       if (mm) maxCard = Math.max(maxCard, parseInt(mm[1], 10));
     }
     return maxCard;
-  }, [messages, startParam, momentenStijlParam]);
+  }, [messages, startParam, momentenKaartjes]);
   // Heeft de bezoeker het laatst getoonde moment-kaartje al beantwoord? Pas dan mag de
   // "Volgende moment"-knop verschijnen (anders raakt getypte tekst kwijt bij doorklikken).
   const momentBeantwoord = useMemo(() => {
-    if (startParam !== "momenten" || momentenStijlParam !== "kaartjes" || !messages) return false;
+    if (startParam !== "momenten" || !momentenKaartjes || !messages) return false;
     let idx = -1;
     messages.forEach((m, i) => {
       if (m.role !== "user" && /\[\[kaart:moment[1-5]\]\]/.test(m.content)) idx = i;
     });
     if (idx < 0) return false;
     return messages.slice(idx + 1).some((m) => m.role === "user");
-  }, [messages, startParam, momentenStijlParam]);
+  }, [messages, startParam, momentenKaartjes]);
   // Is het e-mailkaartje (afsluiting) al getoond? Dan geen "Volgende"-knop meer.
   const momentenEmailGetoond = useMemo(
     () => !!messages?.some((m) => m.role !== "user" && m.content.includes("[[kaart:email]]")),
@@ -989,7 +1001,7 @@ export default function ChatPageClient({
     // Kaartjes-flow: Benji reageert NIET op elk moment. Alleen op moment 2 en 4 geeft hij
     // één korte reactie; de andere momenten worden stil opgeslagen (geen bolletjes). Moment 5
     // start meteen de afsluiting (erkenning + brief + e-mailkaartje), zonder extra knop.
-    if (startParam === "momenten" && momentenStijlParam === "kaartjes" && sessionId) {
+    if (startParam === "momenten" && momentenKaartjes && sessionId) {
       const huidigMoment = momentenKaartTot; // 1..5
       const reactieMomenten = [2, 4];
       try {
@@ -1463,7 +1475,7 @@ export default function ChatPageClient({
             )}
             {/* Kaartjes-flow: pas ná het verzonden antwoord verschijnt "Volgende moment".
                 Moment 5 sluit vanzelf af (geen knop), dus alleen bij moment 1 t/m 4. */}
-            {startParam === "momenten" && momentenStijlParam === "kaartjes" && sessionId &&
+            {startParam === "momenten" && momentenKaartjes && sessionId &&
               momentenKaartTot >= 1 && momentenKaartTot < 5 && momentBeantwoord &&
               !momentenEmailGetoond && !isLoading && (
               <div className="flex justify-center pt-1 pb-2">
