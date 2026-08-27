@@ -33,6 +33,7 @@ export default defineSchema({
     topic: v.optional(v.string()),
     momentenType: v.optional(v.string()), // geleide-momenten-modus: verliestype (bijv. "scheiding")
     momentenVariant: v.optional(v.string()), // geleide-momenten-variant: "kaartjes" = de kaartjes-flow (test via ?stijl=kaartjes); leeg = de huidige vrije chat
+    momentenKaartTot: v.optional(v.number()), // kaartjes-flow: hoogste getoonde moment-kaartje (1..5), voor frontend-gestuurde doorloop (idempotent)
     status: v.union(
       v.literal("active"),
       v.literal("resolved"),

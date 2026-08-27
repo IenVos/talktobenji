@@ -379,6 +379,8 @@ export const startSession = mutation({
       topic: args.topic,
       momentenType: args.momentenType,
       momentenVariant: args.momentenVariant,
+      // Kaartjes-flow: moment-kaartje 1 wordt hieronder direct getoond, dus teller = 1.
+      momentenKaartTot: args.momentenVariant === "kaartjes" && args.momentenType ? 1 : undefined,
       status: "active",
       wasResolved: false,
       metadata: args.metadata,
@@ -453,6 +455,57 @@ export const saveMomentenEmail = mutation({
     await ctx.scheduler.runAfter(0, internal.ai.momentenFollowUp, {
       sessionId: args.sessionId,
     });
+    return { ok: true };
+  },
+});
+
+/**
+ * Kaartjes-flow: toon het volgende moment-opdracht-kaartje (marker) in de chat.
+ * Frontend-gestuurd (betrouwbaarder dan de AI het laten doen): de client roept dit
+ * aan zodra de bezoeker het huidige kaartje heeft beantwoord en Benji heeft gereageerd.
+ * Idempotent via chatSessions.momentenKaartTot, zodat een kaartje nooit dubbel komt.
+ */
+export const showMomentKaart = mutation({
+  args: { sessionId: v.id("chatSessions"), nummer: v.number() },
+  handler: async (ctx, args) => {
+    if (args.nummer < 2 || args.nummer > 5) return { ok: false };
+    const session = await ctx.db.get(args.sessionId);
+    if (!session || !session.momentenType || session.momentenVariant !== "kaartjes") return { ok: false };
+    const tot = session.momentenKaartTot ?? 1;
+    // Alleen het eerstvolgende kaartje mag getoond worden, en nooit twee keer.
+    if (args.nummer !== tot + 1) return { ok: false, already: true };
+    await ctx.db.insert("chatMessages", {
+      sessionId: args.sessionId,
+      role: "bot",
+      content: await encryptContent(`[[kaart:moment${args.nummer}]]`),
+      isAiGenerated: false,
+      createdAt: Date.now(),
+    });
+    await ctx.db.patch(args.sessionId, { momentenKaartTot: args.nummer, lastActivityAt: Date.now() });
+    return { ok: true };
+  },
+});
+
+/**
+ * Kaartjes-flow: start de afsluiting nadat de bezoeker op "Maak mijn brief" tikt (na
+ * moment 5). Plant de AI-afsluiting (teaser + e-mailkaartje). Idempotent: doet niets
+ * als het e-mailkaartje al getoond is.
+ */
+export const startMomentenAfsluiting = mutation({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (!session || !session.momentenType || session.momentenVariant !== "kaartjes") return { ok: false };
+    // Niet nog een keer afsluiten als het e-mailkaartje er al is.
+    const berichten = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+    for (const m of berichten) {
+      const c = await decryptContent(m.content);
+      if (c.includes("[[kaart:email]]")) return { ok: false, already: true };
+    }
+    await ctx.scheduler.runAfter(0, internal.ai.momentenAfsluiting, { sessionId: args.sessionId });
     return { ok: true };
   },
 });

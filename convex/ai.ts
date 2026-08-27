@@ -968,6 +968,64 @@ export const momentenFollowUp = internalAction({
   },
 });
 
+/**
+ * Kaartjes-flow: de afsluiting nadat de bezoeker op "Maak mijn brief" tikt (na moment 5).
+ * Benji schrijft één afsluitend bericht: een warme intro + het BEGIN van de brief als
+ * teaser ([[q]]...[[/q]], wegvallend in '...') + het e-mailkaartje ([[kaart:email]]).
+ * Gepland vanuit chat.startMomentenAfsluiting. Faalt stil (best effort).
+ */
+export const momentenAfsluiting = internalAction({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey || apiKey === "your-api-key-here") return;
+
+    const messages = await ctx.runQuery(internal.chat.getMessagesRaw, { sessionId: args.sessionId, limit: 40 });
+    if (!messages || messages.length < 2) return;
+
+    // Transcript (kaart-markers eruit; die zeggen niets over de inhoud).
+    const transcript = messages
+      .filter((m: any) => m.content?.trim() && !m.content.includes("[["))
+      .map((m: any) => `${m.role === "user" ? "Bezoeker" : "Benji"}: ${m.content.slice(0, 400)}`)
+      .join("\n");
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({
+          model: CLAUDE_MODEL,
+          max_tokens: 300,
+          system:
+            "Je bent Benji. De bezoeker heeft net vijf korte momenten met je gedeeld over het einde van een relatie. Schrijf nu de afsluiting in het Nederlands, precies in dit format en verder niets:\n" +
+            "1) Eén korte, warme zin dat je met hun brief bezig bent, beginnend met: Ik ben al met je brief bezig. Zo begint hij:\n" +
+            "2) Daarna, op een nieuwe regel, tussen [[q]] en [[/q]]: het BEGIN van de brief in de jij-vorm, één of twee zinnen op basis van wat ze deelden, die iets teruggeven (erkenning, warmte of een klein inzicht) zonder hun woorden te herhalen. Maak de laatste zin met OPZET niet af en laat hem wegvallen met '...'. De tekst loopt foutloos en natuurlijk; alleen het slot valt weg.\n" +
+            "3) Daarna één korte zin dat je de hele brief voor ze afmaakt en alleen nog wil weten waar je hem naartoe mag sturen.\n" +
+            "4) Op een nieuwe regel exact: [[kaart:email]]\n" +
+            "Regels: schrijf warm en menselijk, geen streepjes (em-dash), geen andere markeringen dan [[q]], [[/q]] en [[kaart:email]], verzin niets wat de bezoeker niet gaf, ga niet uit van het tijdstip van de dag.",
+          messages: [{ role: "user", content: `Dit is het gesprek tot nu toe:\n\n${transcript.slice(0, 6000)}\n\nSchrijf nu de afsluiting.` }],
+        }),
+      });
+      if (!response.ok) return;
+      const data = (await response.json()) as ClaudeAPIResponse;
+      let text = data.content?.[0]?.text?.trim() ?? "";
+      if (!text) return;
+      text = text.replace(/\s*[—–]\s*/g, ", ");
+      // Vangnet: zorg dat het e-mailkaartje er sowieso onder staat.
+      if (!text.includes("[[kaart:email]]")) text = `${text}\n[[kaart:email]]`;
+
+      await ctx.runMutation(internal.chat.sendBotMessage, {
+        sessionId: args.sessionId,
+        content: text,
+        isAiGenerated: true,
+        confidenceScore: 0.8,
+      });
+    } catch (e) {
+      console.error("momentenAfsluiting error:", e);
+    }
+  },
+});
+
 // ============================================================================
 // SAMENVATTEN VAN GESPREKKEN
 // ============================================================================

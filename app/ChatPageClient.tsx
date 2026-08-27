@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -118,7 +118,7 @@ const MOMENT_KAARTJES: Record<
         "Ik ben Benji. Ik luister naar je, zonder oordeel, in jouw tempo.",
         "Ik neem je zo langs een paar korte momenten. Je antwoordt gewoon door te typen, en soms vraag ik je om er iets meer over te vertellen.",
       ],
-      brief: "Aan het eind maak ik daar een persoonlijke brief van, voor jou.",
+      brief: "Aan het eind maak ik daar een persoonlijke brief van, voor jou. Hoe meer je deelt, hoe persoonlijker en waardevoller die wordt.",
     },
     momenten: [
       {
@@ -581,6 +581,8 @@ export default function ChatPageClient({
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
   const saveMomentenEmail = useMutation(api.chat.saveMomentenEmail);
+  const showMomentKaart = useMutation(api.chat.showMomentKaart);
+  const startMomentenAfsluiting = useMutation(api.chat.startMomentenAfsluiting);
   const addPersonalizedOpenerToSession = useMutation(api.chat.addPersonalizedOpenerToSession);
   const startEhChat = useMutation(api.chat.startEhChat);
   const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
@@ -738,6 +740,27 @@ export default function ChatPageClient({
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startParam]);
+
+  // Kaartjes-flow: de bezoeker bepaalt zelf het tempo. Benji reageert vrij op elk
+  // moment; met de knop "Volgende moment →" (hieronder gerenderd) schuift de bezoeker
+  // door naar het volgende kaartje, of tikt 'm meteen om een moment over te slaan.
+  // Het hoogste getoonde moment-kaartje bepalen we uit de berichten.
+  const momentenKaartTot = useMemo(() => {
+    if (startParam !== "momenten" || momentenStijlParam !== "kaartjes" || !messages) return 0;
+    let maxCard = 0;
+    for (const m of messages) {
+      if (m.role === "user") continue;
+      const mm = m.content.match(/\[\[kaart:moment([1-5])\]\]/);
+      if (mm) maxCard = Math.max(maxCard, parseInt(mm[1], 10));
+    }
+    return maxCard;
+  }, [messages, startParam, momentenStijlParam]);
+  // Is het e-mailkaartje (afsluiting) al getoond? Dan geen "Volgende"-knop meer.
+  const momentenEmailGetoond = useMemo(
+    () => !!messages?.some((m) => m.role !== "user" && m.content.includes("[[kaart:email]]")),
+    [messages]
+  );
+  const [momentenAfsluitBezig, setMomentenAfsluitBezig] = useState(false);
 
   // Koppel anonieme sessie aan gebruiker na inloggen
   useEffect(() => {
@@ -1371,6 +1394,36 @@ export default function ChatPageClient({
                   <span className={`absolute inline-flex h-full w-full rounded-full animate-ping ${isNacht ? "bg-white/70" : "bg-primary-400"}`} style={{ animationDuration: '1.6s' }}></span>
                   <span className={`relative inline-flex rounded-full h-4 w-4 ${isNacht ? "bg-white" : "bg-primary-600"}`}></span>
                 </span>
+              </div>
+            )}
+            {/* Kaartjes-flow: de bezoeker bepaalt zelf het tempo. Cards 1-4: door naar het
+                volgende moment. Card 5: de brief laten maken (teaser + e-mailkaartje). */}
+            {startParam === "momenten" && momentenStijlParam === "kaartjes" && sessionId &&
+              momentenKaartTot >= 1 && !momentenEmailGetoond && !isLoading && (
+              <div className="flex justify-center pt-1 pb-2">
+                {momentenKaartTot < 5 ? (
+                  <button
+                    type="button"
+                    onClick={() => showMomentKaart({ sessionId, nummer: momentenKaartTot + 1 })}
+                    className="text-sm font-semibold px-4 py-2 rounded-full transition-colors"
+                    style={{ background: "#eef2fb", border: "1px solid #c7d4f0", color: "#576b8f" }}
+                  >
+                    Volgende moment →
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={momentenAfsluitBezig}
+                    onClick={async () => {
+                      setMomentenAfsluitBezig(true);
+                      try { await startMomentenAfsluiting({ sessionId }); } catch { setMomentenAfsluitBezig(false); }
+                    }}
+                    className="text-sm font-semibold px-5 py-2.5 rounded-full text-white transition-colors disabled:opacity-50"
+                    style={{ background: "#576b8f" }}
+                  >
+                    {momentenAfsluitBezig ? "Momentje…" : "Maak mijn brief →"}
+                  </button>
+                )}
               </div>
             )}
             <div ref={messagesEndRef} />
