@@ -113,12 +113,13 @@ const MOMENT_KAARTJES: Record<
 > = {
   scheiding: {
     welkom: {
-      titel: "Wat goed dat je hier bent",
+      titel: "Ik ben Benji",
       body: [
-        "Ik ben Benji. Ik luister naar je, zonder oordeel, in jouw tempo.",
-        "Ik neem je zo langs een paar korte momenten. Je antwoordt gewoon door te typen, en soms vraag ik je om er iets meer over te vertellen.",
+        "We gaan vijf momenten langs. Situaties die vaak terugkomen als een relatie voorbij is: 's nachts wakker liggen, een liedje dat je overvalt, “gaat wel” zeggen terwijl het niet zo is.",
+        "Bij elk moment stel ik je één vraag. Eén zin is genoeg, meer mag ook. Er is geen fout antwoord.",
+        "Aan het eind maak ik van wat je schreef een brief. Je eigen woorden, één keer achter elkaar, voluit.",
       ],
-      brief: "Aan het eind maak ik daar een persoonlijke brief van, voor jou. Hoe meer je deelt, hoe persoonlijker en waardevoller die wordt.",
+      brief: "Zullen we beginnen?",
     },
     momenten: [
       {
