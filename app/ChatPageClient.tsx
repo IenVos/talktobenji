@@ -166,8 +166,10 @@ const MOMENT_KAARTJES: Record<
   },
 };
 
-/** Welkomstkaartje van de kaartjes-flow: wie is Benji + de brief-belofte. */
-function MomentWelkomKaart({ type }: { type: string }) {
+/** Welkomstkaartje van de kaartjes-flow: wie is Benji + de brief-belofte. De knop
+ *  "Ja, we beginnen" onthult moment 1 (één makkelijke tik i.p.v. meteen typen, verlaagt
+ *  de drempel om te starten). Zonder onBegin/toonKnop valt 'ie terug op alleen tekst. */
+function MomentWelkomKaart({ type, onBegin, toonKnop }: { type: string; onBegin?: () => void; toonKnop?: boolean }) {
   const k = (MOMENT_KAARTJES[type] ?? MOMENT_KAARTJES.scheiding).welkom;
   return (
     <div className="w-full max-w-sm bg-white/90 border border-gray-200 rounded-2xl shadow-sm px-5 py-5">
@@ -178,6 +180,16 @@ function MomentWelkomKaart({ type }: { type: string }) {
         ))}
       </div>
       <p className="mt-3 text-sm leading-relaxed" style={{ color: "#576b8f" }}>{k.brief}</p>
+      {toonKnop && onBegin && (
+        <button
+          type="button"
+          onClick={onBegin}
+          className="mt-3 w-full py-2.5 rounded-full text-sm font-semibold text-white transition-colors"
+          style={{ background: "#576b8f" }}
+        >
+          Ja, we beginnen
+        </button>
+      )}
     </div>
   );
 }
@@ -188,15 +200,15 @@ function MomentOpdrachtKaart({ type, nummer }: { type: string; nummer: number })
   const m = lijst[nummer - 1];
   if (!m) return null;
   return (
-    <div className="w-full max-w-sm rounded-2xl shadow-sm px-5 py-5" style={{ background: "#eef2fb", border: "1px solid #c7d4f0" }}>
-      <p className="text-[11px] font-semibold tracking-wide uppercase mb-1.5" style={{ color: "#576b8f" }}>Moment {nummer} van 5</p>
-      <h3 className="text-base font-bold mb-2 text-balance" style={{ color: "#2f3b52" }}>{m.titel}</h3>
-      <div className="space-y-2 mb-3">
+    <div className="w-full max-w-sm rounded-2xl shadow-sm px-5 py-4" style={{ background: "#eef2fb", border: "1px solid #c7d4f0" }}>
+      <p className="text-[11px] font-semibold tracking-wide uppercase mb-1" style={{ color: "#576b8f" }}>Moment {nummer} van 5</p>
+      <h3 className="text-base font-bold mb-1.5 text-balance" style={{ color: "#2f3b52" }}>{m.titel}</h3>
+      <div className="space-y-1.5 mb-2.5">
         {m.erkenning.map((p, i) => (
-          <p key={i} className="text-sm leading-relaxed" style={{ color: "#4a5772" }}>{p}</p>
+          <p key={i} className="text-sm leading-snug" style={{ color: "#4a5772" }}>{p}</p>
         ))}
       </div>
-      <p className="text-sm font-semibold leading-relaxed" style={{ color: "#2f3b52" }}>{m.vraag}</p>
+      <p className="text-sm font-semibold leading-snug" style={{ color: "#2f3b52" }}>{m.vraag}</p>
     </div>
   );
 }
@@ -747,15 +759,9 @@ export default function ChatPageClient({
           momentenVariant: momentenKaartjes ? "kaartjes" : undefined,
         });
         setSessionId(newSessionId);
-        // Kaartjes-flow: alleen het welkomstkaartje staat er nu. Laat moment 1 iets later
-        // komen (rustiger tempo, tijd om het welkom te lezen), met even de bolletjes ertussen.
-        if (momentenKaartjes) {
-          setIsLoading(true);
-          setTimeout(async () => {
-            try { await showMomentKaart({ sessionId: newSessionId, nummer: 1 }); } catch {}
-            setIsLoading(false);
-          }, 2600);
-        }
+        // Kaartjes-flow: alleen het welkomstkaartje staat er nu, met de knop "Ja, we
+        // beginnen". Moment 1 verschijnt pas als de bezoeker die knop tikt (zie
+        // beginMomenten). Eén makkelijke tik i.p.v. meteen typen verlaagt de startdrempel.
         if (typeof window !== "undefined") {
           if (!sessionStorage.getItem("benji_start_chat_fired") && typeof (window as any).fbq === "function") {
             (window as any).fbq("trackCustom", "StartChat");
@@ -789,6 +795,17 @@ export default function ChatPageClient({
     }
     return maxCard;
   }, [messages, startParam, momentenKaartjes]);
+
+  // Kaartjes-flow: onthul moment 1 na de knop "Ja, we beginnen". Eerst even bolletjes
+  // (warme reveal), dan verschijnt het eerste moment-kaartje.
+  const beginMomenten = async () => {
+    if (!sessionId) return;
+    setIsLoading(true);
+    setTimeout(async () => {
+      try { await showMomentKaart({ sessionId, nummer: 1 }); } catch {}
+      setIsLoading(false);
+    }, 700);
+  };
   // Heeft de bezoeker het laatst getoonde moment-kaartje al beantwoord? Pas dan mag de
   // "Volgende moment"-knop verschijnen (anders raakt getypte tekst kwijt bij doorklikken).
   const momentBeantwoord = useMemo(() => {
@@ -1270,7 +1287,7 @@ export default function ChatPageClient({
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder={isRecording ? "Luisteren..." : (isNacht && nachtConfig?.inputPlaceholder) ? nachtConfig.inputPlaceholder! : "Typ je bericht..."}
+                        placeholder={isRecording ? "Luisteren..." : startParam === "momenten" ? "Deel het hier..." : (isNacht && nachtConfig?.inputPlaceholder) ? nachtConfig.inputPlaceholder! : "Typ je bericht..."}
                         suppressHydrationWarning
                         className={`w-full px-3 py-2 sm:py-2.5 rounded-lg text-sm bg-white border focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`}
                         disabled={isLoading || paywallBereikt}
@@ -1335,7 +1352,7 @@ export default function ChatPageClient({
                     {marker.startsWith("momentkaart:intro")
                       ? <MomentIntroKaart type={marker.split(":")[2]} />
                       : marker === "kaart:welkom"
-                        ? <MomentWelkomKaart type={momentenTypeParam} />
+                        ? <MomentWelkomKaart type={momentenTypeParam} onBegin={beginMomenten} toonKnop={momentenKaartjes && momentenKaartTot === 0 && !isLoading} />
                         : marker.startsWith("kaart:moment")
                           ? <MomentOpdrachtKaart type={momentenTypeParam} nummer={parseInt(marker.replace("kaart:moment", ""), 10)} />
                           : marker === "kaart:oefening"
@@ -1657,7 +1674,7 @@ export default function ChatPageClient({
                   </button>
                 </div>
                 <div className="flex-1 relative overflow-visible">
-                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : "Typ je bericht..."} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading || paywallBereikt} />
+                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : (startParam === "momenten" ? "Deel het hier..." : "Typ je bericht...")} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading || paywallBereikt} />
                   {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
                 </div>
                 <button type="submit" disabled={!input.trim() || isLoading || paywallBereikt} className="p-3 sm:p-3.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
