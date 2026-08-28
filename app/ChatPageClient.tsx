@@ -1033,11 +1033,10 @@ export default function ChatPageClient({
     setPendingUserMessage(messageText); // Direct tonen: 1. jouw bericht, 2. bolletjes, 3. Benji
     const startTime = Date.now();
 
-    // Kaartjes-flow: Benji reageert NIET op elk moment (dat voelde als te veel). Per
-    // moment (1 t/m 4) bepaalt Benji zelf of het antwoord echt kwetsbaar is; zo ja geeft
-    // hij één korte reactie, maximaal 2 keer per gesprek. Anders wordt het antwoord stil
-    // opgeslagen (geen bolletjes). Moment 5 start meteen de afsluiting (erkenning + brief +
-    // e-mailkaartje), zonder extra knop.
+    // Kaartjes-flow: Benji reageert NIET op elk moment (dat voelde als te veel), en NIET
+    // al na moment 1 (te vroeg). Moment 1 slaan we stil op; vanaf moment 2 reageert Benji
+    // op de eerste twee echte antwoorden (max 2 per gesprek). Moment 5 start meteen de
+    // afsluiting (erkenning + brief + e-mailkaartje), zonder extra knop.
     if (startParam === "momenten" && momentenKaartjes && sessionId) {
       const huidigMoment = momentenKaartTot; // 1..5
       try {
@@ -1049,6 +1048,9 @@ export default function ChatPageClient({
           await startMomentenAfsluiting({ sessionId });
           const elapsed = Date.now() - startTime;
           if (elapsed < 4000) await new Promise((r) => setTimeout(r, 4000 - elapsed));
+        } else if (huidigMoment <= 1) {
+          // Moment 1: nog geen reactie, alleen stil opslaan (Benji begint pas later).
+          await saveKaartAntwoord({ sessionId, content: messageText });
         } else {
           setIsLoading(true);
           const res = await reageerOpMoment({ sessionId, moment: huidigMoment, content: messageText });
