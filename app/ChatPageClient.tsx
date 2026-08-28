@@ -806,6 +806,23 @@ export default function ChatPageClient({
       setIsLoading(false);
     }, 700);
   };
+
+  // Kaartjes-flow: laat de placeholder "Deel het hier..." als typewriter binnenlopen
+  // (in amber) zodra moment 1 verschijnt, precies wanneer typen aan de beurt is.
+  const [momentenPlaceholder, setMomentenPlaceholder] = useState("");
+  const momentEr = momentenKaartTot >= 1;
+  useEffect(() => {
+    if (startParam !== "momenten" || !momentEr) return;
+    const full = "Deel het hier...";
+    let i = 0;
+    setMomentenPlaceholder("");
+    const id = setInterval(() => {
+      i++;
+      setMomentenPlaceholder(full.slice(0, i));
+      if (i >= full.length) clearInterval(id);
+    }, 60);
+    return () => clearInterval(id);
+  }, [startParam, momentEr]);
   // Heeft de bezoeker het laatst getoonde moment-kaartje al beantwoord? Pas dan mag de
   // "Volgende moment"-knop verschijnen (anders raakt getypte tekst kwijt bij doorklikken).
   const momentBeantwoord = useMemo(() => {
@@ -1287,9 +1304,9 @@ export default function ChatPageClient({
                         type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        placeholder={isRecording ? "Luisteren..." : startParam === "momenten" ? "Deel het hier..." : (isNacht && nachtConfig?.inputPlaceholder) ? nachtConfig.inputPlaceholder! : "Typ je bericht..."}
+                        placeholder={isRecording ? "Luisteren..." : startParam === "momenten" ? momentenPlaceholder : (isNacht && nachtConfig?.inputPlaceholder) ? nachtConfig.inputPlaceholder! : "Typ je bericht..."}
                         suppressHydrationWarning
-                        className={`w-full px-3 py-2 sm:py-2.5 rounded-lg text-sm bg-white border focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`}
+                        className={`w-full px-3 py-2 sm:py-2.5 rounded-lg text-sm bg-white border focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-gray-900 ${startParam === "momenten" ? "placeholder-amber-500" : "placeholder-gray-400"} ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`}
                         disabled={isLoading || paywallBereikt}
                       />
                       {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
@@ -1674,7 +1691,7 @@ export default function ChatPageClient({
                   </button>
                 </div>
                 <div className="flex-1 relative overflow-visible">
-                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : (startParam === "momenten" ? "Deel het hier..." : "Typ je bericht...")} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 placeholder-gray-400 ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading || paywallBereikt} />
+                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : (startParam === "momenten" ? momentenPlaceholder : "Typ je bericht...")} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 ${startParam === "momenten" ? "placeholder-amber-500" : "placeholder-gray-400"} ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading || paywallBereikt} />
                   {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
                 </div>
                 <button type="submit" disabled={!input.trim() || isLoading || paywallBereikt} className="p-3 sm:p-3.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
