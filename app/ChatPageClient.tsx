@@ -611,6 +611,7 @@ export default function ChatPageClient({
   const startEhChat = useMutation(api.chat.startEhChat);
   const linkSessionToUser = useMutation(api.chat.linkSessionToUser);
   const handleUserMessage = useAction(api.ai.handleUserMessage);
+  const reageerOpMoment = useAction(api.ai.reageerOpMoment);
   const submitMessageFeedback = useMutation(api.chat.submitMessageFeedback);
 
   const welcomeFromAccountHandled = useRef(false);
@@ -998,12 +999,13 @@ export default function ChatPageClient({
     setPendingUserMessage(messageText); // Direct tonen: 1. jouw bericht, 2. bolletjes, 3. Benji
     const startTime = Date.now();
 
-    // Kaartjes-flow: Benji reageert NIET op elk moment. Alleen op moment 2 en 4 geeft hij
-    // één korte reactie; de andere momenten worden stil opgeslagen (geen bolletjes). Moment 5
-    // start meteen de afsluiting (erkenning + brief + e-mailkaartje), zonder extra knop.
+    // Kaartjes-flow: Benji reageert NIET op elk moment (dat voelde als te veel). Per
+    // moment (1 t/m 4) bepaalt Benji zelf of het antwoord echt kwetsbaar is; zo ja geeft
+    // hij één korte reactie, maximaal 2 keer per gesprek. Anders wordt het antwoord stil
+    // opgeslagen (geen bolletjes). Moment 5 start meteen de afsluiting (erkenning + brief +
+    // e-mailkaartje), zonder extra knop.
     if (startParam === "momenten" && momentenKaartjes && sessionId) {
       const huidigMoment = momentenKaartTot; // 1..5
-      const reactieMomenten = [2, 4];
       try {
         if (huidigMoment >= 5) {
           await saveKaartAntwoord({ sessionId, content: messageText });
@@ -1013,13 +1015,15 @@ export default function ChatPageClient({
           await startMomentenAfsluiting({ sessionId });
           const elapsed = Date.now() - startTime;
           if (elapsed < 4000) await new Promise((r) => setTimeout(r, 4000 - elapsed));
-        } else if (reactieMomenten.includes(huidigMoment)) {
-          setIsLoading(true);
-          await handleUserMessage({ sessionId, userMessage: messageText });
-          const elapsed = Date.now() - startTime;
-          if (elapsed < 4000) await new Promise((r) => setTimeout(r, 4000 - elapsed));
         } else {
-          await saveKaartAntwoord({ sessionId, content: messageText });
+          setIsLoading(true);
+          const res = await reageerOpMoment({ sessionId, moment: huidigMoment, content: messageText });
+          // Alleen als Benji echt reageerde het tempo aanhouden; bij stil opslaan geen
+          // kunstmatige vertraging, dan verschijnt de "Volgende moment"-knop meteen.
+          if (res?.gereageerd) {
+            const elapsed = Date.now() - startTime;
+            if (elapsed < 4000) await new Promise((r) => setTimeout(r, 4000 - elapsed));
+          }
         }
       } catch (e) {
         console.error(e);

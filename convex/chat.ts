@@ -512,6 +512,21 @@ export const saveKaartAntwoord = mutation({
 });
 
 /**
+ * Kaartjes-flow: hoog de teller op van het aantal korte reacties dat Benji al gaf op
+ * een moment-antwoord. Wordt gebruikt om Benji maximaal 2 keer te laten reageren.
+ */
+export const bumpMomentenKaartReactie = internalMutation({
+  args: { sessionId: v.id("chatSessions") },
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) return;
+    await ctx.db.patch(args.sessionId, {
+      momentenKaartReacties: (session.momentenKaartReacties ?? 0) + 1,
+    });
+  },
+});
+
+/**
  * Kaartjes-flow: start de afsluiting nadat de bezoeker moment 5 heeft beantwoord.
  * Plant de AI-afsluiting (korte erkenning + teaser + e-mailkaartje). Idempotent: doet
  * niets als het e-mailkaartje al getoond is.

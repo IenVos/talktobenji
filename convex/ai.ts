@@ -1026,6 +1026,75 @@ export const momentenAfsluiting = internalAction({
   },
 });
 
+/**
+ * Kaartjes-flow: bepaalt per moment-antwoord (1..4) of Benji kort reageert. Benji
+ * reageert ALLEEN als het antwoord echt rauw/kwetsbaar is EN hij nog niet 2 keer heeft
+ * gereageerd in dit gesprek. Anders wordt het antwoord stil opgeslagen (komt wel mee in
+ * de brief). Zo krijgt niet elke kaart een reactie (dat voelde als te veel), maar valt
+ * een zwaar moment ook niet meer koud stil met alleen de volgende kaart.
+ */
+export const reageerOpMoment = action({
+  args: { sessionId: v.id("chatSessions"), moment: v.number(), content: v.string() },
+  handler: async (ctx, args): Promise<{ gereageerd: boolean }> => {
+    const inhoud = args.content.trim();
+    if (!inhoud) return { gereageerd: false };
+
+    const session = await ctx.runQuery(internal.chat.getSessionRaw, { sessionId: args.sessionId });
+    if (!session || session.momentenVariant !== "kaartjes" || session.status !== "active") {
+      return { gereageerd: false };
+    }
+
+    const alGereageerd = session.momentenKaartReacties ?? 0;
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+
+    // Cap van 2 reacties bereikt (of geen API-sleutel): sla stil op, geen reactie.
+    if (alGereageerd >= 2 || !apiKey || apiKey === "your-api-key-here") {
+      await ctx.runMutation(api.chat.saveKaartAntwoord, { sessionId: args.sessionId, content: inhoud });
+      return { gereageerd: false };
+    }
+
+    // Beslis of dit ene antwoord kwetsbaar genoeg is voor één warme reactie. Streng:
+    // de meeste antwoorden zijn NEE (stil doorgaan naar de volgende kaart is prima).
+    let kwetsbaar = false;
+    try {
+      const beslis = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 5,
+          system:
+            "Iemand van wie een relatie voorbij is beantwoordt korte kaartjes over gevoelige momenten. " +
+            "Zo meteen verschijnt het volgende kaartje. Beoordeel of dit ENE antwoord zo rauw, kwetsbaar of pijnlijk is " +
+            "dat meteen doorgaan naar het volgende kaartje, zonder één warm woord, koud zou voelen. " +
+            "Wees streng: korte, luchtige, feitelijke of afhoudende antwoorden ('weet ik niet', 'geen idee') zijn NEE. " +
+            "Alleen een duidelijk emotioneel geladen, kwetsbare of pijnlijke onthulling is JA. " +
+            "Antwoord met exact één woord: JA of NEE.",
+          messages: [{ role: "user", content: inhoud.slice(0, 800) }],
+        }),
+      });
+      if (beslis.ok) {
+        const d = (await beslis.json()) as ClaudeAPIResponse;
+        const t = (d.content?.[0]?.text ?? "").trim().toUpperCase();
+        kwetsbaar = t.startsWith("JA");
+      }
+    } catch {
+      // Beslissing faalt: val terug op stil opslaan (geen reactie).
+    }
+
+    if (!kwetsbaar) {
+      await ctx.runMutation(api.chat.saveKaartAntwoord, { sessionId: args.sessionId, content: inhoud });
+      return { gereageerd: false };
+    }
+
+    // Benji reageert: zelfde pad als een gewoon bericht (volle stem + kaartjes-script),
+    // en hoog de teller op zodat hij maximaal 2 keer reageert in dit gesprek.
+    await ctx.runAction(api.ai.handleUserMessage, { sessionId: args.sessionId, userMessage: inhoud });
+    await ctx.runMutation(internal.chat.bumpMomentenKaartReactie, { sessionId: args.sessionId });
+    return { gereageerd: true };
+  },
+});
+
 // ============================================================================
 // SAMENVATTEN VAN GESPREKKEN
 // ============================================================================

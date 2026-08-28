@@ -34,6 +34,7 @@ export default defineSchema({
     momentenType: v.optional(v.string()), // geleide-momenten-modus: verliestype (bijv. "scheiding")
     momentenVariant: v.optional(v.string()), // geleide-momenten-variant: "kaartjes" = de kaartjes-flow (test via ?stijl=kaartjes); leeg = de huidige vrije chat
     momentenKaartTot: v.optional(v.number()), // kaartjes-flow: hoogste getoonde moment-kaartje (1..5), voor frontend-gestuurde doorloop (idempotent)
+    momentenKaartReacties: v.optional(v.number()), // kaartjes-flow: hoeveel korte reacties Benji al gaf op een moment-antwoord (max 2 per gesprek)
     status: v.union(
       v.literal("active"),
       v.literal("resolved"),
