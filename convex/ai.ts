@@ -1028,10 +1028,10 @@ export const momentenAfsluiting = internalAction({
 
 /**
  * Kaartjes-flow: bepaalt per moment-antwoord (1..4) of Benji kort reageert. Benji
- * reageert ALLEEN als het antwoord echt rauw/kwetsbaar is EN hij nog niet 2 keer heeft
- * gereageerd in dit gesprek. Anders wordt het antwoord stil opgeslagen (komt wel mee in
- * de brief). Zo krijgt niet elke kaart een reactie (dat voelde als te veel), maar valt
- * een zwaar moment ook niet meer koud stil met alleen de volgende kaart.
+ * reageert op de eerste twee ECHTE antwoorden (max 2 per gesprek), zodat de bezoeker
+ * meteen het gevoel van een gesprek krijgt. Alleen een niet-antwoord ('weet ik niet',
+ * leeg) slaat hij stil op; na de cap van 2 ook. Zo krijgt niet elke kaart een reactie
+ * (dat voelde als te veel), maar valt een gedeeld moment ook niet koud stil.
  */
 export const reageerOpMoment = action({
   args: { sessionId: v.id("chatSessions"), moment: v.number(), content: v.string() },
@@ -1053,9 +1053,10 @@ export const reageerOpMoment = action({
       return { gereageerd: false };
     }
 
-    // Beslis of dit ene antwoord kwetsbaar genoeg is voor één warme reactie. Streng:
-    // de meeste antwoorden zijn NEE (stil doorgaan naar de volgende kaart is prima).
-    let kwetsbaar = false;
+    // Beslis of dit een echt antwoord is dat een korte, warme reactie verdient. Ruimhartig:
+    // reageer op elk inhoudelijk antwoord (ook één woord). Alleen een niet-antwoord is NEE.
+    // Bij twijfel of fout: reageren (de cap van 2 begrenst het toch al).
+    let echtAntwoord = true;
     try {
       const beslis = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -1065,10 +1066,10 @@ export const reageerOpMoment = action({
           max_tokens: 5,
           system:
             "Iemand van wie een relatie voorbij is beantwoordt korte kaartjes over gevoelige momenten. " +
-            "Zo meteen verschijnt het volgende kaartje. Beoordeel of dit ENE antwoord zo rauw, kwetsbaar of pijnlijk is " +
-            "dat meteen doorgaan naar het volgende kaartje, zonder één warm woord, koud zou voelen. " +
-            "Wees streng: korte, luchtige, feitelijke of afhoudende antwoorden ('weet ik niet', 'geen idee') zijn NEE. " +
-            "Alleen een duidelijk emotioneel geladen, kwetsbare of pijnlijke onthulling is JA. " +
+            "Benji wil af en toe kort en warm reageren op wat ze delen, zodat het als een gesprek voelt. " +
+            "Beoordeel of dit een ECHT antwoord is dat zo'n reactie verdient. " +
+            "Zeg JA bij elk inhoudelijk antwoord, ook als het maar één woord is dat een gevoel of iets concreets noemt. " +
+            "Zeg alleen NEE als er geen echt antwoord is: 'weet ik niet', 'geen idee', 'geen', een los vraagteken, onzin of leeg. " +
             "Antwoord met exact één woord: JA of NEE.",
           messages: [{ role: "user", content: inhoud.slice(0, 800) }],
         }),
@@ -1076,13 +1077,13 @@ export const reageerOpMoment = action({
       if (beslis.ok) {
         const d = (await beslis.json()) as ClaudeAPIResponse;
         const t = (d.content?.[0]?.text ?? "").trim().toUpperCase();
-        kwetsbaar = t.startsWith("JA");
+        echtAntwoord = !t.startsWith("NEE");
       }
     } catch {
-      // Beslissing faalt: val terug op stil opslaan (geen reactie).
+      // Beslissing faalt: toch reageren (ruimhartig; cap begrenst het aantal).
     }
 
-    if (!kwetsbaar) {
+    if (!echtAntwoord) {
       await ctx.runMutation(api.chat.saveKaartAntwoord, { sessionId: args.sessionId, content: inhoud });
       return { gereageerd: false };
     }
