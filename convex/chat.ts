@@ -711,6 +711,37 @@ export const addPersonalizedOpenerToSession = mutation({
 });
 
 /**
+ * Rechtstreekse-chat-ad (?start=chat&t=<verliestype>): open een anonieme chat meteen
+ * met één warme, type-specifieke opener + de aanzet-vraag, zodat de bezoeker niet in
+ * een leeg veld belandt (dat schrikt af). Geen kaartjes, geen brief: puur een gesprek.
+ * Idempotent: doet niets als er al een bericht in de sessie staat.
+ */
+export const addVerliesOpener = mutation({
+  args: { sessionId: v.id("chatSessions"), verliesType: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) return { ok: false };
+    const bestaand = await ctx.db
+      .query("chatMessages")
+      .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+      .first();
+    if (bestaand) return { ok: false, already: true };
+    const type = args.verliesType && EH_VERLIES_OPENERS[args.verliesType] ? args.verliesType : "algemeen";
+    const intro = kiesWillekeurig(EH_VERLIES_OPENERS[type].zonderNaam);
+    const openerText = `${intro} Wat gaat er op dit moment door je heen?`;
+    await ctx.db.insert("chatMessages", {
+      sessionId: args.sessionId,
+      role: "bot",
+      content: await encryptContent(openerText),
+      isAiGenerated: false,
+      createdAt: Date.now(),
+    });
+    await ctx.db.patch(args.sessionId, { lastActivityAt: Date.now() });
+    return { ok: true };
+  },
+});
+
+/**
  * Voeg opener-bericht toe aan sessie (na onderwerp-klik).
  * Toont een van de openingszinnen die bij het gekozen onderwerp horen.
  * Bij onbekend onderwerp: generieke opener.

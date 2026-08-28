@@ -406,7 +406,7 @@ export default function ChatPageClient({
   // er geen flikker is tussen chat- en keuzescherm.
   const [ehResolving, setEhResolving] = useState<boolean>(() => {
     const s = Array.isArray(searchParams?.start) ? searchParams.start[0] : searchParams?.start;
-    return s === "eh" || s === "brief" || s === "ennu" || s === "direct" || s === "momenten";
+    return s === "eh" || s === "brief" || s === "ennu" || s === "direct" || s === "momenten" || s === "chat";
   });
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -615,6 +615,7 @@ export default function ChatPageClient({
 
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
+  const addVerliesOpener = useMutation(api.chat.addVerliesOpener);
   const saveMomentenEmail = useMutation(api.chat.saveMomentenEmail);
   const showMomentKaart = useMutation(api.chat.showMomentKaart);
   const startMomentenAfsluiting = useMutation(api.chat.startMomentenAfsluiting);
@@ -739,6 +740,9 @@ export default function ChatPageClient({
   const momentenHandled = useRef(false);
   // Ad-herkomst (utm) van de momenten-landings-URL, vastgelegd bij het openen.
   const momentenBronRef = useRef<{ bron: string; bronUrl: string }>({ bron: "", bronUrl: "" });
+  // Rechtstreekse-chat-ad (?start=chat): ad-herkomst + guard zodat we maar één keer starten.
+  const directeChatHandled = useRef(false);
+  const directeChatBronRef = useRef<{ bron: string; bronUrl: string }>({ bron: "", bronUrl: "" });
   useEffect(() => {
     if (startParam !== "momenten" || momentenHandled.current) return;
     momentenHandled.current = true;
@@ -772,6 +776,42 @@ export default function ChatPageClient({
       } catch (e) {
         console.error(e);
         momentenHandled.current = false;
+        setChatError("Er ging iets mis. Probeer het opnieuw.");
+      } finally {
+        setIsAddingOpener(false);
+        setEhResolving(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [startParam]);
+
+  // Rechtstreekse-chat-ad via ?start=chat (&t=scheiding): start anoniem een gewone
+  // chat en open meteen met één warme opener + aanzet-vraag (geen kaartjes, geen brief).
+  // De e-mail/schifting komt later in het gesprek (na een paar berichten).
+  useEffect(() => {
+    if (startParam !== "chat" || directeChatHandled.current) return;
+    directeChatHandled.current = true;
+    directeChatBronRef.current = bepaalBron();
+    const type = (Array.isArray(searchParams?.t) ? searchParams.t[0] : searchParams?.t) || "scheiding";
+    setShowTopicButtons(false);
+    (async () => {
+      try {
+        setIsAddingOpener(true);
+        setSessionId(null);
+        if (typeof window !== "undefined") localStorage.removeItem(STORAGE_KEY);
+        const newSessionId = await startSession({ anonymousId: getOrCreateAnonymousId() });
+        setSessionId(newSessionId);
+        await addVerliesOpener({ sessionId: newSessionId, verliesType: type });
+        if (typeof window !== "undefined") {
+          if (!sessionStorage.getItem("benji_start_chat_fired") && typeof (window as any).fbq === "function") {
+            (window as any).fbq("trackCustom", "StartChat");
+            sessionStorage.setItem("benji_start_chat_fired", "1");
+          }
+          localStorage.setItem(HAS_CHATTED_KEY, "1");
+        }
+      } catch (e) {
+        console.error(e);
+        directeChatHandled.current = false;
         setChatError("Er ging iets mis. Probeer het opnieuw.");
       } finally {
         setIsAddingOpener(false);
