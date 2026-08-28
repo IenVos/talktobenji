@@ -742,6 +742,41 @@ export const addVerliesOpener = mutation({
 });
 
 /**
+ * Rechtstreekse-chat-ad: leg het e-mailadres vast (schifting + lead). Slaat het adres op
+ * de sessie op en zet de bezoeker op het Benji-spoor (funnelLead spoor="benji"), zodat
+ * ze meetellen als lead én Benji-opvolgmails krijgen. GEEN brief, GEEN EH-funnel, GEEN
+ * houvast-profiel (dus geen funnel-vervuiling). Idempotent: doet niets als er al een
+ * adres op de sessie staat.
+ */
+export const saveDirecteChatEmail = mutation({
+  args: {
+    sessionId: v.id("chatSessions"),
+    email: v.string(),
+    naam: v.optional(v.string()),
+    verliesType: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const emailLc = args.email.toLowerCase().trim();
+    if (!/^\S+@\S+\.\S+$/.test(emailLc)) return { ok: false };
+    const session = await ctx.db.get(args.sessionId);
+    if (!session) return { ok: false };
+    if (session.userEmail) return { ok: true, already: true };
+    await ctx.db.patch(args.sessionId, {
+      userEmail: emailLc,
+      userName: args.naam,
+      lastActivityAt: Date.now(),
+    });
+    // Benji-spoor: lead + opvolgmails (vereist BENJI_SPOOR_ACTIEF=true). Best effort.
+    await ctx.scheduler.runAfter(0, internal.evergreen._benjiSpoorInstroomCheck, {
+      email: emailLc,
+      naam: args.naam,
+      verliesType: args.verliesType || "scheiding",
+    });
+    return { ok: true };
+  },
+});
+
+/**
  * Voeg opener-bericht toe aan sessie (na onderwerp-klik).
  * Toont een van de openingszinnen die bij het gekozen onderwerp horen.
  * Bij onbekend onderwerp: generieke opener.
