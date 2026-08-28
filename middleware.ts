@@ -51,9 +51,19 @@ export async function middleware(request: NextRequest) {
   if (!isNietAlleenHost && !path.startsWith("/admin") && !path.startsWith("/api")) {
     const rule = await lookupRedirect(path);
     if (rule) {
-      const dest = /^https?:\/\//i.test(rule.to)
-        ? rule.to
-        : new URL(rule.to + request.nextUrl.search, request.url).toString();
+      let dest: string;
+      if (/^https?:\/\//i.test(rule.to)) {
+        dest = rule.to;
+      } else {
+        // Bestemming kan zelf query-params bevatten (bijv. /benji?start=momenten&t=scheiding).
+        // Voeg inkomende params (utm, fbclid van Facebook) daar NETJES bij samen i.p.v.
+        // een tweede "?" aan te plakken (dat brak de link vanuit een ad).
+        const target = new URL(rule.to, request.url);
+        request.nextUrl.searchParams.forEach((v, k) => {
+          if (!target.searchParams.has(k)) target.searchParams.set(k, v);
+        });
+        dest = target.toString();
+      }
       return NextResponse.redirect(dest, rule.permanent ? 301 : 302);
     }
   }
