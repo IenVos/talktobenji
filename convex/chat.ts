@@ -513,15 +513,17 @@ export const saveKaartAntwoord = mutation({
 
 /**
  * Kaartjes-flow: hoog de teller op van het aantal korte reacties dat Benji al gaf op
- * een moment-antwoord. Wordt gebruikt om Benji maximaal 2 keer te laten reageren.
+ * een moment-antwoord (max 2 per gesprek) en leg vast op welk moment dat was (max 1
+ * reactie per moment, zodat de twee reacties zich over het gesprek spreiden).
  */
 export const bumpMomentenKaartReactie = internalMutation({
-  args: { sessionId: v.id("chatSessions") },
+  args: { sessionId: v.id("chatSessions"), moment: v.optional(v.number()) },
   handler: async (ctx, args) => {
     const session = await ctx.db.get(args.sessionId);
     if (!session) return;
     await ctx.db.patch(args.sessionId, {
       momentenKaartReacties: (session.momentenKaartReacties ?? 0) + 1,
+      ...(args.moment ? { momentenLaatsteReactieMoment: args.moment } : {}),
     });
   },
 });

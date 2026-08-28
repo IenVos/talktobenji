@@ -1045,10 +1045,12 @@ export const reageerOpMoment = action({
     }
 
     const alGereageerd = session.momentenKaartReacties ?? 0;
+    const laatsteMoment = session.momentenLaatsteReactieMoment ?? 0;
     const apiKey = process.env.ANTHROPIC_API_KEY;
 
-    // Cap van 2 reacties bereikt (of geen API-sleutel): sla stil op, geen reactie.
-    if (alGereageerd >= 2 || !apiKey || apiKey === "your-api-key-here") {
+    // Stil opslaan (geen reactie) als: de cap van 2 is bereikt, Benji al op dit moment
+    // (of een later) reageerde (max 1 per moment, zodat ze spreiden), of geen API-sleutel.
+    if (alGereageerd >= 2 || args.moment <= laatsteMoment || !apiKey || apiKey === "your-api-key-here") {
       await ctx.runMutation(api.chat.saveKaartAntwoord, { sessionId: args.sessionId, content: inhoud });
       return { gereageerd: false };
     }
@@ -1091,7 +1093,7 @@ export const reageerOpMoment = action({
     // Benji reageert: zelfde pad als een gewoon bericht (volle stem + kaartjes-script),
     // en hoog de teller op zodat hij maximaal 2 keer reageert in dit gesprek.
     await ctx.runAction(api.ai.handleUserMessage, { sessionId: args.sessionId, userMessage: inhoud });
-    await ctx.runMutation(internal.chat.bumpMomentenKaartReactie, { sessionId: args.sessionId });
+    await ctx.runMutation(internal.chat.bumpMomentenKaartReactie, { sessionId: args.sessionId, moment: args.moment });
     return { gereageerd: true };
   },
 });

@@ -35,6 +35,7 @@ export default defineSchema({
     momentenVariant: v.optional(v.string()), // geleide-momenten-variant: "kaartjes" = de kaartjes-flow (test via ?stijl=kaartjes); leeg = de huidige vrije chat
     momentenKaartTot: v.optional(v.number()), // kaartjes-flow: hoogste getoonde moment-kaartje (1..5), voor frontend-gestuurde doorloop (idempotent)
     momentenKaartReacties: v.optional(v.number()), // kaartjes-flow: hoeveel korte reacties Benji al gaf op een moment-antwoord (max 2 per gesprek)
+    momentenLaatsteReactieMoment: v.optional(v.number()), // kaartjes-flow: hoogste moment waarop Benji al reageerde (max 1 reactie per moment, zodat ze spreiden)
     status: v.union(
       v.literal("active"),
       v.literal("resolved"),
