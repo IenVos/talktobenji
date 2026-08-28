@@ -128,7 +128,7 @@ const MOMENT_KAARTJES: Record<
           "“Ik mis hem en ik ben blij dat het voorbij is.” Beide waar. Tegelijk.",
           "Bij het einde van een relatie lopen gevoelens door elkaar heen. Dat maakt je niet verward of ondankbaar, het laat zien hoeveel er speelde. De meeste mensen kiezen dan één van de twee, meestal de nette. En de andere gaat mee naar bed.",
         ],
-        vraag: "Noem twee gevoelens die op dit moment allebei waar zijn. Ze mogen elkaar tegenspreken. Welke van de twee mag er van jezelf eigenlijk niet zijn?",
+        vraag: "Wat voel je op dit moment? Eén woord is al genoeg. En als er twee gevoelens tegelijk zijn die elkaar tegenspreken, mag dat ook.",
       },
       {
         titel: "Als een plek of een liedje je overspoelt",
