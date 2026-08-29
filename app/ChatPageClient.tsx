@@ -259,40 +259,6 @@ function MomentEmailKaart({ onDone }: { onDone: (email: string, naam: string) =>
   );
 }
 
-/** Rechtstreekse-chat-ad: warme e-mailvraag halverwege (schifting + lead). Vraagt om
- *  het adres met een "ik onthoud je"-belofte, niet om een brief. Dismissbaar. */
-function DirecteChatEmailKaart({ onDone, onDismiss, alGegeven }: { onDone: (email: string, naam: string) => Promise<void>; onDismiss: () => void; alGegeven: boolean }) {
-  const [naam, setNaam] = useState("");
-  const [email, setEmail] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [klaar, setKlaar] = useState(false);
-  const geldig = /\S+@\S+\.\S+/.test(email);
-  return (
-    <div className="w-full max-w-sm rounded-2xl shadow-sm px-5 py-5" style={{ background: "#eef2fb", border: "1px solid #c7d4f0" }}>
-      {klaar || alGegeven ? (
-        <>
-          <h3 className="text-base font-bold text-primary-900 mb-1">Fijn, ik onthoud je</h3>
-          <p className="text-sm text-primary-700 leading-relaxed">De volgende keer pak ik het gewoon weer met je op. We praten hier rustig verder. 💙</p>
-        </>
-      ) : (
-        <>
-          <h3 className="text-base font-bold text-primary-900 mb-1">Wil je dat ik je onthoud?</h3>
-          <p className="text-sm text-primary-700 leading-relaxed mb-3">Laat je e-mail achter, dan pak ik het de volgende keer weer met je op waar we gebleven waren. Je hoeft niks aan te maken.</p>
-          <div className="space-y-2">
-            <input type="text" value={naam} onChange={(e) => setNaam(e.target.value)} placeholder="Je voornaam (optioneel)" className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jouw@email.nl" className="w-full px-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
-            <button type="button" disabled={!geldig || busy} onClick={async () => { setBusy(true); try { await onDone(email.trim(), naam.trim()); setKlaar(true); } finally { setBusy(false); } }} className="w-full py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-50" style={{ background: "#576b8f" }}>
-              {busy ? "Even opslaan…" : "Ja, onthoud mij"}
-            </button>
-            <button type="button" onClick={onDismiss} className="w-full text-xs text-primary-500 hover:text-primary-700 transition-colors py-1">Nu even niet</button>
-            <p className="text-[11px] text-primary-400 text-center">Je woorden blijven van jou. We sturen je hooguit af en toe een berichtje.</p>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
 /** Herkent [HERINNERING: tekst | emotie: gevoel] markers in bot-berichten */
 const MEMORY_REGEX = /\[HERINNERING:\s*(.+?)\s*\|\s*emotie:\s*(\w+)\]/;
 
@@ -480,10 +446,6 @@ export default function ChatPageClient({
 
   const showNudgeBanner = !session?.userId && anonymousCount >= 3 && anonymousCount < 5;
   const [saveCardDismissed, setSaveCardDismissed] = useState(false);
-  // Rechtstreekse-chat-ad: na een paar berichten één keer om e-mail vragen (schifting + lead).
-  const DIRECTE_CHAT_EMAIL_AFTER = 5;
-  const [directeChatEmailDismissed, setDirecteChatEmailDismissed] = useState(false);
-  const [directeChatEmailGegeven, setDirecteChatEmailGegeven] = useState(false);
   const isAnonymousUser = !session?.userId;
   const DEVICE_MEMORY_CARD_AFTER = 2; // toon device-memory info na 2e gebruikersbericht
   const SAVE_CARD_AFTER = 8;  // toon save-card na 8 gebruikersberichten
@@ -654,7 +616,6 @@ export default function ChatPageClient({
   const startSession = useMutation(api.chat.startSession);
   const addOpenerToSession = useMutation(api.chat.addOpenerToSession);
   const addVerliesOpener = useMutation(api.chat.addVerliesOpener);
-  const saveDirecteChatEmail = useMutation(api.chat.saveDirecteChatEmail);
   const saveMomentenEmail = useMutation(api.chat.saveMomentenEmail);
   const showMomentKaart = useMutation(api.chat.showMomentKaart);
   const startMomentenAfsluiting = useMutation(api.chat.startMomentenAfsluiting);
@@ -1432,8 +1393,6 @@ export default function ChatPageClient({
               // inline-paywall de grens, dus die twee uit om tegenstrijdige tellingen te voorkomen.
               const showSaveCard = !berichtenModelActief && isAnonymousUser && !saveCardDismissed && userMsgCount === SAVE_CARD_AFTER && !isUser;
               const showLimitWarning = !berichtenModelActief && isAnonymousUser && userMsgCount === LIMIT_WARNING_AFTER && !isUser;
-              // Rechtstreekse-chat-ad: warme e-mailvraag na een paar berichten (schifting + lead).
-              const showDirecteChatEmail = startParam === "chat" && isAnonymousUser && !directeChatEmailDismissed && userMsgCount === DIRECTE_CHAT_EMAIL_AFTER && !isUser;
               // Geleide momenten: bot-berichten met een kaart-marker als kaartje tonen
               // (gecentreerd). Een eventuele reactie ervóór blijft een gewone bubbel.
               const kaartMatch = !isUser ? displayContent.match(/\[\[(momentkaart:intro:[a-z]+|kaart:welkom|kaart:moment[1-5]|kaart:oefening|kaart:email)\]\]/) : null;
@@ -1516,25 +1475,6 @@ export default function ChatPageClient({
                     </div>
                   )}
                 </div>
-                {showDirecteChatEmail && (
-                  <div key={`direct-email-${msg._id}`} className="flex justify-center my-2">
-                    <div className="animate-card-in w-full max-w-sm">
-                      <DirecteChatEmailKaart
-                        alGegeven={directeChatEmailGegeven}
-                        onDismiss={() => setDirecteChatEmailDismissed(true)}
-                        onDone={async (email, naam) => {
-                          await saveDirecteChatEmail({
-                            sessionId: msg.sessionId,
-                            email,
-                            naam: naam || undefined,
-                            verliesType: momentenTypeParam || undefined,
-                          });
-                          setDirecteChatEmailGegeven(true);
-                        }}
-                      />
-                    </div>
-                  </div>
-                )}
                 {showDeviceMemoryCard && (
                   <div key={`device-memory-${msg._id}`} className="flex justify-center my-2">
                     <div className="animate-card-in bg-primary-50 border border-primary-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">
