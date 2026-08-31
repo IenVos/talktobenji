@@ -29,9 +29,9 @@ module.exports = {
         'fade-in': 'fadeIn 0.35s ease-out forwards',
         // Zachte, rustige binnenkomst voor nudge-kaartjes: infaden + iets omhoog.
         'card-in': 'cardIn 0.6s ease-out both',
-        // Chatbubbel: kalm infaden met een klein zetje omhoog, zodat een bericht
-        // niet hard in beeld "popt" maar rustig verschijnt (gevoelig onderwerp).
-        'bubble-in': 'bubbleIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both',
+        // Chatbubbel: rustig van onderaf infaden i.p.v. hard "poppen". Duidelijk
+        // merkbaar traag en zacht (gevoelig onderwerp), maar niet storend lang.
+        'bubble-in': 'bubbleIn 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) both',
       },
       keyframes: {
         fadeIn: {
@@ -43,8 +43,9 @@ module.exports = {
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         bubbleIn: {
-          "0%": { opacity: "0", transform: "translateY(6px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
+          "0%": { opacity: "0", transform: "translateY(14px) scale(0.985)" },
+          "60%": { opacity: "1" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
         },
       },
     },
