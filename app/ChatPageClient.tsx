@@ -1309,14 +1309,14 @@ export default function ChatPageClient({
           </div>
         )}
         {/* Chat-inhoud */}
-        <div className={`relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation ${!sessionId && !isAddingOpener && !ehResolving ? "flex flex-col justify-center" : ""}`}>
+        <div className={`relative max-w-3xl mx-auto px-3 sm:px-4 pt-4 sm:pt-6 pb-8 sm:pb-10 min-h-full w-full touch-manipulation ${!sessionId && !pendingUserMessage && !isAddingOpener && !ehResolving ? "flex flex-col justify-center" : ""}`}>
           {/* Terugladen na inloggen: spinner i.p.v. even het welkomstscherm laten flitsen */}
           {restoreBezig && !sessionId && (
             <div className="flex items-center justify-center py-24">
               <div className="w-6 h-6 rounded-full border-2 border-primary-400 border-t-transparent animate-spin" />
             </div>
           )}
-          {!restoreBezig && !sessionId && !isAddingOpener && !ehResolving && (
+          {!restoreBezig && !sessionId && !pendingUserMessage && !isAddingOpener && !ehResolving && (
             <>
               <WelcomeScreen
                 showTopicButtons={showTopicButtons}
