@@ -701,7 +701,19 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
       const momentenBlok = isMomentenSessie
         ? momentenScript(chatSession!.momentenType!, momentenNaBrief, chatSession?.momentenVariant)
         : "";
-      const volatileRulesCombined = [momentenBlok, accountNudgeRule].filter(Boolean).join("\n\n");
+      // FASE 1 — vraag-budget (PRE): eindigden Benji's laatste twee beurten allebei
+      // op een vraag, dan mag hij deze beurt geen vraag stellen (breekt het
+      // vraag-op-vraag-op-vraag-ritme al vóór het genereren).
+      const benjiBeurten = conversationHistory.filter((m) => m.role === "assistant");
+      const laatsteTweeBenji = benjiBeurten.slice(-2);
+      const tweeVragenOpRij =
+        laatsteTweeBenji.length === 2 && laatsteTweeBenji.every((m) => eindigtOpVraag(m.content));
+
+      const volatileRulesCombined = [
+        momentenBlok,
+        accountNudgeRule,
+        tweeVragenOpRij ? INSTR_GEEN_VRAAG : "",
+      ].filter(Boolean).join("\n\n");
 
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
       let aiResponse: string;
@@ -753,6 +765,41 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
           userQuestion: args.userMessage,
           sessionId: args.sessionId,
         });
+      }
+
+      // FASE 1 — handhaving (POST): te veel vragen of een verboden cliché? Dan het
+      // bericht hooguit één keer opnieuw laten schrijven met een harde instructie.
+      // Lukt dat niet, dan behouden we het origineel (geen eindeloos opnieuw proberen).
+      {
+        const teVeelVragen =
+          aantalVragen(aiResponse) > 1 || (tweeVragenOpRij && aiResponse.includes("?"));
+        const clicheZin = eersteVerbodenCliche(aiResponse);
+
+        if (teVeelVragen || clicheZin) {
+          const correctie = [
+            teVeelVragen ? INSTR_GEEN_VRAAG : "",
+            clicheZin ? instrGeenCliche(clicheZin) : "",
+          ].filter(Boolean).join("\n\n");
+          try {
+            let opnieuw = await callClaudeAPI(
+              args.userMessage,
+              knowledgeCombined,
+              rules,
+              conversationHistory,
+              [volatileRulesCombined, correctie].filter(Boolean).join("\n\n")
+            );
+            opnieuw = opnieuw.replace(unansweredMarker, "").trim();
+            // Accepteer de herkansing alleen als de overtreding echt weg is.
+            const vraagOk =
+              aantalVragen(opnieuw) <= 1 && !(tweeVragenOpRij && opnieuw.includes("?"));
+            const clicheOk = !eersteVerbodenCliche(opnieuw);
+            if (opnieuw && vraagOk && clicheOk) {
+              aiResponse = opnieuw;
+            }
+          } catch (regenError) {
+            console.error("[fase1] herkansing mislukt, origineel behouden:", regenError);
+          }
+        }
       }
 
       // Corrigeer veelvoorkomende grammaticale fouten in Nederlands
@@ -836,6 +883,10 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
         // Normaliseer dubbele spaties na verwijderingen
         aiResponse = aiResponse.replace(/\s+/g, " ").trim();
       }
+
+      // FASE 1 — tekst-strippen: markdown, streepjes, uitroeptekens en emoji eruit.
+      // Emoji blijft alleen staan als de bezoeker in dit bericht zelf een emoji gebruikte.
+      aiResponse = stripBenjiOpmaak(aiResponse, bevatEmoji(args.userMessage));
 
       // VERWIJDER alle lege regels en newlines - vervang door enkele spaties
       // Dit voorkomt dat de AI per ongeluk lege regels toevoegt
@@ -1569,6 +1620,97 @@ Regels:
     }
   },
 });
+
+// ============================================================================
+// FASE 1 — BENJI MENSELIJKER: harde handhaving in code i.p.v. vragen in de prompt
+// ----------------------------------------------------------------------------
+// De prompt vroeg Benji al honderd keer om niet te blijven vragen, geen streepjes
+// te zetten en geen clichés te gebruiken. Een promptregel is een verzoek dat het
+// model elke beurt opnieuw mag negeren. Deze laag dwingt het af: tekstregels
+// (streepjes, markdown, uitroeptekens, emoji) strippen we gewoon uit het antwoord
+// (gratis, 100% betrouwbaar), en gedragsovertredingen (te veel vragen, verboden
+// clichés) laten we hooguit één keer opnieuw schrijven. Lukt dat niet, dan gaat
+// het origineel eruit; nooit eindeloos opnieuw proberen.
+// ============================================================================
+
+// Emoji: alle pictografische tekens + regionale-indicator-vlaggen.
+const EMOJI_RE = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}]/gu;
+
+function bevatEmoji(tekst: string): boolean {
+  return /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}]/u.test(tekst);
+}
+
+// Verboden clichés (de gemene deler uit de kwaliteitsrapporten). Staat zo'n zin in
+// het antwoord, dan schrijven we het bericht één keer opnieuw zonder die zin.
+const VERBODEN_CLICHES: RegExp[] = [
+  /\b(een|z'n|zijn|haar|de)\s+plek(je)?\s+(te\s+)?geven\b/i,
+  /\been?\s+plek(je)?\s+geven\b/i,
+  /\btijd\s+heelt\s+(alle\s+)?wonden\b/i,
+  /\bje\s+bent\s+niet\s+alleen\b/i,
+  /\bwees\s+sterk\b/i,
+  /\b(dat|het)\s+mag\s+er\s+zijn\b/i,
+  /\balles\s+komt\s+goed\b/i,
+  /\bkop\s+op\b/i,
+  /\bhoud\s+(vol|moed)\b/i,
+];
+
+function eindigtOpVraag(tekst: string): boolean {
+  return /\?["'”’)\s]*$/.test(tekst.trim());
+}
+
+// Aantal vragen in een bericht (een reeks "??" telt als één vraag).
+function aantalVragen(tekst: string): number {
+  const m = tekst.match(/\?+/g);
+  return m ? m.length : 0;
+}
+
+function eersteVerbodenCliche(tekst: string): string | null {
+  for (const re of VERBODEN_CLICHES) {
+    const m = tekst.match(re);
+    if (m) return m[0];
+  }
+  return null;
+}
+
+// Strip alles wat een computer betrouwbaar kan opruimen: markdown, streepjes,
+// uitroeptekens en (tenzij de bezoeker er zelf een gebruikte) emoji.
+function stripBenjiOpmaak(tekst: string, bezoekerGebruikteEmoji: boolean): string {
+  let t = tekst;
+  // Markdown: vet, cursief, inline-code, koppen, opsommingstekens.
+  t = t.replace(/\*\*([^*]+)\*\*/g, "$1");
+  t = t.replace(/__([^_]+)__/g, "$1");
+  t = t.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "$1");
+  t = t.replace(/`([^`]+)`/g, "$1");
+  t = t.replace(/^\s{0,3}#{1,6}\s+/gm, "");
+  t = t.replace(/^\s{0,3}[-*•]\s+/gm, "");
+  // Streepjes: een getalbereik wordt "tot", elke andere gedachtestreep een komma.
+  t = t.replace(/(\d)\s*[—–-]\s*(\d)/g, "$1 tot $2");
+  t = t.replace(/\s*[—–]\s*/g, ", ");
+  t = t.replace(/\s+-\s+/g, ", ");
+  // Uitroeptekens worden punten (rustiger toon).
+  t = t.replace(/\s*!+/g, ".");
+  t = t.replace(/\?\s*\./g, "?");
+  // Emoji weg, tenzij de bezoeker in dit bericht zelf een emoji gebruikte.
+  if (!bezoekerGebruikteEmoji) {
+    t = t.replace(EMOJI_RE, "");
+    t = t.replace(/[\u{FE0F}\u{200D}]/gu, "");
+  }
+  // Dubbele leestekens/spaties opruimen die hierboven kunnen ontstaan.
+  t = t.replace(/,\s*,/g, ",");
+  t = t.replace(/\.\s*\./g, ".");
+  t = t.replace(/\s+([,.?])/g, "$1");
+  t = t.replace(/[ \t]{2,}/g, " ");
+  return t.trim();
+}
+
+// Instructie voor de herkansing: geen vraag / geen cliché in dit ene bericht.
+const INSTR_GEEN_VRAAG =
+  "BELANGRIJK VOOR DIT ENE BERICHT: stel geen enkele vraag en gebruik geen vraagteken. " +
+  "Blijf rustig bij wat de bezoeker net deelde en sluit open af met een zachte zin die ruimte laat, geen vraag.";
+
+function instrGeenCliche(zin: string): string {
+  return `BELANGRIJK VOOR DIT ENE BERICHT: gebruik de zin "${zin}" of een variant daarop NIET. Schrijf gewoon, concreet en menselijk zonder dit cliché.`;
+}
 
 // ============================================================================
 // CLAUDE API INTEGRATIE
