@@ -1160,9 +1160,10 @@ export default function ChatPageClient({
         return;
       }
 
-      // Minimum 5 seconden: bolletjes langer zichtbaar, rustiger tempo als een echt gesprek
+      // Minimum wachttijd: bolletjes even zichtbaar zodat het rustig voelt als een
+      // echt gesprek, maar niet zo lang dat de stilte gaat drukken (gevoelig onderwerp).
       const elapsed = Date.now() - startTime;
-      const minDelay = 5000;
+      const minDelay = 3500;
       if (elapsed < minDelay) {
         await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
       }
@@ -1203,9 +1204,9 @@ export default function ChatPageClient({
       setSessionId(newSessionId);
       if (typeof window !== "undefined") localStorage.setItem("benji_has_chatted", "1");
 
-      // Minimum 5 seconden: bolletjes langer zichtbaar, rustiger tempo
+      // Minimum wachttijd (opener): even rustig, maar niet drukkend lang.
       const elapsed = Date.now() - startTime;
-      const minDelay = 5000;
+      const minDelay = 3500;
       if (elapsed < minDelay) {
         await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
       }
@@ -1424,11 +1425,11 @@ export default function ChatPageClient({
                 <>
                 <div key={msg._id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                   {isUser ? (
-                    <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
+                    <div className="animate-bubble-in motion-reduce:animate-none max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
                       <MessageContent content={displayContent} isUser={isUser} />
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-1 max-w-sm">
+                    <div className="animate-bubble-in motion-reduce:animate-none flex flex-col gap-1 max-w-sm">
                       <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-2xl text-gray-800 rounded-bl-md shadow-sm ${isNacht ? "bg-white/80 border border-white/30 backdrop-blur-sm" : "bg-white border border-gray-200"}`}>
                         <MessageContent content={displayContent} isUser={false} />
                         {parsed?.memoryText && session?.userId && startParam !== "momenten" && (
@@ -1536,7 +1537,7 @@ export default function ChatPageClient({
             })()}
             {pendingUserMessage && (
               <div className="flex justify-end">
-                <div className="max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
+                <div className="animate-bubble-in motion-reduce:animate-none max-w-[85%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 rounded-2xl bg-primary-900 text-white rounded-br-md">
                   <MessageContent content={pendingUserMessage} isUser />
                 </div>
               </div>
