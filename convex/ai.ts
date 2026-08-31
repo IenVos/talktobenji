@@ -809,7 +809,11 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
         aiResponse = aiResponse.replace(/\s*Hmm\.?\s*/g, " "); // Verwijder "Hmm." middenin
         aiResponse = aiResponse.replace(/\bMmm\b/gi, ""); // Verwijder losse "Mmm"
         aiResponse = aiResponse.replace(/\bHmm\b/gi, ""); // Verwijder losse "Hmm"
-        
+        // Engelse ja/nee-interjecties (Okay, Yeah, Yep, Nope) eruit; het Nederlandse
+        // "Oké" blijft staan. Zo hoeft deze regel niet meer in de prompt (sectie 2).
+        aiResponse = aiResponse.replace(/^(Okay|Yeah|Yep|Nope)\b[\s,.!]*/gi, "");
+        aiResponse = aiResponse.replace(/\b(Okay|Yeah|Yep|Nope)\b/g, "");
+
         // Corrigeer verkeerde lidwoorden
         aiResponse = aiResponse.replace(/\bDat stilte\b/gi, "Die stilte");
         aiResponse = aiResponse.replace(/\bDat blijheid\b/gi, "Die blijheid");
@@ -856,8 +860,8 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
       }
 
       // FASE 1 — tekst-strippen: markdown, streepjes, uitroeptekens en emoji eruit.
-      // Emoji blijft alleen staan als de bezoeker in dit bericht zelf een emoji gebruikte.
-      aiResponse = stripBenjiOpmaak(aiResponse, bevatEmoji(args.userMessage));
+      // Benji gebruikt zelf nooit emoji (duidelijke regel), dus altijd strippen.
+      aiResponse = stripBenjiOpmaak(aiResponse);
 
       // VERWIJDER alle lege regels en newlines - vervang door enkele spaties
       // Dit voorkomt dat de AI per ongeluk lege regels toevoegt
@@ -1606,17 +1610,13 @@ Regels:
 // Emoji: alle pictografische tekens + regionale-indicator-vlaggen.
 const EMOJI_RE = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}]/gu;
 
-function bevatEmoji(tekst: string): boolean {
-  return /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}]/u.test(tekst);
-}
-
 function eindigtOpVraag(tekst: string): boolean {
   return /\?["'”’)\s]*$/.test(tekst.trim());
 }
 
 // Strip alles wat een computer betrouwbaar kan opruimen: markdown, streepjes,
 // uitroeptekens en (tenzij de bezoeker er zelf een gebruikte) emoji.
-function stripBenjiOpmaak(tekst: string, bezoekerGebruikteEmoji: boolean): string {
+function stripBenjiOpmaak(tekst: string): string {
   let t = tekst;
   // Markdown: vet, cursief, inline-code, koppen, opsommingstekens.
   t = t.replace(/\*\*([^*]+)\*\*/g, "$1");
@@ -1632,11 +1632,9 @@ function stripBenjiOpmaak(tekst: string, bezoekerGebruikteEmoji: boolean): strin
   // Uitroeptekens worden punten (rustiger toon).
   t = t.replace(/\s*!+/g, ".");
   t = t.replace(/\?\s*\./g, "?");
-  // Emoji weg, tenzij de bezoeker in dit bericht zelf een emoji gebruikte.
-  if (!bezoekerGebruikteEmoji) {
-    t = t.replace(EMOJI_RE, "");
-    t = t.replace(/[\u{FE0F}\u{200D}]/gu, "");
-  }
+  // Emoji altijd weg: Benji gebruikt zelf geen emoji.
+  t = t.replace(EMOJI_RE, "");
+  t = t.replace(/[\u{FE0F}\u{200D}]/gu, "");
   // Dubbele leestekens/spaties opruimen die hierboven kunnen ontstaan.
   t = t.replace(/,\s*,/g, ",");
   t = t.replace(/\.\s*\./g, ".");
