@@ -1593,15 +1593,14 @@ Regels:
 });
 
 // ============================================================================
-// FASE 1 — BENJI MENSELIJKER: harde handhaving in code i.p.v. vragen in de prompt
+// FASE 1 — BENJI MENSELIJKER: tekstregels afdwingen in code i.p.v. in de prompt
 // ----------------------------------------------------------------------------
-// De prompt vroeg Benji al honderd keer om niet te blijven vragen, geen streepjes
-// te zetten en geen clichés te gebruiken. Een promptregel is een verzoek dat het
-// model elke beurt opnieuw mag negeren. Deze laag dwingt het af: tekstregels
-// (streepjes, markdown, uitroeptekens, emoji) strippen we gewoon uit het antwoord
-// (gratis, 100% betrouwbaar), en gedragsovertredingen (te veel vragen, verboden
-// clichés) laten we hooguit één keer opnieuw schrijven. Lukt dat niet, dan gaat
-// het origineel eruit; nooit eindeloos opnieuw proberen.
+// Wat een computer betrouwbaar kan opruimen (streepjes, markdown, uitroeptekens,
+// emoji) strippen we gewoon uit het antwoord: gratis, 100% betrouwbaar, nul extra
+// wachttijd. Daarnaast krijgt Benji vóór het genereren de instructie geen vraag te
+// stellen als hij net al twee beurten op rij een vraag stelde (het vraag-budget).
+// Oordeelsregels (geen cliché, niet spiegelen) horen in de prompt, niet in een
+// tweede generatie: dat verdubbelde de wachttijd en is er daarom bewust uit.
 // ============================================================================
 
 // Emoji: alle pictografische tekens + regionale-indicator-vlaggen.
@@ -1611,36 +1610,8 @@ function bevatEmoji(tekst: string): boolean {
   return /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}]/u.test(tekst);
 }
 
-// Verboden clichés (de gemene deler uit de kwaliteitsrapporten). Staat zo'n zin in
-// het antwoord, dan schrijven we het bericht één keer opnieuw zonder die zin.
-const VERBODEN_CLICHES: RegExp[] = [
-  /\b(een|z'n|zijn|haar|de)\s+plek(je)?\s+(te\s+)?geven\b/i,
-  /\been?\s+plek(je)?\s+geven\b/i,
-  /\btijd\s+heelt\s+(alle\s+)?wonden\b/i,
-  /\bje\s+bent\s+niet\s+alleen\b/i,
-  /\bwees\s+sterk\b/i,
-  /\b(dat|het)\s+mag\s+er\s+zijn\b/i,
-  /\balles\s+komt\s+goed\b/i,
-  /\bkop\s+op\b/i,
-  /\bhoud\s+(vol|moed)\b/i,
-];
-
 function eindigtOpVraag(tekst: string): boolean {
   return /\?["'”’)\s]*$/.test(tekst.trim());
-}
-
-// Aantal vragen in een bericht (een reeks "??" telt als één vraag).
-function aantalVragen(tekst: string): number {
-  const m = tekst.match(/\?+/g);
-  return m ? m.length : 0;
-}
-
-function eersteVerbodenCliche(tekst: string): string | null {
-  for (const re of VERBODEN_CLICHES) {
-    const m = tekst.match(re);
-    if (m) return m[0];
-  }
-  return null;
 }
 
 // Strip alles wat een computer betrouwbaar kan opruimen: markdown, streepjes,
@@ -1674,14 +1645,11 @@ function stripBenjiOpmaak(tekst: string, bezoekerGebruikteEmoji: boolean): strin
   return t.trim();
 }
 
-// Instructie voor de herkansing: geen vraag / geen cliché in dit ene bericht.
+// Vraag-budget: instructie die vóór het genereren wordt meegegeven als Benji al
+// twee beurten op rij een vraag stelde, zodat er geen derde vraag op rij komt.
 const INSTR_GEEN_VRAAG =
   "BELANGRIJK VOOR DIT ENE BERICHT: stel geen enkele vraag en gebruik geen vraagteken. " +
   "Blijf rustig bij wat de bezoeker net deelde en sluit open af met een zachte zin die ruimte laat, geen vraag.";
-
-function instrGeenCliche(zin: string): string {
-  return `BELANGRIJK VOOR DIT ENE BERICHT: gebruik de zin "${zin}" of een variant daarop NIET. Schrijf gewoon, concreet en menselijk zonder dit cliché.`;
-}
 
 // ============================================================================
 // CLAUDE API INTEGRATIE
