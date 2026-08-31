@@ -767,40 +767,11 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
         });
       }
 
-      // FASE 1 — handhaving (POST): te veel vragen of een verboden cliché? Dan het
-      // bericht hooguit één keer opnieuw laten schrijven met een harde instructie.
-      // Lukt dat niet, dan behouden we het origineel (geen eindeloos opnieuw proberen).
-      {
-        const teVeelVragen =
-          aantalVragen(aiResponse) > 1 || (tweeVragenOpRij && aiResponse.includes("?"));
-        const clicheZin = eersteVerbodenCliche(aiResponse);
-
-        if (teVeelVragen || clicheZin) {
-          const correctie = [
-            teVeelVragen ? INSTR_GEEN_VRAAG : "",
-            clicheZin ? instrGeenCliche(clicheZin) : "",
-          ].filter(Boolean).join("\n\n");
-          try {
-            let opnieuw = await callClaudeAPI(
-              args.userMessage,
-              knowledgeCombined,
-              rules,
-              conversationHistory,
-              [volatileRulesCombined, correctie].filter(Boolean).join("\n\n")
-            );
-            opnieuw = opnieuw.replace(unansweredMarker, "").trim();
-            // Accepteer de herkansing alleen als de overtreding echt weg is.
-            const vraagOk =
-              aantalVragen(opnieuw) <= 1 && !(tweeVragenOpRij && opnieuw.includes("?"));
-            const clicheOk = !eersteVerbodenCliche(opnieuw);
-            if (opnieuw && vraagOk && clicheOk) {
-              aiResponse = opnieuw;
-            }
-          } catch (regenError) {
-            console.error("[fase1] herkansing mislukt, origineel behouden:", regenError);
-          }
-        }
-      }
+      // FASE 1 — handhaving zonder extra API-call: de dure "herkansing" (een tweede
+      // Opus-generatie bij een overtreding) is eruit, want die verdubbelde de wachttijd
+      // op precies de berichten die hem triggerden. De gratis lagen blijven: de
+      // vraag-budget-instructie zit al vóór het genereren in de prompt (PRE), en
+      // streepjes/markdown/uitroeptekens/emoji worden hieronder gewoon weggestript.
 
       // Corrigeer veelvoorkomende grammaticale fouten in Nederlands
       if (!isEnglish) {
