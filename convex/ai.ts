@@ -1686,8 +1686,12 @@ ${volatileRules ? `${volatileRules}\n\n` : ""}${limitedKnowledge ? `## Achtergro
 
   // System als content-blokken: het vaste blok krijgt cache_control zodat Anthropic het
   // hergebruikt (prefix-cache, ~90% goedkoper op input). Het variabele blok komt erna, ongecachet.
-  const systemBlocks: Array<{ type: "text"; text: string; cache_control?: { type: "ephemeral" } }> = [
-    { type: "text", text: stableSystem, cache_control: { type: "ephemeral" } },
+  // TTL "1h" i.p.v. de standaard 5 minuten: het vaste blok is identiek voor ELK Benji-gesprek,
+  // dus één cache-write wordt een uur lang door alle bezoekers hergebruikt. Bij ons verkeer
+  // (bursty + gaten van 5+ min, bijv. iemand die pas na 20 min antwoordt, of 's nachts) verliep
+  // de 5-minuten-cache steeds, waardoor elke call een dure write werd i.p.v. een goedkope read.
+  const systemBlocks: Array<{ type: "text"; text: string; cache_control?: { type: "ephemeral"; ttl?: "1h" } }> = [
+    { type: "text", text: stableSystem, cache_control: { type: "ephemeral", ttl: "1h" } },
   ];
   if (volatileSystem.trim()) {
     systemBlocks.push({ type: "text", text: volatileSystem });
