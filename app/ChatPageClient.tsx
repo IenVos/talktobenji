@@ -265,7 +265,8 @@ function CrisisHelpKaart({ isNacht }: { isNacht?: boolean }) {
   return (
     <div className={`w-full max-w-md rounded-2xl px-5 py-5 shadow-sm border ${isNacht ? "bg-white/90 border-white/40" : "bg-white border-gray-200"}`}>
       <h3 className="text-base font-bold text-primary-900 mb-1 text-center">Je hoeft dit niet alleen te dragen</h3>
-      <p className="text-sm text-primary-700 leading-relaxed mb-4 text-center">Er zijn mensen die hier dag en nacht voor je zijn, ook nu. Neem alsjeblieft even contact met ze op.</p>
+      <p className="text-sm text-primary-700 leading-relaxed mb-2 text-center">Er zijn mensen die hier dag en nacht voor je zijn, ook nu.</p>
+      <p className="text-sm text-primary-700 leading-relaxed mb-4 text-center">Neem alsjeblieft contact met ze op.</p>
 
       <p className="text-[11px] font-semibold tracking-wide uppercase text-primary-500 mb-1.5">Nederland</p>
       <div className="space-y-2.5">
@@ -1737,6 +1738,14 @@ export default function ChatPageClient({
         </div>
       )}
 
+      {/* Crisis: zachte melding boven de invoerbalk (amber, zoals op de site). */}
+      {crisisActief && (
+        <div className="max-w-3xl mx-auto w-full px-3 sm:px-4 pb-2 pt-1">
+          <div className="text-center text-sm bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-2.5 max-w-md mx-auto">
+            Dit gesprek is afgerond. Bel of chat met 113 als je nu hulp nodig hebt, ze zijn er dag en nacht voor je.
+          </div>
+        </div>
+      )}
 
 <footer className="bg-primary-900 flex-shrink-0 overflow-visible" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-bottom) * 0.2)', paddingBottom: 'max(1rem, calc(0.5rem + env(safe-area-inset-bottom)))', pointerEvents: 'auto' }}>
         {!sessionId && !isAddingOpener ? (
@@ -1792,11 +1801,6 @@ export default function ChatPageClient({
               </div>
               {isRecording && <p className="text-xs text-red-300 mt-2 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
             </form>
-            {crisisActief && (
-              <p className="text-center text-xs text-primary-400 mt-2">
-                Dit gesprek is afgerond. Bel of chat met 113 als je nu hulp nodig hebt, ze zijn er dag en nacht voor je.
-              </p>
-            )}
             {sessionId && !crisisActief && (
               <p className="text-center text-xs text-primary-400 mt-2">
                 Benji leert van elk gesprek.{" "}
