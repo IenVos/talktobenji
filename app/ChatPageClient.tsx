@@ -284,7 +284,7 @@ function CrisisHelpKaart({ isNacht }: { isNacht?: boolean }) {
           Bel Zelfmoordlijn 1813
         </a>
         <a href="https://www.zelfmoord1813.be" target="_blank" rel="noopener noreferrer" className="block rounded-xl px-4 py-3 text-center font-medium text-primary-800 border border-primary-200 hover:bg-primary-50 transition-colors">
-          Chat op zelfmoord1813.be
+          Chat op zelfmoord 1813.be
         </a>
       </div>
 
