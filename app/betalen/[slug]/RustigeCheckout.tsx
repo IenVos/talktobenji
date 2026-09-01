@@ -285,14 +285,9 @@ export function RustigeCheckout({
     ) : null,
     betaalblok: (
         <section id="betaalblok" className="scroll-mt-6">
+          {/* Geen eigen prijs/titel-regel meer: de prijs staat al bovenaan en Stripe
+              toont zelf het overzicht met totaal. Zo staat de prijs niet drie keer. */}
           <div id="jouw-gegevens" className="rounded-3xl border p-6 space-y-5 scroll-mt-6" style={{ background: KLEUR.kaart, borderColor: KLEUR.rand }}>
-            <div>
-              <div className="flex items-baseline justify-between">
-                <span className="text-base font-medium" style={{ color: KLEUR.titel }}>{product.name}</span>
-                <span className="text-lg font-semibold" style={{ color: KLEUR.titel }}>{priceFormatted}</span>
-              </div>
-              <p className="mt-1 text-sm" style={{ color: KLEUR.zacht }}>30 dagen, eenmalig. Dat is iets meer dan een euro per dag.</p>
-            </div>
             {gegevensNode}
             {paymentNode}
           </div>
