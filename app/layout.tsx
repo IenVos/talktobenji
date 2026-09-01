@@ -15,15 +15,15 @@ import { ConsentScripts } from "@/components/ConsentScripts";
 
 export const metadata: Metadata = {
   title: {
-    default: "Talk To Benji | Altijd een luisterend oor, wanneer jij het nodig hebt",
+    default: "Talk To Benji | Een luisterend oor bij verdriet en verlies",
     template: "%s",
   },
-  description: "Altijd iemand die luistert, ook 's nachts. Benji is er voor je als je verdriet hebt, rouwt of gewoon je gedachten kwijt wilt. Veilig, persoonlijk en altijd beschikbaar.",
+  description: "Benji is er als je verdriet hebt, rouwt of je alleen voelt. Praat anoniem en zonder oordeel, ook midden in de nacht.",
   keywords: ["AI chatbot", "rouw", "verlies", "verdriet", "luisterend oor", "Benji", "TalkToBenji", "mentale steun"],
   manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "Talk To Benji | Altijd een luisterend oor, wanneer jij het nodig hebt",
-    description: "Altijd iemand die luistert, ook 's nachts. Benji is er voor je als je verdriet hebt, rouwt of gewoon je gedachten kwijt wilt. Veilig, persoonlijk en altijd beschikbaar.",
+    title: "Talk To Benji | Een luisterend oor bij verdriet en verlies",
+    description: "Benji is er als je verdriet hebt, rouwt of je alleen voelt. Praat anoniem en zonder oordeel, ook midden in de nacht.",
     type: "website",
     url: "https://www.talktobenji.com",
     siteName: "Talk To Benji",
@@ -38,8 +38,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary",
-    title: "Talk To Benji | Altijd een luisterend oor, wanneer jij het nodig hebt",
-    description: "Altijd iemand die luistert, ook 's nachts. Benji is er voor je als je verdriet hebt, rouwt of gewoon je gedachten kwijt wilt. Veilig, persoonlijk en altijd beschikbaar.",
+    title: "Talk To Benji | Een luisterend oor bij verdriet en verlies",
+    description: "Benji is er als je verdriet hebt, rouwt of je alleen voelt. Praat anoniem en zonder oordeel, ook midden in de nacht.",
     images: ["https://www.talktobenji.com/images/benji-logo-2.png"],
   },
   icons: {
