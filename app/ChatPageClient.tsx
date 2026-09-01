@@ -1522,7 +1522,7 @@ export default function ChatPageClient({
                   )}
                 </div>
                 {heeftCrisisKaart && (
-                  <div key={`crisis-${msg._id}`} className="flex justify-center my-3">
+                  <div key={`crisis-${msg._id}`} className="flex justify-center my-3 animate-bubble-in motion-reduce:animate-none" style={{ animationDelay: "0.9s" }}>
                     <CrisisHelpKaart isNacht={isNacht} />
                   </div>
                 )}
