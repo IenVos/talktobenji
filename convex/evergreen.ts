@@ -23,7 +23,7 @@ import {
   mailLinks,
   mailKnop,
   mailWrapper,
-  mailHandtekeningIen,
+  mailHandtekeningIenBenji,
   ehAfmeldUrl,
   ehAfmeldToken,
   nietAlleenUrlVoorType,
@@ -776,12 +776,12 @@ async function bouwEvergreenHtml(
     else if (i === groetIndex) {
       stukken.push(autoVoorGroet);
       stukken.push(bodyAlinea(p));
-      stukken.push(mailHandtekeningIen());
+      stukken.push(mailHandtekeningIenBenji());
     } else stukken.push(bodyAlinea(p));
   });
   if (groetIndex === -1) {
     stukken.push(autoVoorGroet);
-    stukken.push(mailHandtekeningIen());
+    stukken.push(mailHandtekeningIenBenji());
   }
   stukken.push(...psStukken);
 

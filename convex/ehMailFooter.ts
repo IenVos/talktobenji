@@ -106,6 +106,24 @@ export function mailHandtekeningIen(): string {
     </table>`;
 }
 
+// Variant met Benji erbij: "Ien & Benji" i.p.v. "Ien / Founder van Talk To Benji".
+// Wordt (voorlopig) alleen in de evergreen-mails gebruikt.
+export function mailHandtekeningIenBenji(): string {
+  return `
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-top: 24px;">
+      <tr>
+        <td style="padding-right: 14px; vertical-align: middle;">
+          <img src="https://talktobenji.com/images/ien-founder.png" alt="Ien" width="52" height="52"
+            style="border-radius: 50%; display: block; width: 52px; height: 52px; object-fit: cover;" />
+        </td>
+        <td style="vertical-align: middle;">
+          <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0;">Ien &amp; Benji</p>
+          <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0;">Talk To Benji</p>
+        </td>
+      </tr>
+    </table>`;
+}
+
 export function mailWrapper(inhoud: string): string {
   return `
     <div style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
