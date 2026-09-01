@@ -608,10 +608,16 @@ function evergreenFooter(
   naUrl: string | null,
   rustUrl: string,
   afmeldUrl: string,
-  benjiKostUrl: string | null
+  benjiKostUrl: string | null,
+  benjiChatUrl: string | null
 ): string {
   const brug = naUrl
     ? `<p style="font-size:14px;font-weight:600;color:#3d3530;margin:0 0 12px;"><a href="${naUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen voor jou</a></p>`
+    : "";
+  // Zachte Benji-knop met de persoonlijke één-klik-link: brengt de lead direct in zijn
+  // eigen gesprek. Staat op het evergreen-spoor, boven de Niet Alleen-brug.
+  const benjiCta = benjiChatUrl
+    ? `<p style="margin:0 0 16px;"><a href="${benjiChatUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Verder praten met Benji &rarr;</a></p>`
     : "";
   // Benji-spoor krijgt een eigen "vragen"-regel (verwijst naar Ien) plus de wat-kost-
   // regel met de link eronder. Gewone evergreen houdt de standaardregel.
@@ -621,6 +627,7 @@ function evergreenFooter(
   return `
     <div style="text-align:center;margin-top:44px;">
       <img src="https://www.talktobenji.com/images/benji-logo-2.png" alt="Talk To Benji" width="42" height="42" style="display:inline-block;width:42px;height:42px;margin:0 0 12px 0;" />
+      ${benjiCta}
       ${brug}
       ${vragenEnKost}
       <p style="font-size:12px;line-height:1.7;color:#a0aec0;margin:26px 0 0 0;border-top:1px solid #ece5dc;padding-top:16px;">
@@ -680,6 +687,9 @@ async function bouwEvergreenHtml(
   // [benji-knop] uit buttonText (of de standaardtekst).
   const heeftBlok = bodyVoorSplit.includes(BENJI_BLOK_MARKER);
   const heeftBenjiCta = BENJI_CTA_RE.test(bodyVoorSplit);
+  // De footer krijgt (op het evergreen-spoor) altijd een zachte Benji-knop met de
+  // persoonlijke één-klik-link, dus we hebben sowieso een token nodig.
+  const isBenjiSpoor = spoorVan(args.spoor) === "benji";
   // Losse naam "Benji" in een P.S.-regel wordt automatisch een klikbaar, bruin woord
   // (niet onderstreept) met dezelfde persoonlijke één-klik-link. Enkel de losse naam
   // in de P.S.; "Talk To Benji" (merknaam/handtekening) blijft ongemoeid. Verandert
@@ -693,7 +703,7 @@ async function bouwEvergreenHtml(
   const heeftBodyBenji = /(?<!Talk To )(?<!Talk to )Benji/.test(bodyVoorSplit);
   let blokHtml = "";
   let benjiUrl = "";
-  if (heeftBlok || heeftBenjiCta || heeftPsBenji || heeftBodyBenji) {
+  if (heeftBlok || heeftBenjiCta || heeftPsBenji || heeftBodyBenji || !isBenjiSpoor) {
     const token = await ctx.runMutation(internal.benjiStart.genereerTokenInternal, {
       email: args.email,
       naam: args.naam,
@@ -778,9 +788,11 @@ async function bouwEvergreenHtml(
   // Benji-spoor: geen Niet Alleen-brug (die funnel gaat enkel over Benji), wél de
   // wat-kost-benji-link. Gewone evergreen: Niet Alleen-brug op de laatste mail, geen
   // Benji-kostlink. Zo krijgt élke Benji-mail dezelfde voettekst.
-  const isBenjiSpoor = spoorVan(args.spoor) === "benji";
   const naUrl = args.isLaatsteVanBlok && !isBenjiSpoor ? nietAlleenUrlVoorType(args.type) : null;
   const benjiKostUrl = isBenjiSpoor ? `${appBase()}/wat-kost-benji` : null;
+  // Benji-knop in de footer alleen op het evergreen-spoor (het Benji-spoor gaat al
+  // helemaal over Benji). Gebruikt de eerder gegenereerde persoonlijke link.
+  const benjiChatUrl = !isBenjiSpoor && benjiUrl ? benjiUrl : null;
   const [rustUrl, afmeldUrl] = await Promise.all([
     rustUrlVoor(args.email),
     ehAfmeldUrl(args.email, "evergreen", args.type),
@@ -788,7 +800,7 @@ async function bouwEvergreenHtml(
 
   return mailWrapper(`
     ${stukken.join("\n")}
-    ${evergreenFooter(naUrl, rustUrl, afmeldUrl, benjiKostUrl)}
+    ${evergreenFooter(naUrl, rustUrl, afmeldUrl, benjiKostUrl, benjiChatUrl)}
   `);
 }
 
