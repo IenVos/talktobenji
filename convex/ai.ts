@@ -715,8 +715,14 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
         tweeVragenOpRij ? INSTR_GEEN_VRAAG : "",
       ].filter(Boolean).join("\n\n");
 
+      // VEILIGHEID — crisis: bij een duidelijke suïcide-uiting slaan we het
+      // genereren over (werkt ook als de API plat ligt) en zetten we onderaan een
+      // vast, warm crisisbericht. Zie detecteerCrisis / CRISIS_BERICHT.
+      const crisisDirect = detecteerCrisis(args.userMessage);
+
       // STAP 5: Genereer AI response met fallback mechanisme voor langere gesprekken
-      let aiResponse: string;
+      let aiResponse: string = "";
+      if (!crisisDirect) {
       try {
         aiResponse = await callClaudeAPI(
           args.userMessage,
@@ -755,6 +761,7 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
           throw error;
         }
       }
+      } // einde if (!crisisDirect)
 
       // Detecteer onbeantwoorde vragen: AI plaatst [UNANSWERED] aan het einde
       const unansweredMarker = "[UNANSWERED]";
@@ -875,6 +882,12 @@ GOED: Vlecht het in als praktische mededeling na een empathische zin, zodat het 
         .replace(/[ \t]+/g, " ") // Meerdere spaties of tabs
         .replace(/\s+/g, " ") // Alle whitespace normaliseren
         .trim();
+
+      // VEILIGHEID — crisis: zet het vaste warme crisisbericht NA alle transformaties,
+      // zodat het telefoonnummer 0800-0113 en de marker [[hulpkaart:crisis]] intact blijven.
+      if (crisisDirect) {
+        aiResponse = CRISIS_BERICHT;
+      }
 
       const responseTime = Date.now() - startTime;
 
@@ -1648,6 +1661,41 @@ function stripBenjiOpmaak(tekst: string): string {
 const INSTR_GEEN_VRAAG =
   "BELANGRIJK VOOR DIT ENE BERICHT: stel geen enkele vraag en gebruik geen vraagteken. " +
   "Blijf rustig bij wat de bezoeker net deelde en sluit open af met een zachte zin die ruimte laat, geen vraag.";
+
+// ============================================================================
+// VEILIGHEID — CRISIS-DETECTIE (harde stop bij acute suïcidaliteit)
+// ----------------------------------------------------------------------------
+// Bij een duidelijke EERSTE-PERSOONS suïcide-uiting slaat de code het genereren
+// over en geeft een vast, warm bericht met de hulpkaart-marker. Bewust
+// hoge-precisie (alleen "ik wil/ga/denk erover ..."): zo triggert het NIET op
+// verdriet over andermans zelfdoding ("mijn zoon pleegde zelfmoord"), niet op
+// figuurlijke taal ("me dood schamen"), en niet op een weloverwogen euthanasie-
+// wens. Subtielere gevallen vangt Benji zelf op via de prompt-regels.
+const CRISIS_UITSLUITINGEN =
+  /\b(euthanasie|expertisecentrum|palliatief|palliatieve|ongeneeslijk|waardig sterven|zelfbeschikking|voltooid leven)\b/i;
+const CRISIS_PATRONEN: RegExp[] = [
+  /ik wil niet meer leven/i,
+  /ik wil er niet (meer )?zijn/i,
+  /ik wil (nu |echt |gewoon |zo |liever |het liefst |alleen maar )?dood(?! van)/i,
+  /ik wil er (een )?eind(e)? aan maken/i,
+  /ik wil (een )?eind(e)? aan mijn leven/i,
+  /ik maak er (nu )?een eind(e)? aan/i,
+  /ik stap uit het leven/i,
+  /ik wil (mezelf|mij|me) (van kant maken|iets aandoen|van het leven beroven|doden|ombrengen)/i,
+  /ik ga (mezelf )?(van kant maken|dood|zelfmoord plegen)/i,
+  /ik wil (zelfmoord|zelfdoding|suïcide|suicide) plegen/i,
+  /ik denk erover (om )?(een eind|mezelf|mij|zelfmoord|zelfdoding)/i,
+  /ik overweeg (om )?(een eind|zelfmoord|zelfdoding|mezelf)/i,
+];
+function detecteerCrisis(bericht: string): boolean {
+  if (CRISIS_UITSLUITINGEN.test(bericht)) return false;
+  return CRISIS_PATRONEN.some((re) => re.test(bericht));
+}
+// Vast, warm crisisbericht. De marker [[hulpkaart:crisis]] laat de frontend de
+// hulpkaart tonen en de chat sluiten. Wordt ná alle tekst-transformaties gezet,
+// zodat het telefoonnummer 0800-0113 niet wordt verminkt door de streepjes-strip.
+const CRISIS_BERICHT =
+  "Ik hoor je, en ik schrik van wat je zegt. Wat je voelt is zwaar en ik neem het serieus. Alleen is dit te belangrijk om met mij alleen te dragen, en daar ben ik ook niet voor. Er zijn mensen die hier dag en nacht voor je zijn, ook nu. Bel of chat alsjeblieft met 113 Zelfmoordpreventie, 0800-0113, gratis en dag en nacht. [[hulpkaart:crisis]]";
 
 // ============================================================================
 // CLAUDE API INTEGRATIE

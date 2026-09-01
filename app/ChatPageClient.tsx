@@ -259,6 +259,26 @@ function MomentEmailKaart({ onDone }: { onDone: (email: string, naam: string) =>
   );
 }
 
+/** Warme hulpkaart bij een crisis-signaal. Verschijnt onder Benji's afsluitende
+ *  bericht; daarna gaat de chat op slot (Benji is niet voor acute crisis). */
+function CrisisHelpKaart({ isNacht }: { isNacht?: boolean }) {
+  return (
+    <div className={`w-full max-w-sm rounded-2xl px-5 py-5 shadow-sm border ${isNacht ? "bg-white/90 border-white/40" : "bg-white border-gray-200"}`}>
+      <h3 className="text-base font-bold text-primary-900 mb-1">Je hoeft dit niet alleen te dragen</h3>
+      <p className="text-sm text-primary-700 leading-relaxed mb-4">Er zijn mensen die hier dag en nacht voor je zijn, ook nu. Neem alsjeblieft even contact met ze op.</p>
+      <div className="space-y-2.5">
+        <a href="tel:08000113" className="block rounded-xl px-4 py-3 text-center font-semibold text-white transition-colors" style={{ background: "#576b8f" }}>
+          Bel 113 &middot; 0800-0113 (gratis, dag en nacht)
+        </a>
+        <a href="https://www.113.nl" target="_blank" rel="noopener noreferrer" className="block rounded-xl px-4 py-3 text-center font-medium text-primary-800 border border-primary-200 hover:bg-primary-50 transition-colors">
+          Chat via 113.nl
+        </a>
+      </div>
+      <p className="text-xs text-primary-500 leading-relaxed mt-4">Bij direct levensgevaar: bel 112. In België: Zelfmoordlijn 1813.</p>
+    </div>
+  );
+}
+
 /** Herkent [HERINNERING: tekst | emotie: gevoel] markers in bot-berichten */
 const MEMORY_REGEX = /\[HERINNERING:\s*(.+?)\s*\|\s*emotie:\s*(\w+)\]/;
 
@@ -1056,8 +1076,16 @@ export default function ChatPageClient({
     }
   };
 
+  // Crisis: heeft Benji in dit gesprek de hulpkaart-marker gestuurd? Dan is de chat
+  // afgerond (Benji is niet voor acute suïcidaliteit) en gaat de invoer op slot.
+  const crisisActief = useMemo(
+    () => !!messages?.some((m) => m.role !== "user" && typeof m.content === "string" && m.content.includes("[[hulpkaart:crisis]]")),
+    [messages]
+  );
+
   const sendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
+    if (crisisActief) return; // chat op slot na crisis-hulpkaart
     // Nieuw model: gratis berichten-tegoed op → paywall staat in beeld, niet versturen.
     if (paywallBereikt) return;
     setShowTopicButtons(false);
@@ -1385,7 +1413,10 @@ export default function ChatPageClient({
               const isUser = msg.role === "user";
               if (isUser) userMsgCount++;
               const parsed = !isUser ? parseMemoryMarker(msg.content) : null;
-              const displayContent = parsed ? parsed.cleanContent : msg.content;
+              let displayContent = parsed ? parsed.cleanContent : msg.content;
+              // Crisis-hulpkaart: marker eruit voor de tekst, kaart eronder tonen.
+              const heeftCrisisKaart = !isUser && displayContent.includes("[[hulpkaart:crisis]]");
+              if (heeftCrisisKaart) displayContent = displayContent.replace(/\[\[hulpkaart:crisis\]\]/g, "").trim();
               // Onder het nieuwe model verstoren tussentijdse kaartjes het gesprek;
               // we laten alleen bij de afsluiting (de paywall) iets zien.
               const showDeviceMemoryCard = !berichtenModelActief && isAnonymousUser && userMsgCount === DEVICE_MEMORY_CARD_AFTER && !isUser;
@@ -1441,7 +1472,8 @@ export default function ChatPageClient({
                           />
                         )}
                       </div>
-                      {startParam !== "momenten" && (
+                      {heeftCrisisKaart && <CrisisHelpKaart isNacht={isNacht} />}
+                      {startParam !== "momenten" && !heeftCrisisKaart && (
                       <div className="flex justify-start pl-1">
                         {msg.feedback === "helpful" ? (
                           <span className="flex items-center gap-1 text-xs text-green-500">
@@ -1722,7 +1754,7 @@ export default function ChatPageClient({
                   <button
                     type="button"
                     onClick={toggleRecording}
-                    disabled={isLoading || !speechSupported}
+                    disabled={isLoading || !speechSupported || crisisActief}
                     className={`relative p-3 sm:p-3.5 rounded-xl transition-colors ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-primary-700 text-white hover:bg-primary-600"} disabled:opacity-50`}
                     title={!speechSupported ? "Spraak niet beschikbaar" : isRecording ? "Stop opname" : "Start spraakopname"}
                   >
@@ -1734,16 +1766,21 @@ export default function ChatPageClient({
                   </button>
                 </div>
                 <div className="flex-1 relative overflow-visible">
-                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={isRecording ? "Luisteren..." : (startParam === "momenten" ? momentenPlaceholder : "Typ je bericht...")} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 ${startParam === "momenten" ? "placeholder-amber-500" : "placeholder-gray-400"} ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading || paywallBereikt} />
+                  <input type="text" value={input} onChange={(e) => setInput(e.target.value)} placeholder={crisisActief ? "Dit gesprek is afgerond" : isRecording ? "Luisteren..." : (startParam === "momenten" ? momentenPlaceholder : "Typ je bericht...")} suppressHydrationWarning className={`w-full px-3 sm:px-4 py-3 sm:py-4 bg-white border rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none text-sm sm:text-base text-gray-900 ${startParam === "momenten" ? "placeholder-amber-500" : "placeholder-gray-400"} ${isRecording ? "border-red-500 bg-red-50" : "border-gray-300"}`} disabled={isLoading || paywallBereikt || crisisActief} />
                   {isRecording && <div className="absolute right-3 top-1/2 -translate-y-1/2"><div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" /></div>}
                 </div>
-                <button type="submit" disabled={!input.trim() || isLoading || paywallBereikt} className="p-3 sm:p-3.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
+                <button type="submit" disabled={!input.trim() || isLoading || paywallBereikt || crisisActief} className="p-3 sm:p-3.5 bg-primary-700 text-white rounded-xl hover:bg-primary-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
                   <Send size={20} />
                 </button>
               </div>
               {isRecording && <p className="text-xs text-red-300 mt-2 text-center animate-pulse">Spraakopname actief - spreek nu...</p>}
             </form>
-            {sessionId && (
+            {crisisActief && (
+              <p className="text-center text-xs text-primary-400 mt-2">
+                Dit gesprek is afgerond. Bel of chat met 113 als je nu hulp nodig hebt, ze zijn er dag en nacht voor je.
+              </p>
+            )}
+            {sessionId && !crisisActief && (
               <p className="text-center text-xs text-primary-400 mt-2">
                 Benji leert van elk gesprek.{" "}
                 <button
