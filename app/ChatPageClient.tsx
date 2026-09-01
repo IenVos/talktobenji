@@ -263,18 +263,31 @@ function MomentEmailKaart({ onDone }: { onDone: (email: string, naam: string) =>
  *  bericht; daarna gaat de chat op slot (Benji is niet voor acute crisis). */
 function CrisisHelpKaart({ isNacht }: { isNacht?: boolean }) {
   return (
-    <div className={`w-full max-w-sm rounded-2xl px-5 py-5 shadow-sm border ${isNacht ? "bg-white/90 border-white/40" : "bg-white border-gray-200"}`}>
-      <h3 className="text-base font-bold text-primary-900 mb-1">Je hoeft dit niet alleen te dragen</h3>
-      <p className="text-sm text-primary-700 leading-relaxed mb-4">Er zijn mensen die hier dag en nacht voor je zijn, ook nu. Neem alsjeblieft even contact met ze op.</p>
+    <div className={`w-full max-w-md rounded-2xl px-5 py-5 shadow-sm border ${isNacht ? "bg-white/90 border-white/40" : "bg-white border-gray-200"}`}>
+      <h3 className="text-base font-bold text-primary-900 mb-1 text-center">Je hoeft dit niet alleen te dragen</h3>
+      <p className="text-sm text-primary-700 leading-relaxed mb-4 text-center">Er zijn mensen die hier dag en nacht voor je zijn, ook nu. Neem alsjeblieft even contact met ze op.</p>
+
+      <p className="text-[11px] font-semibold tracking-wide uppercase text-primary-500 mb-1.5">Nederland</p>
       <div className="space-y-2.5">
         <a href="tel:08000113" className="block rounded-xl px-4 py-3 text-center font-semibold text-white transition-colors" style={{ background: "#576b8f" }}>
           Bel 113 &middot; 0800-0113 (gratis, dag en nacht)
         </a>
         <a href="https://www.113.nl" target="_blank" rel="noopener noreferrer" className="block rounded-xl px-4 py-3 text-center font-medium text-primary-800 border border-primary-200 hover:bg-primary-50 transition-colors">
-          Chat via 113.nl
+          Chat op 113.nl
         </a>
       </div>
-      <p className="text-xs text-primary-500 leading-relaxed mt-4">Bij direct levensgevaar: bel 112. In België: Zelfmoordlijn 1813.</p>
+
+      <p className="text-[11px] font-semibold tracking-wide uppercase text-primary-500 mt-4 mb-1.5">België</p>
+      <div className="space-y-2.5">
+        <a href="tel:1813" className="block rounded-xl px-4 py-3 text-center font-semibold text-white transition-colors" style={{ background: "#576b8f" }}>
+          Bel Zelfmoordlijn 1813
+        </a>
+        <a href="https://www.zelfmoord1813.be" target="_blank" rel="noopener noreferrer" className="block rounded-xl px-4 py-3 text-center font-medium text-primary-800 border border-primary-200 hover:bg-primary-50 transition-colors">
+          Chat op zelfmoord1813.be
+        </a>
+      </div>
+
+      <p className="text-xs text-primary-500 leading-relaxed mt-4 text-center">Bij direct levensgevaar: bel 112. Je huisarts kan je ook verder helpen.</p>
     </div>
   );
 }
@@ -1472,7 +1485,6 @@ export default function ChatPageClient({
                           />
                         )}
                       </div>
-                      {heeftCrisisKaart && <CrisisHelpKaart isNacht={isNacht} />}
                       {startParam !== "momenten" && !heeftCrisisKaart && (
                       <div className="flex justify-start pl-1">
                         {msg.feedback === "helpful" ? (
@@ -1508,6 +1520,11 @@ export default function ChatPageClient({
                     </div>
                   )}
                 </div>
+                {heeftCrisisKaart && (
+                  <div key={`crisis-${msg._id}`} className="flex justify-center my-3">
+                    <CrisisHelpKaart isNacht={isNacht} />
+                  </div>
+                )}
                 {showDeviceMemoryCard && (
                   <div key={`device-memory-${msg._id}`} className="flex justify-center my-2">
                     <div className="animate-card-in bg-primary-50 border border-primary-200 rounded-2xl px-4 py-3 max-w-sm w-full shadow-sm">

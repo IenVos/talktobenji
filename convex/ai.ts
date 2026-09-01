@@ -1691,11 +1691,12 @@ function detecteerCrisis(bericht: string): boolean {
   if (CRISIS_UITSLUITINGEN.test(bericht)) return false;
   return CRISIS_PATRONEN.some((re) => re.test(bericht));
 }
-// Vast, warm crisisbericht. De marker [[hulpkaart:crisis]] laat de frontend de
-// hulpkaart tonen en de chat sluiten. Wordt ná alle tekst-transformaties gezet,
-// zodat het telefoonnummer 0800-0113 niet wordt verminkt door de streepjes-strip.
+// Vast, warm crisisbericht. Bewust ZONDER telefoonnummers of links: die staan op
+// de hulpkaart die de marker [[hulpkaart:crisis]] toont. Zo wordt niets dubbel
+// gezegd. Benji erkent warm, zegt dat dit te zwaar is en dat hij hier niet voor is,
+// en verwijst naar mensen in de omgeving of de huisarts.
 const CRISIS_BERICHT =
-  "Ik hoor je, en ik schrik van wat je zegt. Wat je voelt is zwaar en ik neem het serieus. Alleen is dit te belangrijk om met mij alleen te dragen, en daar ben ik ook niet voor. Er zijn mensen die hier dag en nacht voor je zijn, ook nu. Bel of chat alsjeblieft met 113 Zelfmoordpreventie, 0800-0113, gratis en dag en nacht. [[hulpkaart:crisis]]";
+  "Ik hoor je, en het raakt me dat je dit deelt. Wat je voelt is zwaar, en dit is te zwaar en te belangrijk om samen met mij uit te zoeken. Daar ben ik ook niet voor bedoeld. Zoek dit alsjeblieft niet in je eentje uit: praat met mensen in je omgeving die je vertrouwt, of met je huisarts. Zij kunnen je echt de juiste hulp bieden. [[hulpkaart:crisis]]";
 
 // ============================================================================
 // CLAUDE API INTEGRATIE
