@@ -26,7 +26,6 @@ import {
   mailHandtekeningIenBenji,
   ehAfmeldUrl,
   ehAfmeldToken,
-  nietAlleenUrlVoorType,
   persoonlijkOnderwerp,
   persoonlijkeBody,
 } from "./ehMailFooter";
@@ -599,23 +598,17 @@ function metBenjiKnop(bodyText: string): string {
   return alineas.join("\n\n");
 }
 
-// Eigen evergreen-voettekst. Twee smaken, afhankelijk van het spoor:
-//  • gewone evergreen: Niet Alleen-brug (alleen in de laatste mail van een blok).
-//  • Benji-spoor: GEEN Niet Alleen (die funnel richt zich enkel op Benji), maar wél
-//    een zacht linkje naar /wat-kost-benji. Zo is de footer voor élke Benji-mail gelijk.
-// Altijd een rustoptie (alleen maandelijks) én een afmeldlink.
+// Eigen evergreen-voettekst. Eén duidelijke actie: de Benji-knop. Geen Niet Alleen-brug
+// meer (die concurreerde met Benji). Benji-spoor krijgt i.p.v. de knop een zacht linkje
+// naar /wat-kost-benji. Altijd een rustoptie (alleen maandelijks) én een afmeldlink.
 function evergreenFooter(
-  naUrl: string | null,
   rustUrl: string,
   afmeldUrl: string,
   benjiKostUrl: string | null,
   benjiChatUrl: string | null
 ): string {
-  const brug = naUrl
-    ? `<p style="font-size:14px;font-weight:600;color:#3d3530;margin:0 0 12px;"><a href="${naUrl}" style="color:#6d84a8;text-decoration:underline;">Niet Alleen voor jou</a></p>`
-    : "";
   // Zachte Benji-knop met de persoonlijke één-klik-link: brengt de lead direct in zijn
-  // eigen gesprek. Staat op het evergreen-spoor, boven de Niet Alleen-brug.
+  // eigen gesprek. Alleen op het evergreen-spoor.
   const benjiCta = benjiChatUrl
     ? `<p style="margin:0 0 16px;"><a href="${benjiChatUrl}" style="display:inline-block;background:#fdf9f4;color:#9a8168;border:1.5px solid #9a8168;padding:11px 24px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">Verder praten met Benji &rarr;</a></p>`
     : "";
@@ -628,7 +621,6 @@ function evergreenFooter(
     <div style="text-align:center;margin-top:44px;">
       <img src="https://www.talktobenji.com/images/benji-logo-2.png" alt="Talk To Benji" width="42" height="42" style="display:inline-block;width:42px;height:42px;margin:0 0 12px 0;" />
       ${benjiCta}
-      ${brug}
       ${vragenEnKost}
       <p style="font-size:12px;line-height:1.7;color:#a0aec0;margin:26px 0 0 0;border-top:1px solid #ece5dc;padding-top:16px;">
         <a href="${rustUrl}" style="color:#a0aec0;text-decoration:underline;">Liever minder mail? Alleen nog maandelijks</a>
@@ -785,10 +777,8 @@ async function bouwEvergreenHtml(
   }
   stukken.push(...psStukken);
 
-  // Benji-spoor: geen Niet Alleen-brug (die funnel gaat enkel over Benji), wél de
-  // wat-kost-benji-link. Gewone evergreen: Niet Alleen-brug op de laatste mail, geen
-  // Benji-kostlink. Zo krijgt élke Benji-mail dezelfde voettekst.
-  const naUrl = args.isLaatsteVanBlok && !isBenjiSpoor ? nietAlleenUrlVoorType(args.type) : null;
+  // Benji-spoor: wél de wat-kost-benji-link (geen knop). Gewone evergreen: alleen de
+  // Benji-knop, geen Niet Alleen-brug meer. Zo krijgt élke mail dezelfde voettekst.
   const benjiKostUrl = isBenjiSpoor ? `${appBase()}/wat-kost-benji` : null;
   // Benji-knop in de footer alleen op het evergreen-spoor (het Benji-spoor gaat al
   // helemaal over Benji). Gebruikt de eerder gegenereerde persoonlijke link.
@@ -800,7 +790,7 @@ async function bouwEvergreenHtml(
 
   return mailWrapper(`
     ${stukken.join("\n")}
-    ${evergreenFooter(naUrl, rustUrl, afmeldUrl, benjiKostUrl, benjiChatUrl)}
+    ${evergreenFooter(rustUrl, afmeldUrl, benjiKostUrl, benjiChatUrl)}
   `);
 }
 
