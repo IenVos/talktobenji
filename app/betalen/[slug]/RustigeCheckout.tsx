@@ -174,7 +174,12 @@ export function RustigeCheckout({
               <p className="text-base leading-relaxed text-pretty" style={{ color: KLEUR.tekst }}>{hero.intro}</p>
             )}
             <Vinkjes items={hero.bullets} />
-            <p className="text-2xl font-semibold pt-1" style={{ color: KLEUR.titel }}>{hero.prijsLabel || priceFormatted}</p>
+            {/* Bovenste prijs alleen op een volwaardige hero (met knop). Op een kale
+                checkout (hero-knop uit, zoals de €7-proef) staat de prijs al in het
+                overzicht onderaan, dus hier niet nog eens. */}
+            {hero.buttonEnabled !== false && (
+              <p className="text-2xl font-semibold pt-1" style={{ color: KLEUR.titel }}>{hero.prijsLabel || priceFormatted}</p>
+            )}
           </div>
           {hero.buttonEnabled !== false && (
             <button
