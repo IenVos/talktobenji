@@ -118,7 +118,6 @@ export function mailHandtekeningIenBenji(): string {
         </td>
         <td style="vertical-align: middle;">
           <p style="font-size: 15px; font-weight: 600; color: #2d3748; margin: 0;">Ien &amp; Benji</p>
-          <p style="font-size: 13px; color: #718096; margin: 3px 0 0 0;">Talk To Benji</p>
         </td>
       </tr>
     </table>`;
