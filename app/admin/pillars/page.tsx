@@ -736,7 +736,7 @@ export default function AdminPillarsPage() {
               </label>
             </div>
 
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="flex flex-wrap gap-2 pt-3 pb-3 sticky bottom-0 z-10 -mx-6 px-6 bg-white/95 backdrop-blur border-t border-primary-100">
               <button type="button" onClick={handleSave} disabled={saving || !form.slug.trim() || !form.title.trim()}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50">
                 <Save size={18} />
