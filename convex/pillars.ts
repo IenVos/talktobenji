@@ -207,8 +207,12 @@ export const listSlugs = query({
     const pillars = await ctx.db.query("pillars")
       .filter((q) => q.eq(q.field("isLive"), true))
       .collect();
+    // Sorteer op _creationTime (onveranderlijke insert-tijd), NIET op createdAt.
+    // createdAt is bewerkbaar (bijv. publicatiedatum aanpassen); dat mag de
+    // kleurtoewijzing per pillar op /blog niet verschuiven. Zo houdt elke pillar
+    // stabiel zijn eigen kleur.
     return pillars
-      .sort((a, b) => a.createdAt - b.createdAt)
+      .sort((a, b) => a._creationTime - b._creationTime)
       .map((p) => p.slug);
   },
 });
