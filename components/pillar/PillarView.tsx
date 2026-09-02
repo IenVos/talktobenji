@@ -254,14 +254,22 @@ export default function PillarView({ pillar, articles, ctaData, ctaMap, anchorDa
     })),
   };
 
+  // Structured data (FAQPage) krijgt schone prozatekst: markdown-links en opmaak
+  // eruit, zodat er geen "[tekst](/pad)" of "**" in de zoekmachine-data belandt.
+  const stripMarkdown = (s: string) =>
+    s
+      .replace(/\[([^\]]+)\]\((?:https?:\/\/[^)]+|\/[^)]*)\)/g, "$1")
+      .replace(/\*\*(.+?)\*\*/g, "$1")
+      .replace(/\*(.+?)\*/g, "$1");
+
   const faqSchema = pillar.faqItems?.length
     ? {
         "@context": "https://schema.org",
         "@type": "FAQPage",
         mainEntity: pillar.faqItems.map((f: any) => ({
           "@type": "Question",
-          name: f.question,
-          acceptedAnswer: { "@type": "Answer", text: f.answer },
+          name: stripMarkdown(f.question),
+          acceptedAnswer: { "@type": "Answer", text: stripMarkdown(f.answer) },
         })),
       }
     : null;
