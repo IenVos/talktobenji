@@ -448,7 +448,7 @@ export default function PillarView({ pillar, articles, ctaData, ctaMap, anchorDa
                   </summary>
                   <div className="px-5 pb-5 -mt-1 space-y-3">
                     {faq.answer.split("\n\n").filter(Boolean).map((para: string, j: number) => (
-                      <p key={j} className="text-stone-600 leading-relaxed text-[15px]" style={{ whiteSpace: "pre-line" }}>{para.trim()}</p>
+                      <p key={j} className="text-stone-600 leading-relaxed text-[15px]" style={{ whiteSpace: "pre-line" }}>{renderInlineAll(para.trim(), undefined, undefined, undefined, new Set())}</p>
                     ))}
                   </div>
                 </details>
