@@ -53,6 +53,7 @@ export default async function WaaromBenjiPage() {
       ctaMap={ctaMap}
       anchorData={anchorData}
       canonicalUrl={CANONICAL}
+      showBottomCta={(pillar as any).ctaKey !== "none"}
     />
   );
 }

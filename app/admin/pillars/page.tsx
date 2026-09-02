@@ -474,6 +474,7 @@ export default function AdminPillarsPage() {
                   className={inputClass}
                 >
                   <option value="">— Standaard —</option>
+                  <option value="none">— Uit (geen CTA-blok) —</option>
                   {(ctaBlocks ?? []).map((c: any) => (
                     <option key={c._id} value={c.key}>{c.label || c.key}</option>
                   ))}

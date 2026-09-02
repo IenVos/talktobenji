@@ -224,9 +224,11 @@ type PillarViewProps = {
   ctaMap: Map<string, any>;
   anchorData: AnchorEntry[];
   canonicalUrl: string;
+  // false = geen CTA-blok onderaan de pagina (ctaKey "none"). Inline [cta] blijft wel werken.
+  showBottomCta?: boolean;
 };
 
-export default function PillarView({ pillar, articles, ctaData, ctaMap, anchorData, canonicalUrl }: PillarViewProps) {
+export default function PillarView({ pillar, articles, ctaData, ctaMap, anchorData, canonicalUrl, showBottomCta = true }: PillarViewProps) {
   const pillarSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -453,7 +455,7 @@ export default function PillarView({ pillar, articles, ctaData, ctaMap, anchorDa
           </div>
         )}
 
-        <CtaBlockA data={ctaData} />
+        {showBottomCta && <CtaBlockA data={ctaData} />}
       </div>
       <SiteFooter variant="dark" />
     </div>

@@ -62,6 +62,7 @@ export default async function PillarPage({ params }: Props) {
       ctaMap={ctaMap}
       anchorData={anchorData}
       canonicalUrl={`https://www.talktobenji.com/thema/${pillar.slug}`}
+      showBottomCta={(pillar as any).ctaKey !== "none"}
     />
   );
 }
