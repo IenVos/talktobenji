@@ -1,0 +1,463 @@
+import Link from "next/link";
+import { CtaBlockA } from "@/components/blog/CtaBlock";
+import { AuthorCard } from "@/components/blog/AuthorCard";
+import { BenjiTeaserReflectie, BenjiTeaserNacht, BenjiTeaserLanding, BenjiTeaserHerinnering, BenjiTeaserEmotie, BenjiTeaserCheckin, BenjiTeaserMemories } from "@/components/blog/BenjiTeaser";
+import { SiteFooter } from "@/components/SiteFooter";
+import { HeaderBar } from "@/components/chat/HeaderBar";
+
+// Gedeeld pillar-template. Wordt gebruikt door /thema/[slug] én /waarom-benji, zodat
+// beide er identiek uitzien. De canonieke URL verschilt per pagina (canonicalUrl-prop).
+
+function headingId(text: string) {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().replace(/\s+/g, "-").slice(0, 60);
+}
+
+function extractTOC(content: string) {
+  return content
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/([^\n])\n(#{1,6}\s)/g, "$1\n\n$2")
+    .split(/\n\n+/)
+    .filter(b => b.startsWith("## "))
+    .map(b => ({ text: b.slice(3), id: headingId(b.slice(3)) }));
+}
+
+function renderInlineCta(data: any, key: number) {
+  const bg = data?.bgColor || "#f5f0eb";
+  const btnColor = data?.buttonColor || "#6d84a8";
+  const borderStyle = data?.borderColor ? { border: `2px solid ${data.borderColor}` } : {};
+  const href = data?.buttonUrl?.trim() || "/benji";
+  return (
+    <div key={key} style={{ background: bg, borderRadius: "14px", padding: "20px 24px", margin: "24px 0", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const, ...borderStyle }}>
+      <div>
+        <p style={{ fontWeight: 600, fontSize: "15px", marginBottom: "2px", color: "color-mix(in srgb, #000 75%, " + bg + ")" }}>{data?.title || "Wil je hierover praten?"}</p>
+        <p style={{ fontSize: "13px", color: "color-mix(in srgb, #000 50%, " + bg + ")" }}>{data?.body || "Benji luistert — dag en nacht beschikbaar."}</p>
+      </div>
+      <a href={href} style={{ background: btnColor, color: "#fff", fontWeight: 600, fontSize: "13px", padding: "8px 16px", borderRadius: "9px", textDecoration: "none", whiteSpace: "nowrap" as const }}>
+        {data?.buttonText || "Begin een gesprek →"}
+      </a>
+    </div>
+  );
+}
+
+type AnchorEntry = { slug: string; pillarSlug?: string | null; anchorPhrases: string[]; isPillar?: boolean };
+
+const AL_WORD_RE = /[\p{L}\p{N}]/u;
+function findWholeWordIndex(hayLower: string, needleLower: string): number {
+  let from = 0;
+  for (;;) {
+    const idx = hayLower.indexOf(needleLower, from);
+    if (idx === -1) return -1;
+    const before = idx > 0 ? hayLower[idx - 1] : "";
+    const after = hayLower[idx + needleLower.length] ?? "";
+    if ((!before || !AL_WORD_RE.test(before)) && (!after || !AL_WORD_RE.test(after))) return idx;
+    from = idx + 1;
+  }
+}
+
+function renderInlineAll(
+  text: string,
+  anchorData: AnchorEntry[] | undefined,
+  currentSlug: string | undefined,
+  currentPillar: string | null | undefined,
+  used: Set<string>
+): React.ReactNode {
+  const candidates = (anchorData?.length && currentSlug)
+    ? anchorData
+        .filter(a => {
+          if (a.slug === currentSlug) return false;
+          if (a.isPillar) return currentPillar === a.slug;
+          return a.pillarSlug === currentPillar || (!a.pillarSlug && !currentPillar);
+        })
+        .flatMap(a => a.anchorPhrases.map(p => ({ phrase: p, slug: a.slug, isPillar: a.isPillar ?? false })))
+        .sort((a, b) => b.phrase.length - a.phrase.length)
+    : [];
+
+  function linkText(t: string): React.ReactNode {
+    if (!candidates.length) return t;
+    type S = { start: number; end: number; node: React.ReactNode };
+    const s: S[] = [];
+    const lower = t.toLowerCase();
+    for (const { phrase, slug, isPillar } of candidates) {
+      if (used.has(phrase)) continue;
+      const idx = findWholeWordIndex(lower, phrase.toLowerCase());
+      if (idx === -1) continue;
+      if (s.some(x => idx < x.end && idx + phrase.length > x.start)) continue;
+      used.add(phrase);
+      const href = isPillar ? `/thema/${slug}` : `/blog/${slug}`;
+      s.push({ start: idx, end: idx + phrase.length, node: <Link key={`al${idx}`} href={href} className="text-primary-600 underline underline-offset-2 hover:text-primary-800">{t.slice(idx, idx + phrase.length)}</Link> });
+    }
+    if (!s.length) return t;
+    s.sort((a, b) => a.start - b.start);
+    const parts: React.ReactNode[] = [];
+    let pos = 0;
+    for (const seg of s) {
+      if (seg.start < pos) continue;
+      if (seg.start > pos) parts.push(t.slice(pos, seg.start));
+      parts.push(seg.node);
+      pos = seg.end;
+    }
+    if (pos < t.length) parts.push(t.slice(pos));
+    return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
+  }
+
+  type Seg = { start: number; end: number; node: React.ReactNode };
+  const segs: Seg[] = [];
+  const mdRe = /(\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\((https?:\/\/[^)]+|\/[^)]*)\))/g;
+  let m;
+  while ((m = mdRe.exec(text)) !== null) {
+    if (m[0].startsWith("**"))
+      segs.push({ start: m.index, end: m.index + m[0].length, node: <strong key={`b${m.index}`} className="font-semibold text-stone-800">{linkText(m[2])}</strong> });
+    else if (m[0].startsWith("*"))
+      segs.push({ start: m.index, end: m.index + m[0].length, node: <em key={`i${m.index}`}>{linkText(m[3])}</em> });
+    else
+      segs.push({ start: m.index, end: m.index + m[0].length, node: <a key={`l${m.index}`} href={m[5]} className="text-primary-600 underline underline-offset-2">{m[4]}</a> });
+  }
+
+  if (!segs.length) return linkText(text);
+  segs.sort((a, b) => a.start - b.start);
+  const parts: React.ReactNode[] = [];
+  let pos = 0;
+  for (const seg of segs) {
+    if (seg.start < pos) continue;
+    if (seg.start > pos) parts.push(linkText(text.slice(pos, seg.start)));
+    parts.push(seg.node);
+    pos = seg.end;
+  }
+  if (pos < text.length) parts.push(linkText(text.slice(pos)));
+  return parts.length === 1 && typeof parts[0] === "string" ? parts[0] : <>{parts}</>;
+}
+
+function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>, anchorData?: AnchorEntry[], currentSlug?: string, currentPillar?: string | null): React.ReactNode[] {
+  const used = new Set<string>();
+  const ri = (text: string) => renderInlineAll(text, anchorData, currentSlug, currentPillar, used);
+  const blocks = content
+    .replace(/\n{3,}/g, "\n\n__SPACER__\n\n")
+    .replace(/([^\n])\n(#{1,6}\s)/g, "$1\n\n$2")
+    .split(/\n\n+/);
+  return blocks.map((block, i) => {
+    if (block.trim() === "__SPACER__") {
+      return <div key={i} className="h-6" />;
+    }
+    const benjiMatch = block.trim().match(/^\[benji:([^\]]+)\]$/);
+    if (benjiMatch) {
+      if (benjiMatch[1] === "reflectie") return <BenjiTeaserReflectie key={i} />;
+      if (benjiMatch[1] === "nacht") return <BenjiTeaserNacht key={i} />;
+      if (benjiMatch[1] === "landing") return <BenjiTeaserLanding key={i} />;
+      if (benjiMatch[1] === "herinnering") return <BenjiTeaserHerinnering key={i} />;
+      if (benjiMatch[1] === "emotie") return <BenjiTeaserEmotie key={i} />;
+      if (benjiMatch[1] === "checkin") return <BenjiTeaserCheckin key={i} />;
+      if (benjiMatch[1] === "memories") return <BenjiTeaserMemories key={i} />;
+    }
+    const ctaMatch = block.trim().match(/^\[cta(?::([^\]]+))?\]$/);
+    if (ctaMatch) {
+      const key = ctaMatch[1];
+      const data = key ? (ctaMap?.get(key) ?? ctaData) : ctaData;
+      return <CtaBlockA key={i} data={data} />;
+    }
+    const videoMatch = block.trim().match(/^\[video:(.+)\]$/);
+    if (videoMatch) {
+      const inner = videoMatch[1];
+      const isCenter = inner.endsWith(":center");
+      const videoSrc = isCenter ? inner.slice(0, -7) : inner;
+      return isCenter ? (
+        <div key={i} className="my-6 flex justify-center">
+          <video src={videoSrc} controls playsInline
+            className="rounded-xl max-h-[480px] w-auto max-w-full"
+            style={{ maxWidth: "60%" }}
+          />
+        </div>
+      ) : (
+        <video key={i} src={videoSrc} controls playsInline
+          className="w-auto max-w-full rounded-xl my-6 max-h-[480px] mx-auto block"
+        />
+      );
+    }
+    if (block.startsWith("### ")) return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
+    if (block.startsWith("## ")) { const t = block.slice(3); return <h3 key={i} id={headingId(t)} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{t}</h3>; }
+    if (block.startsWith("# ")) return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
+    const lines = block.split("\n").filter(Boolean);
+    if (lines.length > 0 && lines.every(l => l.startsWith("> "))) {
+      return (
+        <blockquote key={i} className="border-l-4 border-primary-400 pl-5 pr-4 py-3 my-5 space-y-1 bg-primary-50 rounded-r-xl">
+          {lines.map((l, j) => <p key={j} className="text-stone-600 italic leading-relaxed text-[17px]">{ri(l.slice(2))}</p>)}
+        </blockquote>
+      );
+    }
+    if (lines.length > 0 && lines.every(l => l.startsWith("✓ "))) {
+      return (
+        <ul key={i} className="my-4 space-y-2">
+          {lines.map((l, j) => (
+            <li key={j} className="flex items-start gap-2.5">
+              <span className="text-primary-600 font-bold mt-0.5 flex-shrink-0">✓</span>
+              <span className="text-stone-600 leading-relaxed text-[17px]">{ri(l.slice(2))}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    if (lines.length > 0 && lines.every(l => l.startsWith("- ") || l.startsWith("* "))) {
+      return (
+        <ul key={i} className="my-4 space-y-2">
+          {lines.map((l, j) => (
+            <li key={j} className="flex items-start gap-2.5">
+              <span className="text-stone-400 mt-1 flex-shrink-0">•</span>
+              <span className="text-stone-600 leading-relaxed text-[17px]">{ri(l.slice(2))}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    return (
+      <div key={i} className="space-y-3">
+        {lines.map((line, j) => (
+          <p key={j} className="text-stone-600 leading-relaxed text-[17px]">{ri(line)}</p>
+        ))}
+      </div>
+    );
+  });
+}
+
+type PillarViewProps = {
+  pillar: any;
+  articles: any[];
+  ctaData: any;
+  ctaMap: Map<string, any>;
+  anchorData: AnchorEntry[];
+  canonicalUrl: string;
+};
+
+export default function PillarView({ pillar, articles, ctaData, ctaMap, anchorData, canonicalUrl }: PillarViewProps) {
+  const pillarSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: pillar.title,
+    description: pillar.metaDescription,
+    url: canonicalUrl,
+    inLanguage: "nl-NL",
+    datePublished: new Date(pillar.createdAt).toISOString(),
+    dateModified: new Date(pillar.updatedAt).toISOString(),
+    publisher: {
+      "@type": "Organization",
+      name: "Talk To Benji",
+      url: "https://www.talktobenji.com",
+      logo: { "@type": "ImageObject", url: "https://www.talktobenji.com/images/benji-logo-2.png" },
+    },
+    hasPart: (articles as any[]).map((a) => ({
+      "@type": "Article",
+      headline: a.title,
+      url: `https://www.talktobenji.com/blog/${a.slug}`,
+      datePublished: a.publishedAt ? new Date(a.publishedAt).toISOString() : undefined,
+    })),
+  };
+
+  const faqSchema = pillar.faqItems?.length
+    ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: pillar.faqItems.map((f: any) => ({
+          "@type": "Question",
+          name: f.question,
+          acceptedAnswer: { "@type": "Answer", text: f.answer },
+        })),
+      }
+    : null;
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: "https://www.talktobenji.com" },
+      { "@type": "ListItem", position: 2, name: "Blog", item: "https://www.talktobenji.com/blog" },
+      { "@type": "ListItem", position: 3, name: pillar.title, item: canonicalUrl },
+    ],
+  };
+
+  return (
+    <div className="min-h-screen bg-stone-50">
+      <HeaderBar />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pillarSchema) }} />
+      {faqSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      )}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        <nav className="text-xs text-stone-400 mb-8 flex items-center gap-1.5">
+          <Link href="/" className="hover:text-primary-600">Home</Link>
+          <span>›</span>
+          <Link href="/blog" className="hover:text-primary-600">Blog</Link>
+          <span>›</span>
+          <span className="text-stone-500">{pillar.title}</span>
+        </nav>
+
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold text-stone-800 mb-4 leading-tight">
+            {pillar.title}
+          </h1>
+          <AuthorCard />
+
+          {(() => {
+            const fmt = (ms: number) => new Date(ms).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
+            const created = pillar.createdAt as number | undefined;
+            const updated = pillar.updatedAt as number | undefined;
+            if (!created) return null;
+            const sameDay = updated ? new Date(created).toDateString() === new Date(updated).toDateString() : true;
+            return (
+              <p className="text-xs text-stone-400 -mt-4 mb-6">
+                Gepubliceerd op {fmt(created)}
+                {!sameDay && updated ? ` · Bijgewerkt op ${fmt(updated)}` : ""}
+              </p>
+            );
+          })()}
+
+          {pillar.excerpt && (
+            <div className="mt-6 mb-6 p-4 bg-primary-50 border-l-4 border-primary-400 rounded-r-xl">
+              <p className="text-xs font-semibold text-primary-700 uppercase tracking-wide mb-2">In het kort</p>
+              <div className="space-y-3">
+                {pillar.excerpt.split("\n\n").filter(Boolean).map((para: string, i: number) => (
+                  <p key={i} className="text-stone-600 leading-relaxed text-[15px]" style={{ whiteSpace: "pre-line" }}>{para.trim()}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {pillar.excerptCtaKey && (() => {
+            const d = ctaMap.get(pillar.excerptCtaKey);
+            return d ? renderInlineCta(d, -1) : null;
+          })()}
+
+          {pillar.coverImageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={pillar.coverImageUrl} alt={pillar.title} className="w-full rounded-2xl mb-6 object-cover max-h-72" />
+          )}
+        </div>
+
+        {/* Inhoudsopgave */}
+        {pillar.content && (() => {
+          const toc = extractTOC(pillar.content!);
+          if (toc.length < 3) return null;
+          return (
+            <div className="mb-8 p-4 bg-stone-100 rounded-xl border border-stone-200">
+              <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-3">In dit artikel</p>
+              <ol className="space-y-1.5 list-decimal list-inside">
+                {toc.map((h, i) => (
+                  <li key={i}>
+                    <a href={`#${h.id}`} className="text-sm text-primary-600 hover:underline">{h.text}</a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          );
+        })()}
+
+        {/* Pillar content */}
+        {pillar.content && (
+          <div className="mb-12 space-y-5">
+            {renderContent(pillar.content, ctaData, ctaMap, anchorData, pillar.slug, pillar.slug)}
+          </div>
+        )}
+
+        {/* Interne links */}
+        {pillar.internalLinks && pillar.internalLinks.filter((l: any) => l.label && l.slug).length > 0 && (
+          <div className="mt-2 mb-10 p-5 bg-primary-50 rounded-2xl border border-primary-100">
+            <p className="text-sm font-semibold text-primary-800 mb-3">Lees ook</p>
+            <ul className="space-y-2">
+              {pillar.internalLinks.filter((l: any) => l.label && l.slug).map((link: any, i: number) => (
+                <li key={i}>
+                  <Link href={`/blog/${link.slug}`} className="text-primary-600 hover:underline text-sm">
+                    → {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Bronnen */}
+        {pillar.sources && (
+          <div className="mt-2 mb-12 p-5 bg-stone-50 rounded-2xl border border-stone-200">
+            <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Bronnen</p>
+            <ul className="space-y-1">
+              {pillar.sources.split("\n").filter(Boolean).map((source: string, i: number) => (
+                <li key={i} className="text-sm italic text-stone-400 leading-relaxed">
+                  {source.startsWith("http") ? (
+                    <a href={source} target="_blank" rel="noopener noreferrer" className="hover:text-primary-600 underline underline-offset-2">{source}</a>
+                  ) : source}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Artikelen — max 4, rest via /artikelen */}
+        {(articles as any[]).length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-stone-800">Artikelen over {pillar.title}</h2>
+              {(articles as any[]).length > 4 && (
+                <Link href={`/thema/${pillar.slug}/artikelen`} className="text-sm text-primary-600 hover:text-primary-800 transition-colors whitespace-nowrap">
+                  Bekijk alle {(articles as any[]).length} artikelen →
+                </Link>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {(articles as any[]).slice(0, 4).map((post) => (
+                <Link key={post._id} href={`/blog/${post.slug}`} className="group bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow">
+                  {post.coverImageUrl && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={post.coverImageUrl} alt={post.title} loading="lazy" decoding="async" className="w-full h-40 object-cover" />
+                  )}
+                  <div className="p-5">
+                    {post.publishedAt && (
+                      <p className="text-xs text-stone-400 mb-2">
+                        {new Date(post.publishedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
+                      </p>
+                    )}
+                    <h3 className="font-semibold text-stone-800 leading-snug mb-2 group-hover:text-primary-600 transition-colors">{post.title}</h3>
+                    {post.excerpt && (<p className="text-sm text-stone-500 line-clamp-2">{post.excerpt}</p>)}
+                    <span className="mt-3 inline-block text-sm text-primary-600 border border-primary-200 px-3 py-1 rounded-lg">Lees verder →</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {(articles as any[]).length > 4 && (
+              <div className="mt-6 text-center">
+                <Link href={`/thema/${pillar.slug}/artikelen`} className="inline-block text-sm text-primary-600 border border-primary-200 rounded-xl px-5 py-2.5 hover:bg-primary-50 transition-colors">
+                  Bekijk alle {(articles as any[]).length} artikelen →
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Veelgestelde vragen */}
+        {pillar.faqItems?.length > 0 && (
+          <div className="mt-14">
+            <h2 className="text-xl font-bold text-stone-800 mb-5">Veelgestelde vragen</h2>
+            <div className="space-y-3">
+              {pillar.faqItems.map((faq: any, i: number) => (
+                <details key={i} className="group bg-white rounded-2xl border border-stone-200 overflow-hidden">
+                  <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-5 py-4 font-semibold text-stone-800 hover:text-primary-600 transition-colors">
+                    <span>{faq.question}</span>
+                    <span className="text-primary-400 flex-shrink-0 transition-transform group-open:rotate-45 text-xl leading-none">+</span>
+                  </summary>
+                  <div className="px-5 pb-5 -mt-1 space-y-3">
+                    {faq.answer.split("\n\n").filter(Boolean).map((para: string, j: number) => (
+                      <p key={j} className="text-stone-600 leading-relaxed text-[15px]" style={{ whiteSpace: "pre-line" }}>{para.trim()}</p>
+                    ))}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <CtaBlockA data={ctaData} />
+      </div>
+      <SiteFooter variant="dark" />
+    </div>
+  );
+}
+
+export type { AnchorEntry };
