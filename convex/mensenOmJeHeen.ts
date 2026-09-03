@@ -20,6 +20,9 @@ export const upsertFilterButton = mutation({
     id: v.optional(v.id("t2p_filterbuttons")),
     tagId: v.string(),
     tekst: v.string(),
+    titel: v.optional(v.string()),
+    beschrijving: v.optional(v.string()),
+    linkTekst: v.optional(v.string()),
     iconNaam: v.string(),
     volgorde: v.number(),
     zichtbaar: v.boolean(),
@@ -28,7 +31,8 @@ export const upsertFilterButton = mutation({
     await checkAdmin(ctx, args.adminToken);
     const { adminToken, id, ...data } = args;
     if (id) {
-      await ctx.db.patch(id, data);
+      const patchData = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+      await ctx.db.patch(id, patchData);
       return id;
     }
     return ctx.db.insert("t2p_filterbuttons", data);

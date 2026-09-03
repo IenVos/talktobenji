@@ -1337,7 +1337,10 @@ export default defineSchema({
   // Talk To People — filterbuttons
   t2p_filterbuttons: defineTable({
     tagId: v.string(),      // "lezen" | "praten" | "groep" | "ander" | custom
-    tekst: v.string(),
+    tekst: v.string(),                    // korte fallback-tekst (oud)
+    titel: v.optional(v.string()),        // kaart-titel (vet)
+    beschrijving: v.optional(v.string()), // kaart-tekst eronder
+    linkTekst: v.optional(v.string()),    // link-regel met pijl
     iconNaam: v.string(),   // "heart" | "chat" | "users" | "blog" | "paw" | "leaf"
     volgorde: v.number(),
     zichtbaar: v.boolean(),

@@ -12,6 +12,9 @@ type FilterButton = {
   _id: Id<"t2p_filterbuttons">;
   tagId: string;
   tekst: string;
+  titel?: string;
+  beschrijving?: string;
+  linkTekst?: string;
   iconNaam: string;
   volgorde: number;
   zichtbaar: boolean;
@@ -81,6 +84,9 @@ function FilterButtonRij({ fb, isFirst, isLast, onSave, onDelete, onToggle, onMo
   onMoveDown: () => void;
 }) {
   const [tekst, setTekst] = useState(fb.tekst);
+  const [titel, setTitel] = useState(fb.titel ?? "");
+  const [beschrijving, setBeschrijving] = useState(fb.beschrijving ?? "");
+  const [linkTekst, setLinkTekst] = useState(fb.linkTekst ?? "");
   const [iconNaam, setIconNaam] = useState(fb.iconNaam);
   const [dirty, setDirty] = useState(false);
 
@@ -91,7 +97,7 @@ function FilterButtonRij({ fb, isFirst, isLast, onSave, onDelete, onToggle, onMo
           <button onClick={onMoveUp} disabled={isFirst} className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-30"><ChevronUp size={14} /></button>
           <button onClick={onMoveDown} disabled={isLast} className="p-0.5 text-gray-400 hover:text-gray-700 disabled:opacity-30"><ChevronDown size={14} /></button>
         </div>
-        <input value={tekst} onChange={(e) => { setTekst(e.target.value); setDirty(true); }} placeholder="Knoptekst" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-300" />
+        <input value={titel} onChange={(e) => { setTitel(e.target.value); setDirty(true); }} placeholder="Titel (bijv. Mijn relatie is voorbij)" className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-300" />
         <div className="flex items-center gap-1">
           <button onClick={() => onToggle(fb._id, !fb.zichtbaar)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700" title={fb.zichtbaar ? "Verberg" : "Zichtbaar"}>
             {fb.zichtbaar ? <Eye size={16} /> : <EyeOff size={16} />}
@@ -99,9 +105,11 @@ function FilterButtonRij({ fb, isFirst, isLast, onSave, onDelete, onToggle, onMo
           <button onClick={() => onDelete(fb._id)} className="p-1.5 rounded-lg text-red-400 hover:text-red-600"><Trash2 size={16} /></button>
         </div>
       </div>
+      <textarea value={beschrijving} onChange={(e) => { setBeschrijving(e.target.value); setDirty(true); }} placeholder="Beschrijving (het stukje onder de titel)" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-primary-300" />
+      <input value={linkTekst} onChange={(e) => { setLinkTekst(e.target.value); setDirty(true); }} placeholder="Link-regel (bijv. Bekijk wat er is)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-300" />
       <IcoonKiezer waarde={iconNaam} onChange={(v) => { setIconNaam(v); setDirty(true); }} />
       {dirty && (
-        <button onClick={() => { onSave(fb._id, { tekst, iconNaam }); setDirty(false); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700">
+        <button onClick={() => { onSave(fb._id, { tekst: titel || tekst, titel, beschrijving, linkTekst, iconNaam }); setDirty(false); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700">
           <Save size={13} />Opslaan
         </button>
       )}
@@ -645,7 +653,7 @@ export default function MensenOmJeHeenAdminPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold text-gray-900">Filterbuttons</h2>
-            <p className="text-xs text-gray-500 mt-0.5">De keuzebuttons bovenaan de pagina. Kies een icoon en typ de knoptekst.</p>
+            <p className="text-xs text-gray-500 mt-0.5">De keuze-kaartjes bovenaan de pagina. Per kaartje: titel, beschrijving, link-regel en icoon. Klik = door naar de resultaten.</p>
           </div>
           {filterButtons !== undefined && filterButtons.length === 0 && (
             <button onClick={() => seedFilterButtons({})} className="px-3 py-1.5 text-xs bg-primary-50 text-primary-700 border border-primary-200 rounded-lg hover:bg-primary-100">
@@ -658,7 +666,7 @@ export default function MensenOmJeHeenAdminPage() {
           {[...(filterButtons ?? [])].sort((a, b) => a.volgorde - b.volgorde).map((fb, idx, arr) => (
             <FilterButtonRij key={fb._id} fb={fb}
               isFirst={idx === 0} isLast={idx === arr.length - 1}
-              onSave={(id, data) => upsertFilterButton({ id, tagId: data.tagId ?? fb.tagId, tekst: data.tekst ?? fb.tekst, iconNaam: data.iconNaam ?? fb.iconNaam, volgorde: data.volgorde ?? fb.volgorde, zichtbaar: data.zichtbaar ?? fb.zichtbaar })}
+              onSave={(id, data) => upsertFilterButton({ id, tagId: data.tagId ?? fb.tagId, tekst: data.tekst ?? fb.tekst, titel: data.titel ?? fb.titel, beschrijving: data.beschrijving ?? fb.beschrijving, linkTekst: data.linkTekst ?? fb.linkTekst, iconNaam: data.iconNaam ?? fb.iconNaam, volgorde: data.volgorde ?? fb.volgorde, zichtbaar: data.zichtbaar ?? fb.zichtbaar })}
               onDelete={(id) => { if (confirm("Filterbutton verwijderen?")) deleteFilterButton({ id }); }}
               onToggle={(id, z) => upsertFilterButton({ id, tagId: fb.tagId, tekst: fb.tekst, iconNaam: fb.iconNaam, volgorde: fb.volgorde, zichtbaar: z })}
               onMoveUp={async () => {

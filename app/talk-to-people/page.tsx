@@ -194,7 +194,7 @@ export default function MensenOmJeHeenPage() {
   const paginaTeksten = useQuery(api.mensenOmJeHeen.getPaginaTeksten, {});
   const categorieen = useQuery(api.mensenOmJeHeen.listCategorieen, {}) as Categorie[] | undefined;
   const alleInitiatieven = useQuery(api.mensenOmJeHeen.listInitiatieven, {}) as Initiatief[] | undefined;
-  const rawFilterButtons = useQuery(api.mensenOmJeHeen.listFilterButtons, {}) as { _id: string; tagId: string; tekst: string; iconNaam: string; volgorde: number; zichtbaar: boolean }[] | undefined;
+  const rawFilterButtons = useQuery(api.mensenOmJeHeen.listFilterButtons, {}) as { _id: string; tagId: string; tekst: string; titel?: string; beschrijving?: string; linkTekst?: string; iconNaam: string; volgorde: number; zichtbaar: boolean }[] | undefined;
 
   const heroTitel = paginaTeksten?.hero_titel ?? "Er zijn mensen die begrijpen wat jij doormaakt.";
   const heroSubtitel = paginaTeksten?.hero_subtitel ?? "Hier vind je initiatieven, groepen en mensen die er voor je zijn — voor elk soort verlies.";
@@ -208,7 +208,16 @@ export default function MensenOmJeHeenPage() {
     rawFilterButtons && rawFilterButtons.length > 0
       ? [...rawFilterButtons].filter((f) => f.zichtbaar).sort((a, b) => a.volgorde - b.volgorde)
       : FILTER_HARDCODED
-  ).map((f) => ({ id: "tagId" in f ? f.tagId : (f as any).id, label: f.tekst, icon: ICON_MAP[f.iconNaam] ?? <IconHeart /> }));
+  ).map((f) => {
+    const af = f as any;
+    return {
+      id: ("tagId" in f ? f.tagId : af.id) as string,
+      label: ((af.titel && String(af.titel).trim()) || f.tekst) as string,
+      beschrijving: (af.beschrijving ?? "") as string,
+      linkTekst: ((af.linkTekst && String(af.linkTekst).trim()) || "Bekijk wat er is") as string,
+      icon: ICON_MAP[f.iconNaam] ?? <IconHeart />,
+    };
+  });
 
   const zichtbareCats = (categorieen ?? []).filter((c) => c.zichtbaar);
   const zichtbareInits = (alleInitiatieven ?? []).filter((i) => i.zichtbaar);
@@ -244,21 +253,30 @@ export default function MensenOmJeHeenPage() {
       {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
       {!actieveFilter && (
         <section className="w-full" style={{ background: filterKleur }}>
-          <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-14">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-12 pb-16">
             <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
               Wat past het beste bij jou nu?
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filterOpties.map((optie) => (
                 <button
                   key={optie.id}
                   onClick={() => kiesFilter(optie.id)}
-                  className="flex items-center gap-3 text-left px-4 py-4 rounded-xl border border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm transition-all"
+                  className="group text-left flex flex-col rounded-2xl p-6 bg-white border border-primary-100 hover:shadow-md transition-all"
                 >
-                  <div className="w-10 h-10 rounded-xl text-white flex items-center justify-center flex-shrink-0" style={{ background: iconKleur }}>
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0 mb-4" style={{ background: iconKleur }}>
                     {optie.icon}
                   </div>
-                  <span className="text-sm text-primary-900 leading-snug font-medium">{optie.label}</span>
+                  <p className="text-base font-bold text-primary-900 mb-2 leading-snug">{optie.label}</p>
+                  {optie.beschrijving && (
+                    <p className="text-sm text-primary-600 leading-relaxed flex-1">{optie.beschrijving}</p>
+                  )}
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 group-hover:text-primary-900 transition-colors">
+                    {optie.linkTekst}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} className="group-hover:translate-x-0.5 transition-transform">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
                 </button>
               ))}
             </div>
