@@ -82,11 +82,15 @@ crons.daily(
   {}
 );
 
-// Evergreen funnel — één keer per dag. Elke lead krijgt hoogstens één mail per dag,
-// op basis van zijn eigen instroomdag. Doet niets tot env EVERGREEN_ACTIEF === "true".
+// Evergreen funnel — één keer per dag in de OCHTEND. Elke lead krijgt hoogstens één
+// mail per dag, op basis van zijn eigen instroomdag. Doet niets tot env
+// EVERGREEN_ACTIEF === "true". Verstuurt ook de €7-koopmail (laatste benji-mail).
+// 07:00 UTC = 09:00 NL zomer / 08:00 NL winter. De verzending wordt in
+// processEvergreen begrensd tot max ~45 min, zodat alles vóór 10:00 NL de deur uit is
+// (geen nachtelijke staart meer).
 crons.daily(
   "evergreen funnel",
-  { hourUTC: 16, minuteUTC: 30 },
+  { hourUTC: 7, minuteUTC: 0 },
   internal.evergreen.processEvergreen,
   {}
 );

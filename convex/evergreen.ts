@@ -1306,7 +1306,7 @@ export const processEvergreen = internalAction({
 
     // Eerst nieuwe EH-doorlopers laten instromen (losgekoppeld van de reactivatie),
     // daarna pas de verzending plannen. Nieuw ingestroomde leads staan op dag 1, dus
-    // ze krijgen vanavond nog niets (eerste mail op dag 7).
+    // ze krijgen vandaag nog niets (eerste mail op dag 7).
     await ctx.runMutation(internal.evergreen._instroomEHAfgerond, {});
 
     // Doorlopers van een spoor doorzetten naar hun vervolgspoor (bijv. benji → evergreen).
@@ -1325,10 +1325,17 @@ export const processEvergreen = internalAction({
       await ctx.runMutation(internal.evergreen._logEvergreenOvergeslagen, { email, mailId });
     }
 
-    // Gespreid inplannen (kleine pieken, tegen Outlook/Hotmail-throttling).
+    // Gespreid inplannen (kleine pieken, tegen Outlook/Hotmail-throttling), maar
+    // BEGRENSD tot een vast venster. De motor draait 's ochtends (07:00 UTC) en alles
+    // moet vóór 10:00 NL de deur uit. Bij weinig mails blijft het de normale ~90s; bij
+    // veel mails wordt het interval automatisch verkleind zodat de laatste mail binnen
+    // MAX_VENSTER_MS valt (geen nachtelijke staart meer).
     const intervalMs = Math.max(0, Number(process.env.EVERGREEN_SPREID_SECONDEN ?? "90")) * 1000;
-    for (let i = 0; i < teVerzenden.length; i++) {
-      await ctx.scheduler.runAfter(i * intervalMs, internal.evergreen._verstuurEvergreen, teVerzenden[i]);
+    const MAX_VENSTER_MS = 45 * 60 * 1000; // 45 min
+    const n = teVerzenden.length;
+    const effIntervalMs = n > 1 ? Math.min(intervalMs, Math.floor(MAX_VENSTER_MS / (n - 1))) : 0;
+    for (let i = 0; i < n; i++) {
+      await ctx.scheduler.runAfter(i * effIntervalMs, internal.evergreen._verstuurEvergreen, teVerzenden[i]);
     }
   },
 });
