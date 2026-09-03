@@ -136,7 +136,7 @@ function InitiatiefKaart({ init, uitgelicht, iconKleur }: { init: Initiatief; ui
           Aanbevolen
         </span>
       )}
-      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 group-hover:text-primary-900 transition-colors">
+      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 group-hover:text-amber-700 transition-colors">
         Lees meer
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} className="group-hover:translate-x-0.5 transition-transform">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -236,7 +236,7 @@ export default function MensenOmJeHeenPage() {
   }
 
   return (
-    <div className="bg-primary-900">
+    <div className="min-h-screen flex flex-col bg-primary-900">
       <SiteHeaderConcept />
 
       {/* Hero */}
@@ -252,7 +252,7 @@ export default function MensenOmJeHeenPage() {
 
       {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
       {!actieveFilter && (
-        <section className="w-full" style={{ background: filterKleur }}>
+        <section className="w-full flex-1" style={{ background: filterKleur }}>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-12 pb-16">
             <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
               Wat past het beste bij jou nu?
@@ -271,7 +271,7 @@ export default function MensenOmJeHeenPage() {
                   {optie.beschrijving && (
                     <p className="text-sm text-primary-600 leading-relaxed flex-1">{optie.beschrijving}</p>
                   )}
-                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 group-hover:text-primary-900 transition-colors">
+                  <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 group-hover:text-amber-700 transition-colors">
                     {optie.linkTekst}
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} className="group-hover:translate-x-0.5 transition-transform">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
@@ -288,7 +288,7 @@ export default function MensenOmJeHeenPage() {
       {actieveFilter && (() => {
         const actieveOptie = filterOpties.find((o) => o.id === actieveFilter)!;
         return (
-          <div className="w-full" style={{ background: resultatenKleur }}>
+          <div className="w-full flex-1" style={{ background: resultatenKleur }}>
             {/* Header met gekozen optie + terugknop */}
             <div className="border-b border-black/5">
               <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-5">
