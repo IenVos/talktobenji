@@ -56,6 +56,31 @@ export const listCovers = query({
   },
 });
 
+/**
+ * Publiek: covers + publicatiestatus van ALLE live artikelen (ook ingepland).
+ * Voor het "Lees ook"-blok: live = normale kaart, ingepland (publishedAt in de
+ * toekomst) = afbeelding met waas + "Komt binnenkort". Zodra publishedAt is
+ * verstreken wordt published vanzelf true (render-tijd), dus de kaart schakelt
+ * automatisch om zonder handmatige aanpassing.
+ */
+export const listCoverStatus = query({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const posts = await ctx.db.query("blogPosts")
+      .filter((q) => q.eq(q.field("isLive"), true))
+      .collect();
+    return await Promise.all(posts.map(async (p) => ({
+      slug: p.slug,
+      title: p.title,
+      coverImageUrl: p.coverImageStorageId
+        ? await ctx.storage.getUrl(p.coverImageStorageId).catch(() => null)
+        : null,
+      published: !p.publishedAt || p.publishedAt <= now,
+    })));
+  },
+});
+
 /** Publiek: lichte dataset voor auto-linking (slug, title, pillarSlug, anchorPhrases) */
 export const listAnchorData = query({
   args: {},

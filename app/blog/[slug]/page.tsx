@@ -325,9 +325,12 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
     fetchQuery(api.ctaBlocks.listAll, {}).catch(() => [] as any[]),
     fetchQuery(api.blogPosts.listAnchorData, {}).catch(() => [] as any[]),
     fetchQuery(api.pillars.listAnchorData, {}).catch(() => [] as any[]),
-    fetchQuery(api.blogPosts.listCovers, {}).catch(() => [] as any[]),
+    fetchQuery(api.blogPosts.listCoverStatus, {}).catch(() => [] as any[]),
   ]);
-  const coverMap = new Map((allCovers as any[]).map((c: any) => [c.slug, c.coverImageUrl]));
+  // slug -> { cover, published }. Bevat ook ingeplande (nog niet gepubliceerde) artikelen,
+  // zodat het "Lees ook"-blok hun afbeelding met een waas kan tonen. Zodra publishedAt is
+  // verstreken wordt published vanzelf true en schakelt de kaart automatisch om naar live.
+  const coverStatusMap = new Map((allCovers as any[]).map((c: any) => [c.slug, { cover: (c.coverImageUrl ?? null) as string | null, published: !!c.published }]));
   const anchorData = [...(blogAnchorData as any[]), ...(pillarAnchorData as any[])];
   const ctaMap = new Map((allCtas as any[]).map((c: any) => [c.key, c]));
   const ctaData = ctaMap.get(post.ctaKey || "blog_default") ?? ctaMap.get("blog_default") ?? null;
@@ -546,35 +549,42 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
                   <div className={`grid grid-cols-1 gap-4 mb-4 ${articleLinks.length === 1 ? "" : articleLinks.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
                     {articleLinks.map((link: any, i: number) => {
                       const slugKey = link.slug.replace(/^\/?(?:blog\/)?/, "");
-                      const cover = coverMap.get(slugKey);
-                      const isConcept = !coverMap.has(slugKey);
-                      return (
-                        <Link key={i} href={`/blog/${slugKey}`}
-                          className="group bg-white rounded-2xl border border-stone-200 overflow-hidden hover:shadow-md transition-shadow">
-                          {cover
-                            ? <img src={cover} alt={link.label} className="w-full h-36 object-cover" />
-                            : isConcept
-                              ? (
-                                <div className="w-full h-36 bg-primary-50 flex items-center justify-center">
-                                  <span className="text-xs font-medium text-primary-400 bg-primary-100 border border-primary-200 rounded-full px-3 py-1">
-                                    Binnenkort beschikbaar
-                                  </span>
-                                </div>
-                              )
-                              : (
-                                <div className="w-full h-36 bg-primary-50 flex items-center justify-center">
-                                  <span className="text-lg">📖</span>
-                                </div>
-                              )}
+                      const meta = coverStatusMap.get(slugKey) as { cover: string | null; published: boolean } | undefined;
+                      const cover = meta?.cover ?? null;
+                      // live = bestaat én publishedAt verstreken → klikbare normale kaart.
+                      // niet live (ingepland of nog niet bestaand) → afbeelding met waas +
+                      // "Komt binnenkort", niet klikbaar. Schakelt vanzelf om zodra live.
+                      const live = !!meta && meta.published;
+                      const cardClass = `group block bg-white rounded-2xl border border-stone-200 overflow-hidden ${live ? "hover:shadow-md transition-shadow" : ""}`;
+                      const inner = (
+                        <>
+                          <div className="relative w-full h-36 bg-primary-50 flex items-center justify-center">
+                            {cover && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={cover} alt={link.label}
+                                className={`absolute inset-0 w-full h-36 object-cover ${live ? "" : "blur-[2px] scale-105"}`} />
+                            )}
+                            {live && !cover && <span className="relative text-lg">📖</span>}
+                            {!live && (
+                              <span className="relative z-10 text-xs font-medium text-primary-600 bg-primary-100/90 border border-primary-200 rounded-full px-3 py-1">
+                                Komt binnenkort
+                              </span>
+                            )}
+                          </div>
                           <div className="p-4">
-                            <p className="font-semibold text-stone-800 leading-snug mb-3 group-hover:text-primary-600 transition-colors text-sm line-clamp-2">
+                            <p className={`font-semibold leading-snug mb-3 text-sm line-clamp-2 text-stone-800 ${live ? "group-hover:text-primary-600 transition-colors" : ""}`}>
                               {link.label}
                             </p>
-                            <span className={`text-sm border px-3 py-1 rounded-lg inline-block ${isConcept ? "text-stone-400 border-stone-200" : "text-primary-600 border-primary-200"}`}>
-                              {isConcept ? "Binnenkort →" : "Lees verder →"}
+                            <span className={`text-sm border px-3 py-1 rounded-lg inline-block ${live ? "text-primary-600 border-primary-200" : "text-stone-400 border-stone-200"}`}>
+                              {live ? "Lees verder →" : "Binnenkort →"}
                             </span>
                           </div>
-                        </Link>
+                        </>
+                      );
+                      return live ? (
+                        <Link key={i} href={`/blog/${slugKey}`} className={cardClass}>{inner}</Link>
+                      ) : (
+                        <div key={i} className={cardClass}>{inner}</div>
                       );
                     })}
                   </div>
