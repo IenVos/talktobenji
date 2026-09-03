@@ -122,7 +122,7 @@ function InitiatiefKaart({ init, uitgelicht, iconKleur }: { init: Initiatief; ui
         <img
           src={init.imageUrl}
           alt={init.naam}
-          className="w-12 h-12 rounded-xl object-contain bg-white border border-primary-100 p-1 flex-shrink-0 mb-4"
+          className="w-16 h-16 rounded-xl object-contain bg-white border border-primary-100 p-1.5 flex-shrink-0 mb-4"
         />
       ) : (
         <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0 mb-4" style={{ background: iconKleur }}>
