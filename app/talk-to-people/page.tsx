@@ -75,14 +75,9 @@ const FILTER_HARDCODED = [
 
 function matchesFilter(cat: Categorie, filterId: FilterId | null): boolean {
   if (!filterId) return false;
-  const tags = cat.filterTags ?? [];
-  if (tags.length > 0) return tags.includes(filterId);
-  if (filterId === "ander") return false;
-  const lc = cat.naam.toLowerCase();
-  if (filterId === "lezen")  return lc.includes("overlijden") || lc.includes("werk");
-  if (filterId === "praten") return lc.includes("overlijden");
-  if (filterId === "groep")  return true;
-  return false;
+  // Strikt: een categorie verschijnt alleen onder de filter(s) die in de admin
+  // zijn aangevinkt ("Toon bij filter"). Geen tag = nergens zichtbaar.
+  return (cat.filterTags ?? []).includes(filterId);
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -337,10 +332,8 @@ export default function MensenOmJeHeenPage() {
               )}
 
               {actieveFilter !== "ander" && gefilterdeCats.length === 0 && (
-                <div className="space-y-12">
-                  {zichtbareCats.map((cat) => (
-                    <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} iconKleur={iconKleur} />
-                  ))}
+                <div className="rounded-2xl p-6 bg-white border border-primary-100 max-w-2xl">
+                  <p className="text-sm text-primary-700 leading-relaxed">Hier staat nog niets bij deze keuze. Kies een andere optie, of kom later terug.</p>
                 </div>
               )}
             </div>
