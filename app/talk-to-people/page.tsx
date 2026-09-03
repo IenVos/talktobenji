@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -103,49 +103,58 @@ type Initiatief = {
   naam: string;
   beschrijving: string;
   url: string;
+  artikelSlug?: string | null;
   volgorde: number;
   zichtbaar: boolean;
   imageUrl?: string | null;
 };
 
-// ─── Hulpcomponent: initiatief kaart ─────────────────────────────────────────
+// ─── Hulpcomponent: initiatief kaart (homepage-stijl) ─────────────────────────
 
-function InitiatiefKaart({ init, uitgelicht }: { init: Initiatief; uitgelicht?: boolean }) {
-  return (
-    <a
-      href={init.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`block rounded-xl p-4 border transition-all hover:shadow-sm no-underline ${
-        uitgelicht ? "border-primary-300 bg-primary-50" : "border-gray-200 bg-white hover:border-primary-300"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        {init.imageUrl && (
-          <img src={init.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0 border border-gray-100" />
+function InitiatiefKaart({ init, uitgelicht, iconKleur }: { init: Initiatief; uitgelicht?: boolean; iconKleur: string }) {
+  const slug = (init.artikelSlug ?? "").trim();
+  const intern = slug.length > 0;
+  const href = intern ? `/blog/${slug}` : init.url;
+
+  const kaartClass = `group flex flex-col h-full rounded-2xl p-6 bg-white border transition-all no-underline hover:shadow-md ${
+    uitgelicht ? "border-primary-300 ring-1 ring-primary-200" : "border-primary-100"
+  }`;
+
+  const inner = (
+    <>
+      <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0 mb-4" style={{ background: iconKleur }}>
+        {init.imageUrl ? (
+          <img src={init.imageUrl} alt="" className="w-full h-full rounded-xl object-cover" />
+        ) : (
+          <IconHeart />
         )}
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-primary-900 mb-1">{init.naam}</p>
-          <p className="text-xs text-primary-600 leading-relaxed">{init.beschrijving}</p>
-        </div>
-        <span className="flex-shrink-0 text-primary-400 mt-0.5">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6m0 0v6m0-6L10 14" />
-          </svg>
-        </span>
       </div>
+      <p className="text-base font-bold text-primary-900 mb-2 leading-snug">{init.naam}</p>
+      <p className="text-sm text-primary-600 leading-relaxed flex-1">{init.beschrijving}</p>
       {uitgelicht && (
-        <span className="inline-block mt-2 text-[10px] font-semibold uppercase tracking-wide text-primary-500">
+        <span className="inline-block mt-3 text-[10px] font-semibold uppercase tracking-wide text-primary-500">
           Aanbevolen
         </span>
       )}
-    </a>
+      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 group-hover:text-primary-900 transition-colors">
+        Lees meer
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} className="group-hover:translate-x-0.5 transition-transform">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </span>
+    </>
+  );
+
+  return intern ? (
+    <Link href={href} className={kaartClass}>{inner}</Link>
+  ) : (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={kaartClass}>{inner}</a>
   );
 }
 
 // ─── Categorieblok ────────────────────────────────────────────────────────────
 
-function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: Initiatief[]; actieveFilter: FilterId | null }) {
+function CategorieBlok({ cat, inits, actieveFilter, iconKleur }: { cat: Categorie; inits: Initiatief[]; actieveFilter: FilterId | null; iconKleur: string }) {
   if (inits.length === 0) return null;
 
   function isUitgelicht(init: Initiatief): boolean {
@@ -156,7 +165,7 @@ function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: I
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-5">
         {(cat.emoji || cat.imageUrl) && (
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary-100 border border-primary-200">
             {cat.emoji ? (
@@ -168,9 +177,9 @@ function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: I
         )}
         <h3 className="text-base font-bold text-primary-900">{cat.naam}</h3>
       </div>
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {inits.map((init) => (
-          <InitiatiefKaart key={init._id} init={init} uitgelicht={isUitgelicht(init)} />
+          <InitiatiefKaart key={init._id} init={init} uitgelicht={isUitgelicht(init)} iconKleur={iconKleur} />
         ))}
       </div>
     </div>
@@ -181,7 +190,6 @@ function CategorieBlok({ cat, inits, actieveFilter }: { cat: Categorie; inits: I
 
 export default function MensenOmJeHeenPage() {
   const [actieveFilter, setActieveFilter] = useState<FilterId | null>(null);
-  const ankerRef = useRef<HTMLDivElement>(null);
 
   const paginaTeksten = useQuery(api.mensenOmJeHeen.getPaginaTeksten, {});
   const categorieen = useQuery(api.mensenOmJeHeen.listCategorieen, {}) as Categorie[] | undefined;
@@ -190,6 +198,11 @@ export default function MensenOmJeHeenPage() {
 
   const heroTitel = paginaTeksten?.hero_titel ?? "Er zijn mensen die begrijpen wat jij doormaakt.";
   const heroSubtitel = paginaTeksten?.hero_subtitel ?? "Hier vind je initiatieven, groepen en mensen die er voor je zijn — voor elk soort verlies.";
+
+  // Achtergrondkleuren per sectie (admin-instelbaar), met een lichte standaard.
+  const filterKleur = (paginaTeksten as any)?.sectie_filter_kleur || "#eef4f8";
+  const resultatenKleur = (paginaTeksten as any)?.sectie_resultaten_kleur || "#eef4f8";
+  const iconKleur = (paginaTeksten as any)?.kaart_icoon_kleur || "#7ec8e3";
 
   const filterOpties = (
     rawFilterButtons && rawFilterButtons.length > 0
@@ -208,11 +221,9 @@ export default function MensenOmJeHeenPage() {
     ? zichtbareCats.filter((c) => matchesFilter(c, actieveFilter))
     : [];
 
+  // Geen scrollIntoView meer: dat liet het venster verspringen bij elke keuze.
   function kiesFilter(id: FilterId | null) {
     setActieveFilter(id);
-    setTimeout(() => {
-      ankerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 0);
   }
 
   return (
@@ -230,12 +241,9 @@ export default function MensenOmJeHeenPage() {
         </div>
       </section>
 
-      {/* Ankerpunt — scroll hiernaartoe bij elke filterkeuze zodat het beeld niet verspringt */}
-      <div ref={ankerRef} className="scroll-mt-20" />
-
       {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
       {!actieveFilter && (
-        <section className="w-full bg-white">
+        <section className="w-full" style={{ background: filterKleur }}>
           <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-10 pb-14">
             <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
               Wat past het beste bij jou nu?
@@ -247,7 +255,7 @@ export default function MensenOmJeHeenPage() {
                   onClick={() => kiesFilter(optie.id)}
                   className="flex items-center gap-3 text-left px-4 py-4 rounded-xl border border-primary-100 bg-white hover:border-primary-300 hover:shadow-sm transition-all"
                 >
-                  <div className="w-10 h-10 rounded-xl text-white flex items-center justify-center flex-shrink-0" style={{ background: "#7ec8e3" }}>
+                  <div className="w-10 h-10 rounded-xl text-white flex items-center justify-center flex-shrink-0" style={{ background: iconKleur }}>
                     {optie.icon}
                   </div>
                   <span className="text-sm text-primary-900 leading-snug font-medium">{optie.label}</span>
@@ -262,13 +270,13 @@ export default function MensenOmJeHeenPage() {
       {actieveFilter && (() => {
         const actieveOptie = filterOpties.find((o) => o.id === actieveFilter)!;
         return (
-          <div className="w-full bg-white">
+          <div className="w-full" style={{ background: resultatenKleur }}>
             {/* Header met gekozen optie + terugknop */}
-            <div className="border-b border-gray-100">
-              <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-5">
+            <div className="border-b border-black/5">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 pb-5">
                 <button
                   onClick={() => kiesFilter(null)}
-                  className="flex items-center gap-1.5 text-gray-400 hover:text-gray-600 transition-colors mb-5 group"
+                  className="flex items-center gap-1.5 text-gray-500 hover:text-gray-700 transition-colors mb-5 group"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="group-hover:-translate-x-0.5 transition-transform">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -276,7 +284,7 @@ export default function MensenOmJeHeenPage() {
                   <span className="text-sm">Terug</span>
                 </button>
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl text-white flex items-center justify-center flex-shrink-0" style={{ background: "#7ec8e3" }}>
+                  <div className="w-11 h-11 rounded-xl text-white flex items-center justify-center flex-shrink-0" style={{ background: iconKleur }}>
                     {actieveOptie.icon}
                   </div>
                   <p className="text-base font-semibold text-primary-900 leading-snug">{actieveOptie.label}</p>
@@ -285,19 +293,17 @@ export default function MensenOmJeHeenPage() {
             </div>
 
             {/* Inhoud */}
-            <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 pb-16">
-              {/* Matching categorieën */}
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 pb-16">
               {gefilterdeCats.length > 0 && (
-                <div className="space-y-10">
+                <div className="space-y-12">
                   {gefilterdeCats.map((cat) => (
-                    <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} />
+                    <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={actieveFilter} iconKleur={iconKleur} />
                   ))}
                 </div>
               )}
 
-              {/* Fallback "ander": tekst-blok als er nog geen categorieën gekoppeld zijn */}
               {actieveFilter === "ander" && gefilterdeCats.length === 0 && (
-                <div className="rounded-2xl p-6 bg-primary-50 border border-primary-200">
+                <div className="rounded-2xl p-6 bg-white border border-primary-100 max-w-2xl">
                   <p className="text-sm font-semibold text-primary-900 mb-2">
                     {(paginaTeksten as any)?.filter_ander_blok_titel ?? "Er zijn voor iemand begint met luisteren."}
                   </p>
@@ -307,11 +313,10 @@ export default function MensenOmJeHeenPage() {
                 </div>
               )}
 
-              {/* Fallback andere filters: geen tags gekoppeld in admin → toon alles */}
               {actieveFilter !== "ander" && gefilterdeCats.length === 0 && (
-                <div className="space-y-10">
+                <div className="space-y-12">
                   {zichtbareCats.map((cat) => (
-                    <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} />
+                    <CategorieBlok key={cat._id} cat={cat} inits={initiatieven(cat._id)} actieveFilter={null} iconKleur={iconKleur} />
                   ))}
                 </div>
               )}
@@ -319,25 +324,6 @@ export default function MensenOmJeHeenPage() {
           </div>
         );
       })()}
-
-      {/* Niet Alleen promo */}
-      <section className="bg-primary-50 border-t border-primary-100">
-        <div className="max-w-2xl mx-auto px-6 py-14 text-center">
-          <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 mb-3">30 dagen begeleiding</p>
-          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-4 text-balance">
-            Niet Alleen
-          </h2>
-          <p className="text-sm text-primary-600 leading-relaxed mb-6 max-w-lg mx-auto text-balance">
-            Een 30-daagse begeleiding via dagelijkse berichten. Een kleine stap per dag, om niet meer alleen te staan in je verlies.
-          </p>
-          <Link
-            href="/lp/je-hoeft-het-niet-alleen-te-doen"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-800 text-white text-sm font-semibold rounded-xl hover:bg-primary-700 transition-colors"
-          >
-            Lees meer over Niet Alleen
-          </Link>
-        </div>
-      </section>
 
       <SiteFooter />
     </div>

@@ -80,6 +80,9 @@ export const upsertPaginaTeksten = mutation({
     filter_ander: v.optional(v.string()),
     filter_ander_blok_titel: v.optional(v.string()),
     filter_ander_blok_tekst: v.optional(v.string()),
+    sectie_filter_kleur: v.optional(v.string()),
+    sectie_resultaten_kleur: v.optional(v.string()),
+    kaart_icoon_kleur: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -210,6 +213,7 @@ export const upsertInitiatief = mutation({
     naam: v.string(),
     beschrijving: v.string(),
     url: v.string(),
+    artikelSlug: v.optional(v.string()),
     volgorde: v.number(),
     zichtbaar: v.boolean(),
     imageStorageId: v.optional(v.id("_storage")),
@@ -218,7 +222,10 @@ export const upsertInitiatief = mutation({
     await checkAdmin(ctx, args.adminToken);
     const { adminToken, id, ...data } = args;
     if (id) {
-      await ctx.db.patch(id, data);
+      // Alleen meegegeven velden patchen; undefined weglaten zodat b.v. verplaatsen
+      // of een afbeelding uploaden de artikelSlug niet per ongeluk wist.
+      const patchData = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+      await ctx.db.patch(id, patchData);
       return id;
     } else {
       return ctx.db.insert("mensenopmjeheen_initiatieven", data);

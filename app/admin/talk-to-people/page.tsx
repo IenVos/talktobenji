@@ -62,6 +62,7 @@ type Initiatief = {
   naam: string;
   beschrijving: string;
   url: string;
+  artikelSlug?: string | null;
   volgorde: number;
   zichtbaar: boolean;
   imageStorageId?: string;
@@ -129,12 +130,13 @@ function InitiatiefRij({
   const [naam, setNaam] = useState(init.naam);
   const [beschrijving, setBeschrijving] = useState(init.beschrijving);
   const [url, setUrl] = useState(init.url);
+  const [artikelSlug, setArtikelSlug] = useState(init.artikelSlug ?? "");
   const [dirty, setDirty] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   function handleSave() {
-    onSave(init._id, { naam, beschrijving, url });
+    onSave(init._id, { naam, beschrijving, url, artikelSlug: artikelSlug.trim() });
     setDirty(false);
   }
 
@@ -184,6 +186,7 @@ function InitiatiefRij({
           </button>
         </div>
       </div>
+      <input value={artikelSlug} onChange={(e) => { setArtikelSlug(e.target.value); setDirty(true); }} placeholder="Blog-artikel slug (bijv. rouwcafe) — kaart linkt naar /blog/<slug>, leeg = externe URL" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-300" />
       <textarea value={beschrijving} onChange={(e) => { setBeschrijving(e.target.value); setDirty(true); }} placeholder="Beschrijving" rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300" />
       {dirty && (
         <button onClick={handleSave} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-xs font-medium rounded-lg hover:bg-primary-700">
@@ -395,6 +398,9 @@ export default function MensenOmJeHeenAdminPage() {
   const [filterAnder, setFilterAnder] = useState("");
   const [filterAnderBlokTitel, setFilterAnderBlokTitel] = useState("");
   const [filterAnderBlokTekst, setFilterAnderBlokTekst] = useState("");
+  const [sectieFilterKleur, setSectieFilterKleur] = useState("");
+  const [sectieResultatenKleur, setSectieResultatenKleur] = useState("");
+  const [kaartIcoonKleur, setKaartIcoonKleur] = useState("");
   const [tekstenGeladen, setTekstenGeladen] = useState(false);
   const [tekstSaving, setTekstSaving] = useState(false);
   const [tekstSaved, setTekstSaved] = useState(false);
@@ -410,6 +416,9 @@ export default function MensenOmJeHeenAdminPage() {
     setFilterAnder(paginaTeksten.filter_ander ?? "");
     setFilterAnderBlokTitel((paginaTeksten as any).filter_ander_blok_titel ?? "");
     setFilterAnderBlokTekst((paginaTeksten as any).filter_ander_blok_tekst ?? "");
+    setSectieFilterKleur((paginaTeksten as any).sectie_filter_kleur ?? "");
+    setSectieResultatenKleur((paginaTeksten as any).sectie_resultaten_kleur ?? "");
+    setKaartIcoonKleur((paginaTeksten as any).kaart_icoon_kleur ?? "");
     setTekstenGeladen(true);
   }
 
@@ -425,6 +434,9 @@ export default function MensenOmJeHeenAdminPage() {
         filter_ander: filterAnder || undefined,
         filter_ander_blok_titel: filterAnderBlokTitel || undefined,
         filter_ander_blok_tekst: filterAnderBlokTekst || undefined,
+        sectie_filter_kleur: sectieFilterKleur || undefined,
+        sectie_resultaten_kleur: sectieResultatenKleur || undefined,
+        kaart_icoon_kleur: kaartIcoonKleur || undefined,
       });
       setTekstSaved(true);
       setTimeout(() => setTekstSaved(false), 2000);
@@ -534,6 +546,7 @@ export default function MensenOmJeHeenAdminPage() {
       naam: data.naam ?? existing.naam,
       beschrijving: data.beschrijving ?? existing.beschrijving,
       url: data.url ?? existing.url,
+      artikelSlug: data.artikelSlug !== undefined ? data.artikelSlug : ((existing as any).artikelSlug ?? undefined),
       volgorde: data.volgorde ?? existing.volgorde,
       zichtbaar: data.zichtbaar ?? existing.zichtbaar,
       ...(existing.imageStorageId && { imageStorageId: existing.imageStorageId as Id<"_storage"> }),
@@ -594,6 +607,32 @@ export default function MensenOmJeHeenAdminPage() {
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1">Hero subtitel</label>
             <textarea value={heroSubtitel} onChange={(e) => setHeroSubtitel(e.target.value)} placeholder="Hier vind je initiatieven, groepen en mensen die er voor je zijn." rows={2} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-900 resize-none focus:outline-none focus:ring-2 focus:ring-primary-300" />
+          </div>
+        </div>
+        <div className="pt-2 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-500 mb-2">Achtergrondkleuren per sectie</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Keuze-sectie</label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={sectieFilterKleur || "#eef4f8"} onChange={(e) => setSectieFilterKleur(e.target.value)} className="w-9 h-9 rounded border border-gray-200 cursor-pointer" />
+                <input value={sectieFilterKleur} onChange={(e) => setSectieFilterKleur(e.target.value)} placeholder="#eef4f8" className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Resultaten-sectie</label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={sectieResultatenKleur || "#eef4f8"} onChange={(e) => setSectieResultatenKleur(e.target.value)} className="w-9 h-9 rounded border border-gray-200 cursor-pointer" />
+                <input value={sectieResultatenKleur} onChange={(e) => setSectieResultatenKleur(e.target.value)} placeholder="#eef4f8" className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Icoon-vierkant</label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={kaartIcoonKleur || "#7ec8e3"} onChange={(e) => setKaartIcoonKleur(e.target.value)} className="w-9 h-9 rounded border border-gray-200 cursor-pointer" />
+                <input value={kaartIcoonKleur} onChange={(e) => setKaartIcoonKleur(e.target.value)} placeholder="#7ec8e3" className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-300" />
+              </div>
+            </div>
           </div>
         </div>
         <button onClick={handleSaveTeksten} disabled={tekstSaving} className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-xl hover:bg-primary-700 disabled:opacity-60">

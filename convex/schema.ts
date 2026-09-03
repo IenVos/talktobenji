@@ -1328,6 +1328,10 @@ export default defineSchema({
     filter_ander: v.optional(v.string()),
     filter_ander_blok_titel: v.optional(v.string()),
     filter_ander_blok_tekst: v.optional(v.string()),
+    // Achtergrondkleur per sectie (hex, bewerkbaar in admin). Leeg = standaard licht.
+    sectie_filter_kleur: v.optional(v.string()),
+    sectie_resultaten_kleur: v.optional(v.string()),
+    kaart_icoon_kleur: v.optional(v.string()),
   }),
 
   // Talk To People — filterbuttons
@@ -1355,6 +1359,7 @@ export default defineSchema({
     naam: v.string(),
     beschrijving: v.string(),
     url: v.string(),
+    artikelSlug: v.optional(v.string()),   // kaart linkt naar /blog/<slug>; artikel linkt extern
     volgorde: v.number(),
     zichtbaar: v.boolean(),
     imageStorageId: v.optional(v.id("_storage")),
