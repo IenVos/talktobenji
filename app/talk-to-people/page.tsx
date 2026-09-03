@@ -122,13 +122,18 @@ function InitiatiefKaart({ init, uitgelicht, iconKleur }: { init: Initiatief; ui
 
   const inner = (
     <>
-      <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0 mb-4" style={{ background: iconKleur }}>
-        {init.imageUrl ? (
-          <img src={init.imageUrl} alt="" className="w-full h-full rounded-xl object-cover" />
-        ) : (
+      {init.imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={init.imageUrl}
+          alt={init.naam}
+          className="w-12 h-12 rounded-xl object-contain bg-white border border-primary-100 p-1 flex-shrink-0 mb-4"
+        />
+      ) : (
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white flex-shrink-0 mb-4" style={{ background: iconKleur }}>
           <IconHeart />
-        )}
-      </div>
+        </div>
+      )}
       <p className="text-base font-bold text-primary-900 mb-2 leading-snug">{init.naam}</p>
       <p className="text-sm text-primary-600 leading-relaxed flex-1">{init.beschrijving}</p>
       {uitgelicht && (
