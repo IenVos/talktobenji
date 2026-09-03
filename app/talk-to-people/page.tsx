@@ -203,6 +203,9 @@ export default function MensenOmJeHeenPage() {
   const filterKleur = (paginaTeksten as any)?.sectie_filter_kleur || "#eef4f8";
   const resultatenKleur = (paginaTeksten as any)?.sectie_resultaten_kleur || "#eef4f8";
   const iconKleur = (paginaTeksten as any)?.kaart_icoon_kleur || "#7ec8e3";
+  // Wacht met renderen van de kaartjes tot de kleuren geladen zijn, anders flitst
+  // eerst de standaardkleur (lichtblauw) voordat de ingestelde kleur binnenkomt.
+  const paginaKlaar = paginaTeksten !== undefined;
 
   const filterOpties = (
     rawFilterButtons && rawFilterButtons.length > 0
@@ -251,7 +254,9 @@ export default function MensenOmJeHeenPage() {
       </section>
 
       {/* Filter sectie — alleen zichtbaar als er nog geen keuze is gemaakt */}
-      {!actieveFilter && (
+      {!paginaKlaar && <div className="flex-1" style={{ background: filterKleur }} />}
+
+      {paginaKlaar && !actieveFilter && (
         <section className="w-full flex-1" style={{ background: filterKleur }}>
           <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-12 pb-16">
             <h2 className="text-lg sm:text-xl font-bold text-primary-900 text-center mb-6 text-balance">
@@ -285,7 +290,7 @@ export default function MensenOmJeHeenPage() {
       )}
 
       {/* Resultaten — zichtbaar na een keuze */}
-      {actieveFilter && (() => {
+      {paginaKlaar && actieveFilter && (() => {
         const actieveOptie = filterOpties.find((o) => o.id === actieveFilter)!;
         return (
           <div className="w-full flex-1" style={{ background: resultatenKleur }}>
