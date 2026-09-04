@@ -182,6 +182,7 @@ export const create = mutation({
     featureSlidesJson: v.optional(v.string()),
     featureSliderLabel: v.optional(v.string()),
     featureSliderTitel: v.optional(v.string()),
+    featureSliderPosition: v.optional(v.string()),
     ervaringenTitel: v.optional(v.string()),
     ervaringenSubtitel: v.optional(v.string()),
     faqTitel: v.optional(v.string()),
@@ -319,6 +320,7 @@ export const update = mutation({
     featureSlidesJson: v.optional(v.string()),
     featureSliderLabel: v.optional(v.string()),
     featureSliderTitel: v.optional(v.string()),
+    featureSliderPosition: v.optional(v.string()),
     ervaringenTitel: v.optional(v.string()),
     ervaringenSubtitel: v.optional(v.string()),
     faqTitel: v.optional(v.string()),
@@ -717,12 +719,12 @@ export const herschrijfErZijnLp = internalMutation({
     ];
 
     await ctx.db.patch(existing._id, {
-      heroLabel: "een digitale gids",
+      heroLabel: "een praktische handreiking",
       heroTitle: "Je wilt er zijn. Maar je weet niet hoe.",
       heroSubtitle:
         "Iemand van wie je houdt gaat door een moeilijke periode. Je wilt iets doen, iets zeggen, dichtbij zijn.\n\nMaar ineens weet je niet meer wat.",
       heroBody:
-        "Wat zeg je tegen iemand die verdriet heeft?\nHoe vraag je hoe het écht gaat?\nWanneer stuur je een bericht?\nMoet je juist ruimte geven?\nEn wat als je bang bent om het verkeerde te zeggen?\n\n**Je hoeft het niet perfect te doen. Je hebt alleen wat houvast nodig.**\n\nEr Zijn is een praktische digitale gids voor iedereen die er voor iemand wil zijn, juist op de momenten waarop woorden soms tekortschieten.",
+        "Wat zeg je tegen iemand die verdriet heeft?\nHoe vraag je hoe het écht gaat?\nWanneer stuur je een bericht?\nMoet je juist ruimte geven?\nEn wat als je bang bent om het verkeerde te zeggen?\n\n**Je hoeft het niet perfect te doen. Je hebt alleen wat houvast nodig.**\n\n'Er Zijn' is een praktische handreiking voor iedereen die er voor iemand wil zijn, juist op de momenten waarop woorden soms tekortschieten.",
       ctaText: "Ja, ik wil er zijn",
       ctaColor: "#6d84a8",
       ctaPrijsTekst: "Eenmalig €17",
@@ -780,6 +782,11 @@ export const zetErZijnFlipbookBeelden = internalMutation({
 
     const slides = [
       {
+        afbeelding: "/images/er-zijn-spread-0-cover.png",
+        titel: "Er Zijn",
+        onderschrift: "Een boekje om erbij te pakken wanneer iemand jou nodig heeft.",
+      },
+      {
         afbeelding: "/images/er-zijn-spread-1-binnen.png",
         titel: "Wat er van binnen gebeurt",
         onderschrift: "Begrijpen wat er in iemand omgaat, zodat je gedrag beter kunt plaatsen.",
@@ -812,8 +819,9 @@ export const zetErZijnFlipbookBeelden = internalMutation({
     ];
 
     await ctx.db.patch(existing._id, {
-      featureSliderLabel: "een kijkje in het boekje",
-      featureSliderTitel: "69 pagina's, rustig vormgegeven",
+      featureSliderLabel: "69 pagina's, direct te downloaden",
+      featureSliderTitel: "Zo ziet Er Zijn eruit",
+      featureSliderPosition: "onder_hero",
       featureSlidesJson: JSON.stringify(slides),
       updatedAt: Date.now(),
     });

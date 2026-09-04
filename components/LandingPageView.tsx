@@ -494,6 +494,15 @@ export function LandingPageView({ slug }: { slug: string }) {
   try { if ((page as any).featureSlidesJson) featureSlides = JSON.parse((page as any).featureSlidesJson); } catch {}
   const featureSliderLabel = (page as any).featureSliderLabel as string | undefined;
   const featureSliderTitel = (page as any).featureSliderTitel as string | undefined;
+  // Positie van het bladerblok. Standaard "na_voor_wie" (oude gedrag), maar per LP
+  // te verplaatsen naar "onder_hero" of "na_content".
+  const featureSliderPosition = ((page as any).featureSliderPosition as string | undefined) || "na_voor_wie";
+  const flipbookSlider = featureSlides.length > 0 ? (
+    <>
+      <SectieMarker />
+      <FeatureSlider label={featureSliderLabel} titel={featureSliderTitel} slides={featureSlides} bg="rgba(160,148,136,0.08)" />
+    </>
+  ) : null;
   const pricingTitel = (page as any).pricingTitel as string | undefined;
   const pricingSubtitel = (page as any).pricingSubtitel as string | undefined;
   const ervaringenTitel = (page as any).ervaringenTitel as string | undefined;
@@ -763,6 +772,9 @@ export function LandingPageView({ slug }: { slug: string }) {
         {/* PRODUCTAFBEELDING — positie: after_hero */}
         {productImagePosition === "after_hero" && <ProductImage />}
 
+        {/* BLADERBLOK — positie: onder_hero */}
+        {featureSliderPosition === "onder_hero" && flipbookSlider}
+
         {/* PRIJSBLOKKEN BOVENAAN */}
         {hasPricing && (
           <section className="px-4 sm:px-6 pb-14">
@@ -934,6 +946,9 @@ export function LandingPageView({ slug }: { slug: string }) {
           );
         })()}
 
+        {/* BLADERBLOK — positie: na_content */}
+        {featureSliderPosition === "na_content" && flipbookSlider}
+
         {/* PRODUCTAFBEELDING — positie: after_content (standaard) */}
         {productImagePosition === "after_content" && <ProductImage />}
 
@@ -966,18 +981,8 @@ export function LandingPageView({ slug }: { slug: string }) {
           </section>
         )}
 
-        {/* FEATURE SLIDER */}
-        {featureSlides.length > 0 && (
-          <>
-            <SectieMarker />
-            <FeatureSlider
-              label={featureSliderLabel}
-              titel={featureSliderTitel}
-              slides={featureSlides}
-              bg="rgba(160,148,136,0.08)"
-            />
-          </>
-        )}
+        {/* BLADERBLOK — positie: na_voor_wie (standaard) */}
+        {featureSliderPosition === "na_voor_wie" && flipbookSlider}
 
         {/* MID-PAGE CTA */}
         {!hideMidCta && !hasPricing && showInPageCtas && (

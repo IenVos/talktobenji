@@ -329,6 +329,8 @@ const EMPTY_FORM: FormState = {
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
     { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+    { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
+    { titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null },
   ],
 };
 
@@ -682,8 +684,8 @@ export default function AdminLandingspaginasPage() {
               titel: s.titel ?? "", onderschrift: s.onderschrift ?? "",
               afbeelding: s.afbeelding ?? "", video: s.video ?? "", file: null, videoFile: null,
             }));
-            while (slides.length < 6) slides.push({ titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null });
-            return slides.slice(0, 6);
+            while (slides.length < 8) slides.push({ titel: "", onderschrift: "", afbeelding: "", video: "", file: null, videoFile: null });
+            return slides.slice(0, 8);
           }
         } catch {}
         return [
