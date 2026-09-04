@@ -676,8 +676,9 @@ export default function BetalenPage() {
     } else if (displayCountry === "OTHER" || liveVatInfo.vatRate === 0) {
       vatLine = "Geen btw (buiten EU)";
     } else {
-      const countryName = EU_COUNTRY_NAMES_NL[displayCountry] ?? displayCountry;
-      vatLine = `Inclusief ${Math.round(liveVatInfo.vatRate * 100)}% btw (${countryName})`;
+      // Zonder land erbij: gewoon "Inclusief X% btw". Het land staat verder nergens
+      // meer (de factuur toont de verkoper als Zweeds bedrijf).
+      vatLine = `Inclusief ${Math.round(liveVatInfo.vatRate * 100)}% btw`;
       // Btw-bedrag op het volledige totaal (incl. eventueel kassakoopje)
       vatAmountInCents = calculateVat(displayPrice, liveEffectiveCountry).vatAmount;
     }
