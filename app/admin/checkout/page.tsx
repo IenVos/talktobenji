@@ -33,6 +33,9 @@ type CheckoutProduct = {
   buttonText?: string;
   trustText?: string;
   quoteText?: string;
+  termsCheckboxEnabled?: boolean;
+  termsShowVoorwaarden?: boolean;
+  termsShowPrivacy?: boolean;
   imageStorageId?: Id<"_storage">;
   imageUrl?: string | null;
   accessDays?: number;
@@ -84,6 +87,9 @@ type FormState = {
   buttonText: string;
   trustText: string;
   quoteText: string;
+  termsCheckboxEnabled: boolean;
+  termsShowVoorwaarden: boolean;
+  termsShowPrivacy: boolean;
   accessDays: string;
   imageStorageId?: Id<"_storage">;
   imageFile: File | null;
@@ -194,6 +200,9 @@ const EMPTY_FORM: FormState = {
   buttonText: "",
   trustText: "",
   quoteText: "",
+  termsCheckboxEnabled: true,
+  termsShowVoorwaarden: true,
+  termsShowPrivacy: true,
   accessDays: "",
   imageStorageId: undefined,
   imageFile: null,
@@ -409,6 +418,9 @@ export default function AdminCheckoutPage() {
       buttonText: product.buttonText ?? "",
       trustText: product.trustText ?? "",
       quoteText: product.quoteText ?? "",
+      termsCheckboxEnabled: product.termsCheckboxEnabled ?? true,
+      termsShowVoorwaarden: product.termsShowVoorwaarden ?? true,
+      termsShowPrivacy: product.termsShowPrivacy ?? true,
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -454,6 +466,9 @@ export default function AdminCheckoutPage() {
       buttonText: product.buttonText ?? "",
       trustText: product.trustText ?? "",
       quoteText: product.quoteText ?? "",
+      termsCheckboxEnabled: product.termsCheckboxEnabled ?? true,
+      termsShowVoorwaarden: product.termsShowVoorwaarden ?? true,
+      termsShowPrivacy: product.termsShowPrivacy ?? true,
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -560,6 +575,9 @@ export default function AdminCheckoutPage() {
         buttonText: opt(form.buttonText),
         trustText: opt(form.trustText),
         quoteText: opt(form.quoteText),
+        termsCheckboxEnabled: form.termsCheckboxEnabled,
+        termsShowVoorwaarden: form.termsShowVoorwaarden,
+        termsShowPrivacy: form.termsShowPrivacy,
         accessDays: accessDaysVal,
         imageStorageId,
         isLive: form.isLive,
@@ -907,26 +925,70 @@ export default function AdminCheckoutPage() {
                 />
               </div>
               <div>
-                <label className={labelSmClass}>Zin onder de knop <span className="font-normal text-gray-400">(standaard: "Niet tevreden, voelt het niet goed? Laat het weten.")</span></label>
+                <label className={labelSmClass}>Zin onder de knop <span className="font-normal text-gray-400">(leeg = niets tonen)</span></label>
                 <input
                   type="text"
-                  placeholder="Niet tevreden, voelt het niet goed? Laat het weten."
+                  placeholder="Bijv. Niet tevreden? Laat het weten."
                   value={form.trustText}
                   onChange={set("trustText")}
                   className={inputClass}
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelSmClass}>Quote boven knop <span className="font-normal text-gray-400">(geruststellende zin; standaard: "Dit is geen grote beslissing…")</span></label>
+                <label className={labelSmClass}>Quote boven knop <span className="font-normal text-gray-400">(geruststellende zin; leeg = geen quote)</span></label>
                 <textarea
                   rows={2}
-                  placeholder="Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf."
+                  placeholder="Bijv. Dit is geen grote beslissing."
                   value={form.quoteText}
                   onChange={set("quoteText")}
                   className={`${inputClass} resize-none`}
                 />
-                <p className="text-xs text-gray-400 mt-1">Aanhalingstekens worden automatisch toegevoegd. Leeg = standaardzin.</p>
+                <p className="text-xs text-gray-400 mt-1">Aanhalingstekens worden automatisch toegevoegd. Leeg laten = er wordt niets getoond.</p>
               </div>
+            </div>
+
+            {/* Akkoord-regel (algemene voorwaarden + privacybeleid) */}
+            <div className="border-t border-primary-100 pt-4 space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.termsCheckboxEnabled}
+                  onChange={setCheck("termsCheckboxEnabled")}
+                  className="rounded border-primary-300 text-primary-600"
+                />
+                <span className="text-sm text-gray-700">
+                  Akkoord-regel tonen op checkout{" "}
+                  <span className="text-xs text-gray-400 font-normal">
+                    — "Ik ga akkoord met …" met een vinkje dat aangevinkt moet worden vóór het betalen
+                  </span>
+                </span>
+              </label>
+              {form.termsCheckboxEnabled && (
+                <div className="ml-6 space-y-2">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.termsShowVoorwaarden}
+                      onChange={setCheck("termsShowVoorwaarden")}
+                      className="rounded border-primary-300 text-primary-600"
+                    />
+                    <span className="text-sm text-gray-700">Algemene voorwaarden erin</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.termsShowPrivacy}
+                      onChange={setCheck("termsShowPrivacy")}
+                      className="rounded border-primary-300 text-primary-600"
+                    />
+                    <span className="text-sm text-gray-700">Privacybeleid erin</span>
+                  </label>
+                  {!form.termsShowVoorwaarden && !form.termsShowPrivacy && (
+                    <p className="text-xs text-amber-600">Beide uit = de akkoord-regel wordt niet getoond.</p>
+                  )}
+                  <p className="text-xs text-gray-400">Tip: een akkoord-regel met voorwaarden is meestal verplicht voor betaal- en advertentieplatforms.</p>
+                </div>
+              )}
             </div>
 
             {/* Bevestigingsmail na aankoop */}

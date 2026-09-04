@@ -77,6 +77,9 @@ function CheckoutForm({
   buttonText,
   trustText,
   quoteText,
+  termsEnabled,
+  showVoorwaarden,
+  showPrivacy,
   clientSecret,
   naam,
   email,
@@ -102,6 +105,9 @@ function CheckoutForm({
   buttonText?: string;
   trustText?: string;
   quoteText?: string;
+  termsEnabled?: boolean;
+  showVoorwaarden?: boolean;
+  showPrivacy?: boolean;
   clientSecret: string;
   naam: string;
   email: string;
@@ -131,6 +137,12 @@ function CheckoutForm({
   const [error, setError] = useState<string | null>(null);
   const termsRef = useRef<HTMLLabelElement>(null);
 
+  // Akkoord-regel per product te regelen (undefined = aan, backwards compat).
+  // Staat de regel uit, of zijn beide links uit, dan tonen en eisen we niets.
+  const toonVoorwaarden = showVoorwaarden !== false;
+  const toonPrivacy = showPrivacy !== false;
+  const toonAkkoord = termsEnabled !== false && (toonVoorwaarden || toonPrivacy);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Funnel: bezoeker heeft op de betaalknop geklikt (vóór validatie, zodat ook
@@ -150,7 +162,7 @@ function CheckoutForm({
       return;
     }
 
-    if (!termsAccepted) {
+    if (toonAkkoord && !termsAccepted) {
       setTermsError(true);
       termsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
@@ -263,6 +275,7 @@ function CheckoutForm({
         </p>
       )}
 
+      {toonAkkoord && (
       <label
         ref={termsRef}
         className={`flex items-start gap-3 cursor-pointer rounded-lg ${termsError ? "ring-2 ring-red-400 bg-red-50 -m-2 p-2" : ""}`}
@@ -271,19 +284,28 @@ function CheckoutForm({
         {/* Checkbox is puur visueel: het label hierboven handelt de klik af (geen dubbele toggle). */}
         <Checkbox checked={termsAccepted} onChange={() => {}} />
         <span className="text-xs text-stone-600 leading-snug pt-0.5">
-          Ik ga akkoord met de{" "}
-          <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); onTermsLinkClick?.(); }} className="text-primary-600 underline">algemene voorwaarden</a>
-          {" en het "}
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); onTermsLinkClick?.(); }} className="text-primary-600 underline">privacybeleid</a>
+          {/* Zin past zich aan: alleen AV, alleen privacybeleid, of allebei. */}
+          Ik ga akkoord met {toonVoorwaarden ? "de" : "het"}{" "}
+          {toonVoorwaarden && (
+            <a href="/algemene-voorwaarden" target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); onTermsLinkClick?.(); }} className="text-primary-600 underline">algemene voorwaarden</a>
+          )}
+          {toonVoorwaarden && toonPrivacy && " en het "}
+          {toonPrivacy && (
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); onTermsLinkClick?.(); }} className="text-primary-600 underline">privacybeleid</a>
+          )}
           {"."}
         </span>
       </label>
+      )}
 
-      {/* Quote + betaalknop samen in één dun kader zodat ze bij elkaar horen */}
+      {/* Quote + betaalknop samen in één dun kader zodat ze bij elkaar horen.
+          Leeg quote-veld = geen quote (geen standaardzin). */}
       <div className="rounded-2xl border border-stone-200 p-4 space-y-4">
-        <p className="text-balance text-center text-base font-semibold italic text-primary-700 leading-snug px-2">
-          &ldquo;{quoteText?.trim() || "Dit is geen grote beslissing. Het is gewoon dertig dagen een moment voor jezelf."}&rdquo;
-        </p>
+        {quoteText?.trim() && (
+          <p className="text-balance text-center text-base font-semibold italic text-primary-700 leading-snug px-2">
+            &ldquo;{quoteText.trim()}&rdquo;
+          </p>
+        )}
 
         <button
           type="submit"
@@ -292,11 +314,14 @@ function CheckoutForm({
         >
           {submitting ? "Bezig met betalen…" : (buttonText || "Betalen")}
         </button>
-        <p className="text-center text-sm text-stone-600 -mt-1">
-          {(trustText?.trim() || "Niet tevreden, voelt het niet goed? Laat het weten.")
-            .split(/(?<=[.?!])\s+/)
-            .map((zin, i) => <span key={i} className="block">{zin}</span>)}
-        </p>
+        {/* Leeg trust-veld = geen zin onder de knop (geen standaardzin). */}
+        {trustText?.trim() && (
+          <p className="text-center text-sm text-stone-600 -mt-1">
+            {trustText.trim()
+              .split(/(?<=[.?!])\s+/)
+              .map((zin, i) => <span key={i} className="block">{zin}</span>)}
+          </p>
+        )}
         {termsError && (
           <p className="text-center text-sm text-red-600 font-medium bg-red-50 border border-red-200 rounded-lg px-3 py-2 -mt-1">
             Vink hierboven de voorwaarden aan om verder te gaan.
@@ -663,6 +688,9 @@ export default function BetalenPage() {
         buttonText={product.buttonText}
         trustText={(product as any).trustText}
         quoteText={(product as any).quoteText}
+        termsEnabled={(product as any).termsCheckboxEnabled}
+        showVoorwaarden={(product as any).termsShowVoorwaarden}
+        showPrivacy={(product as any).termsShowPrivacy}
         clientSecret={clientSecret}
         naam={naam}
         email={email}

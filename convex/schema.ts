@@ -1160,6 +1160,10 @@ export default defineSchema({
     buttonText: v.optional(v.string()),
     trustText: v.optional(v.string()), // geruststelling onder de betaalknop (bijv. "Veilig betalen · geen abonnement")
     quoteText: v.optional(v.string()), // geruststellende quote bóven de betaalknop (aanpasbaar per product)
+    // Akkoord-regel (AV + privacybeleid) op de checkout — per product te regelen.
+    termsCheckboxEnabled: v.optional(v.boolean()), // akkoord-regel tonen (undefined = aan, backwards compat)
+    termsShowVoorwaarden: v.optional(v.boolean()), // link naar algemene voorwaarden tonen (undefined = aan)
+    termsShowPrivacy: v.optional(v.boolean()),     // link naar privacybeleid tonen (undefined = aan)
     herroepingTitle: v.optional(v.string()), // kopje van het herroepingsrecht-vakje
     herroepingText: v.optional(v.string()), // vriendelijke uitleg over herroepingsrecht (mailadres wordt automatisch klikbaar)
     imageStorageId: v.optional(v.id("_storage")),
