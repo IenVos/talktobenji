@@ -1170,6 +1170,9 @@ export default defineSchema({
     // inschrijven; bij aanvinken belandt de opt-in via de webhook in nieuwsbriefOptins.
     optInEnabled: v.optional(v.boolean()),
     optInText: v.optional(v.string()),
+    // Vast btw-tarief per product (percentage, bijv. 6 voor een e-boek, 25 voor een
+    // dienst). Leeg = het land-tarief uit calculateVat. Prijs blijft inclusief.
+    btwTariefProcent: v.optional(v.number()),
     herroepingTitle: v.optional(v.string()), // kopje van het herroepingsrecht-vakje
     herroepingText: v.optional(v.string()), // vriendelijke uitleg over herroepingsrecht (mailadres wordt automatisch klikbaar)
     imageStorageId: v.optional(v.id("_storage")),

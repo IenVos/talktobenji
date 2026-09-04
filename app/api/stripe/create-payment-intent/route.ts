@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { rateLimit, retryAfterMessage } from "@/lib/rate-limit";
-import { calculateVat, EU_COUNTRY_CODES } from "@/lib/vat";
+import { calculateVat, vatFromRate, EU_COUNTRY_CODES } from "@/lib/vat";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -187,7 +187,13 @@ export async function POST(req: NextRequest) {
     : 30;
 
   const totalPrice = product.priceInCents + addonPrice;
-  const vat = calculateVat(totalPrice, effectiveCountry);
+  // Vast producttarief (bijv. e-boek 6%) heeft voorrang op het landtarief, behalve
+  // bij een zakelijke aankoop (reverse charge = 0%, die blijft via calculateVat lopen).
+  const vast = (product as any).btwTariefProcent;
+  const vat =
+    !isBusiness && typeof vast === "number"
+      ? vatFromRate(totalPrice, vast)
+      : calculateVat(totalPrice, effectiveCountry);
   const invoiceNumber = generateInvoiceNumber();
 
   const paymentIntent = await stripe.paymentIntents.create({

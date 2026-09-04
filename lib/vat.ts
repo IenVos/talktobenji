@@ -57,3 +57,23 @@ export function calculateVat(
   const vatAmount = totalPriceCents - basePrice;
   return { totalPrice: totalPriceCents, vatRate, vatAmount, basePrice };
 }
+
+/**
+ * Btw uit een vast tarief (percentage) op een inclusief-prijs. Voor producten met
+ * een eigen tarief, zoals een e-boek (6%) los van het land. Het bedrag dat de
+ * koper betaalt blijft gelijk; alleen de netto/btw-uitsplitsing verandert.
+ */
+export function vatFromRate(
+  totalPriceCents: number,
+  ratePercent: number
+): {
+  totalPrice: number;
+  vatRate: number;
+  vatAmount: number;
+  basePrice: number;
+} {
+  const vatRate = Math.max(0, ratePercent) / 100;
+  const basePrice = Math.round(totalPriceCents / (1 + vatRate));
+  const vatAmount = totalPriceCents - basePrice;
+  return { totalPrice: totalPriceCents, vatRate, vatAmount, basePrice };
+}

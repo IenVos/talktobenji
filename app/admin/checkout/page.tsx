@@ -38,6 +38,7 @@ type CheckoutProduct = {
   termsShowPrivacy?: boolean;
   optInEnabled?: boolean;
   optInText?: string;
+  btwTariefProcent?: number;
   imageStorageId?: Id<"_storage">;
   imageUrl?: string | null;
   accessDays?: number;
@@ -96,6 +97,7 @@ type FormState = {
   termsShowPrivacy: boolean;
   optInEnabled: boolean;
   optInText: string;
+  btwTariefProcent: string;
   accessDays: string;
   imageStorageId?: Id<"_storage">;
   imageFile: File | null;
@@ -213,6 +215,7 @@ const EMPTY_FORM: FormState = {
   termsShowPrivacy: true,
   optInEnabled: false,
   optInText: "",
+  btwTariefProcent: "",
   accessDays: "",
   imageStorageId: undefined,
   imageFile: null,
@@ -435,6 +438,7 @@ export default function AdminCheckoutPage() {
       termsShowPrivacy: product.termsShowPrivacy ?? true,
       optInEnabled: product.optInEnabled ?? false,
       optInText: product.optInText ?? "",
+      btwTariefProcent: product.btwTariefProcent != null ? String(product.btwTariefProcent) : "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -487,6 +491,7 @@ export default function AdminCheckoutPage() {
       termsShowPrivacy: product.termsShowPrivacy ?? true,
       optInEnabled: product.optInEnabled ?? false,
       optInText: product.optInText ?? "",
+      btwTariefProcent: product.btwTariefProcent != null ? String(product.btwTariefProcent) : "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -602,6 +607,7 @@ export default function AdminCheckoutPage() {
         termsShowPrivacy: form.termsShowPrivacy,
         optInEnabled: form.optInEnabled,
         optInText: form.optInText.trim() || undefined,
+        btwTariefProcent: form.btwTariefProcent.trim() !== "" ? Number(form.btwTariefProcent) : undefined,
         accessDays: accessDaysVal,
         imageStorageId,
         isLive: form.isLive,
@@ -900,6 +906,21 @@ export default function AdminCheckoutPage() {
                   onChange={set("priceInCents")}
                   className={inputClass}
                 />
+              </div>
+              <div>
+                <label className={labelClass}>
+                  Btw-tarief in % <span className="text-gray-400 font-normal text-xs">(leeg = landtarief; e-boek = 6, dienst = 25)</span>
+                </label>
+                <input
+                  type="number"
+                  placeholder="bijv. 6"
+                  min="0"
+                  max="27"
+                  value={form.btwTariefProcent}
+                  onChange={set("btwTariefProcent")}
+                  className={inputClass}
+                />
+                <p className="text-xs text-gray-400 mt-1">De prijs blijft inclusief; alleen de btw-uitsplitsing op checkout en factuur verandert. Zakelijke aankoop (reverse charge) blijft 0%.</p>
               </div>
               <div>
                 <label className={labelClass}>

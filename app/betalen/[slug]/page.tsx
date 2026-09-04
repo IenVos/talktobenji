@@ -16,7 +16,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { calculateVat, EU_COUNTRY_NAMES_NL } from "@/lib/vat";
+import { calculateVat, vatFromRate, EU_COUNTRY_NAMES_NL } from "@/lib/vat";
 import { ScrollDepthTracker } from "@/components/analytics/ScrollDepthTracker";
 import { leesBronLp } from "@/components/analytics/bronLp";
 import { EvenHouvastPopup } from "@/components/EvenHouvastPopup";
@@ -468,8 +468,11 @@ export default function BetalenPage() {
 
   const liveIsBusiness = vatNumber.trim().length >= 4;
   const liveEffectiveCountry = liveIsBusiness ? "OTHER" : (countryCode || "NL");
+  const vastTarief = (product as any)?.btwTariefProcent;
   const liveVatInfo = product
-    ? calculateVat(overridePriceInCents ?? product.priceInCents, liveEffectiveCountry)
+    ? (!liveIsBusiness && typeof vastTarief === "number"
+        ? vatFromRate(overridePriceInCents ?? product.priceInCents, vastTarief)
+        : calculateVat(overridePriceInCents ?? product.priceInCents, liveEffectiveCountry))
     : null;
 
   // Gebruik "NL" als provisorisch land zodat de Stripe embed direct zichtbaar is.
@@ -680,7 +683,9 @@ export default function BetalenPage() {
       // meer (de factuur toont de verkoper als Zweeds bedrijf).
       vatLine = `Inclusief ${Math.round(liveVatInfo.vatRate * 100)}% btw`;
       // Btw-bedrag op het volledige totaal (incl. eventueel kassakoopje)
-      vatAmountInCents = calculateVat(displayPrice, liveEffectiveCountry).vatAmount;
+      vatAmountInCents = (!liveIsBusiness && typeof vastTarief === "number"
+        ? vatFromRate(displayPrice, vastTarief)
+        : calculateVat(displayPrice, liveEffectiveCountry)).vatAmount;
     }
   }
 
