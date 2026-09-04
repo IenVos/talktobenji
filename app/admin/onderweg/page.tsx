@@ -5,7 +5,7 @@ import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
-  ShoppingBag, Plus, Edit, Trash2, Save, X,
+  ShoppingBag, Plus, Edit, Trash2, Save, X, ChevronUp, ChevronDown,
   Pencil, Waves, BookOpen, Heart, Leaf, Sun, Feather, Star,
   Anchor, Wind, Sparkles, Flame, Music, Compass, Cloud, MessageCircle,
   Flower2, Coffee, Umbrella, Bird,
@@ -160,6 +160,27 @@ export default function AdminOnderwegPage() {
   const handleDelete = async (id: Id<"onderwegItems">) => {
     if (!confirm("Weet je zeker dat je dit item wilt verwijderen?")) return;
     await removeItem({ id });
+  };
+
+  // Verschuif een item één plek omhoog/omlaag. We hernummeren daarna alle items
+  // netjes op volgorde (0,1,2,…), zodat de volgorde ook klopt als er eerder
+  // dubbele of rommelige order-waarden waren.
+  const [herordenBezig, setHerordenBezig] = useState(false);
+  const moveItem = async (sorted: any[], index: number, dir: "up" | "down") => {
+    const j = dir === "up" ? index - 1 : index + 1;
+    if (j < 0 || j >= sorted.length || herordenBezig) return;
+    const arr = [...sorted];
+    [arr[index], arr[j]] = [arr[j], arr[index]];
+    setHerordenBezig(true);
+    try {
+      await Promise.all(
+        arr
+          .map((it, idx) => (it.order === idx ? null : updateItem({ id: it._id, order: idx })))
+          .filter(Boolean) as Promise<unknown>[]
+      );
+    } finally {
+      setHerordenBezig(false);
+    }
   };
 
   const startEdit = (item: {
@@ -372,9 +393,9 @@ export default function AdminOnderwegPage() {
           <p className="text-sm text-gray-500 py-4">Nog geen items. Voeg er een toe.</p>
         ) : (
           <ul className="space-y-3">
-            {items
+            {[...items]
               .sort((a: any, b: any) => a.order - b.order)
-              .map((item: any) => (
+              .map((item: any, index: number, sorted: any[]) => (
                 <li
                   key={item._id}
                   className="p-4 rounded-lg border border-primary-200 bg-white hover:bg-primary-50/50"
@@ -417,6 +438,27 @@ export default function AdminOnderwegPage() {
                       </div>
                     </div>
                     <div className="flex gap-2">
+                      {/* Volgorde: omhoog/omlaag verschuiven */}
+                      <div className="flex flex-col">
+                        <button
+                          type="button"
+                          onClick={() => moveItem(sorted, index, "up")}
+                          disabled={index === 0 || herordenBezig}
+                          title="Omhoog"
+                          className="p-1 text-primary-600 hover:bg-primary-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveItem(sorted, index, "down")}
+                          disabled={index === sorted.length - 1 || herordenBezig}
+                          title="Omlaag"
+                          className="p-1 text-primary-600 hover:bg-primary-100 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => startEdit(item)}
