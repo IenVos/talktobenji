@@ -208,7 +208,7 @@ function FeatureSlider({ label, titel, subtitel, slides, bg }: { label?: string;
       {lightboxIndex !== null && (
         <SliderLightbox slides={slides} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
       )}
-      <div className="max-w-2xl mx-auto text-center">
+      <div className="max-w-4xl mx-auto text-center">
         {label && (
           <p className="text-xs uppercase tracking-widest font-medium mb-2" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>{label}</p>
         )}
@@ -239,7 +239,7 @@ function FeatureSlider({ label, titel, subtitel, slides, bg }: { label?: string;
                       src={slide.video}
                       autoPlay muted loop playsInline controls
                       className="w-full rounded-2xl"
-                      style={{ maxHeight: 380 }}
+                      style={{ maxHeight: 460 }}
                     />
                   ) : slide.afbeelding ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -250,7 +250,7 @@ function FeatureSlider({ label, titel, subtitel, slides, bg }: { label?: string;
                       decoding="async"
                       onClick={() => setLightboxIndex(i)}
                       className="w-full rounded-2xl cursor-zoom-in"
-                      style={{ maxHeight: 380, objectFit: "contain" }}
+                      style={{ maxHeight: 460, objectFit: "contain" }}
                     />
                   ) : null}
                   {slide.titel && <p className="text-sm font-medium" style={{ color: "#6d84a8" }}>{slide.titel}</p>}
