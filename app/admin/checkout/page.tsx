@@ -60,6 +60,8 @@ type CheckoutProduct = {
   reviews?: { author: string; role?: string; text: string; imageStorageId?: string; imageUrl?: string | null }[];
   extraTextBlocks?: { title?: string; content: string; imageStorageId?: string; imageUrl?: string | null }[];
   checkoutLayout?: string;
+  kaalKop?: string;
+  kaalSub?: string;
   rustigeContent?: {
     hero?: { imageStorageId?: string; imageUrl?: string | null; titel?: string; subtitel?: string; intro?: string; bullets?: string[]; prijsLabel?: string; buttonText?: string; buttonEnabled?: boolean; buttonColor?: string };
     watJeKrijgt?: { imageStorageId?: string; imageUrl?: string | null; titel?: string; tekst?: string; bullets?: string[]; prompts?: { dag: string; vraag: string }[] };
@@ -109,7 +111,9 @@ type FormState = {
   addOnPriceInCents: string;
   addOnType: string;
   addOnAccessDays: string;
-  checkoutLayout: string; // "standaard" | "rustig"
+  checkoutLayout: string; // "standaard" | "rustig" | "kaal"
+  kaalKop: string;
+  kaalSub: string;
 };
 
 // Rustige checkout-variant: alle teksten als regel-gebaseerde velden (eenvoudig te bewerken)
@@ -223,6 +227,8 @@ const EMPTY_FORM: FormState = {
   addOnType: "",
   addOnAccessDays: "",
   checkoutLayout: "standaard",
+  kaalKop: "",
+  kaalSub: "",
 };
 
 function opt(val: string): string | undefined {
@@ -441,6 +447,8 @@ export default function AdminCheckoutPage() {
       addOnType: product.addOnType ?? "",
       addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
       checkoutLayout: product.checkoutLayout ?? "standaard",
+      kaalKop: product.kaalKop ?? "",
+      kaalSub: product.kaalSub ?? "",
     });
     setRustig(rustigFromProduct(product));
     setGiftVariants(variantsToForm(product.giftVariants));
@@ -489,6 +497,8 @@ export default function AdminCheckoutPage() {
       addOnType: product.addOnType ?? "",
       addOnAccessDays: product.addOnAccessDays != null ? String(product.addOnAccessDays) : "",
       checkoutLayout: product.checkoutLayout ?? "standaard",
+      kaalKop: product.kaalKop ?? "",
+      kaalSub: product.kaalSub ?? "",
     });
     setRustig(rustigFromProduct(product));
     setGiftVariants(variantsToForm(product.giftVariants));
@@ -573,8 +583,10 @@ export default function AdminCheckoutPage() {
         stripePriceId: opt(form.stripePriceId),
         subscriptionType: form.subscriptionType,
         buttonText: opt(form.buttonText),
-        trustText: opt(form.trustText),
-        quoteText: opt(form.quoteText),
+        // Quote en trust-zin: leeg veld ook echt als leeg doorsturen (niet als
+        // undefined), zodat weghalen in de admin de tekst echt van de pagina haalt.
+        trustText: form.trustText.trim(),
+        quoteText: form.quoteText.trim(),
         termsCheckboxEnabled: form.termsCheckboxEnabled,
         termsShowVoorwaarden: form.termsShowVoorwaarden,
         termsShowPrivacy: form.termsShowPrivacy,
@@ -625,6 +637,10 @@ export default function AdminCheckoutPage() {
           })
         ),
         checkoutLayout: form.checkoutLayout,
+        // Bij de kale layout de waarde altijd meesturen (ook leeg), zodat wissen ook
+        // echt wist en op de nette standaardtekst terugvalt. Bij andere layouts niet aanraken.
+        kaalKop: form.checkoutLayout === "kaal" ? form.kaalKop.trim() : undefined,
+        kaalSub: form.checkoutLayout === "kaal" ? form.kaalSub.trim() : undefined,
         rustigeContent,
       };
       if (editingId) {
@@ -1516,11 +1532,41 @@ export default function AdminCheckoutPage() {
                 <select value={form.checkoutLayout} onChange={set("checkoutLayout")} className={inputClass}>
                   <option value="standaard">Standaard checkout</option>
                   <option value="rustig">Rustige checkout (verdriet/rouw)</option>
+                  <option value="kaal">Kaal betaalformulier (alleen kop + betaalveld)</option>
                 </select>
                 <p className="text-xs text-gray-400 mt-1">
-                  &ldquo;Rustig&rdquo; toont de zachte opbouw in secties hieronder. Wat je leeg laat, blijft leeg op de pagina (lege secties verdwijnen).
+                  &ldquo;Rustig&rdquo; toont de zachte opbouw in secties hieronder. &ldquo;Kaal&rdquo; toont alleen een warme kop en het betaalveld, zonder verkoop-uitleg (handig als het verhaal al op de landingspagina staat). Wat je leeg laat, blijft leeg op de pagina.
                 </p>
               </div>
+
+              {/* ── Kale checkout: kop + subtekst ── */}
+              {form.checkoutLayout === "kaal" && (
+                <div className="space-y-3 bg-stone-50 border border-stone-200 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">
+                    Deze kop en subtekst staan boven het betaalveld. Gebruik <code className="bg-white px-1 rounded">&#123;naam&#125;</code> voor de voornaam van de koper (wordt weggelaten als die er niet is). Leeg = nette standaardtekst.
+                  </p>
+                  <div>
+                    <label className={labelSmClass}>Kop boven het betaalveld</label>
+                    <input
+                      type="text"
+                      placeholder="Je hoeft de perfecte woorden niet te hebben."
+                      value={form.kaalKop}
+                      onChange={set("kaalKop")}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelSmClass}>Subtekst onder de kop</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Je rondt het hier rustig af. Er Zijn staat meteen na je aankoop in je inbox."
+                      value={form.kaalSub}
+                      onChange={set("kaalSub")}
+                      className={`${inputClass} resize-none`}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* ── Rustige checkout: secties ── */}
               {form.checkoutLayout === "rustig" && (

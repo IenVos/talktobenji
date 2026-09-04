@@ -188,6 +188,8 @@ export const create = mutation({
     }))),
     checkoutLayout: v.optional(v.string()),
     rustigeContent: v.optional(rustigeContentValidator),
+    kaalKop: v.optional(v.string()),
+    kaalSub: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -233,6 +235,8 @@ export const create = mutation({
       extraTextBlocks: args.extraTextBlocks,
       checkoutLayout: args.checkoutLayout,
       rustigeContent: args.rustigeContent,
+      kaalKop: args.kaalKop,
+      kaalSub: args.kaalSub,
       createdAt: now,
       updatedAt: now,
     });
@@ -299,6 +303,8 @@ export const update = mutation({
     }))),
     checkoutLayout: v.optional(v.string()),
     rustigeContent: v.optional(rustigeContentValidator),
+    kaalKop: v.optional(v.string()),
+    kaalSub: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
