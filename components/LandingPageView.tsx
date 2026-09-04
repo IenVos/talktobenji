@@ -204,7 +204,7 @@ function FeatureSlider({ label, titel, subtitel, slides, bg }: { label?: string;
   const prev = () => setActive((a) => (a - 1 + slides.length) % slides.length);
   const next = () => setActive((a) => (a + 1) % slides.length);
   return (
-    <section className="py-14 px-5" style={bg ? { background: bg } : undefined}>
+    <section className="pt-2 pb-12 px-5" style={bg ? { background: bg } : undefined}>
       {lightboxIndex !== null && (
         <SliderLightbox slides={slides} startIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
       )}

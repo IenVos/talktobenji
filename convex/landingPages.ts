@@ -821,8 +821,8 @@ export const zetErZijnFlipbookBeelden = internalMutation({
     ];
 
     await ctx.db.patch(existing._id, {
-      featureSliderLabel: "69 pagina's, direct te downloaden",
-      featureSliderTitel: "Er Zijn",
+      featureSliderLabel: "69 pagina's, mooi vormgegeven",
+      featureSliderTitel: "Een kijkje in het boekje",
       featureSliderSubtitel:
         "Dit is een praktische handreiking voor iedereen die er voor iemand wil zijn, juist op de momenten waarop woorden soms tekortschieten.",
       featureSliderPosition: "onder_hero",
