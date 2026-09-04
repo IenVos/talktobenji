@@ -36,6 +36,8 @@ type CheckoutProduct = {
   termsCheckboxEnabled?: boolean;
   termsShowVoorwaarden?: boolean;
   termsShowPrivacy?: boolean;
+  optInEnabled?: boolean;
+  optInText?: string;
   imageStorageId?: Id<"_storage">;
   imageUrl?: string | null;
   accessDays?: number;
@@ -92,6 +94,8 @@ type FormState = {
   termsCheckboxEnabled: boolean;
   termsShowVoorwaarden: boolean;
   termsShowPrivacy: boolean;
+  optInEnabled: boolean;
+  optInText: string;
   accessDays: string;
   imageStorageId?: Id<"_storage">;
   imageFile: File | null;
@@ -207,6 +211,8 @@ const EMPTY_FORM: FormState = {
   termsCheckboxEnabled: true,
   termsShowVoorwaarden: true,
   termsShowPrivacy: true,
+  optInEnabled: false,
+  optInText: "",
   accessDays: "",
   imageStorageId: undefined,
   imageFile: null,
@@ -427,6 +433,8 @@ export default function AdminCheckoutPage() {
       termsCheckboxEnabled: product.termsCheckboxEnabled ?? true,
       termsShowVoorwaarden: product.termsShowVoorwaarden ?? true,
       termsShowPrivacy: product.termsShowPrivacy ?? true,
+      optInEnabled: product.optInEnabled ?? false,
+      optInText: product.optInText ?? "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -477,6 +485,8 @@ export default function AdminCheckoutPage() {
       termsCheckboxEnabled: product.termsCheckboxEnabled ?? true,
       termsShowVoorwaarden: product.termsShowVoorwaarden ?? true,
       termsShowPrivacy: product.termsShowPrivacy ?? true,
+      optInEnabled: product.optInEnabled ?? false,
+      optInText: product.optInText ?? "",
       accessDays: product.accessDays != null ? String(product.accessDays) : "",
       imageStorageId: product.imageStorageId,
       imageFile: null,
@@ -590,6 +600,8 @@ export default function AdminCheckoutPage() {
         termsCheckboxEnabled: form.termsCheckboxEnabled,
         termsShowVoorwaarden: form.termsShowVoorwaarden,
         termsShowPrivacy: form.termsShowPrivacy,
+        optInEnabled: form.optInEnabled,
+        optInText: form.optInText.trim() || undefined,
         accessDays: accessDaysVal,
         imageStorageId,
         isLive: form.isLive,
@@ -1003,6 +1015,37 @@ export default function AdminCheckoutPage() {
                     <p className="text-xs text-amber-600">Beide uit = de akkoord-regel wordt niet getoond.</p>
                   )}
                   <p className="text-xs text-gray-400">Tip: een akkoord-regel met voorwaarden is meestal verplicht voor betaal- en advertentieplatforms.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Nieuwsbrief-inschrijving op de checkout */}
+            <div className="border-t border-primary-100 pt-4 space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.optInEnabled}
+                  onChange={setCheck("optInEnabled")}
+                  className="rounded border-primary-300 text-primary-600"
+                />
+                <span className="text-sm text-gray-700">
+                  Inschrijf-vinkje tonen op checkout{" "}
+                  <span className="text-xs text-gray-400 font-normal">
+                    — koper kan zich inschrijven voor de nieuwsbrief; bij aanvinken belandt de opt-in in nieuwsbriefOptins
+                  </span>
+                </span>
+              </label>
+              {form.optInEnabled && (
+                <div className="ml-6">
+                  <label className={labelSmClass}>Tekst naast het vinkje <span className="font-normal text-gray-400">(leeg = nette standaardtekst)</span></label>
+                  <input
+                    type="text"
+                    placeholder="Houd me af en toe op de hoogte van nieuwe handreikingen en berichten van Ien."
+                    value={form.optInText}
+                    onChange={set("optInText")}
+                    className={inputClass}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Het vinkje staat bewust niet vooraf aan (actieve toestemming, AVG-net).</p>
                 </div>
               )}
             </div>

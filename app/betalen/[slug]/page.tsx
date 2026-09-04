@@ -80,6 +80,8 @@ function CheckoutForm({
   termsEnabled,
   showVoorwaarden,
   showPrivacy,
+  optInEnabled,
+  optInText,
   clientSecret,
   naam,
   email,
@@ -108,6 +110,8 @@ function CheckoutForm({
   termsEnabled?: boolean;
   showVoorwaarden?: boolean;
   showPrivacy?: boolean;
+  optInEnabled?: boolean;
+  optInText?: string;
   clientSecret: string;
   naam: string;
   email: string;
@@ -133,6 +137,7 @@ function CheckoutForm({
   const elements = useElements();
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsError, setTermsError] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const termsRef = useRef<HTMLLabelElement>(null);
@@ -178,6 +183,7 @@ function CheckoutForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           slug, email, name: naam, paymentIntentId,
+          optIn: newsletterOptIn,
           ...(isGift && {
             isGift: true,
             recipientEmail: recipientEmail || undefined,
@@ -296,6 +302,20 @@ function CheckoutForm({
           {"."}
         </span>
       </label>
+      )}
+
+      {/* Nieuwsbrief-inschrijving (per product aan te zetten). Bewust niet vooraf
+          aangevinkt: actieve toestemming. Bij aanvinken → opt-in in de webhook. */}
+      {optInEnabled && (
+        <label
+          className="flex items-start gap-3 cursor-pointer rounded-lg"
+          onClick={() => setNewsletterOptIn(v => !v)}
+        >
+          <Checkbox checked={newsletterOptIn} onChange={() => {}} />
+          <span className="text-xs text-stone-600 leading-snug pt-0.5">
+            {optInText?.trim() || "Houd me af en toe op de hoogte van nieuwe handreikingen en berichten van Ien. Je kunt je altijd uitschrijven."}
+          </span>
+        </label>
       )}
 
       {/* Quote + betaalknop samen in één dun kader zodat ze bij elkaar horen.
@@ -691,6 +711,8 @@ export default function BetalenPage() {
         termsEnabled={(product as any).termsCheckboxEnabled}
         showVoorwaarden={(product as any).termsShowVoorwaarden}
         showPrivacy={(product as any).termsShowPrivacy}
+        optInEnabled={(product as any).optInEnabled}
+        optInText={(product as any).optInText}
         clientSecret={clientSecret}
         naam={naam}
         email={email}

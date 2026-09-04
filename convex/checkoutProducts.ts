@@ -148,6 +148,8 @@ export const create = mutation({
     termsCheckboxEnabled: v.optional(v.boolean()),
     termsShowVoorwaarden: v.optional(v.boolean()),
     termsShowPrivacy: v.optional(v.boolean()),
+    optInEnabled: v.optional(v.boolean()),
+    optInText: v.optional(v.string()),
     herroepingTitle: v.optional(v.string()),
     herroepingText: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
@@ -209,6 +211,8 @@ export const create = mutation({
       termsCheckboxEnabled: args.termsCheckboxEnabled,
       termsShowVoorwaarden: args.termsShowVoorwaarden,
       termsShowPrivacy: args.termsShowPrivacy,
+      optInEnabled: args.optInEnabled,
+      optInText: args.optInText,
       herroepingTitle: args.herroepingTitle,
       herroepingText: args.herroepingText,
       imageStorageId: args.imageStorageId,
@@ -263,6 +267,8 @@ export const update = mutation({
     termsCheckboxEnabled: v.optional(v.boolean()),
     termsShowVoorwaarden: v.optional(v.boolean()),
     termsShowPrivacy: v.optional(v.boolean()),
+    optInEnabled: v.optional(v.boolean()),
+    optInText: v.optional(v.string()),
     herroepingTitle: v.optional(v.string()),
     herroepingText: v.optional(v.string()),
     imageStorageId: v.optional(v.id("_storage")),
@@ -347,6 +353,9 @@ export const zetErZijnCheckoutKaal = internalMutation({
       kaalKop: "Je hoeft de perfecte woorden niet te hebben.",
       kaalSub:
         "Je rondt het hier rustig af. Er Zijn staat meteen na je aankoop in je inbox, klaar om te bewaren voor wanneer je het nodig hebt.",
+      optInEnabled: true,
+      optInText:
+        "Houd me af en toe op de hoogte van nieuwe handreikingen en berichten van Ien. Je kunt je altijd uitschrijven.",
       updatedAt: Date.now(),
     });
     return { kaalGezet: true, id: product._id };

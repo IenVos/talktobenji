@@ -1166,6 +1166,10 @@ export default defineSchema({
     termsCheckboxEnabled: v.optional(v.boolean()), // akkoord-regel tonen (undefined = aan, backwards compat)
     termsShowVoorwaarden: v.optional(v.boolean()), // link naar algemene voorwaarden tonen (undefined = aan)
     termsShowPrivacy: v.optional(v.boolean()),     // link naar privacybeleid tonen (undefined = aan)
+    // Nieuwsbrief-inschrijving op de checkout (opt-in vinkje). Aan → koper kan zich
+    // inschrijven; bij aanvinken belandt de opt-in via de webhook in nieuwsbriefOptins.
+    optInEnabled: v.optional(v.boolean()),
+    optInText: v.optional(v.string()),
     herroepingTitle: v.optional(v.string()), // kopje van het herroepingsrecht-vakje
     herroepingText: v.optional(v.string()), // vriendelijke uitleg over herroepingsrecht (mailadres wordt automatisch klikbaar)
     imageStorageId: v.optional(v.id("_storage")),
