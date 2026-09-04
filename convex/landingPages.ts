@@ -649,6 +649,71 @@ export const fixNietAlleenRelatieWieIs = internalMutation({
   },
 });
 
+/**
+ * Optimaliseer de "er-zijn" landingspagina voor advertenties.
+ * - trackAds aan (verschijnt in ad-statistieken)
+ * - prijs + levering onder elke koopknop (koud verkeer weet wat het kost/krijgt)
+ * - extra koopknop halverwege de pagina
+ * - FAQ-blok gevuld met bezwaar-beantwoording (het blok stond aan maar leeg)
+ * Via internalMutation omdat de admin-update een ingelogde sessie vereist.
+ * Draaien met: npx convex run landingPages:optimaliseerErZijnVoorAds
+ */
+export const optimaliseerErZijnVoorAds = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "er-zijn";
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!existing) return { error: "er-zijn niet gevonden" };
+
+    const vragen = [
+      {
+        vraag: "Wat krijg ik precies?",
+        antwoord:
+          "Een digitaal boekje van 69 pagina's, warm vormgegeven en rustig om te lezen. Inclusief een spiekbriefje: één pagina met de kern, die je los op je telefoon kunt bewaren of kunt printen.",
+      },
+      {
+        vraag: "Wat kost het?",
+        antwoord: "€17, eenmalig. Geen abonnement, geen kleine lettertjes.",
+      },
+      {
+        vraag: "Hoe krijg ik het na aankoop?",
+        antwoord:
+          "Direct na je aankoop staat het in je inbox. Je kunt het meteen lezen op je telefoon, tablet of laptop. Er wordt niets fysiek opgestuurd.",
+      },
+      {
+        vraag: "Voor welk soort verlies is dit?",
+        antwoord:
+          "Voor iemand naast wie jij staat die rouwt. Om een dierbare, een huisdier, een relatie, een miskraam, of een toekomst die anders liep dan gehoopt. Het gaat over hoe je er kunt zijn, niet over één specifiek verlies.",
+      },
+      {
+        vraag: "Ik ben bang dat ik het verkeerde zeg.",
+        antwoord:
+          "Precies daarvoor is dit gemaakt. Je leest welke goedbedoelde zinnen averechts werken en waarom, en vooral wat wél helpt. Met zinnen die je letterlijk kunt gebruiken, voor het eerste moment en de weken daarna.",
+      },
+      {
+        vraag: "Kan ik het bewaren voor als ik het nodig heb?",
+        antwoord:
+          "Ja. Het boekje blijft van jou en je kunt er altijd op teruggrijpen. Het spiekbriefje staat zo op je telefoon, voor het moment dat je er even niet uitkomt.",
+      },
+    ];
+
+    await ctx.db.patch(existing._id, {
+      trackAds: true,
+      hideMidCta: false,
+      ctaPrijsTekst: "€17, eenmalig",
+      ctaMicroCopy: "69 pagina's, direct te downloaden na aankoop",
+      hideVragen: false,
+      faqTitel: "Misschien vraag je je af...",
+      vragenJson: JSON.stringify(vragen),
+      updatedAt: Date.now(),
+    });
+    return { optimized: true, id: existing._id };
+  },
+});
+
 export const seedNietAlleenKeuzeLp = mutation({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
