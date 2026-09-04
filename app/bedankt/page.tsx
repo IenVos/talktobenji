@@ -59,17 +59,46 @@ function BedanktContent() {
       : "skip"
   );
 
+  // Product ophalen (voor de aankoopwaarde in het Purchase-event).
+  const gekochtProduct = useQuery(
+    api.checkoutProducts.getBySlug,
+    itemName ? { slug: itemName } : "skip"
+  );
+
   const isLoading = status === "loading";
   const isLoggedIn = !!session?.userId;
   const subType = subscription?.subscriptionType ?? "free";
   const hasFullAccess = subType === "uitgebreid" || subType === "alles_in_1";
 
-  // Facebook Pixel – Subscribe event bij aankoop
+  // Facebook Pixel – Subscribe event bij aankoop (bestaand, voor lopende campagnes)
   useEffect(() => {
     if (typeof window !== "undefined" && (window as any).fbq) {
       (window as any).fbq("track", "Subscribe");
     }
   }, []);
+
+  // Facebook Pixel – Purchase-event mét waarde, zodat Meta op échte kopers kan
+  // optimaliseren en de omzet/ROAS in Ads Manager terugkomt. Alleen bij een echte
+  // Stripe-redirect (paymentIntentId) en per betaling één keer (dedup tegen refresh).
+  useEffect(() => {
+    if (typeof window === "undefined" || !(window as any).fbq) return;
+    if (!paymentIntentId || !gekochtProduct) return;
+    const key = `ttb_purchase_fired_${paymentIntentId}`;
+    try {
+      if (sessionStorage.getItem(key)) return;
+    } catch { /* privémodus: dan vuurt het gewoon (zonder dedup) */ }
+    const waarde = (gekochtProduct.priceInCents ?? 0) / 100;
+    (window as any).fbq("track", "Purchase", {
+      value: waarde,
+      currency: "EUR",
+      content_name: gekochtProduct.name,
+      content_type: "product",
+      ...(itemName ? { content_ids: [itemName] } : {}),
+    });
+    try {
+      sessionStorage.setItem(key, "1");
+    } catch { /* opslag geblokkeerd: niet erg */ }
+  }, [paymentIntentId, gekochtProduct, itemName]);
 
   // Google Ads – conversie bijhouden bij aankoop
   useEffect(() => {
