@@ -867,6 +867,7 @@ export default defineSchema({
     featureSlidesJson: v.optional(v.string()),
     featureSliderLabel: v.optional(v.string()),
     featureSliderTitel: v.optional(v.string()),
+    featureSliderSubtitel: v.optional(v.string()),
     featureSliderPosition: v.optional(v.string()), // "onder_hero" | "na_content" | "na_voor_wie" (default)
     // Sectietitels
     ervaringenTitel: v.optional(v.string()),

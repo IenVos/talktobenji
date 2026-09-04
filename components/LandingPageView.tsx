@@ -197,7 +197,7 @@ function SliderLightbox({ slides, startIndex, onClose }: { slides: FeatureSlide[
   );
 }
 
-function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: string; slides: FeatureSlide[]; bg?: string }) {
+function FeatureSlider({ label, titel, subtitel, slides, bg }: { label?: string; titel?: string; subtitel?: string; slides: FeatureSlide[]; bg?: string }) {
   const [active, setActive] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   if (slides.length === 0) return null;
@@ -213,7 +213,10 @@ function FeatureSlider({ label, titel, slides, bg }: { label?: string; titel?: s
           <p className="text-xs uppercase tracking-widest font-medium mb-2" style={{ color: "#8a8078", letterSpacing: "0.14em" }}>{label}</p>
         )}
         {titel && (
-          <h2 className="text-2xl font-semibold mb-8" style={{ color: "#3d3530" }}>{titel}</h2>
+          <h2 className={`text-2xl font-semibold ${subtitel ? "mb-2" : "mb-8"}`} style={{ color: "#3d3530" }}>{titel}</h2>
+        )}
+        {subtitel && (
+          <p className="text-sm leading-relaxed mb-8 max-w-md mx-auto" style={{ color: "#6b6460", textWrap: "pretty" } as React.CSSProperties}>{subtitel}</p>
         )}
         <div className="relative flex items-center gap-3">
           <button
@@ -497,10 +500,11 @@ export function LandingPageView({ slug }: { slug: string }) {
   // Positie van het bladerblok. Standaard "na_voor_wie" (oude gedrag), maar per LP
   // te verplaatsen naar "onder_hero" of "na_content".
   const featureSliderPosition = ((page as any).featureSliderPosition as string | undefined) || "na_voor_wie";
+  const featureSliderSubtitel = (page as any).featureSliderSubtitel as string | undefined;
   const flipbookSlider = featureSlides.length > 0 ? (
     <>
       <SectieMarker />
-      <FeatureSlider label={featureSliderLabel} titel={featureSliderTitel} slides={featureSlides} bg="rgba(160,148,136,0.08)" />
+      <FeatureSlider label={featureSliderLabel} titel={featureSliderTitel} subtitel={featureSliderSubtitel} slides={featureSlides} />
     </>
   ) : null;
   const pricingTitel = (page as any).pricingTitel as string | undefined;

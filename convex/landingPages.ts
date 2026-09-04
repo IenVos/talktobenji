@@ -182,6 +182,7 @@ export const create = mutation({
     featureSlidesJson: v.optional(v.string()),
     featureSliderLabel: v.optional(v.string()),
     featureSliderTitel: v.optional(v.string()),
+    featureSliderSubtitel: v.optional(v.string()),
     featureSliderPosition: v.optional(v.string()),
     ervaringenTitel: v.optional(v.string()),
     ervaringenSubtitel: v.optional(v.string()),
@@ -320,6 +321,7 @@ export const update = mutation({
     featureSlidesJson: v.optional(v.string()),
     featureSliderLabel: v.optional(v.string()),
     featureSliderTitel: v.optional(v.string()),
+    featureSliderSubtitel: v.optional(v.string()),
     featureSliderPosition: v.optional(v.string()),
     ervaringenTitel: v.optional(v.string()),
     ervaringenSubtitel: v.optional(v.string()),
@@ -820,7 +822,9 @@ export const zetErZijnFlipbookBeelden = internalMutation({
 
     await ctx.db.patch(existing._id, {
       featureSliderLabel: "69 pagina's, direct te downloaden",
-      featureSliderTitel: "Zo ziet Er Zijn eruit",
+      featureSliderTitel: "Er Zijn",
+      featureSliderSubtitel:
+        "Dit is een praktische handreiking voor iedereen die er voor iemand wil zijn, juist op de momenten waarop woorden soms tekortschieten.",
       featureSliderPosition: "onder_hero",
       featureSlidesJson: JSON.stringify(slides),
       updatedAt: Date.now(),
