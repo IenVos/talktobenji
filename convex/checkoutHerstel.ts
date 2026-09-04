@@ -26,7 +26,6 @@ import {
   mailAlinea,
   mailHandtekeningIen,
   mailWrapper,
-  nietAlleenUrlVoorType,
 } from "./ehMailFooter";
 
 const FROM = "Ien van Talk To Benji <contactmetien@talktobenji.com>";
@@ -351,7 +350,7 @@ function herinneringHtml(args: {
     ${mailAlinea(aanhef)}
     ${alineas.map(mailAlinea).join("\n")}
     ${mailHandtekeningIen()}
-    ${ehFooter(nietAlleenUrlVoorType(args.verliestype ?? "algemeen"), args.afmeldUrl)}
+    ${ehFooter("", args.afmeldUrl)}
   `);
 }
 
