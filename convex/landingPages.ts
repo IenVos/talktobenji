@@ -650,6 +650,121 @@ export const fixNietAlleenRelatieWieIs = internalMutation({
 });
 
 /**
+ * Herschrijf de volledige "er-zijn" landingspagina-copy (rustige, warme salespagina).
+ * Emotionele herkenning eerst, €17 bewust ondergeschikt, geen agressieve sales.
+ * Via internalMutation omdat de admin-update een ingelogde sessie vereist.
+ * Draaien met: npx convex run landingPages:herschrijfErZijnLp
+ */
+export const herschrijfErZijnLp = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", "er-zijn"))
+      .first();
+    if (!existing) return { error: "er-zijn niet gevonden" };
+
+    const contentBlocks = [
+      {
+        titel: "Wat als je gewoon wist wat je kon doen?",
+        tekst:
+          "Er Zijn geeft je praktische handvatten voor precies die momenten waarop je even niet weet wat je moet zeggen of doen. Geen theorie, maar dingen die je meteen kunt gebruiken.",
+        accent: true,
+      },
+      {
+        titel: "Geen perfecte woorden. Wel echte aanwezigheid.",
+        tekst:
+          "Je hoeft iemands verdriet niet op te lossen. Je hoeft niet precies te begrijpen hoe iemand zich voelt. Je hoeft niet altijd het juiste te zeggen.\n\nJe hoeft alleen te weten hoe je kunt blijven. Hoe je kunt luisteren. Hoe je iets kleins kunt doen. Hoe je kunt laten merken:\n\n**\"Ik ben er. Ook als ik niet weet wat ik moet zeggen.\"**",
+        geenKaart: true,
+      },
+      {
+        titel: "Voor wie is Er Zijn?",
+        tekst:
+          "Voor de vriend of vriendin die merkt dat een dierbare een moeilijke periode doormaakt.\n\nVoor de partner die naast iemand staat die iets ingrijpends meemaakt.\n\nVoor de collega die ziet dat het niet goed gaat, maar niet weet hoe die het gesprek moet beginnen.\n\nVoor de ouder die een kind ziet worstelen en dichterbij wil komen.\n\nVoor iedereen die denkt: \"Ik wil er voor je zijn. Ik weet alleen niet hoe.\"",
+      },
+    ];
+
+    const vragen = [
+      {
+        vraag: "Maar wat als ik het verkeerde zeg?",
+        antwoord:
+          "Dat is misschien wel de meest voorkomende angst. Het gaat ook niet om perfecte communicatie, maar om verbinding. Je leert beter begrijpen wat iemand nodig heeft, je krijgt woorden wanneer je die zelf even niet kunt vinden, en je ontdekt kleine manieren waarop je er echt kunt zijn. Zonder dat je therapeut hoeft te worden.",
+      },
+      {
+        vraag: "Wat krijg ik precies?",
+        antwoord:
+          "Een digitaal flipboekje van 69 pagina's, warm vormgegeven en rustig om te lezen. Inclusief een spiekbriefje: één pagina met de kern, die je los op je telefoon kunt bewaren of kunt printen.",
+      },
+      {
+        vraag: "Wat kost het?",
+        antwoord: "Eenmalig €17. Geen abonnement, geen kleine lettertjes.",
+      },
+      {
+        vraag: "Hoe krijg ik het na aankoop?",
+        antwoord:
+          "Direct na je aankoop staat het in je inbox. Je kunt het meteen lezen op je telefoon, tablet of laptop, en het bewaren voor wanneer je het nodig hebt.",
+      },
+      {
+        vraag: "Voor welk soort verlies is dit?",
+        antwoord:
+          "Voor iemand naast wie jij staat die iets moeilijks meemaakt. Een overlijden, een scheiding, een miskraam, het verlies van een huisdier, of een toekomst die anders liep dan gehoopt. Het gaat over hoe je er kunt zijn, niet over één specifiek verlies.",
+      },
+      {
+        vraag: "Kan ik het bewaren voor als ik het nodig heb?",
+        antwoord:
+          "Ja. Het boekje blijft van jou en je kunt er altijd op teruggrijpen. Het spiekbriefje staat zo op je telefoon, voor het moment dat je er even niet uitkomt.",
+      },
+    ];
+
+    await ctx.db.patch(existing._id, {
+      heroLabel: "een digitale gids",
+      heroTitle: "Je wilt er zijn. Maar je weet niet hoe.",
+      heroSubtitle:
+        "Iemand van wie je houdt gaat door een moeilijke periode. Je wilt iets doen, iets zeggen, dichtbij zijn.\n\nMaar ineens weet je niet meer wat.",
+      heroBody:
+        "Wat zeg je tegen iemand die verdriet heeft?\nHoe vraag je hoe het écht gaat?\nWanneer stuur je een bericht?\nMoet je juist ruimte geven?\nEn wat als je bang bent om het verkeerde te zeggen?\n\n**Je hoeft het niet perfect te doen. Je hebt alleen wat houvast nodig.**\n\nEr Zijn is een praktische digitale gids voor iedereen die er voor iemand wil zijn, juist op de momenten waarop woorden soms tekortschieten.",
+      ctaText: "Ja, ik wil er zijn",
+      ctaColor: "#6d84a8",
+      ctaPrijsTekst: "Eenmalig €17",
+      ctaMicroCopy:
+        "Voor iets wat je hopelijk niet vaak nodig hebt, maar waar je blij mee bent als iemand jou nodig heeft. Direct te downloaden.",
+      section1Title: "Je wilt helpen. Maar juist daardoor wordt het soms ingewikkeld.",
+      section1Text:
+        "Misschien herken je dit.\n\nJe krijgt een bericht waarvan je weet: hier gaat het echt niet goed.\n\nJe typt iets. Je leest het terug. Toch maar niet.\n\nJe wilt niet iets zeggen wat pijn doet. Je wilt niet bagatelliseren. Je wilt niet opdringerig zijn. Je wilt niet doen alsof je precies weet hoe iemand zich voelt.\n\nEn voor je het weet, stuur je helemaal niets.\n\n**Niet omdat je niet om iemand geeft.** Maar omdat je niet weet hoe je dichtbij kunt blijven.",
+      section2Title: "Er zijn zoveel manieren waarop het leven ineens anders kan worden.",
+      section2Text:
+        "Een overlijden. Een scheiding. Een miskraam. Het verlies van een huisdier. Een gezondheidsprobleem. Een toekomst die anders loopt dan gehoopt. Een rol of zekerheid die wegvalt.\n\nHet zijn verschillende ervaringen. Maar steeds kan dezelfde vraag ontstaan: **\"Hoe kan ik er voor deze persoon zijn?\"**\n\nDaar gaat Er Zijn over. Niet over het oplossen van verdriet. Niet over de perfecte woorden. Maar over leren hoe je naast iemand kunt blijven staan wanneer het moeilijk wordt.",
+      contentBlocksJson: JSON.stringify(contentBlocks),
+      voorWieTitle: "Wat je ontdekt in Er Zijn",
+      voorWieSubtitel:
+        "Praktische handvatten voor precies die momenten waarop je even niet weet wat je moet zeggen of doen.",
+      voorWieBullets: [
+        "**Wat er écht in iemand kan omgaan** als iemand verdriet of verlies ervaart, zodat je gedrag beter begrijpt.",
+        "**Welke goedbedoelde zinnen averechts kunnen werken**, en vooral waarom. Zonder schuldgevoel.",
+        "**Wat wél helpt**, met concrete kleine dingen die je vandaag al kunt doen.",
+        "**Welke woorden je kunt gebruiken**, met zinnen die je letterlijk kunt inzetten op verschillende momenten.",
+        "**Hoe je omgaat met verschillende vormen van verlies**, zoals een huisdier, scheiding, miskraam of anticiperende rouw.",
+        "**Hoe je ook voor jezelf zorgt**, want er zijn voor iemand anders kan óók zwaar zijn.",
+        "**Een praktisch spiekbriefje** met de belangrijkste punten bij elkaar. Bewaar het op je telefoon of print het uit.",
+      ].join("\n"),
+      hideMidCta: false,
+      hideVragen: false,
+      hideErvaringen: true,
+      hideWatJeKrijgt: true,
+      hideWieIsIen: false,
+      faqTitel: "Misschien vraag je je af...",
+      vragenJson: JSON.stringify(vragen),
+      finalCtaTitle: "Je hoeft de perfecte woorden niet te hebben.",
+      finalCtaBody:
+        "Misschien gaat het nu met iedereen om je heen goed. Dat is fijn. Maar vroeg of laat kennen we allemaal iemand die door iets heen gaat. En op dat moment wil je niet voor het eerst nadenken over wat je zou moeten zeggen.\n\nDe persoon die jou nodig heeft, heeft geluk met jou.\n\n69 pagina's. Digitaal flipboekje. Inclusief spiekbriefje. Direct te downloaden.",
+      trackAds: true,
+      updatedAt: Date.now(),
+    });
+    return { herschreven: true, id: existing._id };
+  },
+});
+
+/**
  * Optimaliseer de "er-zijn" landingspagina voor advertenties.
  * - trackAds aan (verschijnt in ad-statistieken)
  * - prijs + levering onder elke koopknop (koud verkeer weet wat het kost/krijgt)
