@@ -332,7 +332,7 @@ function herinneringHtml(args: {
   const product = args.productNaam || "Niet Alleen";
   // De link staat in de tekst, niet als losse knop: dat leest als een berichtje
   // van Ien in plaats van als een verkoopmail.
-  const link = `<a href="${args.checkoutUrl}" style="color: #6d84a8; font-weight: 600;">👉 Ik wil starten met Niet Alleen</a>`;
+  const link = `<a href="${args.checkoutUrl}" style="color: #6d84a8; font-weight: 600;">👉 Mijn bestelling afronden</a>`;
 
   const alineas = args.tweede
     ? [
