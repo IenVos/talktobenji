@@ -765,6 +765,63 @@ export const herschrijfErZijnLp = internalMutation({
 });
 
 /**
+ * Zet het bladerbare "kijkje in het boekje" op de er-zijn LP (feature-slider met
+ * spreads uit het flipboekje + zacht onderschrift per pagina). Rerunbaar.
+ * Draaien met: npx convex run landingPages:zetErZijnFlipbookBeelden
+ */
+export const zetErZijnFlipbookBeelden = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", "er-zijn"))
+      .first();
+    if (!existing) return { error: "er-zijn niet gevonden" };
+
+    const slides = [
+      {
+        afbeelding: "/images/er-zijn-spread-1-binnen.png",
+        titel: "Wat er van binnen gebeurt",
+        onderschrift: "Begrijpen wat er in iemand omgaat, zodat je gedrag beter kunt plaatsen.",
+      },
+      {
+        afbeelding: "/images/er-zijn-spread-2-nietzeggen.png",
+        titel: "Wat je beter niet zegt",
+        onderschrift: "Goedbedoelde zinnen die averechts werken, en waarom. Zonder schuldgevoel.",
+      },
+      {
+        afbeelding: "/images/er-zijn-spread-3-aanwezig.png",
+        titel: "Wat wél helpt",
+        onderschrift: "Aanwezig zijn zonder agenda. De naam blijven noemen. Kleine dingen die verschil maken.",
+      },
+      {
+        afbeelding: "/images/er-zijn-spread-4-zinnen.png",
+        titel: "Zinnen die je kunt gebruiken",
+        onderschrift: "Woorden voor als je die zelf even niet kunt vinden. Niet perfect, wel eerlijk.",
+      },
+      {
+        afbeelding: "/images/er-zijn-spread-5-verlies.png",
+        titel: "Ook dit is verlies",
+        onderschrift: "Een scheiding, een baan, een rol die wegvalt. Verdriet dat zelden erkend wordt.",
+      },
+      {
+        afbeelding: "/images/er-zijn-spread-6-spiekbriefje.png",
+        titel: "Het spiekbriefje",
+        onderschrift: "De kern op één pagina. Wat helpt, wat je kunt zeggen, wat minder helpt.",
+      },
+    ];
+
+    await ctx.db.patch(existing._id, {
+      featureSliderLabel: "een kijkje in het boekje",
+      featureSliderTitel: "69 pagina's, rustig vormgegeven",
+      featureSlidesJson: JSON.stringify(slides),
+      updatedAt: Date.now(),
+    });
+    return { beeldenGezet: slides.length, id: existing._id };
+  },
+});
+
+/**
  * Optimaliseer de "er-zijn" landingspagina voor advertenties.
  * - trackAds aan (verschijnt in ad-statistieken)
  * - prijs + levering onder elke koopknop (koud verkeer weet wat het kost/krijgt)
