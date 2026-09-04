@@ -2,7 +2,7 @@
  * Checkout producten — beheerbaar via admin, publiek via /betalen/[slug]
  */
 import { v } from "convex/values";
-import { mutation, query, type QueryCtx } from "./_generated/server";
+import { mutation, query, internalMutation, type QueryCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { checkAdmin } from "./adminAuth";
 import { rustigeContentValidator } from "./checkoutValidators";
@@ -318,6 +318,32 @@ export const update = mutation({
       patch.addOnAccessDays = undefined;
     }
     await ctx.db.patch(id, patch);
+  },
+});
+
+/**
+ * Zet de "er-zijn" checkout op de kale layout: alleen een warme kop + het
+ * betaalformulier, geen herhaalde verkoop-uitleg (de LP doet dat werk al).
+ * Via internalMutation omdat de admin-update een ingelogde sessie vereist.
+ * Draaien met: npx convex run checkoutProducts:zetErZijnCheckoutKaal
+ */
+export const zetErZijnCheckoutKaal = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const product = await ctx.db
+      .query("checkoutProducts")
+      .withIndex("by_slug", (q) => q.eq("slug", "er-zijn"))
+      .filter((q) => q.eq(q.field("isLive"), true))
+      .first();
+    if (!product) return { error: "er-zijn niet gevonden" };
+    await ctx.db.patch(product._id, {
+      checkoutLayout: "kaal",
+      kaalKop: "Je hoeft de perfecte woorden niet te hebben.",
+      kaalSub:
+        "Je rondt het hier rustig af. Er Zijn staat meteen na je aankoop in je inbox, klaar om te bewaren voor wanneer je het nodig hebt.",
+      updatedAt: Date.now(),
+    });
+    return { kaalGezet: true, id: product._id };
   },
 });
 
