@@ -13,6 +13,18 @@
 
 const DAG_MS = 86_400_000;
 
+// 8-weken-cadans: nieuwe aanmeldingen vanaf deze datum krijgen de dagmail "om de dag"
+// (elke 2 kalenderdagen één content-dag), zodat de 30 dagmails over ~8 weken lopen i.p.v.
+// 30 dagen. Klanten die vóór deze datum begonnen, maken hun dagelijkse ritme gewoon af
+// (interval 1), zodat lopende programma's niet verspringen.
+export const OMDEDAG_VANAF = Date.UTC(2026, 8, 6, 0, 0); // 6 sep 2026
+export const DAGEN_PER_MAIL = 2;
+
+/** Aantal kalenderdagen tussen twee dagmails: 2 voor de 8-weken-cadans, 1 voor oudere profielen. */
+export function mailIntervalDagen(startDatum: number): number {
+  return startDatum >= OMDEDAG_VANAF ? DAGEN_PER_MAIL : 1;
+}
+
 // De ochtend-cron (dagmails) draait om 08:00 UTC.
 const CRON_OCHTEND_UUR_UTC = 8;
 
@@ -34,12 +46,16 @@ export function effectieveStartDatum(startDatum: number): number {
 }
 
 /**
- * Dagnummer (1-gebaseerd) op KALENDERDAGEN in Europe/Amsterdam, niet op verstreken
- * 24-uursblokken vanaf het activatiemoment. Zo wijzigt het nummer alleen om
+ * Content-dagnummer (1-gebaseerd). Geteld op KALENDERDAGEN in Europe/Amsterdam, niet op
+ * verstreken 24-uursblokken vanaf het activatiemoment. Zo wijzigt het nummer alleen om
  * middernacht (NL), is het overal gelijk (account, cron, mail) en heeft het geen
  * last van zomertijd of tijdzone. Geankerd op de effectieve startdag (zie boven),
  * zodat het gelijk loopt met wat de klant echt heeft gekregen. Dit is de enige plek
  * waar het dagnummer berekend wordt; alle andere plekken roepen deze functie aan.
+ *
+ * Bij de 8-weken-cadans (zie mailIntervalDagen) telt het content-dagnummer maar één keer
+ * per 2 kalenderdagen op: content-dag 1 op kalenderdag 1, content-dag 2 op kalenderdag 3,
+ * enz. De cron ontdubbelt via verzondenDagen, dus op de "tussendag" gaat er niets uit.
  */
 export function berekenDagNummer(startDatum: number, now: number): number {
   const nlMidnight = (ts: number): number => {
@@ -52,7 +68,8 @@ export function berekenDagNummer(startDatum: number, now: number): number {
     const val = (t: string) => Number(p.find((x) => x.type === t)!.value);
     return Date.UTC(val("year"), val("month") - 1, val("day"));
   };
-  return Math.floor((nlMidnight(now) - nlMidnight(effectieveStartDatum(startDatum))) / DAG_MS) + 1;
+  const kalenderVerschil = Math.floor((nlMidnight(now) - nlMidnight(effectieveStartDatum(startDatum))) / DAG_MS);
+  return Math.floor(kalenderVerschil / mailIntervalDagen(startDatum)) + 1;
 }
 
 // Eerste cron-run met het leveringslogboek live (10 juni 2026, 08:00 UTC).
@@ -115,6 +132,8 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
   const verzondenSet = new Set(p.verzondenDagen ?? []);
   const heeftLog = (p.verzondenDagen?.length ?? 0) > 0;
   const eff = effectieveStartDatum(p.startDatum);
+  // Kalenderdagen tussen twee content-dagen (2 bij de 8-weken-cadans, anders 1).
+  const interval = mailIntervalDagen(p.startDatum);
 
   const dagen: { dag: number; status: DagStatus }[] = [];
   const verzonden: number[] = [];
@@ -122,7 +141,7 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
   const onbekend: number[] = [];
 
   for (let d = 1; d <= 30; d++) {
-    const dueAt = eff + (d - 1) * DAG_MS;
+    const dueAt = eff + (d - 1) * interval * DAG_MS;
     const status = statusVoor(d, verwachtTot, dueAt, verzondenSet.has(d), heeftLog);
     dagen.push({ dag: d, status });
     if (status === "verzonden") verzonden.push(d);
@@ -131,7 +150,7 @@ export function berekenLevering(p: LeveringProfiel, now: number): Levering {
   }
 
   const special = (dag: number, vlag: boolean): SpecialStatus => {
-    const dueAt = eff + (dag - 1) * DAG_MS;
+    const dueAt = eff + (dag - 1) * interval * DAG_MS;
     const status = statusVoor(dag, verwachtTotAvond, dueAt, vlag, heeftLog);
     return { due: dag <= verwachtTotAvond, verzonden: vlag, status };
   };
