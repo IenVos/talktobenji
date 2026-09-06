@@ -394,3 +394,30 @@ export const zetBtwTarieven = internalMutation({
     return resultaat;
   },
 });
+
+/**
+ * Zet de prijs van alle Niet Alleen-checkouts op een nieuw bedrag (in centen).
+ * Alleen de NA-gebrande checkouts (subscriptionType "niet_alleen"), NIET de
+ * Even Houvast-klonen (slug "even-houvast-*"). Geeft een rapport terug van wat
+ * er veranderde. Draaien via: npx convex run --prod checkoutProducts:zetNietAlleenPrijs '{"prijsCenten":4900}'
+ */
+export const zetNietAlleenPrijs = internalMutation({
+  args: { prijsCenten: v.number() },
+  handler: async (ctx, args) => {
+    const rows = await ctx.db.query("checkoutProducts").collect();
+    const rapport: { slug: string; subscriptionType?: string; oud: number; nieuw: number; actie: string }[] = [];
+    for (const p of rows) {
+      const isNA = p.subscriptionType === "niet_alleen";
+      const isEvenHouvast = p.slug.startsWith("even-houvast");
+      if (!isNA || isEvenHouvast) continue;
+      const oud = p.priceInCents;
+      if (oud === args.prijsCenten) {
+        rapport.push({ slug: p.slug, subscriptionType: p.subscriptionType, oud, nieuw: oud, actie: "ongewijzigd" });
+        continue;
+      }
+      await ctx.db.patch(p._id, { priceInCents: args.prijsCenten, updatedAt: Date.now() });
+      rapport.push({ slug: p.slug, subscriptionType: p.subscriptionType, oud, nieuw: args.prijsCenten, actie: "bijgewerkt" });
+    }
+    return { aantalBijgewerkt: rapport.filter((r) => r.actie === "bijgewerkt").length, rapport };
+  },
+});
