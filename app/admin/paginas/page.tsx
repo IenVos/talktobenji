@@ -1006,7 +1006,7 @@ function EvenHouvastTab() {
         <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Afsluiting (&ldquo;En nu?&rdquo;)</h3>
         <Field label="Titel" value={veld("slotTitel")} onChange={(v) => setVeld("slotTitel", v)} placeholder={isBasis ? "" : content.slotTitel} />
         <Field label="Tekst (alinea's)" value={veld("slotTekst")} onChange={(v) => setVeld("slotTekst", v)} multiline rows={4} placeholder={isBasis ? "" : content.slotTekst} />
-        <Field label="Prijsregel onder de knop (optioneel)" value={veld("slotPrijsRegel")} onChange={(v) => setVeld("slotPrijsRegel", v)} placeholder="Bijv. Niet Alleen kost eenmalig € … voor 30 dagen" />
+        <Field label="Prijsregel onder de knop (optioneel)" value={veld("slotPrijsRegel")} onChange={(v) => setVeld("slotPrijsRegel", v)} placeholder="Bijv. Niet Alleen kost eenmalig € … voor 8 weken" />
       </div>
 
       {isBasis && (
@@ -1109,7 +1109,7 @@ function NietAlleenTab() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Na 30 dagen (programma klaar)</h3>
+        <h3 className="text-sm font-semibold text-gray-900 pb-3 border-b border-gray-100">Na 8 weken (programma klaar)</h3>
         <Field label="Titel" value={content.afgerondTitel} onChange={(v) => set("afgerondTitel", v)} />
         <Field label="Tekst" value={content.afgerondTekst} onChange={(v) => set("afgerondTekst", v)} multiline rows={2} />
         <Field label="Knop (dagboek)" value={content.afgerondKnopDagboek} onChange={(v) => set("afgerondKnopDagboek", v)} />

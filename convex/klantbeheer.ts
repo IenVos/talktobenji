@@ -202,7 +202,7 @@ export const getCustomerByEmail = query({
           levering: berekenLevering(naProfile, Date.now()),
         },
         producten: [
-          { naam: "Niet Alleen (30 dagen)", type: "programma", since: naProfile.createdAt },
+          { naam: "Niet Alleen (8 weken)", type: "programma", since: naProfile.createdAt },
         ],
         preferences: { hasAccentColor: false, hasBackground: false, hasUserContext: false },
         counts: { notes: 0, goals: 0, memories: 0, checkIns: 0, conversationsThisMonth: 0 },
@@ -299,7 +299,7 @@ export const getCustomerByEmail = query({
       alles_in_1: "Alles-in-1",
       uitgebreid: "Uitgebreid",
       er_zijn: "Er Zijn",
-      niet_alleen: "Niet Alleen (30 dagen)",
+      niet_alleen: "Niet Alleen (8 weken)",
     };
     if (subscription && subscription.subscriptionType !== "free" && subscription.subscriptionType !== "trial") {
       producten.push({
@@ -310,7 +310,7 @@ export const getCustomerByEmail = query({
     }
     if (nietAlleenProfile) {
       producten.push({
-        naam: "Niet Alleen (30 dagen)",
+        naam: "Niet Alleen (8 weken)",
         type: "programma",
         since: nietAlleenProfile.createdAt,
       });

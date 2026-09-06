@@ -501,7 +501,7 @@ Morgen weer. Benji`,
     dag: 26,
     thema: "Wat je wilt onthouden van deze periode",
     subject: "Wat mag er blijven",
-    mail: `Je bent bijna aan het einde van deze 30 dagen.
+    mail: `Je bent bijna aan het einde van deze 8 weken.
 
 Voordat je afsluit, een vraag over wat je meeneemt. Niet het verdriet, dat draag je al. Maar wat wil je bewust onthouden van deze periode?
 
@@ -512,7 +512,7 @@ Wat wil jij meenemen?
 {link}
 
 Geniet van de dag. Groet Benji`,
-    inHetAccount: "Wat wil je meenemen uit deze 30 dagen? Een inzicht, een gevoel, een beslissing? Schrijf op wat je bewust wilt onthouden.",
+    inHetAccount: "Wat wil je meenemen uit deze 8 weken? Een inzicht, een gevoel, een beslissing? Schrijf op wat je bewust wilt onthouden.",
   },
 
   {
@@ -559,7 +559,7 @@ Rust goed. Benji`,
     subject: "Dit gemis gaat mee",
     mail: `Morgen is de laatste dag. En het gemis gaat mee.
 
-Het verdwijnt niet na 30 dagen. Het wordt misschien zachter, meer vertrouwd, meer draagbaar. Maar het is een deel van wie jij bent geworden.
+Het verdwijnt niet na 8 weken. Het wordt misschien zachter, meer vertrouwd, meer draagbaar. Maar het is een deel van wie jij bent geworden.
 
 Dat is geen tragedie. Mensen die hebben gerouwd dragen iets diepers in zich. Ze weten wat er echt toe doet. Ze zien dingen die anderen missen.
 
@@ -577,9 +577,9 @@ Zie je morgen. Benji`,
     subject: "Je laatste dag, en een brief",
     mail: `Dit is dag 30.
 
-Je hebt 30 dagen lang geschreven: over wat je draagt, wat je verloor, wat je hoopte, wat je voelt. Dat is niet niks. Dat vraagt moed.
+Je hebt 8 weken lang geschreven: over wat je draagt, wat je verloor, wat je hoopte, wat je voelt. Dat is niet niks. Dat vraagt moed.
 
-Vandaag schrijf je een brief aan jezelf. Niet aan wie je had willen zijn. Maar aan wie je bent, nu, na deze 30 dagen.
+Vandaag schrijf je een brief aan jezelf. Niet aan wie je had willen zijn. Maar aan wie je bent, nu, na deze 8 weken.
 
 Schrijf over wat je hebt ontdekt. Over wat je wil zeggen aan de jij die hier begon. Over wat je meeneemt.
 
@@ -589,7 +589,7 @@ Er is geen goede manier. Schrijf gewoon.
 
 Ik ben trots op je.
 Benji`,
-    inHetAccount: "Schrijf een brief aan jezelf, aan wie je nu bent, na deze 30 dagen. Over wat je hebt ontdekt, wat je meeneemt, wat je wil zeggen.",
-    alsjewilt: "Wat wil je dat de mensen om je heen weten, nu je deze 30 dagen achter de rug hebt?",
+    inHetAccount: "Schrijf een brief aan jezelf, aan wie je nu bent, na deze 8 weken. Over wat je hebt ontdekt, wat je meeneemt, wat je wil zeggen.",
+    alsjewilt: "Wat wil je dat de mensen om je heen weten, nu je deze 8 weken achter de rug hebt?",
   },
 ];

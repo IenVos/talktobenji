@@ -54,7 +54,7 @@ export const seedPersoonLpConcept = internalMutation({
       {
         titel: "",
         tekst:
-          "[midden]**Misschien voelt dit klein. \nMaar juist dat kleine moment per dag \nkan het verschil maken tussen \nalles alleen dragen of even kunnen ademen.**",
+          "[midden]**Misschien voelt dit klein. \nMaar juist dat kleine moment om de dag\nkan het verschil maken tussen \nalles alleen dragen of even kunnen ademen.**",
         accent: true,
       },
     ]);
@@ -89,7 +89,7 @@ export const seedPersoonLpConcept = internalMutation({
       {
         vraag: "Is dit niet gewoon een serie automatische mailtjes?",
         antwoord:
-          "Nee. Elk moment is met zorg gemaakt vanuit echt verlies, en samen vormen ze een opbouw van dertig dagen die meebeweegt met waar jij in je rouw zit. Het is geen rij losse berichten, maar een reis die je dag voor dag een beetje minder alleen laat voelen.",
+          "Nee. Elk moment is met zorg gemaakt vanuit echt verlies, en samen vormen ze een opbouw van 8 weken die meebeweegt met waar jij in je rouw zit. Het is geen rij losse berichten, maar een reis die je dag voor dag een beetje minder alleen laat voelen.",
       },
       {
         vraag: "Is dit therapie?",
@@ -101,7 +101,7 @@ export const seedPersoonLpConcept = internalMutation({
         antwoord: "Niemand behalve jij. Wat je schrijft is helemaal van jou en voor niemand anders zichtbaar.",
       },
       {
-        vraag: "Wat als ik na 30 dagen wil stoppen?",
+        vraag: "Wat als ik na 8 weken wil stoppen?",
         antwoord:
           "Dan stop je gewoon, je zit nergens aan vast. Je kunt alles wat je hebt geschreven downloaden en bewaren. Wil je daarna niet verder met Benji, dan kun je je account verwijderen. Geen automatische verlengingen, geen verborgen kosten. Jij bepaalt alles zelf.",
       },
@@ -117,7 +117,7 @@ export const seedPersoonLpConcept = internalMutation({
       heroLabel: "Voor wie iemand verloor die altijd dichtbij was",
       heroTitle: "De wereld draait door, maar het gemis is nog net zo groot.",
       heroSubtitle:
-        "Misschien ben je moe van sterk zijn.\n\nEn verlang je gewoon naar een klein moment waarop je niet alles alleen hoeft te dragen.\n\nDaarom maakte ik Niet Alleen. Dertig dagen lang sta je er niet alleen voor met je verdriet, met iets dat elke dag naar je toe komt, juist op de momenten dat het zwaar is.\n\n✓ Elke dag een moment dat alleen van jou is\n✓ Geschreven vanuit echt verlies, niet automatisch\n✓ Je verdriet krijgt eindelijk een plek.\n✓ Direct toegang, helemaal op jouw tempo\n\n**Een klein cadeau aan jezelf.**",
+        "Misschien ben je moe van sterk zijn.\n\nEn verlang je gewoon naar een klein moment waarop je niet alles alleen hoeft te dragen.\n\nDaarom maakte ik Niet Alleen. 8 weken lang sta je er niet alleen voor met je verdriet, met iets dat om de dag naar je toe komt, juist op de momenten dat het zwaar is.\n\n✓ Om de dag een moment dat alleen van jou is\n✓ Geschreven vanuit echt verlies, niet automatisch\n✓ Je verdriet krijgt eindelijk een plek.\n✓ Direct toegang, helemaal op jouw tempo\n\n**Een klein cadeau aan jezelf.**",
       heroImageUrl: HUISDIER_HERO_IMG,
       bgImageStorageId: HUISDIER_BG_STORAGE_ID as any,
 
@@ -126,7 +126,7 @@ export const seedPersoonLpConcept = internalMutation({
         'Geen druk, geen huiswerk. Elke dag één klein moment dat je helpt stilstaan bij wat er in je omgaat, op jouw tempo. \nZacht, maar het brengt je wel ergens.\n\n**Dag 4 **\n*"Verdriet zit niet alleen in je hoofd"*\n\n**Dag 11 **\n *"Wanneer voelde jullie band het sterkst?"*\n\n**Dag 18 **\n*"Boosheid hoort bij rouw"*',
       section2Title: "Daarom is er Niet Alleen speciaal voor jou gemaakt.",
       section2Text:
-        "[midden] ✓ Dertig dagen waarin je er niet alleen voor staat\n✓ Elke dag een vraag die je verdriet eindelijk woorden geeft\n✓ Momenten die je helpen stilstaan zonder erin te verdrinken\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt",
+        "[midden] ✓ 8 weken waarin je er niet alleen voor staat\n✓ Om de dag een vraag die je verdriet eindelijk woorden geeft\n✓ Momenten die je helpen stilstaan zonder erin te verdrinken\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt",
       section2ImageUrl: HUISDIER_SECTION2_IMG,
 
       contentBlocksJson,
@@ -136,13 +136,13 @@ export const seedPersoonLpConcept = internalMutation({
 
       ctaText: "Ja, ik gun mezelf dit",
       ctaColor: "#6d84a8",
-      ctaPrijsTekst: "€ 37,- eenmalig · 30 dagen",
-      ctaMicroCopy: "Dat is iets meer dan een euro per dag.",
+      ctaPrijsTekst: "€ 49,- eenmalig · 8 weken",
+      ctaMicroCopy: "Eenmalig, geen abonnement.",
       ctaUrl: "https://www.talktobenji.com/betalen/niet-alleen-verlies-persoon",
 
       finalCtaTitle: "Je hoeft het niet alleen te dragen.",
       finalCtaBody:
-        "✓ 💙 Dertig dagen waarin je er niet alleen voor staat\n✓ Elke dag een vraag die je verdriet eindelijk woorden geeft\n✓ Momenten die je helpen stilstaan zonder erin te verdrinken\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt\n\n**Een klein cadeau aan jezelf.**",
+        "✓ 💙 8 weken waarin je er niet alleen voor staat\n✓ Om de dag een vraag die je verdriet eindelijk woorden geeft\n✓ Momenten die je helpen stilstaan zonder erin te verdrinken\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt\n\n**Een klein cadeau aan jezelf.**",
 
       footerText: "Eerst even voelen hoe Niet Alleen werkt \nstart met de 5 momenten van Even Houvast",
       footerCtaUrl: "https://www.talktobenji.com/even-houvast",
@@ -188,16 +188,16 @@ export const seedPersoonCheckoutConcept = internalMutation({
       hero: {
         titel: "De wereld draait door, maar het gemis is nog net zo groot.",
         subtitel:
-          "Dertig dagen lang sta je er niet alleen voor met je verdriet, met iets dat elke dag naar je toe komt, juist op de momenten dat het zwaar is.",
+          "8 weken lang sta je er niet alleen voor met je verdriet, met iets dat om de dag naar je toe komt, juist op de momenten dat het zwaar is.",
         intro: "💙 Een klein dagelijks ankerpunt voor mensen die iemand missen.",
         prijsLabel: "Een klein cadeau aan jezelf.",
         buttonText: "Ja, ik gun mezelf dit moment",
         bullets: [
-          "Elke dag een moment dat alleen van jou is",
+          "Om de dag een moment dat alleen van jou is",
           "Geschreven vanuit echt verlies, niet automatisch",
           "Je verdriet krijgt eindelijk een plek",
           "Direct toegang, helemaal op jouw tempo",
-          "30 dagen ondersteuning voor €37, eenmalig",
+          "8 weken ondersteuning voor €49, eenmalig",
         ],
       },
       watJeKrijgt: {
@@ -205,8 +205,8 @@ export const seedPersoonCheckoutConcept = internalMutation({
         tekst:
           "Geen druk, geen huiswerk. Elke dag één klein moment dat je helpt stilstaan bij wat er in je omgaat, op jouw tempo.\n\nZacht, maar het brengt je wel ergens.",
         bullets: [
-          "Dertig dagen waarin je er niet alleen voor staat",
-          "Elke dag een vraag die je verdriet eindelijk woorden geeft",
+          "8 weken waarin je er niet alleen voor staat",
+          "Om de dag een vraag die je verdriet eindelijk woorden geeft",
           "Momenten die je helpen stilstaan zonder erin te verdrinken",
           "Langzaam meer rust, en het gevoel dat je gezien wordt",
         ],
@@ -249,7 +249,7 @@ export const seedPersoonCheckoutConcept = internalMutation({
       name: "Je hoeft het niet alleen te dragen.",
       kortNaam: "N.A. persoon (concept)",
       verliesType: "persoon",
-      priceInCents: 3700,
+      priceInCents: 4900,
       subscriptionType: "niet_alleen",
       buttonText: "Ja, dit is voor mij >>",
       trustText: "Niet tevreden binnen 7 dagen? Je krijgt gewoon je geld terug, ook al ben je al begonnen.",
@@ -264,7 +264,7 @@ export const seedPersoonCheckoutConcept = internalMutation({
         {
           author: "Inge",
           role: "Verlies van mijn moeder 🤍",
-          text: "In 30 dagen vond ik met dit programma stukje bij beetje rust en troost in het gemis.",
+          text: "In 8 weken vond ik met dit programma stukje bij beetje rust en troost in het gemis.",
         },
       ],
       rustigeContent,
@@ -298,7 +298,7 @@ const GEDEELDE_VRAGEN = [
   {
     vraag: "Is dit niet gewoon een serie automatische mailtjes?",
     antwoord:
-      "Nee. Elk moment is met zorg gemaakt vanuit echt verlies, en samen vormen ze een opbouw van dertig dagen die meebeweegt met waar jij in je rouw zit. Het is geen rij losse berichten, maar een reis die je dag voor dag een beetje minder alleen laat voelen.",
+      "Nee. Elk moment is met zorg gemaakt vanuit echt verlies, en samen vormen ze een opbouw van 8 weken die meebeweegt met waar jij in je rouw zit. Het is geen rij losse berichten, maar een reis die je dag voor dag een beetje minder alleen laat voelen.",
   },
   {
     vraag: "Is dit therapie?",
@@ -310,14 +310,14 @@ const GEDEELDE_VRAGEN = [
     antwoord: "Niemand behalve jij. Wat je schrijft is helemaal van jou en voor niemand anders zichtbaar.",
   },
   {
-    vraag: "Wat als ik na 30 dagen wil stoppen?",
+    vraag: "Wat als ik na 8 weken wil stoppen?",
     antwoord:
       "Dan stop je gewoon, je zit nergens aan vast. Je kunt alles wat je hebt geschreven downloaden en bewaren. Wil je daarna niet verder met Benji, dan kun je je account verwijderen. Geen automatische verlengingen, geen verborgen kosten. Jij bepaalt alles zelf.",
   },
 ];
 
 const GEDEELD_MIDDEN_BLOK =
-  "[midden]**Misschien voelt dit klein. \nMaar juist dat kleine moment per dag \nkan het verschil maken tussen \nalles alleen dragen of even kunnen ademen.**";
+  "[midden]**Misschien voelt dit klein. \nMaar juist dat kleine moment om de dag\nkan het verschil maken tussen \nalles alleen dragen of even kunnen ademen.**";
 
 const GEDEELD_WAAROM_TEKST =
   "Ik maakte Niet Alleen vanuit mijn eigen ervaring, omdat ik zag hoe alleen mensen zich kunnen voelen wanneer hun verdriet door anderen niet helemaal wordt begrepen.";
@@ -395,8 +395,8 @@ async function schrijfVariant(ctx: any, c: VariantCopy) {
 
     ctaText: "Ja, ik gun mezelf dit",
     ctaColor: "#6d84a8",
-    ctaPrijsTekst: "€ 37,- eenmalig · 30 dagen",
-    ctaMicroCopy: "Dat is iets meer dan een euro per dag.",
+    ctaPrijsTekst: "€ 49,- eenmalig · 8 weken",
+    ctaMicroCopy: "Eenmalig, geen abonnement.",
     ctaUrl: checkoutUrl,
 
     finalCtaTitle: "Je hoeft het niet alleen te dragen.",
@@ -437,7 +437,7 @@ async function schrijfVariant(ctx: any, c: VariantCopy) {
     hero: {
       titel: c.heroTitle,
       subtitel:
-        "Dertig dagen lang sta je er niet alleen voor met je verdriet, met iets dat elke dag naar je toe komt, juist op de momenten dat het zwaar is.",
+        "8 weken lang sta je er niet alleen voor met je verdriet, met iets dat om de dag naar je toe komt, juist op de momenten dat het zwaar is.",
       intro: c.checkoutIntro,
       prijsLabel: "Een klein cadeau aan jezelf.",
       buttonText: "Ja, ik gun mezelf dit moment",
@@ -476,7 +476,7 @@ async function schrijfVariant(ctx: any, c: VariantCopy) {
     name: c.checkoutName,
     kortNaam: c.kortNaam,
     verliesType: c.type,
-    priceInCents: 3700,
+    priceInCents: 4900,
     subscriptionType: "niet_alleen",
     buttonText: "Ja, dit is voor mij >>",
     trustText: "Niet tevreden binnen 7 dagen? Je krijgt gewoon je geld terug, ook al ben je al begonnen.",
@@ -513,12 +513,12 @@ const SCHEIDING: VariantCopy = {
   heroLabel: "Voor wie rouwt om een relatie die voorbij is",
   heroTitle: "De relatie is voorbij, maar het gemis is er nog elke dag.",
   heroSubtitle:
-    "Misschien hou je je groot voor de buitenwereld.\n\nEn verlang je gewoon naar een klein moment waarop je niet alles alleen hoeft te dragen.\n\nDaarom maakte ik Niet Alleen. Dertig dagen lang sta je er niet alleen voor met je verdriet, met iets dat elke dag naar je toe komt, juist op de momenten dat het zwaar is.\n\n✓ Elke dag een moment dat alleen van jou is\n✓ Geschreven vanuit echt verlies, niet automatisch\n✓ Rouwen om iemand die nog leeft mag er zijn\n✓ Direct toegang, helemaal op jouw tempo\n\n**Een klein cadeau aan jezelf.**",
+    "Misschien hou je je groot voor de buitenwereld.\n\nEn verlang je gewoon naar een klein moment waarop je niet alles alleen hoeft te dragen.\n\nDaarom maakte ik Niet Alleen. 8 weken lang sta je er niet alleen voor met je verdriet, met iets dat om de dag naar je toe komt, juist op de momenten dat het zwaar is.\n\n✓ Om de dag een moment dat alleen van jou is\n✓ Geschreven vanuit echt verlies, niet automatisch\n✓ Rouwen om iemand die nog leeft mag er zijn\n✓ Direct toegang, helemaal op jouw tempo\n\n**Een klein cadeau aan jezelf.**",
   section1Text:
     'Geen druk, geen huiswerk. Elke dag één klein moment dat je helpt stilstaan bij wat er in je omgaat, op jouw tempo. \nZacht, maar het brengt je wel ergens.\n\n**Dag 4 **\n*"Rouwen om iemand die nog leeft"*\n\n**Dag 11 **\n *"Wanneer voelde jullie band het sterkst?"*\n\n**Dag 18 **\n*"Boosheid hoort bij afscheid"*',
   section2Title: "Daarom is er Niet Alleen speciaal voor jou gemaakt.",
   section2Text:
-    "[midden] ✓ Dertig dagen waarin je er niet alleen voor staat\n✓ Elke dag een vraag die je verdriet eindelijk woorden geeft\n✓ Momenten die je helpen stilstaan zonder erin te verdrinken\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt",
+    "[midden] ✓ 8 weken waarin je er niet alleen voor staat\n✓ Om de dag een vraag die je verdriet eindelijk woorden geeft\n✓ Momenten die je helpen stilstaan zonder erin te verdrinken\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt",
   herkenningTitel: "Soms ben je niet verdrietig.",
   herkenningTekst:
     "Soms ben je gewoon moe van alles dragen.\n\n**Misschien herken je dit:**\n\n✓ Je hoofd blijft maar doorgaan.\n\n✓ Het ene moment opluchting, het volgende gemis.\n\n✓ Je probeert sterk te blijven.\n\n✓ Je bent moe van alles alleen dragen.",
@@ -528,21 +528,21 @@ const SCHEIDING: VariantCopy = {
     { naam: "Wendy", tekst: "Het ene moment opluchting, het volgende gemis. Hier hoefde ik dat aan niemand uit te leggen." },
   ],
   finalCtaBody:
-    "✓ 💙 Dertig dagen waarin je er niet alleen voor staat\n✓ Elke dag een vraag die je verdriet eindelijk woorden geeft\n✓ Momenten die je helpen stilstaan zonder erin te verdrinken\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt\n\n**Een klein cadeau aan jezelf.**",
+    "✓ 💙 8 weken waarin je er niet alleen voor staat\n✓ Om de dag een vraag die je verdriet eindelijk woorden geeft\n✓ Momenten die je helpen stilstaan zonder erin te verdrinken\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt\n\n**Een klein cadeau aan jezelf.**",
   checkoutName: "Je hoeft het niet alleen te dragen.",
   checkoutIntro: "💙 Een klein dagelijks ankerpunt voor wie een relatie verloor.",
   checkoutHeroBullets: [
-    "Elke dag een moment dat alleen van jou is",
+    "Om de dag een moment dat alleen van jou is",
     "Geschreven vanuit echt verlies, niet automatisch",
     "Rouwen om iemand die nog leeft mag er zijn",
     "Direct toegang, helemaal op jouw tempo",
-    "30 dagen ondersteuning voor €37, eenmalig",
+    "8 weken ondersteuning voor €49, eenmalig",
   ],
   watJeKrijgtTekst:
     "Geen druk, geen huiswerk. Elke dag één klein moment dat je helpt stilstaan bij wat er in je omgaat, op jouw tempo.\n\nZacht, maar het brengt je wel ergens.",
   watJeKrijgtBullets: [
-    "Dertig dagen waarin je er niet alleen voor staat",
-    "Elke dag een vraag die je verdriet eindelijk woorden geeft",
+    "8 weken waarin je er niet alleen voor staat",
+    "Om de dag een vraag die je verdriet eindelijk woorden geeft",
     "Momenten die je helpen stilstaan zonder erin te verdrinken",
     "Langzaam meer rust, en het gevoel dat je gezien wordt",
   ],
@@ -561,7 +561,7 @@ const SCHEIDING: VariantCopy = {
   herkenningSlot: "Dan is Niet Alleen voor jou gemaakt.",
   benjiVerhaalTekst:
     "Ik maakte Niet Alleen vanuit mijn eigen ervaring, omdat ik zag hoe alleen mensen zich kunnen voelen wanneer hun verdriet door anderen niet helemaal wordt begrepen.\n\nDaarom ontvang je elke dag een klein moment van steun. Geen druk. Geen verwachtingen.\n\nLieve groet,\n\nIen & Benji",
-  checkoutReview: { author: "Linda", role: "Einde van mijn huwelijk 🤍", text: "In 30 dagen vond ik met dit programma stukje bij beetje rust in het gemis." },
+  checkoutReview: { author: "Linda", role: "Einde van mijn huwelijk 🤍", text: "In 8 weken vond ik met dit programma stukje bij beetje rust in het gemis." },
 };
 
 const EENZAAMHEID: VariantCopy = {
@@ -573,12 +573,12 @@ const EENZAAMHEID: VariantCopy = {
   heroLabel: "Voor wie zich alleen voelt, ook tussen anderen",
   heroTitle: "Je bent omringd door mensen, en toch voel je je alleen.",
   heroSubtitle:
-    "Misschien hou je je groot en zegt niemand iets.\n\nEn verlang je gewoon naar een klein moment waarop iemand even aan je denkt.\n\nDaarom maakte ik Niet Alleen. Dertig dagen lang sta je er niet alleen voor, met iets dat elke dag naar je toe komt, juist op de stille momenten.\n\n✓ Elke dag een moment dat alleen van jou is\n✓ Geschreven vanuit echt verlies, niet automatisch\n✓ Je eenzaamheid mag er zijn, zonder schaamte\n✓ Direct toegang, helemaal op jouw tempo\n\n**Een klein cadeau aan jezelf.**",
+    "Misschien hou je je groot en zegt niemand iets.\n\nEn verlang je gewoon naar een klein moment waarop iemand even aan je denkt.\n\nDaarom maakte ik Niet Alleen. 8 weken lang sta je er niet alleen voor, met iets dat om de dag naar je toe komt, juist op de stille momenten.\n\n✓ Om de dag een moment dat alleen van jou is\n✓ Geschreven vanuit echt verlies, niet automatisch\n✓ Je eenzaamheid mag er zijn, zonder schaamte\n✓ Direct toegang, helemaal op jouw tempo\n\n**Een klein cadeau aan jezelf.**",
   section1Text:
     'Geen druk, geen huiswerk. Elke dag één klein moment dat je helpt stilstaan bij wat er in je omgaat, op jouw tempo. \nZacht, maar het brengt je wel ergens.\n\n**Dag 4 **\n*"Eenzaamheid zegt niets over je waarde"*\n\n**Dag 11 **\n *"Wanneer voelde je je voor het laatst echt gezien?"*\n\n**Dag 18 **\n*"Je hoeft je niet te schamen"*',
   section2Title: "Daarom is er Niet Alleen speciaal voor jou gemaakt.",
   section2Text:
-    "[midden] ✓ Dertig dagen waarin je er niet alleen voor staat\n✓ Elke dag een moment dat je het gevoel geeft dat er aan je gedacht wordt\n✓ Iets vasts op de stille momenten\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt",
+    "[midden] ✓ 8 weken waarin je er niet alleen voor staat\n✓ Om de dag een moment dat je het gevoel geeft dat er aan je gedacht wordt\n✓ Iets vasts op de stille momenten\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt",
   herkenningTitel: "Soms ben je niet verdrietig.",
   herkenningTekst:
     "Soms voel je je gewoon leeg, midden tussen anderen.\n\n**Misschien herken je dit:**\n\n✓ Je hoofd blijft maar doorgaan.\n\n✓ Je voelt je ongezien, ook met mensen om je heen.\n\n✓ Je houdt je groot voor de buitenwereld.\n\n✓ Je bent moe van alles alleen dragen.",
@@ -588,21 +588,21 @@ const EENZAAMHEID: VariantCopy = {
     { naam: "Tineke", tekst: "Niet dat de eenzaamheid ineens weg was. Maar ik voelde me weer een beetje gezien." },
   ],
   finalCtaBody:
-    "✓ 💙 Dertig dagen waarin je er niet alleen voor staat\n✓ Elke dag een moment dat je het gevoel geeft dat er aan je gedacht wordt\n✓ Iets vasts op de stille momenten\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt\n\n**Een klein cadeau aan jezelf.**",
+    "✓ 💙 8 weken waarin je er niet alleen voor staat\n✓ Om de dag een moment dat je het gevoel geeft dat er aan je gedacht wordt\n✓ Iets vasts op de stille momenten\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt\n\n**Een klein cadeau aan jezelf.**",
   checkoutName: "Je hoeft het niet alleen te dragen.",
   checkoutIntro: "💙 Een klein dagelijks ankerpunt voor wie zich eenzaam voelt.",
   checkoutHeroBullets: [
-    "Elke dag een moment dat alleen van jou is",
+    "Om de dag een moment dat alleen van jou is",
     "Geschreven vanuit echt verlies, niet automatisch",
     "Je eenzaamheid mag er zijn, zonder schaamte",
     "Direct toegang, helemaal op jouw tempo",
-    "30 dagen ondersteuning voor €37, eenmalig",
+    "8 weken ondersteuning voor €49, eenmalig",
   ],
   watJeKrijgtTekst:
     "Geen druk, geen huiswerk. Elke dag één klein moment dat je helpt stilstaan bij wat er in je omgaat, op jouw tempo.\n\nZacht, maar het brengt je wel ergens.",
   watJeKrijgtBullets: [
-    "Dertig dagen waarin je er niet alleen voor staat",
-    "Elke dag een moment dat je het gevoel geeft dat er aan je gedacht wordt",
+    "8 weken waarin je er niet alleen voor staat",
+    "Om de dag een moment dat je het gevoel geeft dat er aan je gedacht wordt",
     "Iets vasts op de stille momenten",
     "Langzaam meer rust, en het gevoel dat je gezien wordt",
   ],
@@ -621,7 +621,7 @@ const EENZAAMHEID: VariantCopy = {
   herkenningSlot: "Dan is Niet Alleen voor jou gemaakt.",
   benjiVerhaalTekst:
     "Ik maakte Niet Alleen vanuit mijn eigen ervaring, omdat ik zag hoe alleen mensen zich kunnen voelen, ook midden tussen anderen.\n\nDaarom ontvang je elke dag een klein moment van steun. Geen druk. Geen verwachtingen.\n\nLieve groet,\n\nIen & Benji",
-  checkoutReview: { author: "Greet", role: "Een eenzame periode 🤍", text: "In 30 dagen voelde ik me elke dag een beetje minder alleen." },
+  checkoutReview: { author: "Greet", role: "Een eenzame periode 🤍", text: "In 8 weken voelde ik me steeds een beetje minder alleen." },
 };
 
 const KINDERLOOS: VariantCopy = {
@@ -633,12 +633,12 @@ const KINDERLOOS: VariantCopy = {
   heroLabel: "Voor wie rouwt om een kind dat er nooit kwam",
   heroTitle: "Het verdriet om wat er nooit kwam, draag je vaak in stilte.",
   heroSubtitle:
-    "Misschien lach je de vragen weg en draag je het gemis alleen.\n\nEn verlang je gewoon naar een klein moment waarop je verdriet er mag zijn.\n\nDaarom maakte ik Niet Alleen. Dertig dagen lang sta je er niet alleen voor met je verdriet, met iets dat elke dag naar je toe komt, juist op de momenten dat het zwaar is.\n\n✓ Elke dag een moment dat alleen van jou is\n✓ Geschreven vanuit echt verlies, niet automatisch\n✓ Een verlies zonder afscheid telt volledig mee\n✓ Direct toegang, helemaal op jouw tempo\n\n**Een klein cadeau aan jezelf.**",
+    "Misschien lach je de vragen weg en draag je het gemis alleen.\n\nEn verlang je gewoon naar een klein moment waarop je verdriet er mag zijn.\n\nDaarom maakte ik Niet Alleen. 8 weken lang sta je er niet alleen voor met je verdriet, met iets dat om de dag naar je toe komt, juist op de momenten dat het zwaar is.\n\n✓ Om de dag een moment dat alleen van jou is\n✓ Geschreven vanuit echt verlies, niet automatisch\n✓ Een verlies zonder afscheid telt volledig mee\n✓ Direct toegang, helemaal op jouw tempo\n\n**Een klein cadeau aan jezelf.**",
   section1Text:
     'Geen druk, geen huiswerk. Elke dag één klein moment dat je helpt stilstaan bij wat er in je omgaat, op jouw tempo. \nZacht, maar het brengt je wel ergens.\n\n**Dag 4 **\n*"Verdriet om wat er nooit kwam is echt"*\n\n**Dag 11 **\n *"Wat had je willen meegeven?"*\n\n**Dag 18 **\n*"Je hoeft het niet kleiner te maken"*',
   section2Title: "Daarom is er Niet Alleen speciaal voor jou gemaakt.",
   section2Text:
-    "[midden] ✓ Dertig dagen waarin je er niet alleen voor staat\n✓ Elke dag een vraag die je verdriet eindelijk woorden geeft\n✓ Een plek voor een gemis dat anderen vaak niet zien\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt",
+    "[midden] ✓ 8 weken waarin je er niet alleen voor staat\n✓ Om de dag een vraag die je verdriet eindelijk woorden geeft\n✓ Een plek voor een gemis dat anderen vaak niet zien\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt",
   herkenningTitel: "Soms ben je niet verdrietig.",
   herkenningTekst:
     "Soms ben je gewoon moe van een gemis dat niemand ziet.\n\n**Misschien herken je dit:**\n\n✓ Je hoofd blijft maar doorgaan.\n\n✓ Een vraag of een zwangere buik komt binnen als een mes.\n\n✓ Je lacht het weg en houdt je groot.\n\n✓ Je bent moe van alles alleen dragen.",
@@ -648,21 +648,21 @@ const KINDERLOOS: VariantCopy = {
     { naam: "Karin", tekst: "Een verlies zonder afscheid, zonder kaart. Hier voelde ik me eindelijk gezien." },
   ],
   finalCtaBody:
-    "✓ 💙 Dertig dagen waarin je er niet alleen voor staat\n✓ Elke dag een vraag die je verdriet eindelijk woorden geeft\n✓ Een plek voor een gemis dat anderen vaak niet zien\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt\n\n**Een klein cadeau aan jezelf.**",
+    "✓ 💙 8 weken waarin je er niet alleen voor staat\n✓ Om de dag een vraag die je verdriet eindelijk woorden geeft\n✓ Een plek voor een gemis dat anderen vaak niet zien\n✓ Langzaam meer rust, en het gevoel dat je gezien wordt\n\n**Een klein cadeau aan jezelf.**",
   checkoutName: "Je hoeft het niet alleen te dragen.",
   checkoutIntro: "💙 Een klein dagelijks ankerpunt voor wie een kinderwens verloor.",
   checkoutHeroBullets: [
-    "Elke dag een moment dat alleen van jou is",
+    "Om de dag een moment dat alleen van jou is",
     "Geschreven vanuit echt verlies, niet automatisch",
     "Een verlies zonder afscheid telt volledig mee",
     "Direct toegang, helemaal op jouw tempo",
-    "30 dagen ondersteuning voor €37, eenmalig",
+    "8 weken ondersteuning voor €49, eenmalig",
   ],
   watJeKrijgtTekst:
     "Geen druk, geen huiswerk. Elke dag één klein moment dat je helpt stilstaan bij wat er in je omgaat, op jouw tempo.\n\nZacht, maar het brengt je wel ergens.",
   watJeKrijgtBullets: [
-    "Dertig dagen waarin je er niet alleen voor staat",
-    "Elke dag een vraag die je verdriet eindelijk woorden geeft",
+    "8 weken waarin je er niet alleen voor staat",
+    "Om de dag een vraag die je verdriet eindelijk woorden geeft",
     "Een plek voor een gemis dat anderen vaak niet zien",
     "Langzaam meer rust, en het gevoel dat je gezien wordt",
   ],
@@ -681,7 +681,7 @@ const KINDERLOOS: VariantCopy = {
   herkenningSlot: "Dan is Niet Alleen voor jou gemaakt.",
   benjiVerhaalTekst:
     "Ik maakte Niet Alleen vanuit mijn eigen ervaring, omdat ik zag hoe alleen mensen zich kunnen voelen met een verdriet dat anderen niet zien.\n\nDaarom ontvang je elke dag een klein moment van steun. Geen druk. Geen verwachtingen.\n\nLieve groet,\n\nIen & Benji",
-  checkoutReview: { author: "Marit", role: "Onvervulde kinderwens 🤍", text: "In 30 dagen kreeg mijn onzichtbare verdriet eindelijk een plek." },
+  checkoutReview: { author: "Marit", role: "Onvervulde kinderwens 🤍", text: "In 8 weken kreeg mijn onzichtbare verdriet eindelijk een plek." },
 };
 
 // Zet de Even Houvast-pop-up aan op de live huisdier-LP (met vinkjes-opsomming)

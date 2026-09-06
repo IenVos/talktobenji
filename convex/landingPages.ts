@@ -492,15 +492,15 @@ export const seed = mutation({
         section1Title: "Verdriet heeft niet altijd een naam.",
         section1Text: "Het hoeft geen overlijden te zijn. Verdriet kan er zijn na een scheiding, een miskraam, het verlies van een huisdier, een vriendschap die verdween, een gezondheid die veranderde, een leven dat je dacht te gaan leiden.\n\nElk verlies is echt. Ook als de wereld om je heen gewoon doorgaat.\n\nEn toch sta je er soms alleen voor. Mensen weten niet wat te zeggen. Je wilt anderen niet belasten. Je weet zelf soms niet eens wat je voelt.\n\n\"Niet Alleen\" is er voor iedereen die iemand of iets mist en wil dat het gemis een plek krijgt.",
         section2Title: "Hoe het werkt.",
-        section2Text: "Elke ochtend ontvang je een bericht in je inbox. Niet een nieuwsbrief, niet een cursus. Gewoon een kleine vraag voor die dag, over wie je mist, over wat je draagt, over wie je bent nu.\n\nJe klikt door naar jouw persoonlijke plek. Daar schrijf je, in je eigen tempo. Je kunt ook inspreken, of een foto toevoegen.\n\nAlles wordt bewaard. Na 30 dagen heb je jouw eigen woorden bewaard, opgebouwd in jouw tempo.\n\nOp sommige dagen is er iets extra's. Een korte oefening om even te landen. Een stille verrassing halverwege. Een moment om terug te kijken.\n\nOp dag 30 schrijf je een brief aan jezelf. Van nu, voor later.",
+        section2Text: "Om de dag ontvang je een bericht in je inbox. Niet een nieuwsbrief, niet een cursus. Gewoon een kleine vraag voor die dag, over wie je mist, over wat je draagt, over wie je bent nu.\n\nJe klikt door naar jouw persoonlijke plek. Daar schrijf je, in je eigen tempo. Je kunt ook inspreken, of een foto toevoegen.\n\nAlles wordt bewaard. Na 8 weken heb je jouw eigen woorden bewaard, opgebouwd in jouw tempo.\n\nOp sommige dagen is er iets extra's. Een korte oefening om even te landen. Een stille verrassing halverwege. Een moment om terug te kijken.\n\nAan het eind schrijf je een brief aan jezelf. Van nu, voor later.",
         voorWieBullets: "je iemand hebt verloren en niet weet hoe je verder moet\nje rouwt om een relatie, een huisdier, een miskraam of een gezondheid en het gevoel hebt dat niemand het begrijpt\nje een plek wilt om te schrijven en te voelen\nje 's nachts wakker ligt met gedachten die nergens heen kunnen\nje merkt dat je verdriet wegstopt omdat het leven doorgaat, maar het er wel is\nje gewoon iemand nodig hebt die er is, zonder oordeel, op het moment dat jij er klaar voor bent",
         ervaringenJson: '[{"tekst":"Ik dacht dat ik het wel alleen kon. Maar elke ochtend dat bericht gaf me het gevoel dat iemand aan me dacht. Dat was genoeg.","naam":"Sandra","context":"verloor haar moeder"},{"tekst":"Na de scheiding had ik niemand aan wie ik alles kon vertellen. Hier kon dat wel. Zonder oordeel.","naam":"Mariëlle","context":"scheiding na 12 jaar"},{"tekst":"Iedereen zei dat het maar een hond was. Hier voelde ik me eindelijk begrepen.","naam":"Annelies","context":"verloor haar hond Boris"}]',
-        vragenJson: '[{"vraag":"Moet ik elke dag meedoen?","antwoord":"Nee. Je schrijft alleen als je er klaar voor bent. Er is geen goed of fout tempo. Als je een dag overslaat kun je altijd terugkomen."},{"vraag":"Is dit therapie?","antwoord":"\"Niet Alleen\" is geen vervanging voor professionele hulp. Het is een persoonlijke plek om te schrijven en te voelen, op jouw manier. Als je merkt dat je meer nodig hebt, moedigen we je aan dat te zoeken."},{"vraag":"Wie leest wat ik schrijf?","antwoord":"Niemand. Wat je schrijft is van jou en alleen voor jou zichtbaar."},{"vraag":"Wat als ik na 30 dagen wil stoppen?","antwoord":"Dan stop je gewoon. Je kunt alles downloaden. Je account wordt gesloten. Geen automatische verleningen, geen verborgen kosten."}]',
+        vragenJson: '[{"vraag":"Moet ik elke dag meedoen?","antwoord":"Nee. Je schrijft alleen als je er klaar voor bent. Er is geen goed of fout tempo. Als je een dag overslaat kun je altijd terugkomen."},{"vraag":"Is dit therapie?","antwoord":"\"Niet Alleen\" is geen vervanging voor professionele hulp. Het is een persoonlijke plek om te schrijven en te voelen, op jouw manier. Als je merkt dat je meer nodig hebt, moedigen we je aan dat te zoeken."},{"vraag":"Wie leest wat ik schrijf?","antwoord":"Niemand. Wat je schrijft is van jou en alleen voor jou zichtbaar."},{"vraag":"Wat als ik na 8 weken wil stoppen?","antwoord":"Dan stop je gewoon. Je kunt alles downloaden. Je account wordt gesloten. Geen automatische verleningen, geen verborgen kosten."}]',
         wieIsTitle: "Wie is Ien?",
         wieIsText: "Ien is de oprichter van TalkToBenji, het platform waar \"Niet Alleen\" onderdeel van is. Ze weet hoe zwaar het is als verdriet geen plek krijgt. \"Niet Alleen\" is wat ze zelf had willen hebben.",
         finalCtaTitle: "Je hoeft het niet alleen te dragen.",
         finalCtaBody: "8 weken, om de dag een kleine stap. Een plek die van jou is. Voor €49 eenmalig, zonder abonnement of verdere verplichtingen.",
-        footerText: "\"Niet Alleen\" is onderdeel van Talk To Benji. Als je na 30 dagen verder wilt, kun je een abonnement afsluiten. Alles wat je hebt opgebouwd blijft dan bewaard.",
+        footerText: "\"Niet Alleen\" is onderdeel van Talk To Benji. Als je na 8 weken verder wilt, kun je een abonnement afsluiten. Alles wat je hebt opgebouwd blijft dan bewaard.",
         createdAt: now,
         updatedAt: now,
       });
@@ -524,17 +524,17 @@ export const seed = mutation({
         ctaUrl: "https://talktobenji.kennis.shop/pay/niet-alleen",
         productImagePath: "/images/niet-alleen-product.png",
         section1Title: undefined,
-        section1Text: "Er is een soort verdriet dat geen naam heeft in de buitenwereld. Geen rouwkaarten, geen bloemen, geen moment waarop iedereen even stil staat.\n\nMaar het is er wel. En jij draagt het.\n\nMisschien heb je iemand verloren. Misschien een relatie, een huisdier, een gezondheid, een toekomst die je voor je zag. Elk verlies is echt. Ook als de mensen om je heen niet weten wat te zeggen.\n\n\"Niet Alleen\" is een plek voor de komende 30 dagen. Elke ochtend een klein bericht, een vraag, een gedachte, een moment van stilte. Je schrijft wat je wilt schrijven. Zoveel of zo weinig als je kunt.\n\nAlles wordt bewaard. Op dag 30 heb je jouw eigen verhaal, in jouw woorden, op jouw tempo. En als je wilt, schrijf je een brief aan jezelf.\n\nBenji is er. Elke dag. Zonder oordeel. Zonder haast.",
+        section1Text: "Er is een soort verdriet dat geen naam heeft in de buitenwereld. Geen rouwkaarten, geen bloemen, geen moment waarop iedereen even stil staat.\n\nMaar het is er wel. En jij draagt het.\n\nMisschien heb je iemand verloren. Misschien een relatie, een huisdier, een gezondheid, een toekomst die je voor je zag. Elk verlies is echt. Ook als de mensen om je heen niet weten wat te zeggen.\n\n\"Niet Alleen\" is een plek voor de komende 8 weken. Om de dag een klein bericht, een vraag, een gedachte, een moment van stilte. Je schrijft wat je wilt schrijven. Zoveel of zo weinig als je kunt.\n\nAlles wordt bewaard. Aan het eind heb je jouw eigen verhaal, in jouw woorden, op jouw tempo. En als je wilt, schrijf je een brief aan jezelf.\n\nBenji is er. Elke dag. Zonder oordeel. Zonder haast.",
         section2Title: undefined,
         section2Text: undefined,
-        voorWieBullets: "Je hoeft niet elke dag mee te doen. Je schrijft als je er klaar voor bent.\nWat je schrijft is alleen voor jou. Niemand leest het.\nDit is geen therapie. Het is een plek. Als je meer nodig hebt, moedigen we je aan dat te zoeken.\nNa 30 dagen kun je alles downloaden of gewoon laten staan. Geen automatische verleningen.",
+        voorWieBullets: "Je hoeft niet elke dag mee te doen. Je schrijft als je er klaar voor bent.\nWat je schrijft is alleen voor jou. Niemand leest het.\nDit is geen therapie. Het is een plek. Als je meer nodig hebt, moedigen we je aan dat te zoeken.\nNa 8 weken kun je alles downloaden of gewoon laten staan. Geen automatische verleningen.",
         ervaringenJson: '[{"tekst":"Ik dacht dat ik het wel alleen kon. Maar elke ochtend dat bericht gaf me het gevoel dat iemand aan me dacht. Dat was genoeg.","naam":"Sandra","context":""},{"tekst":"Hier kon ik zeggen wat ik nergens anders kwijt kon. Zonder dat iemand iets terug hoefde te zeggen.","naam":"Mariëlle","context":""},{"tekst":"Iedereen zei dat het maar een hond was. Hier voelde ik me eindelijk begrepen.","naam":"Annelies","context":""}]',
         vragenJson: undefined,
         wieIsTitle: "Wie is Ien?",
         wieIsText: "Ien is de oprichter van TalkToBenji, het platform waar \"Niet Alleen\" onderdeel van is. Ze weet hoe zwaar het is als verdriet geen plek krijgt. \"Niet Alleen\" is wat ze zelf had willen hebben.",
         finalCtaTitle: undefined,
         finalCtaBody: "Je hoeft het niet alleen te dragen.\n\nVoor €49 eenmalig. Geen abonnement, geen verplichtingen. Na aankoop ontvang je direct een bericht van Ien. Je eerste dag begint de volgende ochtend.",
-        footerText: "\"Niet Alleen\" is onderdeel van Talk To Benji. Als je na 30 dagen verder wilt, kun je een abonnement afsluiten. Alles wat je hebt opgebouwd blijft dan bewaard.",
+        footerText: "\"Niet Alleen\" is onderdeel van Talk To Benji. Als je na 8 weken verder wilt, kun je een abonnement afsluiten. Alles wat je hebt opgebouwd blijft dan bewaard.",
         createdAt: now + 1,
         updatedAt: now + 1,
       });
@@ -642,7 +642,7 @@ export const fixNietAlleenRelatieWieIs = internalMutation({
       contentBlocksJson: JSON.stringify([
         {
           titel: "Niet Alleen is geen coaching.",
-          tekst: "Geen stappenplan om 'los te laten'.\n\nHet is iets veel zachters.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nIemand die niet oordeelt. Niet stuurt. Niet probeert het voor je op te lossen. Maar er gewoon even is.\n\nEen plek waar je kunt zeggen:\n\"Ik mis hem vandaag weer.\"\n\"Ik weet niet wat ik voel.\"\n\"Waarom denk ik hier nog steeds aan?\"\n\nZonder dat iemand zegt: je moet door.",
+          tekst: "Geen stappenplan om 'los te laten'.\n\nHet is iets veel zachters.\n\n8 weken lang ontvang je om de dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nIemand die niet oordeelt. Niet stuurt. Niet probeert het voor je op te lossen. Maar er gewoon even is.\n\nEen plek waar je kunt zeggen:\n\"Ik mis hem vandaag weer.\"\n\"Ik weet niet wat ik voel.\"\n\"Waarom denk ik hier nog steeds aan?\"\n\nZonder dat iemand zegt: je moet door.",
         },
       ]),
       wieIsTitle: "Wie is Ien?",
@@ -938,7 +938,7 @@ export const seedNietAlleenRelatie = internalMutation({
       slug,
       pageTitle: "Niet Alleen — Relatie",
       isLive: false,
-      heroLabel: "30 dagen | dagelijkse e-mails | reageren wanneer jij wilt",
+      heroLabel: "8 weken | om de dag een e-mail | reageren wanneer jij wilt",
       heroTitle: "Je relatie is voorbij.\nMaar in je hoofd is het nog niet klaar.",
       heroSubtitle: "Overdag gaat het wel. Je werkt. Je praat. Je leidt jezelf af.\n\nMaar zodra het stil wordt… begint het weer.",
       section1Title: "Je denkt terug.",
@@ -951,7 +951,7 @@ export const seedNietAlleenRelatie = internalMutation({
       contentBlocksJson: JSON.stringify([
         {
           titel: "Niet Alleen is geen coaching.",
-          tekst: "Geen stappenplan om 'los te laten'.\n\nHet is iets veel zachters.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nIemand die niet oordeelt. Niet stuurt. Niet probeert het voor je op te lossen. Maar er gewoon even is.\n\nEen plek waar je kunt zeggen:\n\"Ik mis hem vandaag weer.\"\n\"Ik weet niet wat ik voel.\"\n\"Waarom denk ik hier nog steeds aan?\"\n\nZonder dat iemand zegt: je moet door.",
+          tekst: "Geen stappenplan om 'los te laten'.\n\nHet is iets veel zachters.\n\n8 weken lang ontvang je om de dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nIemand die niet oordeelt. Niet stuurt. Niet probeert het voor je op te lossen. Maar er gewoon even is.\n\nEen plek waar je kunt zeggen:\n\"Ik mis hem vandaag weer.\"\n\"Ik weet niet wat ik voel.\"\n\"Waarom denk ik hier nog steeds aan?\"\n\nZonder dat iemand zegt: je moet door.",
         },
       ]),
       wieIsTitle: "Wie is Ien?",
@@ -988,7 +988,7 @@ export const seedOngewenstKinderloos = internalMutation({
       slug,
       pageTitle: "Niet Alleen — Ongewenst Kinderloos",
       isLive: false,
-      heroLabel: "30 dagen | dagelijkse e-mails | reageren wanneer jij wilt",
+      heroLabel: "8 weken | om de dag een e-mail | reageren wanneer jij wilt",
       heroTitle: "Je mist iets wat er nooit is geweest.\nEn dat maakt het moeilijk uit te leggen.",
       heroSubtitle: "Aan anderen.\nMaar soms ook… aan jezelf.",
       section1Title: "Er zijn momenten dat het stil is.",
@@ -1001,7 +1001,7 @@ export const seedOngewenstKinderloos = internalMutation({
       contentBlocksJson: JSON.stringify([
         {
           titel: "Niet Alleen is geen traject.",
-          tekst: "Geen poging om het 'een plek te geven'.\n\nHet is een plek waar je even kunt landen.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een rustig gesprek. Van Benji.\n\nGeen oplossingen.\nGeen stappenplan.\n\nMaar woorden die snappen dat dit verdriet anders is.\nEn ruimte voor alles wat jij misschien nergens zegt.",
+          tekst: "Geen poging om het 'een plek te geven'.\n\nHet is een plek waar je even kunt landen.\n\n8 weken lang ontvang je om de dag een e-mail. Geschreven als een rustig gesprek. Van Benji.\n\nGeen oplossingen.\nGeen stappenplan.\n\nMaar woorden die snappen dat dit verdriet anders is.\nEn ruimte voor alles wat jij misschien nergens zegt.",
         },
         {
           titel: "Een plek waar je kunt denken of schrijven:",
@@ -1050,7 +1050,7 @@ export const seedVerliesPersoon = internalMutation({
       slug,
       pageTitle: "Niet Alleen — Verlies Persoon",
       isLive: false,
-      heroLabel: "30 dagen | dagelijkse e-mails | reageren wanneer jij wilt",
+      heroLabel: "8 weken | om de dag een e-mail | reageren wanneer jij wilt",
       heroTitle: "Je mist iemand.\nEn dat stopt niet na een paar weken.",
       heroSubtitle: "Overdag lukt het nog wel.\nJe doet wat er moet gebeuren.\nJe lacht als iemand iets zegt.\n\nMaar er zijn momenten…\n\nDat je automatisch aan ze denkt.\nDat je iets wilt delen — en dan beseft dat het niet meer kan.\nDat het ineens weer binnenkomt, alsof het gisteren was.\n\nEn 's nachts?\n\nDan is het stil.\nTe stil.",
       section1Title: "Mensen vragen hoe het met je gaat.",
@@ -1063,7 +1063,7 @@ export const seedVerliesPersoon = internalMutation({
       contentBlocksJson: JSON.stringify([
         {
           titel: "Niet Alleen is geen traject.",
-          tekst: "Geen therapie.\nGeen stappenplan.\n\nHet is iets veel zachters dan dat.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nGeen adviezen.\nGeen 'je moet dit doen'.\n\nMaar woorden die begrijpen hoe het voelt.\nEn ruimte voor jou om te reageren.\n\nWanneer jij daar behoefte aan hebt.",
+          tekst: "Geen therapie.\nGeen stappenplan.\n\nHet is iets veel zachters dan dat.\n\n8 weken lang ontvang je om de dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nGeen adviezen.\nGeen 'je moet dit doen'.\n\nMaar woorden die begrijpen hoe het voelt.\nEn ruimte voor jou om te reageren.\n\nWanneer jij daar behoefte aan hebt.",
         },
         {
           titel: "Zie het als iemand die even naast je komt zitten.",
@@ -1112,7 +1112,7 @@ export const seedNietAlleenEenzaamheid = internalMutation({
       slug,
       pageTitle: "Niet Alleen — Eenzaamheid",
       isLive: false,
-      heroLabel: "30 dagen | dagelijkse e-mails | reageren wanneer jij wilt",
+      heroLabel: "8 weken | om de dag een e-mail | reageren wanneer jij wilt",
       heroTitle: "Je praat met mensen.\nMaar voelt je toch alleen.",
       heroSubtitle: "Je doet mee. Je lacht mee.\n\nMaar er is iets wat niet gezien wordt.\n\nNiet omdat je het niet wil delen.\n\nMaar omdat je niet weet hoe.\nOf simpelweg niet weet bij wie.",
       section1Title: "Wat je misschien herkent",
@@ -1125,7 +1125,7 @@ export const seedNietAlleenEenzaamheid = internalMutation({
       contentBlocksJson: JSON.stringify([
         {
           titel: "Niet Alleen is geen coaching.",
-          tekst: "Geen stappenplan om 'socialer' te worden.\n\nHet is iets veel zachters.\n\n30 dagen lang ontvang je elke dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nNiet iemand die je probeert te fixen.\nMaar iemand die even naast je zit.\n\nEen plek waar je kunt zeggen:\n\"Ik heb niemand om dit mee te delen.\"\n\"Ik weet niet waarom ik me zo leeg voel.\"\n\"Ik wil me niet meer zo alleen voelen hierin.\"\n\nZonder dat iemand zegt: ga dan meer naar buiten.",
+          tekst: "Geen stappenplan om 'socialer' te worden.\n\nHet is iets veel zachters.\n\n8 weken lang ontvang je om de dag een e-mail. Geschreven als een gesprek. Van Benji.\n\nNiet iemand die je probeert te fixen.\nMaar iemand die even naast je zit.\n\nEen plek waar je kunt zeggen:\n\"Ik heb niemand om dit mee te delen.\"\n\"Ik weet niet waarom ik me zo leeg voel.\"\n\"Ik wil me niet meer zo alleen voelen hierin.\"\n\nZonder dat iemand zegt: ga dan meer naar buiten.",
         },
         {
           titel: "Zie het als een moment per dag voor jezelf.",

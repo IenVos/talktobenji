@@ -1206,7 +1206,7 @@ export default function NietAlleenEmailsPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Niet Alleen e-mails</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Pas de inhoud aan van de automatische e-mails tijdens de 30 dagen begeleiding
+          Pas de inhoud aan van de automatische e-mails tijdens de 8 weken begeleiding
         </p>
       </div>
 

@@ -797,7 +797,7 @@ export default function AdminCheckoutPage() {
                 <label className={labelClass}>Productnaam *</label>
                 <input
                   type="text"
-                  placeholder="Niet Alleen — 30 dagen begeleiding"
+                  placeholder="Niet Alleen — 8 weken begeleiding"
                   value={form.name}
                   onChange={set("name")}
                   className={inputClass}
@@ -1383,7 +1383,7 @@ export default function AdminCheckoutPage() {
               {/* Voordelen (vinkjes) */}
               <div className="border border-primary-100 rounded-lg p-4 space-y-3 bg-primary-50">
                 <p className="text-sm font-semibold text-primary-800">Voordelen / vinkjes (optioneel)</p>
-                <p className="text-xs text-primary-600">Korte voordeel-regels met een vinkje, bovenaan de checkout (bijv. &quot;30 dagen elke ochtend een bericht&quot;). Houd ze kort en concreet.</p>
+                <p className="text-xs text-primary-600">Korte voordeel-regels met een vinkje, bovenaan de checkout (bijv. &quot;8 weken lang om de dag een bericht&quot;). Houd ze kort en concreet.</p>
                 {benefits.map((b, i) => (
                   <div key={i} className="flex gap-2 items-center">
                     <span className="text-primary-500 flex-shrink-0">✓</span>
@@ -1680,7 +1680,7 @@ export default function AdminCheckoutPage() {
                     <input className={inputClass} placeholder="Intro-regel (bijv. 💙 Een klein dagelijks ankerpunt…)" value={rustig.heroIntro} onChange={setR("heroIntro")} />
                     <textarea className={inputClass} rows={4} placeholder="Vinkjes (één per regel)" value={rustig.heroBullets} onChange={setR("heroBullets")} />
                     <div className="grid grid-cols-2 gap-2">
-                      <input className={inputClass} placeholder="Prijsregel (bijv. €37 eenmalig)" value={rustig.heroPrijsLabel} onChange={setR("heroPrijsLabel")} />
+                      <input className={inputClass} placeholder="Prijsregel (bijv. €49 eenmalig)" value={rustig.heroPrijsLabel} onChange={setR("heroPrijsLabel")} />
                       <input className={inputClass} placeholder="Knoptekst (scroll-knop)" value={rustig.heroButton} onChange={setR("heroButton")} />
                     </div>
                     <CtaControls

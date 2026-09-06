@@ -172,7 +172,7 @@ Lieve groet,`,
     key: "concept_dag_ervaren",
     titel: "Laat een dag van Niet Alleen ervaren",
     waarom:
-      "Nu vraag je mensen om te lezen óver Niet Alleen. Deze mail laat ze het voelen: je zet één dag uit het programma letterlijk in de mail. Wie dat doet en er iets aan heeft, snapt daarna zelf waarom dertig dagen de moeite zijn.",
+      "Nu vraag je mensen om te lezen óver Niet Alleen. Deze mail laat ze het voelen: je zet één dag uit het programma letterlijk in de mail. Wie dat doet en er iets aan heeft, snapt daarna zelf waarom acht weken de moeite zijn.",
     plek: "Als vervanging van opvolgmail 3, of als extra mail rond dag 8",
     subject: "Eén vraag, meer niet",
     bodyText: `Hi {voornaam},
@@ -204,7 +204,7 @@ Rond deze tijd wordt het meestal stiller om mensen heen. De eerste weken vraagt 
 
 Je bent niet laat. En je bent zeker niet overdreven.
 
-Als je hier niet elke ochtend in je eentje mee wilt zitten: Niet Alleen loopt dertig dagen met je mee. Kijk gerust even wat je krijgt, dan weet je of het bij je past. ${NIET_ALLEEN_MARKER}
+Als je hier niet elke ochtend in je eentje mee wilt zitten: Niet Alleen loopt 8 weken met je mee. Kijk gerust even wat je krijgt, dan weet je of het bij je past. ${NIET_ALLEEN_MARKER}
 
 En wil je gewoon vertellen hoe het gaat, dan mag je op deze mail antwoorden. Ik lees alles.
 
@@ -227,7 +227,7 @@ Wat me raakte, is dat ze het eigenlijk niet nodig dacht te hebben. Tot ze merkte
 
 Dit is mijn laatste mail, tenzij je zelf iets van je laat horen. Dan ben ik er.
 
-Mocht je ooit denken: misschien toch, dan begint het hier. Je kunt eerst rustig kijken wat de dertig dagen inhouden. ${NIET_ALLEEN_MARKER}
+Mocht je ooit denken: misschien toch, dan begint het hier. Je kunt eerst rustig kijken wat de 8 weken inhouden. ${NIET_ALLEEN_MARKER}
 
 En zo niet: het ga je goed. Echt.
 

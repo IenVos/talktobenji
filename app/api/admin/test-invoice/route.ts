@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const country = (searchParams.get("country") ?? "NL").toUpperCase();
   const business = searchParams.get("business") === "1";
-  const totalCents = parseInt(searchParams.get("total") ?? "3700", 10);
+  const totalCents = parseInt(searchParams.get("total") ?? "4900", 10);
 
   const effectiveCountry = business ? "OTHER" : country;
   const vat = calculateVat(totalCents, effectiveCountry);

@@ -1256,7 +1256,7 @@ export default function AdminLandingspaginasPage() {
               </div>
               <div>
                 <label className={labelClass}>Paginatitel (browsertabblad)</label>
-                <input type="text" placeholder="Niet Alleen — 30 dagen begeleiding" value={form.pageTitle} onChange={set("pageTitle")} className={inputClass} />
+                <input type="text" placeholder="Niet Alleen — 8 weken begeleiding" value={form.pageTitle} onChange={set("pageTitle")} className={inputClass} />
               </div>
               <div>
                 <label className={labelClass}>Meta description (Google — max 155 tekens)</label>
@@ -1415,7 +1415,7 @@ export default function AdminLandingspaginasPage() {
                 <div>
                   <label className={labelSmClass}>Kleine tekst boven de titel (heroLabel)</label>
                   <FormatToolbar getEl={() => heroLabelRef.current} onValueChange={(v) => setForm((f) => ({ ...f, heroLabel: v }))} />
-                  <textarea ref={heroLabelRef} placeholder="30 dagen begeleiding bij verlies en gemis" value={form.heroLabel} onChange={set("heroLabel")} rows={2} className={inputClass} />
+                  <textarea ref={heroLabelRef} placeholder="8 weken begeleiding bij verlies en gemis" value={form.heroLabel} onChange={set("heroLabel")} rows={2} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelClass}>Hoofdtitel (heroTitle) *</label>
@@ -1430,7 +1430,7 @@ export default function AdminLandingspaginasPage() {
                 <div>
                   <label className={labelSmClass}>Bodytekst hero (heroBody)</label>
                   <FormatToolbar getEl={() => heroBodyRef.current} onValueChange={(v) => setForm((f) => ({ ...f, heroBody: v }))} />
-                  <textarea ref={heroBodyRef} placeholder="Voor €37 ontvang je…" value={form.heroBody} onChange={set("heroBody")} rows={3} className={inputClass} />
+                  <textarea ref={heroBodyRef} placeholder="Voor €49 ontvang je…" value={form.heroBody} onChange={set("heroBody")} rows={3} className={inputClass} />
                 </div>
                 <div>
                   <label className={labelSmClass}>Hero video (optioneel — getoond onder bodytekst, boven de knop)</label>
@@ -1514,7 +1514,7 @@ export default function AdminLandingspaginasPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className={labelSmClass}>Prijs onder knop <span className="font-normal text-gray-400">(klein, in knopkleur)</span></label>
-                    <input type="text" placeholder="€ 37 — eenmalig" value={form.ctaPrijsTekst} onChange={set("ctaPrijsTekst")} className={inputClass} />
+                    <input type="text" placeholder="€ 49 — eenmalig" value={form.ctaPrijsTekst} onChange={set("ctaPrijsTekst")} className={inputClass} />
                   </div>
                   <div>
                     <label className={labelSmClass}>Micro-copy onder knop <span className="font-normal text-gray-400">(optioneel)</span></label>
@@ -2220,7 +2220,7 @@ export default function AdminLandingspaginasPage() {
                 <div>
                   <label className={labelSmClass}>Bodytekst finale CTA</label>
                   <FormatToolbar getEl={() => finalCtaBodyRef.current} onValueChange={(v) => setForm((f) => ({ ...f, finalCtaBody: v }))} />
-                  <textarea ref={finalCtaBodyRef} placeholder="30 dagen. Elke dag één kleine stap…" value={form.finalCtaBody} onChange={set("finalCtaBody")} rows={3} className={inputClass} />
+                  <textarea ref={finalCtaBodyRef} placeholder="8 weken. Om de dag een kleine stap…" value={form.finalCtaBody} onChange={set("finalCtaBody")} rows={3} className={inputClass} />
                 </div>
               </div>
             </Section>
@@ -2492,11 +2492,11 @@ export default function AdminLandingspaginasPage() {
 
                 {/* Per type */}
                 {[
-                  { key: "Persoon" as const, emoji: "💔", h2default: "Je mist iemand.|En niemand kan dat echt opvangen.", ctaDefault: "Start met Niet Alleen – Verlies Persoon (€37)" },
-                  { key: "Huisdier" as const, emoji: "🐾", h2default: "Ze zeggen: “het was maar een dier.”|Maar voor jou was het zoveel meer.", ctaDefault: "Start met Niet Alleen – Verlies Huisdier (€37)" },
-                  { key: "Relatie" as const, emoji: "💭", h2default: "Je relatie is voorbij.|Maar je hoofd is dat nog niet.", ctaDefault: "Start met Niet Alleen – Relatie (€37)" },
-                  { key: "Eenzaamheid" as const, emoji: "😔", h2default: "Je voelt je alleen.|Maar er is zoveel meer in jou.", ctaDefault: "Start met Niet Alleen – Eenzaamheid (€37)" },
-                  { key: "Kinderloos" as const, emoji: "🌱", h2default: "Ongewenst kinderloos.|Iets wat mensen niet kunnen zien.", ctaDefault: "Start met Niet Alleen – Ongewenst kinderloos (€37)" },
+                  { key: "Persoon" as const, emoji: "💔", h2default: "Je mist iemand.|En niemand kan dat echt opvangen.", ctaDefault: "Start met Niet Alleen – Verlies Persoon (€49)" },
+                  { key: "Huisdier" as const, emoji: "🐾", h2default: "Ze zeggen: “het was maar een dier.”|Maar voor jou was het zoveel meer.", ctaDefault: "Start met Niet Alleen – Verlies Huisdier (€49)" },
+                  { key: "Relatie" as const, emoji: "💭", h2default: "Je relatie is voorbij.|Maar je hoofd is dat nog niet.", ctaDefault: "Start met Niet Alleen – Relatie (€49)" },
+                  { key: "Eenzaamheid" as const, emoji: "😔", h2default: "Je voelt je alleen.|Maar er is zoveel meer in jou.", ctaDefault: "Start met Niet Alleen – Eenzaamheid (€49)" },
+                  { key: "Kinderloos" as const, emoji: "🌱", h2default: "Ongewenst kinderloos.|Iets wat mensen niet kunnen zien.", ctaDefault: "Start met Niet Alleen – Ongewenst kinderloos (€49)" },
                 ].map(({ key, emoji, h2default, ctaDefault }) => {
                   const k = key.toLowerCase() as "persoon" | "huisdier" | "relatie" | "eenzaamheid" | "kinderloos";
                   return (
@@ -2512,7 +2512,7 @@ export default function AdminLandingspaginasPage() {
                       </div>
                       <div>
                         <label className={labelSmClass}>Citaatblok — "Dit is waar Niet Alleen begint"</label>
-                        <textarea rows={3} placeholder="30 dagen lang ontvang je elke dag een e-mail..." value={(form as any)[`kpCitaat${key}`]} onChange={set(`kpCitaat${key}` as keyof FormState)} className={inputClass} />
+                        <textarea rows={3} placeholder="8 weken lang ontvang je om de dag een e-mail..." value={(form as any)[`kpCitaat${key}`]} onChange={set(`kpCitaat${key}` as keyof FormState)} className={inputClass} />
                       </div>
                       <div>
                         <label className={labelSmClass}>Voordelen (één per regel)</label>

@@ -704,7 +704,7 @@ export default defineSchema({
     generatedAt: v.number(),
   }).index("by_date", ["date"]),
 
-  // Niet Alleen — 30-daagse begeleidingscursus
+  // Niet Alleen — begeleidingsprogramma van 8 weken (mail om de dag)
   nietAlleenProfiles: defineTable({
     userId: v.string(),
     email: v.string(),
@@ -783,7 +783,7 @@ export default defineSchema({
     pageTitle: v.string(),      // Browser tab title
     isLive: v.boolean(),
     // Hero
-    heroLabel: v.optional(v.string()),    // small text above h1, e.g. "30 dagen begeleiding"
+    heroLabel: v.optional(v.string()),    // small text above h1, e.g. "8 weken begeleiding"
     heroTitle: v.string(),
     heroSubtitle: v.optional(v.string()),
     heroBody: v.optional(v.string()),
@@ -892,7 +892,7 @@ export default defineSchema({
     kpTekstPersoon: v.optional(v.string()),   // body + vetgedrukte slotzin, alinea's via lege regel
     kpCitaatPersoon: v.optional(v.string()),  // tekst in het blauwe citaatblok
     kpVoordelenPersoon: v.optional(v.string()),// voordelen, één per regel
-    kpCtaTekstPersoon: v.optional(v.string()),// "Start met Niet Alleen – Verlies Persoon (€37)"
+    kpCtaTekstPersoon: v.optional(v.string()),// "Start met Niet Alleen – Verlies Persoon (€49)"
     kpH2Huisdier: v.optional(v.string()),
     kpTekstHuisdier: v.optional(v.string()),
     kpCitaatHuisdier: v.optional(v.string()),

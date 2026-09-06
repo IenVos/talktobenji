@@ -1,5 +1,5 @@
 /**
- * Niet Alleen — 30-daagse begeleidingscursus
+ * Niet Alleen — begeleidingsprogramma van 8 weken (mail om de dag)
  * Queries, mutations en de dagelijkse cron-verwerker.
  */
 import {

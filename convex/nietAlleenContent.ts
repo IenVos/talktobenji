@@ -1050,19 +1050,19 @@ Is er iets wat jij wilt loslaten? Niet hem of haar. Maar iets wat je meedraagt d
 
 {link}
 
-Over twee dagen zijn je 30 dagen klaar. Benji`,
+Je 8 weken zijn bijna klaar. Benji`,
 
       huisdier: `Is er iets wat jij wilt loslaten? Niet hem of haar. Maar iets wat je meedraagt dat je zwaar maakt? Schuldgevoelens, twijfels over beslissingen, de gedachte dat het anders had gemoeten?
 
 {link}
 
-Over twee dagen zijn je 30 dagen klaar. Benji`,
+Je 8 weken zijn bijna klaar. Benji`,
 
       scheiding: `Is er iets wat jij wilt loslaten? Niet de persoon, niet de herinneringen. Maar iets wat je meedraagt dat je zwaar maakt? Bitterheid, verwijten, het beeld van hoe het had moeten zijn?
 
 {link}
 
-Over twee dagen zijn je 30 dagen klaar. Benji`,
+Je 8 weken zijn bijna klaar. Benji`,
     },
     inHetAccount: "Is er iets wat je wilt loslaten? Niet de persoon. Maar iets wat je meedraagt dat je zwaar maakt. Schrijf het op.",
     alsjewilt: "Hoe zou het voelen als je dat los kon laten? Wat zou er dan ruimte voor komen?",
@@ -1079,7 +1079,7 @@ Verlies hoeft geen plek te zijn die je achter je laat. Het wordt een deel van wi
 
 Je hebt de afgelopen weken woorden gegeven aan iets wat moeilijk te verwoorden is. Dat verandert je. Niet zodat je voorbij het verlies gaat, maar zodat je ermee verder kunt.
 
-Hoe zie jij de weg vooruit? Niet voorbij dit gemis, maar ermee. Wat wil je meenemen van de afgelopen 30 dagen?
+Hoe zie jij de weg vooruit? Niet voorbij dit gemis, maar ermee. Wat wil je meenemen van de afgelopen 8 weken?
 
 {link}
 
@@ -1116,11 +1116,11 @@ Morgen de laatste dag. Benji`,
     thema: "Een brief aan jezelf",
     subject: "De laatste dag. Voor jou.",
     mail: {
-      persoon: `Dit is dag dertig.
+      persoon: `Dit is de laatste dag.
 
 De afgelopen maand heb je geschreven over wie je mist, over wat er was, over hoe je dit draagt. Vandaag schrijf je niet aan hen, maar aan jezelf.
 
-Schrijf een brief aan de versie van jou die hier vandaag is. Wat heb je de afgelopen 30 dagen ontdekt? Wat wil je deze versie van jezelf meegeven?
+Schrijf een brief aan de versie van jou die hier vandaag is. Wat heb je de afgelopen 8 weken ontdekt? Wat wil je deze versie van jezelf meegeven?
 
 Er zijn geen regels. Schrijf wat er komt.
 
@@ -1128,7 +1128,7 @@ Er zijn geen regels. Schrijf wat er komt.
 
 Je hebt het gedaan. Benji`,
 
-      huisdier: `Dit is dag dertig.
+      huisdier: `Dit is de laatste dag.
 
 Je hebt de afgelopen maand woorden gegeven aan iets wat moeilijk is. Vandaag schrijf je niet aan hem of haar, maar aan jezelf.
 
@@ -1138,7 +1138,7 @@ Schrijf een brief aan de versie van jou die hier vandaag is. Wat heb je geleerd?
 
 Je hebt het gedaan. Benji`,
 
-      scheiding: `Dit is dag dertig.
+      scheiding: `Dit is de laatste dag.
 
 Je hebt de afgelopen maand stilgestaan bij wat er was, wat het je heeft gevraagd, en hoe je verdergaat. Vandaag schrijf je aan jezelf.
 
@@ -1148,7 +1148,7 @@ Schrijf een brief aan de versie van jou die hier vandaag is. Wat neem je mee? Wa
 
 Je hebt het gedaan. Benji`,
     },
-    inHetAccount: "Dit is de laatste dag. Schrijf een brief aan jezelf, aan de versie van jou die hier nu is. Wat neem je mee van deze 30 dagen?",
+    inHetAccount: "Dit is de laatste dag. Schrijf een brief aan jezelf, aan de versie van jou die hier nu is. Wat neem je mee van deze 8 weken?",
   },
 ];
 
