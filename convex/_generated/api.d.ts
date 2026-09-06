@@ -43,6 +43,7 @@ import type * as embeddings from "../embeddings.js";
 import type * as evenHouvastOpvolg from "../evenHouvastOpvolg.js";
 import type * as evergreen from "../evergreen.js";
 import type * as exampleData from "../exampleData.js";
+import type * as facturen from "../facturen.js";
 import type * as featureVotes from "../featureVotes.js";
 import type * as feedback from "../feedback.js";
 import type * as giftActions from "../giftActions.js";
@@ -137,6 +138,7 @@ declare const fullApi: ApiFromModules<{
   evenHouvastOpvolg: typeof evenHouvastOpvolg;
   evergreen: typeof evergreen;
   exampleData: typeof exampleData;
+  facturen: typeof facturen;
   featureVotes: typeof featureVotes;
   feedback: typeof feedback;
   giftActions: typeof giftActions;

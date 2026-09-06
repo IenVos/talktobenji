@@ -377,3 +377,20 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+
+/** Eenmalige setup: btw per product. E-boeken 6%, diensten 25%. */
+export const zetBtwTarieven = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const eboeken = new Set(["er-zijn", "troostende-woorden"]);
+    const rows = await ctx.db.query("checkoutProducts").collect();
+    const resultaat: { slug: string; btw: number }[] = [];
+    for (const p of rows) {
+      const btw = eboeken.has(p.slug) ? 6 : 25;
+      await ctx.db.patch(p._id, { btwTariefProcent: btw, updatedAt: Date.now() });
+      resultaat.push({ slug: p.slug, btw });
+    }
+    return resultaat;
+  },
+});

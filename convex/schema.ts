@@ -1401,6 +1401,20 @@ export default defineSchema({
     .index("by_createdAt", ["createdAt"])
     .index("by_email", ["email"]),
 
+  // Oplopende factuurnummers, toegekend bij een geslaagde betaling (niet bij elke
+  // half-afgemaakte sessie), zodat de nummering netjes doorloopt zonder gaten.
+  facturen: defineTable({
+    paymentIntentId: v.string(), // koppeling met Stripe (idempotent per betaling)
+    nummer: v.string(),          // bijv. "2026-0001"
+    createdAt: v.number(),
+  }).index("by_paymentIntent", ["paymentIntentId"]),
+
+  // Teller per jaar voor de oplopende factuurnummers (één rij per jaar).
+  factuurTeller: defineTable({
+    jaar: v.number(),
+    laatste: v.number(),
+  }).index("by_jaar", ["jaar"]),
+
   // Instellingen voor de herinneringsmail bij een afgehaakte checkout (één rij).
   // Eén centraal verzendschema voor de hele Even Houvast-opvolgfunnel: per intern
   // mailnummer (1..6) de dag na de brief. Geldt voor ALLE verliestypes tegelijk, zodat

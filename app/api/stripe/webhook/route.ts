@@ -7,6 +7,22 @@ import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+/**
+ * Vraag een oplopend factuurnummer op (per jaar, bijv. "2026-0001"), toegekend bij
+ * de betaling. Idempotent per betaling. Lukt Convex even niet, dan val terug op het
+ * meegegeven nummer, zodat de factuur altijd een nummer heeft.
+ */
+async function volgFactuurnummer(paymentIntentId: string, fallback: string): Promise<string> {
+  try {
+    return await convex.mutation(api.facturen.wijsFactuurnummerToe, {
+      webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
+      paymentIntentId,
+    });
+  } catch {
+    return fallback;
+  }
+}
+
 async function buildInvoicePdf({
   invoiceNr, date, customerName, customerEmail, productName, totalInclBtw,
   vatRate, vatAmountCents, basePriceCents, isBusiness, customerVatNumber,
@@ -269,7 +285,7 @@ export async function POST(req: NextRequest) {
               .join("");
 
           // ── Factuur voor gever ──
-          const invoiceNr = metaInvoiceNumber || `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
+          const invoiceNr = await volgFactuurnummer(pi.id, metaInvoiceNumber || `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`);
           const invoiceDate = new Date().toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
           let attachments: { filename: string; content: string }[] = [];
           try {
@@ -506,7 +522,7 @@ export async function POST(req: NextRequest) {
       if (process.env.RESEND_API_KEY) {
         try {
           const resend = new Resend(process.env.RESEND_API_KEY);
-          const invoiceNr = metaInvoiceNumber || `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`;
+          const invoiceNr = await volgFactuurnummer(pi.id, metaInvoiceNumber || `TTB-${new Date().getFullYear()}-${pi.id.slice(-6).toUpperCase()}`);
           const date = new Date().toLocaleDateString("nl-NL", {
             day: "numeric", month: "long", year: "numeric",
           });
