@@ -139,7 +139,7 @@ function WelkomInhoud() {
             Welkom, {voornaam}
           </h1>
           <p className="text-base leading-relaxed" style={{ color: "#6b6460" }}>
-            Fijn dat je er bent. Dit is jouw plek voor de komende 30 dagen. We lopen samen met je mee, één dag tegelijk. Er is geen goed of fout hier.
+            Fijn dat je er bent. Dit is jouw plek voor de komende 8 weken. We lopen samen met je mee, stap voor stap. Er is geen goed of fout hier.
           </p>
         </div>
 
@@ -264,7 +264,7 @@ function WelkomInhoud() {
               },
               {
                 stap: "4",
-                tekst: "Na 30 dagen heb je een persoonlijk dagboek dat je kunt downloaden of printen als herinnering.",
+                tekst: "Na 8 weken heb je een persoonlijk dagboek dat je kunt downloaden of printen als herinnering.",
               },
             ].map(({ stap, tekst }) => (
               <div key={stap} className="flex items-start gap-3">

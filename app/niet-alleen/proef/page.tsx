@@ -184,7 +184,7 @@ function ProefInner() {
           {dag === 1 ? (
             <>
               <p className="text-sm leading-relaxed mb-4" style={{ color: "#6b6460" }}>
-                Deed deze vraag iets met je? Zo gaat het dertig dagen lang. Elke dag één kleine vraag, en soms een moment om even te landen.
+                Deed deze vraag iets met je? Zo gaat het 8 weken lang. Om de dag een kleine vraag, en soms een moment om even te landen.
               </p>
               <button
                 onClick={() => naar(12)}
@@ -197,10 +197,10 @@ function ProefInner() {
           ) : (
             <>
               <p className="text-sm leading-relaxed mb-3" style={{ color: "#6b6460" }}>
-                En zo dertig dagen lang, elke dag net even anders. Geen huiswerk, geen druk.
+                En zo 8 weken lang, om de dag net even anders. Geen huiswerk, geen druk.
               </p>
               <p className="text-sm leading-relaxed mb-5" style={{ color: "#6b6460" }}>
-                Gewoon elke dag iets dat er voor je is.
+                Gewoon telkens iets dat er voor je is.
               </p>
               <Link
                 href={brugUrl}

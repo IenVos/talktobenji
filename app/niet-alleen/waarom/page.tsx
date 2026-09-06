@@ -3,7 +3,7 @@
 /**
  * Brugpagina: warme, korte pagina op maat van het verliestype, tussen de taster
  * en de checkout. Geen lang verhaal (dat is de koude LP voor advertenties), maar
- * "dit is wat deze dertig dagen jóu brengen". Bereikbaar via de taster:
+ * "dit is wat deze acht weken jóu brengen". Bereikbaar via de taster:
  * /niet-alleen/waarom?type=huisdier&n=Anna → knop naar de bestaande checkout.
  */
 
@@ -25,7 +25,7 @@ const BRUG: Record<Verliestype, { label: string; titel: string; eersteWaarde: st
   huisdier: {
     label: "voor het verlies van je huisdier",
     titel: "het is stil geworden in huis.",
-    eersteWaarde: "Elke dag een klein, zacht moment voor het gemis van een maatje dat elke dag om je heen was.",
+    eersteWaarde: "Om de dag een klein, zacht moment voor het gemis van een maatje dat elke dag om je heen was.",
     arc: "eerst gewoon aanwezig zijn, dan ruimte voor het verhaal, dan wat hij of zij jou gaf, en langzaam weer een beetje vooruit.",
   },
   scheiding: {
@@ -92,7 +92,7 @@ function WaaromInner() {
           {titel}
         </h1>
         <p className="text-base leading-relaxed mb-6" style={{ color: "#5a5148", textWrap: "pretty" } as React.CSSProperties}>
-          Dat gemis gaat niet in dertig dagen weg. Maar je hoeft er niet elke dag in je eentje mee te zitten. Je las de brief en je proefde dag 1 en 12. Dit is wat daarna komt.
+          Dat gemis gaat niet in acht weken weg. Maar je hoeft er niet elke dag in je eentje mee te zitten. Je las de brief en je proefde dag 1 en 12. Dit is wat daarna komt.
         </p>
 
         <div className="space-y-3.5 mb-6">
@@ -111,7 +111,7 @@ function WaaromInner() {
         {/* Prijs, rustig, geen haast */}
         <div style={{ borderTop: "1px solid #e8e0d8", paddingTop: 24, textAlign: "center" }}>
           <p className="text-base font-semibold mb-2" style={{ color: "#9a8168" }}>
-            Eén keer €37, dat is €1,23 per dag.
+            Eén keer €49.
           </p>
           <p className="text-sm leading-relaxed mb-5" style={{ color: "#8a8078", maxWidth: 400, margin: "0 auto 1.25rem", textWrap: "pretty" } as React.CSSProperties}>
             Geen abonnement, geen automatische verlenging. Je koopt het één keer. En je begint wanneer jij er klaar voor bent, vandaag of over een maand.

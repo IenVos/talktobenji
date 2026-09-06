@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
   page.drawText("BEDRAG", { x: R - 60, y, size: 8, font: fontBold, color: gray });
 
   y -= 20;
-  page.drawText("Niet Alleen — 30 dagen programma", { x: L, y, size: 11, font: fontBold, color: dark });
+  page.drawText("Niet Alleen — 8 weken programma", { x: L, y, size: 11, font: fontBold, color: dark });
   page.drawText(fmt(exclBtw), { x: R - 60, y, size: 11, font: fontReg, color: dark });
 
   y -= 20;

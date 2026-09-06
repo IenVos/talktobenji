@@ -58,7 +58,7 @@ export default function OntdekPage() {
             verder, op je eigen tempo, met alles wat je nodig hebt.
           </p>
           <p className="text-sm" style={{ color: "#a09890" }}>
-            Na je 30 dagen kun je hier verder. Of eerder, als je wilt.
+            Na je 8 weken kun je hier verder. Of eerder, als je wilt.
           </p>
         </div>
 
@@ -88,13 +88,13 @@ export default function OntdekPage() {
           ))}
         </div>
 
-        {/* Wat er ook met je 30 dagen gebeurt */}
+        {/* Wat er ook met je 8 weken gebeurt */}
         <div
           className="rounded-2xl p-5 border"
           style={{ background: "#eef1f6", borderColor: "#dde3ec" }}
         >
           <p className="text-sm font-medium mb-1" style={{ color: "#3d3530" }}>
-            Jouw 30 dagen verdwijnen niet
+            Jouw 8 weken verdwijnen niet
           </p>
           <p className="text-sm leading-relaxed" style={{ color: "#6b6460" }}>
             Alles wat je hebt geschreven blijft bewaard als je met Benji verdergaat.
@@ -118,7 +118,7 @@ export default function OntdekPage() {
             className="block text-center text-sm"
             style={{ color: "#a09890" }}
           >
-            Terug naar mijn 30 dagen
+            Terug naar mijn programma
           </Link>
         </div>
       </div>

@@ -77,16 +77,16 @@ export default function DagboekPage() {
           {/* Titelblok */}
           <div className="text-center space-y-1 pb-6 border-b" style={{ borderColor: "#e8e0d8" }}>
             <h1 className="text-2xl font-semibold" style={{ color: "#3d3530" }}>
-              Jouw 30 dagen, {voornaam}
+              Jouw 30 berichten, {voornaam}
             </h1>
             <p className="text-xs" style={{ color: "#b0a8a0" }}>
-              {dagItems.length} van 30 dagen ingevuld
+              {dagItems.length} van 30 berichten ingevuld
             </p>
           </div>
 
           {dagItems.length === 0 && (
             <p className="text-center text-sm py-12" style={{ color: "#b0a8a0" }}>
-              Je hebt nog niets ingevuld. Ga elke dag naar je pagina en schrijf wat er in je opkomt.
+              Je hebt nog niets ingevuld. Ga om de dag naar je pagina en schrijf wat er in je opkomt.
             </p>
           )}
 

@@ -479,8 +479,8 @@ export async function POST(req: NextRequest) {
             subject: "Welkom bij Niet Alleen",
             html: `<div style="font-family:system-ui,-apple-system,sans-serif;max-width:560px;margin:0 auto;color:#2d3748;background:#fdf9f4;padding:32px 24px;">
               <p style="font-size:16px;margin-bottom:8px;">Hi ${voornaam},</p>
-              <p style="font-size:15px;line-height:1.8;color:#4a5568;">Fijn dat je er bent. De komende 30 dagen lopen we samen met je mee, één dag tegelijk.</p>
-              <p style="font-size:15px;line-height:1.8;color:#4a5568;">Elke ochtend ontvang je een kleine vraag van Benji. Geen druk, geen goed of fout. Gewoon ruimte voor wat er in je leeft.</p>
+              <p style="font-size:15px;line-height:1.8;color:#4a5568;">Fijn dat je er bent. De komende 8 weken lopen we samen met je mee, stap voor stap.</p>
+              <p style="font-size:15px;line-height:1.8;color:#4a5568;">Om de dag ontvang je een kleine vraag van Benji. Geen druk, geen goed of fout. Gewoon ruimte voor wat er in je leeft.</p>
               <div style="margin:28px 0;">
                 <a href="https://talktobenji.com/niet-alleen/welkom" style="background-color:#6d84a8;color:white;padding:13px 26px;border-radius:10px;text-decoration:none;font-size:15px;font-weight:600;display:inline-block;">Vandaag beginnen</a>
               </div>
