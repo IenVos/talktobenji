@@ -6,6 +6,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { notFound } from "next/navigation";
 import { NietAlleenKeuzeLpView } from "@/components/NietAlleenKeuzeLpView";
+import { LandingPageHomeView } from "@/components/LandingPageHomeView";
 import { HeaderBar } from "@/components/chat/HeaderBar";
 import { KoopKnopLink } from "@/components/KoopKnopLink";
 import { onthoudBronLp } from "@/components/analytics/bronLp";
@@ -413,6 +414,16 @@ export function LandingPageView({ slug }: { slug: string }) {
         kpVoordelenKinderloos={(page as any).kpVoordelenKinderloos}
         kpCtaTekstKinderloos={(page as any).kpCtaTekstKinderloos}
       />
+      </>
+    );
+  }
+
+  // Homepage-stijl: dezelfde bewerkbare LP-data, maar in de look van de homepagina.
+  if ((page as any).stijl === "homepage") {
+    return (
+      <>
+        {previewBanner}
+        <LandingPageHomeView page={page} />
       </>
     );
   }

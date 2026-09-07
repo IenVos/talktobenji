@@ -97,6 +97,7 @@ type FormState = {
   slug: string;
   pageTitle: string;
   isLive: boolean;
+  stijl: string;
   noindex: boolean;
   metaDescription: string;
   heroLabel: string;
@@ -213,6 +214,7 @@ const EMPTY_FORM: FormState = {
   slug: "",
   pageTitle: "",
   isLive: false,
+  stijl: "standaard",
   noindex: false,
   metaDescription: "",
   heroLabel: "",
@@ -568,6 +570,7 @@ export default function AdminLandingspaginasPage() {
       slug: page.slug,
       pageTitle: page.pageTitle,
       isLive: page.isLive,
+      stijl: (page as any).stijl ?? "standaard",
       noindex: (page as any).noindex ?? false,
       metaDescription: (page as any).metaDescription ?? "",
       heroLabel: page.heroLabel ?? "",
@@ -872,6 +875,7 @@ export default function AdminLandingspaginasPage() {
           slug: form.slug.trim(),
           pageTitle: form.pageTitle.trim(),
           isLive: form.isLive,
+          stijl: form.stijl,
           noindex: form.noindex || undefined,
           metaDescription: form.metaDescription.trim(),
           heroTitle: form.heroTitle.trim(),
@@ -989,6 +993,7 @@ export default function AdminLandingspaginasPage() {
           slug: form.slug.trim(),
           pageTitle: form.pageTitle.trim(),
           isLive: form.isLive,
+          stijl: form.stijl,
           heroTitle: form.heroTitle.trim(),
           heroLabel: opt(form.heroLabel),
           heroSubtitle: opt(form.heroSubtitle),
@@ -1264,6 +1269,15 @@ export default function AdminLandingspaginasPage() {
               </div>
             </div>
 
+            <div>
+              <label className={labelClass}>Stijl</label>
+              <select value={form.stijl} onChange={(e) => setForm((f) => ({ ...f, stijl: e.target.value }))} className={inputClass}>
+                <option value="standaard">Standaard (landingspagina)</option>
+                <option value="homepage">Homepage-look (donkere hero, zoals de homepagina)</option>
+              </select>
+              <p className="text-xs text-gray-400 mt-1">Bepaalt hoe de pagina eruitziet. Alle teksten hieronder werken in beide stijlen.</p>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Categorie</label>
@@ -1271,6 +1285,7 @@ export default function AdminLandingspaginasPage() {
                   <option value="">— geen categorie —</option>
                   <option value="Niet Alleen">Niet Alleen</option>
                   <option value="Prijzen">Prijzen</option>
+                  <option value="Zij aan Zij">Zij aan Zij</option>
                   <option value="Er Zijn — Troostende Woorden">Er Zijn — Troostende Woorden</option>
                   <option value="Overig">Overig</option>
                 </select>

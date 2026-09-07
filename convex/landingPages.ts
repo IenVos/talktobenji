@@ -128,6 +128,7 @@ export const create = mutation({
     slug: v.string(),
     pageTitle: v.string(),
     isLive: v.boolean(),
+    stijl: v.optional(v.string()),
     heroLabel: v.optional(v.string()),
     heroTitle: v.string(),
     heroSubtitle: v.optional(v.string()),
@@ -265,6 +266,7 @@ export const update = mutation({
     slug: v.optional(v.string()),
     pageTitle: v.optional(v.string()),
     isLive: v.optional(v.boolean()),
+    stijl: v.optional(v.string()),
     heroLabel: v.optional(v.string()),
     heroTitle: v.optional(v.string()),
     heroSubtitle: v.optional(v.string()),
@@ -1176,6 +1178,7 @@ export const seedZijAanZij = internalMutation({
       slug,
       pageTitle: "Zij aan Zij — Samen luisteren, samen dragen",
       isLive: false,
+      stijl: "homepage",
       categorie: "Zij aan Zij",
       heroLabel: "8 weken | 3,5 uur persoonlijk met Ien | een maand Benji",
       heroTitle: "Je hebt iemand verloren.\nEn toch wordt er van je verwacht dat je gewoon doorgaat.",
@@ -1315,5 +1318,19 @@ export const seedVergelijkPrijzen = internalMutation({
       updatedAt: now,
     });
     return { seeded: true, id };
+  },
+});
+
+/** Zet de bestaande zij-aan-zij-pagina op de homepage-stijl (patch, want seed slaat over). */
+export const zetZijAanZijHomepageStijl = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const page = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", "zij-aan-zij"))
+      .first();
+    if (!page) return { skipped: true };
+    await ctx.db.patch(page._id, { stijl: "homepage", updatedAt: Date.now() });
+    return { patched: true, id: page._id };
   },
 });

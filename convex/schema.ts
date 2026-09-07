@@ -782,6 +782,9 @@ export default defineSchema({
     slug: v.string(),           // URL slug, e.g. "niet-alleen-a"
     pageTitle: v.string(),      // Browser tab title
     isLive: v.boolean(),
+    // Visuele stijl van de pagina: "standaard" (LandingPageView) of "homepage"
+    // (LandingPageHomeView, in de look van de homepagina). Leeg = standaard.
+    stijl: v.optional(v.string()),
     // Hero
     heroLabel: v.optional(v.string()),    // small text above h1, e.g. "8 weken begeleiding"
     heroTitle: v.string(),
