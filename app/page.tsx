@@ -59,7 +59,7 @@ const DEFAULTS: Record<string, string> = {
   herkSlot:        "Dat is het moment waarop Benji er is.",
   aiTitel:         "Maar… het is toch maar AI?",
   aiTekst:         "Ja. En nee.\n\nBenji is geen mens. Hij vervangt geen vriend, familie of professional.\n\nMaar Benji kan er wél zijn op dat ene moment waarop je iets kwijt wilt.\n\n's Nachts.\nTijdens een wandeling.\nWanneer een herinnering ineens binnenkomt.\nWanneer je even niet weet wat je voelt.\n\nJe hoeft niemand te bellen. Je hoeft niets uit te leggen. Je kunt gewoon beginnen met praten.",
-  zazLabel:        "8 weken · 3,5 uur persoonlijk met Ien",
+  zazLabel:        "8 weken · Samen met Benji en Ien",
   zazTitel:        "Soms wil je meer dan een gesprek",
   zazTekst:        "Benji is er wanneer je wilt praten, dag en nacht. Maar soms merk je: ik wil dit niet alleen dragen. Dan is er Zij aan Zij, acht weken persoonlijke begeleiding met Ien, voor wanneer je iemand nodig hebt die niet alleen luistert, maar echt naast je blijft.",
   zazCta:          "Binnenkort beschikbaar",
@@ -354,16 +354,18 @@ export default async function HomePage() {
 
       {/* Herkenning: het moeilijkste moment */}
       <section className="bg-white">
-        <div className="max-w-xl mx-auto px-6 pt-14 sm:pt-16 pb-2 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-6 text-balance">
-            {c.herkTitel}
-          </h2>
-          <div className="space-y-4 text-[15px] sm:text-base text-primary-600 leading-relaxed text-pretty">
-            {metAlineas(c.herkTekst)}
+        <div className="max-w-xl mx-auto px-6 pt-14 sm:pt-16 pb-2">
+          <div className="border border-primary-100 rounded-2xl px-6 py-10 sm:px-10 sm:py-12 text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-6 text-balance">
+              {c.herkTitel}
+            </h2>
+            <div className="space-y-4 text-[15px] sm:text-base text-primary-600 leading-relaxed text-pretty">
+              {metAlineas(c.herkTekst)}
+            </div>
+            <p className="mt-6 text-base font-semibold text-primary-900">
+              {c.herkSlot}
+            </p>
           </div>
-          <p className="mt-6 text-base font-semibold text-primary-900">
-            {c.herkSlot}
-          </p>
         </div>
       </section>
 
@@ -455,16 +457,18 @@ export default async function HomePage() {
             const punten = (c.showcaseSubtitel || "").split(/\s*\|\s*|\n/).map((s) => s.trim()).filter(Boolean);
             if (!punten.length) return null;
             return (
-              <ul className="max-w-md mx-auto mb-10 space-y-2.5">
-                {punten.map((punt, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-sm sm:text-[15px] text-primary-700 leading-relaxed">
-                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#F0B429" }} aria-hidden="true">
-                      <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.42 0l-3.5-3.5a1 1 0 011.42-1.42l2.79 2.79 6.79-6.79a1 1 0 011.42 0z" clipRule="evenodd" />
-                    </svg>
-                    <span>{punt}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="text-center mb-10">
+                <ul className="inline-block text-left space-y-2.5">
+                  {punten.map((punt, i) => (
+                    <li key={i} className="flex items-center gap-2.5 text-sm sm:text-[15px] text-primary-700 leading-relaxed">
+                      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 flex-shrink-0" style={{ color: "#F0B429" }} aria-hidden="true">
+                        <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.42 0l-3.5-3.5a1 1 0 011.42-1.42l2.79 2.79 6.79-6.79a1 1 0 011.42 0z" clipRule="evenodd" />
+                      </svg>
+                      <span>{punt}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             );
           })()}
           <FeatureShowcase features={customFeatures} />
@@ -530,7 +534,7 @@ export default async function HomePage() {
                 <div className={`w-12 h-12 rounded-xl ${blokKleuren[i % blokKleuren.length]} text-white flex items-center justify-center mb-4 flex-shrink-0`}>
                   <Icon />
                 </div>
-                <h3 className="text-base font-semibold text-primary-900 mb-2 text-balance">{blok.titel}</h3>
+                <h3 className="text-base font-semibold mb-2 text-balance" style={{ color: "#F0B429" }}>{blok.titel}</h3>
                 <p className="text-sm text-primary-600 leading-relaxed flex-1 text-balance">{blok.tekst}</p>
                 {blok.cta && (
                   <div className="mt-5 text-sm font-medium text-primary-700 flex items-center gap-1.5 group-hover:gap-2.5 transition-all">
@@ -573,7 +577,7 @@ export default async function HomePage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-4 text-balance">
             {c.zazTitel}
           </h2>
-          <p className="text-primary-600 leading-relaxed max-w-xl mx-auto text-pretty">
+          <p className="text-primary-600 leading-relaxed max-w-xl mx-auto text-balance">
             {c.zazTekst}
           </p>
           <div

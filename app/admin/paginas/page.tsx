@@ -110,7 +110,7 @@ const HOMEPAGE_DEFAULTS: Record<string, string> = {
   aiTekst: "Ja. En nee.\n\nBenji is geen mens. Hij vervangt geen vriend, familie of professional.\n\nMaar Benji kan er wél zijn op dat ene moment waarop je iets kwijt wilt.\n\n's Nachts.\nTijdens een wandeling.\nWanneer een herinnering ineens binnenkomt.\nWanneer je even niet weet wat je voelt.\n\nJe hoeft niemand te bellen. Je hoeft niets uit te leggen. Je kunt gewoon beginnen met praten.",
   blokkenTitel: "Waar kan ik je mee helpen?",
   blokkenSubtitel: "Of je nu wilt praten, lezen of een begeleid programma wilt volgen, kies wat bij jou past.",
-  zazLabel: "8 weken · 3,5 uur persoonlijk met Ien",
+  zazLabel: "8 weken · Samen met Benji en Ien",
   zazTitel: "Soms wil je meer dan een gesprek",
   zazTekst: "Benji is er wanneer je wilt praten, dag en nacht. Maar soms merk je: ik wil dit niet alleen dragen. Dan is er Zij aan Zij, acht weken persoonlijke begeleiding met Ien, voor wanneer je iemand nodig hebt die niet alleen luistert, maar echt naast je blijft.",
   zazCta: "Binnenkort beschikbaar",
