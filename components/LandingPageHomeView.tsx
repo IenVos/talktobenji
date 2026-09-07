@@ -63,6 +63,7 @@ export function LandingPageHomeView({ page }: { page: any }) {
   const reassurance = (page.ctaMicroCopy || "").trim();
 
   const watItems = parseJson<WatItem>(page.watJeKrijgtJson).filter((w) => w.naam);
+  const verloopStappen = parseJson<{ titel?: string; tekst?: string }>(page.verloopJson).filter((s) => s.titel || s.tekst);
   const contentBlocks = parseJson<ContentBlock>(page.contentBlocksJson).filter((b) => b.titel || b.tekst);
   const pricingBlocks = parseJson<PricingBlock>(page.pricingBlocksJson).filter((b) => b.titel || b.prijs);
   const vragen = parseJson<Vraag>(page.vragenJson).filter((v) => v.vraag);
@@ -195,6 +196,67 @@ export function LandingPageHomeView({ page }: { page: any }) {
                 )}
               </div>
             ))}
+          </div>
+        </section>
+      )}
+
+      {/* 5b. VERLOOP-TIJDLIJN (infographic: wat je kunt verwachten + uitkomst) */}
+      {verloopStappen.length > 0 && (
+        <section className="bg-white">
+          <div className="max-w-3xl mx-auto px-6 py-14 sm:py-20">
+            {page.verloopLabel && (
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#4a7c59" }}>
+                {page.verloopLabel}
+              </p>
+            )}
+            {page.verloopTitel && (
+              <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-3 text-balance">
+                {page.verloopTitel}
+              </h2>
+            )}
+            {page.verloopIntro && (
+              <div className="text-primary-600 leading-relaxed mb-10 max-w-xl text-pretty">
+                <Paragraphs text={page.verloopIntro} />
+              </div>
+            )}
+
+            <ol className="relative">
+              {/* verticale lijn */}
+              <span className="absolute left-[19px] top-2 bottom-2 w-px bg-primary-100" aria-hidden="true" />
+              {verloopStappen.map((s, i) => (
+                <li key={i} className="relative flex gap-5 pb-9 last:pb-0">
+                  <span
+                    className="relative z-10 flex-shrink-0 w-10 h-10 rounded-full bg-white border-2 flex items-center justify-center text-sm font-bold"
+                    style={{ borderColor: "#4a7c59", color: "#4a7c59" }}
+                  >
+                    {i + 1}
+                  </span>
+                  <div className="pt-1">
+                    {s.titel && <h3 className="text-base sm:text-lg font-bold text-primary-900 mb-1.5">{s.titel}</h3>}
+                    {s.tekst && (
+                      <div className="text-sm sm:text-[15px] text-primary-600 leading-relaxed text-pretty">
+                        <Paragraphs text={s.tekst} />
+                      </div>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            {(page.verloopUitkomstTitel || page.verloopUitkomst) && (
+              <div className="mt-8 rounded-2xl p-6 sm:p-8" style={{ backgroundColor: "#f0f5f1", border: "1px solid #cfe0d5" }}>
+                {page.verloopUitkomstTitel && (
+                  <h3 className="text-base sm:text-lg font-bold mb-2" style={{ color: "#3f6b4d" }}>
+                    {page.verloopUitkomstTitel}
+                  </h3>
+                )}
+                {page.verloopUitkomst && (
+                  <div className="text-sm sm:text-[15px] leading-relaxed text-pretty" style={{ color: "#3f6b4d" }}>
+                    <Paragraphs text={page.verloopUitkomst} />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </section>
       )}

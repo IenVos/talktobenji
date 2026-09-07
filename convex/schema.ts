@@ -883,6 +883,13 @@ export default defineSchema({
     // "Wat je krijgt" iconenrij (JSON: [{icon, naam, omschrijving}]) — leeg = standaardrij
     watJeKrijgtJson: v.optional(v.string()),
     watJeKrijgtTitel: v.optional(v.string()),
+    // "Verloop"-tijdlijn (infographic): genummerde stappen van wat je kunt verwachten
+    verloopTitel: v.optional(v.string()),        // sectietitel, bijv. "Hoe de acht weken eruitzien"
+    verloopLabel: v.optional(v.string()),        // klein kopje erboven, bijv. "Hoe het loopt"
+    verloopIntro: v.optional(v.string()),        // inleidende zin(nen) onder de titel
+    verloopJson: v.optional(v.string()),         // JSON: [{titel, tekst}]
+    verloopUitkomstTitel: v.optional(v.string()),// titel van het uitkomst-blok, bijv. "Wat je overhoudt"
+    verloopUitkomst: v.optional(v.string()),     // tekst van het uitkomst-blok
     // Keuzepagina hero + keuzemoment
     kpHeroKop1: v.optional(v.string()),       // "Overdag hou je het vol."
     kpHeroKop2: v.optional(v.string()),       // "Maar 's nachts… voelt het zwaarder."
