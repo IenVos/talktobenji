@@ -1430,6 +1430,6 @@ export const herschrijfZijAanZij = internalMutation({
       hideStickyBar: false,
       updatedAt: Date.now(),
     });
-    return { patched: true, id: page._id };
+    return { patched: true, id: page._id, bevatNietAlleen: true };
   },
 });
