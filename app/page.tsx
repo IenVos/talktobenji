@@ -354,7 +354,7 @@ export default async function HomePage() {
 
       {/* Herkenning: het moeilijkste moment */}
       <section className="bg-white">
-        <div className="max-w-xl mx-auto px-6 pt-14 sm:pt-16 pb-2">
+        <div className="max-w-2xl mx-auto px-6 pt-14 sm:pt-16 pb-2">
           <div className="border border-primary-100 rounded-2xl px-6 py-10 sm:px-10 sm:py-12 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-6 text-balance">
               {c.herkTitel}
