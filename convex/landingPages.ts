@@ -1343,47 +1343,73 @@ export const verrijkZijAanZijVerloop = internalMutation({
       contentBlocksJson: hernoem(page.contentBlocksJson),
       // Vriendelijke infographic-tijdlijn.
       verloopLabel: "Hoe het loopt",
-      verloopTitel: "Hoe de acht weken eruitzien",
+      verloopTitel: "Acht weken, en je staat er niet alleen voor",
       verloopIntro:
-        "Je hoeft niets voor te bereiden en niets goed te doen. Ik loop met je mee, in jouw tempo. Dit is ongeveer wat je kunt verwachten.",
+        "Je hoeft niets voor te bereiden. Ik loop met je mee, in jouw tempo. Zo ziet het er ongeveer uit.",
       verloopJson: JSON.stringify([
         {
-          titel: "We maken eerst kennis",
-          tekst:
-            "We beginnen met een rustig gesprek. Je vertelt wat er is gebeurd en hoe het nu met je gaat, zonder dat je iets moet uitleggen of bewijzen. Ik luister, en samen kijken we wat jij deze weken nodig hebt.",
+          titel: "Eerst even kennismaken",
+          tekst: "Een rustig gesprek om te voelen of het klikt. Je hoeft niets uit te leggen of te bewijzen.",
         },
         {
-          titel: "De gewone dagen doorkomen",
-          tekst:
-            "De eerste weken gaan over het leven dat toch doorgaat. Slapen, eten, weer naar je werk, de avonden die het langst duren. Je hoeft het niet mooier te maken dan het is. We kijken samen hoe je de dagen doorkomt.",
+          titel: "De dagen doorkomen",
+          tekst: "Over slapen, eten, weer naar je werk, en de avonden die het langst duren. We kijken samen hoe je erdoorheen komt.",
         },
         {
-          titel: "Ruimte voor je hele verhaal",
-          tekst:
-            "Je vertelt wat er was: het mooie, het moeilijke, en alles daartussenin. Ik vraag zachtjes door, nooit verder dan jij wilt gaan. Wat je deelt blijft van jou en komt op je eigen plek te staan.",
+          titel: "Ruimte voor je verhaal",
+          tekst: "Je vertelt wat er was, het mooie en het moeilijke. Ik vraag zachtjes door, nooit verder dan jij wilt.",
         },
         {
           titel: "De mensen om je heen",
-          tekst:
-            "We staan stil bij wie er nog is, en bij wie je juist mist. Wie het begrijpt, en wie niet. Je krijgt woorden mee voor de mensen die het goed bedoelen maar niet weten wat ze moeten zeggen.",
+          tekst: "Wie snapt het, en wie mis je? Je krijgt woorden mee voor de mensen die niet weten wat ze moeten zeggen.",
         },
         {
           titel: "Voorzichtig vooruitkijken",
-          tekst:
-            "Samen kijken we naar wat komt. Een verjaardag, een feestdag, een datum die zwaar kan zijn. Niet om het op te lossen, wel zodat je er straks niet alleen voor staat.",
+          tekst: "Naar een verjaardag, een feestdag, een datum die zwaar kan zijn. Zodat je er niet alleen voor staat.",
         },
         {
           titel: "Samen afronden",
-          tekst:
-            "In een laatste gesprek kijken we terug op de acht weken. We benoemen eerlijk wat nog niet klaar is, want rouw is nooit af. Je gaat verder met wat je hebt opgebouwd, en met Benji die dag en nacht bereikbaar blijft.",
+          tekst: "We kijken terug, eerlijk over wat nog niet klaar is. En Benji blijft, dag en nacht.",
         },
       ]),
-      verloopUitkomstTitel: "Wat je overhoudt",
+      verloopUitkomstTitel: "En na acht weken?",
       verloopUitkomst:
-        "Na acht weken heb je geen kant-en-klare oplossing, want die bestaat niet bij verlies. Wel heb je je verhaal op een rustige, veilige plek staan. Woorden gevonden voor wat zwaar was. En vooral het gevoel dat je het niet meer helemaal alleen draagt.\n\nJe houdt je eigen boek om in terug te lezen, wanneer jij daar behoefte aan hebt. Ook als de acht weken voorbij zijn.",
+        "Geen kant-en-klare oplossing, die bestaat niet bij verlies. Wel je verhaal op een veilige plek, woorden voor wat zwaar was, en het gevoel dat je het niet meer alleen draagt. Plus je eigen boek om in terug te lezen, wanneer jij wilt.",
       updatedAt: Date.now(),
     });
     return { patched: true, id: page._id };
+  },
+});
+
+/**
+ * Haal de dubbeling weg nu de verloop-tijdlijn er staat: verberg de "wat je
+ * krijgt"-icoongrid (staat al in het aanbod-blok), gooi het losse "Zo werkt
+ * het"-blok weg (dubbelt de tijdlijn) en hernoem "werkboek" in het aanbod.
+ */
+export const opschonenZijAanZijDubbeling = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const page = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", "zij-aan-zij"))
+      .first();
+    if (!page) return { skipped: true };
+
+    let contentBlocks: { titel?: string; tekst?: string }[] = [];
+    try { contentBlocks = JSON.parse(page.contentBlocksJson || "[]"); } catch {}
+    contentBlocks = contentBlocks.filter((b) => (b.titel || "").trim().toLowerCase() !== "zo werkt het");
+
+    const pricing = (page.pricingBlocksJson || "")
+      .replaceAll("werkboek", "boek")
+      .replaceAll("Werkboek", "Boek");
+
+    await ctx.db.patch(page._id, {
+      hideWatJeKrijgt: true,
+      contentBlocksJson: JSON.stringify(contentBlocks),
+      pricingBlocksJson: pricing,
+      updatedAt: Date.now(),
+    });
+    return { patched: true, blokken: contentBlocks.length };
   },
 });
 

@@ -262,7 +262,7 @@ export function LandingPageHomeView({ page }: { page: any }) {
       )}
 
       {/* 6. WAT JE KRIJGT */}
-      {watItems.length > 0 && (
+      {watItems.length > 0 && !page.hideWatJeKrijgt && (
         <section className="py-12 sm:py-16 bg-primary-50 border-y border-primary-100">
           <div className="max-w-5xl mx-auto px-6">
             <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 text-center mb-2">Inbegrepen</p>
