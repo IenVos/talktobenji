@@ -1156,3 +1156,164 @@ export const seedNietAlleenEenzaamheid = internalMutation({
     return { seeded: true, id };
   },
 });
+
+/**
+ * "Zij aan Zij" — persoonlijk 8-weken-programma bij verlies van iemand.
+ * Krachtige, admin-bewerkbare LP die als sjabloon te dupliceren is voor andere
+ * verliestypes (huisdier, relatie, kinderwens, ...). Live via /lp/zij-aan-zij.
+ */
+export const seedZijAanZij = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "zij-aan-zij";
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (existing) return { skipped: true, id: existing._id };
+    const now = Date.now();
+    const id = await ctx.db.insert("landingPages", {
+      slug,
+      pageTitle: "Zij aan Zij — Samen luisteren, samen dragen",
+      isLive: false,
+      categorie: "Zij aan Zij",
+      heroLabel: "8 weken | 3,5 uur persoonlijk met Ien | een maand Benji",
+      heroTitle: "Je hebt iemand verloren.\nEn toch wordt er van je verwacht dat je gewoon doorgaat.",
+      heroSubtitle: "De eerste weken waren mensen er nog.\nBloemen, kaartjes, een arm om je heen.\n\nMaar nu is het stil geworden.\n\nIedereen heeft z'n leven weer opgepakt.\nEn jij? Jij mist nog elke dag.\n\nIn de ochtend, als je het heel even vergeet.\nEn het je dan opnieuw herinnert.\n\nIn de dingen die je wilt vertellen,\nen dan beseft dat het niet meer kan.",
+      ctaText: "Ik wil kennismaken",
+      ctaUrl: "/contact",
+      ctaColor: "#4a7c59",
+      ctaPrijsTekst: "€425 · eenmalig, 8 weken samen",
+      ctaMicroCopy: "3,5 uur persoonlijk contact met Ien, een maand Benji en je eigen plek.",
+      section1Title: "Iedereen zegt: 'geef het tijd.'",
+      section1Text: "Maar tijd vult de leegte niet.\n\nJe doet overdag wat er moet gebeuren.\nJe zegt 'gaat wel' als iemand het vraagt.\n\nNiet omdat het zo is.\nMaar omdat je niet weet waar je moet beginnen.\nEn omdat je niemand tot last wilt zijn.\n\nDus je houdt het bij jezelf.\nEn draagt het gemis stilletjes alleen.",
+      section2Title: "Zij aan Zij is anders.",
+      section2Text: "Geen therapie. Geen traject met stappen die je moet afvinken.\n\nHet is acht weken lang iemand naast je.\nIemand die het niet komt oplossen,\nmaar die het samen met je draagt.\n\nEn die iemand ben ik, Ien.\nWant ik weet hoe dit voelt.",
+      contentBlocksJson: JSON.stringify([
+        {
+          titel: "Hoe het werkt",
+          tekst: "Acht weken lang loop ik met je mee.\n\nWe hebben in totaal 3,5 uur persoonlijk contact, verdeeld over het programma, in jouw tempo en op momenten die voor jou werken. Geen wachtkamer, geen haast.\n\nTussen de gesprekken door is Benji er, dag en nacht, voor de momenten die niet wachten tot het volgende gesprek.",
+        },
+        {
+          titel: "Na elk gesprek een samenvatting op je eigen plek",
+          tekst: "Verdriet maakt je hoofd vol. Je vergeet zomaar wat er gezegd is, of wat je zelf voelde.\n\nDaarom zet ik na elk gesprek de kern voor je op papier, in je eigen account. Zodat je het rustig kunt teruglezen wanneer je eraan toe bent. Woorden om op terug te vallen, precies op de dagen dat je ze nodig hebt.",
+        },
+        {
+          titel: "Je eigen werkboek om te houden",
+          tekst: "Je krijgt een persoonlijk werkboek dat je door de acht weken heen begeleidt.\n\nRuimte om te schrijven, stil te staan en te voelen. Zachte vragen die je verder helpen, en lege bladzijdes voor wat er in je opkomt. Iets tastbaars dat van jou is, en dat je mag bewaren, ook als het programma voorbij is.",
+        },
+        {
+          titel: "Een maand Benji, dag en nacht",
+          tekst: "Verdriet houdt zich niet aan kantooruren. Het komt 's nachts, op zondagochtend, midden in de supermarkt.\n\nEen maand lang kun je onbeperkt bij Benji terecht. Om je hart te luchten, om even niet alleen te zijn, wanneer jij dat nodig hebt.",
+        },
+      ]),
+      voorWieTitle: "Dit is voor jou als...",
+      voorWieSubtitel: "Je hoeft je verdriet niet te bewijzen of uit te leggen. Je mag gewoon komen zoals je bent.",
+      voorWieBullets: "Je iemand hebt verloren en het gemis nog elke dag voelt\nDe mensen om je heen weer verder zijn gegaan, en jij nog middenin zit\nJe 'gaat wel' zegt terwijl het eigenlijk niet zo is\nJe niemand tot last wilt zijn met je verdriet\nJe behoefte hebt aan iemand die het echt begrijpt en niet komt oplossen\nJe verlies misschien al langer geleden is, maar nog steeds meedraagt",
+      watJeKrijgtTitel: "Wat Zij aan Zij je geeft",
+      watJeKrijgtJson: JSON.stringify([
+        { icon: "gesprekken", naam: "3,5 uur met Ien", omschrijving: "Persoonlijk, 1-op-1, verdeeld over acht weken" },
+        { icon: "klok", naam: "Acht weken samen", omschrijving: "In jouw tempo, op jouw momenten" },
+        { icon: "memories", naam: "Samenvatting na elk gesprek", omschrijving: "De kern op je eigen plek, om terug te lezen" },
+        { icon: "boek", naam: "Je eigen werkboek", omschrijving: "Ruimte om te schrijven, voelen en bewaren" },
+        { icon: "hart", naam: "Een maand Benji", omschrijving: "Dag en nacht, voor de momenten tussendoor" },
+        { icon: "blad", naam: "Je eigen plek", omschrijving: "Alles op één rustige, veilige plek" },
+      ]),
+      wieIsTitle: "Wie is Ien?",
+      wieIsText: "Ik ben Ien. En ik weet hoe het is om iemand te verliezen die je niet kunt missen.\n\nIk heb verlies in veel gedaantes gekend. Het verlies van een kinderwens, iets waar bijna niemand woorden voor heeft. Het verlies van een bedrijf waar ik alles in had gelegd. En het verlies van dieren die voor mij familie waren, mijn honden en mijn paard, die me droegen op de dagen dat ik dacht dat ik het niet meer zou volhouden.\n\nIk weet hoe eenzaam rouw kan zijn. Hoe je 'gaat wel' zegt terwijl je vanbinnen breekt. Hoe je niemand tot last wilt zijn, en het daardoor allemaal alleen draagt.\n\nDe afgelopen jaren zat ik naast mensen die het zwaarste kenden dat er is. Mensen die hun partner verloren. Ouders die hun kind moesten loslaten. Ik leerde dat je verdriet niet hoeft op te lossen. Dat het soms genoeg is als iemand echt naast je komt zitten. Zonder oordeel. Zonder het in te vullen. Gewoon samen.\n\nDat is waarom ik Zij aan Zij heb gemaakt. Het is wat ik zelf had willen hebben.",
+      finalCtaTitle: "Je hoeft dit niet alleen te dragen.",
+      finalCtaBody: "Acht weken lang loop ik naast je.\nIn jouw tempo. Op jouw momenten.\n\nEn als je er klaar voor bent, kijk ik met je mee.",
+      faqTitel: "Vragen die je misschien hebt",
+      vragenJson: JSON.stringify([
+        { vraag: "Is dit therapie?", antwoord: "Nee. Geen traject, geen stappenplan, geen diagnose. Zij aan Zij is iemand die acht weken naast je komt zitten, met alle ruimte voor jouw verhaal." },
+        { vraag: "Hoe verlopen de gesprekken met Ien?", antwoord: "In totaal heb je 3,5 uur persoonlijk contact met Ien, verdeeld over de acht weken. Jullie stemmen samen af wat qua vorm en tempo bij jou past." },
+        { vraag: "Wat is die samenvatting na elk gesprek?", antwoord: "Na elk gesprek zet Ien de kern voor je op je eigen plek in je account, zodat je het rustig kunt teruglezen wanneer je eraan toe bent." },
+        { vraag: "Wat als mijn verlies al langer geleden is?", antwoord: "Dan is dit juist voor jou. Verdriet houdt zich niet aan een kalender, en de omgeving is vaak al lang weer verder." },
+        { vraag: "Wat houdt de maand Benji in?", antwoord: "Benji is er dag en nacht, voor de momenten tussen de gesprekken door. Je hoeft niet te wachten tot het volgende gesprek om je hart te luchten." },
+      ]),
+      hideStickyBar: false,
+      hideHeader: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return { seeded: true, id };
+  },
+});
+
+/**
+ * Vergelijkingspagina: Benji, Niet Alleen en Zij aan Zij naast elkaar,
+ * met per product wat je krijgt. Admin-bewerkbaar via de prijsblokken.
+ * Live via /lp/wat-past-bij-jou.
+ */
+export const seedVergelijkPrijzen = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const slug = "wat-past-bij-jou";
+    const existing = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (existing) return { skipped: true, id: existing._id };
+    const now = Date.now();
+    const id = await ctx.db.insert("landingPages", {
+      slug,
+      pageTitle: "Wat past bij jou? — Benji, Niet Alleen en Zij aan Zij",
+      isLive: false,
+      categorie: "Vergelijk",
+      heroLabel: "Drie manieren om niet alleen te dragen",
+      heroTitle: "Wat past bij jou?",
+      heroSubtitle: "Er is niet één goede manier om verdriet te dragen.\nEr is alleen de manier die bij jóu past.\n\nVan een luisterend oor dag en nacht,\ntot acht weken persoonlijk naast je.\n\nKies wat op dit moment goed voelt.\nJe kunt altijd een stap verder zetten.",
+      hideWatJeKrijgt: true,
+      hideWieIsIen: true,
+      hideMidCta: true,
+      pricingTitel: "Kies wat bij je past",
+      pricingSubtitel: "Alle drie beginnen bij hetzelfde: je hoeft het niet alleen te dragen. Ze verschillen in hoe dichtbij en hoe persoonlijk.",
+      pricingBlocksJson: JSON.stringify([
+        {
+          titel: "Benji",
+          prijs: "vanaf €20",
+          subtitel: "per maand, dag en nacht bereikbaar",
+          tekst: "Onbeperkt praten met Benji\nDag en nacht bereikbaar\nJe eigen plek om terug te lezen\nIn jouw tempo, wanneer jij wilt\nMaandelijks opzegbaar",
+          ctaTekst: "Begin met Benji",
+          ctaUrl: "/wat-kost-benji",
+        },
+        {
+          titel: "Niet Alleen",
+          prijs: "€49",
+          subtitel: "eenmalig · 8 weken",
+          tekst: "8 weken lang om de dag een e-mail\nGeschreven als een gesprek\nReageren wanneer jij wilt\nEen maand Benji inbegrepen\nJe eigen plek om terug te lezen",
+          ctaTekst: "Kies Niet Alleen",
+          ctaUrl: "/niet-alleen",
+        },
+        {
+          titel: "Zij aan Zij",
+          prijs: "€425",
+          subtitel: "eenmalig · 8 weken persoonlijk",
+          tekst: "3,5 uur persoonlijk contact met Ien\n8 weken intensief samen\nSamenvatting na elk gesprek\nJe eigen werkboek om te houden\nEen maand Benji inbegrepen\nJe eigen plek om terug te lezen",
+          aanbevolen: true,
+          ctaTekst: "Ontdek Zij aan Zij",
+          ctaUrl: "/lp/zij-aan-zij",
+        },
+      ]),
+      contentBlocksJson: JSON.stringify([
+        {
+          titel: "Niet weten wat je kiest?",
+          tekst: "Begin klein. Benji is er meteen, dag en nacht, zonder dat je iets hoeft uit te leggen.\n\nWil je acht weken lang zachte begeleiding op je eigen tempo, dan is Niet Alleen er voor je.\n\nEn heb je behoefte aan écht persoonlijk contact, iemand die naast je komt zitten, dan is Zij aan Zij het meest nabij.\n\nEr is geen verkeerde keuze. Alleen de keuze die nu bij je past.",
+        },
+      ]),
+      faqTitel: "Vragen die je misschien hebt",
+      vragenJson: JSON.stringify([
+        { vraag: "Kan ik later overstappen?", antwoord: "Ja. Veel mensen beginnen met Benji of Niet Alleen en kiezen later voor persoonlijk contact via Zij aan Zij. Je kunt altijd een stap verder zetten." },
+        { vraag: "Zit Benji ook bij de andere programma's?", antwoord: "Ja. Bij zowel Niet Alleen als Zij aan Zij krijg je een maand toegang tot Benji, zodat je er ook tussen de momenten door terecht kunt." },
+        { vraag: "Is dit therapie?", antwoord: "Nee. Alledrie zijn ze bedoeld als steun en gezelschap in je verdriet, niet als vervanging van professionele hulp." },
+      ]),
+      finalCtaTitle: "Je hoeft het niet alleen te dragen.",
+      finalCtaBody: "Welke je ook kiest, je hoeft er niet meer alleen voor te staan.",
+      hideStickyBar: true,
+      hideHeader: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    return { seeded: true, id };
+  },
+});
