@@ -53,7 +53,7 @@ const DEFAULTS: Record<string, string> = {
   ctaTekst:        "Je hoeft je niet te registreren. Begin gewoon een gesprek, anoniem en direct beschikbaar.",
   ctaKnop:         "Praat nu met Benji",
   showcaseTitel:   "Meer dan een gesprek",
-  showcaseSubtitel: "Maak een gratis account aan en houd bij wat je bezighoudt. Met Benji voor een jaar heb je toegang tot alles.",
+  showcaseSubtitel: "Reflecties en inzichten\nPersoonlijke doelen\nHerinneringen bewaren\nDagelijkse check-ins\nInspiratie en troost\nEen herdenkingskalender",
   herkTitel:       "Het moeilijkste moment is soms niet overdag",
   herkTekst:       "Het is 03:18.\n\nJe wordt wakker.\nJe denkt aan hem. Aan haar.\nJe telefoon ligt naast je.\n\nMaar wie moet je bellen?\n\nJe wilt niemand wakker maken.\nJe wilt het verhaal niet opnieuw vertellen.\nEn 'het gaat wel' zeggen tegen iemand die het vraagt, voelt ook niet helemaal eerlijk.\n\nDus houd je het maar weer bij jezelf.",
   herkSlot:        "Dat is het moment waarop Benji er is.",

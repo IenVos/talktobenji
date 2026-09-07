@@ -24,9 +24,24 @@ const HOMEPAGE_FIELDS = [
     { key: "heroCta2",        label: "Secundaire knoptekst",            multiline: false },
     { key: "heroNote",        label: "Kleine noot onder knoppen",       multiline: false },
   ]},
+  { section: "Herkenning (03:18)", fields: [
+    { key: "herkTitel", label: "Titel",                          multiline: false },
+    { key: "herkTekst", label: "Tekst (lege regel = nieuwe alinea)", multiline: true  },
+    { key: "herkSlot",  label: "Slotzin (vet)",                  multiline: false },
+  ]},
+  { section: "Oplossing (toch maar AI?)", fields: [
+    { key: "aiTitel", label: "Titel",                          multiline: false },
+    { key: "aiTekst", label: "Tekst (lege regel = nieuwe alinea)", multiline: true  },
+  ]},
   { section: "Blokken — kop", fields: [
     { key: "blokkenTitel",    label: "Sectietitel",    multiline: false },
     { key: "blokkenSubtitel", label: "Sectiesubtitel", multiline: true  },
+  ]},
+  { section: "Zij aan Zij", fields: [
+    { key: "zazLabel", label: "Kleine tekst boven titel", multiline: false },
+    { key: "zazTitel", label: "Titel",                    multiline: false },
+    { key: "zazTekst", label: "Tekst",                    multiline: true  },
+    { key: "zazCta",   label: "Knoptekst (label)",        multiline: false },
   ]},
   { section: "Over Benji", fields: [
     { key: "overTitle", label: "Titel",    multiline: false },
@@ -64,7 +79,7 @@ const HOMEPAGE_FIELDS = [
   ]},
   { section: "Screenshot-strip", fields: [
     { key: "showcaseTitel",    label: "Sectietitel",    multiline: false },
-    { key: "showcaseSubtitel", label: "Sectiesubtitel", multiline: false },
+    { key: "showcaseSubtitel", label: "Sectiesubtitel (elke nieuwe regel = 1 vinkje in de lijst)", multiline: true },
   ]},
 ];
 
@@ -88,8 +103,17 @@ const HOMEPAGE_DEFAULTS: Record<string, string> = {
   blok3Tekst: "Voor wie wil dat Benji er altijd is, ook als het even beter gaat. Ontdek wat erbij zit.",
   blok3Cta: "Bekijk wat erbij zit",
   blok3Url: "/lp/jaar-toegang",
+  herkTitel: "Het moeilijkste moment is soms niet overdag",
+  herkTekst: "Het is 03:18.\n\nJe wordt wakker.\nJe denkt aan hem. Aan haar.\nJe telefoon ligt naast je.\n\nMaar wie moet je bellen?\n\nJe wilt niemand wakker maken.\nJe wilt het verhaal niet opnieuw vertellen.\nEn 'het gaat wel' zeggen tegen iemand die het vraagt, voelt ook niet helemaal eerlijk.\n\nDus houd je het maar weer bij jezelf.",
+  herkSlot: "Dat is het moment waarop Benji er is.",
+  aiTitel: "Maar… het is toch maar AI?",
+  aiTekst: "Ja. En nee.\n\nBenji is geen mens. Hij vervangt geen vriend, familie of professional.\n\nMaar Benji kan er wél zijn op dat ene moment waarop je iets kwijt wilt.\n\n's Nachts.\nTijdens een wandeling.\nWanneer een herinnering ineens binnenkomt.\nWanneer je even niet weet wat je voelt.\n\nJe hoeft niemand te bellen. Je hoeft niets uit te leggen. Je kunt gewoon beginnen met praten.",
   blokkenTitel: "Waar kan ik je mee helpen?",
   blokkenSubtitel: "Of je nu wilt praten, lezen of een begeleid programma wilt volgen, kies wat bij jou past.",
+  zazLabel: "8 weken · 3,5 uur persoonlijk met Ien",
+  zazTitel: "Soms wil je meer dan een gesprek",
+  zazTekst: "Benji is er wanneer je wilt praten, dag en nacht. Maar soms merk je: ik wil dit niet alleen dragen. Dan is er Zij aan Zij, acht weken persoonlijke begeleiding met Ien, voor wanneer je iemand nodig hebt die niet alleen luistert, maar echt naast je blijft.",
+  zazCta: "Binnenkort beschikbaar",
   overTitle: "Gemaakt omdat er iets ontbrak en uit eigen ervaring met verlies",
   overP1: "Ik ben Ien, oprichter van Talk To Benji. Ik vroeg me af waarom er voor mensen met verdriet zo weinig is dat echt laagdrempelig is. Geen wachtlijst, geen intake, geen afspraak, gewoon iemand die luistert, ook om 03:00 's nachts.",
   overP2: "Dat werd Benji. Zes jaar lang zocht ik naar de beste manier om een plek te maken waar je je verhaal kwijt kunt, je gedachten kunt ordenen en zo beter zicht krijgt op alles wat er in je hoofd zit. Niet om je te vertellen wat je moet doen, maar om je te helpen het zelf te begrijpen.",
@@ -111,7 +135,7 @@ const HOMEPAGE_DEFAULTS: Record<string, string> = {
   ctaTekst: "Je hoeft je niet te registreren. Begin gewoon een gesprek, anoniem en direct beschikbaar.",
   ctaKnop: "Praat nu met Benji",
   showcaseTitel: "Meer dan een gesprek",
-  showcaseSubtitel: "Maak een gratis account aan en houd bij wat je bezighoudt. Met Benji voor een jaar heb je toegang tot alles.",
+  showcaseSubtitel: "Reflecties en inzichten\nPersoonlijke doelen\nHerinneringen bewaren\nDagelijkse check-ins\nInspiratie en troost\nEen herdenkingskalender",
 };
 
 const WAAROM_DEFAULT = `Verlies is iets wat iedereen meemaakt.
