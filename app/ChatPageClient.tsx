@@ -1727,12 +1727,12 @@ export default function ChatPageClient({
               Je gesprekken en herinneringen blijven bewaard.<br />
               Je kunt gewoon verder waar je gebleven was.
             </p>
-            <Link href="/wat-kost-benji" className="inline-flex items-center justify-center px-5 py-2.5 bg-primary-400 hover:bg-primary-500 text-primary-900 rounded-xl text-sm font-medium transition-colors">
-              Verder praten met Benji
+            <Link href="/betalen/maand-proef" className="inline-flex items-center justify-center px-5 py-2.5 bg-primary-400 hover:bg-primary-500 text-primary-900 rounded-xl text-sm font-medium transition-colors">
+              Een maand met Benji
             </Link>
             <p className="text-[11px] text-primary-600/70 mt-3">
-              Vanaf 20 p/m. Geen abonnement,<br />
-              stopt vanzelf.
+              Eenmalig €7 voor een maand.<br />
+              Geen abonnement, stopt vanzelf.
             </p>
           </div>
         </div>
