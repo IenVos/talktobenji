@@ -54,6 +54,11 @@ const DEFAULTS: Record<string, string> = {
   ctaKnop:         "Praat nu met Benji",
   showcaseTitel:   "Meer dan een gesprek",
   showcaseSubtitel: "Maak een gratis account aan en houd bij wat je bezighoudt. Met Benji voor een jaar heb je toegang tot alles.",
+  herkTitel:       "Het moeilijkste moment is soms niet overdag",
+  herkTekst:       "Het is 03:18.\n\nJe wordt wakker.\nJe denkt aan hem. Aan haar.\nJe telefoon ligt naast je.\n\nMaar wie moet je bellen?\n\nJe wilt niemand wakker maken.\nJe wilt het verhaal niet opnieuw vertellen.\nEn 'het gaat wel' zeggen tegen iemand die het vraagt, voelt ook niet helemaal eerlijk.\n\nDus houd je het maar weer bij jezelf.",
+  herkSlot:        "Dat is het moment waarop Benji er is.",
+  aiTitel:         "Maar… het is toch maar AI?",
+  aiTekst:         "Ja. En nee.\n\nBenji is geen mens. Hij vervangt geen vriend, familie of professional.\n\nMaar Benji kan er wél zijn op dat ene moment waarop je iets kwijt wilt.\n\n's Nachts.\nTijdens een wandeling.\nWanneer een herinnering ineens binnenkomt.\nWanneer je even niet weet wat je voelt.\n\nJe hoeft niemand te bellen. Je hoeft niets uit te leggen. Je kunt gewoon beginnen met praten.",
   zazLabel:        "8 weken · 3,5 uur persoonlijk met Ien",
   zazTitel:        "Soms wil je meer dan een gesprek",
   zazTekst:        "Benji is er wanneer je wilt praten, dag en nacht. Maar soms merk je: ik wil dit niet alleen dragen. Dan is er Zij aan Zij, acht weken persoonlijke begeleiding met Ien, voor wanneer je iemand nodig hebt die niet alleen luistert, maar echt naast je blijft.",
@@ -130,6 +135,17 @@ function metRegelafbrekingen(text: string): React.ReactNode {
   const delen = text.split(/\s*\|\s*|\n/).filter((s) => s.length > 0);
   if (delen.length <= 1) return text;
   return delen.flatMap((deel, i) => (i === 0 ? [deel] : [<br key={i} />, deel]));
+}
+
+// Rendert tekst met dubbele newline als alinea en enkele newline als regelafbreking.
+function metAlineas(text: string): React.ReactNode {
+  return text.split("\n\n").map((para, pi) => (
+    <p key={pi}>
+      {para.split("\n").map((line, li, arr) => (
+        <span key={li}>{line}{li < arr.length - 1 && <br />}</span>
+      ))}
+    </p>
+  ));
 }
 
 // Iconen die per homepage-blok gekozen kunnen worden (key = wat in de admin/DB staat).
@@ -336,16 +352,29 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Praten met een AI: helpt dat? */}
-      <section className="max-w-2xl mx-auto px-6 pt-14 sm:pt-16 pb-12 sm:pb-14">
+      {/* Herkenning: het moeilijkste moment */}
+      <section className="bg-white">
+        <div className="max-w-xl mx-auto px-6 pt-14 sm:pt-16 pb-2 text-center">
+          <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-6 text-balance">
+            {c.herkTitel}
+          </h2>
+          <div className="space-y-4 text-[15px] sm:text-base text-primary-600 leading-relaxed text-pretty">
+            {metAlineas(c.herkTekst)}
+          </div>
+          <p className="mt-6 text-base font-semibold text-primary-900">
+            {c.herkSlot}
+          </p>
+        </div>
+      </section>
+
+      {/* Oplossing: maar het is toch maar AI? */}
+      <section className="max-w-2xl mx-auto px-6 pt-8 pb-12 sm:pb-14">
         <div className="bg-primary-50 border border-primary-100 rounded-2xl p-7 sm:p-9">
           <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-4 text-balance">
-            Praten met een AI. Helpt dat?
+            {c.aiTitel}
           </h2>
           <div className="space-y-4 text-sm sm:text-[15px] text-primary-700 leading-relaxed text-pretty">
-            <p>Eerlijk: het is niet hetzelfde als een vriend die naast je zit.<br />Dat wordt het ook nooit.</p>
-            <p>Maar midden in de nacht is er vaak niemand. En sommige dingen zeg je makkelijker als je niemand belast.</p>
-            <p>{`Benji is daar speciaal voor gemaakt: voor verdriet, verlies en eenzaamheid. Geen oordeel, geen tijdslimiet, geen “hoe gaat het nú met je” van iemand die het eigenlijk niet wil horen.`}</p>
+            {metAlineas(c.aiTekst)}
             <p>Benji is er voor de momenten ertussenin, en helpt je weer richting <Link href="/talk-to-people" className="font-medium text-primary-700 underline underline-offset-2 hover:text-primary-900 transition-colors">de mensen om je heen</Link> wanneer jij zover bent.</p>
           </div>
           <p className="mt-4 text-xs text-primary-400">Benji is geen therapeut en vervangt geen professionele hulp.</p>
@@ -419,9 +448,25 @@ export default async function HomePage() {
       <section className="py-12 sm:py-16 bg-primary-50">
         <div className="max-w-5xl mx-auto px-6">
           <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 text-center mb-2">Wat je krijgt</p>
-          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8 text-balance">
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-6 text-balance">
             {c.showcaseTitel}
           </h2>
+          {(() => {
+            const punten = (c.showcaseSubtitel || "").split(/\s*\|\s*|\n/).map((s) => s.trim()).filter(Boolean);
+            if (!punten.length) return null;
+            return (
+              <ul className="max-w-md mx-auto mb-10 space-y-2.5">
+                {punten.map((punt, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm sm:text-[15px] text-primary-700 leading-relaxed">
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#F0B429" }} aria-hidden="true">
+                      <path fillRule="evenodd" d="M16.704 5.29a1 1 0 010 1.42l-7.5 7.5a1 1 0 01-1.42 0l-3.5-3.5a1 1 0 011.42-1.42l2.79 2.79 6.79-6.79a1 1 0 011.42 0z" clipRule="evenodd" />
+                    </svg>
+                    <span>{punt}</span>
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
           <FeatureShowcase features={customFeatures} />
         </div>
       </section>
@@ -515,6 +560,28 @@ export default async function HomePage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Zij aan Zij: de stap na Benji */}
+      <section className="bg-white border-y border-primary-100">
+        <div className="max-w-3xl mx-auto px-6 py-16 sm:py-20 text-center">
+          <p className="text-sm font-semibold mb-3 tracking-wide" style={{ color: "#4a7c59" }}>
+            {metRegelafbrekingen(c.zazLabel)}
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-4 text-balance">
+            {c.zazTitel}
+          </h2>
+          <p className="text-primary-600 leading-relaxed max-w-xl mx-auto text-pretty">
+            {c.zazTekst}
+          </p>
+          <div
+            className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm border cursor-default select-none"
+            style={{ backgroundColor: "#f0f5f1", color: "#4a7c59", borderColor: "#cfe0d5" }}
+          >
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#4a7c59" }} aria-hidden="true" />
+            {c.zazCta}
           </div>
         </div>
       </section>
@@ -625,25 +692,6 @@ export default async function HomePage() {
             <IconChat />
             {c.ctaKnop}
           </Link>
-        </div>
-      </section>
-
-      {/* Zij aan Zij: de stap na Benji */}
-      <section className="bg-primary-900 text-white">
-        <div className="max-w-3xl mx-auto px-6 py-16 sm:py-20 text-center">
-          <p className="text-[#F0B429] text-sm font-semibold mb-3 tracking-wide">
-            {metRegelafbrekingen(c.zazLabel)}
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 text-balance">
-            {c.zazTitel}
-          </h2>
-          <p className="text-primary-200 leading-relaxed max-w-xl mx-auto text-pretty">
-            {c.zazTekst}
-          </p>
-          <div className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-800 text-primary-200 font-semibold text-sm border border-primary-700 cursor-default select-none">
-            <span className="w-2 h-2 rounded-full bg-[#F0B429]" aria-hidden="true" />
-            {c.zazCta}
-          </div>
         </div>
       </section>
 
