@@ -1523,10 +1523,17 @@ export const getRevenueOverview = query({
     for (const p of naProducts) if (p.verliesType) naByType.set(p.verliesType, p);
     const naFallback = naProducts.find((p) => !p.verliesType) ?? naProducts[0];
 
+    // NA-omzet is historisch: op 6 sep 2026 ging de NA-prijs van €37 naar €49. De
+    // product-priceInCents is inmiddels €49, maar wie vóór die datum kocht betaalde
+    // €37. Reken daarom oudere NA-verkopen op de oude prijs, zodat een prijswijziging
+    // de historische omzet niet met terugwerkende kracht verhoogt.
+    const NA_PRIJS_49_VANAF = Date.UTC(2026, 8, 6, 0, 0); // 6 sep 2026
+    const NA_OUDE_PRIJS = 37;
     for (const na of echteNA) {
       const p = (na.verliesType && naByType.get(na.verliesType)) || naFallback;
       if (!p) continue;
-      alleVerkopen.push({ timestamp: na.createdAt, prijs: p.priceInCents / 100, productSlug: p.slug });
+      const prijs = na.createdAt >= NA_PRIJS_49_VANAF ? p.priceInCents / 100 : NA_OUDE_PRIJS;
+      alleVerkopen.push({ timestamp: na.createdAt, prijs, productSlug: p.slug });
     }
 
     for (const p of products) {
