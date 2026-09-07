@@ -54,6 +54,10 @@ const DEFAULTS: Record<string, string> = {
   ctaKnop:         "Praat nu met Benji",
   showcaseTitel:   "Meer dan een gesprek",
   showcaseSubtitel: "Maak een gratis account aan en houd bij wat je bezighoudt. Met Benji voor een jaar heb je toegang tot alles.",
+  zazLabel:        "8 weken · 3,5 uur persoonlijk met Ien",
+  zazTitel:        "Soms wil je meer dan een gesprek",
+  zazTekst:        "Benji is er wanneer je wilt praten, dag en nacht. Maar soms merk je: ik wil dit niet alleen dragen. Dan is er Zij aan Zij, acht weken persoonlijke begeleiding met Ien, voor wanneer je iemand nodig hebt die niet alleen luistert, maar echt naast je blijft.",
+  zazCta:          "Binnenkort beschikbaar",
 };
 
 function IconChat() {
@@ -621,6 +625,25 @@ export default async function HomePage() {
             <IconChat />
             {c.ctaKnop}
           </Link>
+        </div>
+      </section>
+
+      {/* Zij aan Zij: de stap na Benji */}
+      <section className="bg-primary-900 text-white">
+        <div className="max-w-3xl mx-auto px-6 py-16 sm:py-20 text-center">
+          <p className="text-[#F0B429] text-sm font-semibold mb-3 tracking-wide">
+            {metRegelafbrekingen(c.zazLabel)}
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4 text-balance">
+            {c.zazTitel}
+          </h2>
+          <p className="text-primary-200 leading-relaxed max-w-xl mx-auto text-pretty">
+            {c.zazTekst}
+          </p>
+          <div className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary-800 text-primary-200 font-semibold text-sm border border-primary-700 cursor-default select-none">
+            <span className="w-2 h-2 rounded-full bg-[#F0B429]" aria-hidden="true" />
+            {c.zazCta}
+          </div>
         </div>
       </section>
 
