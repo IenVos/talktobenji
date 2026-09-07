@@ -1353,7 +1353,7 @@ export const herschrijfZijAanZij = internalMutation({
       pageTitle: "Zij aan Zij — 8 weken persoonlijke begeleiding bij verlies",
       heroLabel: "8 weken persoonlijke begeleiding bij verlies",
       heroTitle: "Je mist iemand.\nMaar de wereld lijkt alweer verder te gaan.",
-      heroSubtitle: "Zij aan Zij is persoonlijke begeleiding voor wanneer je iemand hebt verloren, en merkt dat iedereen om je heen weer doorgaat terwijl jij nog midden in het gemis zit.\n\n8 weken samen. 3,5 uur persoonlijk contact met Ien. Een maand Benji. En vooral: iemand die naast je blijft.",
+      heroSubtitle: "Zij aan Zij is persoonlijke begeleiding voor wanneer je iemand hebt verloren, en merkt dat iedereen om je heen weer doorgaat terwijl jij nog midden in het gemis zit.\n\n8 weken samen. 3,5 uur persoonlijk contact met Ien. Het complete Niet Alleen programma. Een maand Benji. En vooral: iemand die naast je blijft.",
       ctaText: "Ik wil kennismaken",
       ctaUrl: "/contact",
       ctaColor: "#4a7c59",
@@ -1376,6 +1376,10 @@ export const herschrijfZijAanZij = internalMutation({
           tekst: "Stap 1. We maken eerst kennis. Rustig en vrijblijvend, zodat je voelt of het klikt.\n\nStap 2. Acht weken lang lopen we samen op. In totaal 3,5 uur persoonlijk contact, verdeeld over die weken, op de momenten dat jij iemand naast je nodig hebt.\n\nStap 3. Na elk gesprek zet ik de kern voor je op je eigen plek, zodat je het rustig kunt teruglezen. En je houdt je eigen werkboek, ook als de acht weken voorbij zijn.",
         },
         {
+          titel: "Én je volgt Niet Alleen mee",
+          tekst: "Naast de persoonlijke gesprekken loopt het complete Niet Alleen programma mee.\n\nAcht weken lang ontvang je om de dag een bericht. Geschreven als een gesprek, niet als een les. Kleine woorden die je door de dag heen dragen, waar je op kunt reageren wanneer jij daar behoefte aan hebt.\n\nZo is er, ook tussen de gesprekken met Ien door, elke paar dagen iets dat je eraan herinnert dat je er niet alleen voor staat.",
+        },
+        {
           titel: "En wat is Benji?",
           tekst: "Benji is jouw digitale plek voor tussen de gesprekken door: een chat waar je op elk moment even je hart kunt luchten. Ook 's nachts, ook in het weekend, juist op de momenten waarop het verdriet ineens opkomt.\n\nBij Zij aan Zij krijg je een maand lang onbeperkt toegang tot Benji. Zo hoef je nooit te wachten tot het volgende gesprek.",
         },
@@ -1383,6 +1387,7 @@ export const herschrijfZijAanZij = internalMutation({
       watJeKrijgtTitel: "Dit krijg je in acht weken Zij aan Zij",
       watJeKrijgtJson: JSON.stringify([
         { icon: "gesprekken", naam: "Iemand die echt naast je zit", omschrijving: "3,5 uur persoonlijk 1-op-1 contact met Ien, verdeeld over acht weken" },
+        { icon: "mail", naam: "Om de dag een bericht", omschrijving: "Het complete Niet Alleen programma: 8 weken lang om de dag een e-mail, geschreven als een gesprek. Reageren wanneer jij wilt" },
         { icon: "klok", naam: "Acht weken, geen los gesprek", omschrijving: "Niet één keer en succes ermee, maar echt naast je blijven op jouw tempo" },
         { icon: "memories", naam: "Je hoeft niets te onthouden", omschrijving: "Na elk gesprek een persoonlijke samenvatting op je eigen plek" },
         { icon: "boek", naam: "Ruimte om zelf te verwerken", omschrijving: "Je eigen werkboek dat je mag houden, ook na de acht weken" },
@@ -1396,7 +1401,7 @@ export const herschrijfZijAanZij = internalMutation({
           titel: "8 weken Zij aan Zij",
           prijs: "€425",
           subtitel: "eenmalig",
-          tekst: "3,5 uur persoonlijk 1-op-1 contact met Ien\n8 weken begeleiding, op jouw tempo\nEen persoonlijke samenvatting na ieder gesprek\nJe eigen werkboek om te houden\nEen maand Benji, voor de momenten tussendoor\nJe eigen rustige plek voor jouw proces",
+          tekst: "3,5 uur persoonlijk 1-op-1 contact met Ien\nHet complete Niet Alleen programma: 8 weken lang om de dag een bericht\n8 weken begeleiding, op jouw tempo\nEen persoonlijke samenvatting na ieder gesprek\nJe eigen werkboek om te houden\nEen maand Benji, voor de momenten tussendoor\nJe eigen rustige plek voor jouw proces",
           aanbevolen: true,
           ctaTekst: "Ik wil kennismaken",
           ctaUrl: "/contact",
