@@ -1413,6 +1413,80 @@ export const opschonenZijAanZijDubbeling = internalMutation({
   },
 });
 
+/**
+ * Breng Zij aan Zij naar het "Naast Je"-niveau: scanbare hero-belofte,
+ * "Je eigen plek", uitkomst als "document", en "Wat dit niet is".
+ * Hernoemt "boek" naar "document" en haalt de dubbele uitkomst-box onder
+ * de tijdlijn weg (document-sectie is nu de uitkomst).
+ */
+export const verrijkZijAanZijNaastJe = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const page = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", "zij-aan-zij"))
+      .first();
+    if (!page) return { skipped: true };
+
+    const pricing = (page.pricingBlocksJson || "")
+      .replaceAll("boek", "document")
+      .replaceAll("Boek", "Document");
+
+    await ctx.db.patch(page._id, {
+      pricingBlocksJson: pricing,
+      // Uitkomst staat nu in de aparte document-sectie, dus box onder tijdlijn weg.
+      verloopUitkomstTitel: "",
+      verloopUitkomst: "",
+      // Scanbare belofte in de hero.
+      heroPromise:
+        "Acht weken lang **Benji**, dag en nacht. **3,5 uur** persoonlijk met **Ien**. En je eigen **document** over wat er was en waar je nu staat.",
+      // Je eigen plek.
+      eigenPlekLabel: "Je eigen plek",
+      eigenPlekTitel: "Waar alles samenkomt",
+      eigenPlekIntro:
+        "Naast de gesprekken met Ien loopt het complete Niet Alleen programma mee, en krijg je je eigen plek in Benji. Daar kun je zoveel delen als je wilt, wanneer jij wilt.",
+      eigenPlekJson: JSON.stringify([
+        { titel: "Jouw gesprekken", tekst: "met Benji, bewaard om terug te lezen" },
+        { titel: "Reflecties", tekst: "notities, emoties en een dagelijkse check-in" },
+        { titel: "Memories", tekst: "momenten die je niet wilt vergeten" },
+        { titel: "Persoonlijke doelen", tekst: "en wensen bijhouden" },
+        { titel: "Dagelijkse check-ins", tekst: "korte vragen om je gedachten te ordenen" },
+        { titel: "Handreikingen", tekst: "praktische tips voor moeilijke momenten" },
+      ]),
+      eigenPlekFoot:
+        "Alles wat je hier verzamelt, brengt Benji aan het eind samen tot jouw eigen document.",
+      // Document (uitkomst).
+      documentLabel: "Wat je overhoudt",
+      documentTitel: "Je eigen document over wat er was",
+      documentTekst:
+        "Alles wat je in die acht weken deelt, je notities, je herinneringen, je antwoorden, brengt Benji samen tot één document. In jouw woorden, over jouw verhaal.\n\nGeen acht weken praten en dan weer alleen. Je houdt een terugblik om op terug te vallen. Je kunt het bewaren, printen, of gewoon voor jezelf houden.",
+      // Wat dit niet is.
+      nietLabel: "Eerlijk erbij",
+      nietTitel: "Wat dit niet is",
+      nietJson: JSON.stringify([
+        {
+          titel: "Geen therapie of medische behandeling.",
+          tekst: "Loop je vast op een manier waar meer bij nodig is, dan zeg ik dat en help ik je de goede kant op.",
+        },
+        {
+          titel: "Ik zit er niet elke dag bovenop.",
+          tekst: "Dat kan ik niet, en dat beloof ik dus ook niet. Benji is er dag en nacht. Ik zie wat je in onze gesprekken deelt, en op werkdagen ben ik bereikbaar voor een bericht.",
+        },
+        {
+          titel: "Geen crisislijn.",
+          tekst: "Is het acuut, bel dan 112, of 113 Zelfmoordpreventie via 0800-0113.",
+        },
+        {
+          titel: "Geen belofte dat het verdriet weggaat.",
+          tekst: "Acht weken is niet genoeg om iets af te ronden dat niet af te ronden is. Wat het wel doet: je staat er niet meer in je eentje in, en je hebt straks een idee wat je met dit alles aan moet.",
+        },
+      ]),
+      updatedAt: Date.now(),
+    });
+    return { patched: true, id: page._id };
+  },
+});
+
 /** Zet de bestaande zij-aan-zij-pagina op de homepage-stijl (patch, want seed slaat over). */
 export const zetZijAanZijHomepageStijl = internalMutation({
   args: {},

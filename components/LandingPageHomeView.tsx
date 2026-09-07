@@ -31,6 +31,18 @@ function parseJson<T>(raw: unknown): T[] {
   try { return JSON.parse(raw) as T[]; } catch { return []; }
 }
 
+/** Rendert een regel met **vet** stukjes. */
+function MetVet({ text }: { text: string }) {
+  const delen = text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean);
+  return (
+    <>
+      {delen.map((d, i) =>
+        d.startsWith("**") && d.endsWith("**") ? <strong key={i}>{d.slice(2, -2)}</strong> : <span key={i}>{d}</span>
+      )}
+    </>
+  );
+}
+
 /** Tekst met \n als <br/> en \n\n als aparte alinea's. */
 function Paragraphs({ text, className }: { text: string; className?: string }) {
   return (
@@ -64,6 +76,8 @@ export function LandingPageHomeView({ page }: { page: any }) {
 
   const watItems = parseJson<WatItem>(page.watJeKrijgtJson).filter((w) => w.naam);
   const verloopStappen = parseJson<{ titel?: string; tekst?: string }>(page.verloopJson).filter((s) => s.titel || s.tekst);
+  const eigenPlekItems = parseJson<{ titel?: string; tekst?: string }>(page.eigenPlekJson).filter((s) => s.titel || s.tekst);
+  const nietItems = parseJson<{ titel?: string; tekst?: string }>(page.nietJson).filter((s) => s.titel || s.tekst);
   const contentBlocks = parseJson<ContentBlock>(page.contentBlocksJson).filter((b) => b.titel || b.tekst);
   const pricingBlocks = parseJson<PricingBlock>(page.pricingBlocksJson).filter((b) => b.titel || b.prijs);
   const vragen = parseJson<Vraag>(page.vragenJson).filter((v) => v.vraag);
@@ -114,6 +128,11 @@ export function LandingPageHomeView({ page }: { page: any }) {
             {heroTitleHoofd}
             {heroAccent && <span className="block text-primary-200 mt-1">{heroAccent}</span>}
           </h1>
+          {page.heroPromise && (
+            <p className="mt-6 text-lg sm:text-xl text-white font-medium max-w-2xl mx-auto leading-relaxed text-balance">
+              <MetVet text={page.heroPromise} />
+            </p>
+          )}
           {page.heroSubtitle && (
             <div className="mt-6 text-lg sm:text-xl text-primary-200 max-w-2xl mx-auto leading-relaxed space-y-4">
               <Paragraphs text={page.heroSubtitle} />
@@ -200,6 +219,46 @@ export function LandingPageHomeView({ page }: { page: any }) {
         </section>
       )}
 
+      {/* 5a. JE EIGEN PLEK (wat er in het product zit) */}
+      {eigenPlekItems.length > 0 && (
+        <section className="bg-primary-50 border-y border-primary-100">
+          <div className="max-w-3xl mx-auto px-6 py-14 sm:py-16">
+            {page.eigenPlekLabel && (
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#4a7c59" }}>
+                {page.eigenPlekLabel}
+              </p>
+            )}
+            {page.eigenPlekTitel && (
+              <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-3 text-balance">{page.eigenPlekTitel}</h2>
+            )}
+            {page.eigenPlekIntro && (
+              <div className="text-primary-600 leading-relaxed mb-8 max-w-xl text-pretty">
+                <Paragraphs text={page.eigenPlekIntro} />
+              </div>
+            )}
+            <div className="bg-white border border-primary-100 rounded-2xl p-6 sm:p-8">
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                {eigenPlekItems.map((it, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#4a7c59" }} aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20 6L9 17l-5-5" />
+                    </svg>
+                    <span className="text-sm sm:text-[15px] text-primary-700 leading-relaxed">
+                      {it.titel && <span className="font-semibold text-primary-900">{it.titel}</span>}
+                      {it.titel && it.tekst && ": "}
+                      {it.tekst}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {page.eigenPlekFoot && (
+                <p className="mt-6 text-sm sm:text-[15px] text-primary-900 font-medium text-pretty">{page.eigenPlekFoot}</p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 5b. VERLOOP-TIJDLIJN (infographic: wat je kunt verwachten + uitkomst) */}
       {verloopStappen.length > 0 && (
         <section className="bg-white">
@@ -261,6 +320,41 @@ export function LandingPageHomeView({ page }: { page: any }) {
         </section>
       )}
 
+      {/* 5c. DOCUMENT (uitkomst: wat je overhoudt) */}
+      {(page.documentTitel || page.documentTekst) && (
+        <section className="bg-white">
+          <div className="max-w-3xl mx-auto px-6 py-14 sm:py-16">
+            {page.documentLabel && (
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#4a7c59" }}>
+                {page.documentLabel}
+              </p>
+            )}
+            {page.documentTitel && (
+              <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-6 text-balance">{page.documentTitel}</h2>
+            )}
+            <div className="rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row gap-6 sm:gap-8 sm:items-center" style={{ backgroundColor: "#f0f5f1", border: "1px solid #cfe0d5" }}>
+              {/* Document-illustratie */}
+              <div className="relative w-24 h-32 flex-shrink-0 mx-auto sm:mx-0" aria-hidden="true">
+                <div className="absolute inset-0 bg-white rounded-lg border border-primary-100 shadow-sm" style={{ transform: "rotate(-6deg) translate(-4px, 3px)" }} />
+                <div className="absolute inset-0 bg-white rounded-lg border border-primary-100 shadow-sm" style={{ transform: "rotate(3deg) translate(3px, 2px)" }} />
+                <div className="absolute inset-0 bg-white rounded-lg border border-primary-100 shadow-md p-3 flex flex-col gap-1.5">
+                  <span className="h-[3px] rounded-full" style={{ width: "60%", backgroundColor: "#4a7c59" }} />
+                  <span className="h-[3px] rounded-full bg-primary-100" style={{ width: "88%" }} />
+                  <span className="h-[3px] rounded-full bg-primary-100" style={{ width: "76%" }} />
+                  <span className="h-[3px] rounded-full bg-primary-100" style={{ width: "90%" }} />
+                  <span className="h-[3px] rounded-full bg-primary-100" style={{ width: "52%" }} />
+                </div>
+              </div>
+              {page.documentTekst && (
+                <div className="space-y-3 text-sm sm:text-[15px] leading-relaxed text-pretty" style={{ color: "#3f6b4d" }}>
+                  <Paragraphs text={page.documentTekst} />
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* 6. WAT JE KRIJGT */}
       {watItems.length > 0 && !page.hideWatJeKrijgt && (
         <section className="py-12 sm:py-16 bg-primary-50 border-y border-primary-100">
@@ -285,6 +379,33 @@ export function LandingPageHomeView({ page }: { page: any }) {
                 );
               })}
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* 6b. WAT DIT NIET IS (eerlijke afbakening) */}
+      {nietItems.length > 0 && (
+        <section className="bg-white border-t border-primary-100">
+          <div className="max-w-2xl mx-auto px-6 py-14 sm:py-16">
+            {page.nietLabel && (
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#4a7c59" }}>
+                {page.nietLabel}
+              </p>
+            )}
+            {page.nietTitel && (
+              <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-6 text-balance">{page.nietTitel}</h2>
+            )}
+            <ul className="space-y-4">
+              {nietItems.map((it, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full mt-2.5" style={{ backgroundColor: "#4a7c59" }} aria-hidden="true" />
+                  <span className="text-sm sm:text-[15px] text-primary-700 leading-relaxed text-pretty">
+                    {it.titel && <span className="font-semibold text-primary-900">{it.titel} </span>}
+                    {it.tekst}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       )}

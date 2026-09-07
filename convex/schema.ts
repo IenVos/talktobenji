@@ -890,6 +890,22 @@ export default defineSchema({
     verloopJson: v.optional(v.string()),         // JSON: [{titel, tekst}]
     verloopUitkomstTitel: v.optional(v.string()),// titel van het uitkomst-blok, bijv. "Wat je overhoudt"
     verloopUitkomst: v.optional(v.string()),     // tekst van het uitkomst-blok
+    // Scanbare hero-belofte (korte regel onder de titel, **vet** toegestaan)
+    heroPromise: v.optional(v.string()),
+    // "Je eigen plek"-sectie (wat er in het product/account zit)
+    eigenPlekLabel: v.optional(v.string()),
+    eigenPlekTitel: v.optional(v.string()),
+    eigenPlekIntro: v.optional(v.string()),
+    eigenPlekJson: v.optional(v.string()),       // JSON: [{titel, tekst}]
+    eigenPlekFoot: v.optional(v.string()),
+    // "Document"-sectie (uitkomst: wat je overhoudt)
+    documentLabel: v.optional(v.string()),
+    documentTitel: v.optional(v.string()),
+    documentTekst: v.optional(v.string()),
+    // "Wat dit niet is"-sectie (eerlijke afbakening)
+    nietLabel: v.optional(v.string()),
+    nietTitel: v.optional(v.string()),
+    nietJson: v.optional(v.string()),            // JSON: [{titel, tekst}]
     // Keuzepagina hero + keuzemoment
     kpHeroKop1: v.optional(v.string()),       // "Overdag hou je het vol."
     kpHeroKop2: v.optional(v.string()),       // "Maar 's nachts… voelt het zwaarder."
