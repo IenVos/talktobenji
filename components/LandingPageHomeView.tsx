@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect } from "react";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeaderConcept } from "@/app/home-concept/SiteHeaderConcept";
@@ -25,6 +24,7 @@ type WatItem = { icon: string; naam: string; omschrijving?: string };
 type ContentBlock = { titel?: string; tekst?: string };
 type PricingBlock = { titel?: string; subtitel?: string; prijs?: string; tekst?: string; aanbevolen?: boolean; ctaTekst?: string; ctaUrl?: string };
 type Vraag = { vraag: string; antwoord: string };
+type Ervaring = { tekst: string; naam?: string; context?: string };
 
 function parseJson<T>(raw: unknown): T[] {
   if (typeof raw !== "string" || !raw.trim()) return [];
@@ -46,14 +46,6 @@ function Paragraphs({ text, className }: { text: string; className?: string }) {
   );
 }
 
-function IconArrow() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M5 12h14M13 6l6 6-6 6" />
-    </svg>
-  );
-}
-
 export function LandingPageHomeView({ page }: { page: any }) {
   useEffect(() => {
     if (typeof (window as any).fbq === "function") {
@@ -67,19 +59,46 @@ export function LandingPageHomeView({ page }: { page: any }) {
   const heroImage = page.heroImageUrl || "/images/achtergrond.png";
   const ctaText = page.ctaText || "Ik wil kennismaken";
   const ctaUrl = page.ctaUrl || "#";
-  const heroNote = [page.ctaPrijsTekst, page.ctaMicroCopy].filter(Boolean).join(" · ");
+  const prijsTekst = (page.ctaPrijsTekst || "").trim();
+  const reassurance = (page.ctaMicroCopy || "").trim();
 
   const watItems = parseJson<WatItem>(page.watJeKrijgtJson).filter((w) => w.naam);
   const contentBlocks = parseJson<ContentBlock>(page.contentBlocksJson).filter((b) => b.titel || b.tekst);
   const pricingBlocks = parseJson<PricingBlock>(page.pricingBlocksJson).filter((b) => b.titel || b.prijs);
   const vragen = parseJson<Vraag>(page.vragenJson).filter((v) => v.vraag);
+  const ervaringen = parseJson<Ervaring>(page.ervaringenJson).filter((e) => e.tekst);
   const voorWie: string[] = page.voorWieBullets ? String(page.voorWieBullets).split("\n").filter(Boolean) : [];
+
+  // Herbruikbare CTA-knop (licht op donker, of primair op licht).
+  const CtaKnop = ({ label, variant = "wit" }: { label: string; variant?: "wit" | "donker" }) => (
+    <KoopKnopLink
+      href={ctaUrl}
+      buttonLabel={label}
+      className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base font-semibold shadow transition-colors ${
+        variant === "wit"
+          ? "bg-white text-primary-900 hover:bg-primary-50"
+          : "bg-primary-800 text-white hover:bg-primary-700"
+      }`}
+    >
+      {label}
+    </KoopKnopLink>
+  );
+
+  // Tussentijdse CTA-strook op lichte achtergrond, met eigen (contextuele) tekst.
+  const MidCta = ({ label }: { label: string }) => (
+    <section className="bg-white">
+      <div className="max-w-2xl mx-auto px-6 py-10 text-center">
+        <CtaKnop label={label} variant="donker" />
+        {prijsTekst && <p className="mt-4 text-sm text-primary-500">{prijsTekst}</p>}
+      </div>
+    </section>
+  );
 
   return (
     <div className="min-h-screen bg-white">
       <SiteHeaderConcept />
 
-      {/* Hero */}
+      {/* 1. HERO / HOOK */}
       <section className="relative bg-primary-900 text-white overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <Image src={heroImage} alt="" fill className="object-cover object-center" priority />
@@ -92,31 +111,21 @@ export function LandingPageHomeView({ page }: { page: any }) {
           )}
           <h1 className="text-3xl sm:text-5xl font-bold leading-tight text-white max-w-3xl mx-auto text-balance">
             {heroTitleHoofd}
-            {heroAccent && (
-              <span className="block text-primary-200 mt-1">{heroAccent}</span>
-            )}
+            {heroAccent && <span className="block text-primary-200 mt-1">{heroAccent}</span>}
           </h1>
           {page.heroSubtitle && (
-            <div className="mt-6 text-lg sm:text-xl text-primary-200 max-w-xl mx-auto leading-relaxed space-y-3">
+            <div className="mt-6 text-lg sm:text-xl text-primary-200 max-w-2xl mx-auto leading-relaxed space-y-4">
               <Paragraphs text={page.heroSubtitle} />
             </div>
           )}
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <KoopKnopLink
-              href={ctaUrl}
-              buttonLabel={ctaText}
-              className="w-full sm:w-auto px-8 py-4 bg-white text-primary-900 font-semibold rounded-xl hover:bg-primary-50 transition-colors shadow text-base text-center"
-            >
-              {ctaText}
-            </KoopKnopLink>
+          <div className="mt-10">
+            <CtaKnop label={ctaText} />
           </div>
-          {heroNote && (
-            <p className="mt-6 text-sm text-primary-300">{heroNote}</p>
-          )}
+          {prijsTekst && <p className="mt-6 text-sm text-primary-300">{prijsTekst}</p>}
         </div>
       </section>
 
-      {/* Intro: sectie 1 als zachte kaart */}
+      {/* 2. HERKENNING / PROBLEEM */}
       {(page.section1Title || page.section1Text) && (
         <section className="max-w-2xl mx-auto px-6 pt-14 sm:pt-16 pb-4">
           <div className="bg-primary-50 border border-primary-100 rounded-2xl p-7 sm:p-9">
@@ -132,15 +141,15 @@ export function LandingPageHomeView({ page }: { page: any }) {
         </section>
       )}
 
-      {/* Sectie 2 */}
+      {/* 3. NIEUWE MOGELIJKHEID / BIG IDEA */}
       {(page.section2Title || page.section2Text) && (
-        <section className="max-w-2xl mx-auto px-6 py-6">
+        <section className="max-w-2xl mx-auto px-6 py-12 sm:py-14">
           <div className="text-center">
             {page.section2Title && (
               <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 mb-4 text-balance">{page.section2Title}</h2>
             )}
             {page.section2Text && (
-              <div className="space-y-4 text-primary-700 leading-relaxed text-pretty">
+              <div className="space-y-4 text-primary-700 leading-relaxed text-pretty text-lg">
                 <Paragraphs text={page.section2Text} />
               </div>
             )}
@@ -148,11 +157,53 @@ export function LandingPageHomeView({ page }: { page: any }) {
         </section>
       )}
 
-      {/* Wat je krijgt */}
+      {/* 4. VOOR WIE */}
+      {voorWie.length > 0 && (
+        <section className="bg-primary-50 border-y border-primary-100">
+          <div className="max-w-2xl mx-auto px-6 py-14">
+            <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 text-center mb-3 text-balance">
+              {page.voorWieTitle || "Dit is voor jou als je..."}
+            </h2>
+            {page.voorWieSubtitel && (
+              <p className="text-primary-600 text-center mb-8 max-w-lg mx-auto text-balance font-medium">{page.voorWieSubtitel}</p>
+            )}
+            <ul className="space-y-3 max-w-xl mx-auto">
+              {voorWie.map((item, i) => (
+                <li key={i} className="flex items-start gap-3 bg-white border border-primary-100 rounded-xl p-4">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-900 text-white flex items-center justify-center text-xs mt-0.5">✓</span>
+                  <span className="text-sm text-primary-700 leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      <MidCta label="Dit is precies wat ik nodig heb" />
+
+      {/* 5. BELOOFDE ERVARING / HOE HET WERKT / WAT IS BENJI */}
+      {contentBlocks.length > 0 && (
+        <section className="bg-white">
+          <div className="max-w-3xl mx-auto px-6 pt-4 pb-14 sm:pb-16 space-y-8">
+            {contentBlocks.map((b, i) => (
+              <div key={i} className="border-l-2 border-primary-200 pl-6">
+                {b.titel && <h3 className="text-lg sm:text-xl font-bold text-primary-900 mb-3 text-balance">{b.titel}</h3>}
+                {b.tekst && (
+                  <div className="space-y-3 text-sm sm:text-[15px] text-primary-700 leading-relaxed text-pretty">
+                    <Paragraphs text={b.tekst} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 6. WAT JE KRIJGT */}
       {watItems.length > 0 && (
-        <section className="py-12 sm:py-16 bg-primary-50">
+        <section className="py-12 sm:py-16 bg-primary-50 border-y border-primary-100">
           <div className="max-w-5xl mx-auto px-6">
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 text-center mb-2">Wat erbij zit</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary-400 text-center mb-2">Inbegrepen</p>
             <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8 text-balance">
               {page.watJeKrijgtTitel || "Wat je krijgt"}
             </h2>
@@ -176,47 +227,7 @@ export function LandingPageHomeView({ page }: { page: any }) {
         </section>
       )}
 
-      {/* Inhoudsblokken: hoe het werkt */}
-      {contentBlocks.length > 0 && (
-        <section className="bg-white">
-          <div className="max-w-3xl mx-auto px-6 py-14 sm:py-16 space-y-8">
-            {contentBlocks.map((b, i) => (
-              <div key={i} className="bg-white border-l-2 border-primary-200 pl-6">
-                {b.titel && <h3 className="text-lg sm:text-xl font-bold text-primary-900 mb-3 text-balance">{b.titel}</h3>}
-                {b.tekst && (
-                  <div className="space-y-3 text-sm sm:text-[15px] text-primary-700 leading-relaxed text-pretty">
-                    <Paragraphs text={b.tekst} />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Voor wie */}
-      {voorWie.length > 0 && (
-        <section className="bg-primary-50 border-y border-primary-100">
-          <div className="max-w-2xl mx-auto px-6 py-14">
-            <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 text-center mb-3 text-balance">
-              {page.voorWieTitle || "Dit is voor jou als..."}
-            </h2>
-            {page.voorWieSubtitel && (
-              <p className="text-primary-600 text-center mb-8 max-w-lg mx-auto text-balance">{page.voorWieSubtitel}</p>
-            )}
-            <ul className="space-y-3 max-w-xl mx-auto">
-              {voorWie.map((item, i) => (
-                <li key={i} className="flex items-start gap-3 bg-white border border-primary-100 rounded-xl p-4">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-900 text-white flex items-center justify-center text-xs mt-0.5">✓</span>
-                  <span className="text-sm text-primary-700 leading-relaxed">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      )}
-
-      {/* Prijsblokken */}
+      {/* 7. AANBOD / OFFER CARD */}
       {pricingBlocks.length > 0 && (
         <section className="bg-white">
           <div className="max-w-5xl mx-auto px-6 py-16 sm:py-20">
@@ -230,17 +241,9 @@ export function LandingPageHomeView({ page }: { page: any }) {
                 )}
               </div>
             )}
-            <div className={`grid gap-6 ${pricingBlocks.length === 2 ? "sm:grid-cols-2 max-w-3xl mx-auto" : pricingBlocks.length >= 3 ? "sm:grid-cols-3" : "max-w-sm mx-auto"}`}>
+            <div className={`grid gap-6 ${pricingBlocks.length === 1 ? "max-w-md mx-auto" : pricingBlocks.length === 2 ? "sm:grid-cols-2 max-w-3xl mx-auto" : "sm:grid-cols-3"}`}>
               {pricingBlocks.map((b, i) => (
-                <div
-                  key={i}
-                  className={`relative flex flex-col rounded-2xl p-7 ${b.aanbevolen ? "bg-primary-900 text-white shadow-lg" : "bg-white border border-primary-100"}`}
-                >
-                  {b.aanbevolen && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap" style={{ background: "#F0B429", color: "#3d3530" }}>
-                      Meest nabij
-                    </span>
-                  )}
+                <div key={i} className={`relative flex flex-col rounded-2xl p-7 ${b.aanbevolen ? "bg-primary-900 text-white shadow-xl" : "bg-white border border-primary-100"}`}>
                   {b.titel && (
                     <p className={`text-xs font-semibold uppercase tracking-widest mb-2 ${b.aanbevolen ? "text-primary-200" : "text-primary-400"}`}>{b.titel}</p>
                   )}
@@ -255,7 +258,7 @@ export function LandingPageHomeView({ page }: { page: any }) {
                     <ul className="space-y-2.5 mb-6 flex-1">
                       {b.tekst.split("\n").filter(Boolean).map((line, j) => (
                         <li key={j} className={`flex items-start gap-2 text-sm leading-relaxed ${b.aanbevolen ? "text-primary-100" : "text-primary-700"}`}>
-                          <span className="mt-0.5 flex-shrink-0" style={{ color: b.aanbevolen ? "#F0B429" : "#7ec8e3" }}>✓</span>
+                          <span className="mt-0.5 flex-shrink-0" style={{ color: "#F0B429" }}>✓</span>
                           <span>{line}</span>
                         </li>
                       ))}
@@ -273,26 +276,29 @@ export function LandingPageHomeView({ page }: { page: any }) {
                 </div>
               ))}
             </div>
+            {reassurance && (
+              <p className="mt-6 text-sm text-primary-500 text-center max-w-md mx-auto text-balance">{reassurance}</p>
+            )}
           </div>
         </section>
       )}
 
-      {/* Wie is Ien */}
+      {/* 8. WIE IS IEN */}
       {(page.wieIsTitle || page.wieIsText) && !page.hideWieIsIen && (
         <section className="bg-primary-50 border-y border-primary-100">
           <div className="max-w-2xl mx-auto px-6 py-14">
             <div className="flex flex-col items-center mb-6 text-center">
-              <div className="w-20 h-20 rounded-2xl overflow-hidden mb-3">
-                <Image src={page.founderImageUrl || "/images/ien-founder.png"} alt="Ien, oprichter" width={80} height={80} className="object-cover w-full h-full" />
+              <div className="w-24 h-24 rounded-2xl overflow-hidden mb-3">
+                <Image src={page.founderImageUrl || "/images/ien-founder.png"} alt="Ien, oprichter" width={96} height={96} className="object-cover w-full h-full" />
               </div>
-              <p className="text-xs font-semibold text-primary-900">Ien</p>
+              <p className="text-sm font-semibold text-primary-900">Ien</p>
               <p className="text-xs text-primary-400">Founder Talk To Benji</p>
             </div>
             {page.wieIsTitle && (
               <h2 className="text-xl sm:text-2xl font-bold text-primary-900 mb-5 text-balance text-center">{page.wieIsTitle}</h2>
             )}
             {page.wieIsText && (
-              <div className="space-y-4 text-sm text-primary-700 leading-relaxed text-left">
+              <div className="space-y-4 text-sm sm:text-[15px] text-primary-700 leading-relaxed text-left">
                 <Paragraphs text={page.wieIsText} />
               </div>
             )}
@@ -300,13 +306,39 @@ export function LandingPageHomeView({ page }: { page: any }) {
         </section>
       )}
 
-      {/* FAQ */}
+      {/* 9. SOCIAL PROOF */}
+      {ervaringen.length > 0 && !page.hideErvaringen && (
+        <section className="bg-white border-b border-primary-100">
+          <div className="max-w-5xl mx-auto px-6 py-14 sm:py-16">
+            <h2 className="text-xl sm:text-2xl font-bold text-primary-900 text-center mb-8 text-balance">
+              {page.ervaringenTitel || "Wat anderen ervaren"}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {ervaringen.slice(0, 4).map((e, i) => (
+                <div key={i} className="bg-white rounded-xl border border-primary-100 flex flex-col p-5">
+                  <svg viewBox="0 0 24 24" className="w-5 h-5 text-primary-200 mb-2 flex-shrink-0" fill="currentColor">
+                    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+                  </svg>
+                  <p className="text-sm leading-relaxed italic mb-3 flex-1 text-pretty text-primary-700">{e.tekst}</p>
+                  {(e.naam || e.context) && (
+                    <p className="text-xs font-medium text-primary-400">{[e.naam, e.context].filter(Boolean).join(", ")}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {ervaringen.length > 0 && <MidCta label={ctaText} />}
+
+      {/* 10. FAQ / BEZWAARAFHANDELING */}
       {vragen.length > 0 && !page.hideVragen && (
         <section className="max-w-3xl mx-auto px-6 py-16 sm:py-20">
           <h2 className="text-2xl sm:text-3xl font-bold text-primary-900 text-center mb-2 text-balance">
-            {page.faqTitel || "Veelgestelde vragen"}
+            {page.faqTitel || "Misschien vraag je je dit af"}
           </h2>
-          {page.faqSubtitel && <p className="text-primary-500 text-center mb-10 text-sm">{page.faqSubtitel}</p>}
+          {page.faqSubtitel && <p className="text-primary-500 text-center mb-8 text-sm">{page.faqSubtitel}</p>}
           <div className={`space-y-3 ${page.faqSubtitel ? "" : "mt-8"}`}>
             {vragen.map((item, i) => (
               <details key={i} className="group bg-white border border-[#F0B429] rounded-2xl overflow-hidden">
@@ -325,7 +357,7 @@ export function LandingPageHomeView({ page }: { page: any }) {
         </section>
       )}
 
-      {/* Finale CTA */}
+      {/* 11. FINALE CTA */}
       {(page.finalCtaTitle || page.finalCtaBody) && (
         <section className="bg-primary-900">
           <div className="max-w-4xl mx-auto px-6 py-16 sm:py-20 text-center">
@@ -337,14 +369,9 @@ export function LandingPageHomeView({ page }: { page: any }) {
                 <Paragraphs text={page.finalCtaBody} />
               </div>
             )}
-            <KoopKnopLink
-              href={ctaUrl}
-              buttonLabel={ctaText}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-white text-primary-900 font-semibold rounded-xl hover:bg-primary-50 transition-colors shadow text-base"
-            >
-              {ctaText}
-            </KoopKnopLink>
-            {heroNote && <p className="mt-5 text-sm text-primary-300">{heroNote}</p>}
+            <CtaKnop label={ctaText} />
+            {prijsTekst && <p className="mt-5 text-sm text-primary-300">{prijsTekst}</p>}
+            {reassurance && <p className="mt-2 text-sm text-primary-300 max-w-md mx-auto text-balance">{reassurance}</p>}
           </div>
         </section>
       )}

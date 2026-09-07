@@ -1334,3 +1334,97 @@ export const zetZijAanZijHomepageStijl = internalMutation({
     return { patched: true, id: page._id };
   },
 });
+
+/**
+ * Herschrijf Zij aan Zij als volwaardige salespagina (grote gedachte:
+ * "Je hoeft niet verder, je hoeft het alleen niet meer alleen te dragen").
+ * Meer verlangen, duidelijkheid, aanbod, bewijs en bezwaarafhandeling.
+ */
+export const herschrijfZijAanZij = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const page = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", "zij-aan-zij"))
+      .first();
+    if (!page) return { skipped: true };
+    await ctx.db.patch(page._id, {
+      stijl: "homepage",
+      pageTitle: "Zij aan Zij — 8 weken persoonlijke begeleiding bij verlies",
+      heroLabel: "8 weken persoonlijke begeleiding bij verlies",
+      heroTitle: "Je mist iemand.\nMaar de wereld lijkt alweer verder te gaan.",
+      heroSubtitle: "Zij aan Zij is persoonlijke begeleiding voor wanneer je iemand hebt verloren, en merkt dat iedereen om je heen weer doorgaat terwijl jij nog midden in het gemis zit.\n\n8 weken samen. 3,5 uur persoonlijk contact met Ien. Een maand Benji. En vooral: iemand die naast je blijft.",
+      ctaText: "Ik wil kennismaken",
+      ctaUrl: "/contact",
+      ctaColor: "#4a7c59",
+      ctaPrijsTekst: "€425 · eenmalig, 8 weken samen",
+      ctaMicroCopy: "Eerst kennismaken? Dat kan. Je hoeft vandaag nog niets te beslissen.",
+      section1Title: "Iedereen zegt: 'geef het tijd.'",
+      section1Text: "Maar wat doe je ondertussen met je gemis?\n\nJe functioneert gewoon. Je gaat naar je werk, je doet de boodschappen, je antwoordt 'gaat wel' als iemand het vraagt.\n\nEn ondertussen:\n\nWord je 's ochtends wakker en besef je opnieuw dat diegene er niet meer is.\nWord je op de gekste momenten overvallen door verdriet.\nWeet je soms niet meer met wie je hier nog over kunt praten.\nVoel je je bijna schuldig als je een keer wél lacht.\n\nEn misschien ben je vooral moe. Moe van het alleen dragen.",
+      section2Title: "Je hoeft niet te leren hoe je moet rouwen.",
+      section2Text: "Je hoeft alleen niet meer alles alleen te doen.\n\nGeen therapie. Geen stappenplan dat je moet afwerken. Geen oordeel over hoe lang jouw verdriet mag duren.\n\nGewoon acht weken lang iemand die naast je blijft.",
+      voorWieTitle: "Zij aan Zij is voor jou als je...",
+      voorWieSubtitel: "Je hoeft niet beter te worden in rouwen. Je hoeft alleen niet meer alles alleen te dragen.",
+      voorWieBullets: "Niet nóg meer adviezen wilt horen\nNiet weer wilt horen dat je 'het tijd moet geven'\nSoms zelf niet weet wat je precies nodig hebt\nBehoefte hebt aan iemand die gewoon blijft\nRuimte wilt voor alles wat er in je hoofd en hart omgaat\nMoe bent van doen alsof het wel goed gaat",
+      contentBlocksJson: JSON.stringify([
+        {
+          titel: "Wat acht weken Zij aan Zij met je doet",
+          tekst: "Acht weken lang sta je er niet alleen voor.\n\nEr is iemand die je verhaal kent. Bij wie je niet steeds opnieuw hoeft te beginnen. Die niet schrikt van je verdriet en niet probeert het weg te praten.\n\nEindelijk een plek waar je hardop mag zeggen wat je misschien al weken inslikt.",
+        },
+        {
+          titel: "Zo werkt het",
+          tekst: "Stap 1. We maken eerst kennis. Rustig en vrijblijvend, zodat je voelt of het klikt.\n\nStap 2. Acht weken lang lopen we samen op. In totaal 3,5 uur persoonlijk contact, verdeeld over die weken, op de momenten dat jij iemand naast je nodig hebt.\n\nStap 3. Na elk gesprek zet ik de kern voor je op je eigen plek, zodat je het rustig kunt teruglezen. En je houdt je eigen werkboek, ook als de acht weken voorbij zijn.",
+        },
+        {
+          titel: "En wat is Benji?",
+          tekst: "Benji is jouw digitale plek voor tussen de gesprekken door: een chat waar je op elk moment even je hart kunt luchten. Ook 's nachts, ook in het weekend, juist op de momenten waarop het verdriet ineens opkomt.\n\nBij Zij aan Zij krijg je een maand lang onbeperkt toegang tot Benji. Zo hoef je nooit te wachten tot het volgende gesprek.",
+        },
+      ]),
+      watJeKrijgtTitel: "Dit krijg je in acht weken Zij aan Zij",
+      watJeKrijgtJson: JSON.stringify([
+        { icon: "gesprekken", naam: "Iemand die echt naast je zit", omschrijving: "3,5 uur persoonlijk 1-op-1 contact met Ien, verdeeld over acht weken" },
+        { icon: "klok", naam: "Acht weken, geen los gesprek", omschrijving: "Niet één keer en succes ermee, maar echt naast je blijven op jouw tempo" },
+        { icon: "memories", naam: "Je hoeft niets te onthouden", omschrijving: "Na elk gesprek een persoonlijke samenvatting op je eigen plek" },
+        { icon: "boek", naam: "Ruimte om zelf te verwerken", omschrijving: "Je eigen werkboek dat je mag houden, ook na de acht weken" },
+        { icon: "hart", naam: "Steun tussen de gesprekken door", omschrijving: "Een maand Benji, dag en nacht bereikbaar voor als het je overvalt" },
+        { icon: "blad", naam: "Een eigen, veilige plek", omschrijving: "Rust en overzicht: alles op één plek, alleen voor jou" },
+      ]),
+      pricingTitel: "Het aanbod",
+      pricingSubtitel: "",
+      pricingBlocksJson: JSON.stringify([
+        {
+          titel: "8 weken Zij aan Zij",
+          prijs: "€425",
+          subtitel: "eenmalig",
+          tekst: "3,5 uur persoonlijk 1-op-1 contact met Ien\n8 weken begeleiding, op jouw tempo\nEen persoonlijke samenvatting na ieder gesprek\nJe eigen werkboek om te houden\nEen maand Benji, voor de momenten tussendoor\nJe eigen rustige plek voor jouw proces",
+          aanbevolen: true,
+          ctaTekst: "Ik wil kennismaken",
+          ctaUrl: "/contact",
+        },
+      ]),
+      wieIsTitle: "Hoi, ik ben Ien.",
+      wieIsText: "Ik ga je niet vertellen hoe je moet rouwen.\n\nIk weet hoe eenzaam het kan zijn als iedereen om je heen alweer doorgaat, terwijl jij nog elke dag wordt geconfronteerd met iemand die er niet meer is. Ik ken verlies in veel gedaantes: een kinderwens die niet uitkwam, een bedrijf waar ik alles in had gelegd, en dieren die voor mij familie waren, mijn honden en mijn paard.\n\nEn de afgelopen jaren zat ik naast mensen die het zwaarste kenden dat er is: mensen die hun partner verloren, ouders die hun kind moesten loslaten.\n\nDaarom heb ik Zij aan Zij gemaakt. Geen methode die je moet volgen. Geen vinkjes die je moet zetten. Geen oordeel over hoe lang jouw verdriet mag duren.\n\nGewoon iemand die naast je blijft.",
+      ervaringenTitel: "Wat anderen ervaren",
+      ervaringenJson: JSON.stringify([
+        { tekst: "Voor het eerst hoefde ik niet uit te leggen waarom ik na drie maanden nog steeds verdrietig was.", naam: "Voorbeeld", context: "vervang voor livegang" },
+        { tekst: "Ik dacht dat ik vooral iemand nodig had die luisterde. Pas tijdens het traject merkte ik hoeveel ik al die tijd alleen had gedragen.", naam: "Voorbeeld", context: "vervang voor livegang" },
+        { tekst: "Geen adviezen, geen 'geef het tijd'. Gewoon iemand die bleef. Dat was precies wat ik nodig had.", naam: "Voorbeeld", context: "vervang voor livegang" },
+      ]),
+      faqTitel: "Misschien vraag je je dit af",
+      vragenJson: JSON.stringify([
+        { vraag: "Moet ik al 'verder' zijn in mijn rouw?", antwoord: "Nee. Er is geen goed of fout moment, en geen fase die je eerst moet bereiken. Je mag komen precies zoals je nu bent." },
+        { vraag: "Is Zij aan Zij therapie?", antwoord: "Nee. Het is geen behandeling en geen vervanging van professionele hulp. Het is iemand die acht weken naast je komt zitten, met alle ruimte voor jouw verhaal. Loop je met klachten waar echte hulp bij nodig is, dan denk ik met je mee over de juiste plek." },
+        { vraag: "Wat als ik niet weet waar ik over moet praten?", antwoord: "Dat hoeft ook niet. Je hoeft niet met een plan of een verhaal te komen. We beginnen gewoon, en soms mag stilte er ook zijn." },
+        { vraag: "Wat als ik een week even niet kan?", antwoord: "Dan is dat zo. De acht weken zijn een kader, geen verplichting. We stemmen het tempo af op wat jij op dat moment aankunt." },
+        { vraag: "Is dit ook geschikt als het verlies al langer geleden is?", antwoord: "Juist dan. Verdriet houdt zich niet aan een kalender, en de omgeving is vaak allang weer verder. Ook na jaren mag dit er nog zijn." },
+        { vraag: "Kan ik eerst kennismaken voordat ik betaal?", antwoord: "Ja. We maken altijd eerst rustig kennis, zodat je kunt voelen of het klikt. Je hoeft niets te beslissen voordat dat goed voelt." },
+        { vraag: "Wat als ik merk dat het niet bij me past?", antwoord: "Dan zeg je dat gewoon. Ik wil dat dit bij je past, niet dat je iets afmaakt wat niet goed voelt. Dat bespreken we open." },
+      ]),
+      finalCtaTitle: "Je hoeft niet verder. Je hoeft het alleen niet meer alleen te dragen.",
+      finalCtaBody: "Acht weken lang loop ik naast je. In jouw tempo, op jouw momenten.\n\nBegin met een vrijblijvende kennismaking.",
+      hideStickyBar: false,
+      updatedAt: Date.now(),
+    });
+    return { patched: true, id: page._id };
+  },
+});
