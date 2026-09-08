@@ -310,6 +310,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         icon: CalendarDays,
         items: [
           { href: "/admin/afspraken", label: "Afspraken & kalender", icon: CalendarDays },
+          { href: "/admin/zij-aan-zij-emails", label: "E-mails", icon: Mail },
         ],
       },
     },
