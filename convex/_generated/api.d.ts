@@ -20,6 +20,7 @@ import type * as benjiLimiet from "../benjiLimiet.js";
 import type * as benjiStart from "../benjiStart.js";
 import type * as benjiTeasers from "../benjiTeasers.js";
 import type * as blogPosts from "../blogPosts.js";
+import type * as booking from "../booking.js";
 import type * as broadcasts from "../broadcasts.js";
 import type * as chat from "../chat.js";
 import type * as chatCrypto from "../chatCrypto.js";
@@ -115,6 +116,7 @@ declare const fullApi: ApiFromModules<{
   benjiStart: typeof benjiStart;
   benjiTeasers: typeof benjiTeasers;
   blogPosts: typeof blogPosts;
+  booking: typeof booking;
   broadcasts: typeof broadcasts;
   chat: typeof chat;
   chatCrypto: typeof chatCrypto;
