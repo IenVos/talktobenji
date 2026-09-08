@@ -47,6 +47,7 @@ export default function AfsprakenAdmin() {
   const deleteClient = useAdminMutation(api.booking.deleteClient);
   const adminReschedule = useAdminMutation(api.booking.adminReschedule);
   const adminCancel = useAdminMutation(api.booking.adminCancel);
+  const previewLink = useAdminMutation(api.booking.previewLink);
 
   // config form
   const [cfg, setCfg] = useState<any>(null);
@@ -85,11 +86,17 @@ export default function AfsprakenAdmin() {
     <div className="max-w-4xl mx-auto space-y-5 pb-16">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center"><CalendarDays size={20} /></div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-bold text-gray-900">Zij aan Zij afspraken</h1>
           <p className="text-sm text-gray-500">Beheer je tijden, deelnemers en gesprekken.</p>
         </div>
+        <button
+          onClick={async () => { const r: any = await previewLink(); window.open(r.link, "_blank"); }}
+          className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 flex items-center gap-1.5">
+          <CalendarDays size={15} /> Afspraak maken (bekijk boekpagina)
+        </button>
       </div>
+      <p className="text-xs text-gray-400 -mt-2">De knop opent de boekpagina zoals een deelnemer die ziet, met jouw huidige tijden. Je kunt er zelf een testafspraak in maken; die telt niet mee in je overzicht.</p>
 
       {/* INSTELLINGEN */}
       <Kaart titel="Instellingen">

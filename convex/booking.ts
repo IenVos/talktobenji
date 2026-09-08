@@ -194,8 +194,29 @@ export const listClients = query({
   args: { adminToken: v.string() },
   handler: async (ctx, { adminToken }) => {
     await checkAdmin(ctx, adminToken);
-    const clients = await ctx.db.query("bookingClients").collect();
+    const clients = (await ctx.db.query("bookingClients").collect()).filter((c) => c.token !== "voorbeeld-test");
     return clients.sort((a, b) => b.createdAt - a.createdAt).map((c) => ({ ...c, link: `${SITE}/plan/${c.token}` }));
+  },
+});
+
+// Vaste voorbeeld-deelnemer om de boekpagina live te controleren.
+export const previewLink = mutation({
+  args: { adminToken: v.string() },
+  handler: async (ctx, { adminToken }) => {
+    await checkAdmin(ctx, adminToken);
+    let c = await ctx.db.query("bookingClients").withIndex("by_token", (q) => q.eq("token", "voorbeeld-test")).first();
+    if (!c) {
+      const id = await ctx.db.insert("bookingClients", {
+        naam: "Voorbeeld (test)", email: "test@talktobenji.com", token: "voorbeeld-test",
+        status: "nieuw", createdAt: Date.now(), updatedAt: Date.now(),
+      });
+      c = await ctx.db.get(id);
+    } else {
+      const appts = await ctx.db.query("appointments").withIndex("by_client", (q) => q.eq("clientId", c!._id)).collect();
+      for (const a of appts) await ctx.db.delete(a._id);
+      await ctx.db.patch(c._id, { status: "nieuw", startDatum: undefined, updatedAt: Date.now() });
+    }
+    return { link: `${SITE}/plan/voorbeeld-test` };
   },
 });
 
@@ -232,7 +253,7 @@ export const adminListAppointments = query({
   handler: async (ctx, { adminToken, alles }) => {
     await checkAdmin(ctx, adminToken);
     const vandaag = todayNL();
-    let appts = await ctx.db.query("appointments").collect();
+    let appts = (await ctx.db.query("appointments").collect()).filter((a) => a.clientEmail !== "test@talktobenji.com");
     if (!alles) appts = appts.filter((a) => a.datum >= vandaag && a.status !== "afgemeld");
     return appts.sort((a, b) => (a.datum + a.tijd).localeCompare(b.datum + b.tijd));
   },
