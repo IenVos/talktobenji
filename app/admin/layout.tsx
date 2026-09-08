@@ -298,8 +298,18 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         icon: Users,
         items: [
           { href: "/admin/klantbeheer", label: "Klantbeheer", icon: Users },
-          { href: "/admin/afspraken", label: "Zij aan Zij afspraken", icon: CalendarDays },
           { href: "/admin/support-faq", label: "Support FAQ", icon: HelpCircle },
+        ],
+      },
+    },
+    {
+      type: "group",
+      group: {
+        id: "zij-aan-zij",
+        label: "Zij aan Zij",
+        icon: CalendarDays,
+        items: [
+          { href: "/admin/afspraken", label: "Afspraken & kalender", icon: CalendarDays },
         ],
       },
     },
