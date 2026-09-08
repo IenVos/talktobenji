@@ -163,4 +163,13 @@ crons.interval(
   {}
 );
 
+// Zij aan Zij: stuur de dag ervoor een herinnering voor geplande gesprekken.
+// 07:00 UTC = 08:00/09:00 NL, ruim op tijd de dag vooraf.
+crons.daily(
+  "zij aan zij herinneringen",
+  { hourUTC: 7, minuteUTC: 0 },
+  internal.booking.runReminders,
+  {}
+);
+
 export default crons;

@@ -1479,4 +1479,55 @@ export default defineSchema({
     vensterTot: v.optional(v.number()),  // uur, bv. 21
     updatedAt: v.number(),
   }),
+
+  // ─── Zij aan Zij: boekbare gesprekken ───────────────────────────────────────
+  // Instellingen (één rij): vaste videoruimte + programma-opzet.
+  bookingConfig: defineTable({
+    videoRoomUrl: v.optional(v.string()),   // vaste videolink (met wachtkamer)
+    aantalGesprekken: v.optional(v.number()),// standaard 4
+    intervalDagen: v.optional(v.number()),  // standaard 14 (om de 2 weken)
+    durenJson: v.optional(v.string()),      // JSON, bv. [60,45,45,60] (minuten)
+    weken: v.optional(v.number()),          // programmaduur in weken (standaard 8)
+    updatedAt: v.number(),
+  }),
+  // Terugkerende beschikbaarheid: weekdag + tijd, aan/uit te zetten.
+  bookingSlots: defineTable({
+    weekday: v.number(),   // 0=zondag .. 6=zaterdag (JS getDay)
+    tijd: v.string(),      // "HH:MM"
+    actief: v.boolean(),
+    updatedAt: v.number(),
+  }),
+  // Losse geblokkeerde dagen (vakantie e.d.).
+  bookingBlocks: defineTable({
+    datum: v.string(),     // "YYYY-MM-DD"
+    reden: v.optional(v.string()),
+  }).index("by_datum", ["datum"]),
+  // Een deelnemer (na goedkeuring/aankoop) met een eigen boeklink.
+  bookingClients: defineTable({
+    naam: v.string(),
+    email: v.string(),
+    token: v.string(),
+    videoRoomUrl: v.optional(v.string()),
+    status: v.string(),    // "nieuw" | "gepland" | "afgerond" | "geannuleerd"
+    startDatum: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_token", ["token"]).index("by_email", ["email"]),
+  // Eén afspraak = één regel. Losstaand te verzetten/afmelden.
+  appointments: defineTable({
+    clientId: v.id("bookingClients"),
+    clientNaam: v.string(),
+    clientEmail: v.string(),
+    index: v.number(),     // 1..N
+    datum: v.string(),     // "YYYY-MM-DD" (Nederlandse tijd)
+    tijd: v.string(),      // "HH:MM"
+    duurMin: v.number(),
+    status: v.string(),    // "gepland" | "verzet" | "afgemeld" | "afgerond"
+    token: v.string(),     // eigen link om deze afspraak te verzetten
+    origineelDatum: v.optional(v.string()),
+    origineelTijd: v.optional(v.string()),
+    reminderSentAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_client", ["clientId"]).index("by_token", ["token"]).index("by_datum", ["datum"]),
 });
