@@ -28,8 +28,8 @@ export default function AfspraakPage() {
   if (data === undefined) return <Schil><p className="text-gray-500">Even laden...</p></Schil>;
   if (data === null) return <Schil><h1 className="text-2xl font-semibold text-gray-900">Deze link is niet geldig</h1><p className="mt-3 text-gray-600">Controleer de link uit je mail.</p></Schil>;
 
-  if (klaar === "verzet") return <Schil><h1 className="text-3xl text-gray-900" style={{ fontFamily: "Georgia, serif" }}>Je afspraak is verzet</h1><p className="mt-3 text-gray-600">Je krijgt een bevestiging in je mail. De rest van je gesprekken blijft staan.</p></Schil>;
-  if (klaar === "afgemeld") return <Schil><h1 className="text-3xl text-gray-900" style={{ fontFamily: "Georgia, serif" }}>Je afmelding is doorgegeven</h1><p className="mt-3 text-gray-600">Ien heeft een seintje gekregen. Wil je een nieuw moment, stuur haar gerust een bericht.</p></Schil>;
+  if (klaar === "verzet") return <Schil><h1 className="text-3xl text-gray-900" style={{ fontFamily: "'Spectral', Georgia, serif" }}>Je afspraak is verzet</h1><p className="mt-3 text-gray-600">Je krijgt een bevestiging in je mail. De rest van je gesprekken blijft staan.</p></Schil>;
+  if (klaar === "afgemeld") return <Schil><h1 className="text-3xl text-gray-900" style={{ fontFamily: "'Spectral', Georgia, serif" }}>Je afmelding is doorgegeven</h1><p className="mt-3 text-gray-600">Ien heeft een seintje gekregen. Wil je een nieuw moment, stuur haar gerust een bericht.</p></Schil>;
 
   const perDag: Record<string, string[]> = {};
   for (const s of data.openSlots ?? []) (perDag[s.datum] ||= []).push(s.tijd);
@@ -54,7 +54,7 @@ export default function AfspraakPage() {
   return (
     <Schil>
       <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: GROEN }}>Je afspraak</p>
-      <h1 className="text-3xl text-gray-900" style={{ fontFamily: "Georgia, serif" }}>Gesprek {data.index} verzetten</h1>
+      <h1 className="text-3xl text-gray-900" style={{ fontFamily: "'Spectral', Georgia, serif" }}>Gesprek {data.index} verzetten</h1>
       <p className="mt-3 text-gray-600">Je gesprek staat nu op <b>{fmt(data.datum, data.tijd)}</b>. Kies hieronder een nieuw moment, of meld je af.</p>
 
       <div className="mt-6">
@@ -85,6 +85,7 @@ export default function AfspraakPage() {
 function Schil({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen" style={{ background: "#ecefe9" }}>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&display=swap" />
       <div className="max-w-xl mx-auto px-6 py-12">
         <div className="flex items-center gap-2 mb-8">
           <Image src="/images/benji-logo-2.png" alt="" width={32} height={32} className="rounded-lg" />
