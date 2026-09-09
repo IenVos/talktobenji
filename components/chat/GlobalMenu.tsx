@@ -39,7 +39,6 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     session?.userId ? { userId: session.userId as string } : "skip"
   );
   const accent = preferences?.accentColor || getCachedAccent();
-  const berichtenConfig = useQuery(api.benjiLimiet.getConfig) as { actief: boolean } | undefined;
 
   useEffect(() => {
     if (!open) return;
@@ -115,7 +114,6 @@ export function GlobalMenu({ lastConversationDate = null, embedded = false }: Gl
     {
       label: "Aanmelden",
       icon: UserPlus,
-      badge: berichtenConfig?.actief ? "5 gesprekken gratis" : "7 dagen gratis",
       onClick: () => {
         setOpen(false);
         router.push("/registreren");
