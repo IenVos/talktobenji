@@ -19,16 +19,15 @@ function Rich({ text, boldClass }: { text: string; boldClass?: string }) {
   );
 }
 
-/* Titel met \n → regels */
+/* Titel met \n → regels. Elke regel is een eigen block zodat text-wrap:balance
+   per regel werkt (geen los woord op een nieuwe regel; balance werkt niet over
+   een harde <br> heen). */
 function MultiTitle({ text }: { text: string }) {
   const lines = (text || "").split("\n");
   return (
     <>
       {lines.map((l, i) => (
-        <span key={i}>
-          {l}
-          {i < lines.length - 1 && <br />}
-        </span>
+        <span key={i} style={{ display: "block" }}>{l}</span>
       ))}
     </>
   );
