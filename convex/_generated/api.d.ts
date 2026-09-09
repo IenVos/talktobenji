@@ -60,6 +60,7 @@ import type * as inactiveAccounts from "../inactiveAccounts.js";
 import type * as inspiratie from "../inspiratie.js";
 import type * as jaarRenewal from "../jaarRenewal.js";
 import type * as kaalBetaalpaginas from "../kaalBetaalpaginas.js";
+import type * as kennismaking from "../kennismaking.js";
 import type * as klantbeheer from "../klantbeheer.js";
 import type * as knowledgeBase from "../knowledgeBase.js";
 import type * as landingPages from "../landingPages.js";
@@ -158,6 +159,7 @@ declare const fullApi: ApiFromModules<{
   inspiratie: typeof inspiratie;
   jaarRenewal: typeof jaarRenewal;
   kaalBetaalpaginas: typeof kaalBetaalpaginas;
+  kennismaking: typeof kennismaking;
   klantbeheer: typeof klantbeheer;
   knowledgeBase: typeof knowledgeBase;
   landingPages: typeof landingPages;
