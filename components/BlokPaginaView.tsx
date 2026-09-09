@@ -390,6 +390,26 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
     );
   }
 
+  if (t === "faq") {
+    return (
+      <section key={key} style={sectionStyle(b.achtergrond)}>
+        <div className="wrap">
+          {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
+          {b.titel && <h2 className="sec-h">{b.titel}</h2>}
+          {b.lead && <p className="lead">{b.lead}</p>}
+          <div className="faq">
+            {(b.items || []).map((it: any, i: number) => (
+              <details key={i} className="faq-item">
+                <summary className="faq-q">{it.vraag}</summary>
+                <div className="faq-a"><Rich text={it.antwoord} /></div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (t === "offer") {
     return (
       <section id={b.anchor || "aanbod"} key={key} style={sectionStyle(b.achtergrond)}>

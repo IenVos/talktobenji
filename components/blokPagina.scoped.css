@@ -232,6 +232,17 @@
   .bpg .final .btn:hover{background:#eef4ee}
   .bpg .final .micro{color:#bcd6c0;max-width:30rem}
 
+  /* FAQ (accordeon) */
+  .faq{margin:1.5rem 0 0;display:flex;flex-direction:column;gap:.7rem}
+  .bpg .faq-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .bpg .faq-item[open]{border-color:var(--accent-wash)}
+  .bpg .faq-q{list-style:none;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;
+    padding:1.05rem 1.3rem;font-weight:600;color:var(--ink);font-size:1.03rem}
+  .bpg .faq-q::-webkit-details-marker{display:none}
+  .bpg .faq-q::after{content:"+";flex-shrink:0;color:var(--accent);font-weight:600;font-size:1.3rem;line-height:1}
+  .bpg .faq-item[open] .faq-q::after{content:"\2013"}
+  .bpg .faq-a{padding:0 1.3rem 1.15rem;color:var(--ink-soft);font-size:1rem;line-height:1.66;white-space:pre-line}
+
   .bpg footer{text-align:center;color:var(--muted);font-size:.82rem;padding:2rem 0 3rem}
 
   @media (max-width:560px){ .bpg section{padding:2.7rem 0} .bpg .offer{padding:1.7rem 1.4rem} }

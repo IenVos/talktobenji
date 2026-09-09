@@ -41,7 +41,7 @@ export const ACHTERGROND_OPTIES = [
 // Bloktypes die een `achtergrond`-instelling gebruiken (sectionStyle in de renderer).
 export const HEEFT_ACHTERGROND = new Set([
   "herkenning", "kern", "cadence", "stappen", "ditkrijgje",
-  "account", "document", "nietis", "ien", "ervaringen", "offer",
+  "account", "document", "nietis", "ien", "ervaringen", "faq", "offer",
 ]);
 
 export const BLOCK_LABELS: Record<string, string> = {
@@ -58,6 +58,7 @@ export const BLOCK_LABELS: Record<string, string> = {
   nietis: "Geen / Wel",
   ien: "Over Ien",
   ervaringen: "Ervaringen (quotes)",
+  faq: "Veelgestelde vragen",
   offer: "Aanbod (prijs)",
   final: "Slotband + CTA",
 };
@@ -65,7 +66,7 @@ export const BLOCK_LABELS: Record<string, string> = {
 // Volgorde in de "blok toevoegen"-keuzelijst.
 export const BLOCK_TYPES = [
   "header", "hero", "herkenning", "band", "kern", "cadence", "stappen",
-  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "offer", "final",
+  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "faq", "offer", "final",
 ];
 
 export const BLOCK_SCHEMAS: Record<string, Field[]> = {
@@ -224,6 +225,18 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
       fields: [
         { key: "tekst", label: "Tekst", kind: "textarea", rows: 2 },
         { key: "bron", label: "Bron", kind: "text" },
+      ],
+    },
+  ],
+  faq: [
+    { key: "eyebrow", label: "Label", kind: "text" },
+    { key: "titel", label: "Titel", kind: "text" },
+    { key: "lead", label: "Inleiding (optioneel)", kind: "textarea", rows: 2 },
+    {
+      key: "items", label: "Vragen", kind: "objectList", itemLabel: "Vraag",
+      fields: [
+        { key: "vraag", label: "Vraag", kind: "text" },
+        { key: "antwoord", label: "Antwoord", kind: "textarea", rows: 3 },
       ],
     },
   ],
