@@ -65,6 +65,21 @@ export default function AfsprakenAdmin() {
   // verzetten
   const [verzetId, setVerzetId] = useState<string | null>(null);
   const [verzetSlot, setVerzetSlot] = useState("");
+  // ingesloten boekpagina (voorbeeld)
+  const [formOpen, setFormOpen] = useState(false);
+  const [formKey, setFormKey] = useState(0);
+  const [formBezig, setFormBezig] = useState(false);
+
+  async function toonFormulier() {
+    setFormBezig(true);
+    try {
+      await previewLink(); // maakt/reset de voorbeeld-deelnemer
+      setFormOpen(true);
+      setFormKey((k) => k + 1);
+    } finally {
+      setFormBezig(false);
+    }
+  }
 
   async function bewaarConfig() {
     await setConfig({
@@ -90,13 +105,40 @@ export default function AfsprakenAdmin() {
           <h1 className="text-xl font-bold text-gray-900">Zij aan Zij afspraken</h1>
           <p className="text-sm text-gray-500">Beheer je tijden, deelnemers en gesprekken.</p>
         </div>
-        <button
-          onClick={async () => { const r: any = await previewLink(); window.open(r.link, "_blank"); }}
-          className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 flex items-center gap-1.5">
-          <CalendarDays size={15} /> Afspraak maken (bekijk boekpagina)
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toonFormulier}
+            disabled={formBezig}
+            className="px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 flex items-center gap-1.5 disabled:opacity-50">
+            <CalendarDays size={15} /> {formBezig ? "Bezig..." : formOpen ? "Ververs formulier" : "Bekijk boekformulier"}
+          </button>
+          <button
+            onClick={async () => { const r: any = await previewLink(); window.open(r.link, "_blank"); }}
+            className="px-3 py-2 border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50">
+            Nieuw tabblad
+          </button>
+        </div>
       </div>
-      <p className="text-xs text-gray-400 -mt-2">De knop opent de boekpagina zoals een deelnemer die ziet, met jouw huidige tijden. Je kunt er zelf een testafspraak in maken; die telt niet mee in je overzicht.</p>
+      <p className="text-xs text-gray-400 -mt-2">Het boekformulier zoals een deelnemer het ziet, met jouw huidige tijden. Je kunt er zelf een testafspraak in maken; die telt niet mee in je overzicht.</p>
+
+      {/* INGESLOTEN BOEKFORMULIER */}
+      {formOpen && (
+        <Kaart titel="Boekformulier (voorbeeld)">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm text-gray-500">Dit is precies wat een deelnemer ziet. Ververs om opnieuw als lege planning te starten.</p>
+            <button onClick={() => setFormOpen(false)} className="text-xs font-semibold text-gray-500 border border-gray-300 rounded-md px-2 py-1">Sluiten</button>
+          </div>
+          <div className="rounded-xl overflow-hidden border border-gray-200">
+            <iframe
+              key={formKey}
+              src="/plan/voorbeeld-test"
+              title="Boekformulier voorbeeld"
+              className="w-full"
+              style={{ height: 780, border: "none", background: "#ecefe9" }}
+            />
+          </div>
+        </Kaart>
+      )}
 
       {/* INSTELLINGEN */}
       <Kaart titel="Instellingen">

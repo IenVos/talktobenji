@@ -54,7 +54,7 @@ export default function PlanPage() {
         {data.videoRoomUrl && (
           <p className="mt-5 text-sm text-gray-600">We spreken elkaar op deze vaste videolink: <a href={data.videoRoomUrl} className="font-semibold" style={{ color: GROEN }}>{data.videoRoomUrl}</a></p>
         )}
-        <p className="mt-6 text-sm text-gray-500">Komt een moment toch niet uit? De verzet-link staat in je bevestigings- en herinneringsmail.</p>
+        <p className="mt-6 text-sm text-gray-500">Komt een moment toch niet uit? Laat het Ien weten, dan zoeken jullie samen een nieuwe tijd.</p>
       </Schil>
     );
   }
@@ -88,7 +88,7 @@ export default function PlanPage() {
     <Schil>
       <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: GROEN }}>Plan je gesprekken</p>
       <h1 className="text-3xl sm:text-4xl text-gray-900" style={{ fontFamily: SERIF }}>Kies één vast moment</h1>
-      <p className="mt-3 text-gray-600 max-w-xl">Fijn dat je er bent, {data.naam}. Kies je vaste tijd, dan plan ik in één keer al je gesprekken, verspreid over de acht weken. Verzetten kan later altijd.</p>
+      <p className="mt-3 text-gray-600 max-w-xl">Fijn dat je er bent, {data.naam}. Kies je vaste tijd, dan plan ik in één keer al je gesprekken, verspreid over de acht weken.</p>
 
       <div className="mt-7 bg-white border rounded-2xl p-6 sm:p-7" style={{ borderColor: "#d6ddd3" }}>
         <Stap n={1} titel="Wanneer schikt het je het beste?" />
@@ -134,7 +134,7 @@ export default function PlanPage() {
               className="mt-5 px-7 py-3 rounded-full text-white font-bold disabled:opacity-50" style={{ background: GROEN }}>
               {bezig ? "Bezig..." : "Zet deze gesprekken vast"}
             </button>
-            <p className="mt-2 text-sm text-gray-400">Je kunt elk gesprek later los verzetten.</p>
+            <p className="mt-2 text-sm text-gray-400">Komt een moment later toch niet uit? Laat het Ien weten, dan zoeken jullie samen een nieuwe tijd.</p>
           </div>
         )}
       </div>

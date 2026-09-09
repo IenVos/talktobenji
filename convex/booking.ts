@@ -410,9 +410,6 @@ export const cancelPublic = mutation({
 function wrapMail(inner: string): string {
   return `<div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;color:#212b24;background:#f4f6f1;padding:32px 24px;border-radius:14px">${inner}<p style="font-size:12px;color:#7c8a7f;margin-top:24px">Talk To Benji &middot; Zij aan Zij</p></div>`;
 }
-function knop(url: string, label: string): string {
-  return `<a href="${url}" style="display:inline-block;background:#4a7c59;color:#fff;text-decoration:none;font-weight:700;padding:12px 22px;border-radius:999px;font-size:15px">${label}</a>`;
-}
 function icsFor(afspraken: { index: number; datum: string; tijd: string; duurMin: number }[], naam: string, videoRoomUrl: string): string {
   const dt = (datum: string, tijd: string) => `${datum.replace(/-/g, "")}T${tijd.replace(":", "")}00`;
   const einde = (datum: string, tijd: string, dur: number) => {
@@ -521,7 +518,7 @@ export const runReminders = internalAction({
         <p style="font-size:17px;color:#212b24"><b>Morgen je gesprek</b></p>
         <p style="font-size:15px;line-height:1.7;color:#485349">Lieve ${a.clientNaam}, een klein seintje: morgen (${fmtNL(a.datum, a.tijd)}) hebben we gesprek ${a.index}.</p>
         ${video}
-        <p style="font-size:15px;line-height:1.7;color:#485349">Komt het toch niet uit? ${knop(`${SITE}/afspraak/${a.token}`, "Verzet je afspraak")}</p>
+        <p style="font-size:15px;line-height:1.7;color:#485349">Komt het toch niet uit? Laat het me even weten, dan zoeken we samen een nieuw moment.</p>
         <p style="font-size:15px;line-height:1.7;color:#485349">Tot morgen,<br>Ien</p>`;
       try {
         await verstuur({ to: a.clientEmail, subject: `Morgen je gesprek bij Zij aan Zij (${a.tijd})`, html: wrapMail(inner) });
