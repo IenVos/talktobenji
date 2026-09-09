@@ -94,14 +94,21 @@ export default function BenjiTeasersAdmin() {
   const [saving, setSaving] = useState(false);
   const [collapsedTypes, setCollapsedTypes] = useState<Set<string>>(new Set());
 
+  const scrollToForm = () => setTimeout(
+    () => document.getElementById("teaser-form")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    50,
+  );
+
   type TeaserDoc = { type: string; label: string; intro: string; themeKey: string; downloadTitel: string; bestandsnaam: string; buttonUrl?: string; buttonText?: string; featureText?: string; vragen: Vraag[] };
   const dbMap = new Map<string, TeaserDoc>((teasers ?? []).map((t: any) => [t.type, t as TeaserDoc]));
 
   function startNew() {
     setEditing({ ...EMPTY_FORM, vragen: EMPTY_FORM.vragen.map(v => ({ ...v })) });
+    scrollToForm();
   }
 
   function startEdit(type: string) {
+    scrollToForm();
     const db = dbMap.get(type);
     if (db) {
       setEditing({ type: db.type, label: db.label, intro: db.intro, themeKey: db.themeKey,
@@ -195,7 +202,7 @@ export default function BenjiTeasersAdmin() {
 
       {/* Bewerkingsformulier */}
       {editing && (
-        <div className="mb-8 bg-white border border-primary-200 rounded-2xl p-6 shadow-sm">
+        <div id="teaser-form" className="mb-8 bg-white border border-primary-200 rounded-2xl p-6 shadow-sm scroll-mt-4">
           <h2 className="text-base font-semibold text-gray-800 mb-5">
             {dbMap.has(editing.type) ? `Bewerken: ${editing.type}` : "Nieuwe teaser"}
           </h2>
