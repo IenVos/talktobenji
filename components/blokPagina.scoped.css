@@ -28,6 +28,8 @@
   .bpg strong{color:var(--ink);font-weight:600}
   .bpg a{color:var(--accent)}
   .bpg p,.bpg li,.bpg figcaption,.bpg .lead,.bpg .st-b,.bpg .in-b{text-wrap:pretty}
+  /* Enter in een tekstveld = regelafbreking; dubbele Enter = alinea-ruimte. */
+  .bpg p,.bpg li,.bpg blockquote{white-space:pre-line}
 
   .bpg /* Site header (logo top-left) */
   .site-head{padding:1.5rem 0 .3rem}
