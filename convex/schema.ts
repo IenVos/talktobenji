@@ -1530,4 +1530,30 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_client", ["clientId"]).index("by_token", ["token"]).index("by_datum", ["datum"]),
+
+  // ── Blok-gebaseerde landingspagina's (nieuw, herbruikbaar per verliestype) ──
+  // Eén pagina = geordende lijst blokken (blocksJson). Elk blok: { key, type,
+  // verborgen?, achtergrond?, ...typespecifieke velden }. Afbeeldingen in blokken
+  // zijn strings: een publiek pad ("/images/..") of "storage:<id>" (upload), die
+  // in getBySlug wordt omgezet naar een URL. Dupliceerbaar in de admin.
+  blokPaginas: defineTable({
+    slug: v.string(),                 // URL slug, bv. "zij-aan-zij"
+    naam: v.string(),                 // interne naam in admin
+    pageTitle: v.string(),            // browser-titel
+    verliestype: v.optional(v.string()),
+    gepubliceerd: v.boolean(),
+    metaDescription: v.optional(v.string()),
+    blocksJson: v.string(),           // geordende array van blokken
+    updatedAt: v.number(),
+  }).index("by_slug", ["slug"]),
+
+  // Intake-inzendingen per blok-pagina.
+  blokIntakes: defineTable({
+    paginaSlug: v.string(),
+    naam: v.string(),
+    email: v.string(),
+    veldenJson: v.string(),           // alle antwoorden als JSON
+    status: v.optional(v.string()),   // "nieuw" | "gelezen" | "gepland" | ...
+    createdAt: v.number(),
+  }).index("by_slug", ["paginaSlug"]),
 });
