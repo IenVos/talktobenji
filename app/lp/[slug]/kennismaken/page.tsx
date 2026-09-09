@@ -2,8 +2,47 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+
+// Formulier-inhoud per verliestype. De rest van de vragen is gedeeld.
+const GEDEELDE_LEDE = "Dit is geen inschrijving, maar een eerste kennismaking. Kosteloos en vrijblijvend. Ik lees alles zelf, en ik ben eerlijk: Zij aan Zij past niet bij iedereen, en dat is oke. Deze vragen helpen ons allebei om te voelen of het klopt.";
+
+type FormCfg = {
+  lede: string;
+  situatieLegend: string;
+  wieLabel: string; wieKey: string; wieOpties: string[];
+  wanneerLabel: string; wanneerKey: string; wanneerOpties: string[];
+  zwaarstLabel: string;
+};
+
+const FORMS: Record<string, FormCfg> = {
+  persoon: {
+    lede: GEDEELDE_LEDE,
+    situatieLegend: "Je verlies",
+    wieLabel: "Wie ben je verloren?", wieKey: "Wie verloren",
+    wieOpties: ["Mijn partner", "Mijn kind", "Mijn vader of moeder", "Een broer of zus", "Een ander familielid", "Een dierbare vriend(in)", "Iemand anders"],
+    wanneerLabel: "Hoe lang geleden?", wanneerKey: "Hoe lang geleden",
+    wanneerOpties: ["Korter dan 3 maanden", "3 tot 12 maanden", "1 tot 3 jaar", "Langer dan 3 jaar"],
+    zwaarstLabel: "Wat is op dit moment het zwaarst voor je?",
+  },
+  kinderloos: {
+    lede: GEDEELDE_LEDE,
+    situatieLegend: "Je situatie",
+    wieLabel: "Wat past het beste bij jouw situatie?", wieKey: "Situatie",
+    wieOpties: [
+      "We hebben het lang geprobeerd, het is niet gelukt",
+      "Om medische redenen kan het niet (meer)",
+      "Geen partner om het mee te doen",
+      "Ik heb een zwangerschap of kindje verloren",
+      "Mijn kinderwens is onvervuld gebleven",
+      "Anders",
+    ],
+    wanneerLabel: "Hoe lang draag je dit al?", wanneerKey: "Hoe lang al",
+    wanneerOpties: ["Korter dan 3 maanden", "3 tot 12 maanden", "1 tot 3 jaar", "Langer dan 3 jaar"],
+    zwaarstLabel: "Wat is op dit moment het zwaarst voor je?",
+  },
+};
 
 const CSS = `
 .kmk{--ground:#ecefe9;--surface:#fff;--ink:#212b24;--ink-soft:#485349;--muted:#7c8a7f;--line:#d6ddd3;--accent:#4a7c59;--accent-strong:#3b6448;--accent-wash:#e5efe7;--warn:#a8442f;--warn-wash:#f6e7e2;--serif:"Spectral",Georgia,serif;--sans:"Mulish",system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
@@ -73,6 +112,8 @@ export default function KennismakenPage() {
   const params = useParams<{ slug: string }>();
   const slug = (params?.slug as string) ?? "";
   const verstuur = useMutation(api.blokPaginas.verstuurIntake);
+  const meta = useQuery(api.blokPaginas.intakeMeta, slug ? { slug } : "skip");
+  const cfg = FORMS[meta?.verliestype ?? ""] ?? FORMS.persoon;
   const [f, setF] = useState({ ...LEEG });
   const [bezig, setBezig] = useState(false);
   const [klaar, setKlaar] = useState(false);
@@ -88,8 +129,8 @@ export default function KennismakenPage() {
     try {
       const velden: Record<string, string> = {
         "Telefoon": f.tel,
-        "Wie verloren": f.wie,
-        "Hoe lang geleden": f.wanneer,
+        [cfg.wieKey]: f.wie,
+        [cfg.wanneerKey]: f.wanneer,
         "Wat is nu het zwaarst": f.zwaarst,
         "Wat hoop je dat de 8 weken brengen": f.hoop,
         "Waarom nu": f.waarom,
@@ -169,25 +210,25 @@ export default function KennismakenPage() {
             </fieldset>
 
             <fieldset>
-              <legend><span className="eyebrow">Je verlies</span></legend>
+              <legend><span className="eyebrow">{cfg.situatieLegend}</span></legend>
               <div className="grid2">
                 <div className="field">
-                  <label className="q" htmlFor="wie">Wie ben je verloren?</label>
+                  <label className="q" htmlFor="wie">{cfg.wieLabel}</label>
                   <select id="wie" required value={f.wie} onChange={(e) => set("wie", e.target.value)}>
                     <option value="" disabled>Kies wat past</option>
-                    {["Mijn partner", "Mijn kind", "Mijn vader of moeder", "Een broer of zus", "Een ander familielid", "Een dierbare vriend(in)", "Iemand anders"].map((o) => <option key={o}>{o}</option>)}
+                    {cfg.wieOpties.map((o) => <option key={o}>{o}</option>)}
                   </select>
                 </div>
                 <div className="field">
-                  <label className="q" htmlFor="wanneer">Hoe lang geleden?</label>
+                  <label className="q" htmlFor="wanneer">{cfg.wanneerLabel}</label>
                   <select id="wanneer" required value={f.wanneer} onChange={(e) => set("wanneer", e.target.value)}>
                     <option value="" disabled>Kies wat past</option>
-                    {["Korter dan 3 maanden", "3 tot 12 maanden", "1 tot 3 jaar", "Langer dan 3 jaar"].map((o) => <option key={o}>{o}</option>)}
+                    {cfg.wanneerOpties.map((o) => <option key={o}>{o}</option>)}
                   </select>
                 </div>
               </div>
               <div className="field">
-                <label className="q" htmlFor="zwaarst">Wat is op dit moment het zwaarst voor je?</label>
+                <label className="q" htmlFor="zwaarst">{cfg.zwaarstLabel}</label>
                 <p className="sub">In je eigen woorden. Een paar zinnen is genoeg, je hoeft het niet mooi te maken.</p>
                 <textarea id="zwaarst" required value={f.zwaarst} onChange={(e) => set("zwaarst", e.target.value)} />
               </div>
