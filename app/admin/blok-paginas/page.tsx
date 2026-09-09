@@ -5,8 +5,9 @@ import { useAdminQuery, useAdminMutation } from "../AdminAuthContext";
 import { api } from "@/convex/_generated/api";
 import {
   Layers, Plus, Edit, Trash2, Save, X, Copy, Eye, EyeOff, ExternalLink,
-  ChevronUp, ChevronDown, ArrowLeft, Upload, Image as ImageIcon,
+  ChevronUp, ChevronDown, ArrowLeft, Upload, Image as ImageIcon, Monitor,
 } from "lucide-react";
+import BlokPaginaView from "@/components/BlokPaginaView";
 import {
   BLOCK_SCHEMAS, BLOCK_LABELS, BLOCK_TYPES, ACHTERGROND_OPTIES,
   HEEFT_ACHTERGROND, leegBlok, type Field,
@@ -358,6 +359,7 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
   const [nieuwType, setNieuwType] = useState<string>(BLOCK_TYPES[0]);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string>("");
+  const [preview, setPreview] = useState(false);
 
   // Data in state laden zodra beschikbaar (één keer).
   const ready = data !== undefined;
@@ -386,6 +388,21 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
       return value;
     },
     [localPreviews, data]
+  );
+
+  // Diep de "storage:<id>"-strings in de blokken vervangen door URLs, voor de voorbeeldweergave.
+  const resolveBlocks = useCallback(
+    (value: any): any => {
+      if (typeof value === "string") return value.startsWith("storage:") ? resolveImage(value) : value;
+      if (Array.isArray(value)) return value.map(resolveBlocks);
+      if (value && typeof value === "object") {
+        const o: any = {};
+        for (const k of Object.keys(value)) o[k] = resolveBlocks(value[k]);
+        return o;
+      }
+      return value;
+    },
+    [resolveImage]
   );
 
   const uploadImage = useCallback(
@@ -450,6 +467,21 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
 
   const setF = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
 
+  if (preview) {
+    const zichtbaar = blocks.filter((b) => b && !b.verborgen);
+    return (
+      <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
+        <div className="sticky top-0 z-10 flex items-center justify-between bg-gray-900 text-white px-4 py-2 text-sm">
+          <span className="font-medium">Voorbeeld · {form.naam} {form.gepubliceerd ? "" : "(concept)"}</span>
+          <button onClick={() => setPreview(false)} className="flex items-center gap-1.5 hover:text-gray-300">
+            <X size={16} /> Sluiten
+          </button>
+        </div>
+        <BlokPaginaView blocks={resolveBlocks(zichtbaar)} slug={form.slug} />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-3xl mx-auto pb-24">
       {/* Kop */}
@@ -459,6 +491,10 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
         </button>
         <div className="flex items-center gap-3">
           {msg && <span className={`text-sm ${msg.startsWith("Fout") ? "text-red-600" : "text-green-600"}`}>{msg}</span>}
+          <button onClick={() => setPreview(true)}
+            className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 text-sm">
+            <Monitor size={15} /> Voorbeeld
+          </button>
           <a href={`/lp/${form.slug}`} target="_blank" rel="noreferrer"
             className="flex items-center gap-1.5 text-gray-600 hover:text-gray-900 text-sm">
             <ExternalLink size={15} /> Bekijken
