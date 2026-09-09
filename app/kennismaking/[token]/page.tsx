@@ -60,13 +60,17 @@ export default function KennismakingPage() {
         <div className="space-y-2">
           {data.opties.map((o: any, i: number) => {
             const actief = gekozen?.datum === o.datum && gekozen?.tijd === o.tijd;
+            const bezet = !!o.bezet;
             return (
-              <button key={i} onClick={() => setGekozen({ datum: o.datum, tijd: o.tijd })}
-                className="w-full text-left rounded-xl px-4 py-3 border font-semibold transition-colors"
-                style={actief
+              <button key={i} disabled={bezet} onClick={() => setGekozen({ datum: o.datum, tijd: o.tijd })}
+                className="w-full text-left rounded-xl px-4 py-3 border font-semibold transition-colors flex items-center justify-between"
+                style={bezet
+                  ? { background: "#f4f6f1", borderColor: "#e5eae1", color: "#a7b0a8", cursor: "not-allowed" }
+                  : actief
                   ? { background: GROEN, borderColor: GROEN, color: "#fff" }
                   : { background: "#fff", borderColor: "#d6ddd3", color: "#212b24" }}>
-                {fmt(o.datum, o.tijd)}
+                <span>{fmt(o.datum, o.tijd)}</span>
+                {bezet && <span className="text-xs font-semibold">bezet</span>}
               </button>
             );
           })}

@@ -117,16 +117,33 @@ export const sendInvite = mutation({
   },
 });
 
+// Alle al bezette momenten ("datum|tijd"): andere geplande kennismakingen +
+// reeks-afspraken (gepland/verzet). Zo kan één moment nooit dubbel geboekt worden.
+async function bezetteMomenten(ctx: any, excludeKmId?: any): Promise<Set<string>> {
+  const bezet = new Set<string>();
+  const kms = await ctx.db.query("kennismakingen").collect();
+  for (const km of kms) {
+    if (excludeKmId && km._id === excludeKmId) continue;
+    if (km.status === "gepland" && km.gekozenDatum && km.gekozenTijd) bezet.add(`${km.gekozenDatum}|${km.gekozenTijd}`);
+  }
+  const appts = await ctx.db.query("appointments").collect();
+  for (const a of appts) {
+    if (a.status === "gepland" || a.status === "verzet") bezet.add(`${a.datum}|${a.tijd}`);
+  }
+  return bezet;
+}
+
 // ─── PUBLIEK ──────────────────────────────────────────────────────────────────
 export const getByToken = query({
   args: { token: v.string() },
   handler: async (ctx, { token }) => {
     const k = await ctx.db.query("kennismakingen").withIndex("by_token", (q) => q.eq("token", token)).first();
     if (!k) return null;
+    const bezet = await bezetteMomenten(ctx, k._id);
     return {
       naam: k.naam,
       status: k.status,
-      opties: parseOpties(k.optiesJson),
+      opties: parseOpties(k.optiesJson).map((o) => ({ ...o, bezet: bezet.has(`${o.datum}|${o.tijd}`) })),
       gekozenDatum: k.gekozenDatum ?? null,
       gekozenTijd: k.gekozenTijd ?? null,
       duurMin: k.duurMin ?? DEF_DUUR,
@@ -144,6 +161,11 @@ export const kies = mutation({
     const opties = parseOpties(k.optiesJson);
     if (!opties.some((o) => o.datum === args.datum && o.tijd === args.tijd)) {
       throw new Error("Kies een van de voorgestelde momenten.");
+    }
+    // Harde blokkade tegen dubbelboeken: is dit moment al bezet?
+    const bezet = await bezetteMomenten(ctx, k._id);
+    if (bezet.has(`${args.datum}|${args.tijd}`)) {
+      throw new Error("Dat moment is net bezet, kies een ander.");
     }
     const video = await videoUrl(ctx);
     await ctx.db.patch(k._id, {

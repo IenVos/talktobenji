@@ -80,6 +80,11 @@ async function computeOpenSlots(
     if (opts.excludeApptId && a._id === opts.excludeApptId) continue;
     if (a.status === "gepland" || a.status === "verzet") taken.add(`${a.datum}|${a.tijd}`);
   }
+  // Geplande kennismakingsgesprekken tellen ook als bezet.
+  const kms = await ctx.db.query("kennismakingen").collect();
+  for (const km of kms) {
+    if (km.status === "gepland" && km.gekozenDatum && km.gekozenTijd) taken.add(`${km.gekozenDatum}|${km.gekozenTijd}`);
+  }
 
   const out: { datum: string; tijd: string; weekday: number }[] = [];
   for (let i = 0; i < opts.dagen; i++) {
@@ -331,6 +336,10 @@ export const bookSeries = mutation({
     const blocks = new Set((await ctx.db.query("bookingBlocks").collect()).map((b) => b.datum));
     const alleAppts = await ctx.db.query("appointments").collect();
     const taken = new Set(alleAppts.filter((a) => a.status === "gepland" || a.status === "verzet").map((a) => `${a.datum}|${a.tijd}`));
+    // Geplande kennismakingsgesprekken tellen ook als bezet.
+    for (const km of await ctx.db.query("kennismakingen").collect()) {
+      if (km.status === "gepland" && km.gekozenDatum && km.gekozenTijd) taken.add(`${km.gekozenDatum}|${km.gekozenTijd}`);
+    }
 
     const gemaakt: { index: number; datum: string; tijd: string; duurMin: number }[] = [];
     for (let i = 0; i < config.aantalGesprekken; i++) {
