@@ -1572,4 +1572,11 @@ export default defineSchema({
     status: v.optional(v.string()),   // "nieuw" | "gelezen" | "gepland" | ...
     createdAt: v.number(),
   }).index("by_slug", ["paginaSlug"]),
+
+  // Admin-bewerkbare intake-formulierteksten per verliestype (defaults in code).
+  intakeFormulieren: defineTable({
+    verliestype: v.string(),          // "persoon" | "kinderloos" | ...
+    configJson: v.string(),           // volledige IntakeConfig als JSON
+    updatedAt: v.number(),
+  }).index("by_verliestype", ["verliestype"]),
 });

@@ -4,45 +4,7 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-
-// Formulier-inhoud per verliestype. De rest van de vragen is gedeeld.
-const GEDEELDE_LEDE = "Dit is geen inschrijving, maar een eerste kennismaking. Kosteloos en vrijblijvend. Ik lees alles zelf, en ik ben eerlijk: Zij aan Zij past niet bij iedereen, en dat is oke. Deze vragen helpen ons allebei om te voelen of het klopt.";
-
-type FormCfg = {
-  lede: string;
-  situatieLegend: string;
-  wieLabel: string; wieKey: string; wieOpties: string[];
-  wanneerLabel: string; wanneerKey: string; wanneerOpties: string[];
-  zwaarstLabel: string;
-};
-
-const FORMS: Record<string, FormCfg> = {
-  persoon: {
-    lede: GEDEELDE_LEDE,
-    situatieLegend: "Je verlies",
-    wieLabel: "Wie ben je verloren?", wieKey: "Wie verloren",
-    wieOpties: ["Mijn partner", "Mijn kind", "Mijn vader of moeder", "Een broer of zus", "Een ander familielid", "Een dierbare vriend(in)", "Iemand anders"],
-    wanneerLabel: "Hoe lang geleden?", wanneerKey: "Hoe lang geleden",
-    wanneerOpties: ["Korter dan 3 maanden", "3 tot 12 maanden", "1 tot 3 jaar", "Langer dan 3 jaar"],
-    zwaarstLabel: "Wat is op dit moment het zwaarst voor je?",
-  },
-  kinderloos: {
-    lede: GEDEELDE_LEDE,
-    situatieLegend: "Je situatie",
-    wieLabel: "Wat past het beste bij jouw situatie?", wieKey: "Situatie",
-    wieOpties: [
-      "We hebben het lang geprobeerd, het is niet gelukt",
-      "Om medische redenen kan het niet (meer)",
-      "Geen partner om het mee te doen",
-      "Ik heb een zwangerschap of kindje verloren",
-      "Mijn kinderwens is onvervuld gebleven",
-      "Anders",
-    ],
-    wanneerLabel: "Hoe lang draag je dit al?", wanneerKey: "Hoe lang al",
-    wanneerOpties: ["Korter dan 3 maanden", "3 tot 12 maanden", "1 tot 3 jaar", "Langer dan 3 jaar"],
-    zwaarstLabel: "Wat is op dit moment het zwaarst voor je?",
-  },
-};
+import { mergeIntake, type IntakeConfig } from "@/components/intakeDefaults";
 
 const CSS = `
 .kmk{--ground:#ecefe9;--surface:#fff;--ink:#212b24;--ink-soft:#485349;--muted:#7c8a7f;--line:#d6ddd3;--accent:#4a7c59;--accent-strong:#3b6448;--accent-wash:#e5efe7;--warn:#a8442f;--warn-wash:#f6e7e2;--serif:"Spectral",Georgia,serif;--sans:"Mulish",system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
@@ -102,54 +64,79 @@ const CSS = `
 .kmk footer p{font-size:.86rem;color:var(--muted);margin:0}
 `;
 
-const LEEG = {
-  naam: "", email: "", tel: "", wie: "", wanneer: "", zwaarst: "", hoop: "", waarom: "",
-  safety: "", hulp: "", akkoord_therapie: false, akkoord_ien: false, akkoord_benji: false,
-  budget: "", extra: "",
-};
+/* **vet** → <b> */
+function Bold({ text }: { text: string }) {
+  const parts = (text || "").split(/\*\*/);
+  return <>{parts.map((p, i) => (i % 2 === 1 ? <b key={i}>{p}</b> : <span key={i}>{p}</span>))}</>;
+}
 
 export default function KennismakenPage() {
   const params = useParams<{ slug: string }>();
   const slug = (params?.slug as string) ?? "";
   const verstuur = useMutation(api.blokPaginas.verstuurIntake);
-  const meta = useQuery(api.blokPaginas.intakeMeta, slug ? { slug } : "skip");
-  const cfg = FORMS[meta?.verliestype ?? ""] ?? FORMS.persoon;
-  const [f, setF] = useState({ ...LEEG });
+  const form = useQuery(api.blokPaginas.getIntakeForm, slug ? { slug } : "skip");
+
+  const [naam, setNaam] = useState("");
+  const [email, setEmail] = useState("");
+  const [tel, setTel] = useState("");
+  const [wie, setWie] = useState("");
+  const [wanneer, setWanneer] = useState("");
+  const [zwaarst, setZwaarst] = useState("");
+  const [hoop, setHoop] = useState("");
+  const [waarom, setWaarom] = useState("");
+  const [safety, setSafety] = useState("");
+  const [hulp, setHulp] = useState("");
+  const [budget, setBudget] = useState("");
+  const [akkoord, setAkkoord] = useState<Record<number, boolean>>({});
+  const [extra, setExtra] = useState("");
   const [bezig, setBezig] = useState(false);
   const [klaar, setKlaar] = useState(false);
   const [fout, setFout] = useState("");
 
-  const set = (k: keyof typeof LEEG, v: any) => setF((s) => ({ ...s, [k]: v }));
-  const toonCrisis = f.safety === "soms" || f.safety === "acuut";
+  // Config uit Convex (opgeslagen), samengevoegd met defaults.
+  let cfg: IntakeConfig | null = null;
+  if (form !== undefined) {
+    let opgeslagen: Partial<IntakeConfig> | null = null;
+    if (form?.config) { try { opgeslagen = JSON.parse(form.config); } catch { opgeslagen = null; } }
+    cfg = mergeIntake(form?.verliestype ?? "", opgeslagen);
+  }
+  if (!cfg) {
+    return (
+      <div className="kmk">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Mulish:wght@400;500;600;700;800&display=swap" />
+        <style dangerouslySetInnerHTML={{ __html: CSS }} />
+        <div className="wrap"><div className="top"><p style={{ color: "#7c8a7f" }}>Even laden...</p></div></div>
+      </div>
+    );
+  }
+
+  const safetyIndex = cfg.veiligheidOpties.indexOf(safety);
+  const toonCrisis = safetyIndex >= 1;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!(e.currentTarget as HTMLFormElement).reportValidity()) return;
+    const c = cfg!;
     setFout("");
     setBezig(true);
     try {
+      const gekozenAkkoord = c.akkoordItems
+        .filter((_, i) => akkoord[i])
+        .map((t) => t.replace(/\*\*/g, ""));
       const velden: Record<string, string> = {
-        "Telefoon": f.tel,
-        [cfg.wieKey]: f.wie,
-        [cfg.wanneerKey]: f.wanneer,
-        "Wat is nu het zwaarst": f.zwaarst,
-        "Wat hoop je dat de 8 weken brengen": f.hoop,
-        "Waarom nu": f.waarom,
-        "Hoe gaat het echt": f.safety,
-        "Professionele hulp": f.hulp,
-        "Begrijpt wat het wel/niet is": [
-          f.akkoord_therapie ? "geen therapie/crisishulp" : "",
-          f.akkoord_ien ? "Ien niet dag en nacht" : "",
-          f.akkoord_benji ? "oke met Benji (AI)" : "",
-        ].filter(Boolean).join(" · "),
-        "Investering €425 past": f.budget,
-        "Nog vooraf te weten": f.extra,
+        "Telefoon": tel,
+        [c.wieLabel]: wie,
+        [c.wanneerLabel]: wanneer,
+        [c.zwaarstLabel]: zwaarst,
+        [c.hoopLabel]: hoop,
+        [c.waaromLabel]: waarom,
+        [c.veiligheidLabel]: safety,
+        [c.hulpLabel]: hulp,
+        [c.akkoordLabel]: gekozenAkkoord.join(" · "),
+        [c.budgetLabel]: budget,
+        [c.extraLabel]: extra,
       };
-      await verstuur({
-        paginaSlug: slug,
-        naam: f.naam.trim(),
-        email: f.email.trim(),
-        veldenJson: JSON.stringify(velden),
-      });
+      await verstuur({ paginaSlug: slug, naam: naam.trim(), email: email.trim(), veldenJson: JSON.stringify(velden) });
       setKlaar(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
@@ -176,15 +163,15 @@ export default function KennismakenPage() {
               <div className="mark">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
               </div>
-              <h2>Dank je wel. Het is bij me binnen.</h2>
-              <p>Ik lees je bericht zelf, rustig, en neem binnen twee werkdagen contact met je op. Je hebt ook een bevestiging in je mail gekregen.</p>
-              <p>Mocht het tot die tijd zwaar worden: Benji is er dag en nacht.</p>
+              <h2>{cfg.dankTitel}</h2>
+              <p>{cfg.dankTekst1}</p>
+              {cfg.dankTekst2 && <p>{cfg.dankTekst2}</p>}
             </div>
           ) : (
             <>
-              <span className="eyebrow" style={{ display: "block", marginBottom: ".8rem" }}>Even kennismaken</span>
-              <h1>Vertel me kort wie je bent</h1>
-              <p className="lede">Dit is geen inschrijving, maar een eerste kennismaking. <b>Kosteloos en vrijblijvend.</b> Ik lees alles zelf, en ik ben eerlijk: Zij aan Zij past niet bij iedereen, en dat is oke. Deze vragen helpen ons allebei om te voelen of het klopt.</p>
+              <span className="eyebrow" style={{ display: "block", marginBottom: ".8rem" }}>{cfg.eyebrow}</span>
+              <h1>{cfg.titel}</h1>
+              <p className="lede"><Bold text={cfg.lede} /></p>
             </>
           )}
         </div>
@@ -196,16 +183,16 @@ export default function KennismakenPage() {
               <div className="grid2">
                 <div className="field">
                   <label className="q" htmlFor="naam">Je naam</label>
-                  <input type="text" id="naam" required autoComplete="name" value={f.naam} onChange={(e) => set("naam", e.target.value)} />
+                  <input type="text" id="naam" required autoComplete="name" value={naam} onChange={(e) => setNaam(e.target.value)} />
                 </div>
                 <div className="field">
                   <label className="q" htmlFor="email">E-mailadres</label>
-                  <input type="email" id="email" required autoComplete="email" value={f.email} onChange={(e) => set("email", e.target.value)} />
+                  <input type="email" id="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </div>
               </div>
               <div className="field">
                 <label className="q" htmlFor="tel">Telefoonnummer <span className="opt">(optioneel)</span></label>
-                <input type="tel" id="tel" autoComplete="tel" value={f.tel} onChange={(e) => set("tel", e.target.value)} />
+                <input type="tel" id="tel" autoComplete="tel" value={tel} onChange={(e) => setTel(e.target.value)} />
               </div>
             </fieldset>
 
@@ -214,14 +201,14 @@ export default function KennismakenPage() {
               <div className="grid2">
                 <div className="field">
                   <label className="q" htmlFor="wie">{cfg.wieLabel}</label>
-                  <select id="wie" required value={f.wie} onChange={(e) => set("wie", e.target.value)}>
+                  <select id="wie" required value={wie} onChange={(e) => setWie(e.target.value)}>
                     <option value="" disabled>Kies wat past</option>
                     {cfg.wieOpties.map((o) => <option key={o}>{o}</option>)}
                   </select>
                 </div>
                 <div className="field">
                   <label className="q" htmlFor="wanneer">{cfg.wanneerLabel}</label>
-                  <select id="wanneer" required value={f.wanneer} onChange={(e) => set("wanneer", e.target.value)}>
+                  <select id="wanneer" required value={wanneer} onChange={(e) => setWanneer(e.target.value)}>
                     <option value="" disabled>Kies wat past</option>
                     {cfg.wanneerOpties.map((o) => <option key={o}>{o}</option>)}
                   </select>
@@ -229,98 +216,94 @@ export default function KennismakenPage() {
               </div>
               <div className="field">
                 <label className="q" htmlFor="zwaarst">{cfg.zwaarstLabel}</label>
-                <p className="sub">In je eigen woorden. Een paar zinnen is genoeg, je hoeft het niet mooi te maken.</p>
-                <textarea id="zwaarst" required value={f.zwaarst} onChange={(e) => set("zwaarst", e.target.value)} />
+                <p className="sub">{cfg.zwaarstSub}</p>
+                <textarea id="zwaarst" required value={zwaarst} onChange={(e) => setZwaarst(e.target.value)} />
               </div>
             </fieldset>
 
             <fieldset>
-              <legend><span className="eyebrow">Wat je zoekt</span></legend>
+              <legend><span className="eyebrow">{cfg.zoektLegend}</span></legend>
               <div className="field">
-                <label className="q" htmlFor="hoop">Wat hoop je dat deze acht weken je brengen?</label>
-                <p className="sub">Er is geen goed antwoord. Ik wil vooral weten wat je verwacht.</p>
-                <textarea id="hoop" required value={f.hoop} onChange={(e) => set("hoop", e.target.value)} />
+                <label className="q" htmlFor="hoop">{cfg.hoopLabel}</label>
+                <p className="sub">{cfg.hoopSub}</p>
+                <textarea id="hoop" required value={hoop} onChange={(e) => setHoop(e.target.value)} />
               </div>
               <div className="field">
-                <label className="q" htmlFor="waarom">Waarom nu? <span className="opt">(optioneel)</span></label>
-                <p className="sub">Is er iets dat maakt dat je juist op dit moment de stap zet?</p>
-                <textarea id="waarom" value={f.waarom} onChange={(e) => set("waarom", e.target.value)} />
+                <label className="q" htmlFor="waarom">{cfg.waaromLabel} <span className="opt">(optioneel)</span></label>
+                <p className="sub">{cfg.waaromSub}</p>
+                <textarea id="waarom" value={waarom} onChange={(e) => setWaarom(e.target.value)} />
               </div>
             </fieldset>
 
             <fieldset>
               <legend>
-                <span className="eyebrow">Belangrijk, voor jou en voor mij</span>
-                <span className="hint">Zodat we allebei weten waar we aan toe zijn.</span>
+                <span className="eyebrow">{cfg.belangrijkLegend}</span>
+                <span className="hint">{cfg.belangrijkHint}</span>
               </legend>
 
               <div className="field">
-                <label className="q">Hoe gaat het op dit moment echt met je?</label>
-                <p className="sub">Ik vraag dit serieus, omdat Zij aan Zij geen crisishulp is. Je antwoord verandert niks aan of je welkom bent.</p>
+                <label className="q">{cfg.veiligheidLabel}</label>
+                <p className="sub">{cfg.veiligheidSub}</p>
                 <div className="choices">
-                  {[
-                    { v: "stabiel", t: "Ik heb verdriet, maar ik ben veilig bij mezelf." },
-                    { v: "soms", t: "Ik heb soms donkere gedachten, maar niet acuut." },
-                    { v: "acuut", t: "Ik denk er soms aan om er niet meer te zijn." },
-                  ].map((o) => (
-                    <label className="choice" key={o.v}><input type="radio" name="safety" required checked={f.safety === o.v} onChange={() => set("safety", o.v)} /><span>{o.t}</span></label>
+                  {cfg.veiligheidOpties.map((o) => (
+                    <label className="choice" key={o}><input type="radio" name="safety" required checked={safety === o} onChange={() => setSafety(o)} /><span>{o}</span></label>
                   ))}
                 </div>
                 {toonCrisis && (
                   <div className="crisis">
-                    <b>Fijn dat je dit eerlijk deelt.</b>
-                    <p>Dit bespreken we samen in het kennismakingsgesprek, en ik denk met je mee over wat je op dit moment het beste kan helpen. Je bent hier welkom.</p>
+                    <b>{cfg.crisisTitel}</b>
+                    <p>{cfg.crisisTekst}</p>
                   </div>
                 )}
               </div>
 
               <div className="field">
-                <label className="q">Krijg je op dit moment professionele hulp?</label>
-                <p className="sub">Bijvoorbeeld van je huisarts, een psycholoog of therapeut.</p>
+                <label className="q">{cfg.hulpLabel}</label>
+                <p className="sub">{cfg.hulpSub}</p>
                 <div className="choices">
-                  {[{ v: "nee", t: "Nee" }, { v: "ja", t: "Ja" }, { v: "ooit", t: "Niet nu, wel eerder gehad" }].map((o) => (
-                    <label className="choice" key={o.v}><input type="radio" name="hulp" required checked={f.hulp === o.v} onChange={() => set("hulp", o.v)} /><span>{o.t}</span></label>
+                  {cfg.hulpOpties.map((o) => (
+                    <label className="choice" key={o}><input type="radio" name="hulp" required checked={hulp === o} onChange={() => setHulp(o)} /><span>{o}</span></label>
                   ))}
                 </div>
               </div>
 
               <div className="field agree">
-                <label className="q">Weet je wat Zij aan Zij wel en niet is?</label>
+                <label className="q">{cfg.akkoordLabel}</label>
                 <div className="choices">
-                  <label className="choice"><input type="checkbox" required checked={f.akkoord_therapie} onChange={(e) => set("akkoord_therapie", e.target.checked)} /><span>Ik begrijp dat dit <b>geen therapie of crisishulp</b> is.</span></label>
-                  <label className="choice"><input type="checkbox" required checked={f.akkoord_ien} onChange={(e) => set("akkoord_ien", e.target.checked)} /><span>Ik weet dat <b>Ien er niet dag en nacht is</b>, en dat Benji dat deel opvangt.</span></label>
-                  <label className="choice"><input type="checkbox" required checked={f.akkoord_benji} onChange={(e) => set("akkoord_benji", e.target.checked)} /><span>Ik ben oke met <b>chatten met Benji</b> (AI) tussen de gesprekken door.</span></label>
+                  {cfg.akkoordItems.map((o, i) => (
+                    <label className="choice" key={i}><input type="checkbox" required checked={!!akkoord[i]} onChange={(e) => setAkkoord((s) => ({ ...s, [i]: e.target.checked }))} /><span><Bold text={o} /></span></label>
+                  ))}
                 </div>
               </div>
 
               <div className="field">
-                <label className="q">De investering is &euro;425 voor acht weken. Past dat bij je?</label>
+                <label className="q">{cfg.budgetLabel}</label>
                 <div className="choices">
-                  {[{ v: "ja", t: "Ja, dat is duidelijk." }, { v: "overleg", t: "Ik wil er graag eerst even over praten." }].map((o) => (
-                    <label className="choice" key={o.v}><input type="radio" name="budget" required checked={f.budget === o.v} onChange={() => set("budget", o.v)} /><span>{o.t}</span></label>
+                  {cfg.budgetOpties.map((o) => (
+                    <label className="choice" key={o}><input type="radio" name="budget" required checked={budget === o} onChange={() => setBudget(o)} /><span>{o}</span></label>
                   ))}
                 </div>
               </div>
             </fieldset>
 
             <fieldset>
-              <legend><span className="eyebrow">Tot slot</span></legend>
+              <legend><span className="eyebrow">{cfg.slotLegend}</span></legend>
               <div className="field">
-                <label className="q" htmlFor="extra">Is er iets wat ik vooraf zou moeten weten? <span className="opt">(optioneel)</span></label>
-                <textarea id="extra" value={f.extra} onChange={(e) => set("extra", e.target.value)} />
+                <label className="q" htmlFor="extra">{cfg.extraLabel} <span className="opt">(optioneel)</span></label>
+                <textarea id="extra" value={extra} onChange={(e) => setExtra(e.target.value)} />
               </div>
             </fieldset>
 
             <div className="send">
-              <button className="btn" type="submit" disabled={bezig}>{bezig ? "Versturen..." : "Versturen naar Ien"}</button>
+              <button className="btn" type="submit" disabled={bezig}>{bezig ? "Versturen..." : cfg.submitTekst}</button>
               {fout && <p className="foutmelding">{fout}</p>}
-              <p className="note">Ik lees je bericht zelf en neem binnen twee werkdagen contact met je op. Je krijgt zo een bevestiging in je mail.</p>
+              <p className="note">{cfg.noteTekst}</p>
             </div>
           </form>
         )}
 
         <footer>
-          <p>Ik lees je bericht zelf, rustig. Je zit nergens aan vast.</p>
+          <p>{cfg.footer}</p>
         </footer>
       </div>
     </div>

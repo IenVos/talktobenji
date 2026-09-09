@@ -139,6 +139,48 @@ export const intakeMeta = query({
   },
 });
 
+// Publiek: verliestype + opgeslagen intake-config (of null) voor een slug.
+export const getIntakeForm = query({
+  args: { slug: v.string() },
+  handler: async (ctx, { slug }) => {
+    const p = await ctx.db
+      .query("blokPaginas")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    const verliestype = p?.verliestype ?? "";
+    const rec = verliestype
+      ? await ctx.db.query("intakeFormulieren").withIndex("by_verliestype", (q) => q.eq("verliestype", verliestype)).first()
+      : null;
+    return { verliestype, config: rec?.configJson ?? null };
+  },
+});
+
+// Admin: opgeslagen config (of null) voor een verliestype.
+export const getIntakeFormAdmin = query({
+  args: { adminToken: v.string(), verliestype: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const rec = await ctx.db
+      .query("intakeFormulieren")
+      .withIndex("by_verliestype", (q) => q.eq("verliestype", args.verliestype))
+      .first();
+    return rec?.configJson ?? null;
+  },
+});
+
+export const saveIntakeForm = mutation({
+  args: { adminToken: v.string(), verliestype: v.string(), configJson: v.string() },
+  handler: async (ctx, args) => {
+    await checkAdmin(ctx, args.adminToken);
+    const rec = await ctx.db
+      .query("intakeFormulieren")
+      .withIndex("by_verliestype", (q) => q.eq("verliestype", args.verliestype))
+      .first();
+    if (rec) await ctx.db.patch(rec._id, { configJson: args.configJson, updatedAt: Date.now() });
+    else await ctx.db.insert("intakeFormulieren", { verliestype: args.verliestype, configJson: args.configJson, updatedAt: Date.now() });
+  },
+});
+
 // ── Opslaan ────────────────────────────────────────────────────────────
 export const save = mutation({
   args: {
