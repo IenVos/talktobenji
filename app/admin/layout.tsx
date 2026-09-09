@@ -250,7 +250,6 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         items: [
           { href: "/admin/checkout", label: "Producten", icon: CreditCard },
           { href: "/admin/landingspaginas", label: "Landingspagina's", icon: LayoutTemplate },
-          { href: "/admin/blok-paginas", label: "Blok-pagina's", icon: Layers },
           { href: "/admin/trial-emails", label: "E-mails", icon: Mail },
           { href: "/admin/niet-alleen-emails", label: "Niet Alleen emails", icon: Mail },
           { href: "/admin/cadeaucodes", label: "Cadeaucodes", icon: GiftCodeIcon },
@@ -310,6 +309,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         label: "Zij aan Zij",
         icon: CalendarDays,
         items: [
+          { href: "/admin/blok-paginas", label: "Landingspagina", icon: Layers },
           { href: "/admin/afspraken", label: "Afspraken & kalender", icon: CalendarDays },
           { href: "/admin/zij-aan-zij-emails", label: "E-mails", icon: Mail },
         ],
