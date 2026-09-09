@@ -17,7 +17,7 @@ const IMG = {
   gesprek: "/images/zij-aan-zij/gesprek.jpg",
 };
 
-const INTAKE = "/zij-aan-zij/kennismaken";
+const INTAKE = "intake"; // sentinel: renderer maakt hier /lp/<slug>/kennismaken van
 
 export const zijAanZijBlocks = () => [
   { key: "header", type: "header", logo: IMG.logo, merk: "Talk To Benji", sub: "Zij aan Zij" },
