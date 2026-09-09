@@ -3,20 +3,29 @@
 import { useState, useEffect, useCallback } from "react";
 import "./blokPagina.scoped.css";
 
-/* ── Mini-markdown: **vet** → <b> (met optionele class) ── */
+/* ── Mini-markdown: **vet** → <b> en [tekst](url) → link (met optionele boldClass) ── */
 function Rich({ text, boldClass }: { text: string; boldClass?: string }) {
-  const parts = (text || "").split(/\*\*/);
-  return (
-    <>
-      {parts.map((p, i) =>
-        i % 2 === 1 ? (
-          boldClass ? <span key={i} className={boldClass}>{p}</span> : <b key={i}>{p}</b>
-        ) : (
-          <span key={i}>{p}</span>
-        )
-      )}
-    </>
-  );
+  const src = text || "";
+  const nodes: React.ReactNode[] = [];
+  const re = /\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  let k = 0;
+  while ((m = re.exec(src)) !== null) {
+    if (m.index > last) nodes.push(<span key={k++}>{src.slice(last, m.index)}</span>);
+    if (m[1] !== undefined) {
+      nodes.push(boldClass ? <span key={k++} className={boldClass}>{m[1]}</span> : <b key={k++}>{m[1]}</b>);
+    } else {
+      const url = (m[3] || "").trim();
+      const extern = /^https?:\/\//i.test(url);
+      nodes.push(
+        <a key={k++} href={url} {...(extern ? { target: "_blank", rel: "noreferrer" } : {})}>{m[2]}</a>
+      );
+    }
+    last = re.lastIndex;
+  }
+  if (last < src.length) nodes.push(<span key={k++}>{src.slice(last)}</span>);
+  return <>{nodes}</>;
 }
 
 /* Titel met \n → regels. Elke regel is een eigen block zodat text-wrap:balance
@@ -120,7 +129,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
           {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
           <h1>{b.titel1}{b.titel2 && <><br /><span className="soft">{b.titel2}</span></>}</h1>
           {(b.body || []).map((p: any, i: number) => (
-            <p key={i} className={p.soort === "whisper" ? "whisper" : p.soort === "thought" ? "thought" : "lead"}>{p.tekst}</p>
+            <p key={i} className={p.soort === "whisper" ? "whisper" : p.soort === "thought" ? "thought" : "lead"}><Rich text={p.tekst} /></p>
           ))}
           {b.ctaText && (
             <div className="cta-wrap">
@@ -140,9 +149,9 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
         <div className="wrap">
           {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
           {b.titel && <h2 className="sec-h">{b.titel}</h2>}
-          {b.lead && <p className="lead">{b.lead}</p>}
+          {b.lead && <p className="lead"><Rich text={b.lead} /></p>}
           {b.voices?.length > 0 && (
-            <ul className="voices">{b.voices.map((v: string, i: number) => <li key={i}>{v}</li>)}</ul>
+            <ul className="voices">{b.voices.map((v: string, i: number) => <li key={i}><Rich text={v} /></li>)}</ul>
           )}
           {b.pull && <p className="pull"><Rich text={b.pull} /></p>}
         </div>
@@ -157,12 +166,12 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
         <div className="wrap">
           {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
           {b.titel && <h2><MultiTitle text={b.titel} /></h2>}
-          {b.lead && <p className="lead">{b.lead}</p>}
+          {b.lead && <p className="lead"><Rich text={b.lead} /></p>}
           {b.stack?.length > 0 && (
-            <ul className="stack">{b.stack.map((s: string, i: number) => <li key={i}>{s}</li>)}</ul>
+            <ul className="stack">{b.stack.map((s: string, i: number) => <li key={i}><Rich text={s} /></li>)}</ul>
           )}
           {b.kicker && <p className="kicker"><Rich text={b.kicker} boldClass="hl" /></p>}
-          {b.sub && <p className="sub">{b.sub}</p>}
+          {b.sub && <p className="sub"><Rich text={b.sub} /></p>}
           {isFinal && b.ctaText && (
             <div className="cta-wrap">
               <a className="btn" href={href(b.ctaUrl)}>{b.ctaText} <span className="arrow">&rarr;</span></a>
@@ -182,9 +191,9 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
           {b.titel && <h2 className="sec-h"><MultiTitle text={b.titel} /></h2>}
           {b.naastLabel && <p className="lead" style={{ marginTop: "1.3rem" }}><strong>{b.naastLabel}</strong></p>}
           {b.naast?.length > 0 && (
-            <ul className="naast">{b.naast.map((s: string, i: number) => <li key={i}>{s}</li>)}</ul>
+            <ul className="naast">{b.naast.map((s: string, i: number) => <li key={i}><Rich text={s} /></li>)}</ul>
           )}
-          {b.slot && <p className="lead">{b.slot}</p>}
+          {b.slot && <p className="lead"><Rich text={b.slot} /></p>}
         </div>
       </section>
     );
@@ -201,7 +210,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
             {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
             {b.titel && <h2>{b.titel}</h2>}
             {b.para1 && <p className="lead"><Rich text={b.para1} /></p>}
-            {b.para2 && <p className="lead">{b.para2}</p>}
+            {b.para2 && <p className="lead"><Rich text={b.para2} /></p>}
             {b.layersHead && <p className="layers-head">{b.layersHead}</p>}
             {b.layers?.length > 0 && (
               <ul className="layers">
@@ -255,7 +264,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
             {(b.steps || []).map((s: any, i: number) => (
               <li key={i}>
                 <p className="st-h">{s.kop}</p>
-                <p className="st-b">{s.tekst}</p>
+                <p className="st-b"><Rich text={s.tekst} /></p>
               </li>
             ))}
           </ol>
@@ -274,7 +283,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
             {(b.items || []).map((it: any, i: number) => (
               <li key={i}>
                 <p className="in-h">{it.kop}</p>
-                <p className="in-b">{it.tekst}</p>
+                <p className="in-b"><Rich text={it.tekst} /></p>
               </li>
             ))}
           </ul>
@@ -289,7 +298,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
         <div className="wrap">
           {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
           {b.titel && <h2 className="sec-h">{b.titel}</h2>}
-          {b.lead && <p className="lead">{b.lead}</p>}
+          {b.lead && <p className="lead"><Rich text={b.lead} /></p>}
           <AccountCarousel shots={b.shots || []} />
         </div>
       </section>
@@ -302,7 +311,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
         <div className="wrap">
           {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
           {b.titel && <h2 className="sec-h">{b.titel}</h2>}
-          {b.lead && <p className="lead">{b.lead}</p>}
+          {b.lead && <p className="lead"><Rich text={b.lead} /></p>}
           {(b.cards || []).map((c: any, i: number) => (
             <div className="doc-card" key={i}>
               {c.tag && <span className="tag">{c.tag}</span>}
@@ -311,13 +320,13 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
                   <img className="doc-ipad" src={c.img} alt={c.kop || ""} />
                   <div>
                     <p className="dh">{c.kop}</p>
-                    <p>{c.tekst}</p>
+                    <p><Rich text={c.tekst} /></p>
                   </div>
                 </div>
               ) : (
                 <>
                   <p className="dh">{c.kop}</p>
-                  <p>{c.tekst}</p>
+                  <p><Rich text={c.tekst} /></p>
                 </>
               )}
             </div>
@@ -365,7 +374,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
               {b.titel && <h2 className="sec-h">{b.titel}</h2>}
             </div>
           </div>
-          {(b.paras || []).map((p: string, i: number) => <p key={i} className="lead">{p}</p>)}
+          {(b.paras || []).map((p: string, i: number) => <p key={i} className="lead"><Rich text={p} /></p>)}
         </div>
       </section>
     );
@@ -380,7 +389,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
           <div className="quotes">
             {(b.quotes || []).map((q: any, i: number) => (
               <blockquote key={i}>
-                <p>{q.tekst}</p>
+                <p><Rich text={q.tekst} /></p>
                 {q.bron && <cite>{q.bron}</cite>}
               </blockquote>
             ))}
@@ -396,7 +405,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
         <div className="wrap">
           {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
           {b.titel && <h2 className="sec-h">{b.titel}</h2>}
-          {b.lead && <p className="lead">{b.lead}</p>}
+          {b.lead && <p className="lead"><Rich text={b.lead} /></p>}
           <div className="faq">
             {(b.items || []).map((it: any, i: number) => (
               <details key={i} className="faq-item">
@@ -420,7 +429,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
               <span className="amt">{b.prijs}</span>
               {b.prijsSub && <span className="per">{b.prijsSub}</span>}
             </div>
-            <ul>{(b.bullets || []).map((x: string, i: number) => <li key={i}>{x}</li>)}</ul>
+            <ul>{(b.bullets || []).map((x: string, i: number) => <li key={i}><Rich text={x} /></li>)}</ul>
             {b.ctaText && <a className="btn" href={href(b.ctaUrl)}>{b.ctaText} <span className="arrow">&rarr;</span></a>}
             {b.micro && <p className="micro">{b.micro}</p>}
           </div>
