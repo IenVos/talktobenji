@@ -15,8 +15,9 @@
  * Achtergrond-namen per blok: "" (standaard grond) | "paper" | "wit" | "band"
  * (donkergroene volle band).
  */
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation, internalAction } from "./_generated/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
 
 // ── Afbeeldingen resolven ──────────────────────────────────────────────
@@ -256,7 +257,7 @@ export const verstuurIntake = mutation({
     veldenJson: v.string(),
   },
   handler: async (ctx, args) => {
-    return ctx.db.insert("blokIntakes", {
+    const id = await ctx.db.insert("blokIntakes", {
       paginaSlug: args.paginaSlug,
       naam: args.naam.trim(),
       email: args.email.trim(),
@@ -264,5 +265,71 @@ export const verstuurIntake = mutation({
       status: "nieuw",
       createdAt: Date.now(),
     });
+    // Naam van de pagina erbij zoeken voor een nette mail.
+    const pagina = await ctx.db
+      .query("blokPaginas")
+      .withIndex("by_slug", (q) => q.eq("slug", args.paginaSlug))
+      .first();
+    await ctx.scheduler.runAfter(0, internal.blokPaginas.mailIntake, {
+      paginaNaam: pagina?.naam ?? args.paginaSlug,
+      naam: args.naam.trim(),
+      email: args.email.trim(),
+      veldenJson: args.veldenJson,
+    });
+    return id;
+  },
+});
+
+// ── Intake-mails (seintje Ien + bevestiging aanmelder) ─────────────────
+const INTAKE_FROM = "Talk To Benji <noreply@talktobenji.com>";
+const INTAKE_IEN = process.env.BOOKING_ADMIN_EMAIL || "contactmetien@talktobenji.com";
+
+function intakeWrap(inner: string): string {
+  return `<div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;color:#212b24;background:#f4f6f1;padding:32px 24px;border-radius:14px">${inner}<p style="font-size:12px;color:#7c8a7f;margin-top:24px">Talk To Benji &middot; Zij aan Zij</p></div>`;
+}
+async function intakeVerstuur(to: string, subject: string, html: string) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return;
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({ from: INTAKE_FROM, to: [to], subject, html }),
+  });
+  if (!res.ok) throw new Error(`Mail mislukt: ${await res.text()}`);
+}
+
+export const mailIntake = internalAction({
+  args: {
+    paginaNaam: v.string(),
+    naam: v.string(),
+    email: v.string(),
+    veldenJson: v.string(),
+  },
+  handler: async (_ctx, args) => {
+    let velden: Record<string, any> = {};
+    try { velden = JSON.parse(args.veldenJson); } catch {}
+    const rijen = Object.keys(velden)
+      .filter((k) => velden[k] !== "" && velden[k] != null)
+      .map((k) => `<tr><td style="padding:4px 10px 4px 0;color:#7c8a7f;vertical-align:top;font-size:13px">${k}</td><td style="padding:4px 0;color:#212b24;font-size:14px">${String(velden[k]).replace(/\n/g, "<br>")}</td></tr>`)
+      .join("");
+    // Seintje aan Ien
+    await intakeVerstuur(
+      INTAKE_IEN,
+      `Nieuwe aanmelding: ${args.naam} (${args.paginaNaam})`,
+      intakeWrap(`
+        <p style="font-size:15px;color:#212b24"><b>Nieuwe kennismaking-aanvraag</b> via ${args.paginaNaam}</p>
+        <p style="font-size:14px;color:#485349">${args.naam} &middot; <a href="mailto:${args.email}" style="color:#3b6448">${args.email}</a></p>
+        <table style="border-collapse:collapse;margin-top:10px">${rijen}</table>`)
+    );
+    // Bevestiging aan de aanmelder
+    await intakeVerstuur(
+      args.email,
+      "Je bericht is bij Ien binnen",
+      intakeWrap(`
+        <p style="font-size:17px;color:#212b24"><b>Dank je wel. Het is bij me binnen.</b></p>
+        <p style="font-size:15px;line-height:1.7;color:#485349">Lieve ${args.naam}, ik lees je bericht zelf, rustig, en neem binnen twee werkdagen contact met je op.</p>
+        <p style="font-size:15px;line-height:1.7;color:#485349">Mocht het tot die tijd zwaar worden: Benji is er dag en nacht.</p>
+        <p style="font-size:15px;line-height:1.7;color:#485349">Warme groet,<br>Ien</p>`)
+    );
   },
 });
