@@ -49,6 +49,12 @@ export default function AfsprakenAdmin() {
   const adminCancel = useAdminMutation(api.booking.adminCancel);
   const previewLink = useAdminMutation(api.booking.previewLink);
 
+  // kennismakingen
+  const kmList = useAdminQuery(api.kennismaking.list, {}) as any[] | undefined;
+  const kmCreate = useAdminMutation(api.kennismaking.create);
+  const kmSend = useAdminMutation(api.kennismaking.sendInvite);
+  const kmRemove = useAdminMutation(api.kennismaking.remove);
+
   // config form
   const [cfg, setCfg] = useState<any>(null);
   const c = cfg ?? config;
@@ -78,6 +84,30 @@ export default function AfsprakenAdmin() {
       setFormKey((k) => k + 1);
     } finally {
       setFormBezig(false);
+    }
+  }
+
+  // kennismaking-uitnodiging opstellen
+  const [kmNaam, setKmNaam] = useState("");
+  const [kmEmail, setKmEmail] = useState("");
+  const [kmDuur, setKmDuur] = useState("30");
+  const [kmOpties, setKmOpties] = useState<{ datum: string; tijd: string }[]>([
+    { datum: "", tijd: "10:00" },
+    { datum: "", tijd: "15:00" },
+  ]);
+  const [kmBezig, setKmBezig] = useState(false);
+  const [kmGekopieerd, setKmGekopieerd] = useState<string | null>(null);
+
+  async function maakKennismaking() {
+    const opties = kmOpties.filter((o) => o.datum && o.tijd);
+    if (!kmNaam || !kmEmail || opties.length === 0) return;
+    setKmBezig(true);
+    try {
+      await kmCreate({ naam: kmNaam, email: kmEmail, opties, duurMin: Number(kmDuur) || 30 });
+      setKmNaam(""); setKmEmail("");
+      setKmOpties([{ datum: "", tijd: "10:00" }, { datum: "", tijd: "15:00" }]);
+    } finally {
+      setKmBezig(false);
     }
   }
 
@@ -249,6 +279,73 @@ export default function AfsprakenAdmin() {
             </div>
           ))}
           {clients && clients.length === 0 && <p className="text-sm text-gray-400">Nog geen deelnemers.</p>}
+        </div>
+      </Kaart>
+
+      {/* KENNISMAKINGEN */}
+      <Kaart titel="Kennismaking (paar data om uit te kiezen)">
+        <p className="text-sm text-gray-500 mb-3">Voor het gratis kennismakingsgesprek vóór aankoop. Stel een paar data + tijden voor; de genodigde kiest er één via een eigen link. Los van de betaalde reeks.</p>
+        <div className="border border-gray-100 rounded-xl p-3 bg-gray-50/60 mb-4">
+          <div className="flex flex-wrap items-end gap-2 mb-3">
+            <label className="block flex-1 min-w-[8rem]"><span className="text-xs font-semibold text-gray-600">Naam</span>
+              <input className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" value={kmNaam} onChange={(e) => setKmNaam(e.target.value)} /></label>
+            <label className="block flex-1 min-w-[10rem]"><span className="text-xs font-semibold text-gray-600">E-mail</span>
+              <input type="email" className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" value={kmEmail} onChange={(e) => setKmEmail(e.target.value)} /></label>
+            <label className="block w-24"><span className="text-xs font-semibold text-gray-600">Duur (min)</span>
+              <input type="number" className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white" value={kmDuur} onChange={(e) => setKmDuur(e.target.value)} /></label>
+          </div>
+          <p className="text-xs font-semibold text-gray-600 mb-2">Voorgestelde momenten</p>
+          <div className="space-y-2">
+            {kmOpties.map((o, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white" value={o.datum}
+                  onChange={(e) => setKmOpties((arr) => arr.map((x, j) => (j === i ? { ...x, datum: e.target.value } : x)))} />
+                <input type="time" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white" value={o.tijd}
+                  onChange={(e) => setKmOpties((arr) => arr.map((x, j) => (j === i ? { ...x, tijd: e.target.value } : x)))} />
+                <button onClick={() => setKmOpties((arr) => arr.filter((_, j) => j !== i))} className="text-gray-400 hover:text-rose-600"><Trash2 size={16} /></button>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 mt-3">
+            <button onClick={() => setKmOpties((arr) => [...arr, { datum: "", tijd: "10:00" }])}
+              className="text-sm text-emerald-700 font-semibold flex items-center gap-1"><Plus size={14} /> Moment toevoegen</button>
+            <button disabled={!kmNaam || !kmEmail || kmOpties.filter((o) => o.datum && o.tijd).length === 0 || kmBezig}
+              onClick={maakKennismaking}
+              className="ml-auto px-3 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg disabled:opacity-40">
+              {kmBezig ? "Bezig..." : "Uitnodiging aanmaken"}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {(kmList ?? []).map((k) => (
+            <div key={k._id} className="border border-gray-200 rounded-lg px-3 py-2">
+              <div className="flex items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{k.naam}
+                    <span className={`ml-1 text-xs font-medium px-1.5 py-0.5 rounded border ${k.status === "gepland" ? "text-emerald-700 border-emerald-200" : "text-gray-500 border-gray-200"}`}>{k.status}</span>
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">{k.email}</p>
+                  {k.status === "gepland" && k.gekozenDatum
+                    ? <p className="text-xs text-emerald-700 mt-0.5">Gekozen: {fmt(k.gekozenDatum, k.gekozenTijd)}</p>
+                    : <p className="text-xs text-gray-400 mt-0.5">{k.opties.map((o: any) => fmt(o.datum, o.tijd)).join("  ·  ")}</p>}
+                </div>
+                <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+                  <button onClick={() => kopieer(k.link)} className="text-xs font-semibold text-emerald-700 border border-emerald-300 rounded-md px-2 py-1 flex items-center gap-1">
+                    {gekopieerd === k.link ? <><Check size={13} /> Gekopieerd</> : <><Copy size={13} /> Link</>}
+                  </button>
+                  {k.status !== "gepland" && (
+                    <button onClick={async () => { await kmSend({ id: k._id }); setKmGekopieerd(k._id); setTimeout(() => setKmGekopieerd(null), 1500); }}
+                      className="text-xs font-semibold text-gray-700 border border-gray-300 rounded-md px-2 py-1">
+                      {kmGekopieerd === k._id ? "Verstuurd" : "Mail sturen"}
+                    </button>
+                  )}
+                  <button onClick={() => { if (confirm(`Kennismaking van ${k.naam} verwijderen?`)) kmRemove({ id: k._id }); }} className="text-gray-400 hover:text-rose-600"><Trash2 size={16} /></button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {kmList && kmList.length === 0 && <p className="text-sm text-gray-400">Nog geen kennismakingen.</p>}
         </div>
       </Kaart>
 

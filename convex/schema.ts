@@ -1531,6 +1531,22 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index("by_client", ["clientId"]).index("by_token", ["token"]).index("by_datum", ["datum"]),
 
+  // Kennismakingsgesprek (gratis, vóór aankoop): Ien stelt een paar concrete
+  // data+tijden voor, de genodigde kiest er één. Losse/mailbare link per persoon.
+  kennismakingen: defineTable({
+    naam: v.string(),
+    email: v.string(),
+    token: v.string(),
+    optiesJson: v.string(),            // JSON: [{ datum:"YYYY-MM-DD", tijd:"HH:MM" }]
+    gekozenDatum: v.optional(v.string()),
+    gekozenTijd: v.optional(v.string()),
+    duurMin: v.optional(v.number()),   // standaard 30
+    status: v.string(),                // "uitgenodigd" | "gepland" | "afgezegd"
+    videoRoomUrl: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_token", ["token"]),
+
   // ── Blok-gebaseerde landingspagina's (nieuw, herbruikbaar per verliestype) ──
   // Eén pagina = geordende lijst blokken (blocksJson). Elk blok: { key, type,
   // verborgen?, achtergrond?, ...typespecifieke velden }. Afbeeldingen in blokken
