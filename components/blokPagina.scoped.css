@@ -6,7 +6,7 @@
     --leaf:#6fbf8a; --leaf-ink:#1c4531;
     --line:#d5dccf; --line-soft:#e4e8dd;
     --serif:"Spectral",Georgia,"Times New Roman",serif;
-    --sans:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.66;-webkit-font-smoothing:antialiased min-height:100vh;}
+    --sans:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.66;-webkit-font-smoothing:antialiased; min-height:100vh;}
 @media (prefers-color-scheme:dark){.bpg{--ground:#191f1b; --paper:#212823; --surface:#252d27;
     --ink:#e8ede7; --ink-soft:#bcc7bd; --muted:#889384;
     --accent:#7bab88; --accent-strong:#95c1a0; --accent-wash:#26332a;
