@@ -263,3 +263,11 @@
   .bpg .ehm-p{margin:0}
   .bpg .ehm-check{display:flex;gap:.6rem;align-items:flex-start;color:var(--ink)}
   .bpg .ehm-check::before{content:"\2713";color:var(--accent);font-weight:700;flex-shrink:0;line-height:1.5}
+
+  .bpg /* Sectie-afbeelding + quote-portret */
+  .bpg .sec-img{margin:1.7rem auto 0;max-width:100%}
+  .bpg .sec-img img{width:100%;max-width:100%;height:auto;display:block;border-radius:16px;
+    border:1px solid var(--line);box-shadow:0 16px 40px -30px rgba(38,48,42,.5)}
+  .bpg .q-cite{display:flex;align-items:center;gap:.6rem;margin-top:.7rem}
+  .bpg .q-avatar{width:2.5rem;height:2.5rem;border-radius:50%;object-fit:cover;flex-shrink:0;
+    border:1px solid var(--line)}

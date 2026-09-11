@@ -42,6 +42,16 @@ function MultiTitle({ text }: { text: string }) {
   );
 }
 
+/* Optionele sectie-afbeelding (onder de titel), consistent in elk blok. */
+function SecImg({ src, alt }: { src?: string; alt?: string }) {
+  if (!src) return null;
+  return (
+    <figure className="sec-img">
+      <img src={src} alt={alt || ""} />
+    </figure>
+  );
+}
+
 type Block = any;
 
 /* ── Accentkleur: één hex → afgeleide tinten (sterk/wash/leaf) als CSS-vars ── */
@@ -186,6 +196,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
           {(b.body || []).map((p: any, i: number) => (
             <p key={i} className={p.soort === "whisper" ? "whisper" : p.soort === "thought" ? "thought" : "lead"}><Rich text={p.tekst} /></p>
           ))}
+          <SecImg src={b.afbeelding} alt={b.titel1 || ""} />
           {b.ctaText && (
             <div className="cta-wrap">
               <a className="btn" href={href(b.ctaUrl)}>{b.ctaText} <span className="arrow">&rarr;</span></a>
@@ -209,6 +220,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
             <ul className="voices">{b.voices.map((v: string, i: number) => <li key={i}><Rich text={v} /></li>)}</ul>
           )}
           {b.pull && <p className="pull"><Rich text={b.pull} /></p>}
+          <SecImg src={b.afbeelding} alt={b.titel || ""} />
         </div>
       </section>
     );
@@ -227,6 +239,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
           )}
           {b.kicker && <p className="kicker"><Rich text={b.kicker} boldClass="hl" /></p>}
           {b.sub && <p className="sub"><Rich text={b.sub} /></p>}
+          <SecImg src={b.afbeelding} alt={b.titel || ""} />
           {isFinal && b.ctaText && (
             <div className="cta-wrap">
               <a className="btn" href={href(b.ctaUrl)}>{b.ctaText} <span className="arrow">&rarr;</span></a>
@@ -249,6 +262,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
             <ul className="naast">{b.naast.map((s: string, i: number) => <li key={i}><Rich text={s} /></li>)}</ul>
           )}
           {b.slot && <p className="lead"><Rich text={b.slot} /></p>}
+          <SecImg src={b.afbeelding} alt={b.titel || ""} />
         </div>
       </section>
     );
@@ -323,6 +337,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
               </li>
             ))}
           </ol>
+          <SecImg src={b.afbeelding} alt={b.titel || ""} />
         </div>
       </section>
     );
@@ -342,6 +357,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
               </li>
             ))}
           </ul>
+          <SecImg src={b.afbeelding} alt={b.titel || ""} />
         </div>
       </section>
     );
@@ -413,6 +429,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
               );
             })}
           </ul>
+          <SecImg src={b.afbeelding} alt={b.titel || ""} />
         </div>
       </section>
     );
@@ -445,10 +462,16 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
             {(b.quotes || []).map((q: any, i: number) => (
               <blockquote key={i}>
                 <p><Rich text={q.tekst} /></p>
-                {q.bron && <cite>{q.bron}</cite>}
+                {(q.bron || q.img) && (
+                  <cite className="q-cite">
+                    {q.img && <img className="q-avatar" src={q.img} alt={q.bron || ""} />}
+                    {q.bron}
+                  </cite>
+                )}
               </blockquote>
             ))}
           </div>
+          <SecImg src={b.afbeelding} alt={b.titel || ""} />
         </div>
       </section>
     );
@@ -469,6 +492,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
               </details>
             ))}
           </div>
+          <SecImg src={b.afbeelding} alt={b.titel || ""} />
         </div>
       </section>
     );
@@ -493,6 +517,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
                   : <p key={i} className="ehm-p"><Rich text={content} /></p>;
               })}
             </div>
+            <SecImg src={b.afbeelding} alt={b.kop || ""} />
             {b.knopText && <a className="btn" href={href(b.knopUrl)}>{b.knopText}</a>}
           </div>
         </div>
@@ -511,6 +536,7 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
               {b.prijsSub && <span className="per">{b.prijsSub}</span>}
             </div>
             <ul>{(b.bullets || []).map((x: string, i: number) => <li key={i}><Rich text={x} /></li>)}</ul>
+            <SecImg src={b.afbeelding} alt={b.prijs || ""} />
             {b.ctaText && <a className="btn" href={href(b.ctaUrl)}>{b.ctaText} <span className="arrow">&rarr;</span></a>}
             {b.micro && <p className="micro">{b.micro}</p>}
           </div>

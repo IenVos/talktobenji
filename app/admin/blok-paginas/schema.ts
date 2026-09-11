@@ -95,6 +95,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
     { key: "ctaUrl", label: "Knop-link", kind: "text", hint: INTAKE_HINT },
     { key: "micro", label: "Microtekst onder knop", kind: "text" },
     { key: "facts", label: "Feiten-regel (onderaan)", kind: "rich" },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   herkenning: [
     { key: "eyebrow", label: "Label", kind: "text" },
@@ -102,6 +103,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
     { key: "lead", label: "Inleiding", kind: "textarea", rows: 2 },
     { key: "voices", label: "Stemmen (herkenning)", kind: "stringList", itemLabel: "Stem" },
     { key: "pull", label: "Uitgelichte zin", kind: "rich" },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   band: [
     { key: "eyebrow", label: "Label", kind: "text" },
@@ -110,6 +112,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
     { key: "stack", label: "Opsomming", kind: "stringList", itemLabel: "Regel" },
     { key: "kicker", label: "Kicker", kind: "rich" },
     { key: "sub", label: "Subregel", kind: "text" },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   kern: [
     { key: "eyebrow", label: "Label", kind: "text" },
@@ -117,6 +120,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
     { key: "naastLabel", label: "Label boven lijst", kind: "text" },
     { key: "naast", label: "Lijst", kind: "stringList", itemLabel: "Regel" },
     { key: "slot", label: "Slotzin", kind: "textarea", rows: 2 },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   cadence: [
     { key: "eyebrow", label: "Label", kind: "text" },
@@ -163,6 +167,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
         { key: "tekst", label: "Tekst", kind: "textarea", rows: 2 },
       ],
     },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   ditkrijgje: [
     { key: "eyebrow", label: "Label", kind: "text" },
@@ -174,6 +179,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
         { key: "tekst", label: "Tekst", kind: "textarea", rows: 2 },
       ],
     },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   account: [
     { key: "eyebrow", label: "Label", kind: "text" },
@@ -211,6 +217,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
         { key: "wel", label: "Wel (eerste woord geaccentueerd)", kind: "text" },
       ],
     },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   ien: [
     { key: "eyebrow", label: "Label", kind: "text" },
@@ -226,8 +233,10 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
       fields: [
         { key: "tekst", label: "Tekst", kind: "textarea", rows: 2 },
         { key: "bron", label: "Bron", kind: "text" },
+        { key: "img", label: "Foto (optioneel)", kind: "image" },
       ],
     },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   faq: [
     { key: "eyebrow", label: "Label", kind: "text" },
@@ -240,6 +249,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
         { key: "antwoord", label: "Antwoord", kind: "textarea", rows: 3 },
       ],
     },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   ehmagnet: [
     { key: "eyebrow", label: "Label (klein, optioneel)", kind: "text" },
@@ -247,6 +257,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
     { key: "tekst", label: "Tekst (Enter = nieuwe regel; regel met ✓ wordt een vinkje; **vet**)", kind: "textarea", rows: 9 },
     { key: "knopText", label: "Knoptekst", kind: "text" },
     { key: "knopUrl", label: "Knop-link (bv. /even-houvast/huisdier)", kind: "text" },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   offer: [
     { key: "introLabel", label: "Introlabel", kind: "text" },
@@ -257,6 +268,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
     { key: "ctaUrl", label: "Knop-link", kind: "text", hint: INTAKE_HINT },
     { key: "micro", label: "Microtekst onder knop", kind: "text" },
     { key: "anchor", label: "Anker-id (voor #-link)", kind: "text" },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
   final: [
     { key: "eyebrow", label: "Label", kind: "text" },
@@ -268,6 +280,7 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
     { key: "ctaText", label: "Knoptekst", kind: "text" },
     { key: "ctaUrl", label: "Knop-link", kind: "text", hint: INTAKE_HINT },
     { key: "micro", label: "Microtekst onder knop", kind: "text" },
+    { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
   ],
 };
 
