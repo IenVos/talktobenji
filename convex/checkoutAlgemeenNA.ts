@@ -189,3 +189,18 @@ export const zetNAEhPopup = internalMutation({
     return res;
   },
 });
+
+// EH-popup-gedrag op de NA-pagina's zetten (alleen dit veld, raakt de blokken niet).
+export const zetNAEhModus = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const res: any[] = [];
+    for (const slug of Object.keys(EH_TYPE)) {
+      const p = await ctx.db.query("blokPaginas").withIndex("by_slug", (q) => q.eq("slug", slug)).first();
+      if (!p) { res.push({ slug, actie: "niet gevonden" }); continue; }
+      await ctx.db.patch(p._id, { ehPopupModus: "knop", updatedAt: Date.now() });
+      res.push({ slug, ehPopupModus: "knop" });
+    }
+    return res;
+  },
+});

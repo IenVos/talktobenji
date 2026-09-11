@@ -86,6 +86,8 @@ export function EvenHouvastPopup({
   knopUrl,
   knopKleur,
   evenHouvastUrl = "/even-houvast",
+  toonKnop = false,
+  autoBij80 = true,
 }: {
   enabled: boolean;
   tekst?: string;
@@ -93,19 +95,29 @@ export function EvenHouvastPopup({
   knopUrl?: string;
   knopKleur?: string;
   evenHouvastUrl?: string;
+  toonKnop?: boolean;   // zwevende "Even Houvast"-tab die de kaart op klik opent
+  autoBij80?: boolean;  // kaart automatisch tonen bij ~80% scroll
 }) {
-  const [open, setOpen] = useState(false); // 80% bereikt
-  const [gesloten, setGesloten] = useState(false); // definitief weg
-  const [ingeschoven, setIngeschoven] = useState(false); // animatie-stand
+  const [kaartOpen, setKaartOpen] = useState(false); // volledige kaart zichtbaar
+  const [weg, setWeg] = useState(false); // definitief weg (alleen als er geen knop is)
+  const [ingeschoven, setIngeschoven] = useState(false); // animatie-stand kaart
+  const [knopIn, setKnopIn] = useState(false); // zachte fade-in van het knopje
 
+  // Zwevend knopje zachtjes laten verschijnen.
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !toonKnop) return;
+    const id = setTimeout(() => setKnopIn(true), 450);
+    return () => clearTimeout(id);
+  }, [enabled, toonKnop]);
+
+  // Kaart automatisch openen bij ~80% scroll (één keer per sessie).
+  useEffect(() => {
+    if (!enabled || !autoBij80) return;
     try {
       if (sessionStorage.getItem(SESSIE_KEY)) return;
     } catch {
       /* sessionStorage niet beschikbaar */
     }
-
     let getoond = false;
     const checkScroll = () => {
       if (getoond) return;
@@ -114,35 +126,34 @@ export function EvenHouvastPopup({
       if (hoogte <= 0) return;
       if (onder / hoogte >= 0.8) {
         getoond = true;
-        setOpen(true);
-        try {
-          sessionStorage.setItem(SESSIE_KEY, "1");
-        } catch {
-          /* negeer */
-        }
+        setKaartOpen(true);
+        try { sessionStorage.setItem(SESSIE_KEY, "1"); } catch { /* negeer */ }
         window.removeEventListener("scroll", checkScroll);
       }
     };
-
     window.addEventListener("scroll", checkScroll, { passive: true });
-    checkScroll(); // direct checken voor korte pagina's
+    checkScroll();
     return () => window.removeEventListener("scroll", checkScroll);
-  }, [enabled]);
+  }, [enabled, autoBij80]);
 
-  // Zachtjes inschuiven zodra de pop-up mag verschijnen.
+  // Zachtjes inschuiven zodra de kaart open mag.
   useEffect(() => {
-    if (open && !gesloten) {
+    if (kaartOpen && !weg) {
       const id = requestAnimationFrame(() => setIngeschoven(true));
       return () => cancelAnimationFrame(id);
     }
-  }, [open, gesloten]);
+    setIngeschoven(false);
+  }, [kaartOpen, weg]);
 
-  if (!enabled || !open || gesloten) return null;
+  if (!enabled || weg) return null;
 
   const sluit = () => {
     setIngeschoven(false); // uitschuiven
-    setTimeout(() => setGesloten(true), 420); // daarna pas unmounten
+    // Met knop: terug naar het knopje. Zonder knop: helemaal weg.
+    setTimeout(() => (toonKnop ? setKaartOpen(false) : setWeg(true)), 480);
   };
+
+  const toonDeKnop = toonKnop && !kaartOpen;
 
   const regels = (tekst && tekst.trim() ? tekst : EVEN_HOUVAST_POPUP_DEFAULT_TEKST)
     .split("\n")
@@ -183,6 +194,33 @@ export function EvenHouvastPopup({
         pointerEvents: "none",
       }}
     >
+      {toonDeKnop && (
+        <button
+          onClick={() => setKaartOpen(true)}
+          aria-label="Even Houvast openen"
+          style={{
+            pointerEvents: "auto",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            border: "none",
+            cursor: "pointer",
+            background: knopKleurFinal,
+            color: "#fff",
+            fontSize: 15,
+            fontWeight: 600,
+            padding: "12px 18px",
+            borderRadius: 9999,
+            boxShadow: "0 12px 30px -10px rgba(20,24,40,0.45)",
+            transform: knopIn ? "translateX(0)" : "translateX(16px)",
+            opacity: knopIn ? 1 : 0,
+            transition: "transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.5s ease",
+          }}
+        >
+          <span aria-hidden="true">👋</span> Even Houvast
+        </button>
+      )}
+      {kaartOpen && (
       <div
         role="dialog"
         aria-modal="false"
@@ -191,14 +229,14 @@ export function EvenHouvastPopup({
           width: "min(380px, calc(100vw - 32px))",
           maxHeight: "calc(100vh - 32px)",
           overflowY: "auto",
-          background: "#fdf9f4",
+          background: "#ffffff",
           borderRadius: 20,
           padding: "26px 22px 22px",
-          boxShadow: "0 16px 48px rgba(40,34,28,0.22)",
-          border: "1px solid rgba(160,148,136,0.18)",
-          transform: ingeschoven ? "translateX(0)" : "translateX(calc(100% + 28px))",
+          boxShadow: "0 32px 70px -18px rgba(20,24,40,0.38), 0 10px 26px -12px rgba(20,24,40,0.22)",
+          border: "1px solid rgba(70,80,100,0.12)",
+          transform: ingeschoven ? "translateX(0)" : "translateX(calc(100% + 40px))",
           opacity: ingeschoven ? 1 : 0,
-          transition: "transform 0.42s cubic-bezier(0.22,1,0.36,1), opacity 0.42s ease",
+          transition: "transform 0.62s cubic-bezier(0.22,1,0.36,1), opacity 0.62s ease",
         }}
       >
         <button
@@ -290,6 +328,7 @@ export function EvenHouvastPopup({
           {knopLabel}
         </a>
       </div>
+      )}
     </div>
   );
 }

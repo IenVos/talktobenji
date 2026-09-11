@@ -554,10 +554,13 @@ export default function BlokPaginaView({
 }: {
   blocks: Block[]; slug: string; footer?: string; accentKleur?: string | null;
   ehPopup?: {
-    aan?: boolean; tekst?: string | null; knopTekst?: string | null;
+    aan?: boolean; modus?: string | null; tekst?: string | null; knopTekst?: string | null;
     knopUrl?: string | null; knopKleur?: string | null;
   };
 }) {
+  const ehModus = ehPopup?.modus || "kaart";
+  const ehToonKnop = ehModus === "knop" || ehModus === "knop-kaart";
+  const ehAutoBij80 = ehModus === "kaart" || ehModus === "knop-kaart";
   const href = makeHref(`/lp/${slug}/kennismaken`);
   const css = accentCss(accentKleur);
   return (
@@ -570,6 +573,8 @@ export default function BlokPaginaView({
       {ehPopup?.aan && (
         <EvenHouvastPopup
           enabled
+          toonKnop={ehToonKnop}
+          autoBij80={ehAutoBij80}
           tekst={ehPopup.tekst ?? undefined}
           knopTekst={ehPopup.knopTekst ?? undefined}
           knopUrl={ehPopup.knopUrl ?? undefined}

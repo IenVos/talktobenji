@@ -1561,6 +1561,7 @@ export default defineSchema({
     accentKleur: v.optional(v.string()), // hex accentkleur, bv. "#4a7c59"; leeg = standaard groen
     // Zwevende Even Houvast-pop-up (zoals op de oude LP's), per pagina aan/uit.
     ehPopupAan: v.optional(v.boolean()),
+    ehPopupModus: v.optional(v.string()), // "knop" | "kaart" (80% scroll) | "knop-kaart"
     ehPopupTekst: v.optional(v.string()),
     ehPopupKnopTekst: v.optional(v.string()),
     ehPopupKnopUrl: v.optional(v.string()),

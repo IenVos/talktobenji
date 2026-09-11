@@ -38,6 +38,7 @@ export default async function LandingPage({ params }: Props) {
         accentKleur={blok.accentKleur}
         ehPopup={{
           aan: (blok as any).ehPopupAan,
+          modus: (blok as any).ehPopupModus,
           tekst: (blok as any).ehPopupTekst,
           knopTekst: (blok as any).ehPopupKnopTekst,
           knopUrl: (blok as any).ehPopupKnopUrl,

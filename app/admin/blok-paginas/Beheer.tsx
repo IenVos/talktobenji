@@ -374,6 +374,7 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
         categorie: data.categorie ?? "zij-aan-zij",
         accentKleur: data.accentKleur ?? "",
         ehPopupAan: data.ehPopupAan ?? false,
+        ehPopupModus: data.ehPopupModus || "knop",
         ehPopupTekst: data.ehPopupTekst ?? "",
         ehPopupKnopTekst: data.ehPopupKnopTekst ?? "",
         ehPopupKnopUrl: data.ehPopupKnopUrl ?? "",
@@ -453,6 +454,7 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
         categorie: form.categorie || undefined,
         accentKleur: form.accentKleur.trim() || undefined,
         ehPopupAan: form.ehPopupAan,
+        ehPopupModus: form.ehPopupModus || undefined,
         ehPopupTekst: form.ehPopupTekst.trim() || undefined,
         ehPopupKnopTekst: form.ehPopupKnopTekst.trim() || undefined,
         ehPopupKnopUrl: form.ehPopupKnopUrl.trim() || undefined,
@@ -492,7 +494,7 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
           </button>
         </div>
         <BlokPaginaView blocks={resolveBlocks(zichtbaar)} slug={form.slug} accentKleur={form.accentKleur}
-          ehPopup={{ aan: form.ehPopupAan, tekst: form.ehPopupTekst, knopTekst: form.ehPopupKnopTekst, knopUrl: form.ehPopupKnopUrl, knopKleur: form.ehPopupKnopKleur }} />
+          ehPopup={{ aan: form.ehPopupAan, modus: form.ehPopupModus, tekst: form.ehPopupTekst, knopTekst: form.ehPopupKnopTekst, knopUrl: form.ehPopupKnopUrl, knopKleur: form.ehPopupKnopKleur }} />
       </div>
     );
   }
@@ -591,6 +593,15 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
           </label>
           {form.ehPopupAan && (
             <div className="mt-3 space-y-3 pl-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gedrag</label>
+                <select value={form.ehPopupModus} onChange={(e) => setF("ehPopupModus", e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+                  <option value="knop">Alleen knopje (opent de kaart op klik)</option>
+                  <option value="kaart">Kaart schuift zelf open bij ~80% scroll</option>
+                  <option value="knop-kaart">Knopje + kaart zelf open bij ~80% scroll</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Pop-up tekst</label>
                 <p className="text-xs text-gray-400 mb-1">Eerste regel = kop. Regel met ✓ = vinkje. Opmaak: **vet**, *schuin*, _onderstreept_. Leeg = standaardtekst.</p>
