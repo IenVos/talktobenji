@@ -44,9 +44,9 @@ export const seedHuisdier = internalMutation({
         { key: "header", type: "header", logo: "/images/benji-logo-2.png", merk: "Talk To Benji", sub: "Niet Alleen" },
         {
           key: "hero", type: "hero",
-          eyebrow: "8 weken · elke dag een klein moment",
-          titel1: "Ze zeggen: het was maar een dier.",
-          titel2: "Voor jou was het zoveel meer.",
+          eyebrow: "Voor wie een dier verloor dat familie was",
+          titel1: "De wereld draait door,",
+          titel2: "maar in jouw huis is de leegte nog net zo groot.",
           body: [
             { soort: "lead", tekst: "Een maatje. Routine. Stilte die nu anders voelt." },
             { soort: "lead", tekst: "Je mist de kleine dingen. De vanzelfsprekendheid. De aanwezigheid." },
@@ -60,14 +60,14 @@ export const seedHuisdier = internalMutation({
         {
           key: "herkenning", type: "herkenning",
           eyebrow: "Misschien herken je dit",
-          titel: "Je mist je maatje op momenten waarop niemand het ziet.",
-          lead: "Je doet gewoon mee. En toch is er iets wat niet gezien wordt. Misschien denk je weleens:",
+          titel: "Soms ben je niet verdrietig.\nSoms ben je gewoon moe van alles dragen.",
+          lead: "Je functioneert prima. En toch loopt er iets mee dat niemand ziet. Misschien herken je dit:",
           voices: [
-            "Ik ben bang dat mensen denken: het was maar een dier.",
-            "Waarom doet dit vandaag ineens weer zo veel pijn?",
-            "De stilte in huis voelt zo anders.",
-            "Ik wil het delen, maar ik weet niet goed met wie.",
-            "Soms wil ik gewoon vertellen wat ik vandaag mis.",
+            "Je hoofd blijft maar doorgaan.",
+            "Je weet niet goed wat je voelt.",
+            "Je probeert sterk te blijven.",
+            "Je bent moe van alles alleen dragen.",
+            "Iedereen zegt dat het maar een dier was.",
           ],
           pull: "Je verdriet mag er zijn. **Precies zoals het is.**",
         },
@@ -75,12 +75,24 @@ export const seedHuisdier = internalMutation({
           key: "band", type: "band", achtergrond: "band",
           eyebrow: "Wat Niet Alleen is",
           titel: "Elke dag een klein moment,\nalleen voor jou.",
-          kicker: "Geen programma dat je moet \"doen\". **Gewoon iets wat naast je meeloopt.**",
+          kicker: "Misschien voelt dit klein. **Maar juist dat ene moment om stil te staan kan het verschil maken tussen alles alleen dragen en even kunnen ademen.**",
           stack: [
             "Waar je niets hoeft uit te leggen.",
             "Waar je vandaag meer mag zijn dan gisteren.",
             "Waar je verdriet niet klein hoeft.",
           ],
+        },
+        {
+          key: "kern", type: "kern",
+          eyebrow: "Waar sta je bij stil",
+          titel: "Niets moet. Alles mag.",
+          naastLabel: "Zachte vragen die je op weg helpen, bijvoorbeeld:",
+          naast: [
+            "Waar denk je aan als het stil is in huis?",
+            "Wanneer voelde jullie band het sterkst?",
+            "Wat zou je nog tegen hem of haar willen zeggen?",
+          ],
+          slot: "Geen druk, geen huiswerk. Zacht, maar het brengt je wel ergens.",
         },
         {
           key: "ditkrijgje", type: "ditkrijgje",
@@ -91,6 +103,16 @@ export const seedHuisdier = internalMutation({
             { kop: "Erkenning zonder je te verdedigen", tekst: "Ruimte voor herinneringen én gemis, zonder dat je hoeft uit te leggen waarom dit zo groot is." },
             { kop: "Benji, dag en nacht", tekst: "Voor de momenten waarop het gemis ineens opkomt en je even iets kwijt wilt. Ook 's nachts." },
             { kop: "Je eigen plek om te houden", tekst: "Alles wat je opschrijft blijft van jou, ook na de acht weken." },
+          ],
+        },
+        {
+          key: "ervaringen", type: "ervaringen",
+          eyebrow: "Wat anderen ervaren",
+          titel: "Gewoon iemand die het begrijpt.",
+          quotes: [
+            { bron: "Sandra", tekst: "Ik dacht dat ik het wel alleen kon. Maar elke ochtend gaf dat ene moment me het gevoel dat er iemand aan me dacht, en dat was genoeg." },
+            { bron: "Mariëlle", tekst: "Hier kon ik zeggen wat ik nergens anders kwijt kon, zonder dat iemand het probeerde op te lossen. Voor het eerst voelde mijn verdriet niet als iets om me voor te verontschuldigen." },
+            { bron: "Annelies", tekst: "Iedereen zei dat het maar een hond was, maar hier voelde ik me eindelijk begrepen." },
           ],
         },
         {
