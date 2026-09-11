@@ -63,17 +63,37 @@ function mix(rgb: [number, number, number], target: [number, number, number], am
     rgb[2] + (target[2] - rgb[2]) * amount,
   ];
 }
-function accentVars(hex?: string | null): React.CSSProperties {
+// Bouwt een <style>-inhoud die ALLE tinten (accent + achtergrond) op de accentkleur
+// afstemt, zowel licht als donker. Gescoped op `.bpg[data-accent]` zodat het altijd
+// wint van de basis-CSS (hogere specificiteit), ook binnen de dark-mode media-query.
+function accentCss(hex?: string | null): string | null {
   const rgb = hex ? hexToRgb(hex) : null;
-  if (!rgb) return {};
-  const WHITE: [number, number, number] = [255, 255, 255];
-  const BLACK: [number, number, number] = [0, 0, 0];
-  return {
-    ["--accent" as any]: toHex(rgb),
-    ["--accent-strong" as any]: toHex(mix(rgb, BLACK, 0.2)),
-    ["--accent-wash" as any]: toHex(mix(rgb, WHITE, 0.86)),
-    ["--leaf" as any]: toHex(mix(rgb, WHITE, 0.28)),
-  };
+  if (!rgb) return null;
+  const W: [number, number, number] = [255, 255, 255];
+  const K: [number, number, number] = [0, 0, 0];
+  const m = (t: [number, number, number], a: number) => toHex(mix(rgb, t, a));
+  const licht = [
+    `--accent:${toHex(rgb)}`,
+    `--accent-strong:${m(K, 0.2)}`,
+    `--accent-wash:${m(W, 0.86)}`,
+    `--leaf:${m(W, 0.28)}`,
+    `--ground:${m(W, 0.9)}`,   // pagina-achtergrond: heel lichte tint van de accentkleur
+    `--paper:${m(W, 0.94)}`,
+    `--line:${m(W, 0.74)}`,
+    `--line-soft:${m(W, 0.87)}`,
+  ].join(";");
+  const donker = [
+    `--accent:${m(W, 0.3)}`,
+    `--accent-strong:${m(W, 0.5)}`,
+    `--accent-wash:${m(K, 0.8)}`,
+    `--leaf:${m(W, 0.45)}`,
+    `--ground:${m(K, 0.88)}`,
+    `--paper:${m(K, 0.85)}`,
+    `--surface:${m(K, 0.82)}`,
+    `--line:${m(K, 0.72)}`,
+    `--line-soft:${m(K, 0.8)}`,
+  ].join(";");
+  return `.bpg[data-accent]{${licht}}@media (prefers-color-scheme:dark){.bpg[data-accent]{${donker}}}`;
 }
 
 // Resolveert een ctaUrl: de sentinel "intake" wijst naar de eigen intake-pagina.
@@ -475,8 +495,10 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
 
 export default function BlokPaginaView({ blocks, slug, footer, accentKleur }: { blocks: Block[]; slug: string; footer?: string; accentKleur?: string | null }) {
   const href = makeHref(`/lp/${slug}/kennismaken`);
+  const css = accentCss(accentKleur);
   return (
-    <div className="bpg" style={accentVars(accentKleur)}>
+    <div className="bpg" {...(css ? { "data-accent": "" } : {})}>
+      {css && <style dangerouslySetInnerHTML={{ __html: css }} />}
       {(blocks || []).map((b, i) => renderBlock(b, b.key || String(i), href))}
       <footer>
         {footer || "Talk To Benji"}
