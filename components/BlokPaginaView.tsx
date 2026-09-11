@@ -167,8 +167,11 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
     return (
       <header className="site-head" key={key}>
         <div className="wrap">
-          {b.logo && <img className="logo" src={b.logo} alt={`${b.merk || "Talk To Benji"} logo`} />}
-          <span className="brand">{b.merk}{b.sub && <span className="brand-sub"> &middot; {b.sub}</span>}</span>
+          <a href="/" aria-label="Naar de homepagina"
+            style={{ display: "flex", alignItems: "center", gap: ".6rem", textDecoration: "none", color: "inherit" }}>
+            {b.logo && <img className="logo" src={b.logo} alt={`${b.merk || "Talk To Benji"} logo`} />}
+            <span className="brand">{b.merk}{b.sub && <span className="brand-sub"> &middot; {b.sub}</span>}</span>
+          </a>
         </div>
       </header>
     );
