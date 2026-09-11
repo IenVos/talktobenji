@@ -1,47 +1,38 @@
 /**
- * Eén algemene Niet Alleen-checkout voor alle verliestypes.
+ * Eén algemene Niet Alleen-checkout voor alle verliestypes: /betalen/niet-alleen.
  *
- * - maakAlgemeenNAProduct: dupliceert een bestaand NA-product naar slug
- *   "niet-alleen-programma" met LEEG verliesType. Het verliestype komt dan uit
- *   de LP-link (?type=...) via de webhook-metadata (verlies_type).
+ * - zetNietAlleenAlgemeen: maakt het bestaande product "niet-alleen" algemeen
+ *   (verliesType LEEG), zodat het verliestype uit de LP-link (?type=...) telt via
+ *   de webhook-metadata. Ruimt het eerder aangemaakte "niet-alleen-programma" op.
  * - zetNACtaNaarAlgemeen: laat de knoppen van de NA-blok-pagina's naar deze
- *   algemene checkout wijzen, mét het juiste ?type= per pagina. Behoudt alle
- *   overige blok-inhoud (leest de huidige blokken, past alleen ctaUrl aan).
+ *   checkout wijzen, mét het juiste ?type= per pagina (behoudt overige inhoud).
  */
 import { internalMutation } from "./_generated/server";
 
-const ALGEMEEN_SLUG = "niet-alleen-programma";
+const ALGEMEEN_SLUG = "niet-alleen";
 
-export const maakAlgemeenNAProduct = internalMutation({
+export const zetNietAlleenAlgemeen = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const bestaand = await ctx.db
+    const prod = await ctx.db
       .query("checkoutProducts")
       .withIndex("by_slug", (q) => q.eq("slug", ALGEMEEN_SLUG))
       .first();
-    const bron = await ctx.db
-      .query("checkoutProducts")
-      .withIndex("by_slug", (q) => q.eq("slug", "niet-alleen-verlies-persoon"))
-      .first();
-    if (!bron) throw new Error("Bronproduct niet-alleen-verlies-persoon niet gevonden.");
-
-    const { _id, _creationTime, ...velden } = bron as any;
-    const data = {
-      ...velden,
-      slug: ALGEMEEN_SLUG,
-      name: "Niet Alleen",
-      kortNaam: "N.A.",
-      verliesType: undefined,      // leeg: type komt uit de LP-link (?type=)
-      stripePriceId: undefined,    // eigen PaymentIntent-flow gebruikt priceInCents
+    if (!prod) throw new Error(`Product "${ALGEMEEN_SLUG}" niet gevonden.`);
+    await ctx.db.patch(prod._id, {
+      verliesType: undefined,       // leeg: type komt uit de LP-link (?type=)
       subscriptionType: "niet_alleen",
       isLive: true,
-    };
-    if (bestaand) {
-      await ctx.db.patch(bestaand._id, data);
-      return { slug: ALGEMEEN_SLUG, actie: "bijgewerkt", prijsCenten: velden.priceInCents };
-    }
-    await ctx.db.insert("checkoutProducts", data);
-    return { slug: ALGEMEEN_SLUG, actie: "aangemaakt", prijsCenten: velden.priceInCents };
+    });
+
+    // Opruimen: het eerder aangemaakte losse algemene product is niet meer nodig.
+    const oud = await ctx.db
+      .query("checkoutProducts")
+      .withIndex("by_slug", (q) => q.eq("slug", "niet-alleen-programma"))
+      .first();
+    if (oud) await ctx.db.delete(oud._id);
+
+    return { slug: ALGEMEEN_SLUG, verliesTypeGewist: true, oudeVerwijderd: !!oud };
   },
 });
 
