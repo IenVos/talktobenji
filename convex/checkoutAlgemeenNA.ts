@@ -71,3 +71,89 @@ export const zetNACtaNaarAlgemeen = internalMutation({
     return res;
   },
 });
+
+// FAQ (uit de oude LP) + EH-magnet blok + 7-dagen-garantie op de NA-blok-pagina's.
+const FAQ_BRON: Record<string, string> = {
+  "verlies-huisdier": "niet-alleen-voor-hulp-bij-verlies-van-huisdier",
+  "verlies-persoon": "je-mist-iemand",
+  "relatie-voorbij": "mijn-relatie-is-voorbij-oud",
+  "ik-voel-me-eenzaam": "ik-voel-me-eenzaam",
+  "ongewenst-kinderloos": "ongewenst-kinderloos-die-pijn-gaat-nooit-weg",
+};
+const EH_TYPE: Record<string, string> = {
+  "verlies-huisdier": "huisdier",
+  "verlies-persoon": "persoon",
+  "relatie-voorbij": "scheiding",
+  "ik-voel-me-eenzaam": "eenzaamheid",
+  "ongewenst-kinderloos": "kinderloos",
+};
+const EH_TEKST =
+  "Soms is de stap naar een volledig programma nog te groot.\n\nEn dat hoeft ook niet vandaag.\n\n**Maar als je hier bent, draag je iets. En dat verdient een plek.**\n\nEven Houvast is gratis, en het kost je maar een paar minuten:\n✓ Vijf korte vragen\n✓ Typen, inspreken of een foto toevoegen\n✓ Benji maakt er een persoonlijke brief van, om te bewaren\n\nGeen programma. Geen verplichting. Gewoon een klein moment voor het verlies dat je draagt.";
+const GARANTIE = "Niet tevreden binnen 7 dagen? Je krijgt je geld terug, ook al ben je al begonnen.";
+const rid = () => Math.random().toString(36).slice(2, 8);
+
+export const vulNAFaqEnEh = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const res: any[] = [];
+    for (const [slug, bronSlug] of Object.entries(FAQ_BRON)) {
+      const pagina = await ctx.db
+        .query("blokPaginas")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+      if (!pagina) { res.push({ slug, actie: "pagina niet gevonden" }); continue; }
+
+      let blocks: any[] = [];
+      try { blocks = JSON.parse(pagina.blocksJson); } catch { blocks = []; }
+
+      // FAQ uit de oude LP
+      const bron = await ctx.db
+        .query("landingPages")
+        .withIndex("by_slug", (q) => q.eq("slug", bronSlug))
+        .first();
+      let vragen: any[] = [];
+      try { vragen = (bron as any)?.vragenJson ? JSON.parse((bron as any).vragenJson) : []; } catch {}
+
+      const heeftFaq = blocks.some((b) => b?.type === "faq");
+      const heeftEh = blocks.some((b) => b?.type === "ehmagnet");
+
+      const nieuweBlokken: any[] = [];
+      if (!heeftFaq && vragen.length > 0) {
+        nieuweBlokken.push({
+          key: `faq-${rid()}`, type: "faq", achtergrond: "paper",
+          eyebrow: "Veelgestelde vragen", titel: "Veelgestelde vragen",
+          items: vragen.map((v) => ({ vraag: String(v.vraag ?? "").trim(), antwoord: String(v.antwoord ?? "").trim() })),
+        });
+      }
+      if (!heeftEh) {
+        nieuweBlokken.push({
+          key: `ehmagnet-${rid()}`, type: "ehmagnet", achtergrond: "paper",
+          eyebrow: "", kop: "Nog niet klaar? Dat begrijp ik. 💙",
+          tekst: EH_TEKST, knopText: "Begin gratis met Even Houvast →",
+          knopUrl: `/even-houvast/${EH_TYPE[slug]}`,
+        });
+      }
+
+      // Garantie op het aanbod-blok (7 dagen geld terug), zonder dubbel te zetten.
+      let garantieGezet = false;
+      let volgende = blocks.map((b) => {
+        if (b?.type === "offer" && !String(b.micro ?? "").includes("7 dagen")) {
+          garantieGezet = true;
+          return { ...b, micro: `${b.micro ? b.micro + " " : ""}${GARANTIE}` };
+        }
+        return b;
+      });
+
+      // FAQ + EH vóór het slot-blok (final) invoegen; anders achteraan.
+      if (nieuweBlokken.length > 0) {
+        const finalIdx = volgende.findIndex((b) => b?.type === "final");
+        if (finalIdx >= 0) volgende = [...volgende.slice(0, finalIdx), ...nieuweBlokken, ...volgende.slice(finalIdx)];
+        else volgende = [...volgende, ...nieuweBlokken];
+      }
+
+      await ctx.db.patch(pagina._id, { blocksJson: JSON.stringify(volgende), updatedAt: Date.now() });
+      res.push({ slug, faqToegevoegd: !heeftFaq && vragen.length > 0, faqAantal: vragen.length, ehToegevoegd: !heeftEh, garantieGezet });
+    }
+    return res;
+  },
+});
