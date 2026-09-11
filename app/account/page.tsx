@@ -4,10 +4,9 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { MessageSquare, PencilLine, Sparkles, HandHelping, Gem, Target, CalendarCheck, ShoppingBag } from "lucide-react";
+import { MessageSquare, PencilLine, Sparkles, HandHelping, Gem, Target, CalendarCheck, ShoppingBag, CalendarClock } from "lucide-react";
 import { SubscriptionStatus } from "@/components/SubscriptionStatus";
 import { ConversationLimitBanner } from "@/components/ConversationLimitBanner";
-import { ComingSoonSection } from "@/components/ComingSoonSection";
 
 const CATEGORIES = [
   { href: "/account/gesprekken", label: "Jouw gesprekken", icon: MessageSquare, desc: "Je eerdere gesprekken met Benji" },
@@ -53,6 +52,24 @@ export default function AccountPage() {
             <span className="text-primary-500 group-hover:translate-x-0.5 transition-transform" aria-hidden>→</span>
           </Link>
         ))}
+
+        {/* Aankomend — naast Handreikingen; opent alle "binnenkort"-dingen op één pagina */}
+        <Link
+          href="/account/aankomend"
+          className="flex items-start gap-4 p-5 rounded-xl bg-primary-50/60 border border-primary-200 hover:border-primary-400 hover:shadow-sm transition-all group"
+        >
+          <div className="p-2.5 rounded-lg bg-white text-primary-700 border border-primary-100">
+            <CalendarClock size={24} strokeWidth={2} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors flex items-center gap-2 flex-wrap">
+              Aankomend
+              <span className="text-[10px] font-semibold text-primary-600 bg-primary-100 px-2 py-0.5 rounded-full uppercase tracking-wide">Binnenkort</span>
+            </h2>
+            <p className="text-sm text-gray-600 mt-0.5">Nieuwe dingen waar we aan werken. Stem op wat jij graag wilt.</p>
+          </div>
+          <span className="text-primary-500 group-hover:translate-x-0.5 transition-transform" aria-hidden>→</span>
+        </Link>
       </div>
 
       {featuredItems.length > 0 && (
@@ -102,8 +119,6 @@ export default function AccountPage() {
           </div>
         </div>
       )}
-
-      <ComingSoonSection section="account" label="Mijn plek" />
     </div>
   );
 }

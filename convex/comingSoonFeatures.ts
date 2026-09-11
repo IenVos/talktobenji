@@ -16,6 +16,17 @@ export const listBySection = query({
   },
 });
 
+/** Publiek: alle actieve wensen (alle secties samen), voor de Aankomend-pagina. */
+export const listAllActive = query({
+  args: {},
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("comingSoonFeatures").collect();
+    return rows
+      .filter((r) => r.isActive)
+      .sort((a, b) => a.section.localeCompare(b.section) || a.order - b.order);
+  },
+});
+
 /** Admin: alle wensen */
 export const listAll = query({
   args: { adminToken: v.string() },

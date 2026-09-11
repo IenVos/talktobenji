@@ -11,6 +11,7 @@ import { hexToLightTint, hexToDarker } from "@/lib/utils";
 import { MessageSquare, CreditCard, Calendar, Heart, LogIn, LogOut, ChevronDown, ChevronRight, ChevronLeft, KeyRound, UserCircle, PencilLine, Sparkles, HandHelping, MessageCirclePlus, Target, CalendarCheck, MoreVertical, House, X, Gem, Bell, HelpCircle, User } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { ScrollIndicator } from "@/components/ScrollIndicator";
+import { MijnTrajectCard } from "@/components/MijnTrajectCard";
 
 const ORIGINAL_ACCENT = "#6d84a8";
 const ACCENT_CACHE_KEY = "benji_accent_color";
@@ -62,6 +63,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   "/account/handreikingen/golven": { title: "Golven van verdriet", subtitle: "" },
   "/account/handreikingen/geheugenarchief": { title: "Geheugenarchief", subtitle: "" },
   "/account/onderweg": { title: "Iets voor onderweg", subtitle: "Producten en items die je kunnen helpen" },
+  "/account/aankomend": { title: "Aankomend", subtitle: "Nieuwe dingen waar we aan werken. Stem op wat jij graag wilt." },
   "/account/herinneringen": { title: "Memories", subtitle: "Mooie herinneringen om naar terug te kijken" },
   "/account/abonnement": { title: "Abonnement & betalingen", subtitle: "Je abonnement en betalingsoverzicht" },
   "/account/instellingen": { title: "Personaliseer", subtitle: "Personalisatie van je account" },
@@ -633,9 +635,12 @@ export default function AccountLayout({
         <div className="flex gap-6 items-start">
           {/* Desktop zijbalk – verborgen op mobiel */}
           <aside className="w-56 flex-shrink-0 hidden lg:block">
-            <nav className="sticky top-6 rounded-xl border border-primary-200 bg-white p-3 shadow-sm">
-              {navContent}
-            </nav>
+            <div className="sticky top-6">
+              <nav className="rounded-xl border border-primary-200 bg-white p-3 shadow-sm">
+                {navContent}
+              </nav>
+              <MijnTrajectCard />
+            </div>
           </aside>
 
           {/* Hoofdinhoud */}

@@ -7,13 +7,16 @@ export async function GET(request: NextRequest) {
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
   if (!convexUrl) return NextResponse.json({ features: [] });
 
+  // "all" → alle actieve wensen samen (voor de Aankomend-pagina).
+  const isAll = section === "all";
+
   try {
     const res = await fetch(`${convexUrl}/api/query`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        path: "comingSoonFeatures:listBySection",
-        args: { section },
+        path: isAll ? "comingSoonFeatures:listAllActive" : "comingSoonFeatures:listBySection",
+        args: isAll ? {} : { section },
         format: "json",
       }),
     });
