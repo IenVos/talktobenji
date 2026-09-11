@@ -64,6 +64,7 @@ const DEFAULTS: Record<string, string> = {
   zazTekst:        "Benji is er wanneer je wilt praten, dag en nacht. Maar soms merk je: ik wil dit niet alleen dragen. Dan is er Zij aan Zij, acht weken persoonlijke begeleiding met Ien, voor wanneer je iemand nodig hebt die niet alleen luistert, maar echt naast je blijft.",
   zazCta:          "Binnenkort beschikbaar",
   zazCtaUrl:       "",
+  zazMicro:        "",
 };
 
 function IconChat() {
@@ -598,6 +599,11 @@ export default async function HomePage() {
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#4a7c59" }} aria-hidden="true" />
               {c.zazCta}
             </div>
+          )}
+          {c.zazMicro && (
+            <p className="mt-3 text-xs text-primary-400 max-w-sm mx-auto text-balance">
+              {c.zazMicro}
+            </p>
           )}
         </div>
       </section>

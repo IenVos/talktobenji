@@ -43,6 +43,7 @@ const HOMEPAGE_FIELDS = [
     { key: "zazTekst",  label: "Tekst",                    multiline: true  },
     { key: "zazCta",    label: "Knoptekst (label)",        multiline: false },
     { key: "zazCtaUrl", label: "Knop-link (URL). Leeg = knop niet klikbaar (\"binnenkort\")", multiline: false },
+    { key: "zazMicro",  label: "Microtekst onder de knop (optioneel)", multiline: false },
   ]},
   { section: "Over Benji", fields: [
     { key: "overTitle", label: "Titel",    multiline: false },
@@ -116,6 +117,7 @@ const HOMEPAGE_DEFAULTS: Record<string, string> = {
   zazTekst: "Benji is er wanneer je wilt praten, dag en nacht. Maar soms merk je: ik wil dit niet alleen dragen. Dan is er Zij aan Zij, acht weken persoonlijke begeleiding met Ien, voor wanneer je iemand nodig hebt die niet alleen luistert, maar echt naast je blijft.",
   zazCta: "Binnenkort beschikbaar",
   zazCtaUrl: "",
+  zazMicro: "",
   overTitle: "Gemaakt omdat er iets ontbrak en uit eigen ervaring met verlies",
   overP1: "Ik ben Ien, oprichter van Talk To Benji. Ik vroeg me af waarom er voor mensen met verdriet zo weinig is dat echt laagdrempelig is. Geen wachtlijst, geen intake, geen afspraak, gewoon iemand die luistert, ook om 03:00 's nachts.",
   overP2: "Dat werd Benji. Zes jaar lang zocht ik naar de beste manier om een plek te maken waar je je verhaal kwijt kunt, je gedachten kunt ordenen en zo beter zicht krijgt op alles wat er in je hoofd zit. Niet om je te vertellen wat je moet doen, maar om je te helpen het zelf te begrijpen.",
