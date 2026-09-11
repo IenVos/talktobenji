@@ -183,19 +183,19 @@ export function SiteHeaderConcept() {
           Start gesprek met Benji
         </Link>
 
-        {/* Hamburger — alleen desktop zichtbaar als fallback, mobile heeft GlobalMenu bolletjes */}
+        {/* Hamburger — mobiel menu-knop in de header */}
         <button
           onClick={() => setOpen((v) => !v)}
-          className="hidden md:hidden p-2 rounded-lg text-primary-300 hover:text-white transition-colors"
+          className="md:hidden p-2 rounded-lg text-primary-200 hover:text-white transition-colors"
           aria-label={open ? "Menu sluiten" : "Menu openen"}
         >
-          {open ? <X size={20} /> : <Menu size={20} />}
+          {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
-      {/* Mobiel uitklapmenu — verborgen want GlobalMenu bolletjes nemen het over */}
+      {/* Mobiel uitklapmenu */}
       {open && (
-        <div className="hidden bg-primary-900 border-t border-primary-800 px-6 py-5 space-y-1">
+        <div className="md:hidden bg-primary-900 border-t border-primary-800 px-6 py-5 space-y-1">
           {/* Over — uitklapbaar submenu */}
           <div>
             <button
