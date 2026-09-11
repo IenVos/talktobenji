@@ -474,6 +474,32 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
     );
   }
 
+  if (t === "ehmagnet") {
+    const lines = (b.tekst || "").split("\n");
+    return (
+      <section key={key} style={sectionStyle(b.achtergrond)}>
+        <div className="wrap">
+          <div className="ehm">
+            {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
+            {b.kop && <h2 className="ehm-kop">{b.kop}</h2>}
+            <div className="ehm-body">
+              {lines.map((raw: string, i: number) => {
+                const line = raw.trim();
+                if (!line) return null;
+                const isCheck = line.startsWith("✓") || line.startsWith("✓");
+                const content = isCheck ? line.replace(/^[✓✓]\s*/, "") : line;
+                return isCheck
+                  ? <div key={i} className="ehm-check"><span><Rich text={content} /></span></div>
+                  : <p key={i} className="ehm-p"><Rich text={content} /></p>;
+              })}
+            </div>
+            {b.knopText && <a className="btn" href={href(b.knopUrl)}>{b.knopText}</a>}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   if (t === "offer") {
     return (
       <section id={b.anchor || "aanbod"} key={key} style={sectionStyle(b.achtergrond)}>

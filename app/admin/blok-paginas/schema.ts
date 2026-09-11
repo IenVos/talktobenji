@@ -41,7 +41,7 @@ export const ACHTERGROND_OPTIES = [
 // Bloktypes die een `achtergrond`-instelling gebruiken (sectionStyle in de renderer).
 export const HEEFT_ACHTERGROND = new Set([
   "herkenning", "kern", "cadence", "stappen", "ditkrijgje",
-  "account", "document", "nietis", "ien", "ervaringen", "faq", "offer",
+  "account", "document", "nietis", "ien", "ervaringen", "faq", "offer", "ehmagnet",
 ]);
 
 export const BLOCK_LABELS: Record<string, string> = {
@@ -59,6 +59,7 @@ export const BLOCK_LABELS: Record<string, string> = {
   ien: "Over Ien",
   ervaringen: "Ervaringen (quotes)",
   faq: "Veelgestelde vragen",
+  ehmagnet: "Even Houvast (magnet)",
   offer: "Aanbod (prijs)",
   final: "Slotband + CTA",
 };
@@ -66,7 +67,7 @@ export const BLOCK_LABELS: Record<string, string> = {
 // Volgorde in de "blok toevoegen"-keuzelijst.
 export const BLOCK_TYPES = [
   "header", "hero", "herkenning", "band", "kern", "cadence", "stappen",
-  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "faq", "offer", "final",
+  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "faq", "ehmagnet", "offer", "final",
 ];
 
 export const BLOCK_SCHEMAS: Record<string, Field[]> = {
@@ -240,6 +241,13 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
       ],
     },
   ],
+  ehmagnet: [
+    { key: "eyebrow", label: "Label (klein, optioneel)", kind: "text" },
+    { key: "kop", label: "Kop", kind: "text" },
+    { key: "tekst", label: "Tekst (Enter = nieuwe regel; regel met ✓ wordt een vinkje; **vet**)", kind: "textarea", rows: 9 },
+    { key: "knopText", label: "Knoptekst", kind: "text" },
+    { key: "knopUrl", label: "Knop-link (bv. /even-houvast/huisdier)", kind: "text" },
+  ],
   offer: [
     { key: "introLabel", label: "Introlabel", kind: "text" },
     { key: "prijs", label: "Prijs", kind: "text" },
@@ -280,5 +288,14 @@ export function leegBlok(type: string): any {
   const blok: any = { key: `${type}-${Math.random().toString(36).slice(2, 8)}`, type };
   for (const f of BLOCK_SCHEMAS[type] || []) blok[f.key] = leegVeld(f);
   if (HEEFT_ACHTERGROND.has(type)) blok.achtergrond = "";
+  if (type === "ehmagnet") {
+    blok.eyebrow = "";
+    blok.kop = "Nog niet klaar? Dat begrijp ik. 💙";
+    blok.tekst =
+      "Soms is de stap naar een volledig programma nog te groot.\n\nEn dat hoeft ook niet vandaag.\n\n**Maar als je hier bent, draag je iets. En dat verdient een plek.**\n\nEven Houvast is gratis, en het kost je maar een paar minuten:\n✓ Vijf korte vragen\n✓ Typen, inspreken of een foto toevoegen\n✓ Benji maakt er een persoonlijke brief van, om te bewaren\n\nGeen programma. Geen verplichting. Gewoon een klein moment voor het verlies dat je draagt.";
+    blok.knopText = "Begin gratis met Even Houvast →";
+    blok.knopUrl = "/even-houvast/huisdier";
+    blok.achtergrond = "paper";
+  }
   return blok;
 }
