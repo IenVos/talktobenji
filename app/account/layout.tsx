@@ -215,6 +215,7 @@ export default function AccountLayout({
   }
 
   const pageInfo = PAGE_TITLES[pathname || "/account"] ?? PAGE_TITLES["/account"];
+  const isDashboard = pathname === "/account";
 
   // Gedeelde navigatie-inhoud (gebruikt door zowel sidebar als mobiel menu)
   const navContent = (
@@ -387,14 +388,14 @@ export default function AccountLayout({
           </li>
         );
       })}
-      <li>
+      <li className="mt-2 pt-2 border-t border-primary-100">
         <Link
           href="/account/steun"
           scroll={false}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors mt-2 border-t border-primary-100 pt-3 ${
+          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-colors ${
             pathname === "/account/steun"
-              ? "text-primary-800"
-              : "text-gray-700 hover:text-primary-700 nav-hover"
+              ? "text-primary-800 border-primary-300"
+              : "text-gray-600 border-primary-200 hover:bg-primary-50 hover:text-primary-700"
           }`}
           style={
             pathname === "/account/steun"
@@ -402,7 +403,7 @@ export default function AccountLayout({
               : {}
           }
         >
-          <Heart size={18} className="flex-shrink-0" />
+          <Heart size={16} className="flex-shrink-0" />
           Steun Benji
         </Link>
       </li>
@@ -632,15 +633,16 @@ export default function AccountLayout({
           </div>
         )}
 
-        <div className="flex gap-6 items-start">
+        <div className={`flex gap-6 ${isDashboard ? "items-stretch" : "items-start"}`}>
           {/* Desktop zijbalk – verborgen op mobiel */}
-          <aside className="w-56 flex-shrink-0 hidden lg:block">
-            <div className="sticky top-6">
+          <aside className="w-56 flex-shrink-0 hidden lg:flex lg:flex-col">
+            <div className={isDashboard ? "" : "sticky top-6"}>
               <nav className="rounded-xl border border-primary-200 bg-white p-3 shadow-sm">
                 {navContent}
               </nav>
-              <MijnTrajectCard />
             </div>
+            {/* Op het dashboard groeit het traject-kaartje mee tot onder de winkelstrip */}
+            <MijnTrajectCard className={isDashboard ? "flex-1" : ""} />
           </aside>
 
           {/* Hoofdinhoud */}

@@ -12,7 +12,7 @@ import { Leaf, HeartHandshake, Lock, ArrowRight } from "lucide-react";
  * - Nog niet in bezit → rustig kaartje met slotje, klik = ontdekken.
  * (De echte eigendom-logica per programma komt met de toegang-flow.)
  */
-export function MijnTrajectCard() {
+export function MijnTrajectCard({ className = "" }: { className?: string }) {
   const { data: session } = useSession();
   const profiel = useQuery(
     api.nietAlleen.getProfile,
@@ -27,7 +27,7 @@ export function MijnTrajectCard() {
   const pct = Math.min(Math.round((dag / 56) * 100), 100);
 
   return (
-    <div className="mt-4 rounded-xl border border-primary-200 bg-white p-3 shadow-sm">
+    <div className={`mt-4 rounded-xl border border-primary-200 bg-white p-3 shadow-sm flex flex-col ${className}`}>
       <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 px-1 mb-2">
         Mijn traject
       </p>
@@ -49,8 +49,7 @@ export function MijnTrajectCard() {
           <p className="text-[11px] text-gray-400 mt-1.5">Week {week} van 8</p>
           <Link
             href="/niet-alleen"
-            className="mt-2.5 flex items-center justify-center gap-1.5 text-sm font-medium text-white rounded-lg py-2 transition-opacity hover:opacity-90"
-            style={{ backgroundColor: "var(--account-accent, #6d84a8)" }}
+            className="mt-2.5 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg py-2 border transition-colors bg-amber-50/60 border-amber-400 text-amber-700 hover:bg-amber-50"
           >
             Verder met vandaag <ArrowRight size={15} />
           </Link>
