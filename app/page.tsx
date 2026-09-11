@@ -63,6 +63,7 @@ const DEFAULTS: Record<string, string> = {
   zazTitel:        "Soms wil je meer dan een gesprek",
   zazTekst:        "Benji is er wanneer je wilt praten, dag en nacht. Maar soms merk je: ik wil dit niet alleen dragen. Dan is er Zij aan Zij, acht weken persoonlijke begeleiding met Ien, voor wanneer je iemand nodig hebt die niet alleen luistert, maar echt naast je blijft.",
   zazCta:          "Binnenkort beschikbaar",
+  zazCtaUrl:       "",
 };
 
 function IconChat() {
@@ -580,13 +581,24 @@ export default async function HomePage() {
           <p className="text-primary-600 leading-relaxed max-w-xl mx-auto text-balance">
             {c.zazTekst}
           </p>
-          <div
-            className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm border cursor-default select-none"
-            style={{ backgroundColor: "#f0f5f1", color: "#4a7c59", borderColor: "#cfe0d5" }}
-          >
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#4a7c59" }} aria-hidden="true" />
-            {c.zazCta}
-          </div>
+          {c.zazCtaUrl ? (
+            <Link
+              href={c.zazCtaUrl}
+              className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm text-white transition-colors hover:opacity-90"
+              style={{ backgroundColor: "#4a7c59" }}
+            >
+              {c.zazCta}
+              <span aria-hidden="true">→</span>
+            </Link>
+          ) : (
+            <div
+              className="mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm border cursor-default select-none"
+              style={{ backgroundColor: "#f0f5f1", color: "#4a7c59", borderColor: "#cfe0d5" }}
+            >
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: "#4a7c59" }} aria-hidden="true" />
+              {c.zazCta}
+            </div>
+          )}
         </div>
       </section>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { BlokPaginasBeheer } from "../blok-paginas/page";
+import { BlokPaginasBeheer } from "../blok-paginas/Beheer";
 
 export default function ProductLandingspaginasPage() {
   return (
