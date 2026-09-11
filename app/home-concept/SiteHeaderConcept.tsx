@@ -28,8 +28,18 @@ const OVER_ITEMS = [
   { href: "/blog", label: "Blog" },
 ];
 
+// "Voor jou" opent direct de verliestype-LP (geen tussenpagina/extra klik meer).
+// persoon/relatie/kinderloos hebben een eigen blok-LP; huisdier + eenzaamheid
+// wijzen voorlopig naar de bestaande keuze-LP-sectie tot hun blok-LP klaar is.
+const VOOR_JOU_ITEMS = [
+  { href: "/lp/zij-aan-zij", label: "Ik mis iemand" },
+  { href: "/lp/mijn-relatie-is-voorbij", label: "Mijn relatie is voorbij" },
+  { href: "/lp/zij-aan-zij-kinderloos", label: "Ongewenst kinderloos" },
+  { href: "/lp/je-hoeft-het-niet-alleen-te-doen#huisdier", label: "Verlies van een huisdier" },
+  { href: "/lp/je-hoeft-het-niet-alleen-te-doen#eenzaamheid", label: "Ik voel me eenzaam" },
+];
+
 const NAV_LINKS = [
-  { href: "https://www.talktobenji.com/lp/je-hoeft-het-niet-alleen-te-doen", label: "Voor jou", external: true },
   { href: "/talk-to-people", label: "T2P", title: "Talk To People", external: false },
   { href: "/inloggen", label: "Inloggen", external: false },
 ];
@@ -37,14 +47,20 @@ const NAV_LINKS = [
 export function SiteHeaderConcept() {
   const [open, setOpen] = useState(false);
   const [overOpen, setOverOpen] = useState(false);
+  const [voorOpen, setVoorOpen] = useState(false);
   const [mobileOverOpen, setMobileOverOpen] = useState(false);
+  const [mobileVoorOpen, setMobileVoorOpen] = useState(false);
   const overRef = useRef<HTMLDivElement>(null);
+  const voorRef = useRef<HTMLDivElement>(null);
 
-  // Sluit het "Over" dropdown bij klik buiten
+  // Sluit de dropdowns bij klik buiten
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (overRef.current && !overRef.current.contains(e.target as Node)) {
         setOverOpen(false);
+      }
+      if (voorRef.current && !voorRef.current.contains(e.target as Node)) {
+        setVoorOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -88,6 +104,35 @@ export function SiteHeaderConcept() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setOverOpen(false)}
+                    className="block px-4 py-3 text-sm text-primary-200 hover:text-white hover:bg-primary-700 transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Voor jou — dropdown met verliestypes, direct naar de LP */}
+          <div className="relative" ref={voorRef}>
+            <button
+              onClick={() => setVoorOpen((v) => !v)}
+              aria-haspopup="true"
+              aria-expanded={voorOpen}
+              className="flex items-center gap-1 text-sm text-primary-300 hover:text-white transition-colors"
+            >
+              Voor jou
+              <span className={`transition-transform ${voorOpen ? "rotate-180" : ""}`}>
+                <ChevronDown />
+              </span>
+            </button>
+            {voorOpen && (
+              <div className="absolute top-full left-0 mt-2 w-64 bg-primary-800 rounded-xl shadow-xl border border-primary-700 overflow-hidden">
+                {VOOR_JOU_ITEMS.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setVoorOpen(false)}
                     className="block px-4 py-3 text-sm text-primary-200 hover:text-white hover:bg-primary-700 transition-colors"
                   >
                     {item.label}
@@ -152,6 +197,35 @@ export function SiteHeaderConcept() {
                     key={item.href}
                     href={item.href}
                     onClick={() => { setOpen(false); setMobileOverOpen(false); }}
+                    className="block text-sm text-primary-300 hover:text-white py-2 transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Voor jou — uitklapbaar submenu */}
+          <div>
+            <button
+              onClick={() => setMobileVoorOpen((v) => !v)}
+              aria-haspopup="true"
+              aria-expanded={mobileVoorOpen}
+              className="flex items-center gap-1 w-full text-sm text-primary-300 hover:text-white py-2.5 transition-colors"
+            >
+              Voor jou
+              <span className={`transition-transform ml-1 ${mobileVoorOpen ? "rotate-180" : ""}`}>
+                <ChevronDown />
+              </span>
+            </button>
+            {mobileVoorOpen && (
+              <div className="ml-4 mt-0.5 space-y-0.5 border-l border-primary-700 pl-3">
+                {VOOR_JOU_ITEMS.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => { setOpen(false); setMobileVoorOpen(false); }}
                     className="block text-sm text-primary-300 hover:text-white py-2 transition-colors"
                   >
                     {item.label}
