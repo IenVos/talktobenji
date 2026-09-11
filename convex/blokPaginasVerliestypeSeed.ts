@@ -1,180 +1,119 @@
 /**
- * Toespitsen van de gedupliceerde blok-LP's op hun verliestype.
+ * Verliestype-pagina's in blok-opmaak, toegespitst op het product Niet Alleen.
  *
- * De pagina's verlies-huisdier en ik-voel-me-eenzaam zijn gedupliceerd van
- * zij-aan-zij (zelfde €425-programma-structuur). Deze seeds lezen de actuele
- * zij-aan-zij-blokken als basis en overschrijven ALLEEN de verlies-specifieke
- * teksten (hero, herkenning, band, kern, Ien, ervaringen, slot) + pageTitle/meta.
- * Programma-mechaniek (cadence/stappen/ditkrijgje/account/document/offer) blijft.
- *
- * Pagina's blijven op concept (gepubliceerd wordt niet aangeraakt) zodat Ien
- * ze nakijkt vóór livegang. Re-runbaar.
+ * Eén pagina = één doel: Niet Alleen (€49). Geen Zij aan Zij of Benji als
+ * concurrerende CTA op de pagina; de Even Houvast-popup is de zachte vangnet-stap.
+ * Pagina's blijven concept (gepubliceerd wordt niet aangeraakt) zodat Ien ze
+ * eerst nakijkt. Re-runbaar.
  */
 import { internalMutation } from "./_generated/server";
 
-type Overrides = Record<string, Record<string, unknown>>;
-
-async function pasToe(
+async function zetPagina(
   ctx: any,
-  opts: { doelSlug: string; pageTitle: string; metaDescription: string; overrides: Overrides }
+  opts: { slug: string; pageTitle: string; metaDescription: string; blocks: any[] }
 ) {
-  const bron = await ctx.db
-    .query("blokPaginas")
-    .withIndex("by_slug", (q: any) => q.eq("slug", "zij-aan-zij"))
-    .first();
-  if (!bron) throw new Error("Bron zij-aan-zij niet gevonden.");
   const doel = await ctx.db
     .query("blokPaginas")
-    .withIndex("by_slug", (q: any) => q.eq("slug", opts.doelSlug))
+    .withIndex("by_slug", (q: any) => q.eq("slug", opts.slug))
     .first();
-  if (!doel) throw new Error(`Doelpagina "${opts.doelSlug}" niet gevonden.`);
-
-  const blocks: any[] = JSON.parse(bron.blocksJson);
-  const next = blocks.map((b) =>
-    b && opts.overrides[b.key] ? { ...b, ...opts.overrides[b.key] } : b
-  );
+  if (!doel) throw new Error(`Doelpagina "${opts.slug}" niet gevonden.`);
   await ctx.db.patch(doel._id, {
-    blocksJson: JSON.stringify(next),
+    blocksJson: JSON.stringify(opts.blocks),
     pageTitle: opts.pageTitle,
     metaDescription: opts.metaDescription,
+    verliestype: doel.verliestype,
     updatedAt: Date.now(),
   });
-  return { slug: opts.doelSlug, blokken: next.length };
+  return { slug: opts.slug, blokken: opts.blocks.length };
 }
 
-// ── Verlies van een huisdier ────────────────────────────────────────────
+const CTA = "Start met Niet Alleen";
+
+// ── Verlies van een huisdier (Niet Alleen, €49) ─────────────────────────
 export const seedHuisdier = internalMutation({
   args: {},
-  handler: async (ctx) =>
-    pasToe(ctx, {
-      doelSlug: "verlies-huisdier",
-      pageTitle: "Zij aan Zij — 8 weken persoonlijke begeleiding bij het verlies van je dier",
+  handler: async (ctx) => {
+    const url = "/betalen/niet-alleen-huisdier";
+    const micro = "€49 eenmalig. Je begint direct, in je eigen tempo.";
+    return zetPagina(ctx, {
+      slug: "verlies-huisdier",
+      pageTitle: "Niet Alleen — 8 weken bij het verlies van je dier",
       metaDescription:
-        "Persoonlijke begeleiding bij het verlies van je huisdier. Acht weken lang iemand die naast je blijft, met Ien en Benji.",
-      overrides: {
-        hero: {
-          eyebrow: "8 weken persoonlijke begeleiding bij verlies van je dier",
+        "Acht weken lang elke dag een klein moment bij het verlies van je huisdier. In je eigen tempo, met Benji erbij.",
+      blocks: [
+        { key: "header", type: "header", logo: "/images/benji-logo-2.png", merk: "Talk To Benji", sub: "Niet Alleen" },
+        {
+          key: "hero", type: "hero",
+          eyebrow: "8 weken · elke dag een klein moment",
           titel1: "Ze zeggen: het was maar een dier.",
           titel2: "Voor jou was het zoveel meer.",
           body: [
-            { soort: "lead", tekst: "Je gaat naar je werk. Je praat met mensen. Je doet wat er moet gebeuren." },
-            { soort: "lead", tekst: "Maar thuis voel je de lege mand. De riem aan de haak. De stilte waar altijd geluid was." },
-            { soort: "whisper", tekst: "Een vaste wandeling. Een etenstijd. Een plek op de bank." },
-            { soort: "lead", tekst: "Of gewoon: wakker worden en opnieuw beseffen dat hij of zij er echt niet meer is." },
-            { soort: "lead", tekst: "En misschien denk je dan:" },
-            { soort: "thought", tekst: "Met wie moet ik hier nu mee praten?" },
+            { soort: "lead", tekst: "Een maatje. Routine. Stilte die nu anders voelt." },
+            { soort: "lead", tekst: "Je mist de kleine dingen. De vanzelfsprekendheid. De aanwezigheid." },
+            { soort: "whisper", tekst: "En misschien voelt het alsof je dit niet \"groot genoeg\" mag maken." },
+            { soort: "lead", tekst: "Dus je zegt er minder over dan je eigenlijk zou willen." },
+            { soort: "thought", tekst: "Maar jouw verdriet is echt." },
           ],
+          facts: "Acht weken lang, **om de dag** een bericht dat je op je eigen tempo doorloopt. Met Benji erbij, dag en nacht.",
+          ctaText: CTA, ctaUrl: url, micro,
         },
-        herkenning: {
+        {
+          key: "herkenning", type: "herkenning",
+          eyebrow: "Misschien herken je dit",
           titel: "Je mist je maatje op momenten waarop niemand het ziet.",
+          lead: "Je doet gewoon mee. En toch is er iets wat niet gezien wordt. Misschien denk je weleens:",
           voices: [
-            "Ik wil erover praten, maar ik ben bang dat mensen denken: het was maar een dier.",
+            "Ik ben bang dat mensen denken: het was maar een dier.",
             "Waarom doet dit vandaag ineens weer zo veel pijn?",
-            "Iedereen lijkt het gewoon te vinden dat ik doorga. Waarom lukt mij dat niet?",
-            "Ik weet niet eens wat ik nodig heb. Ik weet alleen dat ik dit niet alleen wil dragen.",
+            "De stilte in huis voelt zo anders.",
+            "Ik wil het delen, maar ik weet niet goed met wie.",
             "Soms wil ik gewoon vertellen wat ik vandaag mis.",
           ],
+          pull: "Je verdriet mag er zijn. **Precies zoals het is.**",
         },
-        band: {
+        {
+          key: "band", type: "band", achtergrond: "band",
+          eyebrow: "Wat Niet Alleen is",
+          titel: "Elke dag een klein moment,\nalleen voor jou.",
+          kicker: "Geen programma dat je moet \"doen\". **Gewoon iets wat naast je meeloopt.**",
           stack: [
-            "Je hoeft niet te weten hoe je verder moet.",
-            "Je hoeft niet te weten wanneer je er \"overheen\" zou moeten zijn.",
-            "Je hoeft je verdriet niet klein te maken omdat het \"maar\" een dier was.",
+            "Waar je niets hoeft uit te leggen.",
+            "Waar je vandaag meer mag zijn dan gisteren.",
+            "Waar je verdriet niet klein hoeft.",
           ],
         },
-        kern: {
-          naast: [
-            "Voor de dagen waarop je vooral wilt praten.",
-            "Voor de dagen waarop je niets weet te zeggen.",
-            "Voor de momenten waarop je ineens terugvalt.",
-            "Voor de herinneringen aan jullie samen die je opnieuw wilt vertellen.",
-            "Voor alles wat je liever niet zegt tegen iemand die het \"maar een dier\" vindt.",
+        {
+          key: "ditkrijgje", type: "ditkrijgje",
+          eyebrow: "Dit krijg je",
+          titel: "Acht weken lang loop je het niet alleen.",
+          items: [
+            { kop: "Om de dag een bericht", tekst: "Acht weken lang, om de dag een klein bericht met een gedachte of vraag. Niks moet, je doet het op je eigen tempo." },
+            { kop: "Erkenning zonder je te verdedigen", tekst: "Ruimte voor herinneringen én gemis, zonder dat je hoeft uit te leggen waarom dit zo groot is." },
+            { kop: "Benji, dag en nacht", tekst: "Voor de momenten waarop het gemis ineens opkomt en je even iets kwijt wilt. Ook 's nachts." },
+            { kop: "Je eigen plek om te houden", tekst: "Alles wat je opschrijft blijft van jou, ook na de acht weken." },
           ],
         },
-        ien: {
-          paras: [
-            "Ik ga je niet vertellen hoe je moet rouwen. Ik weet hoe eenzaam het kan zijn als de mensen om je heen het \"maar een dier\" vinden, terwijl jij een maatje mist dat je dagen deelde.",
-            "Ik ken verlies in veel gedaantes: een kinderwens die niet uitkwam, een bedrijf waar ik alles in had gelegd, en dieren die voor mij familie waren.",
-            "Daarom heb ik Zij aan Zij gemaakt. Geen methode die je moet volgen. Geen vinkjes die je moet zetten. Gewoon iemand die naast je blijft.",
+        {
+          key: "aanbod", type: "offer", anchor: "aanbod",
+          introLabel: "Wat als je het niet stil hoeft te dragen?",
+          prijs: "€49", prijsSub: "eenmalig · 8 weken",
+          bullets: [
+            "Acht weken lang, om de dag een bericht",
+            "Ruimte voor herinneringen en gemis, op je eigen tempo",
+            "Benji erbij, dag en nacht",
+            "Je eigen plek die je houdt",
           ],
+          ctaText: CTA, ctaUrl: url,
+          micro: "Je begint direct. Geen wachttijd, geen intake.",
         },
-        ervaringen: {
-          quotes: [
-            { bron: "Voorbeeld, vervangen voor livegang", tekst: "Voor het eerst hoefde ik niet uit te leggen waarom ik zo verdrietig was om een dier." },
-            { bron: "Voorbeeld, vervangen voor livegang", tekst: "Ik dacht dat ik vooral iemand nodig had die luisterde. Pas onderweg merkte ik hoeveel ik al die tijd alleen had gedragen." },
-            { bron: "Voorbeeld, vervangen voor livegang", tekst: "Geen adviezen, geen 'geef het tijd'. Gewoon iemand die bleef. Dat was precies wat ik nodig had." },
-          ],
+        {
+          key: "final", type: "final", achtergrond: "band",
+          eyebrow: "Tot slot",
+          titel: "Je verdriet om je dier is echt.\nEn je hoeft het niet stil te dragen.",
+          sub: "8 weken Niet Alleen.",
+          ctaText: CTA, ctaUrl: url, micro,
         },
-      },
-    }),
-});
-
-// ── Ik voel me eenzaam ──────────────────────────────────────────────────
-export const seedEenzaam = internalMutation({
-  args: {},
-  handler: async (ctx) =>
-    pasToe(ctx, {
-      doelSlug: "ik-voel-me-eenzaam",
-      pageTitle: "Zij aan Zij — 8 weken iemand die echt naast je staat",
-      metaDescription:
-        "Als je je alleen voelt: acht weken lang iemand die naast je blijft, met Ien en Benji.",
-      overrides: {
-        hero: {
-          eyebrow: "8 weken persoonlijke begeleiding als je je alleen voelt",
-          titel1: "Je bent omringd door mensen.",
-          titel2: "En toch voel je je alleen.",
-          body: [
-            { soort: "lead", tekst: "Je gaat naar je werk. Je praat met mensen. Je doet wat er moet gebeuren." },
-            { soort: "lead", tekst: "Maar er is zoveel dat je nergens echt kwijt kunt." },
-            { soort: "whisper", tekst: "Niet omdat er niemand is. Maar omdat je niemand wilt belasten." },
-            { soort: "lead", tekst: "Of gewoon: 's avonds thuiskomen in een stilte die te groot voelt." },
-            { soort: "lead", tekst: "En misschien denk je dan:" },
-            { soort: "thought", tekst: "Met wie kan ik hier nu écht over praten?" },
-          ],
-        },
-        herkenning: {
-          titel: "Je voelt je alleen op momenten waarop niemand het ziet.",
-          voices: [
-            "Ik wil erover praten, maar ik wil niemand tot last zijn.",
-            "Ik ben onder mensen en voel me toch alleen.",
-            "Iedereen lijkt zijn plek te hebben. Waarom ik niet?",
-            "Ik weet niet eens goed wat ik nodig heb. Ik weet alleen dat ik het niet alleen wil dragen.",
-            "Soms wil ik gewoon dat iemand vraagt hoe het écht met me gaat.",
-          ],
-        },
-        band: {
-          stack: [
-            "Je hoeft niet te weten hoe je verder moet.",
-            "Je hoeft je niet groot te houden.",
-            "Je hoeft niet te doen alsof het wel meevalt.",
-          ],
-        },
-        kern: {
-          naast: [
-            "Voor de dagen waarop je vooral wilt praten.",
-            "Voor de dagen waarop je niets weet te zeggen.",
-            "Voor de avonden waarop de stilte te groot wordt.",
-            "Voor de gedachten die je nergens kwijt kunt.",
-            "Voor alles wat je liever niet zegt tegen iemand die je kent.",
-          ],
-        },
-        ien: {
-          paras: [
-            "Ik ga je niet vertellen dat je 'er meer op uit moet'. Ik weet hoe eenzaam het kan zijn, ook als er mensen om je heen zijn, als je het gevoel hebt dat je niemand echt tot last mag zijn.",
-            "Ik ken dat gevoel van er alleen voor staan in veel gedaantes: een kinderwens die niet uitkwam, een bedrijf waar ik alles in had gelegd, en dieren die voor mij familie waren.",
-            "Daarom heb ik Zij aan Zij gemaakt. Geen methode die je moet volgen. Geen vinkjes die je moet zetten. Gewoon iemand die naast je blijft.",
-          ],
-        },
-        ervaringen: {
-          quotes: [
-            { bron: "Voorbeeld, vervangen voor livegang", tekst: "Voor het eerst hoefde ik me niet groot te houden. Iemand vroeg gewoon hoe het écht ging." },
-            { bron: "Voorbeeld, vervangen voor livegang", tekst: "Ik dacht dat ik er alleen voor stond. Pas onderweg merkte ik hoeveel het scheelt als iemand blijft." },
-            { bron: "Voorbeeld, vervangen voor livegang", tekst: "Geen adviezen, geen 'ga eens wat vaker weg'. Gewoon iemand die er was. Dat was precies wat ik nodig had." },
-          ],
-        },
-        final: {
-          titel: "Je hoeft je niet groter te houden dan je bent.\nJe hoeft het alleen niet meer alleen te doen.",
-        },
-      },
-    }),
+      ],
+    });
+  },
 });
