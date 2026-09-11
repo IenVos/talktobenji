@@ -44,6 +44,38 @@ function MultiTitle({ text }: { text: string }) {
 
 type Block = any;
 
+/* ── Accentkleur: één hex → afgeleide tinten (sterk/wash/leaf) als CSS-vars ── */
+function hexToRgb(hex: string): [number, number, number] | null {
+  let h = (hex || "").trim().replace(/^#/, "");
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+function toHex([r, g, b]: [number, number, number]): string {
+  const c = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0");
+  return `#${c(r)}${c(g)}${c(b)}`;
+}
+// Meng kleur met wit (amount>0) of zwart, amount 0..1.
+function mix(rgb: [number, number, number], target: [number, number, number], amount: number): [number, number, number] {
+  return [
+    rgb[0] + (target[0] - rgb[0]) * amount,
+    rgb[1] + (target[1] - rgb[1]) * amount,
+    rgb[2] + (target[2] - rgb[2]) * amount,
+  ];
+}
+function accentVars(hex?: string | null): React.CSSProperties {
+  const rgb = hex ? hexToRgb(hex) : null;
+  if (!rgb) return {};
+  const WHITE: [number, number, number] = [255, 255, 255];
+  const BLACK: [number, number, number] = [0, 0, 0];
+  return {
+    ["--accent" as any]: toHex(rgb),
+    ["--accent-strong" as any]: toHex(mix(rgb, BLACK, 0.2)),
+    ["--accent-wash" as any]: toHex(mix(rgb, WHITE, 0.86)),
+    ["--leaf" as any]: toHex(mix(rgb, WHITE, 0.28)),
+  };
+}
+
 // Resolveert een ctaUrl: de sentinel "intake" wijst naar de eigen intake-pagina.
 function makeHref(intakePath: string) {
   return (u?: string) => (u === "intake" ? intakePath : u || "#");
@@ -441,10 +473,10 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
   return null;
 }
 
-export default function BlokPaginaView({ blocks, slug, footer }: { blocks: Block[]; slug: string; footer?: string }) {
+export default function BlokPaginaView({ blocks, slug, footer, accentKleur }: { blocks: Block[]; slug: string; footer?: string; accentKleur?: string | null }) {
   const href = makeHref(`/lp/${slug}/kennismaken`);
   return (
-    <div className="bpg">
+    <div className="bpg" style={accentVars(accentKleur)}>
       {(blocks || []).map((b, i) => renderBlock(b, b.key || String(i), href))}
       <footer>
         {footer || "Talk To Benji"}

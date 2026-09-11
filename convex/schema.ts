@@ -1557,6 +1557,8 @@ export default defineSchema({
     naam: v.string(),                 // interne naam in admin
     pageTitle: v.string(),            // browser-titel
     verliestype: v.optional(v.string()),
+    categorie: v.optional(v.string()), // "zij-aan-zij" (standaard) | "product" (Producten-menu)
+    accentKleur: v.optional(v.string()), // hex accentkleur, bv. "#4a7c59"; leeg = standaard groen
     gepubliceerd: v.boolean(),
     metaDescription: v.optional(v.string()),
     blocksJson: v.string(),           // geordende array van blokken

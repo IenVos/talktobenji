@@ -31,7 +31,7 @@ export default async function LandingPage({ params }: Props) {
   // Nieuw blok-systeem heeft voorrang; valt anders terug op de oude LP.
   const blok = await fetchQuery(api.blokPaginas.getBySlug, { slug: params.slug }).catch(() => null);
   if (blok) {
-    return <BlokPaginaView blocks={blok.blocks} slug={blok.slug} />;
+    return <BlokPaginaView blocks={blok.blocks} slug={blok.slug} accentKleur={blok.accentKleur} />;
   }
 
   const page = await fetchQuery(api.landingPages.getBySlug, { slug: params.slug }).catch(() => null);

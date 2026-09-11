@@ -75,6 +75,7 @@ export const getBySlug = query({
       slug: page.slug,
       pageTitle: page.pageTitle,
       metaDescription: page.metaDescription ?? null,
+      accentKleur: page.accentKleur ?? null,
       blocks: replaceRefs(blocks, map),
     };
   },
@@ -99,6 +100,8 @@ export const getForAdmin = query({
       naam: page.naam,
       pageTitle: page.pageTitle,
       verliestype: page.verliestype ?? "",
+      categorie: page.categorie ?? "zij-aan-zij",
+      accentKleur: page.accentKleur ?? "",
       gepubliceerd: page.gepubliceerd,
       metaDescription: page.metaDescription ?? "",
       blocks,            // ruw (met "storage:<id>")
@@ -119,6 +122,7 @@ export const list = query({
         naam: p.naam,
         pageTitle: p.pageTitle,
         verliestype: p.verliestype ?? "",
+        categorie: p.categorie ?? "zij-aan-zij",
         gepubliceerd: p.gepubliceerd,
         updatedAt: p.updatedAt,
       }))
@@ -190,6 +194,8 @@ export const save = mutation({
     naam: v.string(),
     pageTitle: v.string(),
     verliestype: v.optional(v.string()),
+    categorie: v.optional(v.string()),
+    accentKleur: v.optional(v.string()),
     gepubliceerd: v.boolean(),
     metaDescription: v.optional(v.string()),
     blocksJson: v.string(),
@@ -209,6 +215,8 @@ export const save = mutation({
       naam: args.naam,
       pageTitle: args.pageTitle,
       verliestype: args.verliestype,
+      categorie: args.categorie,
+      accentKleur: args.accentKleur,
       gepubliceerd: args.gepubliceerd,
       metaDescription: args.metaDescription,
       blocksJson: args.blocksJson,
@@ -244,6 +252,8 @@ export const dupliceer = mutation({
       naam: args.nieuweNaam,
       pageTitle: bron.pageTitle,
       verliestype: bron.verliestype,
+      categorie: bron.categorie,
+      accentKleur: bron.accentKleur,
       gepubliceerd: false, // nieuwe kopie staat op concept
       metaDescription: bron.metaDescription,
       blocksJson: bron.blocksJson,
@@ -257,6 +267,20 @@ export const remove = mutation({
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
     await ctx.db.delete(args.id);
+  },
+});
+
+// Eenmalig: categorie van een pagina zetten (bv. relatie-pagina naar "product").
+export const zetCategorie = internalMutation({
+  args: { slug: v.string(), categorie: v.string() },
+  handler: async (ctx, { slug, categorie }) => {
+    const p = await ctx.db
+      .query("blokPaginas")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!p) throw new Error(`Pagina "${slug}" niet gevonden.`);
+    await ctx.db.patch(p._id, { categorie });
+    return { slug, categorie };
   },
 });
 

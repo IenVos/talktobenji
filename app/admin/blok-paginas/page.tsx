@@ -371,6 +371,8 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
         naam: data.naam,
         pageTitle: data.pageTitle,
         verliestype: data.verliestype ?? "",
+        categorie: data.categorie ?? "zij-aan-zij",
+        accentKleur: data.accentKleur ?? "",
         metaDescription: data.metaDescription ?? "",
         gepubliceerd: data.gepubliceerd,
       });
@@ -443,6 +445,8 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
         naam: form.naam.trim(),
         pageTitle: form.pageTitle.trim(),
         verliestype: form.verliestype.trim() || undefined,
+        categorie: form.categorie || undefined,
+        accentKleur: form.accentKleur.trim() || undefined,
         gepubliceerd: form.gepubliceerd,
         metaDescription: form.metaDescription.trim() || undefined,
         blocksJson: JSON.stringify(blocks),
@@ -477,7 +481,7 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
             <X size={16} /> Sluiten
           </button>
         </div>
-        <BlokPaginaView blocks={resolveBlocks(zichtbaar)} slug={form.slug} />
+        <BlokPaginaView blocks={resolveBlocks(zichtbaar)} slug={form.slug} accentKleur={form.accentKleur} />
       </div>
     );
   }
@@ -530,6 +534,31 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
             <input type="text" value={form.verliestype} onChange={(e) => setF("verliestype", e.target.value)}
               placeholder="bv. verlies, kinderloos" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Menu-categorie</label>
+            <select value={form.categorie} onChange={(e) => setF("categorie", e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white">
+              <option value="zij-aan-zij">Zij aan Zij</option>
+              <option value="product">Producten &middot; Landingspagina</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">Bepaalt onder welk admin-menu de pagina staat.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Accentkleur</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={form.accentKleur || "#4a7c59"}
+                onChange={(e) => setF("accentKleur", e.target.value)}
+                className="h-9 w-12 p-0.5 border border-gray-300 rounded-lg cursor-pointer bg-white" />
+              <input type="text" value={form.accentKleur} onChange={(e) => setF("accentKleur", e.target.value)}
+                placeholder="#4a7c59 (standaard groen)"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+              {form.accentKleur && (
+                <button type="button" onClick={() => setF("accentKleur", "")}
+                  className="text-sm text-gray-400 hover:text-red-500 whitespace-nowrap">Standaard</button>
+              )}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">Leeg = standaard groen. Sterk/wash worden automatisch afgeleid.</p>
+          </div>
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">Meta-omschrijving (SEO)</label>
             <textarea value={form.metaDescription} onChange={(e) => setF("metaDescription", e.target.value)} rows={2}
@@ -579,7 +608,9 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
 }
 
 // ── Overzicht ───────────────────────────────────────────────────────────
-export default function BlokPaginasPage() {
+export function BlokPaginasBeheer({
+  categorie, titel, intro,
+}: { categorie: string; titel: string; intro: string }) {
   const pages = useAdminQuery(api.blokPaginas.list, {});
   const dupliceer = useAdminMutation(api.blokPaginas.dupliceer);
   const remove = useAdminMutation(api.blokPaginas.remove);
@@ -610,25 +641,27 @@ export default function BlokPaginasPage() {
     }
   };
 
+  const zichtbaar = (pages ?? []).filter(
+    (p: any) => (p.categorie ?? "zij-aan-zij") === categorie
+  );
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <Layers className="text-primary-600" size={24} />
-        <h1 className="text-2xl font-bold text-gray-900">Blok-pagina's</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{titel}</h1>
       </div>
-      <p className="text-gray-500 mb-6 text-sm">
-        Blok-gebaseerde landingspagina's. Dupliceer een pagina voor een nieuw verliestype en pas de teksten aan.
-      </p>
+      <p className="text-gray-500 mb-6 text-sm">{intro}</p>
 
       {pages === undefined ? (
         <div className="text-gray-400">Laden...</div>
-      ) : pages.length === 0 ? (
+      ) : zichtbaar.length === 0 ? (
         <div className="text-gray-500 bg-white border border-gray-200 rounded-xl p-8 text-center">
           Nog geen blok-pagina's.
         </div>
       ) : (
         <div className="space-y-3">
-          {pages.map((p: any) => (
+          {zichtbaar.map((p: any) => (
             <div key={p._id} className="bg-white border border-gray-300 rounded-xl p-4 flex items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -666,5 +699,15 @@ export default function BlokPaginasPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function BlokPaginasPage() {
+  return (
+    <BlokPaginasBeheer
+      categorie="zij-aan-zij"
+      titel="Blok-pagina's"
+      intro="Blok-gebaseerde landingspagina's. Dupliceer een pagina voor een nieuw verliestype en pas de teksten aan."
+    />
   );
 }
