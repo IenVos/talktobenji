@@ -373,6 +373,11 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
         verliestype: data.verliestype ?? "",
         categorie: data.categorie ?? "zij-aan-zij",
         accentKleur: data.accentKleur ?? "",
+        ehPopupAan: data.ehPopupAan ?? false,
+        ehPopupTekst: data.ehPopupTekst ?? "",
+        ehPopupKnopTekst: data.ehPopupKnopTekst ?? "",
+        ehPopupKnopUrl: data.ehPopupKnopUrl ?? "",
+        ehPopupKnopKleur: data.ehPopupKnopKleur ?? "",
         metaDescription: data.metaDescription ?? "",
         gepubliceerd: data.gepubliceerd,
       });
@@ -447,6 +452,11 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
         verliestype: form.verliestype.trim() || undefined,
         categorie: form.categorie || undefined,
         accentKleur: form.accentKleur.trim() || undefined,
+        ehPopupAan: form.ehPopupAan,
+        ehPopupTekst: form.ehPopupTekst.trim() || undefined,
+        ehPopupKnopTekst: form.ehPopupKnopTekst.trim() || undefined,
+        ehPopupKnopUrl: form.ehPopupKnopUrl.trim() || undefined,
+        ehPopupKnopKleur: form.ehPopupKnopKleur.trim() || undefined,
         gepubliceerd: form.gepubliceerd,
         metaDescription: form.metaDescription.trim() || undefined,
         blocksJson: JSON.stringify(blocks),
@@ -481,7 +491,8 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
             <X size={16} /> Sluiten
           </button>
         </div>
-        <BlokPaginaView blocks={resolveBlocks(zichtbaar)} slug={form.slug} accentKleur={form.accentKleur} />
+        <BlokPaginaView blocks={resolveBlocks(zichtbaar)} slug={form.slug} accentKleur={form.accentKleur}
+          ehPopup={{ aan: form.ehPopupAan, tekst: form.ehPopupTekst, knopTekst: form.ehPopupKnopTekst, knopUrl: form.ehPopupKnopUrl, knopKleur: form.ehPopupKnopKleur }} />
       </div>
     );
   }
@@ -570,6 +581,46 @@ function PaginaEditor({ slug, onClose }: { slug: string; onClose: () => void }) 
             className="rounded border-gray-300 text-primary-600 focus:ring-primary-400" />
           Gepubliceerd (zichtbaar op de site)
         </label>
+
+        {/* Even Houvast-pop-up (zwevende tab, zoals op de oude LP's) */}
+        <div className="border-t border-gray-100 pt-4 mt-2">
+          <label className="flex items-center gap-2 text-sm text-gray-700 font-medium">
+            <input type="checkbox" checked={form.ehPopupAan} onChange={(e) => setF("ehPopupAan", e.target.checked)}
+              className="rounded border-gray-300 text-primary-600 focus:ring-primary-400" />
+            Even Houvast-pop-up tonen (zwevende tab rechtsonder)
+          </label>
+          {form.ehPopupAan && (
+            <div className="mt-3 space-y-3 pl-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Pop-up tekst</label>
+                <p className="text-xs text-gray-400 mb-1">Eerste regel = kop. Regel met ✓ = vinkje. Opmaak: **vet**, *schuin*, _onderstreept_. Leeg = standaardtekst.</p>
+                <textarea value={form.ehPopupTekst} onChange={(e) => setF("ehPopupTekst", e.target.value)} rows={9}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-y" />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Knoptekst</label>
+                  <input type="text" value={form.ehPopupKnopTekst} onChange={(e) => setF("ehPopupKnopTekst", e.target.value)}
+                    placeholder="Begin gratis met Even Houvast →" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Knop-link</label>
+                  <input type="text" value={form.ehPopupKnopUrl} onChange={(e) => setF("ehPopupKnopUrl", e.target.value)}
+                    placeholder="/even-houvast/huisdier" className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Knopkleur</label>
+                <div className="flex items-center gap-2">
+                  <input type="color" value={form.ehPopupKnopKleur || "#6d84a8"} onChange={(e) => setF("ehPopupKnopKleur", e.target.value)}
+                    className="h-9 w-12 p-0.5 border border-gray-300 rounded-lg cursor-pointer bg-white" />
+                  <input type="text" value={form.ehPopupKnopKleur} onChange={(e) => setF("ehPopupKnopKleur", e.target.value)}
+                    placeholder="#6d84a8" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Blokken */}

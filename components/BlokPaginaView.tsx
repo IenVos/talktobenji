@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import "./blokPagina.scoped.css";
+import { EvenHouvastPopup } from "./EvenHouvastPopup";
 
 /* ── Mini-markdown: **vet** → <b> en [tekst](url) → link (met optionele boldClass) ── */
 function Rich({ text, boldClass }: { text: string; boldClass?: string }) {
@@ -548,7 +549,15 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
   return null;
 }
 
-export default function BlokPaginaView({ blocks, slug, footer, accentKleur }: { blocks: Block[]; slug: string; footer?: string; accentKleur?: string | null }) {
+export default function BlokPaginaView({
+  blocks, slug, footer, accentKleur, ehPopup,
+}: {
+  blocks: Block[]; slug: string; footer?: string; accentKleur?: string | null;
+  ehPopup?: {
+    aan?: boolean; tekst?: string | null; knopTekst?: string | null;
+    knopUrl?: string | null; knopKleur?: string | null;
+  };
+}) {
   const href = makeHref(`/lp/${slug}/kennismaken`);
   const css = accentCss(accentKleur);
   return (
@@ -558,6 +567,15 @@ export default function BlokPaginaView({ blocks, slug, footer, accentKleur }: { 
       <footer>
         {footer || "Talk To Benji"}
       </footer>
+      {ehPopup?.aan && (
+        <EvenHouvastPopup
+          enabled
+          tekst={ehPopup.tekst ?? undefined}
+          knopTekst={ehPopup.knopTekst ?? undefined}
+          knopUrl={ehPopup.knopUrl ?? undefined}
+          knopKleur={ehPopup.knopKleur ?? undefined}
+        />
+      )}
     </div>
   );
 }

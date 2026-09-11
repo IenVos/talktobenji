@@ -1559,6 +1559,12 @@ export default defineSchema({
     verliestype: v.optional(v.string()),
     categorie: v.optional(v.string()), // "zij-aan-zij" (standaard) | "product" (Producten-menu)
     accentKleur: v.optional(v.string()), // hex accentkleur, bv. "#4a7c59"; leeg = standaard groen
+    // Zwevende Even Houvast-pop-up (zoals op de oude LP's), per pagina aan/uit.
+    ehPopupAan: v.optional(v.boolean()),
+    ehPopupTekst: v.optional(v.string()),
+    ehPopupKnopTekst: v.optional(v.string()),
+    ehPopupKnopUrl: v.optional(v.string()),
+    ehPopupKnopKleur: v.optional(v.string()),
     gepubliceerd: v.boolean(),
     metaDescription: v.optional(v.string()),
     blocksJson: v.string(),           // geordende array van blokken

@@ -31,7 +31,20 @@ export default async function LandingPage({ params }: Props) {
   // Nieuw blok-systeem heeft voorrang; valt anders terug op de oude LP.
   const blok = await fetchQuery(api.blokPaginas.getBySlug, { slug: params.slug }).catch(() => null);
   if (blok) {
-    return <BlokPaginaView blocks={blok.blocks} slug={blok.slug} accentKleur={blok.accentKleur} />;
+    return (
+      <BlokPaginaView
+        blocks={blok.blocks}
+        slug={blok.slug}
+        accentKleur={blok.accentKleur}
+        ehPopup={{
+          aan: (blok as any).ehPopupAan,
+          tekst: (blok as any).ehPopupTekst,
+          knopTekst: (blok as any).ehPopupKnopTekst,
+          knopUrl: (blok as any).ehPopupKnopUrl,
+          knopKleur: (blok as any).ehPopupKnopKleur,
+        }}
+      />
+    );
   }
 
   const page = await fetchQuery(api.landingPages.getBySlug, { slug: params.slug }).catch(() => null);

@@ -157,3 +157,35 @@ export const vulNAFaqEnEh = internalMutation({
     return res;
   },
 });
+
+// EH als zwevende pop-up i.p.v. inline blok: verwijder ehmagnet-blokken en zet
+// de per-pagina pop-up aan met de standaardtekst + per-type link.
+const POPUP_TEKST =
+  "Nog niet klaar? Dat begrijp ik. 💙\n" + EH_TEKST;
+
+export const zetNAEhPopup = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const res: any[] = [];
+    for (const [slug, ehType] of Object.entries(EH_TYPE)) {
+      const pagina = await ctx.db
+        .query("blokPaginas")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+      if (!pagina) { res.push({ slug, actie: "niet gevonden" }); continue; }
+      let blocks: any[] = [];
+      try { blocks = JSON.parse(pagina.blocksJson); } catch { blocks = []; }
+      const zonderEh = blocks.filter((b) => b?.type !== "ehmagnet");
+      await ctx.db.patch(pagina._id, {
+        blocksJson: JSON.stringify(zonderEh),
+        ehPopupAan: true,
+        ehPopupTekst: POPUP_TEKST,
+        ehPopupKnopTekst: "Begin gratis met Even Houvast →",
+        ehPopupKnopUrl: `/even-houvast/${ehType}`,
+        updatedAt: Date.now(),
+      });
+      res.push({ slug, inlineVerwijderd: blocks.length - zonderEh.length, popupAan: true, link: `/even-houvast/${ehType}` });
+    }
+    return res;
+  },
+});
