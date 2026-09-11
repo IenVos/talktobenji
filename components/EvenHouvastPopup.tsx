@@ -181,6 +181,8 @@ export function EvenHouvastPopup({
   if (knopTekst && knopTekst.trim()) knopLabel = knopTekst.trim();
   if (knopUrl && knopUrl.trim()) knopHref = knopUrl.trim();
   const knopKleurFinal = (knopKleur && knopKleur.trim()) || "#6d84a8";
+  // Zwevende tab: ijsblauwe tint zoals voorheen (los van de kaart-CTA-kleur).
+  const tabKleur = (knopKleur && knopKleur.trim()) || "#4fb3de";
 
   return (
     <div
@@ -205,7 +207,7 @@ export function EvenHouvastPopup({
             gap: 8,
             border: "none",
             cursor: "pointer",
-            background: knopKleurFinal,
+            background: tabKleur,
             color: "#fff",
             fontSize: 15,
             fontWeight: 600,
