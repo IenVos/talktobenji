@@ -150,7 +150,7 @@ export function EvenHouvastPopup({
   const sluit = () => {
     setIngeschoven(false); // uitschuiven
     // Met knop: terug naar het knopje. Zonder knop: helemaal weg.
-    setTimeout(() => (toonKnop ? setKaartOpen(false) : setWeg(true)), 720);
+    setTimeout(() => (toonKnop ? setKaartOpen(false) : setWeg(true)), 2100);
   };
 
   const toonDeKnop = toonKnop && !kaartOpen;
@@ -238,7 +238,7 @@ export function EvenHouvastPopup({
           border: "1px solid rgba(70,80,100,0.12)",
           transform: ingeschoven ? "translateX(0)" : "translateX(calc(100% + 40px))",
           opacity: ingeschoven ? 1 : 0,
-          transition: "transform 0.95s cubic-bezier(0.16,1,0.3,1), opacity 0.8s ease-out",
+          transition: "transform 2.4s cubic-bezier(0.65,0,0.35,1), opacity 2s ease-in-out",
         }}
       >
         <button
