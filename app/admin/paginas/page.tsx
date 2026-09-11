@@ -354,6 +354,16 @@ const DEFAULT_HELP_BLOKKEN: HelpBlok[] = [
   { icon: "heart", titel: HOMEPAGE_DEFAULTS.blok3Titel, tekst: HOMEPAGE_DEFAULTS.blok3Tekst, cta: HOMEPAGE_DEFAULTS.blok3Cta, url: HOMEPAGE_DEFAULTS.blok3Url },
 ];
 
+// Menu "Voor jou" (dropdown bovenin): verliestypes die direct naar hun LP linken.
+type VoorJouItem = { label: string; url: string };
+const DEFAULT_VOOR_JOU_MENU: VoorJouItem[] = [
+  { label: "Ik mis iemand", url: "/lp/zij-aan-zij" },
+  { label: "Mijn relatie is voorbij", url: "/lp/mijn-relatie-is-voorbij" },
+  { label: "Ongewenst kinderloos", url: "/lp/zij-aan-zij-kinderloos" },
+  { label: "Verlies van een huisdier", url: "/lp/je-hoeft-het-niet-alleen-te-doen#huisdier" },
+  { label: "Ik voel me eenzaam", url: "/lp/je-hoeft-het-niet-alleen-te-doen#eenzaamheid" },
+];
+
 function HomepageTab() {
   const saved = useAdminQuery(api.pageContent.getPageContent, { pageKey: "homepage" });
   const setContent = useAdminMutation(api.pageContent.setPageContent);
@@ -368,6 +378,9 @@ function HomepageTab() {
 
   // Homepage-blokken: dynamische lijst, opgeslagen als JSON in values.helpBlokken
   const [helpBlokken, setHelpBlokken] = useState<HelpBlok[]>(DEFAULT_HELP_BLOKKEN);
+
+  // Menu "Voor jou": dynamische lijst, opgeslagen als JSON in values.voorJouMenu
+  const [voorJouMenu, setVoorJouMenu] = useState<VoorJouItem[]>(DEFAULT_VOOR_JOU_MENU);
 
   useEffect(() => {
     if (saved) {
@@ -389,6 +402,12 @@ function HomepageTab() {
           { icon: "heart", titel: saved.blok3Titel ?? HOMEPAGE_DEFAULTS.blok3Titel, tekst: saved.blok3Tekst ?? HOMEPAGE_DEFAULTS.blok3Tekst, cta: saved.blok3Cta ?? HOMEPAGE_DEFAULTS.blok3Cta, url: saved.blok3Url ?? HOMEPAGE_DEFAULTS.blok3Url },
         ]);
       }
+      if (saved.voorJouMenu) {
+        try {
+          const parsed = JSON.parse(saved.voorJouMenu);
+          if (Array.isArray(parsed) && parsed.length) setVoorJouMenu(parsed);
+        } catch {}
+      }
     }
   }, [saved]);
 
@@ -409,10 +428,22 @@ function HomepageTab() {
     return next;
   });
 
+  const updateMenu = (i: number, field: keyof VoorJouItem, val: string) =>
+    setVoorJouMenu(p => p.map((m, idx) => idx === i ? { ...m, [field]: val } : m));
+  const addMenu = () => setVoorJouMenu(p => [...p, { label: "Nieuw verliestype", url: "" }]);
+  const removeMenu = (i: number) => setVoorJouMenu(p => p.filter((_, idx) => idx !== i));
+  const moveMenu = (i: number, dir: -1 | 1) => setVoorJouMenu(p => {
+    const j = i + dir;
+    if (j < 0 || j >= p.length) return p;
+    const next = [...p];
+    [next[i], next[j]] = [next[j], next[i]];
+    return next;
+  });
+
   const handleSave = async () => {
     setSaving(true); setSaved2(false);
     try {
-      await setContent({ pageKey: "homepage", content: JSON.stringify({ ...values, screenshots: JSON.stringify(screenshots), helpBlokken: JSON.stringify(helpBlokken) }) });
+      await setContent({ pageKey: "homepage", content: JSON.stringify({ ...values, screenshots: JSON.stringify(screenshots), helpBlokken: JSON.stringify(helpBlokken), voorJouMenu: JSON.stringify(voorJouMenu) }) });
       setSaved2(true); setTimeout(() => setSaved2(false), 2000);
     } finally { setSaving(false); }
   };
@@ -472,6 +503,45 @@ function HomepageTab() {
                 <Field label="Beschrijving" value={b.tekst} onChange={v => updateBlok(i, "tekst", v)} multiline={true} />
                 <Field label="Link tekst" value={b.cta} onChange={v => updateBlok(i, "cta", v)} multiline={false} />
                 <Field label="Link URL" value={b.url} onChange={v => updateBlok(i, "url", v)} multiline={false} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Menu "Voor jou" (dropdown bovenin) */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="flex items-center justify-between mb-1 pb-3 border-b border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900">Menu &quot;Voor jou&quot; (verliestypes)</h3>
+          <button type="button" onClick={addMenu}
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary-700 hover:text-primary-900">
+            <Plus size={14} /> Verliestype toevoegen
+          </button>
+        </div>
+        <p className="text-xs text-gray-400 mb-4">Deze items staan in het uitklapmenu &quot;Voor jou&quot; bovenin en linken direct naar de landingspagina. Een item zonder titel wordt niet getoond.</p>
+        <div className="space-y-4">
+          {voorJouMenu.map((m, i) => (
+            <div key={i} className="rounded-lg border border-gray-200 p-4 bg-gray-50/50">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-gray-500">Item {i + 1}</span>
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => moveMenu(i, -1)} disabled={i === 0}
+                    className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30" title="Omhoog">
+                    <ChevronUp size={16} />
+                  </button>
+                  <button type="button" onClick={() => moveMenu(i, 1)} disabled={i === voorJouMenu.length - 1}
+                    className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30" title="Omlaag">
+                    <ChevronDown size={16} />
+                  </button>
+                  <button type="button" onClick={() => removeMenu(i)}
+                    className="p-1 text-red-400 hover:text-red-600" title="Verwijderen">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <Field label="Titel (menu-tekst)" value={m.label} onChange={v => updateMenu(i, "label", v)} multiline={false} />
+                <Field label="Link URL (bv. /lp/zij-aan-zij)" value={m.url} onChange={v => updateMenu(i, "url", v)} multiline={false} />
               </div>
             </div>
           ))}

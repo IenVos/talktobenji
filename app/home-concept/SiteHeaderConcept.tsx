@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 function ChevronDown({ size = 14 }: { size?: number }) {
   return (
@@ -29,8 +31,7 @@ const OVER_ITEMS = [
 ];
 
 // "Voor jou" opent direct de verliestype-LP (geen tussenpagina/extra klik meer).
-// persoon/relatie/kinderloos hebben een eigen blok-LP; huisdier + eenzaamheid
-// wijzen voorlopig naar de bestaande keuze-LP-sectie tot hun blok-LP klaar is.
+// Standaardlijst; in de admin (Pagina's > Homepage > Menu "Voor jou") aanpasbaar.
 const VOOR_JOU_ITEMS = [
   { href: "/lp/zij-aan-zij", label: "Ik mis iemand" },
   { href: "/lp/mijn-relatie-is-voorbij", label: "Mijn relatie is voorbij" },
@@ -52,6 +53,24 @@ export function SiteHeaderConcept() {
   const [mobileVoorOpen, setMobileVoorOpen] = useState(false);
   const overRef = useRef<HTMLDivElement>(null);
   const voorRef = useRef<HTMLDivElement>(null);
+
+  // "Voor jou"-items uit de admin (Homepage-content); val terug op de standaardlijst.
+  const homepageContent = useQuery(api.pageContent.getPublicPageContent, { pageKey: "homepage" });
+  const voorJouItems = useMemo(() => {
+    const raw = homepageContent?.voorJouMenu;
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          const items = parsed
+            .map((x: any) => ({ href: (x?.url ?? x?.href ?? "").trim(), label: (x?.label ?? "").trim() }))
+            .filter((x: any) => x.label && x.href);
+          if (items.length) return items;
+        }
+      } catch {}
+    }
+    return VOOR_JOU_ITEMS;
+  }, [homepageContent]);
 
   // Sluit de dropdowns bij klik buiten
   useEffect(() => {
@@ -128,7 +147,7 @@ export function SiteHeaderConcept() {
             </button>
             {voorOpen && (
               <div className="absolute top-full left-0 mt-2 w-64 bg-primary-800 rounded-xl shadow-xl border border-primary-700 overflow-hidden">
-                {VOOR_JOU_ITEMS.map((item) => (
+                {voorJouItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -221,7 +240,7 @@ export function SiteHeaderConcept() {
             </button>
             {mobileVoorOpen && (
               <div className="ml-4 mt-0.5 space-y-0.5 border-l border-primary-700 pl-3">
-                {VOOR_JOU_ITEMS.map((item) => (
+                {voorJouItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
