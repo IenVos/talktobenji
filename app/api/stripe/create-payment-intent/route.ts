@@ -49,8 +49,16 @@ export async function POST(req: NextRequest) {
     giftVariantPriceInCents, giftVariantBillingPeriod, giftVariantLabel,
     countryCode, vatNumber, benjiAddon,
     addOnPriceInCents, addOnType,
-    source, sessionId,
+    source, sessionId, verliesType,
   } = await req.json();
+
+  // Verliestype uit de LP-link (algemene NA-checkout). Alleen bekende codes toestaan,
+  // zodat er geen willekeurige waarde in de mailreeks belandt.
+  const GELDIGE_VERLIESTYPES = ["persoon", "huisdier", "scheiding", "relatie", "eenzaamheid", "kinderloos"];
+  const veiligVerliesType =
+    typeof verliesType === "string" && GELDIGE_VERLIESTYPES.includes(verliesType.trim())
+      ? verliesType.trim()
+      : "";
 
   if (!slug) {
     return NextResponse.json({ error: "Slug ontbreekt" }, { status: 400 });
@@ -205,6 +213,7 @@ export async function POST(req: NextRequest) {
       subscriptionType: product.subscriptionType,
       email: "",
       name: "",
+      ...(veiligVerliesType && { verlies_type: veiligVerliesType }),
       invoice_number: invoiceNumber,
       country_code: normalizedCountry,
       vat_rate: String(vat.vatRate),

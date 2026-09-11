@@ -407,12 +407,15 @@ export async function POST(req: NextRequest) {
         // - fallback: algemeen niet-alleen product (geen verliesType, klant kiest zelf tijdens onboarding)
         const isNietAlleen = !!product?.verliesType || subscriptionType === "niet_alleen";
         if (isNietAlleen) {
+          // Verliestype: eerst van het product, anders uit de LP-link (?type= → metadata).
+          // Zo start de reeks meteen bij een algemene NA-checkout zonder vaste mailreeks.
+          const verliesTypeFinal = product?.verliesType || pi.metadata.verlies_type || undefined;
           try {
             await convex.mutation(api.nietAlleen.activateNietAlleenDirect, {
               webhookSecret: (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)!,
               email,
               naam: name || email,
-              verliesType: product?.verliesType, // undefined = klant kiest zelf
+              verliesType: verliesTypeFinal, // undefined = klant kiest zelf op welkom
             });
           } catch (err: any) {
             console.error("[Convex] Niet Alleen profiel aanmaken mislukt:", err?.message);

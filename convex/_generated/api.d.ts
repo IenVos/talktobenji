@@ -27,6 +27,7 @@ import type * as booking from "../booking.js";
 import type * as broadcasts from "../broadcasts.js";
 import type * as chat from "../chat.js";
 import type * as chatCrypto from "../chatCrypto.js";
+import type * as checkoutAlgemeenNA from "../checkoutAlgemeenNA.js";
 import type * as checkoutGebruik from "../checkoutGebruik.js";
 import type * as checkoutHerstel from "../checkoutHerstel.js";
 import type * as checkoutProducts from "../checkoutProducts.js";
@@ -127,6 +128,7 @@ declare const fullApi: ApiFromModules<{
   broadcasts: typeof broadcasts;
   chat: typeof chat;
   chatCrypto: typeof chatCrypto;
+  checkoutAlgemeenNA: typeof checkoutAlgemeenNA;
   checkoutGebruik: typeof checkoutGebruik;
   checkoutHerstel: typeof checkoutHerstel;
   checkoutProducts: typeof checkoutProducts;

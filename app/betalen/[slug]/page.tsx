@@ -498,11 +498,15 @@ export default function BetalenPage() {
     const source = fromParam || bronLp || referrerPath || "";
     const sessionId = localStorage.getItem("ttb_sid") ?? "";
 
+    // Verliestype uit de LP-link (?type=huisdier), voor een algemene NA-checkout.
+    const typeParam = new URLSearchParams(window.location.search).get("type")?.trim() || "";
+
     const body = JSON.stringify({
       slug,
       countryCode: effectiveCountry,
       source,
       sessionId,
+      ...(typeParam && { verliesType: typeParam }),
       ...(vatNumberCommitted && { vatNumber: vatNumberCommitted }),
       ...(addOnSelected && product?.addOnPriceInCents && {
         addOnPriceInCents: product.addOnPriceInCents,
