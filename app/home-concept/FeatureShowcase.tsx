@@ -6,12 +6,12 @@ import Image from "next/image";
 export type FeatureItem = { id: string; label: string; image: string; imageAlt: string };
 
 const DEFAULT_FEATURES: FeatureItem[] = [
-  { id: "gesprek",      label: "Gesprek met Benji",    image: "/images/screenshots/gesprek.png",      imageAlt: "Gesprek met Benji" },
-  { id: "mijn-plek",   label: "Mijn plek",             image: "/images/screenshots/mijn-plek.png",    imageAlt: "Mijn plek overzicht" },
-  { id: "memories",    label: "Memories",              image: "/images/screenshots/memories.png",     imageAlt: "Memories" },
-  { id: "inspiratie",  label: "Inspiratie & troost",   image: "/images/screenshots/inspiratie.png",   imageAlt: "Inspiratie en troost" },
-  { id: "check-in",    label: "Dagelijkse check-ins",  image: "/images/screenshots/check-in.png",     imageAlt: "Dagelijkse check-in" },
-  { id: "handreikingen", label: "Handreikingen",       image: "/images/screenshots/handreikingen.png",imageAlt: "Handreikingen" },
+  { id: "mijn-plek",           label: "Mijn plek",            image: "/images/screenshots/mijn-plek.png",           imageAlt: "Mijn plek overzicht" },
+  { id: "persoonlijke-doelen", label: "Persoonlijke doelen",  image: "/images/screenshots/persoonlijke-doelen.png", imageAlt: "Persoonlijke doelen" },
+  { id: "check-in",            label: "Dagelijkse check-ins", image: "/images/screenshots/check-in.png",            imageAlt: "Dagelijkse check-in" },
+  { id: "memories",            label: "Memories",             image: "/images/screenshots/memories.png",            imageAlt: "Memories" },
+  { id: "inspiratie",          label: "Inspiratie & troost",  image: "/images/screenshots/inspiratie.png",          imageAlt: "Inspiratie en troost" },
+  { id: "gesprek",             label: "Gesprek met Benji",    image: "/images/screenshots/gesprek.png",             imageAlt: "Gesprek met Benji" },
 ];
 
 export function FeatureShowcase({ features }: { features?: FeatureItem[] }) {

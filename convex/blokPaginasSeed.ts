@@ -10,12 +10,24 @@ const IMG = {
   ien: "/images/ien-founder.png",
   ipad: "/images/zij-aan-zij/ipad-document.png",
   mijnPlek: "/images/screenshots/mijn-plek.png",
+  persoonlijkeDoelen: "/images/screenshots/persoonlijke-doelen.png",
   checkin: "/images/screenshots/check-in.png",
   inspiratie: "/images/screenshots/inspiratie.png",
   handreikingen: "/images/screenshots/handreikingen.png",
   memories: "/images/screenshots/memories.png",
   gesprek: "/images/zij-aan-zij/gesprek.jpg",
 };
+
+// Volgorde van de screenshots in het "account"-carousel-blok (gedeeld door alle
+// ZaZ-pagina's). Benji-chat blijft ongewijzigd, maar staat achteraan.
+const ACCOUNT_SHOTS = [
+  { img: IMG.mijnPlek, label: "Mijn plek" },
+  { img: IMG.persoonlijkeDoelen, label: "Persoonlijke doelen" },
+  { img: IMG.checkin, label: "Dagelijkse check-ins" },
+  { img: IMG.memories, label: "Memories" },
+  { img: IMG.inspiratie, label: "Inspiratie & troost" },
+  { img: IMG.gesprek, label: "Gesprek met Benji" },
+];
 
 const INTAKE = "intake"; // sentinel: renderer maakt hier /lp/<slug>/kennismaken van
 
@@ -138,14 +150,7 @@ export const zijAanZijBlocks = () => [
     eyebrow: "Een blik op je eigen plek",
     titel: "Hier komt alles samen.",
     lead: "Je gesprekken, je check-ins, je herinneringen en de handreikingen van Benji: alles staat bij elkaar op één plek, ook na de acht weken.",
-    shots: [
-      { img: IMG.mijnPlek, label: "Mijn plek" },
-      { img: IMG.checkin, label: "Dagelijkse check-ins" },
-      { img: IMG.inspiratie, label: "Inspiratie & troost" },
-      { img: IMG.handreikingen, label: "Handreikingen" },
-      { img: IMG.memories, label: "Memories" },
-      { img: IMG.gesprek, label: "Gesprek met Benji" },
-    ],
+    shots: ACCOUNT_SHOTS,
   },
 
   {
@@ -373,14 +378,7 @@ export const kinderloosBlocks = () => [
     eyebrow: "Een blik op je eigen plek",
     titel: "Hier komt alles samen.",
     lead: "Je gesprekken, je check-ins, je herinneringen en de handreikingen van Benji: alles staat bij elkaar op één plek, ook na de acht weken.",
-    shots: [
-      { img: IMG.mijnPlek, label: "Mijn plek" },
-      { img: IMG.checkin, label: "Dagelijkse check-ins" },
-      { img: IMG.inspiratie, label: "Inspiratie & troost" },
-      { img: IMG.handreikingen, label: "Handreikingen" },
-      { img: IMG.memories, label: "Memories" },
-      { img: IMG.gesprek, label: "Gesprek met Benji" },
-    ],
+    shots: ACCOUNT_SHOTS,
   },
 
   {
