@@ -107,6 +107,16 @@ function accentCss(hex?: string | null): string | null {
   return `.bpg[data-accent]{${licht}}@media (prefers-color-scheme:dark){.bpg[data-accent]{${donker}}}`;
 }
 
+// Is dit een geldige kleur (hex of css-kleurnaam)? Voorkomt dat een verkeerd
+// ingevulde waarde (bv. een link) via --col de hele prijskolom breekt.
+function isKleur(v?: string): boolean {
+  if (!v) return false;
+  const s = v.trim();
+  if (/^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(s)) return true;
+  if (/^(rgb|hsl)a?\([^)]*\)$/i.test(s)) return true;
+  return /^[a-z]{3,20}$/i.test(s); // eenvoudige kleurnaam, bv. "teal"
+}
+
 // Resolveert een ctaUrl: de sentinel "intake" wijst naar de eigen intake-pagina.
 function makeHref(intakePath: string) {
   return (u?: string) => (u === "intake" ? intakePath : u || "#");
@@ -438,7 +448,10 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
           <div className="prijs-cols" data-n={kolommen.length}>
             {kolommen.map((k: any, i: number) => {
               const uit = k.uitgelicht === "ja";
-              const stijl = k.kleur ? ({ ["--col" as any]: k.kleur }) : undefined;
+              // Alleen een geldige kleur toepassen; een ongeldige waarde zou
+              // via --col de hele kolom (knop + stipjes) onzichtbaar maken.
+              const geldigeKleur = isKleur(k.kleur) ? k.kleur : "";
+              const stijl = geldigeKleur ? ({ ["--col" as any]: geldigeKleur }) : undefined;
               return (
                 <div key={i} className={"prijs-col" + (uit ? " uit" : "")} style={stijl}>
                   {uit && k.badge && <span className="prijs-badge">{k.badge}</span>}
