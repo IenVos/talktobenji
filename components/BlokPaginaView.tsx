@@ -163,6 +163,65 @@ function AccountCarousel({ shots }: { shots: { img: string; label: string }[] })
   );
 }
 
+/* ── Keuze-iconen (inline SVG, past bij het scoped ontwerp) ── */
+function KeuzeIcoon({ soort }: { soort?: string }) {
+  const p = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  switch (soort) {
+    case "hart":
+      return <svg {...p}><path d="M20.8 8.6c0 4.5-8.8 10-8.8 10s-8.8-5.5-8.8-10a4.6 4.6 0 0 1 8.8-1.8 4.6 4.6 0 0 1 8.8 1.8Z" /></svg>;
+    case "poot":
+      return <svg {...p}><circle cx="5.5" cy="11" r="1.6" /><circle cx="9.5" cy="7.5" r="1.7" /><circle cx="14.5" cy="7.5" r="1.7" /><circle cx="18.5" cy="11" r="1.6" /><path d="M12 12.5c-2.4 0-4.3 1.7-4.7 3.8-.3 1.6 1 2.9 2.6 2.9h4.2c1.6 0 2.9-1.3 2.6-2.9-.4-2.1-2.3-3.8-4.7-3.8Z" /></svg>;
+    case "mensen":
+      return <svg {...p}><circle cx="9" cy="8" r="2.6" /><path d="M4 19c0-2.8 2.2-5 5-5s5 2.2 5 5" /><path d="M16 6.4a2.6 2.6 0 0 1 0 5.1" /><path d="M20 19c0-2.4-1.5-4.4-3.6-4.8" /></svg>;
+    case "praat":
+      return <svg {...p}><path d="M20 4H4a1.6 1.6 0 0 0-1.6 1.6v9.2A1.6 1.6 0 0 0 4 16.4h3.2V20l4-3.6H20a1.6 1.6 0 0 0 1.6-1.6V5.6A1.6 1.6 0 0 0 20 4Z" /></svg>;
+    case "blad":
+      return <svg {...p}><path d="M5 19c-1-8 5.5-14 14-14 0 9-5 14-11 14-1 0-2-.2-3-.6Z" /><path d="M9 15c2-3 5-5 8-6" /></svg>;
+    default:
+      return <svg {...p}><circle cx="12" cy="12" r="3.4" /></svg>;
+  }
+}
+
+/* ── Keuze-blok: kaartjes naar verliestype-LP's ── */
+type KeuzeOptie = { titel?: string; sub?: string; url?: string; icoon?: string; type?: string };
+function KeuzeBlock({ b, href }: { b: any; href: (u?: string) => string }) {
+  const [gekozen, setGekozen] = useState<string | null>(null);
+  useEffect(() => {
+    try {
+      const raw = new URLSearchParams(window.location.search).get("type")?.toLowerCase().trim();
+      if (!raw) return;
+      setGekozen(raw === "scheiding" ? "relatie" : raw);
+    } catch { /* geen window */ }
+  }, []);
+  const opties: KeuzeOptie[] = b.opties || [];
+  return (
+    <section style={sectionStyle(b.achtergrond)}>
+      <div className="wrap">
+        {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
+        {b.titel && <h2 className="sec-h">{b.titel}</h2>}
+        {b.lead && <p className="lead"><Rich text={b.lead} /></p>}
+        <div className="keuze-grid">
+          {opties.map((o, i) => {
+            const actief = !!o.type && o.type === gekozen;
+            return (
+              <a key={i} className={"keuze-kaart" + (actief ? " on" : "")} href={href(o.url)}>
+                <span className="keuze-ic"><KeuzeIcoon soort={o.icoon} /></span>
+                <span className="keuze-txt">
+                  {actief && <span className="keuze-badge">Dit deelde je met ons</span>}
+                  {o.titel && <span className="keuze-h">{o.titel}</span>}
+                  {o.sub && <span className="keuze-s">{o.sub}</span>}
+                </span>
+                <span className="keuze-arrow" aria-hidden>&rarr;</span>
+              </a>
+            );
+          })}
+        </div>
+        {b.slot && <p className="keuze-slot">{b.slot}</p>}
+      </div>
+    </section>
+  );
+}
+
 /* ── Achtergrond-tokens ── */
 function sectionStyle(achtergrond?: string): React.CSSProperties | undefined {
   if (achtergrond === "paper") return { background: "var(--paper)" };
@@ -362,6 +421,10 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
         </div>
       </section>
     );
+  }
+
+  if (t === "keuze") {
+    return <KeuzeBlock key={key} b={b} href={href} />;
   }
 
   if (t === "account") {

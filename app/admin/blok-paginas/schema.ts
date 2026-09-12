@@ -41,8 +41,28 @@ export const ACHTERGROND_OPTIES = [
 // Bloktypes die een `achtergrond`-instelling gebruiken (sectionStyle in de renderer).
 export const HEEFT_ACHTERGROND = new Set([
   "herkenning", "kern", "cadence", "stappen", "ditkrijgje",
-  "account", "document", "nietis", "ien", "ervaringen", "faq", "offer", "ehmagnet",
+  "account", "document", "nietis", "ien", "ervaringen", "faq", "offer", "ehmagnet", "keuze",
 ]);
+
+// Iconen voor de keuze-kaartjes.
+export const KEUZE_ICOON_OPTIES = [
+  { value: "hart", label: "Hartje" },
+  { value: "poot", label: "Pootje" },
+  { value: "mensen", label: "Twee mensen" },
+  { value: "praat", label: "Praatwolk" },
+  { value: "blad", label: "Blaadje" },
+  { value: "algemeen", label: "Stip (algemeen)" },
+];
+
+// Verliestype-codes (voor ?type= koppeling vanuit Even Houvast).
+export const KEUZE_TYPE_OPTIES = [
+  { value: "", label: "Geen koppeling" },
+  { value: "persoon", label: "Persoon" },
+  { value: "huisdier", label: "Huisdier" },
+  { value: "relatie", label: "Relatie / scheiding" },
+  { value: "eenzaamheid", label: "Eenzaamheid" },
+  { value: "kinderloos", label: "Ongewenst kinderloos" },
+];
 
 export const BLOCK_LABELS: Record<string, string> = {
   header: "Kop / logobalk",
@@ -60,6 +80,7 @@ export const BLOCK_LABELS: Record<string, string> = {
   ervaringen: "Ervaringen (quotes)",
   faq: "Veelgestelde vragen",
   ehmagnet: "Even Houvast (magnet)",
+  keuze: "Keuze (verliestypes)",
   offer: "Aanbod (prijs)",
   final: "Slotband + CTA",
 };
@@ -67,7 +88,7 @@ export const BLOCK_LABELS: Record<string, string> = {
 // Volgorde in de "blok toevoegen"-keuzelijst.
 export const BLOCK_TYPES = [
   "header", "hero", "herkenning", "band", "kern", "cadence", "stappen",
-  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "faq", "ehmagnet", "offer", "final",
+  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "faq", "ehmagnet", "keuze", "offer", "final",
 ];
 
 export const BLOCK_SCHEMAS: Record<string, Field[]> = {
@@ -258,6 +279,22 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
     { key: "knopText", label: "Knoptekst", kind: "text" },
     { key: "knopUrl", label: "Knop-link (bv. /even-houvast/huisdier)", kind: "text" },
     { key: "afbeelding", label: "Afbeelding (optioneel)", kind: "image" },
+  ],
+  keuze: [
+    { key: "eyebrow", label: "Label (klein, boven titel)", kind: "text" },
+    { key: "titel", label: "Titel", kind: "text" },
+    { key: "lead", label: "Inleiding", kind: "textarea", rows: 2 },
+    {
+      key: "opties", label: "Keuze-kaartjes", kind: "objectList", itemLabel: "Keuze",
+      fields: [
+        { key: "titel", label: "Titel", kind: "text" },
+        { key: "sub", label: "Subregel", kind: "text" },
+        { key: "url", label: "Link", kind: "text", hint: INTAKE_HINT },
+        { key: "icoon", label: "Icoon", kind: "select", options: KEUZE_ICOON_OPTIES },
+        { key: "type", label: "Koppel aan verliestype (voor ?type= vanuit Even Houvast)", kind: "select", options: KEUZE_TYPE_OPTIES },
+      ],
+    },
+    { key: "slot", label: "Slotzin onder de kaartjes (optioneel)", kind: "text" },
   ],
   offer: [
     { key: "introLabel", label: "Introlabel", kind: "text" },
