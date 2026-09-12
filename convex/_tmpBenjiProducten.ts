@@ -15,6 +15,7 @@ export const lijst = internalQuery({
         naam: p.name,
         prijs: `€${(p.priceInCents / 100).toFixed(2)}`,
         subscriptionType: p.subscriptionType,
+        accessDays: (p as any).accessDays ?? null,
         stripe: p.stripePriceId ? "ja" : "nee",
       }))
       .sort((a, b) => a.slug.localeCompare(b.slug));
