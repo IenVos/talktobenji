@@ -28,6 +28,7 @@ function ChevronDown({ size = 14 }: { size?: number }) {
 const OVER_ITEMS = [
   { href: "/waarom-benji", label: "Waarom Benji" },
   { href: "/blog", label: "Blog" },
+  { href: "/lp/wat-past-bij-jou", label: "Wat past bij jou" },
 ];
 
 // "Voor jou" opent direct de verliestype-LP (geen tussenpagina/extra klik meer).
