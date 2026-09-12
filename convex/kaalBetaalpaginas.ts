@@ -18,7 +18,9 @@ const TYPES = [
   { type: "scheiding", bron: "niet-alleen-relatie", nieuw: "even-houvast-scheiding-betalen" },
   { type: "eenzaamheid", bron: "niet-alleen-eenzaamheid", nieuw: "even-houvast-eenzaamheid-betalen" },
   { type: "kinderloos", bron: "niet-alleen-kinderloos", nieuw: "even-houvast-kinderloos-betalen" },
-  { type: "algemeen", bron: "je-hoeft-het-niet-alleen-te-dragen", nieuw: "even-houvast-algemeen-betalen" },
+  // "algemeen" heeft geen eigen kale checkout meer: die verwees naar de oude €90
+  // je-hoeft-het-niet-alleen-te-dragen. Onbekend type gaat rechtstreeks naar de
+  // algemene Niet Alleen-checkout (zie lib/nietAlleenTypes.ts).
 ];
 
 const KOP_DEFAULT = "Fijn dat je er bent, {naam}";

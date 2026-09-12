@@ -42,7 +42,10 @@ export const CHECKOUT_SLUG: Record<Verliestype, string> = {
   scheiding: "even-houvast-scheiding-betalen",
   eenzaamheid: "even-houvast-eenzaamheid-betalen",
   kinderloos: "even-houvast-kinderloos-betalen",
-  algemeen: "even-houvast-algemeen-betalen",
+  // "algemeen" (onbekend type) → de algemene Niet Alleen-checkout (€49); de koper
+  // kiest zijn verliestype op /niet-alleen/welkom. De oude €90 EH-algemeen-checkout
+  // is verwijderd.
+  algemeen: "niet-alleen",
 };
 
 export function checkoutPad(t: Verliestype): string {
