@@ -4,6 +4,10 @@ import type { Metadata } from "next";
 import { LandingPageView } from "@/components/LandingPageView";
 import BlokPaginaView from "@/components/BlokPaginaView";
 
+// Altijd vers uit Convex lezen, zodat admin-wijzigingen direct zichtbaar zijn
+// (anders cachet Next.js de gerenderde pagina en zie je edits pas na een deploy).
+export const dynamic = "force-dynamic";
+
 type Props = { params: { slug: string } };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
