@@ -382,8 +382,10 @@ export async function POST(req: NextRequest) {
         const billingPeriod =
           subType === "maand_toegang" ? "monthly" :
           subType === "kwartaal_toegang" ? "quarterly" :
+          subType === "halfjaar_toegang" ? "half_yearly" :
           accessDays <= 35 ? "monthly" :
           accessDays <= 100 ? "quarterly" :
+          accessDays <= 200 ? "half_yearly" :
           "yearly";
 
         // Activatie proberen (stille fout als nog geen account)
