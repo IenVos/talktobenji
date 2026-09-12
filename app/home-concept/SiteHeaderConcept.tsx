@@ -37,8 +37,8 @@ const VOOR_JOU_ITEMS = [
   { href: "/lp/zij-aan-zij", label: "Ik mis iemand" },
   { href: "/lp/mijn-relatie-is-voorbij", label: "Mijn relatie is voorbij" },
   { href: "/lp/zij-aan-zij-kinderloos", label: "Ongewenst kinderloos" },
-  { href: "/lp/je-hoeft-het-niet-alleen-te-doen#huisdier", label: "Verlies van een huisdier" },
-  { href: "/lp/je-hoeft-het-niet-alleen-te-doen#eenzaamheid", label: "Ik voel me eenzaam" },
+  { href: "/lp/verlies-huisdier", label: "Verlies van een huisdier" },
+  { href: "/lp/ik-voel-me-eenzaam", label: "Ik voel me eenzaam" },
 ];
 
 const NAV_LINKS = [

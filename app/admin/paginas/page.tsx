@@ -360,8 +360,8 @@ const DEFAULT_VOOR_JOU_MENU: VoorJouItem[] = [
   { label: "Ik mis iemand", url: "/lp/zij-aan-zij" },
   { label: "Mijn relatie is voorbij", url: "/lp/mijn-relatie-is-voorbij" },
   { label: "Ongewenst kinderloos", url: "/lp/zij-aan-zij-kinderloos" },
-  { label: "Verlies van een huisdier", url: "/lp/je-hoeft-het-niet-alleen-te-doen#huisdier" },
-  { label: "Ik voel me eenzaam", url: "/lp/je-hoeft-het-niet-alleen-te-doen#eenzaamheid" },
+  { label: "Verlies van een huisdier", url: "/lp/verlies-huisdier" },
+  { label: "Ik voel me eenzaam", url: "/lp/ik-voel-me-eenzaam" },
 ];
 
 function HomepageTab() {

@@ -20,7 +20,7 @@ const NIET_ALLEEN_LP: Record<string, string> = {
   scheiding: "/lp/mijn-relatie-is-voorbij",
   eenzaamheid: "/lp/ik-voel-me-eenzaam",
   kinderloos: "/lp/ongewenst-kinderloos-die-pijn-gaat-nooit-weg",
-  algemeen: "/lp/je-hoeft-het-niet-alleen-te-doen",
+  algemeen: "/lp/niet-alleen-kiezen",
 };
 
 export function nietAlleenUrlVoorType(type: string): string {

@@ -94,7 +94,7 @@ const EH_TYPE_TEMPLATES: Record<string, { subject: string; bodyText: string; but
     m5: `Hi {voornaam},\n\nDe afgelopen dagen vertelde ik je meer over Niet Alleen. Vandaag ook gewoon wat het kost.\n\nNiet Alleen kost eenmalig €49. Geen abonnement, geen automatische verlenging. Je koopt het één keer en hebt er 8 weken begeleiding voor.\n\nJe start wanneer jij er klaar voor bent.\n\nOm de dag een korte, zachte mail, voor het verdriet om een kind dat er nooit kwam. Geen huiswerk, geen druk. Gewoon ruimte, en het gevoel: hier ben ik niet alleen.\n\nTwijfel je? Dan bewaar je deze mail en open je hem als de tijd er rijp voor is.\n\nIk ben blij dat je er bent.`,
   }),
   ...ehMailSet("algemeen", {
-    lp: "/lp/je-hoeft-het-niet-alleen-te-doen",
+    lp: "/lp/niet-alleen-kiezen",
     checkout: "/betalen/je-hoeft-het-niet-alleen-te-dragen",
     m1s: "Ik dacht aan je vandaag",
     m1: `Hi {voornaam},\n\nEen paar dagen geleden heb je Even Houvast gedaan, en daarna een brief aan jezelf gekregen.\n\nWat je draagt is echt, wat het ook is. Verlies heeft veel gezichten, en ze tellen allemaal.\n\nOm je de steun te geven die het beste past, help je me met één ding: waar gaat jouw verdriet vooral over? Kies hieronder, dan stuur ik je verder op de manier die bij jou past.`,

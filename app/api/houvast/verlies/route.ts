@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   const lp = LP_PER_TYPE[type];
   // Bij een ongeldige link sturen we toch zacht door naar de algemene LP.
-  const fallback = `${BASIS}/lp/je-hoeft-het-niet-alleen-te-doen`;
+  const fallback = `${BASIS}/lp/niet-alleen-kiezen`;
 
   if (!email || !token || !lp || !secret || !convexUrl) {
     return NextResponse.redirect(lp ? `${BASIS}${lp}` : fallback);

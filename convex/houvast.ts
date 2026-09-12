@@ -381,7 +381,7 @@ function bepaalNietAlleenUrl(saved: Record<string, any> | null, type: string): s
   const rawUrl =
     (links[type] && links[type].trim()) ||
     NIET_ALLEEN_DEFAULT_LINKS[type] ||
-    "/lp/je-hoeft-het-niet-alleen-te-doen";
+    "/lp/niet-alleen-kiezen";
   let pad = rawUrl.trim();
   if (!pad.startsWith("http")) {
     if (!pad.startsWith("/lp/")) pad = `/lp/${pad.replace(/^\/+/, "").replace(/^lp\//, "")}`;

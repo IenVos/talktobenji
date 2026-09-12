@@ -62,7 +62,7 @@ export function resolveHouvast(c: HouvastContent, typeCode: string | undefined) 
  */
 export function naarLpUrl(raw: string | undefined): string {
   const v = (raw || "").trim();
-  if (!v) return "/lp/je-hoeft-het-niet-alleen-te-doen";
+  if (!v) return "/lp/niet-alleen-kiezen";
   if (v.startsWith("http")) return v;
   if (v.startsWith("/lp/")) return v;
   const slug = v.replace(/^\/+/, "").replace(/^lp\//, "");
