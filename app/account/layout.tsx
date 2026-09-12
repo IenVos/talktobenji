@@ -618,6 +618,8 @@ export default function AccountLayout({
               </div>
               <nav className="flex-1 overflow-y-auto p-2 mobile-nav-compact">
                 {navContent}
+                {/* Ook op mobiel de 'Mijn traject'-kaart, onder Steun Benji */}
+                <MijnTrajectCard />
               </nav>
               <div className="px-3 py-2 border-t border-primary-100">
                 <button
