@@ -9,6 +9,9 @@ import { mergeIntake, defaultIntake, INTAKE_GROEPEN, type IntakeConfig } from "@
 function typeLabel(verliestype: string): string {
   if (verliestype === "kinderloos") return "Ongewenste kinderloosheid";
   if (verliestype === "persoon") return "Verlies van iemand";
+  if (verliestype === "relatie") return "Relatiebreuk of scheiding";
+  if (verliestype === "eenzaamheid") return "Eenzaamheid";
+  if (verliestype === "huisdier") return "Verlies van een huisdier";
   return verliestype || "Onbekend";
 }
 

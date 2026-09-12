@@ -117,6 +117,51 @@ export const DEFAULT_INTAKE: Record<string, IntakeConfig> = {
     wanneerLabel: "Hoe lang draag je dit al?",
     wanneerOpties: ["Korter dan 3 maanden", "3 tot 12 maanden", "1 tot 3 jaar", "Langer dan 3 jaar"],
   },
+  relatie: {
+    ...GEDEELD,
+    lede: GEDEELDE_LEDE,
+    situatieLegend: "Je situatie",
+    wieLabel: "Wat is er gebeurd?",
+    wieOpties: [
+      "Mijn relatie is uitgegaan",
+      "Ik zit midden in een scheiding",
+      "Ik ben net gescheiden",
+      "Een langdurige relatie of huwelijk is geëindigd",
+      "Anders",
+    ],
+    wanneerLabel: "Hoe lang geleden?",
+    wanneerOpties: ["Korter dan 3 maanden", "3 tot 12 maanden", "1 tot 3 jaar", "Langer dan 3 jaar"],
+  },
+  eenzaamheid: {
+    ...GEDEELD,
+    lede: GEDEELDE_LEDE,
+    situatieLegend: "Je situatie",
+    wieLabel: "Wat past het beste bij jouw situatie?",
+    wieOpties: [
+      "Ik voel me al langere tijd alleen",
+      "Sinds een verlies of afscheid voel ik me eenzaam",
+      "Ik heb weinig mensen dichtbij",
+      "Ik voel me alleen, ook tussen anderen",
+      "Anders",
+    ],
+    wanneerLabel: "Hoe lang voel je dit al?",
+    wanneerOpties: ["Korter dan 3 maanden", "3 tot 12 maanden", "1 tot 3 jaar", "Langer dan 3 jaar"],
+  },
+  huisdier: {
+    ...GEDEELD,
+    lede: GEDEELDE_LEDE,
+    situatieLegend: "Je verlies",
+    wieLabel: "Welk dier ben je verloren?",
+    wieOpties: [
+      "Mijn hond",
+      "Mijn kat",
+      "Mijn paard",
+      "Een ander dier",
+      "Meerdere dieren",
+    ],
+    wanneerLabel: "Hoe lang geleden?",
+    wanneerOpties: ["Korter dan 3 maanden", "3 tot 12 maanden", "1 tot 3 jaar", "Langer dan 3 jaar"],
+  },
 };
 
 // Terugval als een verliestype geen eigen default heeft.
