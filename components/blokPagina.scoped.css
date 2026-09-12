@@ -196,9 +196,9 @@
   .bpg .prijs-btn{margin-top:auto;align-self:stretch;display:flex;align-items:center;justify-content:center;gap:.4rem;font-weight:600;
     font-size:.98rem;text-decoration:none;padding:.85rem 1rem;border-radius:999px;background:var(--col);color:#fff;
     transition:filter .16s,transform .16s}
-  .bpg .prijs-btn:hover{filter:brightness(.94);transform:translateY(-1px)}
+  .bpg .prijs-btn:not(.ghost):hover,.bpg .prijs-btn:not(.ghost):focus,.bpg .prijs-btn:not(.ghost):active{color:#fff;filter:brightness(.94);transform:translateY(-1px)}
   .bpg .prijs-btn.ghost{background:transparent;color:var(--col);border:1.5px solid var(--line)}
-  .bpg .prijs-btn.ghost:hover{background:color-mix(in srgb,var(--col) 12%,transparent);border-color:var(--col);filter:none}
+  .bpg .prijs-btn.ghost:hover,.bpg .prijs-btn.ghost:focus,.bpg .prijs-btn.ghost:active{color:var(--col);background:color-mix(in srgb,var(--col) 12%,transparent);border-color:var(--col);filter:none;transform:translateY(-1px)}
   .bpg .prijs-slot{margin:1.6rem 0 0;text-align:center;color:var(--muted);font-size:.92rem}
 
   .bpg /* Niet-is Geen/Wel */
