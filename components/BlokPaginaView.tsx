@@ -427,6 +427,42 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
     return <KeuzeBlock key={key} b={b} href={href} />;
   }
 
+  if (t === "prijzen") {
+    const kolommen = b.kolommen || [];
+    return (
+      <section key={key} style={sectionStyle(b.achtergrond)}>
+        <div className="wrap">
+          {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
+          {b.titel && <h2 className="sec-h">{b.titel}</h2>}
+          {b.lead && <p className="lead"><Rich text={b.lead} /></p>}
+          <div className="prijs-cols" data-n={kolommen.length}>
+            {kolommen.map((k: any, i: number) => {
+              const uit = k.uitgelicht === "ja";
+              const stijl = k.kleur ? ({ ["--col" as any]: k.kleur }) : undefined;
+              return (
+                <div key={i} className={"prijs-col" + (uit ? " uit" : "")} style={stijl}>
+                  {uit && k.badge && <span className="prijs-badge">{k.badge}</span>}
+                  {k.naam && <span className="prijs-naam">{k.naam}</span>}
+                  {k.prijs && <span className="prijs-prijs">{k.prijs}{k.prijsSub && <small> {k.prijsSub}</small>}</span>}
+                  {k.who && <p className="prijs-who"><Rich text={k.who} /></p>}
+                  {(k.bullets || []).length > 0 && (
+                    <ul className="prijs-lijst">
+                      {k.bullets.map((r: string, j: number) => <li key={j}><Rich text={r} /></li>)}
+                    </ul>
+                  )}
+                  {k.ctaText && (
+                    <a className={"prijs-btn" + (uit ? "" : " ghost")} href={href(k.ctaUrl)}>{k.ctaText}</a>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {b.slot && <p className="prijs-slot"><Rich text={b.slot} /></p>}
+        </div>
+      </section>
+    );
+  }
+
   if (t === "account") {
     return (
       <section key={key} style={sectionStyle(b.achtergrond)}>

@@ -41,7 +41,7 @@ export const ACHTERGROND_OPTIES = [
 // Bloktypes die een `achtergrond`-instelling gebruiken (sectionStyle in de renderer).
 export const HEEFT_ACHTERGROND = new Set([
   "herkenning", "kern", "cadence", "stappen", "ditkrijgje",
-  "account", "document", "nietis", "ien", "ervaringen", "faq", "offer", "ehmagnet", "keuze",
+  "account", "document", "nietis", "ien", "ervaringen", "faq", "offer", "ehmagnet", "keuze", "prijzen",
 ]);
 
 // Iconen voor de keuze-kaartjes.
@@ -81,6 +81,7 @@ export const BLOCK_LABELS: Record<string, string> = {
   faq: "Veelgestelde vragen",
   ehmagnet: "Even Houvast (magnet)",
   keuze: "Keuze (verliestypes)",
+  prijzen: "Prijzen (kolommen vergelijken)",
   offer: "Aanbod (prijs)",
   final: "Slotband + CTA",
 };
@@ -88,7 +89,7 @@ export const BLOCK_LABELS: Record<string, string> = {
 // Volgorde in de "blok toevoegen"-keuzelijst.
 export const BLOCK_TYPES = [
   "header", "hero", "herkenning", "band", "kern", "cadence", "stappen",
-  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "faq", "ehmagnet", "keuze", "offer", "final",
+  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "faq", "ehmagnet", "keuze", "prijzen", "offer", "final",
 ];
 
 export const BLOCK_SCHEMAS: Record<string, Field[]> = {
@@ -295,6 +296,30 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
       ],
     },
     { key: "slot", label: "Slotzin onder de kaartjes (optioneel)", kind: "text" },
+  ],
+  prijzen: [
+    { key: "eyebrow", label: "Label (klein, boven titel)", kind: "text" },
+    { key: "titel", label: "Titel", kind: "text" },
+    { key: "lead", label: "Inleiding", kind: "textarea", rows: 2 },
+    {
+      key: "kolommen", label: "Prijsblokken", kind: "objectList", itemLabel: "Prijsblok",
+      fields: [
+        { key: "naam", label: "Naam", kind: "text" },
+        { key: "prijs", label: "Prijs (bv. €7)", kind: "text" },
+        { key: "prijsSub", label: "Prijs-subtekst (bv. eerste maand)", kind: "text" },
+        { key: "who", label: "Voor wie (1 zin)", kind: "textarea", rows: 2 },
+        { key: "bullets", label: "Opsomming", kind: "stringList", itemLabel: "Regel" },
+        { key: "ctaText", label: "Knoptekst", kind: "text" },
+        { key: "ctaUrl", label: "Knop-link", kind: "text", hint: INTAKE_HINT },
+        { key: "uitgelicht", label: "Uitgelicht (met rand + badge)", kind: "select", options: [
+          { value: "", label: "Nee" },
+          { value: "ja", label: "Ja" },
+        ] },
+        { key: "badge", label: "Badge-tekst (bij uitgelicht)", kind: "text" },
+        { key: "kleur", label: "Eigen kleur (hex, optioneel)", kind: "text", hint: "Leeg = de accentkleur van de pagina." },
+      ],
+    },
+    { key: "slot", label: "Slotzin onder de blokken (optioneel)", kind: "text" },
   ],
   offer: [
     { key: "introLabel", label: "Introlabel", kind: "text" },
