@@ -179,9 +179,7 @@
   @media (prefers-color-scheme:dark){.bpg .keuze-grid{--brand-blue:#46587a;--brand-blue-tekst:#c3cfe2;--amber-frame-wash:#33301f}}
 
   .bpg /* Prijzen (kolommen vergelijken) */
-  .prijs-cols{--col:var(--accent);display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1.1rem;margin:1.9rem 0 0;align-items:stretch}
-  .bpg .prijs-cols[data-n="3"]{grid-template-columns:repeat(3,1fr)}
-  @media (max-width:720px){.bpg .prijs-cols,.bpg .prijs-cols[data-n="3"]{grid-template-columns:1fr;max-width:24rem;margin-inline:auto}}
+  .prijs-cols{--col:var(--accent);display:grid;grid-template-columns:1fr;gap:1.3rem;margin:1.9rem auto 0;max-width:30rem;align-items:stretch}
   .bpg .prijs-col{--col:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:18px;
     padding:1.7rem 1.5rem;display:flex;flex-direction:column;gap:.4rem;position:relative}
   .bpg .prijs-col.uit{border:1.5px solid var(--col);box-shadow:0 22px 50px -34px color-mix(in srgb,var(--col) 60%,transparent)}
