@@ -95,7 +95,7 @@ const EH_TYPE_TEMPLATES: Record<string, { subject: string; bodyText: string; but
   }),
   ...ehMailSet("algemeen", {
     lp: "/lp/niet-alleen-kiezen",
-    checkout: "/betalen/je-hoeft-het-niet-alleen-te-dragen",
+    checkout: "/betalen/niet-alleen",
     m1s: "Ik dacht aan je vandaag",
     m1: `Hi {voornaam},\n\nEen paar dagen geleden heb je Even Houvast gedaan, en daarna een brief aan jezelf gekregen.\n\nWat je draagt is echt, wat het ook is. Verlies heeft veel gezichten, en ze tellen allemaal.\n\nOm je de steun te geven die het beste past, help je me met één ding: waar gaat jouw verdriet vooral over? Kies hieronder, dan stuur ik je verder op de manier die bij jou past.`,
     m2s: "Je verdriet mag er zijn",
