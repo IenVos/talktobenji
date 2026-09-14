@@ -28,32 +28,6 @@ export const getMemories = query({
 });
 
 /**
- * Haal een willekeurige herinnering op (voor Benji om aan te bieden)
- */
-export const getRandomMemory = query({
-  args: { userId: v.string() },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity || identity.subject !== args.userId) return null;
-
-    const memories = await ctx.db
-      .query("memories")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .collect();
-
-    if (memories.length === 0) return null;
-
-    const random = memories[Math.floor(Math.random() * memories.length)];
-    return {
-      ...random,
-      imageUrl: random.imageStorageId
-        ? await ctx.storage.getUrl(random.imageStorageId)
-        : undefined,
-    };
-  },
-});
-
-/**
  * Voeg een herinnering toe
  */
 export const addMemory = mutation({

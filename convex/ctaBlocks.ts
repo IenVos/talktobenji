@@ -31,13 +31,6 @@ export const list = query({
   },
 });
 
-export const getByKey = query({
-  args: { key: v.string() },
-  handler: async (ctx, args) => {
-    return ctx.db.query("ctaBlocks").withIndex("by_key", (q) => q.eq("key", args.key)).first();
-  },
-});
-
 /** Publiek: alle CTA blokken (voor live pagina's) */
 export const listAll = query({
   args: {},

@@ -118,28 +118,3 @@ export const remove = mutation({
     return args.id;
   },
 });
-
-/** Publiek: klant dient review in — wacht op goedkeuring */
-export const submitPending = mutation({
-  args: {
-    name: v.string(),
-    quote: v.string(),
-    stars: v.number(),
-  },
-  handler: async (ctx, args) => {
-    if (!args.name.trim() || !args.quote.trim()) throw new Error("Naam en review zijn verplicht");
-    if (args.name.trim().length > 60) throw new Error("Naam te lang");
-    if (args.quote.trim().length > 500) throw new Error("Review te lang (max 500 tekens)");
-    const now = Date.now();
-    return await ctx.db.insert("testimonials", {
-      name: args.name.trim(),
-      quote: args.quote.trim(),
-      stars: Math.min(5, Math.max(1, Math.round(args.stars))),
-      order: 999,
-      isActive: false,
-      status: "pending",
-      createdAt: now,
-      updatedAt: now,
-    });
-  },
-});

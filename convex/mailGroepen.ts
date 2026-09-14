@@ -140,16 +140,3 @@ export const ledenToevoegen = mutation({
   },
 });
 
-export const lidVerwijderen = mutation({
-  args: { adminToken: v.string(), id: v.id("mailGroepen"), email: v.string() },
-  handler: async (ctx, args) => {
-    await checkAdmin(ctx, args.adminToken);
-    const email = args.email.toLowerCase();
-    const rij = await ctx.db
-      .query("mailGroepLeden")
-      .withIndex("by_groep_email", (q) => q.eq("groepId", args.id).eq("email", email))
-      .first();
-    if (rij) await ctx.db.delete(rij._id);
-    return { ok: true };
-  },
-});

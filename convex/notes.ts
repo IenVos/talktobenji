@@ -16,17 +16,6 @@ export const listNotes = query({
   },
 });
 
-export const getNote = query({
-  args: { noteId: v.id("notes") },
-  handler: async (ctx, args) => {
-    const note = await ctx.db.get(args.noteId);
-    if (!note) return null;
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity || identity.subject !== note.userId) return null;
-    return note;
-  },
-});
-
 export const createNote = mutation({
   args: {
     userId: v.string(),

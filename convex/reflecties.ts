@@ -23,30 +23,6 @@ export const listNotes = query({
   },
 });
 
-/** Notities met emotie voor die datum (voor eerdere reflecties) */
-export const listNotesWithEmotions = query({
-  args: { userId: v.string(), limit: v.optional(v.number()) },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity || identity.subject !== args.userId) return [];
-
-    const notes = await ctx.db
-      .query("notes")
-      .withIndex("by_user", (q) => q.eq("userId", args.userId))
-      .order("desc")
-      .take(args.limit ?? 50);
-    const emotions = await ctx.db
-      .query("emotionEntries")
-      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
-      .collect();
-    const moodByDate = Object.fromEntries(emotions.map((e) => [e.date, e.mood]));
-    return notes.map((note) => {
-      const dateStr = new Date(note.updatedAt).toISOString().slice(0, 10);
-      return { ...note, mood: moodByDate[dateStr] };
-    });
-  },
-});
-
 export const createNote = mutation({
   args: { userId: v.string(), title: v.optional(v.string()), content: v.string() },
   handler: async (ctx, args) => {
@@ -225,93 +201,6 @@ export const deleteGoal = mutation({
     if (!goal || goal.userId !== identity.subject) throw new Error("Doel niet gevonden");
     await ctx.db.delete(args.goalId);
     return args.goalId;
-  },
-});
-
-// ============ Dagelijkse check-in ============
-const CHECK_IN_QUESTIONS = [
-  { key: "hoe_voel" as const, label: "Hoe voel ik me vandaag?" },
-  { key: "wat_hielp" as const, label: "Wat hielp me vandaag?" },
-  { key: "waar_dankbaar" as const, label: "Waar ben ik dankbaar voor?" },
-] as const;
-
-export const getCheckInForDate = query({
-  args: { userId: v.string(), date: v.string() },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity || identity.subject !== args.userId) return { answers: {}, questions: CHECK_IN_QUESTIONS };
-
-    const answers = await ctx.db
-      .query("checkInAnswers")
-      .withIndex("by_user_date", (q) =>
-        q.eq("userId", args.userId).eq("date", args.date)
-      )
-      .collect();
-    const map: Record<string, string> = {};
-    answers.forEach((a) => { map[a.questionKey] = a.answer; });
-    return { answers: map, questions: CHECK_IN_QUESTIONS };
-  },
-});
-
-/** Lijst van eerdere check-ins – per datum, nieuwste eerst */
-export const listCheckInHistory = query({
-  args: { userId: v.string(), limit: v.optional(v.number()) },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity || identity.subject !== args.userId) return [];
-
-    const all = await ctx.db
-      .query("checkInAnswers")
-      .withIndex("by_user_date", (q) => q.eq("userId", args.userId))
-      .collect();
-    const byDate = new Map<string, Record<string, string>>();
-    for (const a of all) {
-      if (!byDate.has(a.date)) byDate.set(a.date, {});
-      byDate.get(a.date)![a.questionKey] = a.answer;
-    }
-    const dates = Array.from(byDate.keys()).sort().reverse();
-    const limit = args.limit ?? 30;
-    return dates.slice(0, limit).map((date) => ({
-      date,
-      answers: byDate.get(date)!,
-    }));
-  },
-});
-
-export const setCheckInAnswer = mutation({
-  args: {
-    userId: v.string(),
-    date: v.string(),
-    questionKey: v.union(
-      v.literal("hoe_voel"),
-      v.literal("wat_hielp"),
-      v.literal("waar_dankbaar")
-    ),
-    answer: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
-
-    const now = Date.now();
-    const all = await ctx.db
-      .query("checkInAnswers")
-      .withIndex("by_user_date", (q) =>
-        q.eq("userId", args.userId).eq("date", args.date)
-      )
-      .collect();
-    const existing = all.find((a) => a.questionKey === args.questionKey);
-    if (existing) {
-      await ctx.db.patch(existing._id, { answer: args.answer.trim() });
-      return existing._id;
-    }
-    return await ctx.db.insert("checkInAnswers", {
-      userId: args.userId,
-      date: args.date,
-      questionKey: args.questionKey,
-      answer: args.answer.trim(),
-      createdAt: now,
-    });
   },
 });
 

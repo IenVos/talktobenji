@@ -142,19 +142,6 @@ export const list = query({
   },
 });
 
-// Lichte publieke meta (verliestype) voor het intake-formulier, ook bij concept.
-export const intakeMeta = query({
-  args: { slug: v.string() },
-  handler: async (ctx, { slug }) => {
-    const p = await ctx.db
-      .query("blokPaginas")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .first();
-    if (!p) return null;
-    return { naam: p.naam, verliestype: p.verliestype ?? "" };
-  },
-});
-
 // Publiek: verliestype + opgeslagen intake-config (of null) voor een slug.
 export const getIntakeForm = query({
   args: { slug: v.string() },
