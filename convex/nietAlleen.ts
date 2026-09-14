@@ -266,32 +266,6 @@ export const stuurTestEmailEnkel = action({
   },
 });
 
-/** Activeer Niet Alleen account + stuur welkomstmail. Wordt aangeroepen vanuit /api/niet-alleen/activate. */
-export const activeerEnStuurWelkom = action({
-  args: { userId: v.string(), email: v.string(), naam: v.string() },
-  handler: async (ctx, args) => {
-    const result = await ctx.runMutation(internal.nietAlleen.activateNietAlleen, args);
-    // Stuur welkomstmail alleen als dit een nieuw profiel is (voorkomt dubbele mails)
-    if (result?.isNieuw) {
-      await ctx.runAction(internal.nietAlleenEmails.sendWelkomstMail, {
-        email: args.email,
-        naam: args.naam,
-      });
-    }
-  },
-});
-
-/** Stuur alleen de welkomstmail — geen account vereist (bijv. na Stripe betaling). */
-export const stuurWelkomstMailZonderAccount = action({
-  args: { email: v.string(), naam: v.string() },
-  handler: async (ctx, args) => {
-    await ctx.runAction(internal.nietAlleenEmails.sendWelkomstMail, {
-      email: args.email,
-      naam: args.naam,
-    });
-  },
-});
-
 // ─────────────────────────────────────────
 // ─────────────────────────────────────────
 // Testprofiel aanmaken (admin)

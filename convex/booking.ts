@@ -379,42 +379,6 @@ export const getAppointmentByToken = query({
   },
 });
 
-export const reschedulePublic = mutation({
-  args: { token: v.string(), datum: v.string(), tijd: v.string() },
-  handler: async (ctx, args) => {
-    const a = await ctx.db.query("appointments").withIndex("by_token", (q) => q.eq("token", args.token)).first();
-    if (!a) throw new Error("Onbekende link");
-    // is het gekozen moment nog vrij?
-    const taken = (await ctx.db.query("appointments").collect()).some(
-      (x) => x._id !== a._id && (x.status === "gepland" || x.status === "verzet") && x.datum === args.datum && x.tijd === args.tijd
-    );
-    if (taken) throw new Error("Dat moment is net bezet, kies een ander.");
-    await ctx.db.patch(a._id, {
-      origineelDatum: a.origineelDatum ?? a.datum,
-      origineelTijd: a.origineelTijd ?? a.tijd,
-      datum: args.datum, tijd: args.tijd, status: "verzet", reminderSentAt: undefined, updatedAt: Date.now(),
-    });
-    await ctx.scheduler.runAfter(0, internal.booking.mailVerzet, {
-      clientNaam: a.clientNaam, clientEmail: a.clientEmail, index: a.index,
-      oudDatum: a.datum, oudTijd: a.tijd, datum: args.datum, tijd: args.tijd, doorIen: false,
-    });
-    return { ok: true };
-  },
-});
-
-export const cancelPublic = mutation({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const a = await ctx.db.query("appointments").withIndex("by_token", (q) => q.eq("token", token)).first();
-    if (!a) throw new Error("Onbekende link");
-    await ctx.db.patch(a._id, { status: "afgemeld", updatedAt: Date.now() });
-    await ctx.scheduler.runAfter(0, internal.booking.mailAfmelding, {
-      clientNaam: a.clientNaam, clientEmail: a.clientEmail, index: a.index, datum: a.datum, tijd: a.tijd,
-    });
-    return { ok: true };
-  },
-});
-
 // ─── E-MAILS (Resend) ────────────────────────────────────────────────────────
 function wrapMail(inner: string): string {
   return `<div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;color:#212b24;background:#f4f6f1;padding:32px 24px;border-radius:14px">${inner}<p style="font-size:12px;color:#7c8a7f;margin-top:24px">Talk To Benji &middot; Zij aan Zij</p></div>`;

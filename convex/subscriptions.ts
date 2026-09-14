@@ -264,48 +264,6 @@ export const getConversationCount = query({
 });
 
 /**
- * Increment conversation count (call dit bij elke nieuwe conversatie)
- */
-export const incrementConversationCount = mutation({
-  args: {
-    userId: v.string(),
-    email: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    // Admin hoeft niet geteld te worden
-    if (args.email === ADMIN_EMAIL) {
-      return;
-    }
-
-    const now = Date.now();
-    const month = `${new Date(now).getFullYear()}-${String(new Date(now).getMonth() + 1).padStart(2, "0")}`;
-
-    const existing = await ctx.db
-      .query("conversationUsage")
-      .withIndex("by_user_month", (q) =>
-        q.eq("userId", args.userId).eq("month", month)
-      )
-      .first();
-
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        conversationCount: existing.conversationCount + 1,
-        lastConversationAt: now,
-      });
-    } else {
-      await ctx.db.insert("conversationUsage", {
-        userId: args.userId,
-        month,
-        conversationCount: 1,
-        lastConversationAt: now,
-        createdAt: now,
-      });
-    }
-  },
-});
-
-
-/**
  * Activeer subscription via e-mail (voor webhook na KennisShop betaling).
  * Zoekt gebruiker op via e-mail in credentials tabel, dan upsert subscription.
  */
@@ -422,45 +380,6 @@ export const grantBenjiVenster = mutation({
       await ctx.db.patch(sub._id, { benjiExpiresAt, status: "active", updatedAt: now });
     }
     return { applied: true as const };
-  },
-});
-
-/**
- * Opzeg subscription via e-mail (voor webhook bij KennisShop opzegging).
- */
-export const cancelSubscriptionByEmail = mutation({
-  args: {
-    webhookSecret: v.string(),
-    email: v.string(),
-    externalSubscriptionId: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    // Controleer webhook secret
-    if (args.webhookSecret !== (process.env.STRIPE_INTERNAL_SECRET ?? process.env.KENNISSHOP_WEBHOOK_SECRET)) {
-      throw new Error("Ongeldig webhook secret");
-    }
-
-    const emailLower = args.email.toLowerCase().trim();
-    const now = Date.now();
-
-    const existing = await ctx.db
-      .query("userSubscriptions")
-      .withIndex("by_email", (q) => q.eq("email", emailLower))
-      .first();
-
-    if (!existing) {
-      // Geen subscription gevonden — al opgezegd of nooit actief
-      return { success: true, action: "not_found" };
-    }
-
-    await ctx.db.patch(existing._id, {
-      status: "cancelled",
-      cancelledAt: now,
-      expiresAt: now, // Directe toegangsbeëindiging bij refund/annulering via webhook
-      updatedAt: now,
-    });
-
-    return { success: true, action: "cancelled" };
   },
 });
 

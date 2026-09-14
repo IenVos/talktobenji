@@ -662,23 +662,6 @@ export const _verstuurBriefKomTerugEnLog = internalAction({
   },
 });
 
-// ── Testfunctie (admin): stuur alle 5 mails naar één inbox ──────────────────────
-
-export const stuurTestOpvolg = action({
-  args: { adminToken: v.string(), email: v.string(), naam: v.optional(v.string()), type: v.optional(v.string()) },
-  handler: async (ctx, args) => {
-    await ctx.runQuery(api.adminAuth.validateToken, { adminToken: args.adminToken });
-    const apiKey = process.env.RESEND_API_KEY;
-    if (!apiKey) throw new Error("RESEND_API_KEY ontbreekt");
-    const type = normType(args.type);
-    const volgorde = MAIL_NUMMERS.slice().sort((a, b) => SCHEMA[a] - SCHEMA[b]);
-    for (const n of volgorde) {
-      await verstuurOpvolgMail(ctx, { email: args.email, naam: args.naam, type, mailNummer: n, apiKey });
-    }
-    return { verstuurd: volgorde.length };
-  },
-});
-
 // Test: stuur één specifieke mail (1..6) van een gekozen verliestype naar een inbox.
 export const stuurTestOpvolgEnkel = action({
   args: { adminToken: v.string(), email: v.string(), naam: v.optional(v.string()), mailNummer: v.number(), type: v.optional(v.string()) },

@@ -188,26 +188,6 @@ export const getSession = internalQuery({
   },
 });
 
-/** Embed alle bestaande sessie-samenvattingen die nog geen embedding hebben */
-export const embedAllSessionSummaries = action({
-  args: { batchSize: v.optional(v.number()) },
-  handler: async (ctx, args): Promise<{ done: boolean; verwerkt: number }> => {
-    const batch = args.batchSize ?? 10;
-    // Haal sessies op zonder embedding maar met samenvatting
-    const sessies = await ctx.runQuery(internal.embeddings.getSessionsWithoutEmbedding, { limit: batch });
-    if (sessies.length === 0) return { done: true, verwerkt: 0 };
-
-    for (const s of sessies) {
-      const embedding = await embedText(s.summary);
-      await ctx.runMutation(internal.embeddings.saveSummaryEmbedding, {
-        sessionId: s._id,
-        embedding,
-      });
-    }
-    return { done: sessies.length < batch, verwerkt: sessies.length };
-  },
-});
-
 /** Haal sessies op met samenvatting maar zonder embedding (intern) */
 export const getSessionsWithoutEmbedding = internalQuery({
   args: { limit: v.number() },
