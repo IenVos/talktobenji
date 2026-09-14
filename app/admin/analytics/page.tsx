@@ -659,6 +659,7 @@ export default function AdminAnalytics() {
   const [openConversies, setOpenConversies] = usePersistentToggle("conversies", true);
   const [openApparaten, setOpenApparaten] = usePersistentToggle("apparaten", true);
   const [openAdLp, setOpenAdLp] = usePersistentToggle("adlp", true);
+  const [openTopPaginas, setOpenTopPaginas] = usePersistentToggle("toppaginas", true);
   const [openFunnel, setOpenFunnel] = usePersistentToggle("funnel", true);
   const [openVerliesType, setOpenVerliesType] = usePersistentToggle("verliestype", true);
   const [openFeatureGebruik, setOpenFeatureGebruik] = usePersistentToggle("featuregebruik", true);
@@ -1471,6 +1472,9 @@ export default function AdminAnalytics() {
           </button>
           {openAdLp && (
             <div className="px-6 pb-6 overflow-x-auto">
+              <p className="text-xs text-primary-500 mb-4">
+                Alleen de homepagina en advertentie-landingspagina&apos;s. Bezoekers die via een e-maillink binnenkomen (rechtstreeks op de chat of hun account) staan hieronder bij &ldquo;Meest bezochte pagina&apos;s&rdquo;.
+              </p>
               <table className="w-full text-sm min-w-[480px]">
                 <thead>
                   <tr className="border-b border-primary-100">
@@ -1510,6 +1514,30 @@ export default function AdminAnalytics() {
           )}
         </div>
       )}
+
+      {/* Meest bezochte pagina's — alle paden, inclusief chat/account via e-maillinks */}
+      <div className="bg-white rounded-xl border border-primary-200">
+        <button onClick={() => setOpenTopPaginas((v) => !v)} className="w-full flex items-center justify-between px-6 py-4 text-left">
+          <div className="flex items-center gap-2">
+            <BarChart3 size={16} className="text-primary-500" />
+            <span className="text-base font-semibold text-primary-900">Meest bezochte pagina&apos;s</span>
+            <span className="text-xs text-primary-400 font-normal">alle pagina&apos;s · geselecteerde periode</span>
+          </div>
+          <ChevronDown size={16} className={`text-primary-400 transition-transform ${openTopPaginas ? "rotate-180" : ""}`} />
+        </button>
+        {openTopPaginas && (
+          <div className="px-6 pb-6">
+            <p className="text-xs text-primary-500 mb-4">
+              Waar bezoekers echt landen, inclusief het verkeer dat via een e-maillink binnenkomt (bijv. de chat op /benji of het account). Zo zie je welke mails mensen daadwerkelijk terugbrengen naar de site.
+            </p>
+            {stats.topPages.length === 0 ? (
+              <p className="text-primary-400 text-sm">Geen data</p>
+            ) : (
+              <AllPagesList pages={stats.topPages} maxCount={maxPageCount} />
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Afhaak-funnel — waar haken bezoekers af op checkout + LP */}
       {funnelStats && (
