@@ -874,15 +874,23 @@ export const getStats = query({
     }
 
     const sourceMap: Record<string, number> = {};
+    const sourceSessions: Record<string, Set<string>> = {};
     for (const view of allViews) {
       const source = parseSource(view.referrer);
       if (source === "__overig__") continue;
       sourceMap[source] = (sourceMap[source] ?? 0) + 1;
+      if (!sourceSessions[source]) sourceSessions[source] = new Set();
+      sourceSessions[source].add(view.sessionId);
     }
     const totalViewsForSource = Object.values(sourceMap).reduce((a, b) => a + b, 0) || 1;
+    // pct op basis van unieke sessies, zodat één bezoeker die veel pagina's bekijkt
+    // de bron niet opblaast. `count` (views) blijft bewaard voor de donut.
+    const totalSessionsForSource =
+      Object.values(sourceSessions).reduce((a, s) => a + s.size, 0) || 1;
     const bronnen = Object.entries(sourceMap)
-      .sort(([, a], [, b]) => b - a)
-      .map(([source, count]) => ({ source, count, pct: Math.round((count / totalViewsForSource) * 100) }));
+      .map(([source, count]) => ({ source, count, sessions: sourceSessions[source]?.size ?? 0 }))
+      .sort((a, b) => b.sessions - a.sessions)
+      .map((b) => ({ ...b, pct: Math.round((b.sessions / totalSessionsForSource) * 100) }));
 
     // -- Conversie ratio: alleen echte aankopen (betaald) + Niet Alleen profiles.
     // Gratis accounts tellen NIET als conversie (dat zijn aanmeldingen/leads). --

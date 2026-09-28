@@ -1407,7 +1407,7 @@ export default function AdminAnalytics() {
           {!(stats as any).bronnen || (stats as any).bronnen.length === 0 ? (
             <p className="text-xs text-primary-400">Geen data</p>
           ) : (() => {
-            const bronnen: { source: string; count: number; pct: number }[] = (stats as any).bronnen;
+            const bronnen: { source: string; count: number; sessions?: number; pct: number }[] = (stats as any).bronnen;
             const top5 = bronnen.slice(0, 5);
             const totalPct = top5.reduce((s, b) => s + b.count, 0) || 1;
             // Build donut segments
@@ -1445,10 +1445,15 @@ export default function AdminAnalytics() {
                         <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: sourceColor(b.source) }} />
                         <span className="text-primary-700">{b.source}</span>
                       </div>
-                      <span className="text-primary-500 font-medium">{b.pct}%</span>
+                      <span className="text-primary-500 font-medium tabular-nums">
+                        {b.sessions !== undefined ? `${b.sessions} ${b.sessions === 1 ? "bezoeker" : "bezoekers"} · ` : ""}{b.pct}%
+                      </span>
                     </div>
                   ))}
                 </div>
+                <p className="text-[11px] text-primary-400 leading-snug pt-1">
+                  Percentage en aantal zijn unieke bezoekers (sessies), niet pagina&apos;s. Eén bezoeker die veel pagina&apos;s bekijkt telt dus als 1.
+                </p>
               </div>
             );
           })()}
