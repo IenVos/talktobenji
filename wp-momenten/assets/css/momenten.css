@@ -55,10 +55,9 @@
 	justify-content: center;
 	margin: 0;
 }
-/* Met een logo ernaast vullen de tabs de rest, met gelijke tussenruimte. */
+/* Met een logo ernaast staan de tabs compact naast het logo (zoals origineel). */
 .mmt-kop.met-logo .mmt-tabs {
-	flex: 1;
-	justify-content: space-between;
+	justify-content: flex-start;
 }
 .mmt-tab {
 	border: none;
