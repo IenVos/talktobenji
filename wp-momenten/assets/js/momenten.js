@@ -28,7 +28,6 @@
 	var stappen = ['welkom'].concat(momenten.map(function (m) { return m.id; })).concat(['bewaar']);
 	var huidig = 0;
 	var verzendBezig = false;
-	var eersteRender = true;
 
 	teken();
 
@@ -95,12 +94,7 @@
 		if (sleutel !== 'afrond') {
 			root.appendChild(tekenNavigatie());
 		}
-		// Niet bij het eerste laden scrollen (anders springt de pagina naar de gids).
-		if (eersteRender) {
-			eersteRender = false;
-		} else {
-			root.scrollIntoView({ behavior: 'smooth', block: 'start' });
-		}
+		// Bewust niet scrollen: de pagina moet blijven staan waar hij staat.
 	}
 
 	function tekenStappenbalk() {
