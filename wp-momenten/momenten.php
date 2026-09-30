@@ -5,7 +5,7 @@
  * Version:           1.0.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
- * Author:            Talk To Benji
+ * Author:            Momenten
  * License:           GPL-2.0-or-later
  * Text Domain:       momenten
  *
