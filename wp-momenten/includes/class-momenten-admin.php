@@ -74,6 +74,15 @@ class Momenten_Admin {
 				</table>
 
 				<h2>Momenten</h2>
+				<table class="form-table">
+					<tr>
+						<th><label for="moment_label">Label boven elk moment</label></th>
+						<td>
+							<input type="text" id="moment_label" name="moment_label" class="regular-text" value="<?php echo esc_attr( $c['moment_label'] ); ?>">
+							<p class="description">Staat boven de titel, met het nummer erachter (bijv. "Moment 1"). Laat leeg als je er niks boven wilt.</p>
+						</td>
+					</tr>
+				</table>
 				<p class="description">Sleep-vrij: gebruik de knoppen om te ordenen. Je kunt momenten toevoegen en verwijderen.</p>
 				<div id="momenten-lijst">
 					<?php foreach ( $c['momenten'] as $i => $m ) : ?>
@@ -183,6 +192,8 @@ class Momenten_Admin {
 	private function bewaar_teksten() {
 		$in  = wp_unslash( $_POST );
 		$out = Momenten_Content::get_content();
+
+		$out['moment_label'] = sanitize_text_field( $in['moment_label'] ?? '' );
 
 		$out['welkom'] = array(
 			'titel' => sanitize_text_field( $in['welkom']['titel'] ?? '' ),

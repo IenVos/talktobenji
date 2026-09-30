@@ -149,7 +149,11 @@
 
 	function tekenMoment(kaart, m) {
 		if (!m) { return; }
-		kaart.appendChild(el('p', 'mmt-moment-label', 'Moment ' + (m.nav || '')));
+		// Label boven het moment, instelbaar via de admin. Leeg = niks tonen.
+		var label = (content.moment_label == null) ? 'Moment' : String(content.moment_label).trim();
+		if (label) {
+			kaart.appendChild(el('p', 'mmt-moment-label', label + ' ' + (m.nav || '')));
+		}
 		kaart.appendChild(el('h2', 'mmt-titel', m.titel || ''));
 		alineas(m.intro).forEach(function (a) {
 			kaart.appendChild(el('p', 'mmt-tekst', a));

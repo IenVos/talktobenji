@@ -16,6 +16,7 @@ class Momenten_Content {
 	/** Standaardteksten (warme basis, door de eigenaar aan te passen). */
 	public static function defaults() {
 		return array(
+			'moment_label' => 'Moment', // label boven elk moment; leeg = niks tonen.
 			'welkom' => array(
 				'titel' => 'Wat goed dat je hier bent',
 				'tekst' => "Je bent hier omdat je iets draagt wat zwaar is.\n\nJe hoeft hier niets uit te leggen. In de komende momenten krijg je de ruimte om stil te staan bij wat er in je leeft.\n\nAan het einde ontvang je een persoonlijke brief, geschreven vanuit wat jij hebt gedeeld.",
