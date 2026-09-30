@@ -41,6 +41,19 @@
 	font-weight: 500;
 }
 
+/* Logo-voorbeeld */
+.momenten-logo-preview {
+	margin-bottom: 0.5rem;
+}
+.momenten-logo-preview img {
+	max-height: 72px;
+	width: auto;
+	background: #f6f6f6;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid #dcdcde;
+	border-radius: 0.4rem;
+}
+
 /* Inzendingen */
 .momenten-badge {
 	display: inline-block;

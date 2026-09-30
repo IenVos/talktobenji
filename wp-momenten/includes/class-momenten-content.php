@@ -98,6 +98,7 @@ class Momenten_Content {
 			'accent_kleur'        => '#6d84a8',
 			'tekst_kleur'         => '#3d3530',
 			'achtergrond_kleur'   => '#fdf9f4',
+			'logo_url'            => '',
 		);
 	}
 

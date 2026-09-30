@@ -31,6 +31,8 @@ class Momenten_Admin {
 		if ( false === strpos( $hook, 'momenten' ) ) {
 			return;
 		}
+		// Media-bibliotheek voor het kiezen van een logo.
+		wp_enqueue_media();
 		wp_enqueue_style( 'momenten-admin', MOMENTEN_URL . 'assets/css/admin.css', array(), MOMENTEN_VERSION );
 		wp_enqueue_script( 'momenten-admin', MOMENTEN_URL . 'assets/js/admin.js', array(), MOMENTEN_VERSION, true );
 	}
@@ -267,6 +269,24 @@ class Momenten_Admin {
 			<form method="post">
 				<?php wp_nonce_field( 'momenten_instellingen' ); ?>
 
+				<h2>Logo</h2>
+				<table class="form-table">
+					<tr>
+						<th><label>Logo bovenaan de gids</label></th>
+						<td>
+							<div class="momenten-logo-preview">
+								<?php if ( $s['logo_url'] ) : ?>
+									<img src="<?php echo esc_url( $s['logo_url'] ); ?>" alt="">
+								<?php endif; ?>
+							</div>
+							<input type="hidden" name="settings[logo_url]" id="momenten_logo_url" value="<?php echo esc_url( $s['logo_url'] ); ?>">
+							<button type="button" class="button" id="momenten-logo-kies">Afbeelding kiezen</button>
+							<button type="button" class="button" id="momenten-logo-verwijder">Verwijderen</button>
+							<p class="description">Verschijnt bovenaan de gids. Laat leeg voor geen logo.</p>
+						</td>
+					</tr>
+				</table>
+
 				<h2>MailerLite</h2>
 				<table class="form-table">
 					<tr>
@@ -343,6 +363,7 @@ class Momenten_Admin {
 		$out['accent_kleur']        = sanitize_hex_color( $in['accent_kleur'] ?? '' ) ?: '#6d84a8';
 		$out['tekst_kleur']         = sanitize_hex_color( $in['tekst_kleur'] ?? '' ) ?: '#3d3530';
 		$out['achtergrond_kleur']   = sanitize_hex_color( $in['achtergrond_kleur'] ?? '' ) ?: '#fdf9f4';
+		$out['logo_url']            = esc_url_raw( $in['logo_url'] ?? '' );
 
 		update_option( Momenten_Content::OPT_SETTINGS, $out );
 	}

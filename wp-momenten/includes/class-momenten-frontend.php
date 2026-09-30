@@ -43,6 +43,7 @@ class Momenten_Frontend {
 		$config = array(
 			'restUrl'  => esc_url_raw( rest_url( 'momenten/v1/submit' ) ),
 			'nonce'    => wp_create_nonce( 'wp_rest' ),
+			'logo'     => esc_url_raw( $settings['logo_url'] ),
 			'kleuren'  => array(
 				'accent'      => $this->veilige_kleur( $settings['accent_kleur'], '#6d84a8' ),
 				'tekst'       => $this->veilige_kleur( $settings['tekst_kleur'], '#3d3530' ),

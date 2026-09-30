@@ -24,6 +24,45 @@
 			});
 		}
 
+		// Logo kiezen via de mediabibliotheek.
+		var kiesLogo = document.getElementById('momenten-logo-kies');
+		var verwijderLogo = document.getElementById('momenten-logo-verwijder');
+		var logoVeld = document.getElementById('momenten_logo_url');
+		var logoPreview = document.querySelector('.momenten-logo-preview');
+		var mediaFrame = null;
+
+		if (kiesLogo && logoVeld && window.wp && window.wp.media) {
+			kiesLogo.addEventListener('click', function (e) {
+				e.preventDefault();
+				if (mediaFrame) { mediaFrame.open(); return; }
+				mediaFrame = window.wp.media({
+					title: 'Kies een logo',
+					library: { type: 'image' },
+					multiple: false,
+					button: { text: 'Gebruiken' }
+				});
+				mediaFrame.on('select', function () {
+					var att = mediaFrame.state().get('selection').first().toJSON();
+					logoVeld.value = att.url;
+					if (logoPreview) {
+						logoPreview.innerHTML = '';
+						var img = document.createElement('img');
+						img.src = att.url;
+						img.alt = '';
+						logoPreview.appendChild(img);
+					}
+				});
+				mediaFrame.open();
+			});
+		}
+		if (verwijderLogo && logoVeld) {
+			verwijderLogo.addEventListener('click', function (e) {
+				e.preventDefault();
+				logoVeld.value = '';
+				if (logoPreview) { logoPreview.innerHTML = ''; }
+			});
+		}
+
 		document.addEventListener('click', function (e) {
 			var t = e.target;
 			if (!t) { return; }

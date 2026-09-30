@@ -89,6 +89,12 @@
 			tekenMoment(kaart, momentById(sleutel));
 		}
 
+		if (cfg.logo) {
+			var logo = el('img', 'mmt-logo');
+			logo.src = cfg.logo;
+			logo.alt = '';
+			root.appendChild(logo);
+		}
 		root.appendChild(tekenStappenbalk());
 		root.appendChild(kaart);
 		if (sleutel !== 'afrond') {
