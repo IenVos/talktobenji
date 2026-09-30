@@ -75,6 +75,44 @@
 			});
 		}
 
+		// Herbruikbare mediakiezer (voor de pop-up-afbeelding).
+		function koppelMediaKiezer(kiesId, verwijderId, veldId, previewSel, titel) {
+			var kies = document.getElementById(kiesId);
+			var verwijder = document.getElementById(verwijderId);
+			var veld = document.getElementById(veldId);
+			var preview = document.querySelector(previewSel);
+			var frame = null;
+			if (kies && veld && window.wp && window.wp.media) {
+				kies.addEventListener('click', function (e) {
+					e.preventDefault();
+					if (frame) { frame.open(); return; }
+					frame = window.wp.media({ title: titel, library: { type: 'image' }, multiple: false, button: { text: 'Gebruiken' } });
+					frame.on('select', function () {
+						var att = frame.state().get('selection').first().toJSON();
+						veld.value = att.url;
+						if (preview) {
+							preview.innerHTML = '';
+							var img = document.createElement('img');
+							img.src = att.url;
+							img.alt = '';
+							preview.appendChild(img);
+						}
+					});
+					frame.open();
+				});
+			}
+			if (verwijder && veld) {
+				verwijder.addEventListener('click', function (e) {
+					e.preventDefault();
+					veld.value = '';
+					if (preview) { preview.innerHTML = ''; }
+				});
+			}
+		}
+
+		// Afbeelding kiezen voor de pop-up (tweede mediakiezer).
+		koppelMediaKiezer('momenten-popupimg-kies', 'momenten-popupimg-verwijder', 'momenten_popupimg_url', '.momenten-popupimg-preview', 'Kies een afbeelding');
+
 		document.addEventListener('click', function (e) {
 			var t = e.target;
 			if (!t) { return; }

@@ -439,6 +439,59 @@ class Momenten_Admin {
 					</tr>
 				</table>
 
+				<h2>Pop-up bij scrollen</h2>
+				<p class="description">Laat de gids als uitnodiging verschijnen zodra de bezoeker een stukje scrollt. Werkt op elke pagina, ook zonder de shortcode. Kleur en lettertype volgen je instellingen hierboven.</p>
+				<table class="form-table">
+					<tr>
+						<th><label>Pop-up tonen</label></th>
+						<td>
+							<label><input type="checkbox" name="settings[popup_aan]" value="1" <?php checked( $s['popup_aan'], 1 ); ?>> De gids als pop-up laten verschijnen bij scrollen</label>
+						</td>
+					</tr>
+					<tr>
+						<th><label>Verschijnen bij</label></th>
+						<td>
+							<input type="number" min="0" max="100" name="settings[popup_scroll]" class="small-text" value="<?php echo esc_attr( $s['popup_scroll'] ); ?>"> % van de pagina gescrold
+							<p class="description">0 = meteen, 40 = nadat ze bijna de helft naar beneden zijn.</p>
+						</td>
+					</tr>
+					<tr>
+						<th><label>Verschijnen met</label></th>
+						<td>
+							<select name="settings[popup_animatie]">
+								<option value="fade" <?php selected( $s['popup_animatie'], 'fade' ); ?>>Zacht infaden</option>
+								<option value="pop" <?php selected( $s['popup_animatie'], 'pop' ); ?>>In het midden opkomen</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th><label>Afbeelding</label></th>
+						<td>
+							<div class="momenten-popupimg-preview">
+								<?php if ( $s['popup_afbeelding'] ) : ?>
+									<img src="<?php echo esc_url( $s['popup_afbeelding'] ); ?>" alt="">
+								<?php endif; ?>
+							</div>
+							<input type="hidden" name="settings[popup_afbeelding]" id="momenten_popupimg_url" value="<?php echo esc_url( $s['popup_afbeelding'] ); ?>">
+							<button type="button" class="button" id="momenten-popupimg-kies">Afbeelding kiezen</button>
+							<button type="button" class="button" id="momenten-popupimg-verwijder">Verwijderen</button>
+							<p class="description">Optioneel, bovenaan de uitnodiging. Laat leeg voor een pop-up zonder afbeelding.</p>
+						</td>
+					</tr>
+					<tr>
+						<th><label>Titel</label></th>
+						<td><input type="text" name="settings[popup_titel]" class="regular-text" value="<?php echo esc_attr( $s['popup_titel'] ); ?>"></td>
+					</tr>
+					<tr>
+						<th><label>Tekst</label></th>
+						<td><textarea name="settings[popup_tekst]" rows="3" class="large-text"><?php echo esc_textarea( $s['popup_tekst'] ); ?></textarea></td>
+					</tr>
+					<tr>
+						<th><label>Knoptekst</label></th>
+						<td><input type="text" name="settings[popup_knop]" class="regular-text" value="<?php echo esc_attr( $s['popup_knop'] ); ?>"></td>
+					</tr>
+				</table>
+
 				<p><button type="submit" name="momenten_instellingen_opslaan" class="button button-primary">Instellingen opslaan</button></p>
 			</form>
 		</div>
@@ -470,6 +523,14 @@ class Momenten_Admin {
 		$out['logo_url']            = esc_url_raw( $in['logo_url'] ?? '' );
 		$out['logo_grootte']        = max( 24, min( 220, absint( $in['logo_grootte'] ?? 120 ) ) );
 		$out['logo_uitsteken']      = empty( $in['logo_uitsteken'] ) ? 0 : 1;
+
+		$out['popup_aan']           = empty( $in['popup_aan'] ) ? 0 : 1;
+		$out['popup_scroll']        = max( 0, min( 100, absint( $in['popup_scroll'] ?? 40 ) ) );
+		$out['popup_animatie']      = ( 'pop' === ( $in['popup_animatie'] ?? 'fade' ) ) ? 'pop' : 'fade';
+		$out['popup_afbeelding']    = esc_url_raw( $in['popup_afbeelding'] ?? '' );
+		$out['popup_titel']         = sanitize_text_field( $in['popup_titel'] ?? '' );
+		$out['popup_tekst']         = sanitize_textarea_field( $in['popup_tekst'] ?? '' );
+		$out['popup_knop']          = sanitize_text_field( $in['popup_knop'] ?? '' );
 
 		update_option( Momenten_Content::OPT_SETTINGS, $out );
 	}

@@ -109,6 +109,14 @@ class Momenten_Content {
 			'logo_url'            => '',
 			'logo_grootte'        => 120,      // hoogte van het logo in px.
 			'logo_uitsteken'      => 0,        // 1 = logo mag buiten de rand uitsteken.
+			// Pop-up bij scrollen.
+			'popup_aan'           => 0,
+			'popup_scroll'        => 40,       // bij welk scroll-percentage hij verschijnt.
+			'popup_afbeelding'    => '',
+			'popup_titel'         => 'Even stilstaan?',
+			'popup_tekst'         => 'Neem een paar minuten voor jezelf. We lopen samen langs een paar momenten, en je ontvangt een persoonlijke brief.',
+			'popup_knop'          => 'Ja, ik neem even de tijd',
+			'popup_animatie'      => 'fade',  // fade = infaden, pop = in het midden opkomen.
 		);
 	}
 

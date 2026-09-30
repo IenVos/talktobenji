@@ -53,6 +53,15 @@
 	border: 1px solid #dcdcde;
 	border-radius: 0.4rem;
 }
+.momenten-popupimg-preview {
+	margin-bottom: 0.5rem;
+}
+.momenten-popupimg-preview img {
+	max-height: 120px;
+	width: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 0.4rem;
+}
 
 /* Inzendingen */
 .momenten-badge {

@@ -21,6 +21,18 @@ class Momenten_Frontend {
 	public function registreer_assets() {
 		wp_register_style( 'momenten', MOMENTEN_URL . 'assets/css/momenten.css', array(), MOMENTEN_VERSION );
 		wp_register_script( 'momenten', MOMENTEN_URL . 'assets/js/momenten.js', array(), MOMENTEN_VERSION, true );
+
+		// Staat de pop-up aan, dan laadt de gids op elke pagina (ook zonder shortcode).
+		$settings = Momenten_Content::get_settings();
+		if ( ! empty( $settings['popup_aan'] ) ) {
+			$this->moet_laden = true;
+			wp_enqueue_style( 'momenten' );
+			wp_enqueue_script( 'momenten' );
+			$font = $this->font_info( $settings['lettertype'] );
+			if ( $font['google'] ) {
+				wp_enqueue_style( 'momenten-font', 'https://fonts.googleapis.com/css2?family=' . $font['google'] . '&display=swap', array(), null );
+			}
+		}
 	}
 
 	/** Lettertype-opties: stack voor de css + eventueel een Google-font om te laden. */
@@ -80,6 +92,15 @@ class Momenten_Frontend {
 				'tekst'       => $this->veilige_kleur( $settings['tekst_kleur'], '#3d3530' ),
 				'achtergrond' => $this->veilige_kleur( $settings['achtergrond_kleur'], '#fdf9f4' ),
 				'kaart'       => $this->veilige_kleur( $settings['kaart_kleur'], '#ffffff' ),
+			),
+			'popup'       => array(
+				'aan'        => ! empty( $settings['popup_aan'] ),
+				'scroll'     => (int) $settings['popup_scroll'],
+				'animatie'   => ( 'pop' === $settings['popup_animatie'] ) ? 'pop' : 'fade',
+				'afbeelding' => esc_url_raw( $settings['popup_afbeelding'] ),
+				'titel'      => $settings['popup_titel'],
+				'tekst'      => $settings['popup_tekst'],
+				'knop'       => $settings['popup_knop'],
 			),
 			'content'     => $content,
 		);

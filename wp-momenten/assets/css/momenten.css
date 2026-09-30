@@ -285,3 +285,115 @@ textarea.mmt-invoer {
 	.mmt-kaart { padding: 1.25rem; }
 	.mmt-titel { font-size: 1.3rem; }
 }
+
+/* ---------- Pop-up ---------- */
+.mmt-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 99999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+	background: rgba(0, 0, 0, 0.5);
+	opacity: 0;
+	transition: opacity 0.28s ease;
+	-webkit-overflow-scrolling: touch;
+}
+.mmt-overlay.open {
+	opacity: 1;
+}
+
+/* Modal: erft het thema van .mmt-root, maar met eigen afmetingen. */
+.mmt-modal {
+	position: relative;
+	max-width: 460px;
+	width: 100%;
+	max-height: 90vh;
+	overflow-y: auto;
+	margin: 0;
+	box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+	transition: transform 0.3s ease, opacity 0.3s ease;
+	opacity: 0;
+}
+/* Infaden: zacht omhoog. */
+.mmt-overlay.animatie-fade .mmt-modal {
+	transform: translateY(14px);
+}
+/* In het midden opkomen: opschalen met een klein veertje. */
+.mmt-overlay.animatie-pop .mmt-modal {
+	transform: scale(0.88);
+	transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.25), opacity 0.28s ease;
+}
+.mmt-overlay.open .mmt-modal {
+	opacity: 1;
+	transform: none;
+}
+
+.mmt-sluit {
+	position: absolute;
+	top: 0.6rem;
+	right: 0.6rem;
+	width: 30px;
+	height: 30px;
+	border: none;
+	border-radius: 999px;
+	background: rgba(0, 0, 0, 0.06);
+	color: var(--mmt-zacht);
+	font-size: 1.2rem;
+	line-height: 1;
+	cursor: pointer;
+	z-index: 2;
+}
+.mmt-sluit:hover {
+	background: rgba(0, 0, 0, 0.12);
+}
+
+/* Uitnodiging in de pop-up */
+.mmt-uitnodiging {
+	text-align: center;
+	padding: 0.5rem 0.5rem 0.25rem;
+}
+.mmt-popup-img {
+	display: block;
+	width: 100%;
+	max-height: 200px;
+	object-fit: cover;
+	border-radius: calc(var(--mmt-radius) - 4px);
+	margin: 0 0 1.1rem;
+}
+.mmt-popup-titel {
+	font-size: 1.5rem;
+	font-weight: 600;
+	color: var(--mmt-tekst);
+	margin: 0 0 0.6rem;
+}
+.mmt-popup-tekst {
+	font-size: 0.97rem;
+	line-height: 1.6;
+	color: var(--mmt-zacht);
+	margin: 0 0 0.8rem;
+}
+.mmt-uitnodiging .mmt-knop {
+	margin-top: 0.5rem;
+}
+.mmt-later {
+	display: block;
+	margin: 0.75rem auto 0.25rem;
+	border: none;
+	background: none;
+	color: var(--mmt-flauw);
+	font-size: 0.8rem;
+	cursor: pointer;
+}
+.mmt-later:hover {
+	color: var(--mmt-zacht);
+}
+
+/* De gids binnen de pop-up: vlak, want de modal is al het kader. */
+.mmt-plat .mmt-kaart {
+	background: transparent;
+	box-shadow: none;
+	padding: 0.25rem 0 0;
+	border-radius: 0;
+}
