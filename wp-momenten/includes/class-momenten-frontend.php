@@ -67,6 +67,7 @@ class Momenten_Frontend {
 			'restUrl'     => esc_url_raw( rest_url( 'momenten/v1/submit' ) ),
 			'nonce'       => wp_create_nonce( 'wp_rest' ),
 			'logo'        => esc_url_raw( $settings['logo_url'] ),
+			'logoGrootte' => (int) $settings['logo_grootte'],
 			'logoUitsteken' => ! empty( $settings['logo_uitsteken'] ),
 			'transparant' => ! empty( $settings['achtergrond_transparant'] ),
 			'rand'        => ! empty( $settings['rand_aan'] ),

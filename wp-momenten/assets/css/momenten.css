@@ -33,7 +33,7 @@
 	flex-wrap: wrap;
 }
 .mmt-logo {
-	max-height: 56px;
+	max-height: var(--mmt-logo-h, 120px);
 	width: auto;
 	flex-shrink: 0;
 }
@@ -42,7 +42,6 @@
 	overflow: visible;
 }
 .mmt-kop.uitsteken .mmt-logo {
-	max-height: 80px;
 	margin-left: -1.75rem;
 	margin-top: -1.25rem;
 }

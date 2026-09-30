@@ -294,6 +294,13 @@ class Momenten_Admin {
 						</td>
 					</tr>
 					<tr>
+						<th><label>Logo-grootte</label></th>
+						<td>
+							<input type="number" min="24" max="220" name="settings[logo_grootte]" class="small-text" value="<?php echo esc_attr( $s['logo_grootte'] ); ?>"> px hoog
+							<p class="description">Hoe groot het logo bovenaan de gids staat. Standaard 120.</p>
+						</td>
+					</tr>
+					<tr>
 						<th><label>Logo laten uitsteken</label></th>
 						<td>
 							<label><input type="checkbox" name="settings[logo_uitsteken]" value="1" <?php checked( $s['logo_uitsteken'], 1 ); ?>> Het logo iets buiten de rand laten uitsteken</label>
@@ -461,6 +468,7 @@ class Momenten_Admin {
 		$gekozen_font              = sanitize_key( $in['lettertype'] ?? 'default' );
 		$out['lettertype']          = in_array( $gekozen_font, $toegestane_fonts, true ) ? $gekozen_font : 'default';
 		$out['logo_url']            = esc_url_raw( $in['logo_url'] ?? '' );
+		$out['logo_grootte']        = max( 24, min( 220, absint( $in['logo_grootte'] ?? 120 ) ) );
 		$out['logo_uitsteken']      = empty( $in['logo_uitsteken'] ) ? 0 : 1;
 
 		update_option( Momenten_Content::OPT_SETTINGS, $out );

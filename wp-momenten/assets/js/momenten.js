@@ -39,6 +39,10 @@
 	if (cfg.fontStack) {
 		root.style.fontFamily = cfg.fontStack;
 	}
+	// Logo-grootte.
+	if (cfg.logoGrootte) {
+		root.style.setProperty('--mmt-logo-h', parseInt(cfg.logoGrootte, 10) + 'px');
+	}
 
 	// Antwoorden (met autosave in localStorage).
 	var antwoorden = laadOpgeslagen();

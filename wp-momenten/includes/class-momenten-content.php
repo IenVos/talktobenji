@@ -107,6 +107,7 @@ class Momenten_Content {
 			'hoek_afronding'      => 20,       // px, afronding van de hoeken.
 			'lettertype'          => 'default', // default = lettertype van de website.
 			'logo_url'            => '',
+			'logo_grootte'        => 120,      // hoogte van het logo in px.
 			'logo_uitsteken'      => 0,        // 1 = logo mag buiten de rand uitsteken.
 		);
 	}
