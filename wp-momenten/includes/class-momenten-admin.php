@@ -16,6 +16,48 @@ class Momenten_Admin {
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
+		add_action( 'add_meta_boxes', array( $this, 'metabox_toevoegen' ) );
+		add_action( 'save_post', array( $this, 'metabox_opslaan' ) );
+	}
+
+	/* ─── Pop-up per pagina aan/uit ─── */
+
+	public function metabox_toevoegen() {
+		foreach ( array( 'page', 'post' ) as $type ) {
+			add_meta_box( 'momenten-popup', 'Momenten pop-up', array( $this, 'metabox_render' ), $type, 'side' );
+		}
+	}
+
+	public function metabox_render( $post ) {
+		wp_nonce_field( 'momenten_popup_meta', 'momenten_popup_nonce' );
+		$waarde = get_post_meta( $post->ID, '_momenten_popup', true );
+		$opties = array(
+			''    => 'Standaard (volg de instelling)',
+			'aan' => 'Altijd tonen op deze pagina',
+			'uit' => 'Nooit tonen op deze pagina',
+		);
+		echo '<p style="margin-top:0">Toon de scroll-pop-up hier:</p>';
+		foreach ( $opties as $key => $label ) {
+			echo '<label style="display:block;margin:.35em 0"><input type="radio" name="momenten_popup" value="' . esc_attr( $key ) . '" ' . checked( $waarde, $key, false ) . '> ' . esc_html( $label ) . '</label>';
+		}
+	}
+
+	public function metabox_opslaan( $post_id ) {
+		if ( ! isset( $_POST['momenten_popup_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['momenten_popup_nonce'] ) ), 'momenten_popup_meta' ) ) {
+			return;
+		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+		$waarde = isset( $_POST['momenten_popup'] ) ? sanitize_key( wp_unslash( $_POST['momenten_popup'] ) ) : '';
+		if ( ! in_array( $waarde, array( 'aan', 'uit' ), true ) ) {
+			delete_post_meta( $post_id, '_momenten_popup' );
+		} else {
+			update_post_meta( $post_id, '_momenten_popup', $waarde );
+		}
 	}
 
 	public function menu() {
@@ -475,7 +517,23 @@ class Momenten_Admin {
 							<input type="hidden" name="settings[popup_afbeelding]" id="momenten_popupimg_url" value="<?php echo esc_url( $s['popup_afbeelding'] ); ?>">
 							<button type="button" class="button" id="momenten-popupimg-kies">Afbeelding kiezen</button>
 							<button type="button" class="button" id="momenten-popupimg-verwijder">Verwijderen</button>
-							<p class="description">Optioneel, bovenaan de uitnodiging. Laat leeg voor een pop-up zonder afbeelding.</p>
+							<p class="description">Optioneel, bovenaan de uitnodiging. Laat leeg voor een pop-up zonder afbeelding. Een brede foto van ongeveer 800 bij 400 px staat het mooist.</p>
+						</td>
+					</tr>
+					<tr>
+						<th><label>Afbeelding tonen als</label></th>
+						<td>
+							<select name="settings[popup_fit]">
+								<option value="cover" <?php selected( $s['popup_fit'], 'cover' ); ?>>Vullend (netjes bijgesneden, mooi voor een foto)</option>
+								<option value="contain" <?php selected( $s['popup_fit'], 'contain' ); ?>>Passend (helemaal zichtbaar, mooi voor een logo)</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th><label>Opnieuw tonen na</label></th>
+						<td>
+							<input type="number" min="0" max="365" name="settings[popup_herhaal_dagen]" class="small-text" value="<?php echo esc_attr( $s['popup_herhaal_dagen'] ); ?>"> dagen
+							<p class="description">Nadat iemand de pop-up wegklikt, komt hij zoveel dagen niet terug. Zet op 0 om hem elke keer te tonen (handig om te testen).</p>
 						</td>
 					</tr>
 					<tr>
@@ -527,6 +585,8 @@ class Momenten_Admin {
 		$out['popup_aan']           = empty( $in['popup_aan'] ) ? 0 : 1;
 		$out['popup_scroll']        = max( 0, min( 100, absint( $in['popup_scroll'] ?? 40 ) ) );
 		$out['popup_animatie']      = ( 'pop' === ( $in['popup_animatie'] ?? 'fade' ) ) ? 'pop' : 'fade';
+		$out['popup_fit']           = ( 'contain' === ( $in['popup_fit'] ?? 'cover' ) ) ? 'contain' : 'cover';
+		$out['popup_herhaal_dagen'] = max( 0, min( 365, absint( $in['popup_herhaal_dagen'] ?? 7 ) ) );
 		$out['popup_afbeelding']    = esc_url_raw( $in['popup_afbeelding'] ?? '' );
 		$out['popup_titel']         = sanitize_text_field( $in['popup_titel'] ?? '' );
 		$out['popup_tekst']         = sanitize_textarea_field( $in['popup_tekst'] ?? '' );

@@ -90,7 +90,6 @@
 				tekenMoment(kaart, momentById(sleutel));
 			}
 
-			// Kop: logo aan de zijkant naast de stappenbalk.
 			var kop = el('div', 'mmt-kop' + (cfg.logo ? ' met-logo' : '') + (cfg.logo && cfg.logoUitsteken ? ' uitsteken' : ''));
 			if (cfg.logo) {
 				var logo = el('img', 'mmt-logo');
@@ -379,7 +378,7 @@
 		maakGids(inlineRoot);
 	}
 
-	/* ---------- pop-up bij scrollen ---------- */
+	/* ---------- pop-up ---------- */
 
 	if (cfg.popup && cfg.popup.aan) {
 		zetPopupKlaar();
@@ -395,89 +394,132 @@
 		try { window.localStorage.setItem(POPUP_DISMISS, String(Date.now())); } catch (e) {}
 	}
 
-	function zetPopupKlaar() {
-		// Zeven dagen niet opnieuw tonen nadat de bezoeker hem heeft weggeklikt.
-		if (Date.now() - popupLaatstWeg() < 7 * 24 * 60 * 60 * 1000) { return; }
+	// Zorgt dat de pop-up er hetzelfde uitziet als de gids op de pagina.
+	function stelAchtergrondIn(elm) {
+		if (cfg.transparant) { elm.style.background = '#ffffff'; }
+		if (cfg.rand) { elm.style.border = '2px solid ' + cfg.randKleur; }
+	}
 
+	function zetPopupKlaar() {
 		var p = cfg.popup;
+		var herhaalMs = Math.max(0, parseInt(p.herhaalDagen, 10) || 0) * 24 * 60 * 60 * 1000;
+		if (herhaalMs > 0 && (Date.now() - popupLaatstWeg() < herhaalMs)) { return; }
+
+		var isFade = (p.animatie !== 'pop'); // fade = kaartje rechtsonder, pop = midden.
 		var getoond = false;
 		var gidsGemaakt = false;
 
-		var overlay = el('div', 'mmt-overlay animatie-' + (p.animatie === 'pop' ? 'pop' : 'fade'));
+		function raf2(fn) { window.requestAnimationFrame(function () { window.requestAnimationFrame(fn); }); }
+		function lockScroll(aan) { try { document.body.style.overflow = aan ? 'hidden' : ''; } catch (e) {} }
+		function onthoud() { popupOnthoudWeg(); }
+
+		function maakUitnodiging(compact) {
+			var wrap = el('div', 'mmt-uitnodiging' + (compact ? ' compact' : ''));
+			if (p.afbeelding) {
+				var img = el('img', 'mmt-popup-img' + (p.fit === 'contain' ? ' passend' : ''));
+				img.src = p.afbeelding;
+				img.alt = '';
+				img.style.objectFit = (p.fit === 'contain') ? 'contain' : 'cover';
+				wrap.appendChild(img);
+			}
+			if (p.titel) { wrap.appendChild(el('h2', 'mmt-popup-titel', p.titel)); }
+			alineas(p.tekst).forEach(function (a) { wrap.appendChild(el('p', 'mmt-popup-tekst', a)); });
+			var start = el('button', 'mmt-knop', p.knop || 'Start');
+			start.type = 'button';
+			wrap.appendChild(start);
+			var later = el('button', 'mmt-later', 'Nu even niet');
+			later.type = 'button';
+			wrap.appendChild(later);
+			return { wrap: wrap, start: start, later: later };
+		}
+
+		// Modal in het midden (met daarin later de gids).
+		var overlay = el('div', 'mmt-overlay animatie-' + (isFade ? 'fade' : 'pop'));
 		overlay.setAttribute('role', 'dialog');
 		overlay.setAttribute('aria-modal', 'true');
 		overlay.hidden = true;
-
 		var modal = el('div', 'mmt-root mmt-modal');
 		pasThemaToe(modal);
-
-		var sluit = el('button', 'mmt-sluit', '×');
-		sluit.type = 'button';
-		sluit.setAttribute('aria-label', 'Sluiten');
-		modal.appendChild(sluit);
-
-		// Uitnodiging.
-		var uitnodiging = el('div', 'mmt-uitnodiging');
-		if (p.afbeelding) {
-			var img = el('img', 'mmt-popup-img');
-			img.src = p.afbeelding;
-			img.alt = '';
-			uitnodiging.appendChild(img);
-		}
-		if (p.titel) { uitnodiging.appendChild(el('h2', 'mmt-popup-titel', p.titel)); }
-		alineas(p.tekst).forEach(function (a) {
-			uitnodiging.appendChild(el('p', 'mmt-popup-tekst', a));
-		});
-		var start = el('button', 'mmt-knop', p.knop || 'Start');
-		start.type = 'button';
-		uitnodiging.appendChild(start);
-		var later = el('button', 'mmt-later', 'Nu even niet');
-		later.type = 'button';
-		uitnodiging.appendChild(later);
-		modal.appendChild(uitnodiging);
-
-		// Houder voor de gids (verschijnt na "start").
-		var gidsHouder = el('div', 'mmt-gids-houder mmt-plat');
+		stelAchtergrondIn(modal);
+		var sluitM = el('button', 'mmt-sluit', '×');
+		sluitM.type = 'button';
+		sluitM.setAttribute('aria-label', 'Sluiten');
+		modal.appendChild(sluitM);
+		var modalInvite = maakUitnodiging(false);
+		modal.appendChild(modalInvite.wrap);
+		var gidsHouder = el('div', 'mmt-gids-houder');
 		gidsHouder.hidden = true;
 		modal.appendChild(gidsHouder);
-
 		overlay.appendChild(modal);
 
-		function toon() {
+		// Kaartje rechtsonder (alleen bij infaden).
+		var toast = null;
+		if (isFade) {
+			toast = el('div', 'mmt-root mmt-toast');
+			pasThemaToe(toast);
+			stelAchtergrondIn(toast);
+			var sluitT = el('button', 'mmt-sluit', '×');
+			sluitT.type = 'button';
+			sluitT.setAttribute('aria-label', 'Sluiten');
+			toast.appendChild(sluitT);
+			var toastInvite = maakUitnodiging(true);
+			toast.appendChild(toastInvite.wrap);
+			sluitT.addEventListener('click', function () { verbergToast(); onthoud(); });
+			toastInvite.start.addEventListener('click', openGids);
+			toastInvite.later.addEventListener('click', function () { verbergToast(); onthoud(); });
+		}
+
+		sluitM.addEventListener('click', function () { verbergModal(); onthoud(); });
+		modalInvite.start.addEventListener('click', openGids);
+		modalInvite.later.addEventListener('click', function () { verbergModal(); onthoud(); });
+		overlay.addEventListener('click', function (e) { if (e.target === overlay) { verbergModal(); onthoud(); } });
+		document.addEventListener('keydown', function (e) {
+			if (e.key !== 'Escape') { return; }
+			if (overlay.parentNode) { verbergModal(); onthoud(); }
+			else if (toast && toast.parentNode) { verbergToast(); onthoud(); }
+		});
+
+		function toonToast() {
+			if (getoond) { return; }
+			getoond = true;
+			document.body.appendChild(toast);
+			toast.hidden = false;
+			raf2(function () { toast.classList.add('open'); });
+		}
+		function verbergToast() {
+			if (!toast) { return; }
+			toast.classList.remove('open');
+			window.setTimeout(function () { if (toast.parentNode) { toast.parentNode.removeChild(toast); } }, 340);
+		}
+		function toonModalInvite() {
 			if (getoond) { return; }
 			getoond = true;
 			document.body.appendChild(overlay);
 			overlay.hidden = false;
-			try { document.body.style.overflow = 'hidden'; } catch (e) {}
-			// Laat de browser eerst tekenen, dan de open-klasse voor de animatie.
-			window.requestAnimationFrame(function () {
-				window.requestAnimationFrame(function () { overlay.classList.add('open'); });
-			});
+			lockScroll(true);
+			raf2(function () { overlay.classList.add('open'); });
 		}
-		function verberg() {
+		function verbergModal() {
 			overlay.classList.remove('open');
-			try { document.body.style.overflow = ''; } catch (e) {}
-			popupOnthoudWeg();
-			window.setTimeout(function () {
-				if (overlay.parentNode) { overlay.parentNode.removeChild(overlay); }
-			}, 300);
+			lockScroll(false);
+			window.setTimeout(function () { if (overlay.parentNode) { overlay.parentNode.removeChild(overlay); } }, 340);
 		}
-
-		start.addEventListener('click', function () {
-			uitnodiging.hidden = true;
+		function openGids() {
+			if (isFade) { verbergToast(); }
+			modalInvite.wrap.hidden = true;
+			if (!overlay.parentNode) { document.body.appendChild(overlay); }
+			overlay.hidden = false;
+			lockScroll(true);
+			raf2(function () { overlay.classList.add('open'); });
 			gidsHouder.hidden = false;
 			if (!gidsGemaakt) { maakGids(gidsHouder); gidsGemaakt = true; }
-		});
-		sluit.addEventListener('click', verberg);
-		later.addEventListener('click', verberg);
-		overlay.addEventListener('click', function (e) {
-			if (e.target === overlay) { verberg(); }
-		});
-		document.addEventListener('keydown', function (e) {
-			if (e.key === 'Escape' && getoond && overlay.parentNode) { verberg(); }
-		});
+		}
 
-		// Trigger op scroll-percentage.
+		function toonUitnodiging() {
+			if (isFade) { toonToast(); } else { toonModalInvite(); }
+		}
+
+		// Verschijnen op scroll-percentage.
 		var drempel = Math.max(0, Math.min(100, parseInt(p.scroll, 10) || 0));
 		function gescroldGenoeg() {
 			var h = document.documentElement.scrollHeight - window.innerHeight;
@@ -486,17 +528,13 @@
 		}
 		function check() {
 			if (getoond) { return; }
-			if (gescroldGenoeg()) {
-				toon();
-				window.removeEventListener('scroll', check);
-			}
+			if (gescroldGenoeg()) { toonUitnodiging(); window.removeEventListener('scroll', check); }
 		}
-
 		if (drempel <= 0) {
-			window.setTimeout(toon, 700);
+			window.setTimeout(toonUitnodiging, 700);
 		} else {
 			window.addEventListener('scroll', check, { passive: true });
-			check(); // voor korte pagina's die al voorbij de drempel staan.
+			check();
 		}
 	}
 })();

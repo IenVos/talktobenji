@@ -24,7 +24,7 @@ class Momenten_Frontend {
 
 		// Staat de pop-up aan, dan laadt de gids op elke pagina (ook zonder shortcode).
 		$settings = Momenten_Content::get_settings();
-		if ( ! empty( $settings['popup_aan'] ) ) {
+		if ( $this->popup_actief_hier( $settings ) ) {
 			$this->moet_laden = true;
 			wp_enqueue_style( 'momenten' );
 			wp_enqueue_script( 'momenten' );
@@ -94,9 +94,11 @@ class Momenten_Frontend {
 				'kaart'       => $this->veilige_kleur( $settings['kaart_kleur'], '#ffffff' ),
 			),
 			'popup'       => array(
-				'aan'        => ! empty( $settings['popup_aan'] ),
+				'aan'        => $this->popup_actief_hier( $settings ),
 				'scroll'     => (int) $settings['popup_scroll'],
 				'animatie'   => ( 'pop' === $settings['popup_animatie'] ) ? 'pop' : 'fade',
+				'fit'        => ( 'contain' === $settings['popup_fit'] ) ? 'contain' : 'cover',
+				'herhaalDagen' => (int) $settings['popup_herhaal_dagen'],
 				'afbeelding' => esc_url_raw( $settings['popup_afbeelding'] ),
 				'titel'      => $settings['popup_titel'],
 				'tekst'      => $settings['popup_tekst'],
@@ -106,6 +108,24 @@ class Momenten_Frontend {
 		);
 
 		wp_localize_script( 'momenten', 'MOMENTEN_CONFIG', $config );
+	}
+
+	/** Moet de pop-up op de huidige pagina verschijnen? (globale instelling + per-pagina keuze). */
+	private function popup_actief_hier( $settings ) {
+		$per_pagina = '';
+		if ( is_singular() ) {
+			$id = get_queried_object_id();
+			if ( $id ) {
+				$per_pagina = get_post_meta( $id, '_momenten_popup', true );
+			}
+		}
+		if ( 'uit' === $per_pagina ) {
+			return false;
+		}
+		if ( 'aan' === $per_pagina ) {
+			return true;
+		}
+		return ! empty( $settings['popup_aan'] );
 	}
 
 	/** Alleen een geldige hexkleur doorlaten. */
