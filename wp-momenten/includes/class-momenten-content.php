@@ -98,6 +98,8 @@ class Momenten_Content {
 			'accent_kleur'        => '#6d84a8',
 			'tekst_kleur'         => '#3d3530',
 			'achtergrond_kleur'   => '#fdf9f4',
+			'kaart_kleur'         => '#ffffff',   // achtergrond van het tekstkader.
+			'inspreken_aan'       => 1,           // 1 = inspreekknop tonen.
 			'achtergrond_transparant' => 0,   // 1 = achtergrond van de website gebruiken.
 			'rand_aan'            => 0,        // 1 = omkadering tonen.
 			'rand_kleur'          => '#6d84a8',

@@ -20,6 +20,9 @@
 	root.style.setProperty('--mmt-accent', cfg.kleuren.accent);
 	root.style.setProperty('--mmt-tekst', cfg.kleuren.tekst);
 	root.style.setProperty('--mmt-bg', cfg.kleuren.achtergrond);
+	if (cfg.kleuren.kaart) {
+		root.style.setProperty('--mmt-kaart-bg', cfg.kleuren.kaart);
+	}
 
 	// Achtergrond doorzichtig (achtergrond van de website) en/of een rand.
 	if (cfg.transparant) {
@@ -143,7 +146,9 @@
 
 		var max = 0;
 		stappen.forEach(function (id) {
-			if (id === 'afrond') { return; }
+			// Welkom en de momenten bepalen de hoogte. Het bewaarscherm (met het
+			// overzicht) laten we de hoogte niet opblazen; dat mag zelf hoger zijn.
+			if (id === 'afrond' || id === 'bewaar') { return; }
 			var k = el('div', 'mmt-kaart');
 			k.style.minHeight = '0';
 			if (id === 'welkom') {
@@ -222,9 +227,9 @@
 		});
 		kaart.appendChild(ta);
 
-		// Inspreken (spraak-naar-tekst) als de browser dit ondersteunt.
+		// Inspreken (spraak-naar-tekst): alleen als het aanstaat en de browser het kan.
 		var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-		if (SR) {
+		if (cfg.inspreken && SR) {
 			kaart.appendChild(tekenInspreken(SR, ta, m.id));
 		}
 	}

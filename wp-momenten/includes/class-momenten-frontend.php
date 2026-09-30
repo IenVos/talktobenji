@@ -73,10 +73,12 @@ class Momenten_Frontend {
 			'randKleur'   => $this->veilige_kleur( $settings['rand_kleur'], '#6d84a8' ),
 			'radius'      => (int) $settings['hoek_afronding'],
 			'fontStack'   => $font['stack'],
+			'inspreken'   => ! empty( $settings['inspreken_aan'] ),
 			'kleuren'     => array(
 				'accent'      => $this->veilige_kleur( $settings['accent_kleur'], '#6d84a8' ),
 				'tekst'       => $this->veilige_kleur( $settings['tekst_kleur'], '#3d3530' ),
 				'achtergrond' => $this->veilige_kleur( $settings['achtergrond_kleur'], '#fdf9f4' ),
+				'kaart'       => $this->veilige_kleur( $settings['kaart_kleur'], '#ffffff' ),
 			),
 			'content'     => $content,
 		);

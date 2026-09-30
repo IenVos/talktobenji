@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Momenten
  * Description:        Een warme, begeleide mini-gids: de bezoeker staat stil bij een paar momenten, laat een e-mailadres achter en jij stuurt een persoonlijke brief terug. Zelf te beheren, MailerLite-koppeling, alles op je eigen site.
- * Version:           1.1.0
+ * Version:           1.2.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Momenten
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Directe toegang blokkeren.
 }
 
-define( 'MOMENTEN_VERSION', '1.1.0' );
+define( 'MOMENTEN_VERSION', '1.2.0' );
 define( 'MOMENTEN_FILE', __FILE__ );
 define( 'MOMENTEN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MOMENTEN_URL', plugin_dir_url( __FILE__ ) );

@@ -7,6 +7,7 @@
 	--mmt-zacht: #6b6460;
 	--mmt-flauw: #a09890;
 	--mmt-radius: 20px;
+	--mmt-kaart-bg: #ffffff;
 	max-width: 40rem;
 	margin: 0 auto;
 	padding: 1rem;
@@ -54,10 +55,10 @@
 	justify-content: center;
 	margin: 0;
 }
-/* Met een logo ernaast staan de tabs links, naast het logo. */
+/* Met een logo ernaast vullen de tabs de rest, met gelijke tussenruimte. */
 .mmt-kop.met-logo .mmt-tabs {
 	flex: 1;
-	justify-content: flex-start;
+	justify-content: space-between;
 }
 .mmt-tab {
 	border: none;
@@ -78,9 +79,9 @@
 
 /* Kaart */
 .mmt-kaart {
-	background: rgba(255, 255, 255, 0.9);
+	background: var(--mmt-kaart-bg);
 	border-radius: var(--mmt-radius);
-	padding: 1.75rem;
+	padding: 1.4rem 1.5rem;
 	box-shadow: 0 2px 24px rgba(0, 0, 0, 0.08);
 	/* Vaste hoogte zodat elke stap even groot is en het blok niet krimpt/groeit.
 	   De waarde wordt door het script gezet (hoogte van de hoogste stap). */
@@ -160,6 +161,7 @@
 }
 textarea.mmt-invoer {
 	line-height: 1.5;
+	min-height: 150px;
 }
 
 /* Inspreken */

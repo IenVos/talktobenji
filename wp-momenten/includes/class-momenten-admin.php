@@ -135,7 +135,7 @@ class Momenten_Admin {
 		?>
 		<div class="momenten-kaart">
 			<div class="momenten-kaart-kop">
-				<strong class="momenten-kaart-titel">Moment</strong>
+				<strong class="momenten-kaart-titel">Moment <span class="momenten-nr"></span></strong>
 				<span class="momenten-kaart-knoppen">
 					<button type="button" class="button-link moment-omhoog" title="Omhoog">&uarr;</button>
 					<button type="button" class="button-link moment-omlaag" title="Omlaag">&darr;</button>
@@ -144,10 +144,6 @@ class Momenten_Admin {
 			</div>
 			<input type="hidden" name="momenten[<?php echo esc_attr( $i ); ?>][id]" value="<?php echo esc_attr( $m['id'] ); ?>">
 			<table class="form-table">
-				<tr>
-					<th>Label (kort, bv. 1)</th>
-					<td><input type="text" name="momenten[<?php echo esc_attr( $i ); ?>][nav]" class="small-text" value="<?php echo esc_attr( $m['nav'] ); ?>"></td>
-				</tr>
 				<tr>
 					<th>Titel</th>
 					<td><input type="text" name="momenten[<?php echo esc_attr( $i ); ?>][titel]" class="regular-text" value="<?php echo esc_attr( $m['titel'] ); ?>"></td>
@@ -206,9 +202,10 @@ class Momenten_Admin {
 				if ( '' === $id ) {
 					$id = 'm' . wp_generate_password( 6, false, false );
 				}
+				// Nummering volgt automatisch de volgorde (1, 2, 3, ...).
 				$momenten[] = array(
 					'id'            => $id,
-					'nav'           => sanitize_text_field( $m['nav'] ?? '' ),
+					'nav'           => (string) ( count( $momenten ) + 1 ),
 					'titel'         => $titel,
 					'intro'         => sanitize_textarea_field( $m['intro'] ?? '' ),
 					'oefeningTitel' => sanitize_text_field( $m['oefeningTitel'] ?? '' ),
@@ -345,6 +342,13 @@ class Momenten_Admin {
 						<td><input type="text" name="settings[tekst_kleur]" class="regular-text momenten-kleur" value="<?php echo esc_attr( $s['tekst_kleur'] ); ?>" placeholder="#3d3530"></td>
 					</tr>
 					<tr>
+						<th><label>Kleur tekstkader</label></th>
+						<td>
+							<input type="text" name="settings[kaart_kleur]" class="regular-text momenten-kleur" value="<?php echo esc_attr( $s['kaart_kleur'] ); ?>" placeholder="#ffffff">
+							<p class="description">De achtergrond van het vak waar de tekst in staat.</p>
+						</td>
+					</tr>
+					<tr>
 						<th><label>Achtergrondkleur</label></th>
 						<td>
 							<input type="text" name="settings[achtergrond_kleur]" class="regular-text momenten-kleur" value="<?php echo esc_attr( $s['achtergrond_kleur'] ); ?>" placeholder="#fdf9f4">
@@ -407,6 +411,16 @@ class Momenten_Admin {
 					</tr>
 				</table>
 
+				<h2>Functies</h2>
+				<table class="form-table">
+					<tr>
+						<th><label>Inspreken</label></th>
+						<td>
+							<label><input type="checkbox" name="settings[inspreken_aan]" value="1" <?php checked( $s['inspreken_aan'], 1 ); ?>> Bezoekers kunnen hun antwoord ook inspreken (spraak naar tekst)</label>
+						</td>
+					</tr>
+				</table>
+
 				<p><button type="submit" name="momenten_instellingen_opslaan" class="button button-primary">Instellingen opslaan</button></p>
 			</form>
 		</div>
@@ -426,6 +440,8 @@ class Momenten_Admin {
 		$out['accent_kleur']        = sanitize_hex_color( $in['accent_kleur'] ?? '' ) ?: '#6d84a8';
 		$out['tekst_kleur']         = sanitize_hex_color( $in['tekst_kleur'] ?? '' ) ?: '#3d3530';
 		$out['achtergrond_kleur']   = sanitize_hex_color( $in['achtergrond_kleur'] ?? '' ) ?: '#fdf9f4';
+		$out['kaart_kleur']         = sanitize_hex_color( $in['kaart_kleur'] ?? '' ) ?: '#ffffff';
+		$out['inspreken_aan']       = empty( $in['inspreken_aan'] ) ? 0 : 1;
 		$out['achtergrond_transparant'] = empty( $in['achtergrond_transparant'] ) ? 0 : 1;
 		$out['rand_aan']            = empty( $in['rand_aan'] ) ? 0 : 1;
 		$out['rand_kleur']          = sanitize_hex_color( $in['rand_kleur'] ?? '' ) ?: '#6d84a8';

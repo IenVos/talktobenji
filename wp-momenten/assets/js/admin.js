@@ -10,6 +10,17 @@
 		var tmpl = document.getElementById('moment-template');
 		var toevoegen = document.getElementById('moment-toevoegen');
 
+		// Nummer de momenten opnieuw (1, 2, 3, ...) op basis van de volgorde.
+		function hernummer() {
+			if (!lijst) { return; }
+			var kaarten = lijst.querySelectorAll('.momenten-kaart');
+			for (var i = 0; i < kaarten.length; i++) {
+				var nr = kaarten[i].querySelector('.momenten-nr');
+				if (nr) { nr.textContent = String(i + 1); }
+			}
+		}
+		hernummer();
+
 		if (toevoegen && tmpl && lijst) {
 			toevoegen.addEventListener('click', function () {
 				var uniek = Date.now();
@@ -19,6 +30,7 @@
 				var kaart = houder.firstElementChild;
 				if (kaart) {
 					lijst.appendChild(kaart);
+					hernummer();
 					kaart.scrollIntoView({ behavior: 'smooth', block: 'center' });
 				}
 			});
@@ -72,16 +84,19 @@
 				e.preventDefault();
 				if (kaart && window.confirm('Dit moment verwijderen?')) {
 					kaart.parentNode.removeChild(kaart);
+					hernummer();
 				}
 			} else if (t.classList.contains('moment-omhoog')) {
 				e.preventDefault();
 				if (kaart && kaart.previousElementSibling) {
 					kaart.parentNode.insertBefore(kaart, kaart.previousElementSibling);
+					hernummer();
 				}
 			} else if (t.classList.contains('moment-omlaag')) {
 				e.preventDefault();
 				if (kaart && kaart.nextElementSibling) {
 					kaart.parentNode.insertBefore(kaart.nextElementSibling, kaart);
+					hernummer();
 				}
 			}
 		});
