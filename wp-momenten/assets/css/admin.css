@@ -1,0 +1,80 @@
+/* Momenten - beheerstijl. */
+
+.momenten-wrap .momenten-uitleg {
+	max-width: 40rem;
+	font-size: 0.95rem;
+}
+.momenten-wrap code {
+	background: #f0f0f1;
+	padding: 0.1rem 0.35rem;
+	border-radius: 0.25rem;
+}
+
+.momenten-kaart {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 0.5rem;
+	padding: 0.5rem 1.25rem 1rem;
+	margin-bottom: 1rem;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.momenten-kaart-kop {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0.5rem 0;
+	border-bottom: 1px solid #f0f0f1;
+	margin-bottom: 0.5rem;
+}
+.momenten-kaart-titel {
+	font-size: 0.95rem;
+}
+.momenten-kaart-knoppen .button-link {
+	margin-left: 0.75rem;
+	text-decoration: none;
+}
+.momenten-kaart-knoppen .moment-verwijder {
+	color: #b32d2e;
+}
+.momenten-kaart .form-table th {
+	width: 180px;
+	font-weight: 500;
+}
+
+/* Inzendingen */
+.momenten-badge {
+	display: inline-block;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 0.15rem 0.55rem;
+	border-radius: 999px;
+}
+.momenten-badge.nieuw {
+	background: #fef3c7;
+	color: #92400e;
+}
+.momenten-badge.verzonden {
+	background: #e3f4e8;
+	color: #216e39;
+}
+.momenten-antwoorden {
+	max-width: 45rem;
+}
+.momenten-antwoord {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 0.5rem;
+	padding: 0.75rem 1rem;
+	margin-bottom: 0.75rem;
+}
+.momenten-antwoord-vraag {
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: #50575e;
+	margin: 0 0 0.35rem;
+}
+.momenten-antwoord-tekst {
+	margin: 0;
+	white-space: pre-wrap;
+	color: #1d2327;
+}
