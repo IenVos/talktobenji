@@ -49,8 +49,6 @@
 	var verzendBezig = false;
 
 	teken();
-	meetEnZetGelijkeHoogte();
-	window.addEventListener('resize', debounce(meetEnZetGelijkeHoogte, 200));
 
 	/* ---------- helpers ---------- */
 
@@ -126,55 +124,6 @@
 			root.appendChild(tekenNavigatie());
 		}
 		// Bewust niet scrollen: de pagina moet blijven staan waar hij staat.
-	}
-
-	// Meet de hoogste stap en geef alle stappen die hoogte, zodat het blok niet
-	// meer krimpt of groeit tussen welkom en de momenten.
-	function meetEnZetGelijkeHoogte() {
-		var breedte = root.clientWidth;
-		if (!breedte) { return; }
-
-		var ouder = root.parentNode || document.body;
-		var meet = el('div', 'mmt-root');
-		meet.style.position = 'absolute';
-		meet.style.left = '-9999px';
-		meet.style.top = '0';
-		meet.style.visibility = 'hidden';
-		meet.style.width = breedte + 'px';
-		if (cfg.fontStack) { meet.style.fontFamily = cfg.fontStack; }
-		ouder.appendChild(meet);
-
-		var max = 0;
-		stappen.forEach(function (id) {
-			// Welkom en de momenten bepalen de hoogte. Het bewaarscherm (met het
-			// overzicht) laten we de hoogte niet opblazen; dat mag zelf hoger zijn.
-			if (id === 'afrond' || id === 'bewaar') { return; }
-			var k = el('div', 'mmt-kaart');
-			k.style.minHeight = '0';
-			if (id === 'welkom') {
-				tekenWelkom(k);
-			} else if (id === 'bewaar') {
-				tekenBewaar(k);
-			} else {
-				tekenMoment(k, momentById(id));
-			}
-			meet.innerHTML = '';
-			meet.appendChild(k);
-			if (k.offsetHeight > max) { max = k.offsetHeight; }
-		});
-
-		ouder.removeChild(meet);
-		if (max > 0) {
-			root.style.setProperty('--mmt-kaart-min', max + 'px');
-		}
-	}
-
-	function debounce(fn, ms) {
-		var t;
-		return function () {
-			clearTimeout(t);
-			t = setTimeout(fn, ms);
-		};
 	}
 
 	function tekenStappenbalk() {

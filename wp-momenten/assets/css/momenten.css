@@ -77,15 +77,12 @@
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Kaart */
+/* Kaart. Hoogte volgt gewoon de inhoud (geen gedwongen vaste hoogte). */
 .mmt-kaart {
 	background: var(--mmt-kaart-bg);
 	border-radius: var(--mmt-radius);
 	padding: 1.4rem 1.5rem;
 	box-shadow: 0 2px 24px rgba(0, 0, 0, 0.08);
-	/* Vaste hoogte zodat elke stap even groot is en het blok niet krimpt/groeit.
-	   De waarde wordt door het script gezet (hoogte van de hoogste stap). */
-	min-height: var(--mmt-kaart-min, 32rem);
 }
 .mmt-titel {
 	font-size: 1.5rem;
@@ -114,26 +111,26 @@
 	margin: 0 0 0.35rem;
 }
 
-/* Oefening-blok */
+/* Oefening: subtiel accent, een dunne lijn langs de bovenkant, geen grijs kader. */
 .mmt-oefening {
-	background: rgba(0, 0, 0, 0.04);
-	border-left: 3px solid var(--mmt-accent);
-	border-radius: 0.6rem;
-	padding: 0.9rem 1.1rem;
-	margin: 1rem 0;
+	background: transparent;
+	border-top: 1px solid var(--mmt-accent);
+	border-radius: 0;
+	padding: 0.85rem 0 0.15rem;
+	margin: 1.25rem 0;
 }
 .mmt-oefening-titel {
 	text-transform: uppercase;
-	letter-spacing: 0.05em;
-	font-size: 0.72rem;
+	letter-spacing: 0.08em;
+	font-size: 0.7rem;
 	font-weight: 700;
 	color: var(--mmt-accent);
 	margin: 0 0 0.4rem;
 }
 .mmt-oefening-tekst {
-	font-size: 0.88rem;
+	font-size: 0.9rem;
 	margin: 0 0 0.4rem;
-	color: #4a5568;
+	color: var(--mmt-zacht);
 }
 
 /* Vraag + invoer */
