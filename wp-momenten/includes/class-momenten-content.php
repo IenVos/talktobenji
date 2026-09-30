@@ -98,7 +98,13 @@ class Momenten_Content {
 			'accent_kleur'        => '#6d84a8',
 			'tekst_kleur'         => '#3d3530',
 			'achtergrond_kleur'   => '#fdf9f4',
+			'achtergrond_transparant' => 0,   // 1 = achtergrond van de website gebruiken.
+			'rand_aan'            => 0,        // 1 = omkadering tonen.
+			'rand_kleur'          => '#6d84a8',
+			'hoek_afronding'      => 20,       // px, afronding van de hoeken.
+			'lettertype'          => 'default', // default = lettertype van de website.
 			'logo_url'            => '',
+			'logo_uitsteken'      => 0,        // 1 = logo mag buiten de rand uitsteken.
 		);
 	}
 

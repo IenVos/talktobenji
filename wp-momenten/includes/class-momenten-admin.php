@@ -282,7 +282,13 @@ class Momenten_Admin {
 							<input type="hidden" name="settings[logo_url]" id="momenten_logo_url" value="<?php echo esc_url( $s['logo_url'] ); ?>">
 							<button type="button" class="button" id="momenten-logo-kies">Afbeelding kiezen</button>
 							<button type="button" class="button" id="momenten-logo-verwijder">Verwijderen</button>
-							<p class="description">Verschijnt bovenaan de gids. Laat leeg voor geen logo.</p>
+							<p class="description">Verschijnt bovenaan de gids, naast de stappen. Laat leeg voor geen logo.</p>
+						</td>
+					</tr>
+					<tr>
+						<th><label>Logo laten uitsteken</label></th>
+						<td>
+							<label><input type="checkbox" name="settings[logo_uitsteken]" value="1" <?php checked( $s['logo_uitsteken'], 1 ); ?>> Het logo iets buiten de rand laten uitsteken</label>
 						</td>
 					</tr>
 				</table>
@@ -340,7 +346,64 @@ class Momenten_Admin {
 					</tr>
 					<tr>
 						<th><label>Achtergrondkleur</label></th>
-						<td><input type="text" name="settings[achtergrond_kleur]" class="regular-text momenten-kleur" value="<?php echo esc_attr( $s['achtergrond_kleur'] ); ?>" placeholder="#fdf9f4"></td>
+						<td>
+							<input type="text" name="settings[achtergrond_kleur]" class="regular-text momenten-kleur" value="<?php echo esc_attr( $s['achtergrond_kleur'] ); ?>" placeholder="#fdf9f4">
+							<p class="description">Wordt niet gebruikt als je hieronder "Achtergrond doorzichtig" aanzet.</p>
+						</td>
+					</tr>
+				</table>
+
+				<h2>Rand &amp; achtergrond</h2>
+				<table class="form-table">
+					<tr>
+						<th><label>Achtergrond doorzichtig</label></th>
+						<td>
+							<label><input type="checkbox" name="settings[achtergrond_transparant]" value="1" <?php checked( $s['achtergrond_transparant'], 1 ); ?>> De achtergrond van de website gebruiken (geen eigen achtergrondkleur)</label>
+						</td>
+					</tr>
+					<tr>
+						<th><label>Rand tonen</label></th>
+						<td>
+							<label><input type="checkbox" name="settings[rand_aan]" value="1" <?php checked( $s['rand_aan'], 1 ); ?>> Een omkadering om de gids tonen</label>
+						</td>
+					</tr>
+					<tr>
+						<th><label>Randkleur</label></th>
+						<td><input type="text" name="settings[rand_kleur]" class="regular-text momenten-kleur" value="<?php echo esc_attr( $s['rand_kleur'] ); ?>" placeholder="#6d84a8"></td>
+					</tr>
+					<tr>
+						<th><label>Afronding hoeken</label></th>
+						<td>
+							<input type="number" min="0" max="40" name="settings[hoek_afronding]" class="small-text" value="<?php echo esc_attr( $s['hoek_afronding'] ); ?>"> px
+							<p class="description">0 = rechte hoeken, hoger = ronder. Standaard 20.</p>
+						</td>
+					</tr>
+				</table>
+
+				<h2>Lettertype</h2>
+				<table class="form-table">
+					<tr>
+						<th><label>Lettertype</label></th>
+						<td>
+							<?php
+							$fonts = array(
+								'default'  => 'Standaard (lettertype van de website)',
+								'serif'    => 'Serif (klassiek, met schreef)',
+								'sans'     => 'Sans-serif (strak, zonder schreef)',
+								'playfair' => 'Playfair Display (elegante serif)',
+								'lora'     => 'Lora (zachte serif)',
+								'poppins'  => 'Poppins (moderne sans)',
+								'nunito'   => 'Nunito (vriendelijke sans)',
+							);
+							$huidig_font = isset( $fonts[ $s['lettertype'] ] ) ? $s['lettertype'] : 'default';
+							?>
+							<select name="settings[lettertype]">
+								<?php foreach ( $fonts as $key => $label ) : ?>
+									<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $huidig_font, $key ); ?>><?php echo esc_html( $label ); ?></option>
+								<?php endforeach; ?>
+							</select>
+							<p class="description">Kies "Standaard" om automatisch het lettertype van je website te gebruiken.</p>
+						</td>
 					</tr>
 				</table>
 
@@ -363,7 +426,15 @@ class Momenten_Admin {
 		$out['accent_kleur']        = sanitize_hex_color( $in['accent_kleur'] ?? '' ) ?: '#6d84a8';
 		$out['tekst_kleur']         = sanitize_hex_color( $in['tekst_kleur'] ?? '' ) ?: '#3d3530';
 		$out['achtergrond_kleur']   = sanitize_hex_color( $in['achtergrond_kleur'] ?? '' ) ?: '#fdf9f4';
+		$out['achtergrond_transparant'] = empty( $in['achtergrond_transparant'] ) ? 0 : 1;
+		$out['rand_aan']            = empty( $in['rand_aan'] ) ? 0 : 1;
+		$out['rand_kleur']          = sanitize_hex_color( $in['rand_kleur'] ?? '' ) ?: '#6d84a8';
+		$out['hoek_afronding']      = max( 0, min( 40, absint( $in['hoek_afronding'] ?? 20 ) ) );
+		$toegestane_fonts          = array( 'default', 'serif', 'sans', 'playfair', 'lora', 'poppins', 'nunito' );
+		$gekozen_font              = sanitize_key( $in['lettertype'] ?? 'default' );
+		$out['lettertype']          = in_array( $gekozen_font, $toegestane_fonts, true ) ? $gekozen_font : 'default';
 		$out['logo_url']            = esc_url_raw( $in['logo_url'] ?? '' );
+		$out['logo_uitsteken']      = empty( $in['logo_uitsteken'] ) ? 0 : 1;
 
 		update_option( Momenten_Content::OPT_SETTINGS, $out );
 	}

@@ -21,6 +21,22 @@
 	root.style.setProperty('--mmt-tekst', cfg.kleuren.tekst);
 	root.style.setProperty('--mmt-bg', cfg.kleuren.achtergrond);
 
+	// Achtergrond doorzichtig (achtergrond van de website) en/of een rand.
+	if (cfg.transparant) {
+		root.style.background = 'transparent';
+	}
+	if (cfg.rand) {
+		root.style.border = '2px solid ' + cfg.randKleur;
+	}
+	// Afronding van de hoeken.
+	if (cfg.radius !== undefined && cfg.radius !== '' && cfg.radius !== null) {
+		root.style.setProperty('--mmt-radius', parseInt(cfg.radius, 10) + 'px');
+	}
+	// Eigen lettertype (leeg = het lettertype van de website gebruiken).
+	if (cfg.fontStack) {
+		root.style.fontFamily = cfg.fontStack;
+	}
+
 	// Antwoorden (met autosave in localStorage).
 	var antwoorden = laadOpgeslagen();
 
@@ -30,6 +46,8 @@
 	var verzendBezig = false;
 
 	teken();
+	meetEnZetGelijkeHoogte();
+	window.addEventListener('resize', debounce(meetEnZetGelijkeHoogte, 200));
 
 	/* ---------- helpers ---------- */
 
@@ -89,18 +107,69 @@
 			tekenMoment(kaart, momentById(sleutel));
 		}
 
+		// Kop: logo aan de zijkant naast de stappenbalk.
+		var kop = el('div', 'mmt-kop' + (cfg.logo ? ' met-logo' : '') + (cfg.logo && cfg.logoUitsteken ? ' uitsteken' : ''));
 		if (cfg.logo) {
 			var logo = el('img', 'mmt-logo');
 			logo.src = cfg.logo;
 			logo.alt = '';
-			root.appendChild(logo);
+			kop.appendChild(logo);
 		}
-		root.appendChild(tekenStappenbalk());
+		kop.appendChild(tekenStappenbalk());
+		root.appendChild(kop);
+
 		root.appendChild(kaart);
 		if (sleutel !== 'afrond') {
 			root.appendChild(tekenNavigatie());
 		}
 		// Bewust niet scrollen: de pagina moet blijven staan waar hij staat.
+	}
+
+	// Meet de hoogste stap en geef alle stappen die hoogte, zodat het blok niet
+	// meer krimpt of groeit tussen welkom en de momenten.
+	function meetEnZetGelijkeHoogte() {
+		var breedte = root.clientWidth;
+		if (!breedte) { return; }
+
+		var ouder = root.parentNode || document.body;
+		var meet = el('div', 'mmt-root');
+		meet.style.position = 'absolute';
+		meet.style.left = '-9999px';
+		meet.style.top = '0';
+		meet.style.visibility = 'hidden';
+		meet.style.width = breedte + 'px';
+		if (cfg.fontStack) { meet.style.fontFamily = cfg.fontStack; }
+		ouder.appendChild(meet);
+
+		var max = 0;
+		stappen.forEach(function (id) {
+			if (id === 'afrond') { return; }
+			var k = el('div', 'mmt-kaart');
+			k.style.minHeight = '0';
+			if (id === 'welkom') {
+				tekenWelkom(k);
+			} else if (id === 'bewaar') {
+				tekenBewaar(k);
+			} else {
+				tekenMoment(k, momentById(id));
+			}
+			meet.innerHTML = '';
+			meet.appendChild(k);
+			if (k.offsetHeight > max) { max = k.offsetHeight; }
+		});
+
+		ouder.removeChild(meet);
+		if (max > 0) {
+			root.style.setProperty('--mmt-kaart-min', max + 'px');
+		}
+	}
+
+	function debounce(fn, ms) {
+		var t;
+		return function () {
+			clearTimeout(t);
+			t = setTimeout(fn, ms);
+		};
 	}
 
 	function tekenStappenbalk() {
