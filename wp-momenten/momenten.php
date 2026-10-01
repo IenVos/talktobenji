@@ -17,10 +17,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Directe toegang blokkeren.
 }
 
-define( 'MOMENTEN_VERSION', '1.7.0' );
+define( 'MOMENTEN_VERSION', '1.8.0' );
 define( 'MOMENTEN_FILE', __FILE__ );
 define( 'MOMENTEN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MOMENTEN_URL', plugin_dir_url( __FILE__ ) );
+
+// "Powered by"-link onderaan de gids. Alleen hier aan/uit te zetten (niet in het
+// beheer, zodat een klant het niet zelf kan weghalen). Zet op false voor een
+// white-label / betaalde klant.
+if ( ! defined( 'MOMENTEN_TOON_BRANDING' ) ) {
+	define( 'MOMENTEN_TOON_BRANDING', true );
+}
+define( 'MOMENTEN_BRANDING_TEKST', 'Powered by NordicFix' );
+define( 'MOMENTEN_BRANDING_URL', 'https://nordicfix.nl' );
 
 require_once MOMENTEN_DIR . 'includes/class-momenten-content.php';
 require_once MOMENTEN_DIR . 'includes/class-momenten-db.php';

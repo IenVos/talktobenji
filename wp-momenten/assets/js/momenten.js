@@ -104,6 +104,17 @@
 			if (sleutel !== 'afrond') {
 				root.appendChild(tekenNavigatie());
 			}
+
+			// Kleine "Powered by"-link onderaan (alleen als die aanstaat).
+			if (cfg.branding && cfg.branding.tekst) {
+				var merk = el('div', 'mmt-branding');
+				var mlink = el('a', null, cfg.branding.tekst);
+				mlink.href = cfg.branding.url || '#';
+				mlink.target = '_blank';
+				mlink.rel = 'noopener';
+				merk.appendChild(mlink);
+				root.appendChild(merk);
+			}
 		}
 
 		function tekenStappenbalk() {

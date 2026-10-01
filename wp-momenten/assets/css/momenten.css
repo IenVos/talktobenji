@@ -281,6 +281,23 @@ textarea.mmt-invoer {
 	color: var(--mmt-flauw);
 }
 
+/* Kleine, ingetogen "Powered by"-link onderaan. */
+.mmt-branding {
+	text-align: center;
+	margin-top: 0.9rem;
+}
+.mmt-branding a {
+	font-size: 0.68rem;
+	color: var(--mmt-flauw);
+	text-decoration: none;
+	opacity: 0.75;
+	transition: opacity 0.15s ease;
+}
+.mmt-branding a:hover {
+	opacity: 1;
+	text-decoration: underline;
+}
+
 @media (max-width: 480px) {
 	.mmt-kaart { padding: 1.25rem; }
 	.mmt-titel { font-size: 1.3rem; }
