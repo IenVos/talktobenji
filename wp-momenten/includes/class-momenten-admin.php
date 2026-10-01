@@ -92,11 +92,22 @@ class Momenten_Admin {
 			echo '<div class="notice notice-success is-dismissible"><p>Teksten opgeslagen.</p></div>';
 		}
 
+		if ( isset( $_POST['momenten_teksten_herstellen'] ) ) {
+			check_admin_referer( 'momenten_teksten' );
+			update_option( Momenten_Content::OPT_CONTENT, Momenten_Content::defaults() );
+			echo '<div class="notice notice-success is-dismissible"><p>Standaardteksten hersteld.</p></div>';
+		}
+
 		$c = Momenten_Content::get_content();
 		?>
 		<div class="wrap momenten-wrap">
 			<h1>Momenten &middot; Teksten</h1>
 			<p class="momenten-uitleg">Hier pas je alle teksten aan die de bezoeker ziet. Plaats de gids op een pagina met de shortcode <code>[momenten]</code>.</p>
+			<form method="post" style="margin:0 0 1em" onsubmit="return confirm('Alle teksten terugzetten naar de standaard? Je eigen wijzigingen gaan dan verloren.');">
+				<?php wp_nonce_field( 'momenten_teksten' ); ?>
+				<button type="submit" name="momenten_teksten_herstellen" class="button">Standaardteksten herstellen</button>
+				<span class="description" style="margin-left:.5em">Zet alle teksten terug naar de meegeleverde versie.</span>
+			</form>
 			<form method="post">
 				<?php wp_nonce_field( 'momenten_teksten' ); ?>
 
