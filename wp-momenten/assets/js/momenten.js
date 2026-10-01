@@ -520,8 +520,7 @@
 		var gidsHouder = el('div', 'mmt-gids-houder');
 		gidsHouder.hidden = true;
 		modal.appendChild(gidsHouder);
-		var modalMerk = maakBranding();
-		if (modalMerk) { modal.appendChild(modalMerk); }
+		// Geen "Powered by" in de pop-up; die staat alleen op de pagina zelf.
 		overlay.appendChild(modal);
 
 		// Kaartje rechtsonder (alleen bij infaden).
