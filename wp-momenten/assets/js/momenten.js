@@ -48,6 +48,18 @@
 		try { window.localStorage.removeItem(OPSLAG); } catch (e) {}
 	}
 
+	// Klein "Powered by"-element (of null als het uitstaat).
+	function maakBranding() {
+		if (!cfg.branding || !cfg.branding.tekst) { return null; }
+		var merk = el('div', 'mmt-branding');
+		var a = el('a', null, cfg.branding.tekst);
+		a.href = cfg.branding.url || '#';
+		a.target = '_blank';
+		a.rel = 'noopener';
+		merk.appendChild(a);
+		return merk;
+	}
+
 	// Zet de kleuren, het lettertype, de hoekafronding en de logo-grootte op een element.
 	function pasThemaToe(elm) {
 		if (cfg.kleuren) {
@@ -104,17 +116,6 @@
 			if (sleutel !== 'afrond') {
 				root.appendChild(tekenNavigatie());
 			}
-
-			// Kleine "Powered by"-link onderaan (alleen als die aanstaat).
-			if (cfg.branding && cfg.branding.tekst) {
-				var merk = el('div', 'mmt-branding');
-				var mlink = el('a', null, cfg.branding.tekst);
-				mlink.href = cfg.branding.url || '#';
-				mlink.target = '_blank';
-				mlink.rel = 'noopener';
-				merk.appendChild(mlink);
-				root.appendChild(merk);
-			}
 		}
 
 		function tekenStappenbalk() {
@@ -158,7 +159,12 @@
 				kaart.appendChild(box);
 			}
 
-			kaart.appendChild(el('p', 'mmt-vraag', m.vraag || ''));
+			if (m.vraag) { kaart.appendChild(el('p', 'mmt-vraag', m.vraag)); }
+
+			if (m.type === 'keuze') {
+				tekenKeuze(kaart, m);
+				return;
+			}
 
 			var ta = el('textarea', 'mmt-invoer');
 			ta.rows = 4;
@@ -174,6 +180,54 @@
 			if (cfg.inspreken && SR) {
 				kaart.appendChild(tekenInspreken(SR, ta, m.id));
 			}
+		}
+
+		function tekenKeuze(kaart, m) {
+			var opties = Array.isArray(m.opties) ? m.opties : [];
+			var sel = Array.isArray(antwoorden[m.id + '__sel']) ? antwoorden[m.id + '__sel'].slice() : [];
+			var meer = !!m.meerkeuze;
+
+			var lijst = el('div', 'mmt-opties');
+			var andersInput = null;
+
+			opties.forEach(function (optie) {
+				var rij = el('label', 'mmt-optie');
+				var inp = document.createElement('input');
+				inp.type = meer ? 'checkbox' : 'radio';
+				inp.name = 'mmt-' + m.id;
+				inp.value = optie;
+				inp.checked = sel.indexOf(optie) !== -1;
+				inp.addEventListener('change', function () { updateKeuze(m, lijst, andersInput); });
+				rij.appendChild(inp);
+				rij.appendChild(el('span', 'mmt-optie-tekst', optie));
+				lijst.appendChild(rij);
+			});
+			kaart.appendChild(lijst);
+
+			if (m.anders) {
+				andersInput = document.createElement('input');
+				andersInput.type = 'text';
+				andersInput.className = 'mmt-invoer mmt-anders';
+				andersInput.placeholder = 'Anders, namelijk...';
+				andersInput.value = antwoorden[m.id + '__anders'] || '';
+				andersInput.addEventListener('input', function () { updateKeuze(m, lijst, andersInput); });
+				kaart.appendChild(andersInput);
+			}
+		}
+
+		function updateKeuze(m, lijst, andersInput) {
+			var gekozen = [];
+			var inputs = lijst.querySelectorAll('input');
+			for (var i = 0; i < inputs.length; i++) {
+				if (inputs[i].checked) { gekozen.push(inputs[i].value); }
+			}
+			var andersText = andersInput ? andersInput.value.trim() : '';
+			antwoorden[m.id + '__sel'] = gekozen;
+			antwoorden[m.id + '__anders'] = andersText;
+			var delen = gekozen.slice();
+			if (andersText) { delen.push('Anders: ' + andersText); }
+			antwoorden[m.id] = delen.join(', ');
+			bewaarOpgeslagen();
 		}
 
 		function tekenInspreken(SR, ta, momentId) {
@@ -387,6 +441,11 @@
 		if (cfg.transparant) { inlineRoot.style.background = 'transparent'; }
 		if (cfg.rand) { inlineRoot.style.border = '2px solid ' + cfg.randKleur; }
 		maakGids(inlineRoot);
+		// "Powered by" onder het kader (buiten de rand).
+		var inlineMerk = maakBranding();
+		if (inlineMerk && inlineRoot.parentNode) {
+			inlineRoot.parentNode.insertBefore(inlineMerk, inlineRoot.nextSibling);
+		}
 	}
 
 	/* ---------- pop-up ---------- */
@@ -461,6 +520,8 @@
 		var gidsHouder = el('div', 'mmt-gids-houder');
 		gidsHouder.hidden = true;
 		modal.appendChild(gidsHouder);
+		var modalMerk = maakBranding();
+		if (modalMerk) { modal.appendChild(modalMerk); }
 		overlay.appendChild(modal);
 
 		// Kaartje rechtsonder (alleen bij infaden).

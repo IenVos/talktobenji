@@ -181,8 +181,9 @@ class Momenten_Admin {
 	private function render_moment_kaart( $i, $m ) {
 		$m = wp_parse_args(
 			$m,
-			array( 'id' => '', 'nav' => '', 'titel' => '', 'intro' => '', 'oefeningTitel' => '', 'oefeningTekst' => '', 'vraag' => '', 'placeholder' => '' )
+			array( 'id' => '', 'nav' => '', 'titel' => '', 'intro' => '', 'oefeningTitel' => '', 'oefeningTekst' => '', 'vraag' => '', 'placeholder' => '', 'type' => 'open', 'opties' => array(), 'meerkeuze' => 0, 'anders' => 0 )
 		);
+		$opties_tekst = is_array( $m['opties'] ) ? implode( "\n", $m['opties'] ) : '';
 		?>
 		<div class="momenten-kaart">
 			<div class="momenten-kaart-kop">
@@ -216,8 +217,27 @@ class Momenten_Admin {
 					<td><input type="text" name="momenten[<?php echo esc_attr( $i ); ?>][vraag]" class="large-text" value="<?php echo esc_attr( $m['vraag'] ); ?>"></td>
 				</tr>
 				<tr>
+					<th>Soort antwoord</th>
+					<td>
+						<select name="momenten[<?php echo esc_attr( $i ); ?>][type]">
+							<option value="open" <?php selected( $m['type'], 'open' ); ?>>Open tekstvak (zelf schrijven)</option>
+							<option value="keuze" <?php selected( $m['type'], 'keuze' ); ?>>Meerkeuze (aanvinken)</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>Opties (bij meerkeuze)</th>
+					<td>
+						<textarea name="momenten[<?php echo esc_attr( $i ); ?>][opties]" rows="5" class="large-text" placeholder="Eén optie per regel"><?php echo esc_textarea( $opties_tekst ); ?></textarea>
+						<p class="description">Eén antwoordoptie per regel. Alleen gebruikt bij meerkeuze.</p>
+						<label style="display:block;margin-top:.4em"><input type="checkbox" name="momenten[<?php echo esc_attr( $i ); ?>][meerkeuze]" value="1" <?php checked( $m['meerkeuze'], 1 ); ?>> Meerdere antwoorden mogelijk</label>
+						<label style="display:block"><input type="checkbox" name="momenten[<?php echo esc_attr( $i ); ?>][anders]" value="1" <?php checked( $m['anders'], 1 ); ?>> Eigen antwoord toestaan ("Anders, namelijk")</label>
+					</td>
+				</tr>
+				<tr>
 					<th>Placeholder invulveld</th>
-					<td><input type="text" name="momenten[<?php echo esc_attr( $i ); ?>][placeholder]" class="regular-text" value="<?php echo esc_attr( $m['placeholder'] ); ?>"></td>
+					<td><input type="text" name="momenten[<?php echo esc_attr( $i ); ?>][placeholder]" class="regular-text" value="<?php echo esc_attr( $m['placeholder'] ); ?>">
+					<p class="description">Alleen bij een open tekstvak.</p></td>
 				</tr>
 			</table>
 		</div>
@@ -255,6 +275,17 @@ class Momenten_Admin {
 				if ( '' === $id ) {
 					$id = 'm' . wp_generate_password( 6, false, false );
 				}
+				// Opties opschonen: één per regel.
+				$opties = array();
+				$ruwe_opties = $m['opties'] ?? '';
+				if ( is_string( $ruwe_opties ) && '' !== trim( $ruwe_opties ) ) {
+					foreach ( preg_split( '/\r\n|\r|\n/', $ruwe_opties ) as $regel ) {
+						$regel = sanitize_text_field( $regel );
+						if ( '' !== trim( $regel ) ) {
+							$opties[] = $regel;
+						}
+					}
+				}
 				// Nummering volgt automatisch de volgorde (1, 2, 3, ...).
 				$momenten[] = array(
 					'id'            => $id,
@@ -265,6 +296,10 @@ class Momenten_Admin {
 					'oefeningTekst' => sanitize_textarea_field( $m['oefeningTekst'] ?? '' ),
 					'vraag'         => $vraag,
 					'placeholder'   => sanitize_text_field( $m['placeholder'] ?? '' ),
+					'type'          => ( 'keuze' === ( $m['type'] ?? 'open' ) ) ? 'keuze' : 'open',
+					'opties'        => $opties,
+					'meerkeuze'     => empty( $m['meerkeuze'] ) ? 0 : 1,
+					'anders'        => empty( $m['anders'] ) ? 0 : 1,
 				);
 			}
 		}

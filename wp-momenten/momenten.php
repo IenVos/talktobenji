@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Directe toegang blokkeren.
 }
 
-define( 'MOMENTEN_VERSION', '1.8.0' );
+define( 'MOMENTEN_VERSION', '1.9.0' );
 define( 'MOMENTEN_FILE', __FILE__ );
 define( 'MOMENTEN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MOMENTEN_URL', plugin_dir_url( __FILE__ ) );

@@ -281,16 +281,52 @@ textarea.mmt-invoer {
 	color: var(--mmt-flauw);
 }
 
-/* Kleine, ingetogen "Powered by"-link onderaan. */
+/* Meerkeuze-opties */
+.mmt-opties {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	margin: 0.25rem 0 0.5rem;
+}
+.mmt-optie {
+	display: flex;
+	align-items: flex-start;
+	gap: 0.6rem;
+	padding: 0.7rem 0.9rem;
+	border-radius: 0.65rem;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	background: #fff;
+	cursor: pointer;
+	transition: border-color 0.15s ease, background 0.15s ease;
+}
+.mmt-optie:hover {
+	border-color: var(--mmt-accent);
+}
+.mmt-optie input {
+	margin-top: 0.15rem;
+	accent-color: var(--mmt-accent);
+	flex-shrink: 0;
+}
+.mmt-optie-tekst {
+	font-size: 0.92rem;
+	color: var(--mmt-tekst);
+	line-height: 1.4;
+}
+.mmt-anders {
+	margin-top: 0.6rem;
+}
+
+/* Kleine, ingetogen "Powered by"-link, onder het kader. */
 .mmt-branding {
 	text-align: center;
-	margin-top: 0.9rem;
+	margin: 0.6rem auto 0;
+	max-width: 40rem;
 }
 .mmt-branding a {
 	font-size: 0.68rem;
-	color: var(--mmt-flauw);
+	color: #9a948c;
 	text-decoration: none;
-	opacity: 0.75;
+	opacity: 0.8;
 	transition: opacity 0.15s ease;
 }
 .mmt-branding a:hover {
