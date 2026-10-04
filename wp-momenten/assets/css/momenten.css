@@ -58,20 +58,27 @@
 .mmt-kop.met-logo .mmt-tabs {
 	justify-content: flex-start;
 }
-.mmt-tab {
-	border: none;
+/* Scoped + belangrijk zodat het Divi-thema de knopjes niet overschrijft. */
+.mmt-root .mmt-tab {
+	-webkit-appearance: none;
+	appearance: none;
+	border: none !important;
 	cursor: pointer;
-	font-size: 0.75rem;
+	font-size: 0.95rem !important;
 	font-weight: 500;
-	padding: 0.35rem 0.75rem;
-	border-radius: 999px;
-	background: rgba(255, 255, 255, 0.7);
-	color: var(--mmt-flauw);
+	font-family: inherit;
+	line-height: 1.2 !important;
+	text-transform: none !important;
+	letter-spacing: normal;
+	padding: 0.5rem 1rem !important;
+	border-radius: 999px !important;
+	background: rgba(255, 255, 255, 0.7) !important;
+	color: var(--mmt-flauw) !important;
 	transition: all 0.15s ease;
 }
-.mmt-tab.actief {
-	background: var(--mmt-accent);
-	color: #fff;
+.mmt-root .mmt-tab.actief {
+	background: var(--mmt-accent) !important;
+	color: #fff !important;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
@@ -138,23 +145,28 @@
 	margin: 1rem 0 0.5rem;
 	color: var(--mmt-tekst);
 }
-.mmt-invoer {
+/* Scoped + belangrijk zodat Divi de invoervelden niet tot een dun gek randje maakt. */
+.mmt-root .mmt-invoer {
 	width: 100%;
-	padding: 0.75rem 1rem;
-	border-radius: 0.75rem;
-	border: 1px solid rgba(0, 0, 0, 0.12);
-	background: #fff;
+	padding: 0.75rem 1rem !important;
+	border-radius: 0.75rem !important;
+	border: 1px solid rgba(0, 0, 0, 0.12) !important;
+	background: #fff !important;
+	box-shadow: none !important;
 	font-size: 0.95rem;
 	font-family: inherit;
 	color: var(--mmt-tekst);
+	line-height: 1.5;
 	resize: vertical;
 	margin-bottom: 0.6rem;
+	-webkit-appearance: none;
+	appearance: none;
 }
-.mmt-invoer:focus {
+.mmt-root .mmt-invoer:focus {
 	outline: none;
-	border-color: var(--mmt-accent);
+	border-color: var(--mmt-accent) !important;
 }
-textarea.mmt-invoer {
+.mmt-root textarea.mmt-invoer {
 	line-height: 1.5;
 	min-height: 150px;
 }
@@ -312,8 +324,12 @@ textarea.mmt-invoer {
 	color: var(--mmt-tekst);
 	line-height: 1.4;
 }
-.mmt-anders {
+/* "Anders, namelijk..." krijgt hetzelfde kaartje als de keuze-opties erboven. */
+.mmt-root .mmt-anders {
 	margin-top: 0.6rem;
+	border: 1px solid rgba(0, 0, 0, 0.1) !important;
+	border-radius: 0.65rem !important;
+	padding: 0.7rem 0.9rem !important;
 }
 
 /* Kleine, ingetogen "Powered by"-link, onder het kader. */
