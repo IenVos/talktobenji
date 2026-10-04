@@ -155,6 +155,7 @@ class Momenten_Content {
 			'popup_titel'         => 'Even stilstaan?',
 			'popup_tekst'         => 'Neem een paar minuten voor jezelf. We lopen samen langs een paar momenten, en je ontvangt een persoonlijke brief.',
 			'popup_knop'          => 'Ja, ik neem even de tijd',
+			'popup_knop_link'     => '',      // leeg = gids opent in de pop-up; een URL = knop linkt naar die pagina.
 			'popup_animatie'      => 'fade',  // fade = infaden, pop = in het midden opkomen.
 			'popup_fit'           => 'cover', // cover = vullend/bijsnijden, contain = passend/volledig.
 			'popup_herhaal_dagen' => 7,       // aantal dagen niet opnieuw tonen; 0 = elke keer.

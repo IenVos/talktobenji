@@ -536,12 +536,12 @@
 			var toastInvite = maakUitnodiging(true);
 			toast.appendChild(toastInvite.wrap);
 			sluitT.addEventListener('click', function () { verbergToast(); onthoud(); });
-			toastInvite.start.addEventListener('click', openGids);
+			toastInvite.start.addEventListener('click', startActie);
 			toastInvite.later.addEventListener('click', function () { verbergToast(); onthoud(); });
 		}
 
 		sluitM.addEventListener('click', function () { verbergModal(); onthoud(); });
-		modalInvite.start.addEventListener('click', openGids);
+		modalInvite.start.addEventListener('click', startActie);
 		modalInvite.later.addEventListener('click', function () { verbergModal(); onthoud(); });
 		overlay.addEventListener('click', function (e) { if (e.target === overlay) { verbergModal(); onthoud(); } });
 		document.addEventListener('keydown', function (e) {
@@ -575,6 +575,16 @@
 			lockScroll(false);
 			window.setTimeout(function () { if (overlay.parentNode) { overlay.parentNode.removeChild(overlay); } }, 340);
 		}
+		// Klik op de knop: is er een knop-link ingesteld, ga dan naar die pagina;
+		// anders opent de gids gewoon in de pop-up zelf.
+		function startActie() {
+			if (p.knopLink) {
+				window.location.href = p.knopLink;
+				return;
+			}
+			openGids();
+		}
+
 		function openGids() {
 			if (isFade) { verbergToast(); }
 			modalInvite.wrap.hidden = true;

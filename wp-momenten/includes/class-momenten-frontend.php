@@ -103,6 +103,7 @@ class Momenten_Frontend {
 				'titel'      => $settings['popup_titel'],
 				'tekst'      => $settings['popup_tekst'],
 				'knop'       => $settings['popup_knop'],
+				'knopLink'   => esc_url_raw( $settings['popup_knop_link'] ),
 			),
 			'branding'    => ( MOMENTEN_TOON_BRANDING && MOMENTEN_BRANDING_TEKST )
 				? array( 'tekst' => MOMENTEN_BRANDING_TEKST, 'url' => esc_url_raw( MOMENTEN_BRANDING_URL ) )

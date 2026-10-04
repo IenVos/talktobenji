@@ -594,6 +594,13 @@ class Momenten_Admin {
 						<th><label>Knoptekst</label></th>
 						<td><input type="text" name="settings[popup_knop]" class="regular-text" value="<?php echo esc_attr( $s['popup_knop'] ); ?>"></td>
 					</tr>
+					<tr>
+						<th><label>Knop-link</label></th>
+						<td>
+							<input type="url" name="settings[popup_knop_link]" class="regular-text" placeholder="https://..." value="<?php echo esc_url( $s['popup_knop_link'] ); ?>">
+							<p class="description">Leeg laten = de gids opent meteen in de pop-up. Vul je hier de URL in van de pagina waar de gids staat, dan gaat de knop naar die pagina.</p>
+						</td>
+					</tr>
 				</table>
 
 				<p><button type="submit" name="momenten_instellingen_opslaan" class="button button-primary">Instellingen opslaan</button></p>
@@ -637,6 +644,7 @@ class Momenten_Admin {
 		$out['popup_titel']         = sanitize_text_field( $in['popup_titel'] ?? '' );
 		$out['popup_tekst']         = sanitize_textarea_field( $in['popup_tekst'] ?? '' );
 		$out['popup_knop']          = sanitize_text_field( $in['popup_knop'] ?? '' );
+		$out['popup_knop_link']     = esc_url_raw( $in['popup_knop_link'] ?? '' );
 
 		update_option( Momenten_Content::OPT_SETTINGS, $out );
 	}
