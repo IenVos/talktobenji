@@ -1,5 +1,10 @@
 /**
  * Notities / dagboek – per gebruiker.
+ *
+ * LET OP: de frontend gebruikt tegenwoordig convex/reflecties.ts (zelfde "notes"-tabel).
+ * Dit bestand is legacy, maar de functies blijven publiek aanroepbaar, dus ze moeten
+ * net als elders eerst de ingelogde identiteit verifiëren (identity.subject), anders kan
+ * iedereen met een userId andermans notities lezen of wijzigen.
  */
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
@@ -7,6 +12,9 @@ import { mutation, query } from "./_generated/server";
 export const listNotes = query({
   args: { userId: v.string(), limit: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) return [];
+
     const notes = await ctx.db
       .query("notes")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -23,6 +31,9 @@ export const createNote = mutation({
     content: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
+
     const now = Date.now();
     return await ctx.db.insert("notes", {
       userId: args.userId,
@@ -42,8 +53,10 @@ export const updateNote = mutation({
     content: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
     const note = await ctx.db.get(args.noteId);
-    if (!note || note.userId !== args.userId) {
+    if (!note || note.userId !== identity.subject) {
       throw new Error("Notitie niet gevonden of geen toegang");
     }
     const now = Date.now();
@@ -58,8 +71,10 @@ export const updateNote = mutation({
 export const deleteNote = mutation({
   args: { noteId: v.id("notes"), userId: v.string() },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity || identity.subject !== args.userId) throw new Error("Niet geautoriseerd");
     const note = await ctx.db.get(args.noteId);
-    if (!note || note.userId !== args.userId) {
+    if (!note || note.userId !== identity.subject) {
       throw new Error("Notitie niet gevonden of geen toegang");
     }
     await ctx.db.delete(args.noteId);
