@@ -10,14 +10,20 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: { slug: string } };
 
+// Keuze-/doorstuurpagina's: routeren bezoekers door de funnel naar de juiste
+// verliestype-LP, zelf geen zoekinstap. Uit de index (wel follow, zodat ze hun
+// linkwaarde doorgeven aan de pagina's waar ze naartoe wijzen).
+const NOINDEX_LP_SLUGS = new Set(["niet-alleen-kiezen", "zij-aan-zij-verliestype"]);
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const forceNoindex = NOINDEX_LP_SLUGS.has(params.slug);
   // Nieuw blok-systeem heeft voorrang.
   const blok = await fetchQuery(api.blokPaginas.getBySlug, { slug: params.slug }).catch(() => null);
   if (blok) {
     return {
       title: blok.pageTitle,
       description: blok.metaDescription || undefined,
-      robots: { index: true, follow: true },
+      robots: { index: !forceNoindex, follow: true },
       alternates: { canonical: `https://www.talktobenji.com/lp/${blok.slug}` },
     };
   }
@@ -26,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: page.pageTitle,
     description: (page as any).metaDescription || undefined,
-    robots: { index: !(page as any).noindex, follow: true },
+    robots: { index: !forceNoindex && !(page as any).noindex, follow: true },
     alternates: { canonical: `https://www.talktobenji.com/lp/${page.slug}` },
   };
 }
