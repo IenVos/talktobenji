@@ -3,6 +3,48 @@ import type { NextRequest } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 
+/**
+ * Functionele pagina's die niets toevoegen in Google (checkout, inloggen,
+ * intake-formulieren, account, bedankt-/betaald-pagina's, privé-links). Die
+ * krijgen een X-Robots-Tag: noindex, zodat ze uit de zoekresultaten blijven en
+ * niet meetellen met dunne/dubbele content. "follow" laat de links wel volgen.
+ */
+function isNoindexPath(path: string): boolean {
+  const exact = new Set([
+    "/inloggen",
+    "/registreren",
+    "/verificeer-email",
+    "/wachtwoord-vergeten",
+    "/wachtwoord-resetten",
+    "/cadeau-inwisselen",
+    "/mijn-gesprekken",
+    "/chat",
+    "/home-concept",
+    "/niet-alleen-a",
+    "/niet-alleen-b",
+    "/niet-alleen-betaald",
+    "/betaald",
+    "/bedankt",
+    "/niet-alleen-nl/betalen",
+    "/niet-alleen-nl/bedankt",
+  ]);
+  if (exact.has(path)) return true;
+  const prefixes = [
+    "/admin",
+    "/account",
+    "/betalen/",
+    "/gesprek/",
+    "/plan/",
+    "/afspraak/",
+    "/kennismaking/",
+    "/niet-alleen/", // onboarding-/programmapagina's; /niet-alleen zelf blijft wel geïndexeerd
+  ];
+  if (prefixes.some((p) => path.startsWith(p))) return true;
+  // Intakeformulieren onder /lp/<type>/kennismaken en blog-previews.
+  if (path.endsWith("/kennismaken") || path.endsWith("/preview")) return true;
+  return false;
+}
+
 /** Normaliseer een pad zoals in convex/redirects.ts (leidende slash, geen trailing slash). */
 function normalizePath(p: string): string {
   if (!p) return "/";
@@ -128,6 +170,11 @@ export async function middleware(request: NextRequest) {
     "frame-ancestors 'none'; object-src 'none'; base-uri 'self';"
   );
   response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
+
+  // Functionele pagina's uit Google houden (zie isNoindexPath).
+  if (isNoindexPath(request.nextUrl.pathname)) {
+    response.headers.set("X-Robots-Tag", "noindex, follow");
+  }
 
   return response;
 }
