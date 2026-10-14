@@ -12,5 +12,14 @@ type PageProps = {
 };
 
 export default function Page({ searchParams }: PageProps) {
-  return <ChatPageClient searchParams={searchParams ?? {}} />;
+  return (
+    <>
+      {/* Server-gerenderde H1 (sr-only): geeft Google en schermlezers context
+          over de chatpagina, zonder de UI te veranderen. Geen verborgen SEO-tekst. */}
+      <h1 className="sr-only">
+        Praat met Benji: een luisterend oor bij verdriet, rouw en eenzaamheid
+      </h1>
+      <ChatPageClient searchParams={searchParams ?? {}} />
+    </>
+  );
 }

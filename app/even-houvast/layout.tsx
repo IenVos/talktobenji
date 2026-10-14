@@ -8,5 +8,15 @@ export const metadata: Metadata = {
 };
 
 export default function EvenHouvastLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {/* Server-gerenderde H1 (sr-only): de gids rendert volledig client-side,
+          waardoor de crawler anders 0 woorden en geen H1 ziet. Dit geeft Google
+          en schermlezers context, zonder de UI te veranderen. */}
+      <h1 className="sr-only">
+        Even Houvast: een gratis gids bij verlies en verdriet
+      </h1>
+      {children}
+    </>
+  );
 }
