@@ -1,7 +1,40 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { api } from "./_generated/api";
 import { checkAdmin } from "./adminAuth";
+
+// Herbruikbaar SEO-gereedschap: patch een blogpost op slug (geen admin-token nodig,
+// draaien via `npx convex run blogPosts:_seoPatchBlog '{...}'`). Voor de systematische
+// optimalisatieronde: meta-description, ankerzinnen (vervangt) en interne links (voegt
+// toe zonder dubbelen). Laat een veld weg om het ongemoeid te laten.
+export const _seoPatchBlog = internalMutation({
+  args: {
+    slug: v.string(),
+    metaDescription: v.optional(v.string()),
+    anchorPhrases: v.optional(v.array(v.string())),
+    internalLinksAdd: v.optional(
+      v.array(v.object({ label: v.string(), slug: v.string() }))
+    ),
+  },
+  handler: async (ctx, args) => {
+    const post = await ctx.db
+      .query("blogPosts")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+    if (!post) throw new Error(`Blog "${args.slug}" niet gevonden.`);
+    const patch: Record<string, unknown> = {};
+    if (args.metaDescription !== undefined) patch.metaDescription = args.metaDescription;
+    if (args.anchorPhrases !== undefined) patch.anchorPhrases = args.anchorPhrases;
+    if (args.internalLinksAdd && args.internalLinksAdd.length) {
+      const bestaand = post.internalLinks ?? [];
+      const slugsAanwezig = new Set(bestaand.map((l) => l.slug));
+      const nieuw = args.internalLinksAdd.filter((l) => !slugsAanwezig.has(l.slug));
+      patch.internalLinks = [...bestaand, ...nieuw];
+    }
+    await ctx.db.patch(post._id, patch);
+    return { slug: args.slug, gepatcht: Object.keys(patch) };
+  },
+});
 
 /** Admin: alle blogposts */
 export const list = query({

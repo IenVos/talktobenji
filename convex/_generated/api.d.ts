@@ -103,6 +103,7 @@ import type * as stripeEvents from "../stripeEvents.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as supportFaq from "../supportFaq.js";
 import type * as testimonials from "../testimonials.js";
+import type * as tmpTipLinks from "../tmpTipLinks.js";
 import type * as trials from "../trials.js";
 import type * as updateAccountShotsSeed from "../updateAccountShotsSeed.js";
 import type * as user from "../user.js";
@@ -210,6 +211,7 @@ declare const fullApi: ApiFromModules<{
   subscriptions: typeof subscriptions;
   supportFaq: typeof supportFaq;
   testimonials: typeof testimonials;
+  tmpTipLinks: typeof tmpTipLinks;
   trials: typeof trials;
   updateAccountShotsSeed: typeof updateAccountShotsSeed;
   user: typeof user;
