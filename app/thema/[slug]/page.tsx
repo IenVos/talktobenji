@@ -1,6 +1,6 @@
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import PillarView, { type AnchorEntry } from "@/components/pillar/PillarView";
 
@@ -36,7 +36,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PillarPage({ params }: Props) {
   const eigenUrl = EIGEN_URL_SLUGS[params.slug];
-  if (eigenUrl) redirect(eigenUrl);
+  // Pillar is permanent verhuisd naar z'n eigen merk-URL: 308 i.p.v. 307,
+  // zodat Google de oude /thema-URL samenvoegt en de linkwaarde meeneemt.
+  if (eigenUrl) permanentRedirect(eigenUrl);
 
   const [pillar, articles] = await Promise.all([
     fetchQuery(api.pillars.getBySlug, { slug: params.slug }).catch(() => null),
