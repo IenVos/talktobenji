@@ -17,6 +17,7 @@ function isNoindexPath(path: string): boolean {
     "/wachtwoord-vergeten",
     "/wachtwoord-resetten",
     "/cadeau-inwisselen",
+    "/even-houvast", // opt-in/lead-funnel (geen content die via Google binnenkomt)
     "/mijn-gesprekken",
     "/chat",
     "/home-concept",
@@ -37,6 +38,7 @@ function isNoindexPath(path: string): boolean {
     "/plan/",
     "/afspraak/",
     "/kennismaking/",
+    "/even-houvast/", // /even-houvast/[type] (huisdier, persoon, scheiding ...): opt-in-funnels per verliestype
     "/niet-alleen/", // onboarding-/programmapagina's; /niet-alleen zelf blijft wel geïndexeerd
   ];
   if (prefixes.some((p) => path.startsWith(p))) return true;
