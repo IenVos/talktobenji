@@ -331,6 +331,30 @@ export const zetCategorie = internalMutation({
   },
 });
 
+// Eenmalige SEO-fix: unieke <title> (pageTitle) per blok-LP zetten.
+// Draaien met: npx convex run blokPaginas:_zetPageTitlesSeo --prod '{...}'
+export const _zetPageTitlesSeo = internalMutation({
+  args: {
+    items: v.array(v.object({ slug: v.string(), pageTitle: v.string() })),
+  },
+  handler: async (ctx, { items }) => {
+    const resultaat: { slug: string; pageTitle: string; ok: boolean }[] = [];
+    for (const { slug, pageTitle } of items) {
+      const p = await ctx.db
+        .query("blokPaginas")
+        .withIndex("by_slug", (q) => q.eq("slug", slug))
+        .first();
+      if (!p) {
+        resultaat.push({ slug, pageTitle, ok: false });
+        continue;
+      }
+      await ctx.db.patch(p._id, { pageTitle });
+      resultaat.push({ slug, pageTitle, ok: true });
+    }
+    return resultaat;
+  },
+});
+
 export const generateUploadUrl = mutation({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
