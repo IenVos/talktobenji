@@ -15,6 +15,13 @@ export const _seoPatchBlog = internalMutation({
     internalLinksAdd: v.optional(
       v.array(v.object({ label: v.string(), slug: v.string() }))
     ),
+    // Volledige nieuwe tekst (vervangt content). Gebruik dit om een sectie toe te
+    // voegen: lees de bestaande content, voeg lokaal de sectie in, en geef het geheel.
+    content: v.optional(v.string()),
+    // FAQ-items toevoegen (voegt toe, slaat bestaande vragen over).
+    faqItemsAdd: v.optional(
+      v.array(v.object({ question: v.string(), answer: v.string() }))
+    ),
   },
   handler: async (ctx, args) => {
     const post = await ctx.db
@@ -25,11 +32,18 @@ export const _seoPatchBlog = internalMutation({
     const patch: Record<string, unknown> = {};
     if (args.metaDescription !== undefined) patch.metaDescription = args.metaDescription;
     if (args.anchorPhrases !== undefined) patch.anchorPhrases = args.anchorPhrases;
+    if (args.content !== undefined) patch.content = args.content;
     if (args.internalLinksAdd && args.internalLinksAdd.length) {
       const bestaand = post.internalLinks ?? [];
       const slugsAanwezig = new Set(bestaand.map((l) => l.slug));
       const nieuw = args.internalLinksAdd.filter((l) => !slugsAanwezig.has(l.slug));
       patch.internalLinks = [...bestaand, ...nieuw];
+    }
+    if (args.faqItemsAdd && args.faqItemsAdd.length) {
+      const bestaand = post.faqItems ?? [];
+      const vragenAanwezig = new Set(bestaand.map((f) => f.question));
+      const nieuw = args.faqItemsAdd.filter((f) => !vragenAanwezig.has(f.question));
+      patch.faqItems = [...bestaand, ...nieuw];
     }
     await ctx.db.patch(post._id, patch);
     return { slug: args.slug, gepatcht: Object.keys(patch) };
