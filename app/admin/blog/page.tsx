@@ -916,6 +916,7 @@ export default function AdminBlogPage() {
                   className={inputClass}
                 >
                   <option value="">— Standaard —</option>
+                  <option value="none">— Uit (geen CTA) —</option>
                   {(ctaBlocks ?? []).map((c: any) => (
                     <option key={c._id} value={c.key}>{c.label || c.key}</option>
                   ))}

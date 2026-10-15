@@ -405,7 +405,7 @@ export default async function BlogPostPreviewPage({ params, searchParams }: Prop
             );
           })()}
 
-          <CtaBlockB data={ctaData} />
+          {post.ctaKey !== "none" && <CtaBlockB data={ctaData} />}
         </article>
       </div>
 

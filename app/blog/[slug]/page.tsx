@@ -497,7 +497,7 @@ export default async function BlogPostPage({ params, searchParams }: Props) {
             {renderContent(post.content, ctaData, ctaMap, anchorData as AnchorEntry[], post.slug, post.pillarSlug ?? null)}
           </div>
 
-          <CtaBlockA data={ctaData} />
+          {post.ctaKey !== "none" && <CtaBlockA data={ctaData} />}
 
           {/* FAQ */}
           {post.faqItems && post.faqItems.filter((f: any) => f.question && f.answer).length > 0 && (
