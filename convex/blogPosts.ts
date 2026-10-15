@@ -10,6 +10,11 @@ import { checkAdmin } from "./adminAuth";
 export const _seoPatchBlog = internalMutation({
   args: {
     slug: v.string(),
+    // SEO-titel = de <title> in Google (CTR-hefboom). Laat `title` (de H1 op de
+    // pagina zelf) met rust tenzij je die ook wilt wijzigen.
+    seoTitle: v.optional(v.string()),
+    title: v.optional(v.string()),
+    focusKeyword: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
     anchorPhrases: v.optional(v.array(v.string())),
     internalLinksAdd: v.optional(
@@ -30,6 +35,9 @@ export const _seoPatchBlog = internalMutation({
       .first();
     if (!post) throw new Error(`Blog "${args.slug}" niet gevonden.`);
     const patch: Record<string, unknown> = {};
+    if (args.seoTitle !== undefined) patch.seoTitle = args.seoTitle;
+    if (args.title !== undefined) patch.title = args.title;
+    if (args.focusKeyword !== undefined) patch.focusKeyword = args.focusKeyword;
     if (args.metaDescription !== undefined) patch.metaDescription = args.metaDescription;
     if (args.anchorPhrases !== undefined) patch.anchorPhrases = args.anchorPhrases;
     if (args.content !== undefined) patch.content = args.content;
