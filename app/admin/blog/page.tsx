@@ -370,7 +370,9 @@ export default function AdminBlogPage() {
       if (r !== 0) return r;
       return (b.publishedAt ?? b.createdAt ?? 0) - (a.publishedAt ?? a.createdAt ?? 0);
     });
-    const q = search.trim().toLowerCase();
+    // Normaliseer: kleine letters, streepjes → spaties, overtollige spaties weg.
+    const norm = (s: string) => s.toLowerCase().replace(/[-_/]+/g, " ").replace(/\s+/g, " ").trim();
+    const queryWords = norm(search).split(" ").filter(Boolean);
     return sorted.filter((p: any) => {
       // Status-filter
       if (filterStatus === "live" && !(p.isLive && !p.archived)) return false;
@@ -379,11 +381,11 @@ export default function AdminBlogPage() {
       if (filterStatus === "redirect" && !redirectBySlug.has(p.slug)) return false;
       // Pillar-filter
       if (filterPillar !== "all" && (filterPillar === "" ? !!p.pillarSlug : p.pillarSlug !== filterPillar)) return false;
-      // Zoekfilter: titel, slug, SEO-titel, focus-keyword en meta
-      if (q) {
-        const hay = [p.title, p.seoTitle, p.slug, p.focusKeyword, p.metaDescription, ...(p.tags ?? [])]
-          .filter(Boolean).join(" ").toLowerCase();
-        if (!hay.includes(q)) return false;
+      // Zoekfilter: elk getypt woord moet ergens voorkomen (titel, slug, SEO-titel,
+      // focus-keyword, meta, tags of ankerzinnen). Streepjes in de slug tellen als spaties.
+      if (queryWords.length) {
+        const hay = norm([p.title, p.seoTitle, p.slug, p.focusKeyword, p.metaDescription, ...(p.tags ?? []), ...(p.anchorPhrases ?? [])].filter(Boolean).join(" "));
+        if (!queryWords.every((w) => hay.includes(w))) return false;
       }
       return true;
     });
