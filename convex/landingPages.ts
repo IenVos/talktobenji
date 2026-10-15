@@ -533,7 +533,7 @@ export const seed = mutation({
         wieIsTitle: "Over de maker",
         wieIsText: "Er Zijn is geschreven door Ien, oprichter van Talk to Benji. Ze zag steeds opnieuw hoe mensen zich terugtrokken — niet omdat ze het niet wilden, maar omdat ze niet wisten hoe. Dit boekje is haar antwoord daarop.",
         finalCtaTitle: "Je hoeft de perfecte woorden niet te hebben. Dat is het goede nieuws.",
-        finalCtaBody: "De persoon die jou nodig heeft, heeft geluk met jou.\n\nEen digitaal boekje van 69 pagina's, direct te downloaden na aankoop. Warm vormgegeven, rustig om te lezen. Inclusief spiekbriefje: één pagina met de kern, los te bewaren op je telefoon of te printen.",
+        finalCtaBody: "De persoon die jou nodig heeft, heeft geluk met jou.\n\nEen digitaal boekje van 68 pagina's, direct te downloaden na aankoop. Warm vormgegeven, rustig om te lezen. Inclusief spiekbriefje: één pagina met de kern, los te bewaren op je telefoon of te printen.",
         footerText: "Gemaakt met zorg, voor mensen die er willen zijn.",
         createdAt: now + 2,
         updatedAt: now + 2,
@@ -664,7 +664,7 @@ export const herschrijfErZijnLp = internalMutation({
       {
         vraag: "Wat krijg ik precies?",
         antwoord:
-          "Een digitaal flipboekje van 69 pagina's, warm vormgegeven en rustig om te lezen. Inclusief een spiekbriefje: één pagina met de kern, die je los op je telefoon kunt bewaren of kunt printen.",
+          "Een digitaal flipboekje van 68 pagina's, warm vormgegeven en rustig om te lezen. Inclusief een spiekbriefje: één pagina met de kern, die je los op je telefoon kunt bewaren of kunt printen.",
       },
       {
         vraag: "Wat kost het?",
@@ -727,7 +727,7 @@ export const herschrijfErZijnLp = internalMutation({
       vragenJson: JSON.stringify(vragen),
       finalCtaTitle: "Je hoeft de perfecte woorden niet te hebben.",
       finalCtaBody:
-        "Misschien gaat het nu met iedereen om je heen goed. Dat is fijn. Maar vroeg of laat kennen we allemaal iemand die door iets heen gaat. En op dat moment wil je niet voor het eerst nadenken over wat je zou moeten zeggen.\n\nDe persoon die jou nodig heeft, heeft geluk met jou.\n\n69 pagina's. Digitaal flipboekje. Inclusief spiekbriefje. Direct te downloaden.",
+        "Misschien gaat het nu met iedereen om je heen goed. Dat is fijn. Maar vroeg of laat kennen we allemaal iemand die door iets heen gaat. En op dat moment wil je niet voor het eerst nadenken over wat je zou moeten zeggen.\n\nDe persoon die jou nodig heeft, heeft geluk met jou.\n\n68 pagina's. Digitaal flipboekje. Inclusief spiekbriefje. Direct te downloaden.",
       trackAds: true,
       updatedAt: Date.now(),
     });
@@ -788,7 +788,7 @@ export const zetErZijnFlipbookBeelden = internalMutation({
     ];
 
     await ctx.db.patch(existing._id, {
-      featureSliderLabel: "69 pagina's, mooi vormgegeven",
+      featureSliderLabel: "68 pagina's, mooi vormgegeven",
       featureSliderTitel: "Een kijkje in het boekje",
       featureSliderSubtitel:
         "Dit is een praktische handreiking voor iedereen die er voor iemand wil zijn, juist op de momenten waarop woorden soms tekortschieten.",
@@ -823,7 +823,7 @@ export const optimaliseerErZijnVoorAds = internalMutation({
       {
         vraag: "Wat krijg ik precies?",
         antwoord:
-          "Een digitaal boekje van 69 pagina's, warm vormgegeven en rustig om te lezen. Inclusief een spiekbriefje: één pagina met de kern, die je los op je telefoon kunt bewaren of kunt printen.",
+          "Een digitaal boekje van 68 pagina's, warm vormgegeven en rustig om te lezen. Inclusief een spiekbriefje: één pagina met de kern, die je los op je telefoon kunt bewaren of kunt printen.",
       },
       {
         vraag: "Wat kost het?",
@@ -855,7 +855,7 @@ export const optimaliseerErZijnVoorAds = internalMutation({
       trackAds: true,
       hideMidCta: false,
       ctaPrijsTekst: "€17, eenmalig",
-      ctaMicroCopy: "69 pagina's, direct te downloaden na aankoop",
+      ctaMicroCopy: "68 pagina's, direct te downloaden na aankoop",
       hideVragen: false,
       faqTitel: "Misschien vraag je je af...",
       vragenJson: JSON.stringify(vragen),

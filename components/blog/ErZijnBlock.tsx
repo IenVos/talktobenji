@@ -10,7 +10,7 @@ const KERNPUNTEN = [
   "Woorden die wél troosten bij verlies, verdriet of eenzaamheid",
   "Wat je beter niet zegt, en wat je in plaats daarvan kunt doen",
   "Een spiekbriefje met zinnen om te sturen of te zeggen",
-  "69 pagina's, direct in je inbox",
+  "68 pagina's, direct in je inbox",
 ];
 
 export function ErZijnBlock() {

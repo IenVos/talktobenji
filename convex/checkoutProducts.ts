@@ -393,7 +393,7 @@ export const _zetErZijnCheckoutKaart = internalMutation({
         "Woorden die wél troosten bij verlies, verdriet of eenzaamheid",
         "Wat je beter niet zegt, en wat je in plaats daarvan kunt doen",
         "Een spiekbriefje met zinnen om te sturen of te zeggen",
-        "69 pagina's, direct in je inbox",
+        "68 pagina's, direct in je inbox",
       ],
       buttonText: "Download het boekje",
       buttonEnabled: true,
@@ -404,6 +404,47 @@ export const _zetErZijnCheckoutKaart = internalMutation({
       updatedAt: Date.now(),
     });
     return { gezet: true, id: product._id };
+  },
+});
+
+/**
+ * Eenmalig: zet "69 pagina" overal om naar "68 pagina" in de live Er Zijn-content
+ * (landingPage + checkout-product(en)). Diepe string-vervanging, raakt verder niets.
+ * Draaien: npx convex run checkoutProducts:_zet68PaginasErZijn
+ */
+export const _zet68PaginasErZijn = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const vervang = (v: any): any => {
+      if (typeof v === "string") return v.split("69 pagina").join("68 pagina");
+      if (Array.isArray(v)) return v.map(vervang);
+      if (v && typeof v === "object") {
+        const o: any = {};
+        for (const k of Object.keys(v)) o[k] = vervang(v[k]);
+        return o;
+      }
+      return v;
+    };
+    const rapport: string[] = [];
+    const lp = await ctx.db
+      .query("landingPages")
+      .withIndex("by_slug", (q) => q.eq("slug", "er-zijn"))
+      .first();
+    if (lp) {
+      const { _id, _creationTime, ...rest } = lp as any;
+      await ctx.db.replace(_id, vervang(rest));
+      rapport.push("landingPage er-zijn");
+    }
+    const producten = await ctx.db
+      .query("checkoutProducts")
+      .withIndex("by_slug", (q) => q.eq("slug", "er-zijn"))
+      .collect();
+    for (const p of producten) {
+      const { _id, _creationTime, ...rest } = p as any;
+      await ctx.db.replace(_id, vervang(rest));
+      rapport.push(`checkout ${_id}`);
+    }
+    return { rapport };
   },
 });
 
