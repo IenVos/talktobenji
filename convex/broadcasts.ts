@@ -485,6 +485,68 @@ export const opslaan = mutation({
   },
 });
 
+/**
+ * Eenmalig: zet de Er Zijn-conceptmail klaar in Losse Mails (status concept), zodat
+ * Ien in de admin alleen nog doelgroep + verzendmoment kiest. Idempotent op subject.
+ * Draaien: npx convex run broadcasts:_zetErZijnConceptMail
+ */
+export const _zetErZijnConceptMail = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const subject = "Ik schreef iets voor de mensen om je heen";
+    const bodyText = [
+      "Hi {voornaam},",
+      "Ik heb iets geschreven voor de mensen om je heen.",
+      "Voor wie het goed bedoelt, maar niet weet hoe. Voor wie iets zegt wat eigenlijk niet helpt. Voor wie stil valt, bang om het verkeerd te doen.",
+      "Het heet Er Zijn.",
+      "[afbeelding]",
+      "En terwijl ik het schreef, merkte ik iets. Het gaat eigenlijk ook over jou.",
+      "Over waarom je moe bent op een manier die je niet kunt uitleggen. Waarom boodschappen doen soms te veel is. Waarom een appje dagen blijft liggen.",
+      "Voor de mensen om je heen staat er dat dit zelden persoonlijk bedoeld is. Dat het overleven is.",
+      "Er staat in waarom “roep maar als je iets nodig hebt” zo weinig doet. Want dan ligt het werk bij jou: jij moet weten wat je nodig hebt, en het dan ook nog vragen.",
+      "Er staat in dat verdriet zomaar terug kan komen, bij een geur, een liedje, een seizoen. En dat dat geen terugval is.",
+      "En er staat in dat elk verlies telt. Ook het verlies waar geen kaart voor bestaat.",
+      "Ik schreef het voor hen. Maar misschien doet het jou goed om het een keer zwart op wit te zien: dat wat jij nodig hebt niet te veel gevraagd is.",
+      "Zeker nu. Over een paar weken begint de tijd waarin iedereen weer samen is.",
+      "Er Zijn is een digitaal boekje van 68 pagina's. Je leest het in je eigen tempo. Het kost 17 euro.",
+      "[knop]",
+      "Je hoeft er niets mee. Je hoeft het aan niemand te geven. Lezen is al genoeg.",
+      "Lieve groet,",
+      "P.S. Ken je iemand die hier iets aan heeft? Stuur deze mail gerust door.",
+    ].join("\n\n");
+
+    const velden = {
+      subject,
+      bodyText,
+      buttonText: "Bekijk Er Zijn",
+      buttonUrl: `${appBase()}/betalen/er-zijn`,
+      imageUrl: `${appBase()}/images/er-zijn-cover-checkout.jpg`,
+      imageCaption: undefined as string | undefined,
+      doelgroep: "lijst",
+      naEvergreen: false,
+      updatedAt: Date.now(),
+    };
+
+    const bestaand = await ctx.db
+      .query("losseMails")
+      .filter((q) => q.eq(q.field("subject"), subject))
+      .first();
+    if (bestaand) {
+      if (bestaand.status === "bezig" || bestaand.status === "verzonden") {
+        return { overgeslagen: `mail al ${bestaand.status}`, id: bestaand._id };
+      }
+      await ctx.db.patch(bestaand._id, velden);
+      return { bijgewerkt: true, id: bestaand._id };
+    }
+    const id = await ctx.db.insert("losseMails", {
+      ...velden,
+      status: "concept",
+      createdAt: Date.now(),
+    });
+    return { aangemaakt: true, id };
+  },
+});
+
 export const verwijderen = mutation({
   args: { adminToken: v.string(), id: v.id("losseMails") },
   handler: async (ctx, args) => {
