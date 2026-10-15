@@ -15,6 +15,8 @@ export const _seoPatchBlog = internalMutation({
     seoTitle: v.optional(v.string()),
     title: v.optional(v.string()),
     focusKeyword: v.optional(v.string()),
+    // CTA-blok onderaan: "none" = geen CTA, "" = standaard, of een CTA-key.
+    ctaKey: v.optional(v.string()),
     metaDescription: v.optional(v.string()),
     anchorPhrases: v.optional(v.array(v.string())),
     internalLinksAdd: v.optional(
@@ -38,6 +40,7 @@ export const _seoPatchBlog = internalMutation({
     if (args.seoTitle !== undefined) patch.seoTitle = args.seoTitle;
     if (args.title !== undefined) patch.title = args.title;
     if (args.focusKeyword !== undefined) patch.focusKeyword = args.focusKeyword;
+    if (args.ctaKey !== undefined) patch.ctaKey = args.ctaKey;
     if (args.metaDescription !== undefined) patch.metaDescription = args.metaDescription;
     if (args.anchorPhrases !== undefined) patch.anchorPhrases = args.anchorPhrases;
     if (args.content !== undefined) patch.content = args.content;
