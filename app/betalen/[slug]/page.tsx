@@ -22,7 +22,6 @@ import { leesBronLp } from "@/components/analytics/bronLp";
 import { EvenHouvastPopup } from "@/components/EvenHouvastPopup";
 import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
 import { RustigeCheckout } from "./RustigeCheckout";
-import { ErZijnFlipbook } from "@/components/ErZijnFlipbook";
 
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
@@ -829,7 +828,18 @@ export default function BetalenPage() {
           priceFormatted={priceFormatted}
           gegevensNode={gegevensNode}
           paymentNode={paymentNode}
-          heroMedia={slug === "er-zijn" ? <ErZijnFlipbook /> : undefined}
+          heroMedia={
+            slug === "er-zijn" ? (
+              <div className="mx-auto w-full" style={{ maxWidth: 560 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/er-zijn-cover-checkout.jpg"
+                  alt="Het boekje Er Zijn"
+                  className="w-full rounded-2xl shadow-lg block"
+                />
+              </div>
+            ) : undefined
+          }
         />
       </>
     );
