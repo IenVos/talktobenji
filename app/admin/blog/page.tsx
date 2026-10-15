@@ -141,6 +141,7 @@ export default function AdminBlogPage() {
   const [editingId, setEditingId] = useState<Id<"blogPosts"> | null>(null);
   const [filterPillar, setFilterPillar] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<"all" | "live" | "concept" | "archief" | "redirect">("all");
+  const [search, setSearch] = useState("");
   const [listPage, setListPage] = useState(0);
   const LIST_PAGE_SIZE = 10;
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -369,6 +370,7 @@ export default function AdminBlogPage() {
       if (r !== 0) return r;
       return (b.publishedAt ?? b.createdAt ?? 0) - (a.publishedAt ?? a.createdAt ?? 0);
     });
+    const q = search.trim().toLowerCase();
     return sorted.filter((p: any) => {
       // Status-filter
       if (filterStatus === "live" && !(p.isLive && !p.archived)) return false;
@@ -376,10 +378,16 @@ export default function AdminBlogPage() {
       if (filterStatus === "archief" && !p.archived) return false;
       if (filterStatus === "redirect" && !redirectBySlug.has(p.slug)) return false;
       // Pillar-filter
-      if (filterPillar === "all") return true;
-      return filterPillar === "" ? !p.pillarSlug : p.pillarSlug === filterPillar;
+      if (filterPillar !== "all" && (filterPillar === "" ? !!p.pillarSlug : p.pillarSlug !== filterPillar)) return false;
+      // Zoekfilter: titel, slug, SEO-titel, focus-keyword en meta
+      if (q) {
+        const hay = [p.title, p.seoTitle, p.slug, p.focusKeyword, p.metaDescription, ...(p.tags ?? [])]
+          .filter(Boolean).join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
     });
-  }, [posts, filterPillar, filterStatus, redirectBySlug]);
+  }, [posts, filterPillar, filterStatus, redirectBySlug, search]);
 
   // Actieve auto-links VANUIT het huidige artikel: ankerzinnen van andere artikelen die in de huidige tekst voorkomen
   const activeAnchorsFromHere = useMemo(() => {
@@ -1590,6 +1598,27 @@ export default function AdminBlogPage() {
               <p className="text-sm text-gray-500 py-4">Nog geen artikelen. Klik op "Voorbeeldartikel laden" om te starten.</p>
             ) : (
               <>
+                {/* Zoekbalk */}
+                <div className="relative mb-3">
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setListPage(0); }}
+                    placeholder="Zoek op titel, slug, keyword of tag…"
+                    className="w-full text-sm border border-gray-200 rounded-lg pl-9 pr-9 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary-300"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => { setSearch(""); setListPage(0); }}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                      title="Zoekopdracht wissen"
+                    >
+                      <X size={15} />
+                    </button>
+                  )}
+                </div>
+
                 {/* Status-tabs */}
                 <div className="flex items-center gap-1.5 mb-3 flex-wrap">
                   {([
