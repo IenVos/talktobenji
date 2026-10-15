@@ -366,6 +366,47 @@ export const zetErZijnCheckoutKaal = internalMutation({
   },
 });
 
+/**
+ * Maak de Er Zijn-checkout herkenbaar als voortzetting van het blog-productblok:
+ * zelfde boek-cover, titel, subtitel, bullets en knoplabel als op de kaart die de
+ * bezoeker net verliet. Vult de hero van de rustige layout. Draaien met:
+ * npx convex run checkoutProducts:_zetErZijnCheckoutKaart
+ */
+export const _zetErZijnCheckoutKaart = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const product = await ctx.db
+      .query("checkoutProducts")
+      .withIndex("by_slug", (q) => q.eq("slug", "er-zijn"))
+      .filter((q) => q.eq(q.field("isLive"), true))
+      .first();
+    if (!product) return { error: "er-zijn niet gevonden" };
+    const rc: any = product.rustigeContent ?? {};
+    const hero = {
+      ...(rc.hero ?? {}),
+      imageStorageId: product.imageStorageId, // de boek-cover, net als op de kaart
+      titel: "Er Zijn",
+      subtitel: "Wat je zegt als je niet weet wat je moet zeggen",
+      intro:
+        "Iemand in je omgeving heeft verdriet, en je wilt er zijn. Maar wat zeg je dan? Dit boekje helpt je op weg.",
+      bullets: [
+        "Woorden die wél troosten bij verlies, verdriet of eenzaamheid",
+        "Wat je beter niet zegt, en wat je in plaats daarvan kunt doen",
+        "Een spiekbriefje met zinnen om te sturen of te zeggen",
+        "69 pagina's, direct in je inbox",
+      ],
+      buttonText: "Download het boekje",
+      buttonEnabled: true,
+    };
+    await ctx.db.patch(product._id, {
+      checkoutLayout: "rustig",
+      rustigeContent: { ...rc, hero },
+      updatedAt: Date.now(),
+    });
+    return { gezet: true, id: product._id };
+  },
+});
+
 /** Verwijder een checkout product (admin only). */
 export const remove = mutation({
   args: {
