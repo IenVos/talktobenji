@@ -22,6 +22,7 @@ import { leesBronLp } from "@/components/analytics/bronLp";
 import { EvenHouvastPopup } from "@/components/EvenHouvastPopup";
 import { useFunnelTracker } from "@/components/analytics/useFunnelTracker";
 import { RustigeCheckout } from "./RustigeCheckout";
+import { ErZijnFlipbook } from "@/components/ErZijnFlipbook";
 
 const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
@@ -828,6 +829,7 @@ export default function BetalenPage() {
           priceFormatted={priceFormatted}
           gegevensNode={gegevensNode}
           paymentNode={paymentNode}
+          heroMedia={slug === "er-zijn" ? <ErZijnFlipbook /> : undefined}
         />
       </>
     );

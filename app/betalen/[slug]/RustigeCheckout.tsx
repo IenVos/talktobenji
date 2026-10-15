@@ -124,11 +124,14 @@ export function RustigeCheckout({
   priceFormatted,
   gegevensNode,
   paymentNode,
+  heroMedia,
 }: {
   product: { name: string; rustigeContent?: RustigeContent | null; reviews?: Review[]; extraTextBlocks?: TextBlock[] };
   priceFormatted: string;
   gegevensNode?: ReactNode;
   paymentNode: ReactNode;
+  // Optioneel: vervangt de hero-foto door eigen media (bijv. het bladerende boekje).
+  heroMedia?: ReactNode;
 }) {
   const rc = product.rustigeContent ?? {};
   // Geen standaardteksten: wat leeg is in de admin blijft leeg. Alleen knoplabels
@@ -164,7 +167,7 @@ export function RustigeCheckout({
           <div className="flex justify-center">
             <Image src="/images/benji-logo-2.png" alt="" width={36} height={36} className="opacity-60" style={{ width: "auto", height: "auto" }} />
           </div>
-          <SectieFoto url={hero.imageUrl} alt={hero.titel ?? product.name} ratio="aspect-[3/2]" />
+          {heroMedia ? heroMedia : <SectieFoto url={hero.imageUrl} alt={hero.titel ?? product.name} ratio="aspect-[3/2]" />}
           <div className={`${FRAME} space-y-4`}>
             <h1 className="text-3xl font-semibold tracking-tight text-balance" style={{ color: KLEUR.titel }}>{hero.titel || product.name}</h1>
             {hero.subtitel?.trim() && (
