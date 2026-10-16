@@ -2,7 +2,7 @@
  * Website analytics – paginabezoeken bijhouden en statistieken ophalen.
  */
 import { v } from "convex/values";
-import { mutation, query, internalQuery } from "./_generated/server";
+import { mutation, query, internalQuery, internalMutation } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import { checkAdmin } from "./adminAuth";
 
@@ -115,6 +115,64 @@ export const deleteOldViews = mutation({
       await ctx.db.delete(view._id);
     }
     return old.length;
+  },
+});
+
+/**
+ * Eenmalige opschoning: verwijder paginabezoeken naar niet-bestaande paden
+ * (404-ruis, bv. bot-scans naar /vacatures, /wp-admin). Een pad is "echt" als
+ * het eerste segment overeenkomt met een route-map onder app/. Alles daarbuiten
+ * is een 404 en wordt verwijderd.
+ * Draai eerst met {"dryRun": true} om te zien wat er weg zou gaan.
+ *   npx convex run siteAnalytics:_verwijder404Bezoeken '{"dryRun": true}'
+ */
+const GELDIGE_ROUTES = new Set([
+  "account", "admin", "afscheid", "afspraak", "algemene-voorwaarden",
+  "alleen-dragen", "api", "bedankt", "benji-nacht", "benji-start", "benji",
+  "betaald", "betalen", "blog", "cadeau-inwisselen", "chat", "contact",
+  "even-houvast", "faq", "gesprek", "home-concept", "houvast", "inloggen",
+  "kennismaking", "lp", "media", "midden-in-de-nacht", "mijn-gesprekken",
+  "na-verlies", "niet-alleen-a", "niet-alleen-b", "niet-alleen-betaald",
+  "niet-alleen-nl", "niet-alleen", "over-ien", "plan", "prijzen", "privacy",
+  "registreren", "talk-to-people", "thema", "verificeer-email", "voor-jou",
+  "waarom-benji", "wachtwoord-resetten", "wachtwoord-vergeten", "wat-kost-benji",
+]);
+
+function isEchtPad(path: string): boolean {
+  if (!path || path === "/") return true;
+  const schoon = path.split("#")[0].split("?")[0];
+  const eerste = schoon.replace(/^\/+/, "").split("/")[0].toLowerCase();
+  if (eerste === "") return true; // "/"
+  return GELDIGE_ROUTES.has(eerste);
+}
+
+export const _verwijder404Bezoeken = internalMutation({
+  args: { dryRun: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    const alle = await ctx.db.query("pageViews").collect();
+    const perPad: Record<string, number> = {};
+    let teVerwijderen = 0;
+    const idsOmTeVerwijderen: typeof alle = [];
+    for (const v of alle) {
+      if (!isEchtPad(v.path)) {
+        perPad[v.path] = (perPad[v.path] ?? 0) + 1;
+        teVerwijderen++;
+        idsOmTeVerwijderen.push(v);
+      }
+    }
+    if (!args.dryRun) {
+      for (const v of idsOmTeVerwijderen) await ctx.db.delete(v._id);
+    }
+    const paden = Object.entries(perPad)
+      .sort((a, b) => b[1] - a[1])
+      .map(([pad, aantal]) => ({ pad, aantal }));
+    return {
+      dryRun: !!args.dryRun,
+      totaalBezoeken: alle.length,
+      verwijderd: args.dryRun ? 0 : teVerwijderen,
+      zouVerwijderen: teVerwijderen,
+      paden,
+    };
   },
 });
 

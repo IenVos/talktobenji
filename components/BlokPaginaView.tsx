@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import "./blokPagina.scoped.css";
 import { EvenHouvastPopup } from "./EvenHouvastPopup";
-import { ErZijnBlock } from "./blog/ErZijnBlock";
 
 /* ── Mini-markdown: **vet** → <b> en [tekst](url) → link (met optionele boldClass) ── */
 function Rich({ text, boldClass }: { text: string; boldClass?: string }) {
@@ -634,19 +633,6 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
             <SecImg src={b.afbeelding} alt={b.kop || ""} />
             {b.knopText && <a className="btn" href={href(b.knopUrl)}>{b.knopText}</a>}
           </div>
-        </div>
-      </section>
-    );
-  }
-
-  if (t === "erzijn") {
-    return (
-      <section key={key} style={sectionStyle(b.achtergrond)}>
-        <div className="wrap">
-          {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
-          {b.titel && <h2 className="sec-h">{b.titel}</h2>}
-          {b.lead && <p className="lead"><Rich text={b.lead} /></p>}
-          <ErZijnBlock />
         </div>
       </section>
     );

@@ -4,6 +4,9 @@ import { HeaderBar } from "@/components/chat/HeaderBar";
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
+      {/* Markering voor de bezoekteller: bij een 404 wordt dit bezoek niet gelogd
+          (PageViewTracker kijkt of dit element in de DOM staat). */}
+      <span id="ttb-404" hidden aria-hidden="true" />
       <HeaderBar />
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-12 text-center">
         <h1 className="text-2xl font-semibold text-gray-900 mb-2">Pagina niet gevonden</h1>

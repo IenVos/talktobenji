@@ -62,6 +62,15 @@ export function PageViewTracker() {
   useEffect(() => {
     if (!ipReady || !sessionIdRef.current) return;
 
+    // Sla 404's over: de niet-gevonden-pagina plaatst een markering in de DOM.
+    // Zo komen niet-bestaande paden (bv. bot-scans naar /vacatures) niet in het
+    // overzicht. De pagina zelf rendert binnen de layout, dus zonder deze check
+    // zou de teller het 404-pad tóch loggen.
+    if (typeof document !== "undefined" && document.getElementById("ttb-404")) {
+      lastPathRef.current = null;
+      return;
+    }
+
     // Reset paginalaadtijd bij elke routewijziging
     pageLoadTimeRef.current = Date.now();
     lastPathRef.current = pathname;

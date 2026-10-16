@@ -41,7 +41,7 @@ export const ACHTERGROND_OPTIES = [
 // Bloktypes die een `achtergrond`-instelling gebruiken (sectionStyle in de renderer).
 export const HEEFT_ACHTERGROND = new Set([
   "herkenning", "kern", "cadence", "stappen", "ditkrijgje",
-  "account", "document", "nietis", "ien", "ervaringen", "faq", "offer", "ehmagnet", "keuze", "prijzen", "erzijn",
+  "account", "document", "nietis", "ien", "ervaringen", "faq", "offer", "ehmagnet", "keuze", "prijzen",
 ]);
 
 // Iconen voor de keuze-kaartjes.
@@ -82,7 +82,6 @@ export const BLOCK_LABELS: Record<string, string> = {
   ehmagnet: "Even Houvast (magnet)",
   keuze: "Keuze (verliestypes)",
   prijzen: "Prijzen (kolommen vergelijken)",
-  erzijn: "Er Zijn (boekje-kaart)",
   offer: "Aanbod (prijs)",
   final: "Slotband + CTA",
 };
@@ -90,7 +89,7 @@ export const BLOCK_LABELS: Record<string, string> = {
 // Volgorde in de "blok toevoegen"-keuzelijst.
 export const BLOCK_TYPES = [
   "header", "hero", "herkenning", "band", "kern", "cadence", "stappen",
-  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "faq", "ehmagnet", "keuze", "prijzen", "erzijn", "offer", "final",
+  "ditkrijgje", "account", "document", "nietis", "ien", "ervaringen", "faq", "ehmagnet", "keuze", "prijzen", "offer", "final",
 ];
 
 export const BLOCK_SCHEMAS: Record<string, Field[]> = {
@@ -321,11 +320,6 @@ export const BLOCK_SCHEMAS: Record<string, Field[]> = {
       ],
     },
     { key: "slot", label: "Slotzin onder de blokken (optioneel)", kind: "text" },
-  ],
-  erzijn: [
-    { key: "eyebrow", label: "Label (klein, boven titel)", kind: "text" },
-    { key: "titel", label: "Titel boven de kaart (optioneel)", kind: "text" },
-    { key: "lead", label: "Inleiding boven de kaart (optioneel)", kind: "textarea", rows: 2 },
   ],
   offer: [
     { key: "introLabel", label: "Introlabel", kind: "text" },

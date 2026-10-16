@@ -8,10 +8,11 @@
  * de oude /lp/er-zijn (landingPages) de ads-LP serveren; pas bij publiceren
  * neemt deze blok-pagina de URL over.
  *
- * De "erzijn"-kaart (bladervideo + prijs + knop) komt uit components/blog/ErZijnBlock.
- * Toon = steuner-hoek (er zijn voor iemand die verdriet heeft), geschikt voor
- * menu + SEO. De mail "het gaat eigenlijk over jou" houdt zijn eigen hoek en
- * linkt hiernaartoe.
+ * Volledig opgebouwd met de NATIVE blok-pagina-blokken (zelfde opmaak als de
+ * andere blok-pagina's): het boekje wordt getoond via de "account"-carousel en
+ * het aanbod via het "offer"-blok. Toon = steuner-hoek (er zijn voor iemand die
+ * verdriet heeft), geschikt voor menu + SEO. De mail "het gaat eigenlijk over
+ * jou" houdt zijn eigen hoek en linkt hiernaartoe.
  */
 import { internalMutation } from "./_generated/server";
 
@@ -79,10 +80,36 @@ const erZijnBlocks = () => [
   },
 
   {
-    key: "erzijn", type: "erzijn",
-    eyebrow: "Het boekje",
-    titel: "Alles bij elkaar, in één boekje",
+    key: "boekje", type: "account", achtergrond: "paper",
+    eyebrow: "Een kijkje in het boekje",
+    titel: "68 pagina's, rustig vormgegeven",
     lead: "Geen theorie, maar dingen die je meteen kunt gebruiken. Met een spiekbriefje voor het moment dat je er even niet uitkomt.",
+    shots: [
+      { img: "/images/er-zijn-spread-0-cover.png", label: "Er Zijn" },
+      { img: "/images/er-zijn-spread-1-binnen.png", label: "Wat er van binnen gebeurt" },
+      { img: "/images/er-zijn-spread-2-nietzeggen.png", label: "Wat je beter niet zegt" },
+      { img: "/images/er-zijn-spread-3-aanwezig.png", label: "Wat wél helpt" },
+      { img: "/images/er-zijn-spread-4-zinnen.png", label: "Zinnen die je kunt gebruiken" },
+      { img: "/images/er-zijn-spread-5-verlies.png", label: "Ook dit is verlies" },
+      { img: "/images/er-zijn-spread-6-spiekbriefje.png", label: "Het spiekbriefje" },
+    ],
+  },
+
+  {
+    key: "aanbod", type: "offer",
+    introLabel: "Het boekje",
+    prijs: "€17",
+    prijsSub: "eenmalig",
+    bullets: [
+      "Woorden die wél troosten bij verdriet, verlies of eenzaamheid",
+      "Wat je beter niet zegt, en wat je in plaats daarvan kunt doen",
+      "Een spiekbriefje met zinnen om te sturen of te zeggen",
+      "68 pagina's, direct in je inbox",
+    ],
+    ctaText: "Download het boekje",
+    ctaUrl: "/betalen/er-zijn",
+    micro: "Geen abonnement, geen kleine lettertjes. Direct te downloaden.",
+    anchor: "boekje",
   },
 
   {
