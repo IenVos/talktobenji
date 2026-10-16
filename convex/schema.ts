@@ -526,6 +526,10 @@ export default defineSchema({
     borderColor: v.optional(v.string()), // randkleur hex, leeg = geen rand
     buttonColor: v.optional(v.string()), // knopkleur hex, bijv. "#6d84a8"
     buttonUrl: v.optional(v.string()),   // URL waar de knop naar linkt, bijv. "/lp/niet-alleen"
+    // Alleen voor de Er Zijn-boekje-kaart (key "er-zijn"): extra velden die de
+    // speciale kaart-opmaak vult. Genegeerd door de standaard CTA-blokken.
+    subtitle: v.optional(v.string()),    // subtitel onder de titel
+    bullets: v.optional(v.array(v.string())), // opsommingspunten in de kaart
     updatedAt: v.number(),
   }).index("by_key", ["key"]),
 

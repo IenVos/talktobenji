@@ -21,6 +21,8 @@ type CtaForm = {
   bgColor: string;
   borderColor: string;
   buttonColor: string;
+  subtitle: string;
+  bullets: string[];
 };
 
 const DEFAULTS: CtaForm = {
@@ -38,6 +40,8 @@ const DEFAULTS: CtaForm = {
   bgColor: "#f5f0eb",
   borderColor: "",
   buttonColor: "#6d84a8",
+  subtitle: "",
+  bullets: [],
 };
 
 const BG_SWATCHES = ["#f5f0eb", "#fef3c7", "#eef2f7", "#f0f4ee", "#fdf4f7", "#f7f4ff", "#ffffff", "#1a1a2e", "#2d3748"];
@@ -180,6 +184,8 @@ export default function CtaAdminPage() {
       bgColor: block.bgColor ?? "#f5f0eb",
       borderColor: block.borderColor ?? "",
       buttonColor: block.buttonColor ?? "#6d84a8",
+      subtitle: block.subtitle ?? "",
+      bullets: block.bullets ?? [],
     });
     setEditingId(block._id);
     setShowForm(true);
@@ -217,6 +223,10 @@ export default function CtaAdminPage() {
         bgColor: form.bgColor || undefined,
         borderColor: form.borderColor || undefined,
         buttonColor: form.buttonColor || undefined,
+        subtitle: form.subtitle.trim() || undefined,
+        bullets: form.bullets.map((b) => b.trim()).filter(Boolean).length
+          ? form.bullets.map((b) => b.trim()).filter(Boolean)
+          : undefined,
       });
       setShowForm(false);
       setEditingId(null);
@@ -313,6 +323,8 @@ export default function CtaAdminPage() {
                     bgColor: block.bgColor ?? "#f5f0eb",
                     borderColor: block.borderColor ?? "",
                     buttonColor: block.buttonColor ?? "#6d84a8",
+                    subtitle: block.subtitle ?? "",
+                    bullets: block.bullets ?? [],
                   }} />
                 </div>
               )}
@@ -375,6 +387,48 @@ export default function CtaAdminPage() {
                 <label className="block text-xs font-medium text-gray-700 mb-1">Bodytekst</label>
                 <textarea value={form.body} onChange={set("body")} rows={3} placeholder="Benji luistert — zonder oordeel..." className={inputClass} />
               </div>
+
+              {/* Extra velden voor de Er Zijn-boekje-kaart (eigen opmaak) */}
+              {form.key === "er-zijn" && (
+                <div className="border border-primary-200 bg-primary-50/40 rounded-lg p-3 space-y-3">
+                  <p className="text-xs font-semibold text-primary-700 uppercase tracking-wide">Er Zijn-kaart</p>
+                  <p className="text-[11px] text-gray-500 -mt-1">Deze kaart heeft z'n eigen opmaak (boekje-beeld + prijs). Kleuren/afbeelding hieronder gelden er niet voor; de prijs komt automatisch uit de checkout.</p>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Subtitel (onder de titel)</label>
+                    <input type="text" value={form.subtitle} onChange={set("subtitle")} placeholder="Wat je zegt als je niet weet wat je moet zeggen" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Opsommingspunten</label>
+                    <div className="space-y-2">
+                      {form.bullets.map((punt, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={punt}
+                            onChange={(e) => setForm((f) => ({ ...f, bullets: f.bullets.map((b, i) => (i === idx ? e.target.value : b)) }))}
+                            className={inputClass}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setForm((f) => ({ ...f, bullets: f.bullets.filter((_, i) => i !== idx) }))}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded shrink-0"
+                            title="Verwijder punt"
+                          >
+                            <Trash size={13} />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, bullets: [...f.bullets, ""] }))}
+                        className="flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-primary-300 rounded-lg text-xs text-primary-600 hover:bg-primary-50"
+                      >
+                        <Plus size={13} /> Punt toevoegen
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Knoptekst</label>

@@ -19,6 +19,48 @@ export const clearPromoFootnotes = internalMutation({
   },
 });
 
+/**
+ * Eenmalig: zet de bewerkbare Er Zijn-boekje-kaart klaar (key "er-zijn") met de
+ * huidige inhoud. De kaart (components/blog/ErZijnBlock) leest voortaan deze
+ * record, zodat Ien de teksten in /admin/cta kan aanpassen. Idempotent.
+ *   npx convex run ctaBlocks:_seedErZijnKaart
+ */
+export const _seedErZijnKaart = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const data = {
+      key: "er-zijn",
+      label: "Er Zijn — boekje-kaart",
+      eyebrow: "Digitaal boekje",
+      title: "Er Zijn",
+      subtitle: "Wat je zegt als je niet weet wat je moet zeggen",
+      body: "Iemand in je omgeving heeft verdriet, en je wilt er zijn. Maar wat zeg je dan? Dit boekje helpt je op weg.",
+      bullets: [
+        "Woorden die wél troosten bij verlies, verdriet of eenzaamheid",
+        "Wat je beter niet zegt, en wat je in plaats daarvan kunt doen",
+        "Een spiekbriefje met zinnen om te sturen of te zeggen",
+        "68 pagina's, direct in je inbox",
+      ],
+      buttonText: "Download het boekje →",
+      buttonUrl: "/betalen/er-zijn",
+      footnote: "Eenmalige aankoop · Direct te downloaden",
+      showImage: false,
+      buttonColor: "#6d84a8",
+      updatedAt: Date.now(),
+    };
+    const bestaand = await ctx.db
+      .query("ctaBlocks")
+      .withIndex("by_key", (q) => q.eq("key", "er-zijn"))
+      .first();
+    if (bestaand) {
+      await ctx.db.patch(bestaand._id, data);
+      return { actie: "bijgewerkt", id: bestaand._id };
+    }
+    const id = await ctx.db.insert("ctaBlocks", data);
+    return { actie: "aangemaakt", id };
+  },
+});
+
 export const list = query({
   args: { adminToken: v.string() },
   handler: async (ctx, args) => {
@@ -76,6 +118,8 @@ export const save = mutation({
     borderColor: v.optional(v.string()),
     buttonColor: v.optional(v.string()),
     buttonUrl: v.optional(v.string()),
+    subtitle: v.optional(v.string()),
+    bullets: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -97,6 +141,8 @@ export const save = mutation({
       borderColor: args.borderColor,
       buttonColor: args.buttonColor,
       buttonUrl: args.buttonUrl,
+      subtitle: args.subtitle,
+      bullets: args.bullets,
       updatedAt: Date.now(),
     };
     if (args.id) {
