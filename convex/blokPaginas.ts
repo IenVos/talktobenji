@@ -317,6 +317,21 @@ export const dupliceerConceptBySlug = internalMutation({
   },
 });
 
+// Publiceren/depubliceren van een blok-pagina (via convex run, geen admin-token).
+//   npx convex run blokPaginas:_zetGepubliceerd '{"slug":"er-zijn","waarde":true}'
+export const _zetGepubliceerd = internalMutation({
+  args: { slug: v.string(), waarde: v.boolean() },
+  handler: async (ctx, { slug, waarde }) => {
+    const p = await ctx.db
+      .query("blokPaginas")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .first();
+    if (!p) throw new Error(`Pagina "${slug}" niet gevonden.`);
+    await ctx.db.patch(p._id, { gepubliceerd: waarde, updatedAt: Date.now() });
+    return { slug, gepubliceerd: waarde };
+  },
+});
+
 // Eenmalig: categorie van een pagina zetten (bv. relatie-pagina naar "product").
 export const zetCategorie = internalMutation({
   args: { slug: v.string(), categorie: v.string() },
