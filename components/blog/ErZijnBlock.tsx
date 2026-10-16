@@ -80,8 +80,8 @@ export function ErZijnBlock() {
         <div className="flex items-center justify-center gap-3">
           <Link
             href={buttonUrl}
-            className="inline-block text-white text-sm font-semibold px-6 py-3 rounded-xl transition-colors"
-            style={{ background: "#6d84a8" }}
+            className="inline-block text-sm font-semibold px-6 py-3 rounded-xl transition-colors"
+            style={{ background: "#6d84a8", color: "#fff", textDecoration: "none" }}
           >
             {buttonText}
           </Link>
