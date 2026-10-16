@@ -43,6 +43,7 @@ const VOOR_JOU_ITEMS = [
 
 const NAV_LINKS = [
   { href: "/lp/zij-aan-zij-verliestype", label: "Zij aan Zij", external: false },
+  { href: "/lp/er-zijn", label: "Er Zijn", external: false },
   { href: "/talk-to-people", label: "T2P", title: "Talk To People", external: false },
   { href: "/inloggen", label: "Inloggen", external: false },
 ];

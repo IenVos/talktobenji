@@ -50,6 +50,7 @@
 
   .bpg /* Hero */
   .hero{padding:3.8rem 0 3.3rem;background:radial-gradient(125% 95% at 50% -12%, var(--accent-wash) 0%, transparent 58%)}
+  .bpg .hero.hero-tight{padding-bottom:.8rem}
   .bpg .hero h1{font-size:clamp(2.15rem,6.4vw,3.4rem);margin-bottom:1.5rem}
   .bpg .hero h1 .soft{color:var(--accent-strong)}
   .bpg .whisper{font-size:1.16rem;color:var(--ink);font-weight:600;margin-top:1.2rem}

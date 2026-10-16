@@ -259,8 +259,11 @@ function renderBlock(b: Block, key: string, href: (u?: string) => string) {
   }
 
   if (t === "hero") {
+    // Zonder knop/feiten onderaan: minder onderste ruimte, zodat het volgende
+    // blok mooi aansluit (anders een groot leeg gat).
+    const heroTight = !b.ctaText && !b.facts;
     return (
-      <div className="hero" key={key}>
+      <div className={"hero" + (heroTight ? " hero-tight" : "")} key={key}>
         <div className="wrap">
           {b.eyebrow && <p className="eyebrow">{b.eyebrow}</p>}
           <h1>{b.titel1}{b.titel2 && <><br /><span className="soft">{b.titel2}</span></>}</h1>
