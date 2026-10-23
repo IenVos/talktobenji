@@ -157,11 +157,14 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
     }
     const naMatch = block.trim().match(/^\[niet-alleen:([^\]]+)\]$/);
     if (naMatch) {
-      const btnColor = naMatch[1] || "#6d84a8";
+      const [rawColor, rawLabel, rawHref] = naMatch[1].split("|");
+      const btnColor = (rawColor || "").trim() || "#6d84a8";
+      const naLabel = (rawLabel || "").trim() || "Ontdek Niet Alleen →";
+      const naHref = (rawHref || "").trim() || "https://www.talktobenji.com/niet-alleen-b";
       return (
         <div key={i} style={{ margin: "28px 0", textAlign: "center" }}>
           <a
-            href="https://www.talktobenji.com/niet-alleen-b"
+            href={naHref}
             style={{
               display: "inline-block",
               background: btnColor,
@@ -173,7 +176,7 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
               textDecoration: "none",
             }}
           >
-            Ontdek Niet Alleen →
+            {naLabel}
           </a>
         </div>
       );
