@@ -41,7 +41,9 @@ export const _seoPatchBlog = internalMutation({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .first();
     if (!post) throw new Error(`Blog "${args.slug}" niet gevonden.`);
-    const patch: Record<string, unknown> = {};
+    // Altijd de bijwerk-datum meebumpen (zoals de gewone admin-opslag), zodat
+    // "Bijgewerkt op" + OG modifiedTime + JSON-LD dateModified meelopen.
+    const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (args.seoTitle !== undefined) patch.seoTitle = args.seoTitle;
     if (args.title !== undefined) patch.title = args.title;
     if (args.focusKeyword !== undefined) patch.focusKeyword = args.focusKeyword;
