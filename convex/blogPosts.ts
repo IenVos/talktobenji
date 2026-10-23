@@ -31,6 +31,9 @@ export const _seoPatchBlog = internalMutation({
     faqItemsAdd: v.optional(
       v.array(v.object({ question: v.string(), answer: v.string() }))
     ),
+    // Korte notitie van wat er in deze SEO-ronde is aangepast. Wordt met een
+    // datumstempel in de admin getoond (badge in de lijst + paneel in de editor).
+    seoNote: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const post = await ctx.db
@@ -58,6 +61,10 @@ export const _seoPatchBlog = internalMutation({
       const vragenAanwezig = new Set(bestaand.map((f) => f.question));
       const nieuw = args.faqItemsAdd.filter((f) => !vragenAanwezig.has(f.question));
       patch.faqItems = [...bestaand, ...nieuw];
+    }
+    if (args.seoNote !== undefined) {
+      patch.seoNote = args.seoNote;
+      patch.seoOptimizedAt = Date.now();
     }
     await ctx.db.patch(post._id, patch);
     return { slug: args.slug, gepatcht: Object.keys(patch) };

@@ -674,6 +674,21 @@ export default function AdminBlogPage() {
               )}
             </div>
 
+            {/* SEO-ronde notitie (read-only, gevuld door het SEO-gereedschap) */}
+            {editingId && (() => {
+              const current = (posts ?? []).find((p: any) => p._id === editingId);
+              if (!current?.seoOptimizedAt) return null;
+              return (
+                <div className="px-3 py-2.5 bg-teal-50 border border-teal-200 rounded-lg">
+                  <p className="text-xs font-semibold text-teal-800 flex items-center gap-1.5">
+                    <Search size={13} />
+                    Laatste SEO-ronde · {new Date(current.seoOptimizedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" })}
+                  </p>
+                  {current.seoNote && <p className="text-xs text-teal-700 mt-1 leading-relaxed">{current.seoNote}</p>}
+                </div>
+              );
+            })()}
+
             {/* Titel + slug */}
             <div>
               <label className={labelClass}>Titel *</label>
@@ -1680,6 +1695,14 @@ export default function AdminBlogPage() {
                               )}
                               {post.kbSynced && (
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">KB ✓</span>
+                              )}
+                              {post.seoOptimizedAt && (
+                                <span
+                                  className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 inline-flex items-center gap-1"
+                                  title={post.seoNote || "SEO-ronde uitgevoerd"}
+                                >
+                                  <Search size={11} /> SEO ✓ {new Date(post.seoOptimizedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}
+                                </span>
                               )}
                               {pillarTitle && (
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 border border-primary-200">
