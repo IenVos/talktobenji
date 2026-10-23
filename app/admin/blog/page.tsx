@@ -109,6 +109,28 @@ function slugify(text: string) {
     .slice(0, 80);
 }
 
+// Tel echte links IN de lopende tekst: handmatige markdown-links naar /blog of /thema
+// (relatief of met volledige talktobenji-URL). Dit is NIET het "Lees ook"-blok.
+const INTERNAL_INLINE_LINK_RE = /\[[^\]]+\]\((?:https?:\/\/(?:www\.)?talktobenji\.com)?\/(?:blog|thema)\/[^)]+\)/g;
+function countManualInlineLinks(content: string): number {
+  return (content.match(INTERNAL_INLINE_LINK_RE) || []).length;
+}
+// Tel auto-links die de blogpagina in de tekst zet: ankerzinnen van andere artikelen
+// (zelfde pillar, of alles als dit artikel geen pillar heeft) die in deze tekst voorkomen.
+function countAutoInlineLinks(post: any, allPosts: any[]): number {
+  const c = (post.content || "").toLowerCase();
+  if (!c) return 0;
+  let n = 0;
+  for (const q of allPosts) {
+    if (q._id === post._id) continue;
+    if (post.pillarSlug && q.pillarSlug !== post.pillarSlug) continue;
+    for (const ph of (q.anchorPhrases ?? [])) {
+      if (ph.trim().length > 3 && c.includes(ph.toLowerCase())) { n++; break; }
+    }
+  }
+  return n;
+}
+
 export default function AdminBlogPage() {
   const { adminToken } = useAdminAuth();
   const convex = useConvex();
@@ -1006,6 +1028,26 @@ export default function AdminBlogPage() {
                 style={{ minHeight: "320px", resize: "none", overflow: "hidden" }}
                 className={inputClass + " font-mono text-xs leading-relaxed rounded-t-none"}
               />
+              {/* Teller: echte interne links IN de lopende tekst (niet het Lees ook-blok) */}
+              {(() => {
+                const manual = countManualInlineLinks(form.content);
+                const auto = activeAnchorsFromHere.length;
+                const total = manual + auto;
+                const tone = total === 0 ? "bg-red-50 border-red-200 text-red-700"
+                  : total === 1 ? "bg-amber-50 border-amber-200 text-amber-800"
+                  : "bg-green-50 border-green-200 text-green-800";
+                return (
+                  <div className={`mt-2 px-3 py-2 rounded-lg border text-xs flex items-start gap-1.5 ${tone}`}>
+                    <LinkIcon size={13} className="mt-0.5 shrink-0" />
+                    <span>
+                      <strong>{total} interne {total === 1 ? "link" : "links"} in de lopende tekst</strong>
+                      {" "}({manual} handmatig, {auto} automatisch via ankerzinnen).
+                      {total === 0 && " Zet minstens één link in de tekst zelf met [tekst](/blog/slug). Het \"Lees ook\"-blok hieronder telt hier niet mee."}
+                      {total === 1 && " Eén is mager voor een artikel — overweeg er nog één."}
+                    </span>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* FAQ */}
@@ -1704,6 +1746,20 @@ export default function AdminBlogPage() {
                                   <Search size={11} /> SEO ✓ {new Date(post.seoOptimizedAt).toLocaleDateString("nl-NL", { day: "numeric", month: "short" })}
                                 </span>
                               )}
+                              {(() => {
+                                const inlineTotal = countManualInlineLinks(post.content || "") + countAutoInlineLinks(post, posts as any[]);
+                                if (inlineTotal === 0) return (
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 inline-flex items-center gap-1" title="Geen enkele interne link in de lopende tekst">
+                                    <LinkIcon size={11} /> 0 links in tekst
+                                  </span>
+                                );
+                                if (inlineTotal === 1) return (
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 inline-flex items-center gap-1" title="Maar 1 interne link in de lopende tekst — kan meer">
+                                    <LinkIcon size={11} /> 1 link in tekst
+                                  </span>
+                                );
+                                return null;
+                              })()}
                               {pillarTitle && (
                                 <span className="text-xs px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 border border-primary-200">
                                   {pillarTitle}
