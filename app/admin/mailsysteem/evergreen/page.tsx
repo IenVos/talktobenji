@@ -39,6 +39,7 @@ type Mail = {
   imageCaption?: string;
   verliesType?: string;
   actief: boolean;
+  geenInhaalVanaf?: number;
 };
 type Blok = {
   _id: string;
@@ -434,6 +435,7 @@ function MailRij({ mail }: { mail: Mail }) {
           <p className="text-xs text-gray-400">
             {typeLabel(mail.verliesType)}
             {!mail.actief ? " · op pauze" : ""}
+            {mail.geenInhaalVanaf != null ? " · geen inhaal" : ""}
           </p>
         </div>
         <button onClick={() => setTestOpen((v) => !v)} className="text-xs px-2 py-1 rounded hover:bg-gray-200 text-gray-600">
@@ -490,6 +492,7 @@ function MailForm({
     imageCaption?: string;
     verliesType?: string;
     actief: boolean;
+    geenInhaal?: boolean;
   }) => Promise<void>;
   onKlaar: () => void;
 }) {
@@ -505,6 +508,7 @@ function MailForm({
   const [imageCaption, setImageCaption] = useState(mail?.imageCaption ?? "");
   const [verliesType, setVerliesType] = useState(mail?.verliesType ?? "");
   const [actief, setActief] = useState(mail?.actief ?? true);
+  const [geenInhaal, setGeenInhaal] = useState(mail?.geenInhaalVanaf != null);
   const [bezig, setBezig] = useState(false);
   const [uploaden, setUploaden] = useState(false);
 
@@ -534,6 +538,7 @@ function MailForm({
         imageCaption,
         verliesType: verliesType || undefined,
         actief,
+        geenInhaal,
       });
     } finally {
       setBezig(false);
@@ -611,6 +616,18 @@ function MailForm({
       <label className="flex items-center gap-2 text-sm text-gray-700">
         <input type="checkbox" checked={actief} onChange={(e) => setActief(e.target.checked)} />
         Mail actief (uit = wordt overgeslagen)
+      </label>
+
+      <label className="flex items-start gap-2 text-sm text-gray-700">
+        <input type="checkbox" className="mt-1" checked={geenInhaal} onChange={(e) => setGeenInhaal(e.target.checked)} />
+        <span>
+          Geen inhaal — alleen wie er nu nog vóór zit
+          <span className="block text-[11px] text-gray-400">
+            Bij opslaan onthouden we dit moment. Alleen leads die nú nog vóór dag {dagOffset} zitten
+            (en nieuwe instroom) krijgen de mail; wie al voorbij dag {dagOffset} is, wordt overgeslagen —
+            geen inhaalmail achteraf.
+          </span>
+        </span>
       </label>
 
       <div className="flex gap-2">

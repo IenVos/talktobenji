@@ -467,6 +467,7 @@ export const mailToevoegen = mutation({
     imageCaption: v.optional(v.string()),
     verliesType: v.optional(v.string()),
     actief: v.optional(v.boolean()),
+    geenInhaal: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -481,6 +482,7 @@ export const mailToevoegen = mutation({
       imageCaption: args.imageCaption?.trim() || undefined,
       verliesType: args.verliesType?.trim() || undefined,
       actief: args.actief ?? true,
+      geenInhaalVanaf: args.geenInhaal ? Date.now() : undefined,
       updatedAt: Date.now(),
     });
     return { ok: true };
@@ -500,9 +502,16 @@ export const mailBijwerken = mutation({
     imageCaption: v.optional(v.string()),
     verliesType: v.optional(v.string()),
     actief: v.boolean(),
+    geenInhaal: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
+    // Ijkmoment bewaren zolang "geen inhaal" aan blijft (niet resetten bij elke
+    // bewerking). Pas een vers ijkmoment bij nieuw inschakelen; uitzetten = wissen.
+    const huidig = await ctx.db.get(args.id);
+    const geenInhaalVanaf = args.geenInhaal
+      ? (huidig?.geenInhaalVanaf ?? Date.now())
+      : undefined;
     await ctx.db.patch(args.id, {
       dagOffset: args.dagOffset,
       subject: args.subject,
@@ -513,6 +522,7 @@ export const mailBijwerken = mutation({
       imageCaption: args.imageCaption?.trim() || undefined,
       verliesType: args.verliesType?.trim() || undefined,
       actief: args.actief,
+      geenInhaalVanaf,
       updatedAt: Date.now(),
     });
     return { ok: true };
@@ -924,9 +934,19 @@ export const _evergreenPlan = internalQuery({
       const alGehad = verzondenDagen.get(`${email}|${leadSpoor}`) ?? new Set<number>();
 
       // Alleen de mails van blokken op het spoor van deze lead.
-      const spoorMails = actieveMails.filter(
-        (m: any) => spoorVan(blokById.get(m.blokId)?.spoor) === leadSpoor
-      );
+      const spoorMails = actieveMails.filter((m: any) => {
+        if (spoorVan(blokById.get(m.blokId)?.spoor) !== leadSpoor) return false;
+        // "Geen inhaal": sla deze mail over voor leads die op het ijkmoment al
+        // voorbij dagOffset waren. Zo krijgt alleen wie er toen nog vóór zat (en
+        // nieuwe instroom) hem, zonder inhaal-blast naar de rest.
+        if (
+          m.geenInhaalVanaf != null &&
+          lead.ingestroomdOp <= m.geenInhaalVanaf - m.dagOffset * DAG_MS
+        ) {
+          return false;
+        }
+        return true;
+      });
 
       // Kies per dagOffset de passende mail (variant voor dit type, anders algemeen).
       // Een dagOffset zonder passende mail is voor deze lead simpelweg geen stap.
@@ -997,6 +1017,14 @@ export const _evergreenCheck = internalQuery({
     if (naProfiel || subs.some((s: any) => (s.pricePaid ?? 0) > 0)) return null;
     if (!mail || !mail.actief) return null;
     if (verzonden.some((v: any) => v.mailId === args.mailId)) return null;
+    // "Geen inhaal": niet (alsnog) versturen aan wie op het ijkmoment al voorbij
+    // dagOffset was. Dubbele zekerheid naast de filter in _evergreenPlan.
+    if (
+      mail.geenInhaalVanaf != null &&
+      lead.ingestroomdOp <= mail.geenInhaalVanaf - mail.dagOffset * DAG_MS
+    ) {
+      return null;
+    }
 
     // De mail moet op het spoor van de lead vallen (spoor zit op het blok).
     const [alleMails, alleBlokken] = await Promise.all([

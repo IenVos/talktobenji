@@ -1051,6 +1051,12 @@ export default defineSchema({
     // sinds de vorige mail. Gebruikt voor de "we zijn er nog"-mail die je alleen aan
     // niet-reagerende leads wilt sturen. Leeg/false = altijd versturen.
     alleenAlsNietTeruggekomen: v.optional(v.boolean()),
+    // "Geen inhaal": timestamp van het moment waarop deze optie is aangezet. Staat
+    // dit gezet, dan krijgt alleen een lead die op DAT moment nog vóór dagOffset zat
+    // (en alle latere instroom) de mail; wie toen al voorbij dagOffset was, wordt
+    // overgeslagen. Voorkomt een inhaal-blast als je een mail/blok (weer) aanzet.
+    // Leeg = normale inhaal (laagste nog-niet-verstuurde mail ≤ huidige dag).
+    geenInhaalVanaf: v.optional(v.number()),
     updatedAt: v.number(),
   })
     .index("by_blok", ["blokId"])
