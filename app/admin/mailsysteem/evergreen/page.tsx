@@ -40,6 +40,8 @@ type Mail = {
   verliesType?: string;
   actief: boolean;
   geenInhaalVanaf?: number;
+  geenBenjiKnop?: boolean;
+  psInTekst?: boolean;
 };
 type Blok = {
   _id: string;
@@ -493,6 +495,8 @@ function MailForm({
     verliesType?: string;
     actief: boolean;
     geenInhaal?: boolean;
+    geenBenjiKnop?: boolean;
+    psInTekst?: boolean;
   }) => Promise<void>;
   onKlaar: () => void;
 }) {
@@ -509,6 +513,8 @@ function MailForm({
   const [verliesType, setVerliesType] = useState(mail?.verliesType ?? "");
   const [actief, setActief] = useState(mail?.actief ?? true);
   const [geenInhaal, setGeenInhaal] = useState(mail?.geenInhaalVanaf != null);
+  const [geenBenjiKnop, setGeenBenjiKnop] = useState(mail?.geenBenjiKnop ?? false);
+  const [psInTekst, setPsInTekst] = useState(mail?.psInTekst ?? false);
   const [bezig, setBezig] = useState(false);
   const [uploaden, setUploaden] = useState(false);
 
@@ -539,6 +545,8 @@ function MailForm({
         verliesType: verliesType || undefined,
         actief,
         geenInhaal,
+        geenBenjiKnop,
+        psInTekst,
       });
     } finally {
       setBezig(false);
@@ -626,6 +634,27 @@ function MailForm({
             Bij opslaan onthouden we dit moment. Alleen leads die nú nog vóór dag {dagOffset} zitten
             (en nieuwe instroom) krijgen de mail; wie al voorbij dag {dagOffset} is, wordt overgeslagen —
             geen inhaalmail achteraf.
+          </span>
+        </span>
+      </label>
+
+      <label className="flex items-start gap-2 text-sm text-gray-700">
+        <input type="checkbox" className="mt-1" checked={geenBenjiKnop} onChange={(e) => setGeenBenjiKnop(e.target.checked)} />
+        <span>
+          Geen "Verder praten met Benji"-knop
+          <span className="block text-[11px] text-gray-400">
+            Laat de standaard Benji-knop in de voettekst weg (voor mails waar die CTA niet past).
+          </span>
+        </span>
+      </label>
+
+      <label className="flex items-start gap-2 text-sm text-gray-700">
+        <input type="checkbox" className="mt-1" checked={psInTekst} onChange={(e) => setPsInTekst(e.target.checked)} />
+        <span>
+          P.S. op zijn plek in de tekst laten
+          <span className="block text-[11px] text-gray-400">
+            Normaal zet de mail elke P.S.-regel automatisch onderaan (ná de handtekening). Vink dit aan
+            als je bewust iets ná de P.S. wil plaatsen — dan blijft de P.S. staan waar je 'm typt.
           </span>
         </span>
       </label>

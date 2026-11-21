@@ -1057,6 +1057,13 @@ export default defineSchema({
     // overgeslagen. Voorkomt een inhaal-blast als je een mail/blok (weer) aanzet.
     // Leeg = normale inhaal (laagste nog-niet-verstuurde mail ≤ huidige dag).
     geenInhaalVanaf: v.optional(v.number()),
+    // Geen "Verder praten met Benji"-knop in de voettekst van deze mail (voor mails
+    // waar die CTA niet past). Leeg/false = standaard wél de knop.
+    geenBenjiKnop: v.optional(v.boolean()),
+    // P.S.-regels op hun eigen plek in de tekst laten staan i.p.v. ze automatisch
+    // onderaan (ná de handtekening) te zetten. Zo kun je bewust iets ná de P.S.
+    // plaatsen. Leeg/false = standaard (P.S. onderaan).
+    psInTekst: v.optional(v.boolean()),
     updatedAt: v.number(),
   })
     .index("by_blok", ["blokId"])

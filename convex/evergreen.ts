@@ -468,6 +468,8 @@ export const mailToevoegen = mutation({
     verliesType: v.optional(v.string()),
     actief: v.optional(v.boolean()),
     geenInhaal: v.optional(v.boolean()),
+    geenBenjiKnop: v.optional(v.boolean()),
+    psInTekst: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -483,6 +485,8 @@ export const mailToevoegen = mutation({
       verliesType: args.verliesType?.trim() || undefined,
       actief: args.actief ?? true,
       geenInhaalVanaf: args.geenInhaal ? Date.now() : undefined,
+      geenBenjiKnop: args.geenBenjiKnop || undefined,
+      psInTekst: args.psInTekst || undefined,
       updatedAt: Date.now(),
     });
     return { ok: true };
@@ -503,6 +507,8 @@ export const mailBijwerken = mutation({
     verliesType: v.optional(v.string()),
     actief: v.boolean(),
     geenInhaal: v.optional(v.boolean()),
+    geenBenjiKnop: v.optional(v.boolean()),
+    psInTekst: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await checkAdmin(ctx, args.adminToken);
@@ -523,6 +529,8 @@ export const mailBijwerken = mutation({
       verliesType: args.verliesType?.trim() || undefined,
       actief: args.actief,
       geenInhaalVanaf,
+      geenBenjiKnop: args.geenBenjiKnop || undefined,
+      psInTekst: args.psInTekst || undefined,
       updatedAt: Date.now(),
     });
     return { ok: true };
@@ -567,10 +575,11 @@ const KNOP_MARKER = /^\[knop\]$/i;
 // render éérst als kaartje afgevangen.
 const BENJI_CTA_RE = /\[[^\]]*benji[^\]]*\]/i;
 
-function inlineAfbeelding(url: string, caption?: string): string {
-  const img = `<img src="${url}" alt="" style="width:100%;max-width:480px;height:auto;border-radius:12px;display:block;margin:0 auto;" />`;
-  const cap = caption ? `<p style="font-size:13px;color:#6b6460;text-align:center;margin:10px 0 0 0;">${caption}</p>` : "";
-  return `<div style="margin:24px 0;">${img}${cap}</div>`;
+function inlineAfbeelding(url: string, caption?: string, linkUrl?: string): string {
+  const img = `<img src="${url}" alt="" style="width:100%;max-width:480px;height:auto;border-radius:12px;display:block;margin:0;" />`;
+  const inner = linkUrl ? `<a href="${linkUrl}" style="text-decoration:none;display:block;">${img}</a>` : img;
+  const cap = caption ? `<p style="font-size:13px;color:#6b6460;text-align:left;margin:10px 0 0 0;">${caption}</p>` : "";
+  return `<div style="margin:24px 0;text-align:left;">${inner}${cap}</div>`;
 }
 function coverBlok(url: string, linkUrl?: string, caption?: string): string {
   const img = `<img src="${url}" alt="" style="max-width:240px;width:100%;height:auto;border-radius:10px;display:block;margin:0 auto;box-shadow:0 4px 18px rgba(0,0,0,0.12);" />`;
@@ -662,6 +671,8 @@ async function bouwEvergreenHtml(
     imageCaption?: string;
     isLaatsteVanBlok: boolean;
     spoor?: string;
+    geenBenjiKnop?: boolean;
+    psInTekst?: boolean;
   }
 ): Promise<string> {
   const body = persoonlijkeBody(args.bodyText, args.naam);
@@ -772,9 +783,9 @@ async function bouwEvergreenHtml(
     if (p === "[[OPDRACHT]]") stukken.push(opdrachtCard);
     else if (p.includes(BENJI_BLOK_MARKER)) stukken.push(blokHtml);
     else if (BENJI_CTA_RE.test(p)) stukken.push(benjiKnopVoor(p));
-    else if (AFBEELDING_MARKER.test(p)) { if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption)); }
+    else if (AFBEELDING_MARKER.test(p)) { if (imageUrl) stukken.push(inlineAfbeelding(imageUrl, imageCaption, knopUrl || undefined)); }
     else if (KNOP_MARKER.test(p)) { if (toonKnop) stukken.push(knopHtml); }
-    else if (isPS(p)) psStukken.push(psStijl(p));
+    else if (isPS(p)) { if (args.psInTekst) stukken.push(psStijl(p)); else psStukken.push(psStijl(p)); }
     else if (i === groetIndex) {
       stukken.push(autoVoorGroet);
       stukken.push(bodyAlinea(p));
@@ -792,7 +803,7 @@ async function bouwEvergreenHtml(
   const benjiKostUrl = isBenjiSpoor ? `${appBase()}/wat-kost-benji` : null;
   // Benji-knop in de footer alleen op het evergreen-spoor (het Benji-spoor gaat al
   // helemaal over Benji). Gebruikt de eerder gegenereerde persoonlijke link.
-  const benjiChatUrl = !isBenjiSpoor && benjiUrl ? benjiUrl : null;
+  const benjiChatUrl = !isBenjiSpoor && benjiUrl && !args.geenBenjiKnop ? benjiUrl : null;
   const [rustUrl, afmeldUrl] = await Promise.all([
     rustUrlVoor(args.email),
     ehAfmeldUrl(args.email, "evergreen", args.type),
@@ -1401,6 +1412,8 @@ export const _verstuurEvergreen = internalAction({
         imageCaption: mail.imageCaption,
         isLaatsteVanBlok: args.isLaatsteVanBlok,
         spoor: check.spoor,
+        geenBenjiKnop: mail.geenBenjiKnop,
+        psInTekst: mail.psInTekst,
       });
       await verstuurEvergreenEmail({
         to: args.email,
@@ -1502,6 +1515,8 @@ export const stuurTestEvergreen = action({
       imageCaption: mail.imageCaption,
       isLaatsteVanBlok: res.isLaatsteVanBlok,
       spoor: res.spoor,
+      geenBenjiKnop: mail.geenBenjiKnop,
+      psInTekst: mail.psInTekst,
     });
     await verstuurEvergreenEmail({
       to: args.email,
