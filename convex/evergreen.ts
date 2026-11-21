@@ -21,7 +21,6 @@ import {
   appBase,
   mailAlinea,
   mailLinks,
-  mailKnop,
   mailWrapper,
   mailHandtekeningIenBenji,
   ehAfmeldUrl,
@@ -575,8 +574,19 @@ const KNOP_MARKER = /^\[knop\]$/i;
 // render éérst als kaartje afgevangen.
 const BENJI_CTA_RE = /\[[^\]]*benji[^\]]*\]/i;
 
+// Zachte, omlijnde knop (doorzichtig met blauwe rand) i.p.v. een volvlak-knop.
+// Links uitgelijnd en bewust niet te groot, passend bij de rustige evergreen-toon.
+function evergreenKnop(tekst: string, url: string): string {
+  return `
+    <div style="margin:22px 0;text-align:left;">
+      <a href="${url}" style="display:inline-block;background:transparent;color:#6d84a8;border:1.5px solid #6d84a8;padding:10px 20px;border-radius:12px;font-weight:600;font-size:15px;text-decoration:none;">
+        ${tekst}
+      </a>
+    </div>`;
+}
+
 function inlineAfbeelding(url: string, caption?: string, linkUrl?: string): string {
-  const img = `<img src="${url}" alt="" style="width:100%;max-width:480px;height:auto;border-radius:12px;display:block;margin:0;" />`;
+  const img = `<img src="${url}" alt="" style="width:100%;max-width:320px;height:auto;border-radius:12px;display:block;margin:0;" />`;
   const inner = linkUrl ? `<a href="${linkUrl}" style="text-decoration:none;display:block;">${img}</a>` : img;
   const cap = caption ? `<p style="font-size:13px;color:#6b6460;text-align:left;margin:10px 0 0 0;">${caption}</p>` : "";
   return `<div style="margin:24px 0;text-align:left;">${inner}${cap}</div>`;
@@ -744,7 +754,7 @@ async function bouwEvergreenHtml(
   const knopTekst = (args.buttonText || "").trim();
   const knopUrl = (args.buttonUrl || "").trim();
   const toonKnop = !!knopTekst && !!knopUrl;
-  const knopHtml = toonKnop ? mailKnop(knopTekst, knopUrl) : "";
+  const knopHtml = toonKnop ? evergreenKnop(knopTekst, knopUrl) : "";
   const coverHtml = imageUrl ? coverBlok(imageUrl, knopUrl || undefined, imageCaption) : "";
   const psStijl = (p: string) => {
     let inner = mailLinks(p);
