@@ -66,7 +66,7 @@ export function ErZijnBlock() {
         <p className="text-base mb-4" style={{ color: "#6d84a8" }}>
           {subtitle}
         </p>
-        <p className="text-sm leading-relaxed mb-5 max-w-lg mx-auto text-center" style={{ color: "#6b6460" }}>
+        <p className="text-sm leading-relaxed mb-5 max-w-lg text-center" style={{ color: "#6b6460", width: "fit-content", marginLeft: "auto", marginRight: "auto" }}>
           {intro
             .split(/(?<=[.?!])\s+/)
             .filter(Boolean)
