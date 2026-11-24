@@ -8,6 +8,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 export const metadata: Metadata = {
   title: "Samen Omgaan met Verdriet en Pijn",
   description: "Een plek waar je steun, begrip en praktische tips vindt om sterker door moeilijke tijden te komen.",
+  alternates: { canonical: "/blog" },
 };
 
 export const revalidate = 60;

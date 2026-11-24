@@ -9,6 +9,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Algemene voorwaarden",
   description: "Algemene voorwaarden van Talk To Benji",
+  alternates: { canonical: "/algemene-voorwaarden" },
 };
 
 type Section = { title: string; body: string };

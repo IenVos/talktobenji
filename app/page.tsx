@@ -7,6 +7,11 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { HouvasteKnop } from "./home-concept/HouvasteKnop";
 import { SiteHeaderConcept } from "./home-concept/SiteHeaderConcept";
 import { FeatureShowcase, type FeatureItem } from "./home-concept/FeatureShowcase";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export const revalidate = 60;
 

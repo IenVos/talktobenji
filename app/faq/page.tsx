@@ -10,6 +10,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Veelgestelde vragen",
   description: "Antwoorden op veelgestelde vragen over Talk To Benji, Benji de AI-chatbot bij verlies en verdriet",
+  alternates: { canonical: "/faq" },
 };
 
 function FaqSection({ title, children }: { title: string; children: React.ReactNode }) {

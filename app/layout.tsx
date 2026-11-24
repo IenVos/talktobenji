@@ -14,6 +14,7 @@ import { AnonymousSessionClaimer } from "@/lib/AnonymousSessionClaimer";
 import { ConsentScripts } from "@/components/ConsentScripts";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.talktobenji.com"),
   title: {
     default: "Talk To Benji | Een luisterend oor bij verdriet en verlies",
     template: "%s",

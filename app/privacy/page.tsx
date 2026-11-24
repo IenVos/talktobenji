@@ -10,6 +10,7 @@ export const revalidate = 60;
 export const metadata: Metadata = {
   title: "Privacy",
   description: "Privacybeleid van Talk To Benji | hoe we met je gegevens omgaan",
+  alternates: { canonical: "/privacy" },
 };
 
 type Section = { title: string; body: string };

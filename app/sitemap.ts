@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: base, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
-    { url: `${base}/prijzen`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.9 },
+    // /prijzen weggelaten: die URL 301't naar /lp/wat-past-bij-jou — een redirect hoort niet in de sitemap.
     { url: `${base}/waarom-benji`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
