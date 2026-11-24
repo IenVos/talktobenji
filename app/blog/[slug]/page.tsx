@@ -14,9 +14,20 @@ export const revalidate = 60;
 
 type Props = { params: { slug: string }; searchParams: { preview?: string } };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = await fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null);
-  if (!post) return { title: "Artikel niet gevonden", robots: { index: false, follow: false } };
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  // Preview-bewust ophalen, zodat concept-previews (met geldig token) hun metadata krijgen
+  // en NIET als 404 eindigen — net als in de pagina zelf.
+  const previewToken = searchParams?.preview;
+  const isValidPreview = !!previewToken && previewToken === process.env.NEXT_PUBLIC_PREVIEW_SECRET;
+  const post = await (
+    isValidPreview
+      ? fetchQuery(api.blogPosts.getBySlugAdmin, { slug: params.slug }).catch(() => null)
+      : fetchQuery(api.blogPosts.getBySlug, { slug: params.slug }).catch(() => null)
+  );
+  // Niet-bestaand artikel: notFound() hier aanroepen (in generateMetadata, vóór het streamen)
+  // geeft een echte HTTP 404. Deden we dit pas in de pagina, dan was de respons al aan het
+  // streamen door de root-<Suspense> in layout.tsx en bleef de status op 200 hangen (soft-404).
+  if (!post) notFound();
   return {
     title: post.seoTitle || post.title,
     description: post.metaDescription || post.excerpt || undefined,

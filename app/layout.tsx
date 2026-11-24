@@ -125,18 +125,25 @@ export default function RootLayout({
         <ErrorBoundary>
           <SessionProvider>
             <ConvexClientProvider>
-              <Suspense fallback={<div className="min-h-screen" aria-hidden="true" />}>
-                <AboutModalProvider>
-                  <ProfessionalHelpProvider>
+              <AboutModalProvider>
+                <ProfessionalHelpProvider>
+                  {/* Alleen de componenten die useSearchParams/usePathname gebruiken
+                      (PageViewTracker, LayoutMenu) zitten in deze Suspense-grens. {children}
+                      staat er BEWUST buiten. Wikkelde deze grens ook {children}, dan streamde
+                      ELKE pagina via de CSR-bailout van die hooks — inclusief de not-found-render,
+                      waardoor de HTTP-status op 200 bleef hangen (soft-404). Buiten de grens kan
+                      notFound() een echte 404 zetten. Pagina's die zelf useSearchParams gebruiken
+                      hebben hun eigen Suspense-grens (bijv. /even-houvast). */}
+                  <Suspense fallback={null}>
                     <PageViewTracker />
-                    <AnonymousSessionClaimer />
                     <LayoutMenu />
-                    {children}
-                    <CookieConsentBanner />
-                    <ConnectionBanner />
-                  </ProfessionalHelpProvider>
-                </AboutModalProvider>
-              </Suspense>
+                  </Suspense>
+                  <AnonymousSessionClaimer />
+                  {children}
+                  <CookieConsentBanner />
+                  <ConnectionBanner />
+                </ProfessionalHelpProvider>
+              </AboutModalProvider>
             </ConvexClientProvider>
           </SessionProvider>
         </ErrorBoundary>
