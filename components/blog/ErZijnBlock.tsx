@@ -65,7 +65,14 @@ export function ErZijnBlock() {
           {subtitle}
         </p>
         <p className="text-sm leading-relaxed mb-5 max-w-lg mx-auto" style={{ color: "#6b6460" }}>
-          {intro}
+          {intro
+            .split(/(?<=[.?!])\s+/)
+            .filter(Boolean)
+            .map((line: string, i: number) => (
+              <span key={i} className="block">
+                {line}
+              </span>
+            ))}
         </p>
 
         <ul className="space-y-2 mb-6 text-left max-w-md mx-auto">
@@ -89,7 +96,7 @@ export function ErZijnBlock() {
             {prijs}
           </span>
         </div>
-        <p className="text-xs mt-3" style={{ color: "#a08c78" }}>
+        <p className="text-xs text-center mt-5" style={{ color: "#a08c78" }}>
           {card?.footnote || "Eenmalige aankoop · Direct te downloaden"}
         </p>
       </div>
