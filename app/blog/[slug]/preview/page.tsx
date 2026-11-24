@@ -192,10 +192,10 @@ function renderContent(content: string, ctaData?: any, ctaMap?: Map<string, any>
       // eslint-disable-next-line @next/next/no-img-element
       return <img key={i} src={imgMatch[2]} alt={imgMatch[1]} className="w-full rounded-xl my-6" />;
     }
-    if (block.startsWith("### ")) return <h4 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h4>;
+    if (block.startsWith("### ")) return <h3 key={i} className="text-lg font-semibold text-stone-800 mt-5 mb-2">{block.slice(4)}</h3>;
     if (block.startsWith("## ")) {
       const text = block.slice(3);
-      return <h3 key={i} id={headingId(text)} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{text}</h3>;
+      return <h2 key={i} id={headingId(text)} className="text-xl font-semibold text-stone-800 mt-6 mb-2">{text}</h2>;
     }
     if (block.startsWith("# ")) return <h2 key={i} className="text-2xl font-bold text-stone-800 mt-8 mb-3">{block.slice(2)}</h2>;
     const lines = block.split("\n").filter(Boolean);
