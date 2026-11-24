@@ -19,7 +19,7 @@ const DEFAULT = {
     "Een spiekbriefje met zinnen om te sturen of te zeggen",
     "68 pagina's, direct in je inbox",
   ],
-  buttonText: "Download het boekje →",
+  buttonText: "Download Er Zijn",
   buttonUrl: "/betalen/er-zijn",
 };
 
@@ -36,12 +36,14 @@ export function ErZijnBlock() {
   const buttonText = card?.buttonText || DEFAULT.buttonText;
   const buttonUrl = card?.buttonUrl || DEFAULT.buttonUrl;
 
+  const cents = product?.priceInCents ?? 1700;
   const prijs =
-    product?.priceInCents != null
-      ? new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(
-          product.priceInCents / 100,
-        )
-      : "€17,00";
+    cents % 100 === 0
+      ? `€ ${cents / 100},-`
+      : new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }).format(cents / 100);
+
+  // Pijl zit los aan het eind van de knop, dus haal 'm uit het label weg.
+  const label = buttonText.replace(/\s*→\s*$/, "");
 
   return (
     <div className="my-10 rounded-2xl overflow-hidden border" style={{ background: "#faf7f4", borderColor: "#e8e1d9" }}>
@@ -65,14 +67,7 @@ export function ErZijnBlock() {
           {subtitle}
         </p>
         <p className="text-sm leading-relaxed mb-5 max-w-lg mx-auto" style={{ color: "#6b6460" }}>
-          {intro
-            .split(/(?<=[.?!])\s+/)
-            .filter(Boolean)
-            .map((line: string, i: number) => (
-              <span key={i} className="block">
-                {line}
-              </span>
-            ))}
+          {intro}
         </p>
 
         <ul className="space-y-2 mb-6 text-left max-w-md mx-auto">
@@ -84,19 +79,20 @@ export function ErZijnBlock() {
           ))}
         </ul>
 
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex justify-center">
           <Link
             href={buttonUrl}
-            className="inline-block text-sm font-semibold px-6 py-3 rounded-xl transition-colors"
+            className="inline-flex items-center gap-3 text-sm font-semibold px-6 py-3 rounded-xl transition-colors"
             style={{ background: "#6d84a8", color: "#fff", textDecoration: "none" }}
           >
-            {buttonText}
+            <span>{label}</span>
+            <span className="pl-3" style={{ borderLeft: "1px solid rgba(255,255,255,0.35)" }}>
+              {prijs}
+            </span>
+            <span aria-hidden="true">→</span>
           </Link>
-          <span className="text-base font-semibold" style={{ color: "#3d3530" }}>
-            {prijs}
-          </span>
         </div>
-        <p className="text-xs text-center mt-5" style={{ color: "#a08c78" }}>
+        <p className="text-xs text-center mt-6" style={{ color: "#a08c78" }}>
           {card?.footnote || "Eenmalige aankoop · Direct te downloaden"}
         </p>
       </div>
