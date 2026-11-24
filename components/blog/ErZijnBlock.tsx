@@ -66,8 +66,15 @@ export function ErZijnBlock() {
         <p className="text-base mb-4" style={{ color: "#6d84a8" }}>
           {subtitle}
         </p>
-        <p className="text-sm leading-relaxed mb-5 max-w-lg mx-auto" style={{ color: "#6b6460" }}>
-          {intro}
+        <p className="text-sm leading-relaxed mb-5 max-w-lg mx-auto text-center" style={{ color: "#6b6460" }}>
+          {intro
+            .split(/(?<=[.?!])\s+/)
+            .filter(Boolean)
+            .map((line: string, i: number) => (
+              <span key={i} className="block">
+                {line}
+              </span>
+            ))}
         </p>
 
         <ul className="space-y-2 mb-6 text-left max-w-md mx-auto">
