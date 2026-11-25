@@ -17,7 +17,7 @@ export function AuthorCard() {
           className="w-9 h-9 rounded-full object-cover flex-shrink-0"
         />
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-semibold text-stone-800">Ien</span>
+          <Link href="/over-ien" className="text-sm font-semibold text-stone-800 hover:text-primary-700 hover:underline">Ien</Link>
           <span className="text-stone-300 text-xs">·</span>
           <span className="text-xs text-stone-500">Founder van Talk To Benji</span>
           <span className="text-stone-300 text-xs">·</span>

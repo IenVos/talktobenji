@@ -22,14 +22,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/algemene-voorwaarden`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  const pillarPages: MetadataRoute.Sitemap = (pillars as any[]).map((p) => ({
+  // "waarom-benji" is geen echte themapagina: /thema/waarom-benji 308't naar /waarom-benji.
+  // Die redirect hoort niet in de sitemap, dus die pillar hier uitfilteren.
+  const sitemapPillars = (pillars as any[]).filter((p) => p.slug !== "waarom-benji");
+
+  const pillarPages: MetadataRoute.Sitemap = sitemapPillars.map((p) => ({
     url: `${base}/thema/${p.slug}`,
     lastModified: new Date(p.updatedAt),
     changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
 
-  const pillarArtikelenPages: MetadataRoute.Sitemap = (pillars as any[]).map((p) => ({
+  const pillarArtikelenPages: MetadataRoute.Sitemap = sitemapPillars.map((p) => ({
     url: `${base}/thema/${p.slug}/artikelen`,
     lastModified: new Date(p.updatedAt),
     changeFrequency: "weekly" as const,

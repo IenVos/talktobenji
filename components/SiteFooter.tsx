@@ -19,6 +19,9 @@ export function SiteFooter({ variant, compact }: { variant?: "light" | "dark"; c
             <Link href="/blog" className="text-xs text-white/50 hover:text-white/80 transition-colors">
               Blog
             </Link>
+            <Link href="/over-ien" className="text-xs text-white/50 hover:text-white/80 transition-colors">
+              Over Ien
+            </Link>
             <ErvaringenTrigger className="text-xs text-white/50 hover:text-white/80 transition-colors cursor-pointer">
               Ervaringen
             </ErvaringenTrigger>
